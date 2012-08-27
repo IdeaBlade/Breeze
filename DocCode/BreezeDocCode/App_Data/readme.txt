@@ -1,0 +1,1 @@
+Text document is necessary so Visual Studio will publish the folder.

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{htmlTitle}}</title>
+    <link rel="stylesheet" href="{{yuiGridsUrl}}">
+<!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
+-->    
+	<link rel="stylesheet" href="{{projectAssets}}/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="{{projectAssets}}/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="{{projectAssets}}/favicon.png">
+    <script src="{{yuiSeedUrl}}"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="wrap">
+
+<div id="doc">
+<!-- commenting out until beta goes live
+<div class="logo">
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	</div>
+-->
+    <div class="primary-nav">
+	<ul>
+		<li>
+			<a href="/home">Home</a></li>
+		<li>
+			<a href="https://github.com/" target="_blank">Download</a></li>
+		<li>
+			<a href="/samples">Samples</a></li>
+		<li>
+			<a href="/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+		<li>
+			<a href="/contact">Contact</a></li>
+	</ul>
+</div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                {{>sidebar}}
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+            {{>options}}
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        {{>layout_content}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="primary-nav-foot">
+	<ul>
+		<li>
+			<a href="/home">Home</a></li>
+		<li>
+			<a href="https://github.com/" target="_blank">Download</a></li>
+		<li>
+			<a href="/samples">Samples</a></li>
+		<li>
+			<a href="/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+		<li>
+			<a href="/contact">Contact</a></li>
+	</ul>
+</div>
+</div>
+</div>
+<script src="{{projectAssets}}/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="{{projectAssets}}/js/yui-prettify.js"></script>
+<script src="{{projectAssets}}/../api.js"></script>
+<script src="{{projectAssets}}/js/api-filter.js"></script>
+<script src="{{projectAssets}}/js/api-list.js"></script>
+<script src="{{projectAssets}}/js/api-search.js"></script>
+<script src="{{projectAssets}}/js/apidocs.js"></script>
+</body>
+</html>
