@@ -7,34 +7,42 @@
     toastr.options.timeOut = 2000; // 2 second toast timeout
     toastr.options.positionClass = 'toast-bottom-right';
 
-            
-    // Circumvent IE "console undefined" 
-    if (!window.console) 
-        console = { log: function () { } }; 
-
-    function error(message, title) {
-        toastr.error(message, title);
-        console.log("Error: " + message);
-    };
-    function info(message, title) {
-        toastr.info(message, title);
-        console.log("Info: " + message);
-    };
-    function success(message, title) {
-        toastr.success(message, title);
-        console.log("Success: " + message);
-    };
-    function warning(message, title) {
-        toastr.warning(message, title);
-        console.log("Warning: " + message);
-    };
     var logger = {
         error: error,
         info: info,
         success: success,
         warning: warning,
-        log: console.log // straight to console; bypass toast
+        log: toConsole // straight to console; bypass toast
+    };
+    
+    function error(message, title) {
+        toastr.error(message, title);
+        toConsole("Error: " + message);
+    };
+    function info(message, title) {
+        toastr.info(message, title);
+        toConsole("Info: " + message);
+    };
+    function success(message, title) {
+        toastr.success(message, title);
+        toConsole("Success: " + message);
+    };
+    function warning(message, title) {
+        toastr.warning(message, title);
+        toConsole("Warning: " + message);
     };
 
+    // Wrap console.log in protective shell to circumvent
+    // IE "console undefined" ... 
+    if (!window.console) window.console = { log: function () { } };
+    // and Chrome console bugs
+    function toConsole(message) {
+        try {
+            window.console.log(message);
+        } catch (e) {
+            /* oh well, forget about it */
+        }
+    };
+   
     return logger;
 });

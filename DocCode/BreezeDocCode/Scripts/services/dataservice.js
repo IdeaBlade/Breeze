@@ -70,7 +70,7 @@
 
         if (detail && detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
             // Concurrency error 
-            var reason =
+            reason =
                 "Another user, perhaps the server, may have deleted one or all of the todos. ";
             revertAllChanges();
         }
