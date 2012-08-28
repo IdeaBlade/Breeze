@@ -10,6 +10,7 @@ require([
     "entityQueryCtorTests",
     "entityTests",
     "queryTests",
+    "queryDatatypeTests",
     "validateTests",
     "validateEntityTests",
     "saveTests"

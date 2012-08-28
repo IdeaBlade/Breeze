@@ -1,4 +1,4 @@
-﻿namespace Todo {
+﻿namespace BreezeDocCode {
     using System.Web.Http;
     using System.Web.Mvc;
     using System.Web.Routing;
@@ -10,7 +10,7 @@
             // Ex: ~/api/NorthwindModel/Customers
             // Ex: ~/api/todos/Todos
             routes.MapHttpRoute(
-                name: "TodoApi",
+                name: "BreezeApi",
                 routeTemplate: "api/{controller}/{action}"
                 );
 
@@ -24,7 +24,6 @@
                 name:"Default",
                 url:"{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
-                //defaults:new { controller = "TodosDemo", action = "Index", id = UrlParameter.Optional }
                 );
         }
     }

@@ -1411,7 +1411,8 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
             } else if (core.isDate(val)) {
                 // return core.toISODateString(val);
-                return val.toISOString();
+                return "datetime'"+val.toISOString() + "'";
+                // return val.toISOString();
             } else {
                 return val;
             }

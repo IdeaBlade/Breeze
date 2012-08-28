@@ -9,7 +9,7 @@ define(["testFns"], function (testFns) {
         metadataStore = new MetadataStore(),
         newEm = testFns.emFactory(serviceName, metadataStore);
 
-    module("createEntityTests", testFns.moduleSetupTeardown(newEm, metadataStore));
+    testFns.module("createEntityTests", newEm, metadataStore);
 
     test("add customer", 2, function () {
         var em = newEm();

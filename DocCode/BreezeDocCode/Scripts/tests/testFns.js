@@ -8,7 +8,13 @@ define(["breeze"], function (breeze) {
         testFns = {
             breeze: breeze,
             northwindServiceName: "api/Northwind",
-            todoServiceName: "api/todos"
+            todoServiceName: "api/todos",
+            wellKnownData: {
+                // ID of the Northwind "Alfreds Futterkiste" customer
+                alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
+                // ID of the Northwind "Nancy Davolio" employee
+                nancyID: 1
+            }
         };
 
     core.config.trackingImplementation = entityModel.entityTracking_ko;
@@ -27,29 +33,35 @@ define(["breeze"], function (breeze) {
         };
     };
 
-    // Typical setup and teardown logic for a test module in this project
+    // Typical module declaration in this project
     // usage: 
     //    var serviceName = testFns.northwindServiceName,
     //        metadataStore = new MetadataStore(),
     //        newEm = testFns.emFactory(serviceName, metadataStore);
-    //    module("testModuleName", testFns.moduleSetupTeardown(newEm, metadataStore));
+    //    module("testModuleName", newEm, metadataStore);
+    testFns.module = function(moduleName, newEm, metadataStore, metadataSetupFn) {
+        module(moduleName, testFns.moduleSetupTeardown(newEm, metadataStore, metadataSetupFn));
+    };
+
+    // Typical setup and teardown logic for a test module in this project
+    // usage: see testFns.module
     testFns.moduleSetupTeardown = function (newEm, metadataStore, metadataSetupFn) {
         return {
             setup: testFns.moduleSetup(newEm, metadataStore, metadataSetupFn),
-            teardown: function () {}
+            teardown: function () { }
         };
     };
 
-    // Typical setup logic for a test module in this project    
+    // Typical setup logic for a test module in this project 
+    // usage: see testFns.moduleSetupTeardown
     testFns.moduleSetup = function (newEm, metadataStore, metadataSetupFn) {
         return function () {
             if (!metadataStore.isEmpty()) {
                 ok(true, "metadata already defined");
                 return; // already setup
             }
-            var em = newEm();
             stop();
-
+            var em = newEm();
             em.fetchMetadata(function (rawMetadata) {
                 var isEmptyMetadata = metadataStore.isEmpty();
                 ok(!isEmptyMetadata, "got metadata from service " + em.serviceName);
@@ -71,7 +83,7 @@ define(["breeze"], function (breeze) {
         }
         start();
     };
-    
+
     testFns.assertIsSorted = function (collection, propertyName, isDescending) {
         isDescending = isDescending || false;
         var fn = function (a, b) {

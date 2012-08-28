@@ -42,7 +42,7 @@ define(["testFns"], function (testFns) {
         }
     });
 
-    test("save noop", function() {
+    test("noop", function() {
         var em = newEm();
         var q = new EntityQuery("Customers");
         stop();
@@ -55,7 +55,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    test("save unmappped", function() {
+    test("unmappped", function() {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm();
@@ -535,23 +535,6 @@ define(["testFns"], function (testFns) {
             start();
         }, function (error) {
             ok(error.message.toLowerCase().indexOf("primary key constraint") >= 0, "wrong error message");
-            start();
-        }).fail(testFns.handleFail);
-    });
-
-    test("query region and territories", function () {
-        var em = newEm();
-        var q = new EntityQuery()
-            .from("Regions")
-            .take(1);
-
-        stop();
-        em.executeQuery(q).then(function (data) {
-            var region = data.results[0];
-            var terrs = region.getProperty("Territories");
-            return terrs.load();
-        }).then(function (data2) {
-            ok(data2.results.length > 0);
             start();
         }).fail(testFns.handleFail);
     });

@@ -21,12 +21,8 @@ define(["testFns"], function (testFns) {
                 e.getProperty = function (p) { return this[p]; };
                 e.setProperty = function (p, v) { this[p] = v; };
             });
-
-
-
         },
         teardown: function () {
-
         }
     });
 
@@ -54,16 +50,16 @@ define(["testFns"], function (testFns) {
         var dateStr = dt.toISOString(dt);
         var p = Predicate.create("OrderDate", ">", dt);
         var txt = p.toOdataFragment();
-        equal(txt, "OrderDate gt " + dateStr);
+        equal(txt, "OrderDate gt datetime'" + dateStr + "'");
         var p2 = Predicate.create("OrderDate", "gt", dt);
         var txt2 = p2.toOdataFragment();
-        equal(txt2, "OrderDate gt " + dateStr);
+        equal(txt2, "OrderDate gt datetime'" + dateStr + "'");
         var p3 = Predicate.create("OrderDate", "==", dt);
         var txt3 = p3.toOdataFragment();
-        equal(txt3, "OrderDate eq " + dateStr);
+        equal(txt3, "OrderDate eq datetime'" + dateStr + "'");
         var p4 = new Predicate("OrderDate", "ne", dt);
         var txt4 = p4.toOdataFragment();
-        equal(txt4, "OrderDate ne " + dateStr);
+        equal(txt4, "OrderDate ne datetime'" + dateStr + "'");
         var p5 = new Predicate("ShipCity", "stArtsWiTH", "C");
         var txt5 = p5.toOdataFragment();
         equal(txt5, "startswith(ShipCity,'C') eq true");

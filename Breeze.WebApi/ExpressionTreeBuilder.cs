@@ -222,10 +222,15 @@ namespace Breeze.WebApi {
           var leftIx = NumericTypes.IndexOf(leftType);
           var rightIx = NumericTypes.IndexOf(rightType);
           if (leftIx < rightIx) {
-            ConvertExpr(ref leftExpr,ref rightExpr);
+            ConvertExpr(ref leftExpr, ref rightExpr);
           } else {
             ConvertExpr(ref rightExpr, ref leftExpr);
           }
+        } else if (leftType == typeof(Guid) 
+          || leftType == typeof(DateTime) 
+          || leftType == typeof(Boolean) 
+          || TypeFns.IsNumericType(leftType)) {
+           ConvertExpr(ref rightExpr, ref leftExpr);
         } else {
           throw new Exception("Unable to perform operation: " + operatorName + "on types:"
                               + leftExpr.Type + ", " + rightExpr.Type);
@@ -236,9 +241,12 @@ namespace Breeze.WebApi {
     // coerce fromExpr to toExpr type
     // but also convert both to nonnullable types.
     private void ConvertExpr(ref Expression fromExpr, ref Expression toExpr) {
+      
       var constExpr = fromExpr as ConstantExpression;
+
       var toType = TypeFns.GetNonNullableType(toExpr.Type);
       if (constExpr != null) {
+        if (constExpr.Value == null) return;
         var newValue = Convert.ChangeType(constExpr.Value, toType);
         fromExpr = Expression.Constant(newValue);
       } else {

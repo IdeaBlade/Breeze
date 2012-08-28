@@ -7,13 +7,14 @@ define(["testFns"], function (testFns) {
 
     var MetadataStore = entityModel.MetadataStore;
     var EntityQuery = entityModel.EntityQuery;
+    var Predicate = entityModel.Predicate;
     var qop = entityModel.FilterQueryOp;
 
     var serviceName = testFns.northwindServiceName,
         metadataStore = new MetadataStore(),
         newEm = testFns.emFactory(serviceName, metadataStore);
 
-    module("simpleQueryTests", testFns.moduleSetupTeardown(newEm, metadataStore));
+    testFns.module("simpleQueryTests", newEm, metadataStore);
 
     asyncTest("get all customers", 2, function () {
         var em = newEm(),
@@ -24,11 +25,10 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "should have customers.");
             start();
         })
-        .fail(testFns.handleFail); 
+        .fail(testFns.handleFail);
     });
 
     asyncTest("customers starting w/ 'C'", 2, function () {
-
         var em = newEm(),
             query = new EntityQuery()
             .from("Customers")
@@ -44,6 +44,96 @@ define(["testFns"], function (testFns) {
 
     });
 
+    // Order.CustomerID is nullable<Guid>; can still filter on it.
+    asyncTest("get Alfreds orders", 2, function () {
+        var em = newEm(),
+        query = new EntityQuery("Orders")
+        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
+        // WORKAROUND (SLOW)
+            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID);
+
+        em.executeQuery(query)
+        .then(function (data) {
+            assertGotOrders(data);
+            start();
+        })
+        .fail(testFns.handleFail);
+    });
+
+    function assertGotOrders(data) {
+        var count = data.results.length;
+        ok(count > 0, "should have Orders; got " + count);
+        // To manually confirm these results, run this SQL:
+        // select count(*) from [Order] where CustomerID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2'
+    };
+
+    asyncTest("get Alfreds orders with their OrderDetails", 4, function () {
+        var em = newEm(),
+        query = new EntityQuery("Orders")
+        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
+        // WORKAROUND (SLOW)
+            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID)
+            .expand("OrderDetails");
+
+        em.executeQuery(query)
+        .then(function (data) {
+            assertGotOrders(data);
+            assertGotOrderDetails(em);
+            assertCanNavigateToFirstOrderDetails(data.results);
+            start();
+        })
+        .fail(testFns.handleFail);
+
+    });
+
+    asyncTest("get Alfreds orders using 'OrdersAndDetails' action", 4, function () {
+        var em = newEm(),
+        query = new EntityQuery("OrdersAndDetails") // special Web API controller action
+        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
+        // WORKAROUND (SLOW)
+            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID).take(10);
+        // NO EXPAND NEEDED! That's done by the Web API controller action
+
+        em.executeQuery(query)
+        .then(function (data) {
+            assertGotOrders(data);
+            assertGotOrderDetails(em);
+            assertCanNavigateToFirstOrderDetails(data.results);
+            start();
+        })
+        .fail(testFns.handleFail);
+
+    });
+    function assertGotOrderDetails(em) {
+        var odType = metadataStore.getEntityType("OrderDetail"),
+            count = em.getEntities(odType).length; // count of all OrderDetails in cache
+        ok(count > 0, "should have OrderDetails; got " + count);
+        // To manually confirm these results, run this SQL:
+        // select count(*) from OrderDetail where OrderID in 
+        //   (select OrderID from [Order] where CustomerID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2')
+    }
+
+    function assertCanNavigateToFirstOrderDetails(orders) {
+        var first = orders[0],
+            ods = first.OrderDetails(); // remember to use () ... it's a KO property
+        ok(ods.length > 0, "can navigate to first order's OrderDetails");
+    }
+
+    // Order.EmployeeID is nullable<int>; can still filter on it.
+    asyncTest("get Nancy Davolio orders", 2, function () {
+        var em = newEm(),
+        query = new EntityQuery("Orders")
+        .where("EmployeeID", "==", testFns.wellKnownData.nancyID);
+
+        em.executeQuery(query)
+        .then(function (data) {
+            var count = data.results.length;
+            ok(count > 0, "should have Nancy Davolio Orders; got " + count);
+            start();
+        })
+        .fail(testFns.handleFail);
+    });
+
     asyncTest("get all employees", 2, function () {
         var em = newEm(),
         query = new EntityQuery("Employees");
@@ -55,6 +145,6 @@ define(["testFns"], function (testFns) {
             })
             .fail(testFns.handleFail);
     });
-    
+
     return testFns;
 });

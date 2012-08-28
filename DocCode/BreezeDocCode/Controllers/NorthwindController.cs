@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Http;
 
@@ -7,12 +8,11 @@ using BreezeDocCode.Models;
 
 using Newtonsoft.Json.Linq;
 
-
 namespace BreezeDocCode.Controllers
 {
   public class NorthwindController : ApiController {
- 
-    EFContextProvider<NorthwindContext> ContextProvider =
+
+    readonly EFContextProvider<NorthwindContext> ContextProvider =
         new EFContextProvider<NorthwindContext>(NorthwindContext.ContextName);
 
     [AcceptVerbs("GET")]
@@ -27,8 +27,7 @@ namespace BreezeDocCode.Controllers
 
     [AcceptVerbs("GET")]
     public IQueryable<Customer> Customers() {
-      var custs = ContextProvider.Context.Customers;
-      return custs;
+      return ContextProvider.Context.Customers;
     }
 
     [AcceptVerbs("GET")]
@@ -43,11 +42,9 @@ namespace BreezeDocCode.Controllers
       return custs;
     }
 
-
     [AcceptVerbs("GET")]
     public IQueryable<Order> Orders() {
-      var orders = ContextProvider.Context.Orders;
-      return orders;
+      return ContextProvider.Context.Orders;
     }
 
     [AcceptVerbs("GET")]
@@ -56,38 +53,39 @@ namespace BreezeDocCode.Controllers
       return orders;
     }
 
-    // [Queryable]
+    [AcceptVerbs("GET")]
+    public IQueryable<Order> OrdersAndDetails()
+    {
+        var orders = ContextProvider.Context.Orders
+            .Include("OrderDetails");
+            // should guard against pulling too much data by adding .Take(10)
+        return orders;
+    }
+
     [AcceptVerbs("GET")]
     public IQueryable<Employee> Employees() {
       return ContextProvider.Context.Employees;
     }
 
-    // [Queryable]
     [AcceptVerbs("GET")]
     public IQueryable<OrderDetail> OrderDetails() {
       return ContextProvider.Context.OrderDetails;
     }
 
-    // [Queryable]
     [AcceptVerbs("GET")]
     public IQueryable<Product> Products() {
       return ContextProvider.Context.Products;
     }
 
-    // [Queryable]
     [AcceptVerbs("GET")]
     public IQueryable<Region> Regions() {
       return ContextProvider.Context.Regions;
     }
 
-    //[Queryable]
     [AcceptVerbs("GET")]
     public IQueryable<Territory> Territories() {
       return ContextProvider.Context.Territories;
     }
-    
   }
-
-  
 
 }

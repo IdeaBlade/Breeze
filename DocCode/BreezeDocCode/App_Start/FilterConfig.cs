@@ -1,4 +1,4 @@
-﻿namespace Todo {
+﻿namespace BreezeDocCode {
     using System.Web.Mvc;
 
     public class FilterConfig {
