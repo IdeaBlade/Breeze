@@ -1434,7 +1434,14 @@ function (core) {
         /**
         Instances of the Validator class provide the logic to validate another object and provide a description of any errors
         encountered during the validation process.  They are typically associated with a 'validators' property on the following types: {{#crossLink "EntityType"}}{{/crossLink}}, 
-        a  {{#crossLink "DataProperty"}}{{/crossLink}} or {{#crossLink "NavigationProperty"}}{{/crossLink}} 
+        {{#crossLink "DataProperty"}}{{/crossLink}} or {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+        
+        A number of property level validators are registered automatically, i.e added to each DataProperty.validators property 
+        based on {{#crossLink "DataProperty"}}{{/crossLink}} metadata.  For example, 
+        
+        - DataProperty.dataType -> one of the 'dataType' validator methods such as Validator.int64, Validator.date, Validator.bool etc.
+        - DataProperty.maxLength -> Validator.maxLength 
+        - DataProperty.isNullable -> Validator.required (if not nullable)
 
         @class Validator
         **/
@@ -1488,6 +1495,31 @@ function (core) {
             var custType = em1.metadataStore.getEntityType("Customer");
             // Note that validator is added to an 'EntityType' validators collection.
             custType.validators.push(zipCodeValidator);
+        What is commonly needed is a way of creating a parameterized function that will itself
+        return a new Validator.  This requires the use of a 'context' object.
+        @example
+            // create a function that will take in a config object
+            // and will return a validator
+            var numericRangeValidator = function(context) {
+                var valFn = function(v, ctx) {
+                    if (v == null) return true;
+                    if (typeof(v) !== "number") return false;
+                    if (ctx.min != null && v < ctx.min) return false;
+                    if (ctx.max != null && v > ctx.max) return false;
+                    return true;
+                };
+                // The last parameter below is the 'context' object that will be passed into the 'ctx' parameter above
+                // when this validator executes. Several other properties, such as displayName will get added to this object as well.
+                return new Validator("numericRange", valFn, {
+                    messageTemplate: "'%displayName%' must be an integer between the values of %min% and %max%",
+                    min: context.min,
+                    max: context.max
+                });
+            };
+            // Assume that freightProperty is a DataEntityProperty that describes numeric values.
+            // register the validator
+            freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
+
         @method <ctor> Validator
         @param name {String} The name of this validator.
         @param valFn {validatorFunction} A function to perform validation.
@@ -1649,8 +1681,7 @@ function (core) {
             regionProperty.validators.push(Validator.required());
         @method required
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.required = function () {
             var valFn = function (v, ctx) {
@@ -1676,7 +1707,7 @@ function (core) {
         @static
         @param context {Object} 
         @param context.maxLength {Integer}
-        @return Validator
+        @return A new Validator
         **/
         ctor.maxLength = function (context) {
             var valFn = function (v, ctx) {
@@ -1701,7 +1732,7 @@ function (core) {
         @param context {Object} 
         @param context.maxLength {Integer}
         @param context.minLength {Integer}
-        @return Validator
+        @return A new Validator
         **/
         ctor.stringLength = function (context) {
             var valFn = function (v, ctx) {
@@ -1724,8 +1755,7 @@ function (core) {
             regionProperty.validators.push(Validator.string());
         @method string
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.string = function () {
             var valFn = function (v) {
@@ -1745,8 +1775,7 @@ function (core) {
             customerIdProperty.validators.push(Validator.guid());
         @method guid
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.guid = function () {
             var valFn = function (v) {
@@ -1766,8 +1795,7 @@ function (core) {
             freightProperty.validators.push(Validator.number());
         @method number 
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
 
         // TODO: may need to have seperate logic for single.
@@ -1789,8 +1817,7 @@ function (core) {
             freightProperty.validators.push(Validator.int64());
         @method int64
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.integer = ctor.int64 = function () {
             var valFn = function (v) {
@@ -1809,8 +1836,7 @@ function (core) {
             freightProperty.validators.push(Validator.int32());
         @method int32
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.int32 = intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX);
 
@@ -1824,8 +1850,7 @@ function (core) {
             freightProperty.validators.push(Validator.int16());
         @method int16
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.int16 = intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX);
 
@@ -1840,8 +1865,7 @@ function (core) {
             regionProperty.validators.push(Validator.byte());
         @method byte
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.byte = intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX);
 
@@ -1855,8 +1879,7 @@ function (core) {
             discontinuedProperty.validators.push(Validator.bool());
         @method bool
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.bool = function () {
             var valFn = function (v) {
@@ -1884,8 +1907,7 @@ function (core) {
             orderDateProperty.validators.push(Validator.date());
         @method date
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.date = function () {
             var valFn = function (v) {
@@ -6194,7 +6216,8 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
             } else if (core.isDate(val)) {
                 // return core.toISODateString(val);
-                return val.toISOString();
+                return "datetime'"+val.toISOString() + "'";
+                // return val.toISOString();
             } else {
                 return val;
             }
@@ -6646,13 +6669,9 @@ function (core, m_entityMetadata, m_entityAspect) {
     var EntityKey = m_entityAspect.EntityKey;
 
     
-    /**
-    This is the default KeyGenerator used by EntityManager's to manage the generation of 'temporary' ids.
-    A subclass of this KeyGenerator or another class with the KeyGenerator interface can be set for any
-    EntityManager via the {{#crossLink "EntityManager/setProperties"}}{{/crossLink}} method with a config parameter
-    of 'keyGeneratorCtor'.
+    /*
     @class KeyGenerator
-    **/
+    */
     var ctor = function () {
         // key is dataProperty.name + || + entityType.name, value is propEntry 
         // propEntry = { entityType, propertyName, keyMap }
@@ -6664,11 +6683,13 @@ function (core, m_entityMetadata, m_entityAspect) {
         this.stringPrefix = "K_";
     };
 
-    /**
+    /*
     Returns a unique 'temporary' id for the specified {{#crossLink "EntityType"}}{{/crossLink}}. 
-    Uniqueness is defined for this purpose as being unique within this KeyGenerator. This is sufficient 
+    Uniqueness is defined for this purpose as being unique within each instance of a KeyGenerator. This is sufficient 
     because each EntityManager will have its own instance of a KeyGenerator and any entities imported into
     the EntityManager with temporary keys will have them regenerated and remapped on import.
+
+        The return value of this method must be of the correct type as determined by the 
     @example
         // Assume em1 is a preexisting EntityManager
         var custType = em1.metadataStore.getEntityType("Customer");
@@ -6686,7 +6707,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             })
     @method generateTempKeyValue
     @param entityType {EntityType}
-    **/
+    */
     ctor.prototype.generateTempKeyValue = function (entityType) {
         var keyProps = entityType.keyProperties;
         if (keyProps.length > 1) {
@@ -7612,6 +7633,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         Generates a temporary key for the specified entity.  This is used to insure that newly
         created entities have unique keys and to register that these keys are temporary and
         need to be automatically replaced with 'real' key values once these entities are saved.
+
+        The EntityManager.keyGeneratorCtor property is used internally by this method to actually generate
+        the keys - See the  {{#crossLink "~KeyGenerator"}}{{/crossLink}} interface description to see
+        how a custom key generator can be plugged in.
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities. 
             var custType = em1.metadataStore.getEntityType("Customer");
@@ -7619,7 +7644,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var customerId = em.generateTempKeyValue(custumer);
             // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value
             // This property will change again after a successful save of the 'customer' entity.
-        @method generateTempKey
+
+            em1.saveChanges()
+                .then( function( data) {
+                    var sameCust1 = data.results[0];
+                    // cust1 === sameCust1;
+                    // but cust1.getProperty("CustomerId") != customerId
+                    // because the server will have generated a new id 
+                    // and the client will have been updated with this 
+                    // new id.
+                })
+
+        @method generateTempKeyValue
         @param entity {Entity} The Entity to generate a key for.
         @return The new key value
         **/

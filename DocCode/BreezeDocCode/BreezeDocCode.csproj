@@ -124,6 +124,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\BreezeConfig.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosDemoController.cs" />
     <Compile Include="Controllers\HomeController.cs" />

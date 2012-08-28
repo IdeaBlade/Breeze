@@ -626,16 +626,63 @@ define('enum',["coreFns"], function (core) {
 
     // TODO: think about CompositeEnum (flags impl).
 
-    // methodObj: object containing instance methods for this enum type
+    
     /**
-    __Needs additional description__
+    Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
+    A Breeze Enum is a namespaced set of constant values.  Each Enum consists of a group of related constants, called 'symbols'.
+    Unlike enums in some other environments, each 'symbol' can have both methods and properties.
+    See the example below:
+
+        // Example of creating a new Enum
+        var prototype = {
+            nextDay: function () {
+                var nextIndex = (this.dayIndex+1) % 7;
+                return DayOfWeek.getSymbols()[nextIndex];
+            }
+        };
+
+        var DayOfWeek = new Enum("DayOfWeek", prototype);
+        DayOfWeek.Monday    = DayOfWeek.addSymbol( { dayIndex: 0 });
+        DayOfWeek.Tuesday   = DayOfWeek.addSymbol( { dayIndex: 1 });
+        DayOfWeek.Wednesday = DayOfWeek.addSymbol( { dayIndex: 2 });
+        DayOfWeek.Thursday  = DayOfWeek.addSymbol( { dayIndex: 3 });
+        DayOfWeek.Friday    = DayOfWeek.addSymbol( { dayIndex: 4 });
+        DayOfWeek.Saturday  = DayOfWeek.addSymbol( { dayIndex: 5, isWeekend: true });
+        DayOfWeek.Sunday    = DayOfWeek.addSymbol( { dayIndex: 6, isWeekend: true });
+        DayOfWeek.seal();
+
+        // custom methods
+        ok(DayOfWeek.Monday.nextDay() === DayOfWeek.Tuesday);
+        ok(DayOfWeek.Sunday.nextDay() === DayOfWeek.Monday);
+        // custom properties
+        ok(DayOfWeek.Tuesday.isWeekend === undefined);
+        ok(DayOfWeek.Saturday.isWeekend == true);
+        // Standard enum capabilities
+        ok(DayOfWeek instanceof Enum);
+        ok(Enum.isSymbol(DayOfWeek.Wednesday));
+        ok(DayOfWeek.contains(DayOfWeek.Thursday));
+        ok(DayOfWeek.Tuesday.parentEnum == DayOfWeek);
+        ok(DayOfWeek.getSymbols().length === 7);
+        ok(DayOfWeek.Friday.toString() === "Friday");
+
+
     @class Enum
     **/
         
     /**
+    Enum constructor - may be used to create new Enums.
+    @example
+        var prototype = {
+            nextDay: function () {
+                var nextIndex = (this.dayIndex+1) % 7;
+                return DayOfWeek.getSymbols()[nextIndex];
+            }
+        };
+
+        var DayOfWeek = new Enum("DayOfWeek", prototype);
     @method <ctor> Enum
     @param name {String}
-    @param methodObj {Object}
+    @param [methodObj] {Object}
     **/
     function Enum(name, methodObj) {
         this.name = name;
@@ -649,15 +696,43 @@ define('enum',["coreFns"], function (core) {
         }
     };
 
+    /**
+    Checks if an object is an Enum 'symbol'.
+    @example
+         if (Enum.isSymbol(DayOfWeek.Wednesday)) {
+            // do something ...
+         };
+    @method isSymbol
+    @return {Boolean}
+    @static
+    **/
     Enum.isSymbol = function (obj) {
         return obj instanceof EnumSymbol;
     };
 
+    /**
+    Returns an Enum symbol given its name.
+    @example
+         var dayOfWeek = DayOfWeek.from("Thursday");
+         // nowdayOfWeek === DayOfWeek.Thursday            
+    @method fromName
+    @param name {String} Name for which an enum symbol should be returned.
+    @return {EnumSymbol|undefined} The symbol that matches the name.
+    **/
     Enum.prototype.fromName = function (name) {
         return this[name];
     };
 
-    // properties object is any state that should be held by the symbol.
+    /**
+    Adds a new symbol to an Enum.
+    @example
+        var DayOfWeek = new Enum("DayOfWeek", prototype);
+        DayOfWeek.Monday    = DayOfWeek.addSymbol( { dayIndex: 0 });
+    @method addSymbol
+    @param [propertiesObj] {Object} A collection of properties that should be added to the new symbol.
+    In other words, the 'propertiesObj' is any state that should be held by the symbol.
+    @return {EnumSymbol} The new symbol
+    **/
     Enum.prototype.addSymbol = function (propertiesObj) {
         // TODO: check if sealed.
         var newSymbol = Object.create(this._symbolPrototype);
@@ -670,6 +745,13 @@ define('enum',["coreFns"], function (core) {
         return newSymbol;
     };
 
+    /**
+    Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
+    have already been added to the Enum.
+    @example
+        DayOfWeek.seal();
+    @method seal
+    **/
     Enum.prototype.seal = function () {
         this.getSymbols().forEach(function (sym) { return sym.getName(); });
     };
@@ -701,18 +783,43 @@ define('enum',["coreFns"], function (core) {
         return newSymbol;
     };
 
+    /**
+    Returns all of the symbols contained within this Enum.
+    @example
+        var symbols = DayOfWeek.getSymbols();
+    @method getSymbols
+    @return {Array of EnumSymbol} All of the symbols contained within this Enum.
+    **/       
     Enum.prototype.getSymbols = function () {
         return this.getNames().map(function (key) {
             return this[key];
         }, this);
     };
 
+    /**
+    Returns the names of all of the symbols contained within this Enum.
+    @example
+        var symbols = DayOfWeek.getNames();
+    @method getNames
+    @return {Array of String} All of the names of the symbols contained within this Enum.
+    **/       
     Enum.prototype.getNames = function () {
         return Object.keys(this).filter(
             function (key) { return key != "name" && key.substr(0, 1) !== "_"; }
         );
     };
 
+    /**
+    Returns whether an Enum contains a specified symbol. 
+    @example
+        var symbol = DayOfWeek.Friday;
+        if (DayOfWeek.contains(symbol)) {
+            // do something
+        }
+    @method contains
+    @param {Object} Object or symbol to test.
+    @return {Boolean} Whether this Enum contains the specified symbol.
+    **/       
     Enum.prototype.contains = function (sym) {
         if (!(sym instanceof EnumSymbol)) {
             return false;
@@ -720,9 +827,30 @@ define('enum',["coreFns"], function (core) {
         return this[sym.getName()] === sym;
     };
 
+    /**
+    One of the constant values that is generated by the {{#crossLink "Enum"}}{{/crossLink}} "addSymbol" method.  EnumSymbols should ONLY be created via
+    the Enum.addSymbol method.
+
+         var DayOfWeek = new Enum("DayOfWeek");
+         DayOfWeek.Monday    = DayOfWeek.addSymbol();
+    @class EnumSymbol
+    **/
     function EnumSymbol() {
     }
+    
+    /**
+    The {{#crossLink "Enum"}}{{/crossLink}} to which this symbol belongs.
+    __readOnly__
+    @property parentEnum {Enum}
+    **/
 
+    /**
+    Returns the name of this symbol.
+    @example
+        var name = DayOfWeek.Monday.getName();
+        // name === "Monday"
+    @method getName
+    **/
     EnumSymbol.prototype.getName = function () {
         if (!this.name) {
             var that = this;
@@ -733,6 +861,13 @@ define('enum',["coreFns"], function (core) {
         return this.name;
     };
 
+    /**
+    Same as the getName method. Returns the name of this symbol.
+    @example
+        var name = DayOfWeek.Monday.toString();
+        // name === "Monday"
+    @method toString
+    **/
     EnumSymbol.prototype.toString = function () {
         return this.getName();
     };
@@ -743,8 +878,6 @@ define('enum',["coreFns"], function (core) {
             name: this.name
         };
     };
-
-
 
     return Enum;
 
@@ -761,6 +894,9 @@ define('event',["coreFns"], function (core) {
     **/
         
     /**
+    Constructor for an Event
+    @example
+        salaryEvent = new Event("salaryEvent");
     @method <ctor> Event
     @param name {String}
     @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
@@ -778,6 +914,17 @@ define('event',["coreFns"], function (core) {
 
     /**
     Publish data for this event.
+    @example
+        // Assume 'salaryEvent' is previously constructed Event
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 });
+    This event can also be published asychonously
+    @example
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
+    And we can add a handler in case the subscriber 'mishandles' the event.
+    @example
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {
+            // do something with the 'error' object
+        });
     @method publish
     @param data {Object} Data to publish
     @param [publishAsync=false] Whether to publish asynchonously or not.
@@ -819,9 +966,16 @@ define('event',["coreFns"], function (core) {
     
      /**
     Publish data for this event asynchronously.
+    @example
+        // Assume 'salaryEvent' is previously constructed Event
+        salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
+    And we can add a handler in case the subscriber 'mishandles' the event.
+    @example
+        salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
+            // do something with the 'error' object
+        });
     @method publishAsync
     @param data {Object} Data to publish
-    @param [publishAsync=false] Whether to publish asynchonously or not.
     @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
     errors will be eaten.
 
@@ -834,6 +988,21 @@ define('event',["coreFns"], function (core) {
 
     /**
     Subscribe to this event.
+    @example
+        // Assume 'salaryEvent' is previously constructed Event
+        salaryEvent.subscribe(function (eventArgs) {
+            if (eventArgs.eventType === "payRaise") {
+               // do something
+            }
+        });
+    There are several built in Breeze events, such as EntityAspect.propertyChanged, EntityAspect.validationErrorsChanged as well.
+    @example
+         // Assume order is a preexisting 'order' entity
+         order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
+             if ( pcEvent.propertyName === "OrderDate") {
+                 // do something
+             }
+         });
     @method subscribe
     @param [callback] {callback function} Will be called whenever 'data' is published for this event. 
 
@@ -853,7 +1022,14 @@ define('event',["coreFns"], function (core) {
     };
 
     /**
-    Unsubscribe from this event.
+    Unsubscribe from this event. 
+    @example
+        // Assume order is a preexisting 'order' entity
+        var token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
+                // do something
+        });
+        // sometime later
+        order.entityAspect.propertyChanged.unsubscribe(token);
     @method unsubscribe
     @param unsubKey {Number} The value returned from the 'subscribe' method may be used to unsubscribe here.
     @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
@@ -1017,7 +1193,6 @@ define('assertParam',["coreFns"], function (core) {
             return fn.getMessage();
         }).join(", or it");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
-
     };
 
     Param.prototype.check = function (defaultValue) {
@@ -1041,7 +1216,31 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.apply = function (instance, defaultValue) {
+    Param.prototype.withDefault = function(defaultValue) {
+        this.defaultValue = defaultValue;
+        return this;
+    };
+    
+    Param.prototype.whereParam = function(propName) {
+        return this.parent.whereParam(propName);
+    };
+
+    Param.prototype.applyAll = function(instance, throwIfUnknownProperty) {
+        throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
+        var clone = core.extend({ }, this.parent.config);
+        this.parent.params.forEach(function(p) {
+            if (throwIfUnknownProperty) delete clone[p.name];
+            p._applyOne(instance, p.defaultValue);
+        });
+        // should be no properties left in the clone
+        if (throwIfUnknownProperty) {
+            for (var key in clone) {
+                throw new Error("Invalid property in config: " + key);
+            }
+        }
+    };
+
+    Param.prototype._applyOne = function (instance, defaultValue) {
         this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
@@ -1071,16 +1270,27 @@ define('assertParam',["coreFns"], function (core) {
 
     Param.prototype.MESSAGE_PREFIX = "The '%1' parameter ";
 
-
     var assertParam = function (v, name) {
         return new Param(v, name);
     };
 
-    var assertConfig = function (config, propName) {
-        if (!config) {
-            throw new Error("Missing configuration container encountered while accessing parameter: " + propName);
+    var CompositeParam = function(config) {
+        if (typeof (config) !== "object") {
+            throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
         }
-        return new Param(config[propName], propName);
+        this.config = config;
+        this.params = [];
+    };
+
+    CompositeParam.prototype.whereParam = function(propName) {
+        var param = new Param(this.config[propName], propName);
+        param.parent = this;
+        this.params.push(param);
+        return param;
+    };
+
+    var assertConfig = function(config) {
+        return new CompositeParam(config);
     };
 
     // private functions
@@ -1224,12 +1434,92 @@ function (core) {
         /**
         Instances of the Validator class provide the logic to validate another object and provide a description of any errors
         encountered during the validation process.  They are typically associated with a 'validators' property on the following types: {{#crossLink "EntityType"}}{{/crossLink}}, 
-        a  {{#crossLink "DataProperty"}}{{/crossLink}} or {{#crossLink "NavigationProperty"}}{{/crossLink}} 
+        {{#crossLink "DataProperty"}}{{/crossLink}} or {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+        
+        A number of property level validators are registered automatically, i.e added to each DataProperty.validators property 
+        based on {{#crossLink "DataProperty"}}{{/crossLink}} metadata.  For example, 
+        
+        - DataProperty.dataType -> one of the 'dataType' validator methods such as Validator.int64, Validator.date, Validator.bool etc.
+        - DataProperty.maxLength -> Validator.maxLength 
+        - DataProperty.isNullable -> Validator.required (if not nullable)
 
         @class Validator
         **/
         
         /**
+        Validator constructor - This method is used to create create custom validations.  Several
+        basic "Validator" construction methods are also provided as static methods to this class. These methods
+        provide a simpler syntax for creating basic validations.
+
+        However, sometimes a custom validator will be required.
+        @example
+        Most validators will be 'property' level validators, like this.
+        @example
+            // v is this function is the value to be validated, in this case a "country" string.
+            var valFn = function (v) {
+                if (v == null) return true;
+                return (core.stringStartsWith(v, "US"));
+            };
+            var countryValidator = new Validator("countryIsUS", valFn, { 
+                displayName: "Country", 
+                messageTemplate: "'%displayName%' must start with 'US'" 
+            });
+
+            // Now plug it into Breeze.
+            // Assume em1 is a preexisting EntityManager.
+            var custType = metadataStore.getEntityType("Customer");
+            var countryProp = custType.getProperty("Country");
+            // Note that validator is added to a 'DataProperty' validators collection.
+            prop.validators.push(countryValidator);
+        Entity level validators are also possible
+        @example
+            function isValidZipCode(value) {
+                var re = /^\d{5}([\-]\d{4})?$/;
+                return (re.test(value));
+            }               
+           
+            // v in this case will be a Customer entity
+            var valFn = function (v) {
+                // This validator only validates US Zip Codes.
+                if ( v.getProperty("Country") === "USA") {
+                    var postalCode = v.getProperty("PostalCode");
+                    return isValidZipCode(postalCode);
+                }
+                return true;
+            };
+            var zipCodeValidator = new Validator("zipCodeValidator", valFn, 
+                { messageTemplate: "For the US, this is not a valid PostalCode" });
+        
+            // Now plug it into Breeze.
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            // Note that validator is added to an 'EntityType' validators collection.
+            custType.validators.push(zipCodeValidator);
+        What is commonly needed is a way of creating a parameterized function that will itself
+        return a new Validator.  This requires the use of a 'context' object.
+        @example
+            // create a function that will take in a config object
+            // and will return a validator
+            var numericRangeValidator = function(context) {
+                var valFn = function(v, ctx) {
+                    if (v == null) return true;
+                    if (typeof(v) !== "number") return false;
+                    if (ctx.min != null && v < ctx.min) return false;
+                    if (ctx.max != null && v > ctx.max) return false;
+                    return true;
+                };
+                // The last parameter below is the 'context' object that will be passed into the 'ctx' parameter above
+                // when this validator executes. Several other properties, such as displayName will get added to this object as well.
+                return new Validator("numericRange", valFn, {
+                    messageTemplate: "'%displayName%' must be an integer between the values of %min% and %max%",
+                    min: context.min,
+                    max: context.max
+                });
+            };
+            // Assume that freightProperty is a DataEntityProperty that describes numeric values.
+            // register the validator
+            freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
+
         @method <ctor> Validator
         @param name {String} The name of this validator.
         @param valFn {validatorFunction} A function to perform validation.
@@ -1242,7 +1532,8 @@ function (core) {
         @param valFn.context.validatorName {String} The name of the validator being executed.
         @param valFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
         the value of its 'name' property or the string 'Value'
-        @param valFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[validatorName] if available or null.
+        @param valFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
+        is an object that is keyed by validator name and that can be added to in order to 'register' your own message for a given validator. 
         The following property can also be specified for any validator to force a specific errorMessage string
         @param [valFn.context.message] {String} If this property is set it will be used instead of the 'messageTemplate' property when an
         error message is generated. 
@@ -1264,7 +1555,23 @@ function (core) {
 
 
         /**
-        Run this validator against the specified value.
+        Run this validator against the specified value.  This method will usually be called internally either
+        automatically by an property change, entity attach, query or save operation, or manually as a result of
+        a validateEntity call on the EntityAspect. The resulting ValidationResults are available via the 
+        EntityAspect.getValidationErrors method.
+
+        However, you can also call a validator directly either for testing purposes or some other reason if needed.
+        @example
+            // using one of the predefined validators
+            var validator = Validator.maxLength({ maxLength: 5, displayName: "City" });
+            // should be ok because "asdf".length < 5
+            var result = validator.validate("asdf");
+            ok(result === null);
+            result = validator.validate("adasdfasdf");
+            // extract all of the properties of the 'result'
+            var errMsg = result.errorMessage;
+            var context = result.context;
+            var sameValidator = result.validator;
         @method validate
         @param value {Object} Value to validate
         @param additionalContext {Object} Any additional contextual information that the Validator
@@ -1291,26 +1598,14 @@ function (core) {
         };
 
 
-        /**
-        Run this validator against the specified value; throw an Error if validation fails.
-        @method validateAndThrow
-        @param value {Object} Value to validate
-        @param additionalContext {Object} Any additional contextual information that the Validator
-        can make use of.
-        **/
-        ctor.prototype.validateAndThrow = function (value, additionalContext) {
-            var ve = validate(value, additionalContext);
-            if (ve) {
-                throw new Error(ve.errorMessage);
-            }
-        };
-
-
-
         // context.value is not avail unless validate was called first.
 
         /**
         Returns the message generated by the most recent execution of this Validator.
+        @example
+            var v0 = Validator.maxLength({ maxLength: 5, displayName: "City" });
+            v0.validate("adasdfasdf");
+            var errMessage = v0.getMessage());
         @method getMessage
         @return {String}
         **/
@@ -1347,6 +1642,19 @@ function (core) {
         /**
         Map of standard error message templates keyed by validator name.
         You can add to or modify this object to customize the template used for any validation error message.
+        @example
+            // v is this function is the value to be validated, in this case a "country" string.
+            var valFn = function (v) {
+                if (v == null) return true;
+                return (core.stringStartsWith(v, "US"));
+            };
+            var countryValidator = new Validator("countryIsUS", valFn, { displayName: "Country" }); 
+            Validator.messageTemplates["countryIsUS", "'%displayName%' must start with 'US'");
+        This will have a similar effect to this
+             var countryValidator = new Validator("countryIsUS", valFn, { 
+                displayName: "Country", 
+                messageTemplate: "'%displayName%' must start with 'US'" 
+            });
         @property messageTemplates {Object}
         @static
         **/
@@ -1365,12 +1673,17 @@ function (core) {
 
         /**
         Returns a standard 'required value' Validator
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var regionProperty - custType.getProperty("Region");
+            // Makes "Region" on Customer a required property.
+            regionProperty.validators.push(Validator.required());
         @method required
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.required = function (context) {
+        ctor.required = function () {
             var valFn = function (v, ctx) {
                 if (typeof v === "string") {
                     if (ctx && ctx.allowEmptyStrings) return true;
@@ -1379,16 +1692,22 @@ function (core) {
                     return v != null;
                 }
             };
-            return new ctor("required", valFn, context);
+            return new ctor("required", valFn);
         };
 
         /**
         Returns a standard maximum string length Validator; the maximum length must be specified
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var regionProperty - custType.getProperty("Region");
+            // Validates that the value of the Region property on Customer will be less than or equal to 5 characters.
+            regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));
         @method maxLength
         @static
         @param context {Object} 
         @param context.maxLength {Integer}
-        @return Validator
+        @return A new Validator
         **/
         ctor.maxLength = function (context) {
             var valFn = function (v, ctx) {
@@ -1401,12 +1720,19 @@ function (core) {
 
         /**
         Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var regionProperty - custType.getProperty("Region");
+            // Validates that the value of the Region property on Customer will be 
+            // between 2 and 5 characters
+            regionProperty.validators.push(Validator.stringLength( {minLength: 2, maxLength: 5});
         @method stringLength
         @static
         @param context {Object} 
         @param context.maxLength {Integer}
         @param context.minLength {Integer}
-        @return Validator
+        @return A new Validator
         **/
         ctor.stringLength = function (context) {
             var valFn = function (v, ctx) {
@@ -1421,108 +1747,147 @@ function (core) {
 
         /**
         Returns a standard string dataType Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var regionProperty - custType.getProperty("Region");
+            // Validates that the value of the Region property on Customer is a string.
+            regionProperty.validators.push(Validator.string());
         @method string
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.string = function (context) {
+        ctor.string = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 return (typeof v === "string");
             };
-            return new ctor("string", valFn, context);
+            return new ctor("string", valFn );
         };
 
         /**
         Returns a standard string data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var customerIdProperty - custType.getProperty("CustomerID");
+            // Validates that the value of the CustomerID property on Customer is a Guid.
+            customerIdProperty.validators.push(Validator.guid());
         @method guid
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.guid = function (context) {
+        ctor.guid = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 return core.isGuid(v);
             };
-            return new ctor("guid", valFn, context);
+            return new ctor("guid", valFn);
         };
 
         /**
         Returns a standard numeric data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var freightProperty - orderType.getProperty("Freight");
+            // Validates that the value of the Freight property on Order is a number.
+            freightProperty.validators.push(Validator.number());
         @method number 
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
 
         // TODO: may need to have seperate logic for single.
-        ctor.number = ctor.double = ctor.single = function (context) {
+        ctor.number = ctor.double = ctor.single = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 return (typeof v === "number");
             };
-            return new ctor("number", valFn, context);
+            return new ctor("number", valFn);
         };
 
         /**
         Returns a standard large integer data type - 64 bit - Validator.
-        @method integer
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var freightProperty - orderType.getProperty("Freight");
+            // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.
+            freightProperty.validators.push(Validator.int64());
+        @method int64
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.integer = ctor.int64 = function (context) {
+        ctor.integer = ctor.int64 = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 return (typeof v === "number") && Math.floor(v) === v;
             };
-            return new ctor("integer", valFn, context);
+            return new ctor("integer", valFn );
         };
 
         /**
         Returns a standard 32 bit integer data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var freightProperty - orderType.getProperty("Freight");
+            freightProperty.validators.push(Validator.int32());
         @method int32
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.int32 = intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX);
 
         /**
         Returns a standard 16 bit integer data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var freightProperty - orderType.getProperty("Freight");
+            // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.
+            freightProperty.validators.push(Validator.int16());
         @method int16
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.int16 = intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX);
 
         /**
         Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var freightProperty - orderType.getProperty("Freight");
+            // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.
+            // Probably not a very good validation to place on the Freight property.
+            regionProperty.validators.push(Validator.byte());
         @method byte
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
         ctor.byte = intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX);
 
         /**
         Returns a standard boolean data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var productType = em1.metadataStore.getEntityType("Product");
+            var discontinuedProperty - productType.getProperty("Discontinued");
+            // Validates that the value of the Discontinued property on Product is a boolean
+            discontinuedProperty.validators.push(Validator.bool());
         @method bool
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.bool = function (context) {
+        ctor.bool = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 return (v === true) || (v === false);
             };
-            return new ctor("bool", valFn, context);
+            return new ctor("bool", valFn );
         };
-
 
         ctor.none = function () {
             var valFn = function (v) {
@@ -1533,12 +1898,18 @@ function (core) {
 
         /**
         Returns a standard date data type Validator.
+        @example
+            // Assume em1 is a preexisting EntityManager.
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var orderDateProperty - orderType.getProperty("OrderDate");
+            // Validates that the value of the OrderDate property on Order is a date
+            // Probably not a very good validation to place on the Freight property.
+            orderDateProperty.validators.push(Validator.date());
         @method date
         @static
-        @param [context] {Object} 
-        @return Validator
+        @return A new Validator
         **/
-        ctor.date = function (context) {
+        ctor.date = function () {
             var valFn = function (v) {
                 if (v == null) return true;
                 if (typeof v === "string") {
@@ -1551,7 +1922,7 @@ function (core) {
                     return core.isDate(v);
                 }
             };
-            return new ctor("date", valFn, context);
+            return new ctor("date", valFn );
         };
 
         // register all validators
@@ -1617,6 +1988,18 @@ function (core) {
     } ();
 
     var ValidationError = function () {
+         /**
+        A ValidatationError is used to describe a failed validation.
+
+        @class ValidationError
+        **/
+        
+        /**
+        @method <ctor> ValidationError
+        @param validator {Validator}
+        @param context {Object}
+        @param errorMessage {String}
+        **/
         var ctor = function (validator, context, errorMessage) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
 
@@ -1626,6 +2009,34 @@ function (core) {
             this.errorMessage = errorMessage;
             this.key = ValidationError.getKey(validator, this.property);
         };
+        
+        /**
+        The Validator associated with this ValidationError.
+
+        __readOnly__
+        @property validator {Validator}
+        **/
+        
+        /**
+        A 'context' object associated with this ValidationError.
+
+        __readOnly__
+        @property context {Object}
+        **/
+        
+        /**
+        The DataProperty or NavigationProperty associated with this ValidationError.
+
+        __readOnly__
+        @property property {DataProperty|NavigationProperty}
+        **/
+        
+        /**
+        The error message associated with the ValidationError.
+
+        __readOnly__
+        @property errorMessage {string}
+        **/
 
         ctor.getKey = function (validator, property) {
             return (property ? property.name : "") + ":" + validator.name;
@@ -1663,60 +2074,66 @@ function (core, Event, m_validate) {
         var entityStateMethods = {
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.IsUnchanged();
+                var es = anEntity.entityAspect.entityState;
+                return es.IsUnchanged();
             is the same as
-            return es === EntityState.Unchanged;
+            @example
+                return es === EntityState.Unchanged;
             @method IsUnchanged
             @return Whether an entityState instance is EntityState.Unchanged.
             **/
             isUnchanged: function () { return this === EntityState.Unchanged; },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.IsAdded();
+                var es = anEntity.entityAspect.entityState;
+                return es.IsAdded();
             is the same as
-            return es === EntityState.Added;
+            @example
+                return es === EntityState.Added;
             @method IsAdded
             @return Whether an entityState instance is EntityState.Added.
             **/
             isAdded: function () { return this === EntityState.Added; },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.IsModified();
+                var es = anEntity.entityAspect.entityState;
+                return es.IsModified();
             is the same as
-            return es === EntityState.Modified;
+            @example
+                return es === EntityState.Modified;
             @method IsModified
             @return Whether an entityState instance is EntityState.Modified.
             **/
             isModified: function () { return this === EntityState.Modified; },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isDeleted();
+                var es = anEntity.entityAspect.entityState;
+                return es.isDeleted();
             is the same as
-            return es === EntityState.Deleted;
+            @example
+                return es === EntityState.Deleted;
             @method isDeleted
             @return Whether an entityState instance is EntityState.Deleted.
             **/
             isDeleted: function () { return this === EntityState.Deleted; },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isDetached();
+                var es = anEntity.entityAspect.entityState;
+                return es.isDetached();
             is the same as
-            return es === EntityState.Detached;
+            @example
+                return es === EntityState.Detached;
             @method isDetached
             @return Whether an entityState instance is EntityState.Detached.
             **/
             isDetached: function () { return this === EntityState.Detached; },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isUnchangedOrModified();
+                var es = anEntity.entityAspect.entityState;
+                return es.isUnchangedOrModified();
             is the same as
-            return es === EntityState.Unchanged || es === EntityState.Modified
+            @example
+                return es === EntityState.Unchanged || es === EntityState.Modified
             @method isUnchangedOrModified
             @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
             **/
@@ -1725,10 +2142,11 @@ function (core, Event, m_validate) {
             },
             /**
             @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isAddedModifiedOrDeleted();
+                var es = anEntity.entityAspect.entityState;
+                return es.isAddedModifiedOrDeleted();
             is the same as
-            return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
+            @example
+                return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
             @method isAddedModifiedOrDeleted
             @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
             **/
@@ -1920,8 +2338,13 @@ function (core, Event, m_validate) {
         The EntityAspect itself provides properties to determine and modify the EntityState of the entity and has methods 
         that provide a variety of services including validation and change tracking.
 
-        An EntityAspect will almost never need to be constructed directly
-
+        An EntityAspect will almost never need to be constructed directly. You will usually get an EntityAspect by accessing
+        an entities 'entityAspect' property.  This property will be automatically attached when an entity is created via either 
+        a query, import or EntityManager.createEntity call.
+        
+            // assume order is an order entity attached to an EntityManager.
+            var aspect = order.entityAspect;
+            var currentState = aspect.entityState;
         @class EntityAspect
         **/
         var ctor = function (entity) {
@@ -1939,7 +2362,6 @@ function (core, Event, m_validate) {
             // entityType should already be on the entity from 'watch'
             this.entity = entity;
             entity.entityAspect = this;
-
 
             // TODO: keep public or not?
             this.entityGroup = null;
@@ -1996,6 +2418,15 @@ function (core, Event, m_validate) {
 
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a value of one of this entity's properties change.
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            order.entityAspect.propertyChanged.subscribe(
+                function (changeArgs) {
+                    // this code will be executed anytime a property value changes on the 'order' entity.
+                    var propertyNameChanged = changeArgs.propertyName;
+                    var oldValue = changeArgs.oldValue;
+                    var newValue = changeArgs.newValue;
+                });
         @event propertyChanged 
         @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
         queries, imports and saves that require a merge. The remaining parameters will not exist in this case either.
@@ -2007,17 +2438,28 @@ function (core, Event, m_validate) {
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever any of the validation errors on this entity change. 
         Note that this might be the removal of an error when some data on the entity is fixed. 
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            order.entityAspect.validationErrorsChanged.subscribe(
+                function (changeArgs) {
+                    // this code will be executed anytime a property value changes on the 'order' entity.
+                    var errorsAdded = changeArgs.added;
+                    var errorsCleared = changeArgs.removed;
+                });
         @event validationErrorsChanged 
-        @param validator {Validator}  The {{#crossLink "Validator"}}{{/crossLink}} responsible for the validation error
-        @param property  {DataProperty|NavigationProperty} The DataProperty or NavigationProperty involved - if this is null
-        then this is an entity level validation instead of a property level one.
-        @param errorMessage {String} The error message associated with this validation error.
+        @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
+        @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
+        errors that have been 'fixed'
         @readOnly
         **/
 
         /**
+        Returns the {{#crossLink "EntityKey"}}{{/crossLink}} for this Entity. 
+        @example
+             // assume order is an order entity attached to an EntityManager.
+            var entityKey = order.entityAspect.getKey();
         @method getKey
-        @param [forceRefresh = false] {Boolean} Forces the recalculation of the key;
+        @param [forceRefresh = false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
         ctor.prototype.getKey = function (forceRefresh) {
@@ -2034,8 +2476,12 @@ function (core, Event, m_validate) {
         };
 
         /**
-        Returns the entity to an EntityState of 'Unchanged' by committing all changes made since the entity was last queried 
+        Returns the entity to an {{#crossLink "EntityState"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried 
         had 'acceptChanges' called on it. 
+        @example
+             // assume order is an order entity attached to an EntityManager.
+             order.entityAspect.acceptChanges();
+             // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method acceptChanges
         **/
         ctor.prototype.acceptChanges = function () {
@@ -2048,6 +2494,10 @@ function (core, Event, m_validate) {
         /**
         Returns the entity to an EntityState of 'Unchanged' by rejecting all changes made to it since the entity was last queried 
         had 'rejectChanges' called on it. 
+        @example
+             // assume order is an order entity attached to an EntityManager.
+             order.entityAspect.rejectChanges();
+             // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
         @method rejectChanges
         **/
         ctor.prototype.rejectChanges = function () {
@@ -2064,6 +2514,10 @@ function (core, Event, m_validate) {
 
         /**
         Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
+         @example
+             // assume order is an order entity attached to an EntityManager.
+             order.entityAspect.setUnchanged();
+             // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method setUnchanged
         **/
         ctor.prototype.setUnchanged = function () {
@@ -2086,6 +2540,10 @@ function (core, Event, m_validate) {
 
         /**
         Sets the entity to an EntityState of 'Modified'.  This can also be achieved by changing the value of any property on an 'Unchanged' entity.
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            order.entityAspect.setModified();
+            // The 'order' entity will now be in a 'Modified' state. 
         @method setModified
         **/
         ctor.prototype.setModified = function () {
@@ -2098,6 +2556,10 @@ function (core, Event, m_validate) {
         /**
         Sets the entity to an EntityState of 'Deleted'.  This both marks the entity as being scheduled for deletion during the next 'Save' call
         but also removes the entity from all of its related entities. 
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            order.entityAspect.setDeleted();
+            // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
         @method setDeleted
         **/
         ctor.prototype.setDeleted = function () {
@@ -2113,6 +2575,13 @@ function (core, Event, m_validate) {
         Performs validation on the entity, any errors encountered during the validation are available via the 
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating an entity means executing
         all of the validators on both the entity itself as well as those on each of its properties.
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            var isOk = order.entityAspect.validateEntity();
+            // isOk will be 'true' if there are no errors on the entity.
+            if (!isOk) {
+                var errors = order.entityAspect.getValidationErrors();
+            }
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
@@ -2141,6 +2610,13 @@ function (core, Event, m_validate) {
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
         all of the validators on the specified property.  This call is also made automatically anytime a property
         of an entity is changed.
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            var isOk = order.entityAspect.validateProperty("Order"); 
+        or
+        @example
+            var orderDateProperty = order.entityType.getProperty("OrderDate");
+            var isOk = order.entityAspect.validateProperty(OrderDateProperty); 
         @method validateProperty
         @param property {DataProperty|NavigationProperty} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
         {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate.
@@ -2159,6 +2635,20 @@ function (core, Event, m_validate) {
 
         /**
         Returns the validation errors associated with either the entire entity or any specified property.
+        @example
+        This method can return all of the errors for an Entity
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            var valErrors = order.entityAspect.getValidationErrors();
+        as well as those for just a specific property.
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            var orderDateErrors = order.entityAspect.getValidationErrors("OrderDate");
+        which can also be expressed as
+        @example
+            // assume order is an order entity attached to an EntityManager.
+            var orderDateProperty = order.entityType.getProperty("OrderDate");
+            var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
         @method getValidationErrors
         @param [property] {DataProperty|NavigationProperty} The property for which validation errors should be retrieved.
         If omitted, all of the validation errors for this entity will be returned.
@@ -2204,6 +2694,13 @@ function (core, Event, m_validate) {
 
         /**
         Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+        @example
+               emp.entityAspect.loadNavigationProperty("Orders")
+                .then(function (data) {
+                    var orders = data.results;
+                }).fail(function (exception) {
+                    // handle exception here;
+                });
         @method loadNavigationProperty
         @async
         @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
@@ -2317,11 +2814,10 @@ function (core, Event, m_validate) {
                 aspect._addValidationError(ve);
                 return false;
             } else {
-                aspect._removeValidationError(validator, context.property);
+                aspect._removeValidationError(validator, context ? context.property: null);
                 return true;
             }
         }
-
 
         return ctor;
 
@@ -2338,6 +2834,21 @@ function (core, Event, m_validate) {
         **/
         
         /** 
+        Constructs a new EntityKey.  Each entity within an EntityManager will have a unique EntityKey. 
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var empType = em1.metadataStore.getEntityType("Employee");
+            var entityKey = new EntityKey(empType, 1);
+        EntityKey's may also be found by calling EntityAspect.getKey()
+        @example
+            // assume employee1 is an existing Employee entity
+            var empKey = employee1.entityAspect.getKey();
+        Multipart keys are created by passing an array as the 'keyValues' parameter
+        @example
+            var empTerrType = em1.metadataStore.getEntityType("EmployeeTerritory");            
+            var empTerrKey = new EntityKey(empTerrType, [ 1, 77]);
+            // The order of the properties in the 'keyValues' array must be the same as that 
+            // returned by empTerrType.keyProperties
         @method <ctor> EntityKey
         @param entityType {EntityType} The {{#crossLink "EntityType"}}{{/crossLink}} of the entity.
         @param keyValues {value|Array of values} A single value or an array of values.
@@ -2371,6 +2882,16 @@ function (core, Event, m_validate) {
 
         /**
         Used to compare EntityKeys are determine if they refer to the same Entity.
+        There is also an static version of 'equals' with the same functionality. 
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var empType = em1.metadataStore.getEntityType("Employee");
+            var empKey1 = new EntityKey(empType, 1);
+            // assume employee1 is an existing Employee entity
+            var empKey2 = employee1.entityAspect.getKey();
+            if (empKey1.equals(empKey2)) {
+               // do something  ...
+            }
         @method equals
         @param entityKey {EntityKey}
         **/
@@ -2389,7 +2910,17 @@ function (core, Event, m_validate) {
         };
 
         /**
-        Used to compare EntityKeys are determine if they refer to the same Entity.
+        Used to compare EntityKeys are determine if they refer to the same Entity. 
+        There is also an instance version of 'equals' with the same functionality. 
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var empType = em1.metadataStore.getEntityType("Employee");
+            var empKey1 = new EntityKey(empType, 1);
+            // assume employee1 is an existing Employee entity
+            var empKey2 = employee1.entityAspect.getKey();
+            if (EntityKey.equals(empKey1, empKey2)) {
+               // do something  ...
+            }
         @method equals
         @static
         @param k1 {EntityKey}
@@ -2817,12 +3348,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         An instance of the MetadataStore contains all of the metadata about a collection of {{#crossLink "EntityType"}}{{/crossLink}}'s.
+        MetadataStores may be shared across {{#crossLink "EntityManager"}}{{/crossLink}}'s.  If an EntityManager is created without an
+        explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance property will be used.
         @class MetadataStore
         **/
 
         var __id = 0;
         
         /**
+        Constructs a new MetadataStore.  
+        @example
+            var ms = new MetadataStore();
+        The store can then be associated with an EntityManager
+        @example
+            var entityManager = new EntityManager( {
+                serviceName: "api/NorthwindIBModel", 
+                metadataStore: ms 
+            });
+        or for an existing EntityManager
+        @example
+            // Assume em1 is an existing EntityManager
+            em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
         **/
         var ctor = function () {
@@ -2846,7 +3392,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.defaultInstance = new ctor();
 
         /**
-        Exports this MetadataStore to a serialized string appropriate for local storage.
+        Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
+        internally when exporting an EntityManager. 
+        @example
+            // assume ms is a previously created MetadataStore
+            var metadataAsString = ms.export();
+            windows.localStorage.setItem("metadata", metadataAsString);
+            // and later, usually in a different session imported
+            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var newMetadataStore = new MetadataStore();
+            newMetadataStore.import(metadataFromStorage);
         @method export
         @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
         **/
@@ -2859,6 +3414,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Imports a previously exported serialized MetadataStore into this MetadataStore.
+        @example
+            // assume ms is a previously created MetadataStore
+            var metadataAsString = ms.export();
+            windows.localStorage.setItem("metadata", metadataAsString);
+            // and later, usually in a different session
+            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var newMetadataStore = new MetadataStore();
+            newMetadataStore.import(metadataFromStorage);
         @method import
         @param exportedString {String} A previously exported MetadataStore.
         @return {MetadataStore} This MetadataStore.
@@ -2879,7 +3442,33 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         /**
+        Creates a new MetadataStore from a previously exported serialized MetadataStore
+        @example
+            // assume ms is a previously created MetadataStore
+            var metadataAsString = ms.export();
+            windows.localStorage.setItem("metadata", metadataAsString);
+            // and later, usually in a different session
+            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var newMetadataStore = MetadataStore.import(metadataFromStorage);
+        @method import
+        @static
+        @param exportedString {String} A previously exported MetadataStore.
+        @return {MetadataStore} A new MetadataStore.
+        
+        **/
+        ctor.import = function(exportedString) {
+            var ms = new MetadataStore();
+            ms.import(exportedString);
+            return ms;
+        };
+
+        /**
         Returns whether Metadata has been retrieved for a specified service name.
+        @example
+            // Assume em1 is an existing EntityManager.
+            if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
+                // do something interesting
+            }
         @method hasMetadataFor
         @param serviceName {String} The service name.
         @return {Boolean}
@@ -2890,8 +3479,23 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         /**
-        Fetches the metadata for a specified 'service'. This method should rarely be needed to be called directly because it is automatically called 
+        Fetches the metadata for a specified 'service'. This method is automatically called 
         internally by an EntityManager before its first query against a new service.  
+
+        @example
+        Usually you will not actually process the results of a fetchMetadata call directly, but will instead
+        ask for the metadata from the EntityManager after the fetchMetadata call returns.
+        @example
+            var ms = new MetadataStore();
+            // or more commonly
+            // var ms = anEntityManager.metadataStore;
+            ms.fetchMetadata("api/NorthwindIBModel")
+            .then(function(rawMetadata) {
+                // do something with the metadata
+            }
+            .fail(function(exception) {
+                // handle exception here
+            };
         @method fetchMetadata
         @async
         @param serviceName {String}  The service name to fetch metadata for.
@@ -2953,9 +3557,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Provides a mechanism to register a 'custom' constructor to be used when creating new instances
         of the specified entity type.  If this call is not made, a default constructor is created for
         the entity as needed.
-
         This call may be made before or after the corresponding EntityType has been discovered via
         Metadata discovery.
+        @example
+            var Customer = function () {
+                this.miscData = "asdf";
+            };
+            Customer.prototype.doFoo() {
+                ...
+            }
+            // assume em1 is a preexisting EntityManager;
+            em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+            // any queries or EntityType.create calls from this point on will call the Customer constructor
+            // registered above.
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
@@ -2976,6 +3590,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns whether this MetadataStore contains any metadata yet.
+        @example
+            // assume em1 is a preexisting EntityManager;
+            if (em1.metadataStore.isEmpty()) {
+                // do something interesting
+            }
         @method isEmpty
         **/
         ctor.prototype.isEmpty = function () {
@@ -2985,7 +3604,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns an  {{#crossLink "EntityType"}}{{/crossLink}} given its name.
-       
+        @example
+            // assume em1 is a preexisting EntityManager
+            var odType = em1.metadataStore.getEntityType("OrderDetail");
+        or to throw an error if the type is not found
+        @example
+            var badType = em1.metadataStore.getEntityType("Foo", false);
+            // badType will not get set and an exception will be thrown.
         @method getEntityType
         @param entityTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. 
@@ -3009,6 +3634,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s in this MetadataStore.
+        @example
+            // assume em1 is a preexisting EntityManager
+            var allTypes = em1.metadataStore.getEntityTypes();
         @method getEntityTypes
         **/
         ctor.prototype.getEntityTypes = function () {
@@ -3024,18 +3652,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
 
-        /**
+        /*
+        INTERNAL FOR NOW
         Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
         can be obtained via the  {{#crossLink "EntityType"}}{{/crossLink}} 'defaultResourceName' property
         @method getEntityTypeNameForResourceName
         @param resourceName {String}
-        **/
-        ctor.prototype.getEntityTypeNameForResourceName = function (resourceName) {
+        */
+        ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
             return this._resourceEntityTypeMap[resourceName];
         };
 
-        /**
+        /*
+        INTERNAL FOR NOW
         Associates a resourceName with an entityType. 
 
         This method is only needed in those cases where multiple resources return the same
@@ -3045,8 +3675,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param resourceName {String}
         @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
-        **/
-        ctor.prototype.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
+        */
+        ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
             var entityTypeName;
@@ -3091,7 +3721,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                     toArray(schema.entityContainer).forEach(function (container) {
                         toArray(container.entitySet).forEach(function (entitySet) {
                             var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
-                            that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                            that._setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         });
                     });
                 }
@@ -3286,8 +3916,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         var ctor = new Enum("AutoGeneratedKeyType");
         /**
-        This entity does not have an autogenerated key.
-
+        This entity does not have an autogenerated key. 
+        The client must set the key before adding the entity to the EntityManager
         @property None {symbol}
         @final
         @static
@@ -3424,18 +4054,32 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         General purpose property set method
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            custType.setProperties( {
+                autoGeneratedKeyType: AutoGeneratedKeyType.Identity;
+                defaultResourceName: "CustomersAndIncludedOrders"
+            )};
         @method setProperties
         @param config [object]
             @param [config.autogeneratedKeyType] {AutoGeneratedKeyType}
             @param [config.defaultResourceName] {String}
         **/
         ctor.prototype.setProperties = function (config) {
-            assertConfig(config, "autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional().apply(this);
-            assertConfig(config, "defaultResourceName").isString().isOptional().apply(this);
+            assertConfig(config)
+                .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional()
+                .whereParam("defaultResourceName").isString().isOptional()
+                .applyAll(this);
         };
 
         /**
         Create a new entity of this type.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            em1.addEntity(cust1);
         @method createEntity
         @return {Entity} The new entity.
         **/
@@ -3479,11 +4123,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         /**
-        Adds either an entity or property level validator to this EntityType.  This is the same
-        as adding an entity level validator via 
-            entityType.validators.push(validator)
-        or for property level validators
-            property.validators.push(validator)
+        Adds either an entity or property level validator to this EntityType.  
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var countryProp = custType.getProperty("Country");
+            var valFn = function (v) {
+                if (v == null) return true;
+                return (core.stringStartsWith(v, "US"));
+            };
+            var countryValidator = new Validator("countryIsUS", valFn, 
+                { displayName: "Country", messageTemplate: "'%displayName%' must start with 'US'" });
+            custType.addValidator(countryValidator, countryProp);
+        This is the same as adding an entity level validator via the 'validators' property of DataProperty or NavigationProperty
+        @example
+            countryProp.validators.push(countryValidator);
+        Entity level validators can also be added by omitting the 'property' parameter.
+        @example
+            custType.addValidator(someEntityLevelValidator);
+        or
+        @example
+            custType.validators.push(someEntityLevelValidator);
         @method addValidator
         @param validator {Validator} Validator to add.
         @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
@@ -3504,6 +4164,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns all of the properties ( dataProperties and navigationProperties) for this EntityType.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var arrayOfProps = custType.getProperties();
         @method getProperties
         @return Array of DataProperty|NavigationProperty
         **/
@@ -3513,6 +4177,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns all of the property names ( for both dataProperties and navigationProperties) for this EntityType.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var arrayOfPropNames = custType.getPropertyNames();
         @method getPropertyNames
         @return {Array of String}
         **/
@@ -3522,6 +4190,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns a data property with the specified name or null.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var customerNameDataProp = custType.getDataProperty("CustomerName");
         @method getDataProperty
         @param propertyName {String}
         @return {DataProperty|null}
@@ -3532,6 +4204,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns a navigation property with the specified name or null.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var customerOrdersNavProp = custType.getDataProperty("Orders");
         @method getNavigationProperty
         @param propertyName {String}
         @return {NavigationProperty|null}
@@ -3541,10 +4217,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         /**
-        Returns either a DataProperty or a NavigationProperty with the specified name or null.
+        Returns either a DataProperty or a NavigationProperty with the specified name or null.  
 
         This method also accepts a '.' delimited property path and will return the 'property' at the 
         end of the path.
+        @example
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var companyNameProp = custType.getProperty("CompanyName");
+        This method can also walk a property path to return a property
+        @example
+            var orderDetailType = em1.metadataStore.getEntityType("OrderDetail");
+            var companyNameProp2 = orderDetailType.getProperty("Order.Customer.CompanyName");
+            // companyNameProp === companyNameProp2 
         @method getProperty
         @param propertyPath {String}
         @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
@@ -3581,7 +4265,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         /**
         Returns a string representation of this EntityType.
-        @method toString()
+        @method toString
         @return {String}
         **/
         ctor.prototype.toString = function () {
@@ -3736,16 +4420,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @class DataProperty
         **/
         var ctor = function (config) {
-            assertConfig(config, "parentEntityType").isInstanceOf(EntityType).apply(this);
-            assertConfig(config, "name").isString().apply(this);
-            assertConfig(config, "dataType").isEnumOf(DataType).apply(this);
-            assertConfig(config, "isNullable").isBoolean().isOptional().apply(this);
-            assertConfig(config, "isKeyProperty").isBoolean().isOptional().apply(this);
-            assertConfig(config, "isUnmappedProperty").isBoolean().isOptional().apply(this);
-            assertConfig(config, "concurrencyMode").isString().isOptional().apply(this);
-            assertConfig(config, "maxLength").isString().isOptional().apply(this);
-            assertConfig(config, "fixedLength").isBoolean().isOptional().apply(this);
-            assertConfig(config, "validators").isInstanceOf(Validator).isArray().isOptional().apply(this, []);
+            assertConfig(config)
+                .whereParam("parentEntityType").isInstanceOf(EntityType)
+                .whereParam("name").isString()
+                .whereParam("dataType").isEnumOf(DataType)
+                .whereParam("isNullable").isBoolean().isOptional()
+                .whereParam("defaultValue").isOptional()
+                .whereParam("isKeyProperty").isBoolean().isOptional()
+                .whereParam("isUnmappedProperty").isBoolean().isOptional()
+                .whereParam("concurrencyMode").isString().isOptional()
+                .whereParam("maxLength").isString().isOptional()
+                .whereParam("fixedLength").isBoolean().isOptional()
+                .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
+                .applyAll(this);
             this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
 
             // Set later:
@@ -3881,13 +4568,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @class NavigationProperty
         **/
         var ctor = function (config) {
-            assertConfig(config, "parentEntityType").isInstanceOf(EntityType).apply(this);
-            assertConfig(config, "name").isString().apply(this);
-            assertConfig(config, "entityTypeName").isString().apply(this);
-            assertConfig(config, "isScalar").isBoolean().apply(this);
-            assertConfig(config, "associationName").isString().isOptional().apply(this);
-            assertConfig(config, "foreignKeyNames").isArray().isString().isOptional().apply(this);
-            assertConfig(config, "validators").isInstanceOf(Validator).isArray().isOptional().apply(this, []);
+            assertConfig(config)
+                .whereParam("parentEntityType").isInstanceOf(EntityType)
+                .whereParam("name").isString()
+                .whereParam("entityTypeName").isString()
+                .whereParam("isScalar").isBoolean()
+                .whereParam("associationName").isString().isOptional()
+                .whereParam("foreignKeyNames").isArray().isString().isOptional()
+                .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
+                .applyAll(this);
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
 
             // Set later:
@@ -4130,18 +4819,27 @@ function (core, m_entityMetadata, m_entityAspect) {
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
     
-
     var EntityQuery = (function () {
         /**
         An EntityQuery instance is used to query entities either from a remote datasource or from a local {{#crossLink "EntityManager"}}{{/crossLink}}. 
 
         EntityQueries are immutable - this means that all EntityQuery methods that return an EntityQuery actually create a new EntityQuery.  This means that 
         EntityQueries can be 'modified' without affecting any current instances.
+
         @class EntityQuery
         **/
-        
+            
         /**
-        @method <ctor> EntityQuery
+        @example                    
+            var query = new EntityQuery("Customers")
+
+        Usually this constructor will be followed by calls to filtering, ordering or selection methods
+        @example
+            var query = new EntityQuery("Customers")
+               .where("CompanyName", "startsWith", "C")
+               .orderBy("Region");
+
+        @method <ctor> EntityQuery 
         @param [resourceName] {String}
         **/
         var ctor = function (resourceName) {
@@ -4201,14 +4899,15 @@ function (core, m_entityMetadata, m_entityAspect) {
         @property queryOptions {QueryOptions}
         **/
 
-        /**
+        /*
+        Made internal for now.
         @method getEntityType
         @param metadataStore {MetadataStore} The {{#crossLink "MetadataStore"}}{{/crossLink}} in which to locate the 
         {{#crossLink "EntityType"}}{{/crossLink}} returned by this query. 
         @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
-        @return {EntityType}
-        **/
-        ctor.prototype.getEntityType = function (metadataStore, throwErrorIfNotFound) {
+        @return {EntityType|null} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
+        */
+        ctor.prototype._getEntityType = function (metadataStore, throwErrorIfNotFound) {
             assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
             assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
             var entityType = this.entityType;
@@ -4220,7 +4919,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (metadataStore.isEmpty()) {
                     return null;
                 }
-                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+                var entityTypeName = metadataStore._getEntityTypeNameForResourceName(resourceName);
                 if (!entityTypeName) {
                     if (throwErrorIfNotFound) {
                         throw new Error("Cannot find resourceName of: " + resourceName);
@@ -4239,6 +4938,12 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**
         Specifies the resource to query for this EntityQuery.
+        @example                    
+            var query = new EntityQuery()
+                .from("Customers");
+        is the same as 
+        @example
+            var query = new EntityQuery("Customers");
         @method from
         @param resourceName {String} The resource to query.
         @return {EntityQuery}
@@ -4255,10 +4960,58 @@ function (core, m_entityMetadata, m_entityAspect) {
             eq.resourceName = resourceName;
             return eq;
         };
+        
+        /**
+        This is a static version of the "from" method and it creates a 'base' entityQuery for the specified resource name. 
+        @example                    
+            var query = EntityQuery.from("Customers");
+        is the same as 
+        @example
+            var query = new EntityQuery("Customers");
+        @method from
+        @static
+        @param resourceName {String} The resource to query.
+        @return {EntityQuery}
+        @chainable
+        **/
+        ctor.from = function (resourceName) {
+            assertParam(resourceName, "resourceName").isString().check();
+            return new EntityQuery(resourceName);
+        };
 
 
         /**
         Adds a filter to the query. Can be called multiple times which means to 'and' with any existing Predicate.
+        @example                    
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", "startsWith", "C");
+        This can also be expressed using an explicit {{#crossLink "FilterQueryOp"}}{{/crossLink}} as
+        @example
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", FilterQueryOp.StartsWith, "C");
+        or a preconstructed {{#crossLink "Predicate"}}{{/crossLink}} may be used
+        @example
+            var pred = new Predicate("CompanyName", FilterQueryOp.StartsWith, "C");
+            var query = new EntityQuery("Customers")
+                .where(pred);
+        Predicates are often useful when you want to combine multiple conditions in a single filter, such as
+        @example
+            var pred = Predicate.create("CompanyName", "startswith", "C").and("Region", FilterQueryOp.Equals, null);
+            var query = new EntityQuery("Customers")
+                .where(pred);
+        @example
+        More complicated queries can make use of nested property paths
+        @example
+            var query = new EntityQuery("Products")
+                .where("Category.CategoryName", "startswith", "S");
+        or OData functions - A list of valid OData functions can be found within the {{#crossLink "Predicate"}}{{/crossLink}} documentation.
+        @example
+            var query = new EntityQuery("Customers")
+                .where("toLower(CompanyName)", "startsWith", "c");
+        or to be even more baroque
+        @example
+            var query = new EntityQuery("Customers")
+               .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
         @method where
         @param predicate {Predicate|property|property path, operator, value} Can be either
         
@@ -4267,7 +5020,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         - or the parameters to create a 'simple' Predicate
 
             - a property name, a property path with '.' as path seperators or a property expression {String}
-            - an operator {FilterQueryOp|String} Either a  {{#crossLink "FilterQueryOp"}}{{/crossLink}} or it's string representation.
+            - an operator {FilterQueryOp|String} Either a  {{#crossLink "FilterQueryOp"}}{{/crossLink}} or it's string representation. Case is ignored
+            when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
             - a value    
    
         @return {EntityQuery}
@@ -4295,9 +5049,32 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Orders the results of the query by property name is ascending order.
+        Returns a query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well. 
+        @example
+             var query = new EntityQuery("Customers")
+                 .orderBy("CompanyName");
+
+        or to sort across multiple properties
+        @example
+             var query = new EntityQuery("Customers")
+                 .orderBy("Region, CompanyName");
+
+        Nested property paths are also supported
+        @example
+             var query = new EntityQuery("Products")
+                .orderBy("Category.CategoryName");
+
+        Sorting in descending order is supported via the addition of ' desc' to the end of any property path.
+        @example
+             var query = new EntityQuery("Customers")
+                .orderBy("CompanyName desc");
+
+        or
+        @example
+             var query = new EntityQuery("Customers")
+                .orderBy("Region desc, CompanyName desc");
         @method orderBy
-        @param propertyPaths {String} A list of property paths seperated by ','.
+        @param propertyPaths {String} A list of property paths seperated by ','. Each property path can optionally end with " desc" to force a descending sort order.
         @return {EntityQuery}
         @chainable
         **/
@@ -4308,7 +5085,21 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Orders the results of the query by property name in descending order.
+        Returns a query that orders the results of the query by property name in descending order.
+        @example
+             var query = new EntityQuery("Customers")
+                 .orderByDesc("CompanyName");
+
+        or to sort across multiple properties
+        @example
+             var query = new EntityQuery("Customers")
+                 .orderByDesc("Region, CompanyName");
+
+        Nested property paths are also supported
+        @example
+             var query = new EntityQuery("Products")
+                .orderByDesc("Category.CategoryName");
+
         @method orderByDesc
         @param propertyPaths {String} A list of property paths seperated by ','.
         @return {EntityQuery}
@@ -4320,7 +5111,35 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        Selects a list of properties from the results of the original query and returns the values of just these properties. 
+        Returns a query that selects a list of properties from the results of the original query and returns the values of just these properties. This
+        will be referred to as a projection. 
+        If the result of this selection "projection" contains entities, these entities will automatically be added to EntityManager's cache and will 
+        be made 'observable'.
+        Any simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.
+        
+        @example
+        Simple data properties can be projected
+        @example
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", "startsWith", "C")
+                .select("CompanyName");
+        This will return an array of objects each with a single "CompanyName" property of type string.
+        A similar query could return a navigation property instead
+        @example
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", "startsWith", "C")
+                .select("Orders");
+        where the result would be an array of objects each with a single "Orders" property that would itself be an array of "Order" entities.
+        Composite projections are also possible:
+        @example
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", "startsWith", "C")
+                .select("CompanyName, Orders");
+        As well as projections involving nested property paths
+        @example
+            var query = EntityQuery("Orders")
+                .where("Customer.CompanyName", "startsWith", "C")         
+                .select("Customer.CompanyName, Customer, OrderDate");
         @method select
         @param propertyPaths {String} A list of property paths seperated by ','.
         @return {EntityQuery}
@@ -4332,7 +5151,11 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Skips the specified number of entities when returning results.
+        Returns a query that skips the specified number of entities when returning results.
+        @example
+            var query = new EntityQuery("Customers")
+               .where("CompanyName", "startsWith", "C")
+               .skip(5);
         @method skip
         @param count {Number} The number of entities to return. If omitted this clears the 
         @return {EntityQuery}
@@ -4350,7 +5173,10 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        Returns only the specified number of entities when returning results. - Same as 'take'.
+        Returns a query that returns only the specified number of entities when returning results. - Same as 'take'.
+        @example
+            var query = new EntityQuery("Customers")
+                .top(5);
         @method top
         @param count {Number} The number of entities to return.
         @return {EntityQuery}
@@ -4361,7 +5187,10 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns only the specified number of entities when returning results - Same as 'top'
+        Returns a query that returns only the specified number of entities when returning results - Same as 'top'
+        @example
+            var query = new EntityQuery("Customers")
+                .take(5);
         @method take
         @param count {Number} The number of entities to return.
         @return {EntityQuery}
@@ -4379,7 +5208,21 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        The expand method allows you to identify related entities such that a graph of entities may be retrieved with a single request.
+        Returns a query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
+        names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
+        @example
+            var query = new EntityQuery("Customers")
+                .where("CompanyName", "startsWith", "C")
+                .expand("Orders");
+        will return the filtered customers each with its "Orders" properties fully resolved.
+        Multiple paths may be specified by separating the paths by a ','
+        @example
+            var query = new EntityQuery("Orders")
+                .expand("Customer, Employee")
+        and nested property paths my be specified as well
+        @example
+            var query = new EntityQuery("Orders")
+                .expand("Customer, OrderDetails, OrderDetails.Product")
         @method expand
         @param propertyPaths {String} A comma-separated list of navigation property names. Each Navigation Property name can be followed
         by a '.' and another navigation property name to enable identifying a multi-level relationship
@@ -4401,15 +5244,67 @@ function (core, m_entityMetadata, m_entityAspect) {
         /**
         Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} 
         or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
-        @method apply
-        @param obj {EntityManager|MergeStrategy|FetchStrategy} The object to apply to create a new EntityQuery.
+        @example
+        'using' can be used to return a new query with a specified EntityManager.
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders")
+                 .using(em);
+        or with a specified {{#crossLink "MergeStrategy"}}{{/crossLink}} 
+        @example
+            var em = new EntityManager(serviceName);
+            var query = new EntityQuery("Orders")
+                .using(MergeStrategy.PreserveChanges);
+        or with a specified {{#crossLink "FetchStrategy"}}{{/crossLink}} 
+        @example
+            var em = new EntityManager(serviceName);
+            var query = new EntityQuery("Orders")
+                .using(FetchStrategy.FromLocalCache);
+        @example
+        @method using
+        @param obj {EntityManager|MergeStrategy|FetchStrategy} The object to update in creating a new EntityQuery from an existing one.
         @return {EntityQuery}
         @chainable
         **/
         
        // Implementations found in EntityManager
-         /**
-        Executes this query.  This is the same as calling this.EntityManager.executeQuery(this, ...).
+        /**
+        Executes this query.  This method requires that an EntityManager have been previously specified via the "using" method.
+        @example
+        This method can be called using a 'promises' syntax ( recommended)
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders").using(em);
+             query.execute()
+               .then( function(data) {
+                   ... query results processed here
+             }).fail( function(err) {
+                   ... query failure processed here
+             });
+        or with callbacks
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders").using(em);
+             query.execute(
+                function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+                },
+                function(err) {
+                   ... query failure processed here
+                });
+        Either way this method is the same as calling the EntityManager 'execute' method.
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders");
+             em.executeQuery(query)
+               .then( function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+             }).fail( function(err) {
+                   ... query failure processed here
+             });
+         
         @method execute
         @async
         
@@ -4427,20 +5322,21 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
 
         /**
-        Creates a 'base' entityQuery for the specified resource name.
-        @method from
-        @static
-        @param resourceName {String} The resource to query.
-        @return {EntityQuery}
-        @chainable
-        **/
-        ctor.from = function (resourceName) {
-            assertParam(resourceName, "resourceName").isString().check();
-            return new EntityQuery(resourceName);
-        };
-
-        /**
-        Creates an EntityQuery that will allow 'requerying' a collection of entities by primary key. 
+        Static method tht creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful
+        to force a requery of selected entities, or to restrict an existing collection of entities according to some filter.
+        @example
+            // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+            var customersQuery = EntityQuery.fromEntities(customers);
+        The resulting query can, of course, be extended
+        @example
+            // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+            var customersQuery = EntityQuery.fromEntities(customers)
+                .where("Region", FilterQueryOp.NotEquals, null);
+        Single entities can requeried as well.
+        @example
+            // assuming 'customer' is a 'Customer' entity retrieved earlier.
+            var customerQuery = EntityQuery.fromEntities(customer);
+        will create a query that will return an array containing a single customer entity.
         @method fromEntities
         @static
         @param entities {Entity|Array of Entity} The entities for which we want to create an EntityQuery.
@@ -4464,6 +5360,15 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**
         Creates an EntityQuery for the specified {{#crossLink "EntityKey"}}{{/crossLink}}.
+        @example
+            var empType = metadataStore.getEntityType("Employee");
+            var entityKey = new EntityKey(empType, 1);
+            var query = EntityQuery.fromEntityKey(entityKey);
+        or
+        @example
+            // 'employee' is a previously queried employee
+            var entityKey = employee.entityAspect.getKey();
+            var query = EntityQuery.fromEntityKey(entityKey);
         @method fromEntityKey
         @static
         @param entityKey {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} for which a query will be created.
@@ -4480,6 +5385,11 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**
         Creates an EntityQuery for the specified entity and {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+        @example
+            // 'employee' is a previously queried employee
+            var ordersNavProp = employee.entityType.getProperty("Orders");
+            var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
+        will return a query for the "Orders" of the specified 'employee'.
         @method fromEntityNavigation
         @static
         @param entity {Entity} The Entity whose navigation property will be queried.
@@ -4529,7 +5439,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype._toUri = function (metadataStore) {
             // force entityType validation;
             if (metadataStore) {
-                this.getEntityType(metadataStore, false);
+                this._getEntityType(metadataStore, false);
                 
             }
 
@@ -4612,7 +5522,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype._toFilterFunction = function (metadataStore) {
             var wherePredicate = this.wherePredicate;
             if (!wherePredicate) return null;
-            var entityType = this.getEntityType(metadataStore);
+            var entityType = this._getEntityType(metadataStore);
             // may throw an exception
             wherePredicate.validate(entityType);
             return wherePredicate.toFunction();
@@ -4621,7 +5531,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype._toOrderByComparer = function (metadataStore) {
             var orderByClause = this.orderByClause;
             if (!orderByClause) return null;
-            var entityType = this.getEntityType(metadataStore);
+            var entityType = this._getEntityType(metadataStore);
             // may throw an exception
             orderByClause.validate(entityType);
             return orderByClause.getComparer();
@@ -4962,6 +5872,14 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         
         /**
+        Predicate constructor
+        @example
+            var p1 = new Predicate("CompanyName", "StartsWith", "B");
+            var query = new EntityQuery("Customers").where(p1);
+        or 
+        @example
+            var p2 = new Predicate("Region", FilterQueryOp.Equals, null);
+            var query = new EntityQuery("Customers").where(p2);
         @method <ctor> Predicate
         @param property {String} A property name, a nested property name or an expression involving a property name.
         @param operator {FilterQueryOp|String}
@@ -4977,6 +5895,11 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Returns whether an object is a Predicate
+        @example
+            var p1 = new Predicate("CompanyName", "StartsWith", "B");
+            if (Predicate.isPredicate(p1)) {
+                // do something
+            }
         @method isPredicate
         @param o {Object}
         @static
@@ -4987,6 +5910,15 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.
+        @example
+            var p1 = Predicate.create("Freight", "gt", 100);
+        or parameters can be passed as an array.
+        @example
+            var predArgs = ["Freight", "gt", 100];
+            var p1 = Predicate.create(predArgs);
+        both of these are the same as 
+        @example
+            var p1 = new Predicate("Freight", "gt", 100);
         @method create 
         @static
         @param property {String} A property name, a nested property name or an expression involving a property name.
@@ -5003,8 +5935,18 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.
+        @example
+            var dt = new Date(88, 9, 12);
+            var p1 = Predicate.create("OrderDate", "ne", dt);
+            var p2 = Predicate.create("ShipCity", "startsWith", "C");
+            var p3 = Predicate.create("Freight", ">", 100);
+            var newPred = Predicate.and(p1, p2, p3);
+        or
+        @example
+            var preds = [p1, p2, p3];
+            var newPred = Predicate.and(preds);
         @method and
-        @param predicates {Predicate|Predicate*|Array of Predicate|Predicate params}
+        @param predicates* {multiple Predicates|Array of Predicate}
         @static
         **/
         ctor.and = function (predicates) {
@@ -5018,8 +5960,18 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.
+        @example
+            var dt = new Date(88, 9, 12);
+            var p1 = Predicate.create("OrderDate", "ne", dt);
+            var p2 = Predicate.create("ShipCity", "startsWith", "C");
+            var p3 = Predicate.create("Freight", ">", 100);
+            var newPred = Predicate.or(p1, p2, p3);
+        or
+        @example
+            var preds = [p1, p2, p3];
+            var newPred = Predicate.or(preds);
         @method or
-        @param predicates {Predicate|Predicate*|Array of Predicate|Predicate params}
+        @param predicates* {multiple Predicates|Array of Predicate}
         @static
         **/
         ctor.or = function (predicates) {
@@ -5033,6 +5985,15 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Creates a 'composite' Predicate by 'negating' a specified predicate.
+        @example
+            var p1 = Predicate.create("Freight", "gt", 100);
+            var not_p1 = Predicate.not(p1);
+        This can also be accomplished using the 'instance' version of the 'not' method
+        @example
+            var not_p1 = p1.not();
+        Both of which would be the same as
+        @example
+            var not_p1 = Predicate.create("Freight", "le", 100);
         @method not
         @param predicate {Predicate}
         @static
@@ -5043,8 +6004,22 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate
+        @example
+            var dt = new Date(88, 9, 12);
+            var p1 = Predicate.create("OrderDate", "ne", dt);
+            var p2 = Predicate.create("ShipCity", "startsWith", "C");
+            var p3 = Predicate.create("Freight", ">", 100);
+            var newPred = p1.and(p2, p3);
+        or
+        @example
+            var preds = [p2, p3];
+            var newPred = p1.and(preds);
+        The 'and' method is also used to write "fluent" expressions
+        @example
+            var p4 = Predicate.create("ShipCity", "startswith", "F")
+                .and("Size", "gt", 2000);
         @method and
-        @param predicates {Predicate|Predicate*|Array of Predicate|Predicate params}
+        @param predicates* {multiple Predicates|Array of Predicate}
         **/
         ctor.prototype.and = function (predicates) {
             predicates = argsToPredicates(arguments);
@@ -5054,8 +6029,22 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate
+        @example
+            var dt = new Date(88, 9, 12);
+            var p1 = Predicate.create("OrderDate", "ne", dt);
+            var p2 = Predicate.create("ShipCity", "startsWith", "C");
+            var p3 = Predicate.create("Freight", ">", 100);
+            var newPred = p1.and(p2, p3);
+        or
+        @example
+            var preds = [p2, p3];
+            var newPred = p1.and(preds);
+        The 'or' method is also used to write "fluent" expressions
+        @example
+            var p4 = Predicate.create("ShipCity", "startswith", "F")
+                .or("Size", "gt", 2000);
         @method or
-        @param predicates {Predicate|Predicate*|Array of Predicate|Predicate params}
+        @param predicates* {multiple Predicates|Array of Predicate}
         **/
         ctor.prototype.or = function (predicates) {
             predicates = argsToPredicates(arguments);
@@ -5065,6 +6054,16 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         /**  
         Returns the 'negated' version of this Predicate
+        @example
+            var p1 = Predicate.create("Freight", "gt", 100);
+            var not_p1 = p1.not();
+        This can also be accomplished using the 'static' version of the 'not' method
+        @example
+            var p1 = Predicate.create("Freight", "gt", 100);
+            var not_p1 = Predicate.not(p1);
+        which would be the same as
+        @example
+            var not_p1 = Predicate.create("Freight", "le", 100);
         @method not
         **/
         ctor.prototype.not = function () {
@@ -5217,7 +6216,8 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
             } else if (core.isDate(val)) {
                 // return core.toISODateString(val);
-                return val.toISOString();
+                return "datetime'"+val.toISOString() + "'";
+                // return val.toISOString();
             } else {
                 return val;
             }
@@ -5315,8 +6315,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         return ctor;
     })();
 
+    // Not exposed externally for now
     var OrderByClause = (function () {
-        /**
+        /*
         An OrderByClause is a description of the properties and direction that the result 
         of a query should be sorted in.  OrderByClauses are immutable, which means that any
         method that would modify an OrderByClause actually returns a new OrderByClause. 
@@ -5329,14 +6330,14 @@ function (core, m_entityMetadata, m_entityAspect) {
                 or 
             var obc = new OrderByClause("Company.CompanyName, LastName", true);
         @class OrderByClause
-        **/
+        */
         
-        /**
+        /*
         @method <ctor> OrderByClause
         @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
         parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
         @param [isDesc=false] {Boolean}
-        **/
+        */
         var ctor = function (propertyPaths, isDesc) {
             if (propertyPaths.prototype === true) {
                 // used to construct prototype
@@ -5345,7 +6346,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return ctor.create(propertyPaths, isDesc);
         };
 
-        /**
+        /*
         Alternative method of creating an OrderByClause. 
         Example for an Employee object with properties of 'Company' and 'LastName': 
 
@@ -5359,7 +6360,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
         parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
         @param [isDesc=false] {Boolean}
-        **/
+        */
         ctor.create = function (propertyPaths, isDesc) {
             if (typeof (propertyPaths) !== 'string') {
                 throw new Error("The propertyPaths parameter must be a string.");
@@ -5375,31 +6376,31 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        /**
+        /*
         Returns a 'composite' OrderByClause by combining other OrderByClauses.
         @method combine
         @static
         @param orderByClauses {Array of OrderByClause}
-        **/
+        */
         ctor.combine = function (orderByClauses) {
             return new CompositeOrderByClause(orderByClauses);
         };
 
-        /**
+        /*
         Returns whether an object is an OrderByClause.
         @method isOrderByClause
         @static
         @param obj {Object}
-        **/
+        */
         ctor.isOrderByClause = function (obj) {
             return obj instanceof OrderByClause;
         };
 
-        /**
+        /*
         Returns whether a new OrderByClause with a specified clause add to the end of this one. 
         @method addClause
         @param orderByClause {OrderByClause}
-        **/
+        */
         ctor.prototype.addClause = function (orderByClause) {
             return new CompositeOrderByClause([this, orderByClause]);
         };
@@ -5526,8 +6527,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         return ctor;
     })();
     
+    // Not exposed
     var SelectClause = (function () {
-        /**
+        /*
         A SelectClause is a description of the properties that a query should project into its results.
 
         For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
@@ -5538,20 +6540,20 @@ function (core, m_entityMetadata, m_entityAspect) {
                 or 
             var obc = new SelectClause("LastName");
         @class SelectClause
-        **/
+        */
         
-        /**
+        /*
         @method <ctor> SelectClause
         @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
         parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        **/
+        */
         var ctor = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
             this.propertyPaths = propertyPaths;
             this._pathStrings = propertyPaths.split(",");
         };
 
-        /**
+        /*
         Alternative method of creating an SelectClause. 
         Example for an Employee object with properties of 'Company' and 'LastName': 
 
@@ -5564,7 +6566,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @static
         @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
         parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        **/
+        */
         ctor.create = function (propertyPaths) {
             return new SelectClause(propertyPaths);
         };
@@ -5647,9 +6649,11 @@ function (core, m_entityMetadata, m_entityAspect) {
     return {
         FilterQueryOp: FilterQueryOp,
         Predicate: Predicate,
-        OrderByClause: OrderByClause,
         EntityQuery: EntityQuery,
-        FnNode: FnNode
+        FnNode: FnNode,
+        // Not documented - only exposed for testing purposes
+        OrderByClause: OrderByClause,
+        SelectClause: SelectClause
     };
 });
 
@@ -5665,13 +6669,9 @@ function (core, m_entityMetadata, m_entityAspect) {
     var EntityKey = m_entityAspect.EntityKey;
 
     
-    /**
-    This is the default KeyGenerator used by EntityManager's to manage the generation of 'temporary' ids.
-    A subclass of this KeyGenerator or another class with the KeyGenerator interface can be set for any
-    EntityManager via the {{#crossLink "EntityManager/setProperties"}}{{/crossLink}} method with a config parameter
-    of 'keyGeneratorCtor'.
+    /*
     @class KeyGenerator
-    **/
+    */
     var ctor = function () {
         // key is dataProperty.name + || + entityType.name, value is propEntry 
         // propEntry = { entityType, propertyName, keyMap }
@@ -5683,14 +6683,31 @@ function (core, m_entityMetadata, m_entityAspect) {
         this.stringPrefix = "K_";
     };
 
-    /**
+    /*
     Returns a unique 'temporary' id for the specified {{#crossLink "EntityType"}}{{/crossLink}}. 
-    Uniqueness is defined for this purpose as being unique within this KeyGenerator. This is sufficient 
+    Uniqueness is defined for this purpose as being unique within each instance of a KeyGenerator. This is sufficient 
     because each EntityManager will have its own instance of a KeyGenerator and any entities imported into
     the EntityManager with temporary keys will have them regenerated and remapped on import.
+
+        The return value of this method must be of the correct type as determined by the 
+    @example
+        // Assume em1 is a preexisting EntityManager
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust1 = custType.createEntity();
+        // next line both sets cust1's 'CustomerId' property but also returns the value
+        var cid1 = em1.generateTempKeyValue(cust1);
+        em1.saveChanges()
+            .then( function( data) {
+                var sameCust1 = data.results[0];
+                // cust1 === sameCust1;
+                // but cust1.getProperty("CustomerId") != cid1
+                // because the server will have generated a new id 
+                // and the client will have been updated with this 
+                // new id.
+            })
     @method generateTempKeyValue
     @param entityType {EntityType}
-    **/
+    */
     ctor.prototype.generateTempKeyValue = function (entityType) {
         var keyProps = entityType.keyProperties;
         if (keyProps.length > 1) {
@@ -5800,21 +6817,51 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
-
     // TODO: think about dif between find and get.
 
     var EntityManager = (function () {
         /**
         Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client. 
-
-            var x = new EntityManager();
-
         @class EntityManager
         **/
         
         /** 
+        @example                    
+        At its most basic an EntityManager can be constructed with just a service name
+        @example                    
+            var entityManager = new EntityManager( "api/NorthwindIBModel");
+        This is the same as calling it with the following configuration object
+        @example                    
+            var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        Usually however, configuration objects will contain more than just the 'serviceName';
+        @example
+            var metadataStore = new MetadataStore();
+            var entityManager = new EntityManager( {
+                serviceName: "api/NorthwindIBModel", 
+                metadataStore: metadataStore 
+            });
+        or
+        @example
+            return new QueryOptions({ 
+                mergeStrategy: obj, 
+                fetchStrategy: this.fetchStrategy 
+            });
+            var queryOptions = new QueryOptions({ 
+                mergeStrategy: MergeStrategy.OverwriteChanges, 
+                fetchStrategy: FetchStrategy.FromServer 
+            });
+            var validationOptions = new ValidationOptions({ 
+                validateOnAttach: true, 
+                validateOnSave: true, 
+                validateOnQuery: false
+            });
+            var entityManager = new EntityManager({ 
+                serviceName: "api/NorthwindIBModel", 
+                queryOptions: queryOptions, 
+                validationOptions: validationOptions 
+            });
         @method <ctor> EntityManager
-        @param [config] {Object} Configuration settings
+        @param [config] {Object|String} Configuration settings or a service name.
         @param [config.serviceName] {String}
         @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
         @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
@@ -5829,6 +6876,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             //                  throw new Error("Constructor called as a function");
             //              }
 
+            var assert = null;
             if (arguments.length > 1) {
                 throw new Error("The EntityManager ctor has a single optional argument that is either a 'serviceName' or a configuration object.");
             }
@@ -5839,14 +6887,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 this.serviceName = config;
                 config = {};
             } else {
-                assertConfig(config, "serviceName").isString().apply(this);
+                assert = assertConfig(config).whereParam("serviceName").isString();
             }
-            assertConfig(config, "metadataStore").isInstanceOf(MetadataStore).isOptional().apply(this, MetadataStore.defaultInstance);
-            assertConfig(config, "queryOptions").isInstanceOf(QueryOptions).isOptional().apply(this, QueryOptions.defaultInstance);
-            assertConfig(config, "saveOptions").isInstanceOf(SaveOptions).isOptional().apply(this, SaveOptions.defaultInstance);
-            assertConfig(config, "validationOptions").isInstanceOf(ValidationOptions).isOptional().apply(this, ValidationOptions.defaultInstance);
-            assertConfig(config, "keyGeneratorCtor").isFunction().isOptional().apply(this, function () { return new KeyGenerator(); });
-            assertConfig(config, "remoteAccessImplementation").apply(this, core.config.remoteAccessImplementation);
+
+            if (!assert) {
+                assert = assertConfig(config);
+            }
+            assert
+                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(MetadataStore.defaultInstance)
+                .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
+                .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
+                .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
+                .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
+                .whereParam("remoteAccessImplementation").withDefault(core.config.remoteAccessImplementation)
+                .applyAll(this);
 
             if (this.serviceName.substr(-1) !== "/") {
                 this.serviceName = this.serviceName + '/';
@@ -5857,8 +6911,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.clear();
         };
         ctor.prototype._$typeName = "EntityManager";
-        
-
 
         /**
         The service name associated with this EntityManager.
@@ -5924,8 +6976,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         
         // events
-         /**
+        /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
+        @example                    
+            var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+            em.entityChanged.subscribe(function(changeArgs) {
+                // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. 
+                var action = changeArgs.entityAction;
+                var entity = changeArgs.entity;
+                // .. do something to this entity when it is changed.
+            });
+        });
+        
         @event entityChanged 
         @param entityAction {EntityAction} The {{#crossLink "EntityAction"}}{{/crossLink}} that occured. 
         @param entity {Object} The entity that changed.  If this is null, then all entities in the entityManager were affected. 
@@ -5937,6 +6999,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities.
+            var bundle = em1.export();
+            // can be stored via the web storage api
+            windows.localStorage.setItem("myEntityManager", bundle);
+            // assume the code below occurs in a different session.
+            var bundleFromStorage = windows.localStorage.getItem("myEntityManager");
+            // and imported
+            var em2 = EntityManager.import(bundleFromStorage);
+            // em2 will now have a complete copy of what was in em1
         @method import
         @static
         @param exportedString {String} The result of a previous 'export' call.
@@ -5955,6 +7027,28 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Exports an entire EntityManager or just selected entities into a serialized string for external storage.
+        @example
+        This method can be used to take a snapshot of an EntityManager that can be either stored offline or held 
+        memory.  This snapshot can be restored or merged into an another EntityManager at some later date. 
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var bundle = em1.export();
+            // can be stored via the web storage api
+            windows.localStorage.setItem("myEntityManager", bundle);
+            // assume the code below occurs in a different session.
+            var bundleFromStorage = windows.localStorage.getItem("myEntityManager");
+            var em2 = new EntityManager({ 
+                serviceName: em1.serviceName, 
+                metadataStore: em1.metadataStore 
+            });
+            em2.import(bundleFromStorage);
+            // em2 will now have a complete copy of what was in em1
+        You can also control exactly which entities are exported. 
+        @example
+            // assume entitiesToExport is an array of entities to export.
+            var bundle = em1.export(entitiesToExport);
+            // assume em2 is another entityManager containing some of the same entities possibly with modifications.
+            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
         @method export
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
         @param [config] {Object} A configuration object.
@@ -5977,6 +7071,28 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Imports a previously exported result into this EntityManager.
+        @example
+        This method can be used to make a complete copy of any previously created entityManager, even if created
+        in a previous session and stored in localStorage. The static version of this method performs a
+        very similar process. 
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var bundle = em1.export();
+            // bundle can be stored in window.localStorage or just held in memory.
+            var em2 = new EntityManager({ 
+                serviceName: em1.serviceName, 
+                metadataStore: em1.metadataStore 
+            });
+            em2.import(bundle);
+            // em2 will now have a complete copy of what was in em1
+        It can also be used to merge the contents of a previously created EntityManager with an 
+        existing EntityManager with control over how the two are merged.
+        @example
+            var bundle = em1.export();
+            // assume em2 is another entityManager containing some of the same entities possibly with modifications.
+            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+            // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
+            // made modifications will not have been touched, but all other entities from em1 will have been imported.
         @method import
         @param exportedString {String} The result of a previous 'export' call.
         @param [config] {Object} A configuration object.
@@ -5986,13 +7102,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         ctor.prototype.import = function (exportedString, config) {
             config = config || {};
-            assertConfig(config, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().apply(config, MergeStrategy.PreserveChanges);
+            assertConfig(config)
+                .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
+                .applyAll(this);
             var that = this;
             
             var json = JSON.parse(exportedString);
             this.metadataStore.import(json.metadataStore);
             this.serviceName = json.serviceName;
-            this.saveOptions = new SaveOptions(json.validationOptions);
+            this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
             this.validationOptions = new ValidationOptions(json.validationOptions);
 
@@ -6015,6 +7133,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Clears this EntityManager's cache but keeps all other settings.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            em1.clear();
+            // em1 is will now contain no entities, but all other setting will be maintained.
         @method clear
         **/
         ctor.prototype.clear = function () {
@@ -6029,7 +7151,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        General purpose property set method
+        General purpose property set method.  Any of the properties documented below 
+        may be set.
+        @example
+             // assume em1 is a previously created EntityManager
+             // where we want to change some of its settings.
+             em1.setProperties( {
+                serviceName: "api/foo",
+                propertyChangeNotificationEnabled: true
+                });
         @method setProperties
         @param config {Object}
             @param [config.serviceName] {String}
@@ -6040,16 +7170,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.entityChangeNotificationEnabled] {Boolean}
         **/
         ctor.prototype.setProperties = function (config) {
-            assertConfig(config, "serviceName").isString().isOptional().apply(this);
-            assertConfig(config, "queryOptions").isInstanceOf(QueryOptions).isOptional().apply(this);
-            assertConfig(config, "remoteAccessImplementation").apply(this);
-            assertConfig(config, "keyGeneratorCtor").apply(this);
-            assertConfig(config, "propertyChangeNotificationEnabled").isBoolean().isOptional().apply(this);
-            assertConfig(config, "entityChangeNotificationEnabled").isBoolean().isOptional().apply(this);
+            assertConfig(config)
+                .whereParam("serviceName").isString().isOptional()
+                .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
+                .whereParam("remoteAccessImplementation")
+                .whereParam("keyGeneratorCtor")
+                .whereParam("propertyChangeNotificationEnabled").isBoolean().isOptional()
+                .whereParam("entityChangeNotificationEnabled").isBoolean().isOptional()
+                .applyAll(this);
         };
 
         /**
         Creates an empty copy of this EntityManager
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var em2 = em1.createEmptyCopy();
+            // em2 is a new EntityManager with all of em1's settings
+            // but no entities.
         @method createEmptyCopy
         @return {EntityManager} A new EntityManager.
         **/
@@ -6066,6 +7203,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Attaches an entity to this EntityManager with an  {{#crossLink "EntityState"}}{{/crossLink}} of 'Added'.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            em1.addEntity(cust1);
+        Note that this is the same as using 'attachEntity' with an {{#crossLink "EntityState"}}{{/crossLink}} of 'Added'.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            em1.attachEntity(cust1, EntityState.Added);
         @method addEntity
         @param entity {Entity} The entity to add.
         @return {Entity} The added entity.
@@ -6076,10 +7224,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Attaches an entity to this EntityManager with a specified  {{#crossLink "EntityState"}}{{/crossLink}}.
+        Attaches an entity to this EntityManager with a specified {{#crossLink "EntityState"}}{{/crossLink}}.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            em1.attachEntity(cust1, EntityState.Added);
         @method attachEntity
         @param entity {Entity} The entity to add.
-        @param entityState {EntityState} The EntityState of the newly attached entity.
+        @param [entityState] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
         @return {Entity} The attached entity.
         **/
         ctor.prototype.attachEntity = function (entity, entityState) {
@@ -6112,6 +7265,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Detaches an entity from this EntityManager.
+        @example
+            // assume em1 is an EntityManager containing a number of existing entities.
+            // assume cust1 is a customer Entity previously attached to em1
+            em1.detachEntity(cust1);
+            // em1 will now no longer contain cust1 and cust1 will have an 
+            // entityAspect.entityState of EntityState.Detached
         @method detachEntity
         @param entity {Entity} The entity to detach.
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
@@ -6140,14 +7299,29 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Fetches the metadata associated with the EntityManager's current 'resourceName'.
+        Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call
+        occurs internally before the first query to any service if the metadata hasn't already been
+        loaded.
+        @example
+        Usually you will not actually process the results of a fetchMetadata call directly, but will instead
+        ask for the metadata from the EntityManager after the fetchMetadata call returns.
+        @example
+             var em1 = new EntityManager( "api/NorthwindIBModel");
+             em1.fetchMetadata()
+                .then(function() {
+                    var metadataStore = em1.metadataStore;
+                    // do something with the metadata
+                }
+                .fail(function(exception) {
+                    // handle exception here
+                };
         @method fetchMetadata
         @async
         @param [callback] {successFunction} Function called on success.
         
             successFunction([schema])
             @param [callback.schema] {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
-            it is usually better to access metadata via the 'metadataStore' property of the EntityManager.
+            it is usually better to access metadata via the 'metadataStore' property of the EntityManager after this method's Promise or callback completes.
         @param [errorCallback] {failureFunction} Function called on failure.
             
             failureFunction([error])
@@ -6174,6 +7348,42 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Executes the specified query.
+        @example
+        This method can be called using a 'promises' syntax ( recommended)
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders");
+             em.executeQuery(query)
+               .then( function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+             }).fail( function(err) {
+                   ... query failure processed here
+             });
+        or with callbacks
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders");
+             em.executeQuery(query,
+                function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+                },
+                function(err) {
+                   ... query failure processed here
+                });
+        Either way this method is the same as calling the The {{#crossLink "EntityQuery"}}{{/crossLink}} 'execute' method.
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders").using(em);
+             query.execute()
+               .then( function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+             }).fail( function(err) {
+                   ... query failure processed here
+             });
+         
         @method executeQuery
         @async
         @param query {EntityQuery|String}  The {{#crossLink "EntityQuery"}}{{/crossLink}} or OData query string to execute.
@@ -6211,6 +7421,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Executes the specified query against this EntityManager's local cache.
+
+        @example
+        Because this method is executed immediately there is no need for a promise or a callback
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders");
+             var orders = em.executeQueryLocally(query);
+        Note that this can also be accomplished using the 'executeQuery' method with
+        a FetchStrategy of FromLocalCache and making use of the Promise or callback
+        @example
+             var em = new EntityManager(serviceName);
+             var query = new EntityQuery("Orders").using(FetchStrategy.FromLocalCache);
+             em.executeQuery(query)
+               .then( function(data) {
+                   var orders = data.results;
+                   ... query results processed here
+             }).fail( function(err) {
+                   ... query failure processed here
+             });
         @method executeQueryLocally
         @param query {EntityQuery}  The {{#crossLink "EntityQuery"}}{{/crossLink}} to execute.
         @return Array of Entities
@@ -6219,7 +7448,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
-            var entityType = query.getEntityType(metadataStore, true);
+            var entityType = query._getEntityType(metadataStore, true);
             // TODO: there may be multiple groups once we go further with inheritence
             var group = findOrCreateEntityGroup(this, entityType);
             // filter then order then skip then take
@@ -6247,10 +7476,42 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         /**
         Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities
         specified then there will be no server side call made but a valid 'empty' saveResult will still be returned.
+        @example
+        Often we will be saving all of the entities within an EntityManager that are either added, modified or deleted
+        and we will let the 'saveChanges' call determine which entities these are. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            // This could include added, modified and deleted entities.
+            em.saveChanges().then(function(saveResult) {
+                var savedEntities = saveResult.entities;
+                var keyMappings = saveResult.keyMappings;
+            }).fail(function (e) {
+                // e is any exception that was thrown.
+            });
+        But we can also control exactly which entities to save and can specify specific SaveOptions
+        @example
+            // assume entitiesToSave is an array of entities to save.
+            var saveOptions = new SaveOptions({ allowConcurrentSaves: true });
+            em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
+                var savedEntities = saveResult.entities;
+                var keyMappings = saveResult.keyMappings;
+            }).fail(function (e) {
+                // e is any exception that was thrown.
+            });
+        Callback methods can also be used
+        @example
+            em.saveChanges(entitiesToSave, null, 
+                function(saveResult) {
+                    var savedEntities = saveResult.entities;
+                    var keyMappings = saveResult.keyMappings;
+                }, function (e) {
+                    // e is any exception that was thrown.
+                }
+            );
         @method saveChanges
         @async
         @param [entities] {Array of Entities} The list of entities to save.  All entities with changes 
-        within this EntityManager will be saved if this parameter is omitted.
+        within this EntityManager will be saved if this parameter is omitted, null or empty.
         @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
         {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
         @param [callback] {successFunction} Function called on success.
@@ -6349,6 +7610,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            var employee = em1.findEntityByKey(employeeKey);
+            // employee will either be an entity or null.
         @method findEntityByKey
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return An Entity or null;
@@ -6363,8 +7630,32 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Generates a temporary key for the specified entity.
-        @method generateTempKey
+        Generates a temporary key for the specified entity.  This is used to insure that newly
+        created entities have unique keys and to register that these keys are temporary and
+        need to be automatically replaced with 'real' key values once these entities are saved.
+
+        The EntityManager.keyGeneratorCtor property is used internally by this method to actually generate
+        the keys - See the  {{#crossLink "~KeyGenerator"}}{{/crossLink}} interface description to see
+        how a custom key generator can be plugged in.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var custumer = custType.createEntity();
+            var customerId = em.generateTempKeyValue(custumer);
+            // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value
+            // This property will change again after a successful save of the 'customer' entity.
+
+            em1.saveChanges()
+                .then( function( data) {
+                    var sameCust1 = data.results[0];
+                    // cust1 === sameCust1;
+                    // but cust1.getProperty("CustomerId") != customerId
+                    // because the server will have generated a new id 
+                    // and the client will have been updated with this 
+                    // new id.
+                })
+
+        @method generateTempKeyValue
         @param entity {Entity} The Entity to generate a key for.
         @return The new key value
         **/
@@ -6379,9 +7670,31 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return nextKeyValue;
         };
         
-          /**
+        /**
         Returns whether there are any changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
         has an {{#crossLink "EntityState"}}{{/crossLink}} of either Added, Modified or Deleted.
+        @example
+        This method can be used to determine if an EntityManager has any changes
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            if ( em1.hasChanges() {
+               // do something interesting
+            }
+        or if it has any changes on to a specific {{#crossLink "EntityType"}}{{/crossLink}}
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            if ( em1.hasChanges(custType) {
+               // do something interesting
+            }
+        or to a collection of {{#crossLink "EntityType"}}{{/crossLink}}s
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var orderType = em1.metadataStore.getEntityType("Order");
+            if ( em1.hasChanges( [custType, orderType]) {
+               // do something interesting
+            }
         @method hasChanges
         @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
         If this parameter is omitted, all EntityTypes are searched.
@@ -6398,6 +7711,22 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         /**
         Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
         has an {{#crossLink "EntityState"}}{{/crossLink}} of either Added, Modified or Deleted.
+        @example
+        This method can be used to get all of the changed entities within an EntityManager
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var changedEntities = em1.getChanges();
+        or you can specify that you only want the changes on a specific {{#crossLink "EntityType"}}{{/crossLink}}
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var changedCustomers = em1.getChanges(custType);
+        or to a collection of {{#crossLink "EntityType"}}{{/crossLink}}s
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
         @method getChanges
         @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
         If this parameter is omitted, all EntityTypes are searched.
@@ -6411,6 +7740,28 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         /**
         Returns a array of all entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s with the specified {{#crossLink "EntityState"}}{{/crossLink}}s. 
+        @example
+        This method can be used to get all of the entities within an EntityManager
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var entities = em1.getEntities();
+        or you can specify that you only want the changes on a specific {{#crossLink "EntityType"}}{{/crossLink}}
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var customers = em1.getEntities(custType);
+        or to a collection of {{#crossLink "EntityType"}}{{/crossLink}}s
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var customersAndOrders = em1.getChanges([custType, orderType]);
+        You can also ask for entities with a particular {{#crossLink "EntityState"}}{{/crossLink}} or EntityStates.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var orderType = em1.metadataStore.getEntityType("Order");
+            var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState.Added);
         @method getEntities
         @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which entities will be found.
         If this parameter is omitted, all EntityTypes are searched.
@@ -6428,8 +7779,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         // protected methods
-
-
 
         ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
@@ -7319,16 +8668,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         
         /**
+        QueryOptions constructor
+        @example
+            var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+            // assume em1 is a preexisting EntityManager
+            em1.setProperties( { queryOptions: newQo });
         @method <ctor> QueryOptions
-        @param config {Object}
-        @param [config.fetchStrategy] fetchStrategy  A {{#crossLink "FetchStrategy"}}{{/crossLink}}
-        @param [config.mergeStrategy] mergeStrategy  A {{#crossLink "MergeStrategy"}}{{/crossLink}}
+        @param [config] {Object}
+        @param [config.fetchStrategy=FetchStrategy.FromServer] {FetchStrategy}  
+        @param [config.mergeStrategy=MergeStrategy.PreserveChanges] {MergeStrategy}  
         **/
         var ctor = function (config) {
-            config = config || {};
-            assertConfig(config, "fetchStrategy").isEnumOf(FetchStrategy).isOptional().apply(this, FetchStrategy.FromServer);
-            assertConfig(config, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().apply(this, MergeStrategy.PreserveChanges);
+            this.fetchStrategy = FetchStrategy.FromServer;
+            this.mergeStrategy = MergeStrategy.PreserveChanges;
+            updateWithConfig(this, config);
         };
+        
+     
 
         /**
         A {{#crossLink "FetchStrategy"}}{{/crossLink}}
@@ -7351,22 +8707,30 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         ctor.defaultInstance = new ctor();
 
-          /**
+        /**
         Returns a copy of this QueryOptions with the specified {{#crossLink "MergeStrategy"}}{{/crossLink}} 
         or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
-        @method apply
-        @param obj {MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
+        @example
+            var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);
+        or
+        @example
+            var queryOptions = em1.defaultQueryOptions.using(FetchStrategy.FromLocalCache);
+        or
+        @example
+            var queryOptions = em1.defaultQueryOptions.using( { mergeStrategy: OverwriteChanges });
+        @method using
+        @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
         @return {QueryOptions}
         @chainable
         **/
-        ctor.prototype.apply = function(obj) {
-            if (MergeStrategy.contains(obj)) {
-                return new QueryOptions({ mergeStrategy: obj, fetchStrategy: this.fetchStrategy });
-            } else if (FetchStrategy.contains(obj)) {
-                return new QueryOptions({ mergeStrategy: this.mergeStrategy, fetchStrategy: obj });
-            } else {
-                throw new Error("'obj' parameter must be either a FetchStrategy or a MergeStrategy");
-            }
+        ctor.prototype.using = function(config) {
+            var result = new QueryOptions(this);
+            if (MergeStrategy.contains(config)) {
+                config = { mergeStrategy: config };
+            } else if (FetchStrategy.contains(config)) {
+                config = { fetchStrategy: config };
+            } 
+            return updateWithConfig(result, config);
         };
 
         ctor.prototype.toJSON = function () {
@@ -7382,9 +8746,19 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 mergeStrategy: MergeStrategy.fromName(json.mergeStrategy)
             });
         };
-
-            return ctor;
-        })();
+        
+        function updateWithConfig( obj, config ) {
+            if (config) {
+                assertConfig(config)
+                    .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
+                    .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
+                    .applyAll(obj);
+            }
+            return obj;
+        }
+       
+        return ctor;
+    })();
 
     var SaveOptions = (function () {
         /**
@@ -7400,7 +8774,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         var ctor = function (config) {
             config = config || {};
-            assertConfig(config, "allowConcurrentSaves").isBoolean().isOptional().apply(this, false);
+            assertConfig(config)
+                .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
+                .applyAll(this);
                         
         };
         ctor.prototype._$typeName = "SaveOptions";
@@ -7430,19 +8806,24 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
         
         /**
+        ValidationOptions constructor
+        @example
+            var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });
+            // assume em1 is a preexisting EntityManager
+            em1.setProperties( { validationOptions: newVo });
         @method <ctor> ValidationOptions
-        @param config {Object}
-        @param [config.validateOnAttach] {Boolean}
-        @param [config.validateOnSave] {Boolean}
-        @param [config.validateOnQuery] {Boolean}
-        @param [config.validateOnPropertyChange] {Boolean}
+        @param [config] {Object}
+        @param [config.validateOnAttach=true] {Boolean}
+        @param [config.validateOnSave=true] {Boolean}
+        @param [config.validateOnQuery=false] {Boolean}
+        @param [config.validateOnPropertyChange=true] {Boolean}
         **/
         var ctor = function (config) {
-            config = config || {};
-            assertConfig(config, "validateOnAttach").isBoolean().isOptional().apply(this, true);
-            assertConfig(config, "validateOnSave").isBoolean().isOptional().apply(this, true);
-            assertConfig(config, "validateOnQuery").isBoolean().isOptional().apply(this, false);
-            assertConfig(config, "validateOnPropertyChange").isBoolean().isOptional().apply(this, true);
+            this.validateOnAttach = true;
+            this.validateOnSave = true;
+            this.validateOnQuery = false;
+            this.validateOnPropertyChange = true;
+            updateWithConfig(this, config);
         };
 
         /**
@@ -7474,6 +8855,26 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
 
         ctor.prototype._$typeName = "ValidationOptions";
+        
+        /**
+        Returns a copy of this ValidationOptions with changes to the specified config properties.
+        @example
+            var validationOptions = new ValidationOptions();
+            var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+        @method using
+        @param config {Object} The object to apply to create a new QueryOptions.
+        @param [config.validateOnAttach] {Boolean}
+        @param [config.validateOnSave] {Boolean}
+        @param [config.validateOnQuery] {Boolean}
+        @param [config.validateOnPropertyChange] {Boolean}
+        @return {ValidationOptions}
+        @chainable
+        **/
+        ctor.prototype.using = function(config) {
+            var result = new ValidationOptions(this);
+            updateWithConfig(result, config);
+            return result;
+        };
 
         /**
         The default value whenever ValidationOptions are not specified.
@@ -7481,21 +8882,33 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @static
         **/
         ctor.defaultInstance = new ctor();
+        
+        function updateWithConfig( obj, config ) {
+            if (config) {
+              assertConfig(config)
+                .whereParam("validateOnAttach").isBoolean().isOptional()
+                .whereParam("validateOnSave").isBoolean().isOptional()
+                .whereParam("validateOnQuery").isBoolean().isOptional()
+                .whereParam("validateOnPropertyChange").isBoolean().isOptional()
+                .applyAll(obj);
+            }
+            return obj;
+        }
         return ctor;
     })();
 
     // Extensions to the EntityQuery class - must be done here because some of the types used are not yet avail
     // when the EntityQuery file is processed.
 
-    EntityQuery.prototype.apply = function(obj) {
+    EntityQuery.prototype.using = function(obj) {
         var eq = this._clone();
         if (obj instanceof EntityManager) {
             eq.EntityManager = obj;
         } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
             var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
-            eq.queryOptions = queryOptions.apply(obj);
+            eq.queryOptions = queryOptions.using(obj);
         } else {
-            throw new Error("EntityQuery.apply parameter must be either an EntityManager, a Query Strategy or a FetchStrategy");
+            throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy or a FetchStrategy");
         }
         return eq;
     };

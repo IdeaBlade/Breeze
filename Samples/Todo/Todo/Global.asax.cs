@@ -1,6 +1,4 @@
-﻿using System.Web.Http;
-
-namespace Todo {
+﻿namespace Todo {
     using System.Data.Entity;
     using System.Web;
     using System.Web.Mvc;
@@ -18,12 +16,7 @@ namespace Todo {
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            // Use breeze's configuration of Json.Net JsonFormatter instead of the default
-            GlobalConfiguration.Configuration.Formatters.Insert(0, Breeze.WebApi.JsonFormatter.Create());
-
-            // Apply query parameters, expressed as OData URI query strings, 
-            // to results of Web API controller methods that return IQueryable<T>
-            GlobalConfiguration.Configuration.Filters.Add(new Breeze.WebApi.EFActionFilter());
+            BreezeConfig.RegisterBreeze();
 
             // Todo database initializer (development only)
             Database.SetInitializer(new TodoDatabaseInitializer());

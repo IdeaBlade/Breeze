@@ -1,7 +1,7 @@
 ﻿using System.Web;
-using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
+//using System.Web.Optimization;
 
 namespace BreezeDocCode {
 
@@ -15,16 +15,11 @@ namespace BreezeDocCode {
 
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            //BundleConfig.RegisterBundles(BundleTable.Bundles); // not using in this sample
 
-            // Use breeze configuration of Json.Net JsonFormatter instead of the default
-            GlobalConfiguration.Configuration.Formatters.Insert(
-                0, Breeze.WebApi.JsonFormatter.Create());
+            BreezeConfig.RegisterBreeze();
 
-            // Apply query parameters, expressed as OData URI query strings, 
-            // to results of Web API controller methods that return IQueryable<T>
-            GlobalConfiguration.Configuration.Filters.Add(
-                new Breeze.WebApi.EFActionFilter());
-
+            // DEMO: Initialize the Todo sample database
             System.Data.Entity.Database.SetInitializer(
                 new Todo.Models.TodoDatabaseInitializer());
         }

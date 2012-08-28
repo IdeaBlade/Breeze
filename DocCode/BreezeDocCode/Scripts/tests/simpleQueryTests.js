@@ -7,7 +7,6 @@ define(["testFns"], function (testFns) {
 
     var MetadataStore = entityModel.MetadataStore;
     var EntityQuery = entityModel.EntityQuery;
-    var Predicate = entityModel.Predicate;
     var qop = entityModel.FilterQueryOp;
 
     var serviceName = testFns.northwindServiceName,
@@ -47,10 +46,8 @@ define(["testFns"], function (testFns) {
     // Order.CustomerID is nullable<Guid>; can still filter on it.
     asyncTest("get Alfreds orders", 2, function () {
         var em = newEm(),
-        query = new EntityQuery("Orders")
-        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
-        // WORKAROUND (SLOW)
-            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID);
+            query = new EntityQuery("Orders")
+                .where("CustomerID", "==", testFns.wellKnownData.alfredsID);
 
         em.executeQuery(query)
         .then(function (data) {
@@ -70,10 +67,8 @@ define(["testFns"], function (testFns) {
     asyncTest("get Alfreds orders with their OrderDetails", 4, function () {
         var em = newEm(),
         query = new EntityQuery("Orders")
-        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
-        // WORKAROUND (SLOW)
-            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID)
-            .expand("OrderDetails");
+          .where("CustomerID", "==", testFns.wellKnownData.alfredsID)
+          .expand("OrderDetails");
 
         em.executeQuery(query)
         .then(function (data) {
@@ -88,11 +83,9 @@ define(["testFns"], function (testFns) {
 
     asyncTest("get Alfreds orders using 'OrdersAndDetails' action", 4, function () {
         var em = newEm(),
-        query = new EntityQuery("OrdersAndDetails") // special Web API controller action
-        //  .where("CustomerID", "==", testFns.wellKnownData.alfredsID),
-        // WORKAROUND (SLOW)
-            .where("Customer.CustomerID", "==", testFns.wellKnownData.alfredsID).take(10);
-        // NO EXPAND NEEDED! That's done by the Web API controller action
+            query = new EntityQuery("OrdersAndDetails") // special Web API controller action
+                .where("CustomerID", "==", testFns.wellKnownData.alfredsID);
+        // NO EXPAND NEEDED! It's added by the Web API controller action
 
         em.executeQuery(query)
         .then(function (data) {
@@ -104,6 +97,7 @@ define(["testFns"], function (testFns) {
         .fail(testFns.handleFail);
 
     });
+    
     function assertGotOrderDetails(em) {
         var odType = metadataStore.getEntityType("OrderDetail"),
             count = em.getEntities(odType).length; // count of all OrderDetails in cache
