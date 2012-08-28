@@ -1,0 +1,11 @@
+﻿<div class="field radio-group">
+    <span class="label" data-bind="text: question.Text"></span>
+    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <ul>
+        <!-- ko foreach: options -->
+        <li>
+            <input type="radio" data-bind="attr:{name:$parent.name, value: $data}, checked: $parent.answer.Response"/><span data-bind="text: $data"></span>
+        </li>
+        <!-- /ko -->
+    </ul>
+</div>

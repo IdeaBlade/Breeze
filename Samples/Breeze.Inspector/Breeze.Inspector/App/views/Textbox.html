@@ -1,0 +1,5 @@
+﻿<div class="field textbox">
+    <span class="label" data-bind="text: question.Text"></span>
+    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <input type="text" data-bind="value: answer.Response" />
+</div>

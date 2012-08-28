@@ -1,0 +1,15 @@
+﻿<div>
+    <header>
+        <button class="back" data-bind="click: goBack, visible: canGoBack">Back</button>
+        <h1 data-bind="html: title"></h1>
+        <button class="save" data-bind="click: save, visible: canSave() && validationMessages().length == 0">Save</button>
+        <button class="save" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
+    </header>
+    <section id="contentHost">
+        
+    </section>
+    <footer>
+        <h3 data-bind="html: status"></h3>
+        <button data-bind="click: toggleConnection, html: connectionAction, visible: inspector() != null"></button>
+    </footer>
+</div>

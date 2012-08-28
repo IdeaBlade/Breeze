@@ -1,0 +1,9 @@
+﻿<div class="field textarea">
+    <div>
+        <span class="label" data-bind="text: question.Text"></span>
+        <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    </div>
+    <div>
+        <textarea rows="6" cols="30" data-bind="value: answer.Response"></textarea>
+    </div>
+</div>

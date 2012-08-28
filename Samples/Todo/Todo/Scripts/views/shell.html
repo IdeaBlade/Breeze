@@ -1,0 +1,49 @@
+﻿<div>
+    <header>
+        <h1>Breeze Todos</h1>
+        <form data-bind="submit: addItem">
+            <input type="text" data-bind="value:newTodo, valueUpdate: 'afterkeydown'" placeholder="What needs to be done?">
+        </form>
+    </header>
+
+    <section>
+
+        <div class="mark-all">
+            <!-- ko if: itemsLeftMessage() || archiveCompletedMessage() -->
+            <input id="markAll" type="checkbox" data-bind="checked: markAllCompleted">
+            <label for="markAll">Mark all as complete </label>
+            <!-- /ko -->
+            <input id="includeArchived" type="checkbox" data-bind="checked: includeArchived">
+            <label for="includeArchived" class="archived">Show archived</label>
+        </div>
+
+        <ul data-bind="foreach: items">
+            <li>
+                <div data-bind="visible: !isEditing()">
+                    <input type="checkbox" data-bind="checked: IsDone" />
+                    <label data-bind="text: Description, click: $parent.edit, css: { done: IsDone, archived: IsArchived }"></label>
+                    <a href="#" data-bind="click: function(){ $parent.removeItem($data) }">X</a> 
+                </div>
+                <div data-bind="visible: isEditing">
+                    <form data-bind="event: { submit: $parent.completeEdit }">
+                        <input type="text" data-bind="value: Description, hasfocus: isEditing" />
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </section>
+    
+    <!-- ko if:  itemsLeftMessage() || archiveCompletedMessage()-->
+    <footer>
+                
+        <!-- ko if: itemsLeftMessage -->
+        <div data-bind="text: itemsLeftMessage"></div>
+        <!-- /ko -->
+
+        <!-- ko if: archiveCompletedMessage -->
+        <a href="#" data-bind="click: archiveCompletedItems, text: archiveCompletedMessage"></a>
+        <!-- /ko -->
+
+    </footer>
+    <!-- /ko -->
+</div>

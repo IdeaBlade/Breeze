@@ -1,0 +1,93 @@
+﻿.loading {
+    font-size: 2em;
+}
+
+header {
+    height: 2em;
+}
+
+header h1 {
+    font-size: 1em;
+    padding-top: .5em;
+}
+
+header button {
+    top: .2em;
+}
+
+button {
+    font-size: .75em;
+	padding: .4em .75em;
+}
+
+section {
+    top: 2em;
+    bottom: 1.5em;
+}
+
+footer {
+    height: 1.5em;    
+}
+
+footer h3 {
+    font-size: .75em;
+    line-height: 2em;
+    margin-left: .25em;
+}
+
+footer button {
+    margin-top: 1px;
+}
+
+.login {
+    padding-bottom: 8em;
+}
+
+.login .label {
+    font-size: 1em;
+}
+
+.login input {
+    font-size: 1em;
+    margin-bottom: 1em;
+}
+
+.login .message {
+    font-size: 1em;
+    height: 1em;
+}
+
+.job-list ul {
+    margin: 1em;
+}
+
+.job-list ul li {
+    padding: .25em;
+    font-size: .75em;
+}
+
+.inspection-form {
+    margin: 1em;
+}
+
+.inspection-form .field {
+    margin-bottom: 1em;
+}
+
+.inspection-form ul {
+    margin-top: .5em;
+}
+
+.inspection-form select {
+    display: block;
+    margin-top: .5em;
+}
+
+.inspection-form input[type=text] {
+    display: block;
+    margin-top: .5em;
+}
+
+.inspection-form textarea {
+    margin-top: .5em;
+}

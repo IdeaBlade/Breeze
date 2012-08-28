@@ -1,0 +1,5 @@
+﻿<div class="field checkbox">
+    <span class="label" data-bind="text: question.Text"></span>
+    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <input type="checkbox" data-bind="checked: isChecked"/>
+</div>

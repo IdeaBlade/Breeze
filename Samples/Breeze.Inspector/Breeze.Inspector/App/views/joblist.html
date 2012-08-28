@@ -1,0 +1,17 @@
+﻿<div class="job-list">
+    <ul data-bind="foreach: jobs">
+        <li>
+            <div data-bind="with: Location">
+                <span data-bind="text: Street1"/>,&nbsp;
+                <span data-bind="text: City"/>,&nbsp;
+                <span data-bind="text: State"/>,&nbsp;
+                <span data-bind="text: Zip"/>
+            </div>
+            <div class="inspections" data-bind="foreach: Inspections">
+                <a href="#" data-bind="click: function(){ $root.navigateTo($data) }">
+                    <span data-bind="text: Form().Type"/>
+                </a>
+            </div>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,5 @@
+﻿<div class="field dropdown">
+    <span class="label" data-bind="text: question.Text"></span>
+    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <select data-bind="options: options, value: answer.Response"></select>
+</div>
