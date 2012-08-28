@@ -20,3 +20,4 @@ Breeze.Client/Breeze.Client.csproj
 Breeze.Client/packages.config
 Breeze.sln
 packages
+Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
