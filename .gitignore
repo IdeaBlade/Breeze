@@ -1,5 +1,5 @@
 .svn
-.sdf
+*.sdf
 _ReSharper*
 Sample_Odata
 Sample_WebApi_RC
