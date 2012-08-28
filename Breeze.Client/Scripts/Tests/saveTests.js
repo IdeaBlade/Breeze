@@ -672,14 +672,14 @@ define(["testFns"], function (testFns) {
 
     function createRegion(em, descr) {
         var region = this.regionType.createEntity();
-        region.setProperty("RegionDescription", "Test-" + descr + "-" + new Date().toString());
+        region.setProperty("RegionDescription", "Test-" + descr + "-" + new Date().toDateString());
         em.addEntity(region);
         return region;
     }
 
     function createTerritory(em, descr) {
         var territory = this.territoryType.createEntity();
-        territory.setProperty("TerritoryDescription", "Test-" + descr + "-" + new Date().toString());
+        territory.setProperty("TerritoryDescription", "Test-" + descr + "-" + new Date().toDateString());
         em.addEntity(territory);
         return territory;
     }
