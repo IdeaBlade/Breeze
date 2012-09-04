@@ -15,6 +15,8 @@ function (core, makeRelationArray) {
 
         proto.setProperty = function (propertyName, value) {
             this[propertyName] = value;
+            // allow setProperty chaining.
+            return this;
         };
 
         // this method cannot be called while a 'defineProperty' accessor is executing

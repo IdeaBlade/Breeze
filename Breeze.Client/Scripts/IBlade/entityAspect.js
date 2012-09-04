@@ -22,33 +22,33 @@ function (core, Event, m_validate) {
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsUnchanged();
+                return es.isUnchanged();
             is the same as
             @example
                 return es === EntityState.Unchanged;
-            @method IsUnchanged
+            @method isUnchanged
             @return Whether an entityState instance is EntityState.Unchanged.
             **/
             isUnchanged: function () { return this === EntityState.Unchanged; },
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsAdded();
+                return es.isAdded();
             is the same as
             @example
                 return es === EntityState.Added;
-            @method IsAdded
+            @method isAdded
             @return Whether an entityState instance is EntityState.Added.
             **/
             isAdded: function () { return this === EntityState.Added; },
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsModified();
+                return es.isModified();
             is the same as
             @example
                 return es === EntityState.Modified;
-            @method IsModified
+            @method isModified
             @return Whether an entityState instance is EntityState.Modified.
             **/
             isModified: function () { return this === EntityState.Modified; },
@@ -453,9 +453,13 @@ function (core, Event, m_validate) {
             for (var propName in originalValues) {
                 entity.setProperty(propName, originalValues[propName]);
             }
-            this.setUnchanged();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
+            if (this.entityState.isAdded()) {
+                this.entityManager.detachEntity(entity);
+            } else {
+                this.setUnchanged();
+                if (this.entityManager.entityChangeNotificationEnabled) {
+                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
+                }
             }
         };
 
@@ -510,10 +514,14 @@ function (core, Event, m_validate) {
         @method setDeleted
         **/
         ctor.prototype.setDeleted = function () {
-            this.entityState = EntityState.Deleted;
-            this._removeFromRelations();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            if (this.entityState.isAdded()) {
+                this.entityManager.detachEntity(this.entity);
+            } else {
+                this.entityState = EntityState.Deleted;
+                this._removeFromRelations();
+                if (this.entityManager.entityChangeNotificationEnabled) {
+                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                }
             }
             // TODO: think about cascade deletes
         };

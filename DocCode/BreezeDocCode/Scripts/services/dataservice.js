@@ -8,10 +8,10 @@
     core.config.trackingImplementation = entityModel.entityTracking_ko;
     core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
 
-    var op = entityModel.FilterQueryOp,
-        todoType,
-        serviceName = 'api/todos',
-        manager = new entityModel.EntityManager(serviceName);
+    var serviceName = 'api/todos';
+    var manager = new entityModel.EntityManager(serviceName);
+
+    var todoType;
 
     manager.fetchMetadata()
         .then(function () {
@@ -41,14 +41,15 @@
                 .orderBy("CreatedAt");
 
         if (!includeArchived) {
-            query = query.where("IsArchived", op.Equals, false);
+            query = query.where("IsArchived", "==", false);
         }
 
         return manager.executeQuery(query);
     };
 
     function createTodo() {
-        return manager.addEntity(todoType.createEntity());
+        var newTodo = todoType.createEntity();
+        return manager.addEntity(newTodo);
     };
 
     function saveChanges() {

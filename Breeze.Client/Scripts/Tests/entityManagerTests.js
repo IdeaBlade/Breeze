@@ -266,6 +266,47 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+    
+   test("persist entityManager partial", function () {
+        var em = newEm();
+        var orderType = metadataStore.getEntityType("Order");
+        // we want to have our reconsituted em to have different ids than our current em.
+        em.keyGenerator.generateTempKeyValue(orderType);
+        var empType = metadataStore.getEntityType("Employee");
+        var custType = metadataStore.getEntityType("Customer");
+        var order1 = em.addEntity(orderType.createEntity());
+        ok(!order1.entityAspect.wasLoaded);
+        var emp1 = em.addEntity(empType.createEntity());
+        ok(!emp1.entityAspect.wasLoaded);
+        emp1.setProperty("LastName", "bar");
+        var cust1 = em.addEntity(custType.createEntity());
+        cust1.setProperty("CompanyName", "foo");
+        ok(!cust1.entityAspect.wasLoaded);
+        // order1.setProperty("Employee", emp1);
+        order1.setProperty("Customer", cust1);
+        var q = new EntityQuery().from("Customers").take(2);
+        stop();
+        var em2;
+        em.executeQuery(q, function (data) {
+            ok(data.results.length == 2, "results.length should be 2");
+            var cust2 = data.results[0];
+            var exportedEm = em.export([order1, cust1, cust2]);
+            em2 = new EntityManager();
+            em2.import(exportedEm);
+            var r2 = em2.executeQueryLocally(q);
+            ok(r2.length === 2, "should return 2 records");
+            var addedOrders = em2.getChanges(orderType, EntityState.Added);
+            ok(addedOrders.length === 1, "should be 1 added order");
+            var addedCusts = em2.getChanges(custType, EntityState.Added);
+            ok(addedCusts.length === 1, "should be 1 added customer");
+            var order1x = addedOrders[0];
+            var cust1x = order1x.getProperty("Customer");
+            ok(cust1x, "should have found a customer");
+            ok(cust1x.getProperty("CompanyName") === "foo", "CompanyName should be 'foo'");
+        }).then(function (data3) {
+            start();
+        }).fail(testFns.handleFail);
+    });
 
     // Uncomment when doing FULL testing
 //    test("persist entityManager - large data", function () {

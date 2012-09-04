@@ -1,7 +1,7 @@
 ﻿define(function(require) {
     var data = require('services/dataservice'),
         shell = require('viewmodels/shell'),
-        inspectionViewModel = require('viewmodels/inspection');
+        InspectionViewModel = require('viewmodels/inspection');
 
     var vm = {
         jobs: ko.observableArray([]),
@@ -9,7 +9,7 @@
             shell.title("Job Locations");
         },
         navigateTo: function(inspection) {
-            shell.navigate("inspection", new inspectionViewModel(inspection));
+            shell.navigate("inspection", new InspectionViewModel(inspection));
         }
     };
 

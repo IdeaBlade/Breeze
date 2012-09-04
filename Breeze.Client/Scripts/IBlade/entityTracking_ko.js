@@ -15,6 +15,8 @@ function (core, makeRelationArray) {
 
         proto.setProperty = function (propertyName, value) {
             this[propertyName](value);
+            // allow set property chaining.
+            return this;
         };
     };
 
@@ -80,6 +82,7 @@ function (core, makeRelationArray) {
                 read: target,  //always return the original observables value
                 write: function (newValue) {
                     instance.interceptor(property, newValue, target);
+                    return instance;
                 }
             });
         }

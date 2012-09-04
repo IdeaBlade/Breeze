@@ -48,7 +48,8 @@
     };
 
     function createTodo() {
-        return manager.addEntity(todoType.createEntity());
+        var newTodo = todoType.createEntity();
+        return manager.addEntity(newTodo);
     };
 
     function saveChanges() {

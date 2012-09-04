@@ -7,6 +7,16 @@
 });
 
 define(['text', 'breeze'], function() {
+    ko.bindingHandlers.behavior = {
+        init:function(element, valueAccessor, allBindingsAccessor, viewModel) {
+            var behaviorType = valueAccessor();
+
+            require(["behaviors/" + behaviorType], function(behavior) {
+                behavior.attach(element, viewModel);
+            });
+        }
+    };
+
     require(['services/dataservice', 'viewmodels/shell'], function(data, shell) {
         data.ready().then(function() { shell.initialize(); });
     });

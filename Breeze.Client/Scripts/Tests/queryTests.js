@@ -70,6 +70,79 @@ define(["testFns"], function (testFns) {
         }
 
     });
+    
+    test("resource name query case sensitivity", function() {
+        var em = newEm();
+
+        var query = new EntityQuery()
+            .from("customers");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length > 0, "should have some results");
+        }).then(function () {
+            var q2 = new EntityQuery().from("Customers");
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length > 0, "should have some results - 2");
+            start();
+        }).fail(testFns.handleFail);
+
+    });
+
+    test("resource name local query case sensitivity", function() {
+        var em = newEm();
+
+        var query = new EntityQuery()
+            .from("Customers");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length > 0, "should have some results");
+        }).then(function () {
+            var q2 = new EntityQuery().from("customers");
+            var customers = em.executeQueryLocally(q2);
+            ok(customers.length > 0, "local query should have some results")
+            start();
+        }).fail(testFns.handleFail);
+
+    });
+    
+     test("query deleted locally", function() {
+        var em = newEm();
+
+        var query = new EntityQuery().from("Customers").take(5);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length == 5, "should have 5 customers");
+            var custs = em.executeQueryLocally(query);
+            ok(custs.length == 5, "local query should have 5 customers");
+            custs[0].entityAspect.setDeleted();
+            custs[1].entityAspect.setDeleted();
+            var custs2 = em.executeQueryLocally(query);
+            ok(custs2.length == 3);
+            start();
+        }).fail(testFns.handleFail);
+              
+    });
+
+    test("query deleted locally with filter", function() {
+        var em = newEm();
+
+        var query = new EntityQuery().from("Customers")
+            .where("CompanyName", "startsWith", "C");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var count = data.results.length;
+            ok(count > 0, "should have results");
+            var custs = em.executeQueryLocally(query);
+            ok(custs.length == count, "local query should have same number of customers");
+            custs[0].entityAspect.setDeleted();
+            custs[1].entityAspect.setDeleted();
+            var custs2 = em.executeQueryLocally(query);
+            ok(custs2.length == count - 2);
+            start();
+        }).fail(testFns.handleFail);
+              
+    });
 
     test("named query", function() {
         var em = new EntityManager(testFns.ServiceName);

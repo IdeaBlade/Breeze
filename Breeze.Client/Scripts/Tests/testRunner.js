@@ -1,19 +1,19 @@
 QUnit.config.autostart = false;
 require.config({ baseUrl: "Scripts/Tests" });
 require([
-    "paramTests",
-    "miscTests",
-    "attachTests",
-    "classRewriteTests",
-    "metadataTests",
-    "entityManagerTests",
-    "entityQueryCtorTests",
+//    "paramTests",
+//    "miscTests",
+//    "attachTests",
+//    "classRewriteTests",
+//    "metadataTests",
+//    "entityManagerTests",
+//    "entityQueryCtorTests",
     "entityTests",
-    "queryTests",
-    "queryDatatypeTests",
-    "validateTests",
-    "validateEntityTests",
-    "saveTests"
+//    "queryTests",
+//    "queryDatatypeTests",
+//    "validateTests",
+//    "validateEntityTests",
+//    "saveTests"
 
 ], function (testFns) {
     testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);

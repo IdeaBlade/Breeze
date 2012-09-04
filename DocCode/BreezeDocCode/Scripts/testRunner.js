@@ -1,5 +1,10 @@
 QUnit.config.autostart = false;
 
+// global timeout of 20 secs
+// No test should take that long but first time db build can.
+QUnit.config.testTimeout = 20000; 
+
+
 requirejs.config(
     {
         baseUrl: "Scripts/Tests",
@@ -14,10 +19,12 @@ requirejs.config(
 require(["testFns" // always first
 
     // The test modules to run (prefix with comma):  
-    , "simpleQueryTests"
-    , "createEntityTests"
-    // , "attachTests"
-    //, "testsPrototype"
+    , "basicTodoTests"
+    , "queryTests"
+    , "entityTests"
+    , "metadataTests"
+    , "saveTodoTests"
+    , "apiDirectTests"
 
 ], function (testFns) {
     // Configure testfns as needed prior to running any tests

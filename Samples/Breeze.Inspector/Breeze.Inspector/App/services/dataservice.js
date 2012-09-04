@@ -37,32 +37,35 @@
         ready: function() {
             if (this.isOffline()) {
                 answerType = manager.metadataStore.getEntityType("Answer");
-                return {
-                    then: function(callback) {
-                        callback();
-                    }
-                };
+                return $.Deferred(function(def) {
+                    def.resolve();
+                });
             }
 
-            return manager.fetchMetadata().then(function() {
-                answerType = manager.metadataStore.getEntityType("Answer");
-            });
+            return $.Deferred(function(def) {
+                manager.fetchMetadata().then(function() {
+                    answerType = manager.metadataStore.getEntityType("Answer");
+
+                    var query = new entityModel.EntityQuery()
+                        .from("Forms")
+                        .expand("Questions");
+
+                    executeQuery(query).then(function() {
+                        def.resolve();
+                    });
+                });
+            }).promise();
         },
-        login: function(username, password) {
-            //NOTE: This is not the appropriate way to handle login...
+        getInspectors: function() {
             var query = new entityModel.EntityQuery()
-                .from("Inspectors")
-                .where("Username", op.Equals, username)
-                .where("Password", op.Equals, password)
-                .take(1);
+                .from("Inspectors");
 
             return executeQuery(query);
         },
         getJobsFor: function(inspectorId) {
             var query = new entityModel.EntityQuery()
                 .from("Jobs")
-                .expand("Location, Inspections.Form.Questions, Inspections.Answers")
-              //.expand("Location, Inspections, Inspections.Form, Inspections.Form.Questions, Inspections.Answers")
+                .expand("Location, Inspections.Answers") //Inspections.Form.Questions,
                 .where("Inspector.Id", op.Equals, inspectorId)
                 .orderBy("CreatedAt");
 

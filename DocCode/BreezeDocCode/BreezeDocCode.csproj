@@ -143,6 +143,13 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Content Include="App_Data\readme.txt" />
+    <Content Include="Scripts\tests\basicTodoTests.js" />
+    <Content Include="Scripts\tests\apiDirectTests.js" />
+    <Content Include="Scripts\tests\metadataTests.js" />
+    <Content Include="Scripts\tests\entityTests.js" />
+    <Content Include="Scripts\tests\queryTests.js" />
+    <Content Include="Scripts\tests\saveTodoTests.js" />
+    <Content Include="Tests.html" />
     <Content Include="Global.asax" />
     <Content Include="Content\qunit.css" />
     <Content Include="Content\reset.css" />
@@ -155,7 +162,6 @@
     <Content Include="Scripts\lib\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\lib\q.js" />
     <Content Include="Scripts\lib\qunit.js" />
-    <Content Include="Scripts\lib\qunit.test.js" />
     <Content Include="Scripts\lib\require.js" />
     <Content Include="Scripts\lib\text.js" />
     <Content Include="Scripts\lib\toastr.js" />
@@ -164,14 +170,12 @@
     <Content Include="Scripts\services\logger.js" />
     <Content Include="Scripts\testRunner.js" />
     <Content Include="Scripts\tests\attachTests.js" />
-    <Content Include="Scripts\tests\createEntityTests.js" />
-    <Content Include="Scripts\tests\simpleQueryTests.js" />
     <Content Include="Scripts\tests\testFns.js" />
-    <Content Include="Scripts\tests\testsPrototype.js" />
     <Content Include="Scripts\viewmodels\shellVm.js" />
     <Content Include="Scripts\views\shell.html" />
     <Content Include="ThirdParty\Breeze.WebApi.dll" />
     <Content Include="ThirdParty\Irony.dll" />
+    <Content Include="Todos.html" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

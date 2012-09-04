@@ -6,5 +6,6 @@ function (core, entityModel) {
         core: core,
         entityModel: entityModel
     };
+    core.parent = root;
     return root;
 });

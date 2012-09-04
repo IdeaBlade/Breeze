@@ -12,37 +12,32 @@
         info: info,
         success: success,
         warning: warning,
-        log: toConsole // straight to console; bypass toast
+        log: log // straight to console; bypass toast
     };
-    
+
     function error(message, title) {
         toastr.error(message, title);
-        toConsole("Error: " + message);
+        log("Error: " + message);
     };
     function info(message, title) {
         toastr.info(message, title);
-        toConsole("Info: " + message);
+        log("Info: " + message);
     };
     function success(message, title) {
         toastr.success(message, title);
-        toConsole("Success: " + message);
+        log("Success: " + message);
     };
     function warning(message, title) {
         toastr.warning(message, title);
-        toConsole("Warning: " + message);
+        log("Warning: " + message);
     };
 
-    // Wrap console.log in protective shell to circumvent
-    // IE "console undefined" ... 
-    if (!window.console) window.console = { log: function () { } };
-    // and Chrome console bugs
-    function toConsole(message) {
-        try {
-            window.console.log(message);
-        } catch (e) {
-            /* oh well, forget about it */
-        }
-    };
-   
+    // IE and google chrome workaround
+    // http://code.google.com/p/chromium/issues/detail?id=48662
+    function log() {
+        var console = window.console;
+        !!console && console.log && console.log.apply(console, arguments);
+    }
+
     return logger;
 });

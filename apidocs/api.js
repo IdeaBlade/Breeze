@@ -25,6 +25,7 @@ YUI.add("yuidoc-meta", function(Y) {
         "ValidationError",
         "ValidationOptions",
         "Validator",
+        "config",
         "~entityTracking-interface",
         "~keyGenerator-interface"
     ],

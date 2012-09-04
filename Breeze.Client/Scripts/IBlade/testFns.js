@@ -16,26 +16,30 @@ define(["root"], function (root) {
 
         if (name === "DEBUG_KO") {
             if (testFns.DEBUG_KO) {
-                core.config.trackingImplementation = entityModel.entityTracking_ko;
+                testFns.entityTracking = entityModel.entityTracking_ko;
                 testFns.message += "entityTracking: ko,  ";
             } else {
-                core.config.trackingImplementation = entityModel.entityTracking_backingStore;
+                testFns.entityTracking = entityModel.entityTracking_backingStore;
                 testFns.message += "entityTracking: backingStore, ";
             }
+            core.config.setProperties({
+                trackingImplementation: testFns.entityTracking
+            });
         }
 
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
                 testFns.remoteAccess = entityModel.remoteAccess_webApi;
-                core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
                 testFns.ServiceName = "api/NorthwindIBModel";
                 testFns.message += "remoteAccess: webApi, ";
             } else {
                 testFns.remoteAccess = entityModel.remoteAccess_odata;
-                core.config.remoteAccessImplementation = entityModel.remoteAccess_odata;
                 testFns.ServiceName = "http://localhost:9009/ODataService.svc";
                 testFns.message += "remoteAccess: odataApi, ";
             }
+            core.config.setProperties({
+                remoteAccessImplementation: testFns.remoteAccess
+            });
         }
     };
 

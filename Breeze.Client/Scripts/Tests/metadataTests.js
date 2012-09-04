@@ -24,6 +24,15 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("default interface impl", function() {
+        var store = new MetadataStore();
+        stop();
+        store.fetchMetadata(testFns.ServiceName).then(function() {
+            ok(!store.isEmpty());
+            start();
+        }).fail(testFns.handleFail);
+    });
+    
     asyncTest("initialization", function () {
 
         var store = new MetadataStore();

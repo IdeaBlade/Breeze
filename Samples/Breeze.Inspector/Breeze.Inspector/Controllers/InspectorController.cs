@@ -1,7 +1,7 @@
 ﻿namespace Breeze.Inspector.Controllers {
     using System.Linq;
     using System.Web.Http;
-    using Breeze.WebApi;
+    using WebApi;
     using Models;
     using Newtonsoft.Json.Linq;
 
@@ -16,6 +16,11 @@
         [AcceptVerbs("GET")]
         public IQueryable<Inspector> Inspectors() {
             return contextProvider.Context.Inspectors;
+        }
+
+        [AcceptVerbs("GET")]
+        public IQueryable<InspectionForm> Forms() {
+            return contextProvider.Context.Forms;
         }
 
         [AcceptVerbs("GET")]

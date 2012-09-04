@@ -1373,11 +1373,76 @@ function (core, Enum, Event, m_assertParam) {
     core.Enum = Enum;
     core.Event = Event;
     core.extend(core, m_assertParam);
-    core.config = {};
-    core.config.functionRegistry = {};
+    core.config = { };
+    core.config.functionRegistry = { };
     core.config.typeRegistry = { };
+    
+    var assertParam = core.assertParam;
+    var assertConfig = core.assertConfig;
+      
+    /**
+    A singleton object that is the repository of all entityModel specific configuration options.
+       
+        core.config.setProperties( {
+            trackingImplemenation: entityModel.entityTracking_ko,
+            remoteAccessImplementation: entityModel.remoteAccess_webApi
+        });
+        
+    @class config
+    **/
+    
+    /**        
+    The implementation currently in use for tracking entities
+    @example
+        var name = entityModel.trackingImplementation.name;
+    There are currently two implementations of this interface.
+    @example
+        // For knockout.js
+        core.config.setProperties( {
+            trackingImplementation: entityModel.entityTracking_ko 
+        });
+    or
+    @example
+        // Generic js implementation of observability
+        core.config.setProperties( {
+            trackingImplementation: entityModel.entityTracking_backingStore
+        });
+        
+    @property trackingImplementation {~entityTracking-interface}
+    **/
 
-    // this is needed for reflection purposes when deserializing an object that needs a ctor.
+    /**        
+    The implementation currently in use for communicating with a remote server and service.
+    @example
+        var name = entityModel.remoteAccessImplementation.name;
+    There are currently two implementations of this interface.
+    Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.
+    @example
+        core.config.setProperties( {
+            remoteAccessImplementation: entityModel.remoteAccess_webApi
+        });
+    or an implementation of the remoteAccess interface that supports OData services.
+    @example
+        core.config.setProperties( {
+            remoteAccessImplementation: entityModel.remoteAccess_odata
+        });    
+    @property remoteAccessImplementation {~remoteAccess-interface}
+    **/
+
+    /**
+    @method setProperties
+    @param config {Object}
+        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
+        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
+    **/
+    core.config.setProperties = function (config) {
+        assertConfig(config)
+            .whereParam("remoteAccessImplementation").isOptional()
+            .whereParam("trackingImplementation").isOptional()
+            .applyAll(core.config);
+    };
+    
+       // this is needed for reflection purposes when deserializing an object that needs a ctor.
     core.config.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
@@ -1395,8 +1460,6 @@ function (core, Enum, Event, m_assertParam) {
 
     core.config.stringifyPad = "  ";
 
-    // core.config.remoteAccessImplementation
-    // core.config.trackingImplementation
     return core;
 });
 
@@ -2075,33 +2138,33 @@ function (core, Event, m_validate) {
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsUnchanged();
+                return es.isUnchanged();
             is the same as
             @example
                 return es === EntityState.Unchanged;
-            @method IsUnchanged
+            @method isUnchanged
             @return Whether an entityState instance is EntityState.Unchanged.
             **/
             isUnchanged: function () { return this === EntityState.Unchanged; },
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsAdded();
+                return es.isAdded();
             is the same as
             @example
                 return es === EntityState.Added;
-            @method IsAdded
+            @method isAdded
             @return Whether an entityState instance is EntityState.Added.
             **/
             isAdded: function () { return this === EntityState.Added; },
             /**
             @example
                 var es = anEntity.entityAspect.entityState;
-                return es.IsModified();
+                return es.isModified();
             is the same as
             @example
                 return es === EntityState.Modified;
-            @method IsModified
+            @method isModified
             @return Whether an entityState instance is EntityState.Modified.
             **/
             isModified: function () { return this === EntityState.Modified; },
@@ -2506,9 +2569,13 @@ function (core, Event, m_validate) {
             for (var propName in originalValues) {
                 entity.setProperty(propName, originalValues[propName]);
             }
-            this.setUnchanged();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
+            if (this.entityState.isAdded()) {
+                this.entityManager.detachEntity(entity);
+            } else {
+                this.setUnchanged();
+                if (this.entityManager.entityChangeNotificationEnabled) {
+                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
+                }
             }
         };
 
@@ -2563,10 +2630,14 @@ function (core, Event, m_validate) {
         @method setDeleted
         **/
         ctor.prototype.setDeleted = function () {
-            this.entityState = EntityState.Deleted;
-            this._removeFromRelations();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            if (this.entityState.isAdded()) {
+                this.entityManager.detachEntity(this.entity);
+            } else {
+                this.entityState = EntityState.Deleted;
+                this._removeFromRelations();
+                if (this.entityManager.entityChangeNotificationEnabled) {
+                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                }
             }
             // TODO: think about cascade deletes
         };
@@ -3397,9 +3468,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @example
             // assume ms is a previously created MetadataStore
             var metadataAsString = ms.export();
-            windows.localStorage.setItem("metadata", metadataAsString);
+            window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session imported
-            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
             newMetadataStore.import(metadataFromStorage);
         @method export
@@ -3417,9 +3488,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @example
             // assume ms is a previously created MetadataStore
             var metadataAsString = ms.export();
-            windows.localStorage.setItem("metadata", metadataAsString);
+            window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
-            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
             newMetadataStore.import(metadataFromStorage);
         @method import
@@ -3446,9 +3517,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @example
             // assume ms is a previously created MetadataStore
             var metadataAsString = ms.export();
-            windows.localStorage.setItem("metadata", metadataAsString);
+            window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
-            var metadataFromStorage = windows.localStorage.getItem("metadata");
+            var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = MetadataStore.import(metadataFromStorage);
         @method import
         @static
@@ -3514,13 +3585,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
-            assertParam(remoteAccessImplementation, "remoteAccessImplementation")
+            remoteAccessImplementation = assertParam(remoteAccessImplementation, "remoteAccessImplementation")
                 .isOptional().hasProperty("fetchMetadata").check(core.config.remoteAccessImplementation);
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
             if (this.hasMetadataFor(serviceName)) {
-                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore");
+                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
 
             var deferred = Q.defer();
@@ -3661,7 +3732,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         */
         ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
-            return this._resourceEntityTypeMap[resourceName];
+            return this._resourceEntityTypeMap[resourceName.toLowerCase()];
         };
 
         /*
@@ -3679,6 +3750,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
+            resourceName = resourceName.toLowerCase();
             var entityTypeName;
             if (entityTypeOrName instanceof EntityType) {
                 entityTypeName = entityTypeOrName.name;
@@ -4031,7 +4103,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
             
             __readOnly__
-            @property name {AutoGeneratedKeyType} 
+            @property autoGeneratedKeyType {AutoGeneratedKeyType} 
             @default AutoGeneratedKeyType.None
             **/
             this.autoGeneratedKeyType = AutoGeneratedKeyType.None;
@@ -4071,6 +4143,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional()
                 .whereParam("defaultResourceName").isString().isOptional()
                 .applyAll(this);
+            if (config.defaultResourceName) {
+                this.defaultResourceName = config.defaultResourceName.toLowerCase();
+            }
         };
 
         /**
@@ -4844,7 +4919,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         var ctor = function (resourceName) {
             assertParam(resourceName, "resourceName").isOptional().isString().check();
-            this.resourceName = resourceName;
+            this.resourceName = normalizeResourceName(resourceName);
             this.entityType = null;
             this.wherePredicate = null;
             this.orderByClause = null;
@@ -4854,7 +4929,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.expandClause = null;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
-                 
+            this.entityManager = null;                 
         };
 
         /**
@@ -4897,6 +4972,13 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         __readOnly__
         @property queryOptions {QueryOptions}
+        **/
+        
+        /**
+        The {{#crossLink "EntityManager"}}{{/crossLink}} for this query. This may be null and can be set via the 'using' method.
+
+        __readOnly__
+        @property entityManager {EntityManager}
         **/
 
         /*
@@ -4952,6 +5034,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.from = function (resourceName) {
             // TODO: think about allowing entityType as well 
             assertParam(resourceName, "resourceName").isString().check();
+            resourceName = normalizeResourceName(resourceName);
             var currentName = this.resourceName;
             if (currentName && currentName !== resourceName) {
                 throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
@@ -5422,6 +5505,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             copy.expandClause = this.expandClause;
             // default is to get queryOptions from the entityManager.
             copy.queryOptions = this.queryOptions;
+            copy.entityManager = this.entityManager;
 
             return copy;
         };
@@ -5538,6 +5622,14 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         // private functions
+        
+        function normalizeResourceName(resourceName) {
+            if (resourceName) {
+                return resourceName.toLowerCase();
+            } else {
+                return undefined;
+            }
+        }
 
         function buildPredicate(entity) {
             var entityType = entity.entityType;
@@ -5735,6 +5827,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 });
             }
         };
+        
 
         return ctor;
     })();
@@ -6809,7 +6902,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     var EntityType = m_entityMetadata.EntityType;
     var AutoGeneratedKeyType = m_entityMetadata.AutoGeneratedKeyType;
     var DataType = m_entityMetadata.DataType;
-
+    
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
     var EntityState = m_entityAspect.EntityState;
@@ -6899,7 +6992,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
-                .whereParam("remoteAccessImplementation").withDefault(core.config.remoteAccessImplementation)
+                .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.remoteAccessImplementation)
                 .applyAll(this);
 
             if (this.serviceName.substr(-1) !== "/") {
@@ -7003,9 +7096,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // assume em1 is an EntityManager containing a number of preexisting entities.
             var bundle = em1.export();
             // can be stored via the web storage api
-            windows.localStorage.setItem("myEntityManager", bundle);
+            window.localStorage.setItem("myEntityManager", bundle);
             // assume the code below occurs in a different session.
-            var bundleFromStorage = windows.localStorage.getItem("myEntityManager");
+            var bundleFromStorage = window.localStorage.getItem("myEntityManager");
             // and imported
             var em2 = EntityManager.import(bundleFromStorage);
             // em2 will now have a complete copy of what was in em1
@@ -7034,9 +7127,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // assume em1 is an EntityManager containing a number of existing entities.
             var bundle = em1.export();
             // can be stored via the web storage api
-            windows.localStorage.setItem("myEntityManager", bundle);
+            window.localStorage.setItem("myEntityManager", bundle);
             // assume the code below occurs in a different session.
-            var bundleFromStorage = windows.localStorage.getItem("myEntityManager");
+            var bundleFromStorage = window.localStorage.getItem("myEntityManager");
             var em2 = new EntityManager({ 
                 serviceName: em1.serviceName, 
                 metadataStore: em1.metadataStore 
@@ -7453,11 +7546,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var group = findOrCreateEntityGroup(this, entityType);
             // filter then order then skip then take
             var filterFunc = query._toFilterFunction(metadataStore);
+        
             if (filterFunc) {
-                result = group._entities.filter(filterFunc);
+                var undeletedFilterFunc = function(entity) {
+                    return ((!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity));
+                };
+                result = group._entities.filter(undeletedFilterFunc);
             } else {
-                result = group._entities.slice(0);
+                result = group._entities.filter(function(entity) {
+                    return !entity.entityAspect.entityState.isDeleted();
+                });
             }
+            
             var orderByComparer = query._toOrderByComparer(metadataStore);
             if (orderByComparer) {
                 result.sort(orderByComparer);
@@ -7635,7 +7735,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         need to be automatically replaced with 'real' key values once these entities are saved.
 
         The EntityManager.keyGeneratorCtor property is used internally by this method to actually generate
-        the keys - See the  {{#crossLink "~KeyGenerator"}}{{/crossLink}} interface description to see
+        the keys - See the  {{#crossLink "~keyGenerator-interface"}}{{/crossLink}} interface description to see
         how a custom key generator can be plugged in.
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities. 
@@ -7832,7 +7932,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         group._entities = [];
                         entityGroupMap[e.entityType.name] = group;
                     }
-                    group.push(e);
+                    group._entities.push(e);
                 });
             } else {
                 entityGroupMap = em._entityGroupMap;
@@ -8903,7 +9003,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     EntityQuery.prototype.using = function(obj) {
         var eq = this._clone();
         if (obj instanceof EntityManager) {
-            eq.EntityManager = obj;
+            eq.entityManager = obj;
         } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
             var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
             eq.queryOptions = queryOptions.using(obj);
@@ -8914,10 +9014,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     };
 
     EntityQuery.prototype.execute = function(callback, errorCallback) {
-        if (!this.EntityManager) {
-            throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'")
+        if (!this.entityManager) {
+            throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'");
         }
-        return this.EntityManager.executeQuery(this, callback, errorCallback);
+        return this.entityManager.executeQuery(this, callback, errorCallback);
     };
 
     // expose
@@ -9340,6 +9440,8 @@ function (core, makeRelationArray) {
 
         proto.setProperty = function (propertyName, value) {
             this[propertyName] = value;
+            // allow setProperty chaining.
+            return this;
         };
 
         // this method cannot be called while a 'defineProperty' accessor is executing
@@ -9511,6 +9613,8 @@ function (core, makeRelationArray) {
 
         proto.setProperty = function (propertyName, value) {
             this[propertyName](value);
+            // allow set property chaining.
+            return this;
         };
     };
 
@@ -9576,6 +9680,7 @@ function (core, makeRelationArray) {
                 read: target,  //always return the original observables value
                 write: function (newValue) {
                     instance.interceptor(property, newValue, target);
+                    return instance;
                 }
             });
         }
@@ -9592,14 +9697,9 @@ define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager",
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
           m_remoteAccess_webApi, m_remoteAccess_odata, m_entityTracking_backingStore, m_entityTracking_ko) {
     
+    
 
-    /**
-    The entityModel namespace.
-    @module entityModel
-    @main entityModel
-    **/
-
-    var entityModel = {};
+    var entityModel = { };
 
     core.extend(entityModel, m_entityAspect);
     core.extend(entityModel, m_entityMetadata);
@@ -9614,10 +9714,19 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 
     entityModel.remoteAccess_odata = m_remoteAccess_odata;
     entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
+    
+    /**
+    The entityModel namespace.
+    @module entityModel
+    @main entityModel
+    **/
+    
 
     // set defaults
-    core.config.trackingImplementation = entityModel.entityTracking_backingStore;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_backingStore,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     return entityModel;
 
@@ -9631,6 +9740,7 @@ function (core, entityModel) {
         core: core,
         entityModel: entityModel
     };
+    core.parent = root;
     return root;
 });
 

@@ -100,6 +100,30 @@ h4 {
 
 h5, h6 { font-size: 107.692%; }
 
+
+
+/* -- Primary nav ----------------------------------------------------------- */
+
+.primary-nav  {font-size:22px; text-align:center; color:#fff; margin-bottom:15px;}
+
+.primary-nav li {display: inline; margin:0px 7px;}
+.primary-nav a {color: #fff; text-decoration: none;}
+.primary-nav a:link {color: #fff; text-decoration: none;}
+.primary-nav a:visited {color: #fff; text-decoration: none;}
+.primary-nav a:active {color: #fff; text-decoration: none;}
+.primary-nav a:hover {color: #fff; text-decoration: underline;}
+
+
+.primary-nav-foot  {font-size:22px; text-align:center;  color:#444444; }
+.primary-nav-foot li {display: inline; margin:0px 7px;}
+.primary-nav-foot a {color: #444444; text-decoration: none;}
+.primary-nav-foot a:link {color: #444444; text-decoration: none;}
+.primary-nav-foot a:visited {color: #444444; text-decoration: none;}
+.primary-nav-foot a:active {color: #444444; text-decoration: none;}
+.primary-nav-foot a:hover {color: #444444; text-decoration: underline;}
+
+
+
 /* -- Code and examples ----------------------------------------------------- */
 code, kbd, pre, samp {
     font-family: Menlo, Monaco, 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', Courier, monospace;
@@ -204,9 +228,6 @@ th {
     	margin:33px 8px 20px 5px;
 		padding:15px;
 		background-color:#fff;
-		-moz-border-radius: 15px;
- 		border-radius: 15px;
- 		border: 5px solid #0072c6;
 		}
 
 .sidebar {

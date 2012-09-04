@@ -39,7 +39,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         var ctor = function (resourceName) {
             assertParam(resourceName, "resourceName").isOptional().isString().check();
-            this.resourceName = resourceName;
+            this.resourceName = normalizeResourceName(resourceName);
             this.entityType = null;
             this.wherePredicate = null;
             this.orderByClause = null;
@@ -49,7 +49,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.expandClause = null;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
-                 
+            this.entityManager = null;                 
         };
 
         /**
@@ -92,6 +92,13 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         __readOnly__
         @property queryOptions {QueryOptions}
+        **/
+        
+        /**
+        The {{#crossLink "EntityManager"}}{{/crossLink}} for this query. This may be null and can be set via the 'using' method.
+
+        __readOnly__
+        @property entityManager {EntityManager}
         **/
 
         /*
@@ -147,6 +154,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.from = function (resourceName) {
             // TODO: think about allowing entityType as well 
             assertParam(resourceName, "resourceName").isString().check();
+            resourceName = normalizeResourceName(resourceName);
             var currentName = this.resourceName;
             if (currentName && currentName !== resourceName) {
                 throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
@@ -617,6 +625,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             copy.expandClause = this.expandClause;
             // default is to get queryOptions from the entityManager.
             copy.queryOptions = this.queryOptions;
+            copy.entityManager = this.entityManager;
 
             return copy;
         };
@@ -733,6 +742,14 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         // private functions
+        
+        function normalizeResourceName(resourceName) {
+            if (resourceName) {
+                return resourceName.toLowerCase();
+            } else {
+                return undefined;
+            }
+        }
 
         function buildPredicate(entity) {
             var entityType = entity.entityType;
@@ -930,6 +947,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 });
             }
         };
+        
 
         return ctor;
     })();

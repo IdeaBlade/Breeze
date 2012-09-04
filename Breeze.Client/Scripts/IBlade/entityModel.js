@@ -3,14 +3,9 @@
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
           m_remoteAccess_webApi, m_remoteAccess_odata, m_entityTracking_backingStore, m_entityTracking_ko) {
     "use strict";
+    
 
-    /**
-    The entityModel namespace.
-    @module entityModel
-    @main entityModel
-    **/
-
-    var entityModel = {};
+    var entityModel = { };
 
     core.extend(entityModel, m_entityAspect);
     core.extend(entityModel, m_entityMetadata);
@@ -25,10 +20,19 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 
     entityModel.remoteAccess_odata = m_remoteAccess_odata;
     entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
+    
+    /**
+    The entityModel namespace.
+    @module entityModel
+    @main entityModel
+    **/
+    
 
     // set defaults
-    core.config.trackingImplementation = entityModel.entityTracking_backingStore;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_backingStore,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     return entityModel;
 

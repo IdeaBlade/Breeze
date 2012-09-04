@@ -125,29 +125,34 @@ footer button {
     text-align: center;
 }
 
-.login .label {
+.login h2 {
     text-align: center;
-    font-weight: bold;    
+    font-weight: bold;   
+    font-size: 2em; 
 }
 
-.login .message {
-    width: 100%;
+.login ul {
+    margin-top: 2em;
+}
+
+.login a {
+    font-size: 1.3em;
+    border: 1px solid black;
+    padding: 8px 100px;
+    
+    -moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	border-radius: 6px;
+	
+	-o-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
+    -webkit-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
+    -moz-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
+    box-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
+}
+
+.login a:hover {
+    cursor: pointer;
     color: red;
-}
-
-.login .label {
-    font-size: 2em;
-}
-
-.login input {
-    font-size: 2em;
-    margin-bottom: 1em;
-}
-
-.login .message {
-    font-size: 1.5em;
-    height: 1.5em;
-    margin-bottom: 1em;    
 }
 
 .job-list ul {

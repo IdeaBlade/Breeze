@@ -12,8 +12,7 @@
         public class ContextInitializer : DropCreateDatabaseIfModelChanges<InspectorContext> {
             protected override void Seed(InspectorContext context) {
                 var inspector = context.Inspectors.Add(new Inspector {
-                    Username = "user",
-                    Password = "pw"
+                    Name = "Ward Bell"
                 });
 
                 var address = context.Addresses.Add(new Address {

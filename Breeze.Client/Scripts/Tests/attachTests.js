@@ -33,6 +33,49 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+     test("rejectChanges on added entity", function () {
+        var em = newEm();
+        var typeInfo = em.metadataStore.getEntityType("Order");
+        var newEntity = typeInfo.createEntity();
+        em.addEntity(newEntity);
+
+        var entityState = newEntity.entityAspect.entityState;
+        ok(entityState.isAdded(),
+            "newEntity should be in Added state; is "+entityState);
+
+        newEntity.entityAspect.rejectChanges();
+     
+        entityState = newEntity.entityAspect.entityState;
+        ok(entityState.isDetached(),
+            "newEntity should be Detached after rejectChanges; is "+entityState);
+
+        ok(!em.hasChanges(), "should not have changes");
+
+        var inCache = em.getEntities(), count = inCache.length;
+        ok(count == 0, "should have no entities in cache; have " + count);
+
+    });
+    
+    test("delete added entity", 3, function () {
+        var em = newEm();
+        var typeInfo = em.metadataStore.getEntityType("Order");
+        var newEntity = typeInfo.createEntity();
+        em.addEntity(newEntity);
+
+        ok(newEntity.entityAspect.entityState.isAdded(),
+            "new Todo added to cache is in 'added' state");
+
+        newEntity.entityAspect.setDeleted();
+
+        ok(newEntity.entityAspect.entityState.isDetached(),  // FAIL
+            "new Todo added to cache is 'detached'");  
+        
+        // get the first (and only) entity in cache
+        equal(em.getEntities().length, 0, "no entities in cache"); //FAIL
+
+    });
+
 
     test("add entity - no key", function () {
         var em = newEm();

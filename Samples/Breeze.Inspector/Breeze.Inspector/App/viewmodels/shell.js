@@ -8,14 +8,7 @@
         status: ko.observable(""),
         initialize: function() {
             this.compose('shell', null, "#applicationHost");
-            this.compose('login');
-        },
-        canGoBack: ko.computed(function() {
-            return backStack().length != 0;
-        }),
-        goBack: function() {
-            var previous = backStack.pop();
-            this.compose(previous.name, previous.viewModel);
+            this.navigate('login');
         },
         validationMessages: ko.observable([]),
         showErrors: function() {
@@ -46,10 +39,25 @@
                 this.canSave(dataservice.hasChanges());
             }
         },
-        navigate: function(name, viewModel) {
-            this.compose(name, viewModel, null, true);
+        canGoBack: ko.computed(function() {
+            return backStack().length != 0;
+        }),
+        goBack: function() {
+            var previous = backStack.pop();
+            this.compose(previous.name, previous.viewModel, null, function() {
+                currentScreen = previous;
+            });
         },
-        compose: function(name, viewModel, location, addToStack, notAScreen) {
+        navigate: function(name, viewModel) {
+            this.compose(name, viewModel, null, function(newScreen) {
+                if (currentScreen) {
+                    backStack.push(currentScreen);
+                }
+
+                currentScreen = newScreen;
+            });
+        },
+        compose: function(name, viewModel, location, callback) {
             var dependencies = ['text!views/' + name + '.html'];
 
             if (!viewModel) {
@@ -65,19 +73,15 @@
                     ko.applyBindings(finalViewModel, view.get(0));
                     jQuery(location || "#contentHost").empty().append(view);
 
-                    if (addToStack && currentScreen) {
-                        backStack.push(currentScreen);
-                    }
-
-                    if (!notAScreen) {
-                        currentScreen = {
-                            name: name,
-                            viewModel: finalViewModel
-                        };
-                    }
-
                     if (finalViewModel.activate) {
                         finalViewModel.activate();
+                    }
+
+                    if (callback) {
+                        callback({
+                            name: name,
+                            viewModel: finalViewModel
+                        });
                     }
                 }, 1);
             });
@@ -88,16 +92,6 @@
     dataservice.onCanSaveChanges(function(value) {
         shell.canSave(value);
     });
-
-    ko.bindingHandlers.field = {
-        init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-            var type = viewModel.question.Type();
-            require(["viewmodels/" + type], function(behavior) {
-                behavior.installInto(viewModel);
-                shell.compose(type, viewModel, element, false, true);
-            });
-        }
-    };
 
     return shell;
 });
