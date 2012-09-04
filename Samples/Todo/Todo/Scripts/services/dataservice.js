@@ -5,8 +5,11 @@
 
     var logger = require('logger');
 
-    core.config.trackingImplementation = entityModel.entityTracking_ko;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    // Configure for Knockout binding and Web API persistence services
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     var op = entityModel.FilterQueryOp,
         todoType,

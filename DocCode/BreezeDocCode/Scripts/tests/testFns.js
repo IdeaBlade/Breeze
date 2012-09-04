@@ -11,8 +11,10 @@ define(["breeze"], function (breeze) {
     var entityModel = breeze.entityModel;
 
     // Configure for Knockout binding and Web API persistence services
-    core.config.trackingImplementation = entityModel.entityTracking_ko;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    core.config.setProperties({
+        trackingImplementation:     entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     /*********************************************************
     * testFns - the module object
@@ -132,8 +134,7 @@ define(["breeze"], function (breeze) {
         var serviceName = newEm.options.serviceName;
         stop(); // tell testrunner to wait.
         
-        // Shouldn't need remoteAccessImplementation. See defect #2151
-        metadataStore.fetchMetadata(serviceName, core.config.remoteAccessImplementation)
+        metadataStore.fetchMetadata(serviceName)
         .then(function () {
             if (typeof metadataSetupFn === "function") {
                 metadataSetupFn(metadataStore);

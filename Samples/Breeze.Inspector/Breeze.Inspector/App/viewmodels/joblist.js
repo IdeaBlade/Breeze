@@ -7,14 +7,13 @@
         jobs: ko.observableArray([]),
         activate: function() {
             shell.title("Job Locations");
+            shell.status("Loading jobs...");
+            data.getJobsFor(shell.inspector().Id()).then(processJobQueryResults);
         },
         navigateTo: function(inspection) {
             shell.navigate("inspection", new InspectionViewModel(inspection));
         }
     };
-
-    shell.status("Loading jobs...");
-    data.getJobsFor(shell.inspector().Id()).then(processJobQueryResults);
 
     function processJobQueryResults(data) {
         shell.status(data.results.length + " jobs found.");

@@ -1,7 +1,7 @@
 {
     "name": "The Breeze API",
     "description": "Client-Server data managment ... in JavaScript.",
-    "version": "0.0.20120831",
+    "version": "0.0.20120904",
     "url": "http://www.breezejs.com/",
     "options": {
         "outdir": "../../../apidocs"

@@ -16,8 +16,10 @@ define(["testFns"], function (testFns) {
 
     // Configure for Knockout binding and Web API persistence services
     // testFns does this for the test suite; you must do it in your app
-    core.config.trackingImplementation = entityModel.entityTracking_ko;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     // Classes we'll need from the breeze namespaces
     var EntityManager = entityModel.EntityManager;
@@ -263,6 +265,99 @@ define(["testFns"], function (testFns) {
     });
 
     /*********************************************************
+    * new Todo is detached 
+    *********************************************************/
+
+    test("new Todo is detached", 1, function () {
+
+        var newTodo = createTodo("Learn breeze");
+
+        ok(newTodo.entityAspect.entityState.isDetached(),
+            "new Todo is in 'detached' state");
+
+    });
+
+    /*********************************************************
+    * new Todo in cache is in added state 
+    *********************************************************/
+
+    test("new Todo in cache is in added state", 2, function () {
+
+        var newTodo = createTodo("Learn breeze");
+
+        var em = newEm();  // new empty EntityManager
+
+        em.addEntity(newTodo);
+
+        ok(newTodo.entityAspect.entityState.isAdded(),
+            "new Todo added to cache is in 'added' state");
+
+        // get the first (and only) entity in cache
+        var todoInCache = em.getEntities()[0];
+
+        equal(todoInCache, newTodo,
+            "Todo in cache is the one we created");
+
+    });
+
+    /*********************************************************
+    * new Todo leaves cache and becomes detached after deletion
+    *********************************************************/
+
+    test("new Todo leaves cache and becomes detached after deletion", 3, function () {
+
+        var newTodo = createTodo("A bad mistake");
+
+        var em = newEm();  // new empty EntityManager
+
+        em.addEntity(newTodo);
+
+        ok(newTodo.entityAspect.entityState.isAdded(),
+                "new Todo added to cache is in 'added' state");
+
+        newTodo.entityAspect.setDeleted();
+
+        ok(newTodo.entityAspect.entityState.isDetached(),
+                "new Todo added to cache is 'detached'");
+
+        equal(em.getEntities().length, 0, "no entities in cache");
+
+    });
+
+    /*********************************************************
+    * can get changes from cache
+    *********************************************************/
+    test("get changes from cache", 3, function () {
+
+        var em = newEm();
+        var query = new EntityQuery("Todos");
+
+        verifyQuery(em, query, "'all Todos' query",
+
+            function (data) {
+
+                var first = em.getEntities()[0];
+                first.Description("Changed this one");
+
+                // now add two new todos to the cache
+                em.addEntity(createTodo("Ima Nu"));
+                em.addEntity(createTodo("Suez He"));
+
+                var changes = em.getChanges(), count = changes.length;
+
+                equal(count, 3, "em.getChanges should return 3 Todos");
+
+                // overload of getEntities filters for added entities of all types.
+                var added = em.getEntities(null, entityModel.EntityState.Added);
+                count = added.length;
+                equal(count, 2, "2 of the changed entities should be added.");
+
+            }
+        );
+
+    });
+
+    /*********************************************************
     * entityAspect.rejectChanges reverts changes
     *********************************************************/
 
@@ -297,16 +392,8 @@ define(["testFns"], function (testFns) {
             equal(changes.length, 3, "exactly 3 changed Todos in cache");
 
             /*** REVERT ***/
-            // em.rejectChanges(); // in a future version
-
-            changes.forEach(function (o) {
-                // shouldn't have to remove the added entity; will fix breeze
-                if (o.entityAspect.entityState.isAdded()) {
-                    em.detachEntity(o);
-                } else {
-                    o.entityAspect.rejectChanges();
-                };
-            });
+            //   em.rejectChanges(); // future version of breeze
+            changes.forEach(function (o) { o.entityAspect.rejectChanges(); });
 
             ok(!em.hasChanges(), "# of changes in cache is " + em.getChanges().length);
 
@@ -349,111 +436,6 @@ define(["testFns"], function (testFns) {
         });
     });
 
-    /*********************************************************
-    * new Todo is detached 
-    *********************************************************/
-
-    test("new Todo is detached", 1, function () {
-
-        var newTodo = createTodo("Learn breeze");
-
-        ok(newTodo.entityAspect.entityState.isDetached(),
-            "new Todo is in 'detached' state");
-
-    });
-
-    function createTodo(name) {
-
-        var todoTypeInfo = getMetadataStore().getEntityType("TodoItem");
-
-        var newTodo = todoTypeInfo.createEntity();
-        newTodo.Description(name || "New Todo");
-        newTodo.CreatedAt(new Date());
-
-        return newTodo;
-    }
-
-    function getMetadataStore(em) {
-        if (em) { return em.metadataStore; }
-        // no em? no problem. We also stashed the store elsewhere
-        return newEm.options.metadataStore;
-    }
-
-    /*********************************************************
-    * new Todo in cache is in added state 
-    *********************************************************/
-
-    test("new Todo in cache is in added state", 2, function () {
-
-        var newTodo = createTodo("Learn breeze");
-
-        var em = newEm();  // new empty EntityManager
-
-        em.addEntity(newTodo);
-
-        ok(newTodo.entityAspect.entityState.isAdded(),
-            "new Todo added to cache is in 'added' state");
-
-        // get the first (and only) entity in cache
-        var todoInCache = em.getEntities()[0];
-
-        equal(todoInCache, newTodo,
-            "Todo in cache is the one we created");
-
-    });
-
-    /*********************************************************
-    * new Todo becomes detached after deletion
-    * [In DevForce ... but not in breeze. Is this intentional?]
-    *********************************************************/
-
-    //    test("new Todo becomes detached after deletion", 3, function () {
-
-    //        var newTodo = createTodo("A bad mistake");
-
-    //        var em = newEm();  // new empty EntityManager
-
-    //        em.addEntity(newTodo);
-
-    //        ok(newTodo.entityAspect.entityState.isAdded(),
-    //            "new Todo added to cache is in 'added' state");
-
-    //        newTodo.entityAspect.setDeleted();
-
-    //        ok(newTodo.entityAspect.entityState.isDetached(),
-    //            "new Todo added to cache is 'detached'");  
-    //        
-    //        equal(em.getEntities().length, 0, "no entities in cache");
-
-    //    });
-
-    /*********************************************************
-    * breeze: after delete, a new Todo stays in cache as 'deleted'
-    * [in breeze ... but not in DevForce  Is this intentional?]
-    *********************************************************/
-
-    test("deleting a new Todo keeps in cache as 'deleted'", 3, function () {
-
-        var newTodo = createTodo("A bad mistake");
-
-        var em = newEm();  // new empty EntityManager
-
-        em.addEntity(newTodo);
-
-        ok(newTodo.entityAspect.entityState.isAdded(),
-            "new Todo added to cache is in 'added' state");
-
-        newTodo.entityAspect.setDeleted();
-
-        ok(newTodo.entityAspect.entityState.isDeleted(),
-            "new Todo added to cache is 'deleted'");
-
-        // get the first (and only) entity in cache
-        var todoInCache = em.getEntities()[0];
-        equal(todoInCache, newTodo,
-            "Todo in cache is the one we deleted");
-
-    });
 
     /*********************************************************
     * change to Todo property raises KO property changed
@@ -531,14 +513,14 @@ define(["testFns"], function (testFns) {
         // all you get from event is the newValue
         // capture that and propertyName manually
         // Whew! This is work!
-        newTodo.Id.subscribe( 
-            function (newValue) { recordKoPropertyChanged(newValue, "Id");});
+        newTodo.Id.subscribe(
+            function (newValue) { recordKoPropertyChanged(newValue, "Id"); });
         newTodo.Description.subscribe(
-            function (newValue) { recordKoPropertyChanged(newValue, "Description");});
+            function (newValue) { recordKoPropertyChanged(newValue, "Description"); });
         newTodo.IsDone.subscribe(
-            function (newValue) { recordKoPropertyChanged(newValue, "IsDone");});
+            function (newValue) { recordKoPropertyChanged(newValue, "IsDone"); });
         newTodo.IsArchived.subscribe(
-            function (newValue) { recordKoPropertyChanged(newValue, "IsArchived");});
+            function (newValue) { recordKoPropertyChanged(newValue, "IsArchived"); });
 
         // 1. ko pc raised even when not it cache
         newTodo.IsDone(true);
@@ -559,7 +541,7 @@ define(["testFns"], function (testFns) {
 
     function recordKoPropertyChanged(newValue, propertyName) {
         recordKoPropertyChanged.notifications.push(
-            {newValue: newValue, propertyName: propertyName});
+            { newValue: newValue, propertyName: propertyName });
     }
 
     function assertGotKoExpectedPropertyChangedEvents() {
@@ -568,7 +550,7 @@ define(["testFns"], function (testFns) {
             .map(function (args) {
                 return "[" + args.propertyName +
                     " - new: " + args.newValue + "]";
-        });
+            });
 
         var count = notices.length;
         equal(count, 3,
@@ -656,5 +638,33 @@ define(["testFns"], function (testFns) {
 
         ok(errorMessage.indexOf("'Id' is required") !== -1,
             "first error is: " + errorMessage);
+    }
+
+
+
+    /*********************************************************
+    * HELPERS
+    *********************************************************/
+
+    function createTodo(name) {
+
+        var todoType = getTodoType();
+
+        var newTodo = todoType.createEntity();
+        newTodo.Description(name || "New Todo");
+        newTodo.CreatedAt(new Date());
+
+        return newTodo;
+    }
+
+    function getTodoType(entityManager) { // em is optional
+        return getMetadataStore(entityManager)
+            .getEntityType("TodoItem");
+    }
+
+    function getMetadataStore(em) { // em is optional
+        if (em) { return em.metadataStore; }
+        // no em? no problem. We also stashed the store elsewhere
+        return newEm.options.metadataStore;
     }
 });

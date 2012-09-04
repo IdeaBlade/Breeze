@@ -16,10 +16,6 @@ define(["testFns"], function (testFns) {
     // types for testing
     var customerType;
 
-    // Shouldn't need remoteAccessImplementation. See defect #2151
-    var remoteAccessImplementation = 
-        testFns.breeze.core.config.remoteAccessImplementation;
-
     module("metadataTests", { setup: moduleMetadataStoreSetup });
 
     // Populate the moduleMetadataStore with Northwind service metadata
@@ -27,8 +23,7 @@ define(["testFns"], function (testFns) {
         if (!moduleMetadataStore.isEmpty()) return; // got it already
 
         stop(); // going async for metadata ...
-        moduleMetadataStore.fetchMetadata(northwindService
-        , remoteAccessImplementation) //remoteAccessImplementation should be optional. See defect #2151
+        moduleMetadataStore.fetchMetadata(northwindService) 
         .then(getTypesForTesting)
         .fail(handleFail)
         .fin(start);
@@ -99,8 +94,7 @@ define(["testFns"], function (testFns) {
 
         stop(); // going async 
         // get Todos service metadata
-        testStore.fetchMetadata(todosServiceName
-            , remoteAccessImplementation) //remoteAccessImplementation should be optional. See defect #2151
+        testStore.fetchMetadata(todosServiceName) 
 
         .then(function () {
 

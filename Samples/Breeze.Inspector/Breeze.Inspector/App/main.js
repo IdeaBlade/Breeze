@@ -8,13 +8,43 @@
 
 define(['text', 'breeze'], function() {
     ko.bindingHandlers.behavior = {
-        init:function(element, valueAccessor, allBindingsAccessor, viewModel) {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
             var behaviorType = valueAccessor();
 
             require(["behaviors/" + behaviorType], function(behavior) {
                 behavior.attach(element, viewModel);
             });
         }
+    };
+
+    ko.compose = function(name, viewModel, location, callback) {
+        var dependencies = ['text!views/' + name + '.html'];
+
+        if(!viewModel) {
+            dependencies.push('viewmodels/' + name);
+        }
+
+        require(dependencies, function(html, module) {
+            var finalViewModel = viewModel || module;
+
+            //give the browser time to update
+            setTimeout(function() {
+                var view = jQuery(html);
+                ko.applyBindings(finalViewModel, view.get(0));
+                jQuery(location || "#contentHost").empty().append(view);
+
+                if(finalViewModel.activate) {
+                    finalViewModel.activate();
+                }
+
+                if(callback) {
+                    callback({
+                        name:name,
+                        viewModel:finalViewModel
+                    });
+                }
+            }, 1);
+        });
     };
 
     require(['services/dataservice', 'viewmodels/shell'], function(data, shell) {

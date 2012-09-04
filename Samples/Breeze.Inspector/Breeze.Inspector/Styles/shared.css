@@ -135,10 +135,14 @@ footer button {
     margin-top: 2em;
 }
 
+.login ul li {
+    margin-bottom: 2em;
+}
+
 .login a {
     font-size: 1.3em;
     border: 1px solid black;
-    padding: 8px 100px;
+    padding: 8px 50px;
     
     -moz-border-radius: 6px;
 	-webkit-border-radius: 6px;
@@ -163,6 +167,7 @@ footer button {
     border: 1px solid black;
     padding: .5em;
     font-size: 2em;
+    margin-bottom: 1em;
     
     -moz-border-radius: 6px;
 	-webkit-border-radius: 6px;
@@ -177,6 +182,7 @@ footer button {
 .job-list ul li div.inspections {
     margin-left: 1em;
     margin-top: .25em;
+    line-height: 1.5em;
 }
 
 .inspection-form {

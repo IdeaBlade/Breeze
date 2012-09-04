@@ -353,13 +353,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **&#x2F;
         ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
             assertParam(serviceName, &quot;serviceName&quot;).isString().check();
-            assertParam(remoteAccessImplementation, &quot;remoteAccessImplementation&quot;)
+            remoteAccessImplementation = assertParam(remoteAccessImplementation, &quot;remoteAccessImplementation&quot;)
                 .isOptional().hasProperty(&quot;fetchMetadata&quot;).check(core.config.remoteAccessImplementation);
             assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
             assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             
             if (this.hasMetadataFor(serviceName)) {
-                throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore&quot;);
+                throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + serviceName);
             }
 
             var deferred = Q.defer();

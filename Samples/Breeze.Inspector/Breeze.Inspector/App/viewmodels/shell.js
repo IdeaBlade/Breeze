@@ -7,7 +7,7 @@
         title: ko.observable(""),
         status: ko.observable(""),
         initialize: function() {
-            this.compose('shell', null, "#applicationHost");
+            ko.compose('shell', null, "#applicationHost");
             this.navigate('login');
         },
         validationMessages: ko.observable([]),
@@ -44,46 +44,17 @@
         }),
         goBack: function() {
             var previous = backStack.pop();
-            this.compose(previous.name, previous.viewModel, null, function() {
+            ko.compose(previous.name, previous.viewModel, null, function() {
                 currentScreen = previous;
             });
         },
         navigate: function(name, viewModel) {
-            this.compose(name, viewModel, null, function(newScreen) {
+            ko.compose(name, viewModel, null, function(newScreen) {
                 if (currentScreen) {
                     backStack.push(currentScreen);
                 }
 
                 currentScreen = newScreen;
-            });
-        },
-        compose: function(name, viewModel, location, callback) {
-            var dependencies = ['text!views/' + name + '.html'];
-
-            if (!viewModel) {
-                dependencies.push('viewmodels/' + name);
-            }
-
-            require(dependencies, function(html, module) {
-                var finalViewModel = viewModel || module;
-
-                //give the browser time to update
-                setTimeout(function() {
-                    var view = jQuery(html);
-                    ko.applyBindings(finalViewModel, view.get(0));
-                    jQuery(location || "#contentHost").empty().append(view);
-
-                    if (finalViewModel.activate) {
-                        finalViewModel.activate();
-                    }
-
-                    if (callback) {
-                        callback({
-                            name: name,
-                            viewModel: finalViewModel
-                        });
-                    }
-                }, 1);
             });
         },
         inspector: ko.observable(null)

@@ -3,8 +3,11 @@
         core = breeze.core,
         entityModel = breeze.entityModel;
 
-    core.config.trackingImplementation = entityModel.entityTracking_ko;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    // Configure for Knockout binding and Web API persistence services
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     var op = entityModel.FilterQueryOp,
         EntityAction = entityModel.EntityAction,
@@ -65,7 +68,7 @@
         getJobsFor: function(inspectorId) {
             var query = new entityModel.EntityQuery()
                 .from("Jobs")
-                .expand("Location, Inspections.Answers") //Inspections.Form.Questions,
+                .expand("Location, Inspections.Answers")
                 .where("Inspector.Id", op.Equals, inspectorId)
                 .orderBy("CreatedAt");
 
@@ -82,6 +85,7 @@
         },
         saveChanges: function() {
             if (this.isOffline()) {
+                //TODO: how do I save the data when I'm disconnected?
                 localStorage.setItem("manager", manager.export());
                 return {
                     then: function(callback) {

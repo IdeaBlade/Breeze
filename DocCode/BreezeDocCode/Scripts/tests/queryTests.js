@@ -390,7 +390,7 @@ define(["testFns"], function (testFns) {
 
     function assertGotOrderDetails(data) {
 
-        var em = data.query.EntityManager; // should be "query.entityManager"; see F2026
+        var em = data.query.entityManager; // should be "query.entityManager"; see F2026
         var odType = em.metadataStore.getEntityType("OrderDetail");
 
         var odsInCache = em.getEntities(odType); // all OrderDetails in cache
@@ -530,7 +530,7 @@ define(["testFns"], function (testFns) {
     }
 
     function assertOrdersInCache(data) {
-        var em = data.query.EntityManager;
+        var em = data.query.entityManager;
         var metadata = em.metadataStore;
 
         var customerType = metadata.getEntityType("Customer");
