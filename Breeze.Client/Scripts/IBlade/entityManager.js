@@ -920,7 +920,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return eg.hasChanges();
             });
         };
-
+        
         /**
         Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
         has an {{#crossLink "EntityState"}}{{/crossLink}} of either Added, Modified or Deleted.
@@ -951,6 +951,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return this._getEntitiesCore(entityTypes, entityStates);
         };
 
+        /**
+        Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities.
+            var entities = em1.rejectChanges();
+        
+        @method rejectChanges
+        @return {Array of Entities} The entities whose changes were rejected. These entities will all have EntityStates of 
+        either 'Unchanged' or 'Detached'
+        **/
+        ctor.prototype.rejectChanges = function() {
+            var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
+            var changes = this._getEntitiesCore(null, entityStates);
+            changes.forEach(function(e) {
+                e.entityAspect.rejectChanges();
+            });
+            return changes;
+        };
+        
         /**
         Returns a array of all entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s with the specified {{#crossLink "EntityState"}}{{/crossLink}}s. 
         @example
@@ -1423,7 +1442,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity.entityAspect.originalValues = {};
                     if (em.propertyChangeNotificationEnabled) {
                         // all properties changed
-                        targetEntity.entityAspect.propertyChanged.publish({ propertyName: null });
+                        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
                     }
                     if (em.entityChangeNotificationEnabled) {
                         var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
@@ -2131,6 +2150,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'");
         }
         return this.entityManager.executeQuery(this, callback, errorCallback);
+    };
+    
+    EntityQuery.prototype.executeLocally = function() {
+        if (!this.entityManager) {
+            throw new Error("An EntityQuery must have its EntityManager property set before calling 'executeLocally'");
+        }
+        return this.entityManager.executeQueryLocally(this);
     };
 
     // expose

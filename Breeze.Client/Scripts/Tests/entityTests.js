@@ -158,6 +158,7 @@ define(["testFns"], function (testFns) {
         var order = orderType.createEntity();
         var lastProperty, lastOldValue, lastNewValue;
         order.entityAspect.propertyChanged.subscribe(function (args) {
+            ok(args.entity === order,"args.entity === order");
             lastProperty = args.propertyName;
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
@@ -310,6 +311,37 @@ define(["testFns"], function (testFns) {
         valid = !em.hasChanges();
         ok(valid, "should no longer have any changes");
     });
+    
+    test("rejectChanges", function() {
+        var em = newEm();
+        var orderType = metadataStore.getEntityType("Order");
+        var orderDetailType = metadataStore.getEntityType("OrderDetail");
+        var order1 = createOrderAndDetails(em, false);
+        var order2 = createOrderAndDetails(em, false);
+        
+        var valid = em.hasChanges();
+        ok(valid, "should have some changes");
+        valid = em.hasChanges(orderType);
+        ok(valid, "should have changes for Orders");
+        valid = em.hasChanges([orderType, orderDetailType]);
+        ok(valid, "should have changes for Orders or OrderDetails");
+        em.getChanges(orderType).forEach(function(e) {
+            e.entityAspect.acceptChanges();
+            e.setProperty("Freight", 100);
+            ok(e.entityAspect.entityState.isModified(), "should be modified");
+        });
+        var rejects = em.rejectChanges();
+        ok(rejects.length > 0, "should have rejected some");
+        var hasChanges = em.hasChanges(orderType);
+        ok(!hasChanges, "should not have changes for Orders");
+        hasChanges = em.hasChanges(orderDetailType);
+        ok(!hasChanges, "should not have changes for OrderDetails");
+
+        valid = !em.hasChanges();
+        ok(valid, "should no longer have any changes");
+    });
+   
+
     function createOrderAndDetails(em, shouldAttachUnchanged) {
         if (shouldAttachUnchanged === undefined) shouldAttachUnchanged = true;
         var metadataStore = em.metadataStore;

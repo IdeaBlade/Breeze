@@ -150,6 +150,7 @@ define(["testFns"], function (testFns) {
         });
         var order2ChangeCount = 0;
         order2.entityAspect.propertyChanged.subscribe(function (args2) {
+            ok(args2.entity === order2, "args2.entity === order2");
             if (args2.propertyName === "Customer") {
                 order2ChangeCount += 1;
             } else if (args2.propertyName === "CustomerID") {

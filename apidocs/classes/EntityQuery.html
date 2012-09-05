@@ -233,6 +233,13 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_executeLocally">executeLocally</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_expand">expand</a>
 
                                 
@@ -733,6 +740,73 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
 </div>
 
                 
+                    <div id="method_executeLocally" class="method item">
+    <h3 class="name"><code>executeLocally</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l527"><code>entityQuery.js:527</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the "using" method.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em is an entityManager already filled with order entities;
+var query = new EntityQuery("Orders").using(em);
+var orders = query.executeLocally();
+</code></pre>
+
+<p>Note that calling this method is the same as calling <a href="..\classes\EntityManager.html#method_executeQueryLocally" class="crosslink">executeQueryLocally</a>.</p>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_expand" class="method item">
     <h3 class="name"><code>expand</code></h3>
 
@@ -1147,7 +1221,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l527"><code>entityQuery.js:527</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l539"><code>entityQuery.js:539</code></a>
         
         </p>
 
@@ -1276,7 +1350,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l564"><code>entityQuery.js:564</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l576"><code>entityQuery.js:576</code></a>
         
         </p>
 
@@ -1405,7 +1479,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l589"><code>entityQuery.js:589</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l601"><code>entityQuery.js:601</code></a>
         
         </p>
 

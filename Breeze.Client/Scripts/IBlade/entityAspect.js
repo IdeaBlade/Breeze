@@ -368,13 +368,15 @@ function (core, Event, m_validate) {
         @example
             // assume order is an order entity attached to an EntityManager.
             order.entityAspect.propertyChanged.subscribe(
-                function (changeArgs) {
+                function (propertyChangedArgs) {
                     // this code will be executed anytime a property value changes on the 'order' entity.
-                    var propertyNameChanged = changeArgs.propertyName;
-                    var oldValue = changeArgs.oldValue;
-                    var newValue = changeArgs.newValue;
+                    var entity = propertyChangedArgs.entity; // Note: entity === order
+                    var propertyNameChanged = propertyChangedArgs.propertyName;
+                    var oldValue = propertyChangedArgs.oldValue;
+                    var newValue = propertyChangedArgs.newValue;
                 });
         @event propertyChanged 
+        @param entity {Entity} The entity whose property is changing.
         @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
         queries, imports and saves that require a merge. The remaining parameters will not exist in this case either.
         @param oldValue {Object} The old value of this property before the change.
@@ -388,12 +390,14 @@ function (core, Event, m_validate) {
         @example
             // assume order is an order entity attached to an EntityManager.
             order.entityAspect.validationErrorsChanged.subscribe(
-                function (changeArgs) {
+                function (validationChangeArgs) {
                     // this code will be executed anytime a property value changes on the 'order' entity.
-                    var errorsAdded = changeArgs.added;
-                    var errorsCleared = changeArgs.removed;
+                    var entity == validationChangeArgs.entity; // Note: entity === order
+                    var errorsAdded = validationChangeArgs.added;
+                    var errorsCleared = validationChangeArgs.removed;
                 });
         @event validationErrorsChanged 
+        @param entity {Entity} The entity on which the validation errors are being added or removed.
         @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
         @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
         errors that have been 'fixed'
@@ -738,7 +742,7 @@ function (core, Event, m_validate) {
                 validationFn(this);
             } else {
                 try {
-                    this._pendingValidationResult = { added: [], removed: [] };
+                    this._pendingValidationResult = { entity: this.entity, added: [], removed: [] };
                     validationFn(this);
                     if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                         this.validationErrorsChanged.publish(this._pendingValidationResult);

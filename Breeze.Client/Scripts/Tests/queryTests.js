@@ -117,7 +117,8 @@ define(["testFns"], function (testFns) {
             ok(custs.length == 5, "local query should have 5 customers");
             custs[0].entityAspect.setDeleted();
             custs[1].entityAspect.setDeleted();
-            var custs2 = em.executeQueryLocally(query);
+            // var custs2 = em.executeQueryLocally(query);
+            var custs2 = query.using(em).executeLocally();
             ok(custs2.length == 3);
             start();
         }).fail(testFns.handleFail);

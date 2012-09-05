@@ -470,7 +470,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @chainable
         **/
         
-       // Implementations found in EntityManager
+        // Implementations found in EntityManager
         /**
         Executes this query.  This method requires that an EntityManager have been previously specified via the "using" method.
         @example
@@ -522,6 +522,18 @@ function (core, m_entityMetadata, m_entityAspect) {
         failureFunction([error])
           @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
           @return Promise
+        **/
+        
+        /**
+        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the "using" method.
+        @example
+            // assume em is an entityManager already filled with order entities;
+            var query = new EntityQuery("Orders").using(em);
+            var orders = query.executeLocally();
+        
+        Note that calling this method is the same as calling {{#crossLink "EntityManager/executeQueryLocally"}}{{/crossLink}}.
+      
+        @method executeLocally
         **/
 
         /**

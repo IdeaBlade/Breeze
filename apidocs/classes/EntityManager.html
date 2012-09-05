@@ -326,6 +326,8 @@
                                 <a href="#method_import">import</a>
 
                                 
+                                    <span class="flag static">static</span>
+                                
                                 
                             </li>
                         
@@ -333,7 +335,12 @@
                                 <a href="#method_import">import</a>
 
                                 
-                                    <span class="flag static">static</span>
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_rejectChanges">rejectChanges</a>
+
                                 
                                 
                             </li>
@@ -1969,7 +1976,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l817"><code>entityManager.js:817</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l824"><code>entityManager.js:824</code></a>
         
         </p>
 
@@ -2084,7 +2091,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l838"><code>entityManager.js:838</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l845"><code>entityManager.js:845</code></a>
         
         </p>
 
@@ -2216,7 +2223,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l917"><code>entityManager.js:917</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l924"><code>entityManager.js:924</code></a>
         
         </p>
 
@@ -2348,7 +2355,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l947"><code>entityManager.js:947</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l973"><code>entityManager.js:973</code></a>
         
         </p>
 
@@ -2496,7 +2503,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l879"><code>entityManager.js:879</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l886"><code>entityManager.js:886</code></a>
         
         </p>
 
@@ -2577,163 +2584,6 @@ var orderType = em1.metadataStore.getEntityType("Order");
 if ( em1.hasChanges( [custType, orderType]) {
    // do something interesting
 }
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_import" class="method item">
-    <h3 class="name"><code>import</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>exportedString</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code class="optional">[config]</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l278"><code>entityManager.js:278</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Imports a previously exported result into this EntityManager.</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">exportedString</code>
-                        <span class="type">String</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The result of a previous 'export' call.</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[config]</code>
-                        <span class="type">Object</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>A configuration object.</p>
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[mergeStrategy]</code>
-                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
-    merging into an existing EntityManager.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
-in a previous session and stored in localStorage. The static version of this method performs a
-very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
-var bundle = em1.export();
-// bundle can be stored in window.localStorage or just held in memory.
-var em2 = new EntityManager({ 
-    serviceName: em1.serviceName, 
-    metadataStore: em1.metadataStore 
-});
-em2.import(bundle);
-// em2 will now have a complete copy of what was in em1
-</code></pre>
-
-<p>It can also be used to merge the contents of a previously created EntityManager with an 
-existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.export();
-// assume em2 is another entityManager containing some of the same entities possibly with modifications.
-em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
-// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
-// made modifications will not have been touched, but all other entities from em1 will have been imported.
 </code></pre>
             </div>
         </div>
@@ -2905,6 +2755,245 @@ var em2 = EntityManager.import(bundleFromStorage);
 </div>
 
                 
+                    <div id="method_import" class="method item">
+    <h3 class="name"><code>import</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>exportedString</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[config]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l278"><code>entityManager.js:278</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Imports a previously exported result into this EntityManager.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">exportedString</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The result of a previous 'export' call.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[config]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A configuration object.</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[mergeStrategy]</code>
+                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
+    merging into an existing EntityManager.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
+in a previous session and stored in localStorage. The static version of this method performs a
+very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+var bundle = em1.export();
+// bundle can be stored in window.localStorage or just held in memory.
+var em2 = new EntityManager({ 
+    serviceName: em1.serviceName, 
+    metadataStore: em1.metadataStore 
+});
+em2.import(bundle);
+// em2 will now have a complete copy of what was in em1
+</code></pre>
+
+<p>It can also be used to merge the contents of a previously created EntityManager with an 
+existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.export();
+// assume em2 is another entityManager containing some of the same entities possibly with modifications.
+em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
+// made modifications will not have been touched, but all other entities from em1 will have been imported.
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_rejectChanges" class="method item">
+    <h3 class="name"><code>rejectChanges</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Array of Entities</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l954"><code>entityManager.js:954</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.</p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Array of Entities</span>:
+                    
+                    The entities whose changes were rejected. These entities will all have EntityStates of 
+either 'Unchanged' or 'Detached'
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
+var entities = em1.rejectChanges();
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_saveChanges" class="method item">
     <h3 class="name"><code>saveChanges</code></h3>
 
@@ -2971,7 +3060,7 @@ var em2 = EntityManager.import(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l682"><code>entityManager.js:682</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l689"><code>entityManager.js:689</code></a>
         
         </p>
 

@@ -67,6 +67,7 @@ define(["testFns"], function (testFns) {
         em.attachEntity(cust1);
         var valErrorsChanged;
         cust1.entityAspect.validationErrorsChanged.subscribe(function (args) {
+            ok(args.entity === cust1,"args.entity property should be set");
             valErrorsChanged = args;
         });
         cust1.setProperty("CompanyName", 222);

@@ -2484,13 +2484,15 @@ function (core, Event, m_validate) {
         @example
             // assume order is an order entity attached to an EntityManager.
             order.entityAspect.propertyChanged.subscribe(
-                function (changeArgs) {
+                function (propertyChangedArgs) {
                     // this code will be executed anytime a property value changes on the 'order' entity.
-                    var propertyNameChanged = changeArgs.propertyName;
-                    var oldValue = changeArgs.oldValue;
-                    var newValue = changeArgs.newValue;
+                    var entity = propertyChangedArgs.entity; // Note: entity === order
+                    var propertyNameChanged = propertyChangedArgs.propertyName;
+                    var oldValue = propertyChangedArgs.oldValue;
+                    var newValue = propertyChangedArgs.newValue;
                 });
         @event propertyChanged 
+        @param entity {Entity} The entity whose property is changing.
         @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
         queries, imports and saves that require a merge. The remaining parameters will not exist in this case either.
         @param oldValue {Object} The old value of this property before the change.
@@ -2504,12 +2506,14 @@ function (core, Event, m_validate) {
         @example
             // assume order is an order entity attached to an EntityManager.
             order.entityAspect.validationErrorsChanged.subscribe(
-                function (changeArgs) {
+                function (validationChangeArgs) {
                     // this code will be executed anytime a property value changes on the 'order' entity.
-                    var errorsAdded = changeArgs.added;
-                    var errorsCleared = changeArgs.removed;
+                    var entity == validationChangeArgs.entity; // Note: entity === order
+                    var errorsAdded = validationChangeArgs.added;
+                    var errorsCleared = validationChangeArgs.removed;
                 });
         @event validationErrorsChanged 
+        @param entity {Entity} The entity on which the validation errors are being added or removed.
         @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
         @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
         errors that have been 'fixed'
@@ -2854,7 +2858,7 @@ function (core, Event, m_validate) {
                 validationFn(this);
             } else {
                 try {
-                    this._pendingValidationResult = { added: [], removed: [] };
+                    this._pendingValidationResult = { entity: this.entity, added: [], removed: [] };
                     validationFn(this);
                     if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                         this.validationErrorsChanged.publish(this._pendingValidationResult);
@@ -3197,7 +3201,7 @@ function (core, m_entityAspect) {
                 }
             }
 
-            var propChangedArgs = { propertyName: propName, oldValue: oldValue, newValue: newValue };
+            var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is also fired in the entityManager mergeEntity method.
@@ -5350,7 +5354,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @chainable
         **/
         
-       // Implementations found in EntityManager
+        // Implementations found in EntityManager
         /**
         Executes this query.  This method requires that an EntityManager have been previously specified via the "using" method.
         @example
@@ -5402,6 +5406,18 @@ function (core, m_entityMetadata, m_entityAspect) {
         failureFunction([error])
           @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
           @return Promise
+        **/
+        
+        /**
+        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the "using" method.
+        @example
+            // assume em is an entityManager already filled with order entities;
+            var query = new EntityQuery("Orders").using(em);
+            var orders = query.executeLocally();
+        
+        Note that calling this method is the same as calling {{#crossLink "EntityManager/executeQueryLocally"}}{{/crossLink}}.
+      
+        @method executeLocally
         **/
 
         /**
@@ -7807,7 +7823,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return eg.hasChanges();
             });
         };
-
+        
         /**
         Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
         has an {{#crossLink "EntityState"}}{{/crossLink}} of either Added, Modified or Deleted.
@@ -7838,6 +7854,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return this._getEntitiesCore(entityTypes, entityStates);
         };
 
+        /**
+        Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities.
+            var entities = em1.rejectChanges();
+        
+        @method rejectChanges
+        @return {Array of Entities} The entities whose changes were rejected. These entities will all have EntityStates of 
+        either 'Unchanged' or 'Detached'
+        **/
+        ctor.prototype.rejectChanges = function() {
+            var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
+            var changes = this._getEntitiesCore(null, entityStates);
+            changes.forEach(function(e) {
+                e.entityAspect.rejectChanges();
+            });
+            return changes;
+        };
+        
         /**
         Returns a array of all entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s with the specified {{#crossLink "EntityState"}}{{/crossLink}}s. 
         @example
@@ -8310,7 +8345,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity.entityAspect.originalValues = {};
                     if (em.propertyChangeNotificationEnabled) {
                         // all properties changed
-                        targetEntity.entityAspect.propertyChanged.publish({ propertyName: null });
+                        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
                     }
                     if (em.entityChangeNotificationEnabled) {
                         var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
@@ -9018,6 +9053,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'");
         }
         return this.entityManager.executeQuery(this, callback, errorCallback);
+    };
+    
+    EntityQuery.prototype.executeLocally = function() {
+        if (!this.entityManager) {
+            throw new Error("An EntityQuery must have its EntityManager property set before calling 'executeLocally'");
+        }
+        return this.entityManager.executeQueryLocally(this);
     };
 
     // expose

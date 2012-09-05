@@ -638,7 +638,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @chainable
         **&#x2F;
         
-       &#x2F;&#x2F; Implementations found in EntityManager
+        &#x2F;&#x2F; Implementations found in EntityManager
         &#x2F;**
         Executes this query.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
         @example
@@ -690,6 +690,18 @@ function (core, m_entityMetadata, m_entityAspect) {
         failureFunction([error])
           @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
           @return Promise
+        **&#x2F;
+        
+        &#x2F;**
+        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
+        @example
+            &#x2F;&#x2F; assume em is an entityManager already filled with order entities;
+            var query = new EntityQuery(&quot;Orders&quot;).using(em);
+            var orders = query.executeLocally();
+        
+        Note that calling this method is the same as calling {{#crossLink &quot;EntityManager&#x2F;executeQueryLocally&quot;}}{{&#x2F;crossLink}}.
+      
+        @method executeLocally
         **&#x2F;
 
         &#x2F;**
@@ -793,6 +805,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             copy.expandClause = this.expandClause;
             &#x2F;&#x2F; default is to get queryOptions from the entityManager.
             copy.queryOptions = this.queryOptions;
+            copy.entityManager = this.entityManager;
 
             return copy;
         };
