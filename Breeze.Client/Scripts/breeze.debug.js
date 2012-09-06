@@ -1977,7 +1977,9 @@ function (core) {
                 if (v == null) return true;
                 if (typeof v === "string") {
                     try {
-                        return core.isDate(new Date(v));
+                        return !isNaN(Date.parse(v));
+                        // old code
+                        // return core.isDate(new Date(v));
                     } catch (e) {
                         return false;
                     }
