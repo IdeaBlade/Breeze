@@ -425,7 +425,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The added entity.
         **/
         ctor.prototype.addEntity = function (entity) {
-            assertParam(entity, "entity").isEntity().check();
             return this.attachEntity(entity, EntityState.Added);
         };
 
@@ -442,7 +441,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The attached entity.
         **/
         ctor.prototype.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, "entity").isEntity().check();
+            core.assertParam(entity, "entity").isRequired().check();
+            this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             var aspect = new EntityAspect(entity);
@@ -468,6 +468,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             return entity;
         };
+        
+        
 
         /**
         Detaches an entity from this EntityManager.

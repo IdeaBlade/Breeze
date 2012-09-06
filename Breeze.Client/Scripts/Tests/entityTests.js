@@ -37,6 +37,88 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("custom Customer type with createEntity", function() {
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        
+        var Customer = function() {
+            this.miscData = "asdf";
+        };
+        Customer.prototype.getNameLength = function() {
+            return (this.getProperty("CompanyName") || "").length;
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em.fetchMetadata().then(function() {
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isDetached(), "should be detached");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("CompanyName", "testxxx");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+            start();
+        }).fail(testFns.handleFail);
+    });
+    
+    test("custom Customer type with new", function() {
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        
+        var Customer = function() {
+            this.miscData = "asdf";
+        };
+        Customer.prototype.getNameLength = function() {
+            return (this.getProperty("CompanyName") || "").length;
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em.fetchMetadata().then(function() {
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = new Customer();
+             // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            ok(cust1.entityType === custType, "entityType should be undefined");
+            ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("CompanyName", "testxxx");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+            start();
+        }).fail(testFns.handleFail);
+    });
+
+    test("custom Customer type with new - v2", function() {
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        
+        var Customer = function() {
+            this.miscData = "asdf";
+        };
+        Customer.prototype.getNameLength = function() {
+            return (this.getProperty("CompanyName") || "").length;
+        };
+
+        stop();
+        em.fetchMetadata().then(function() {
+            em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = new Customer();
+             // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            ok(cust1.entityType === custType, "entityType should be undefined");
+            ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("CompanyName", "testxxx");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+            start();
+        }).fail(testFns.handleFail);
+    });
     test("entityState", function () {
         stop();
         runQuery(newEm(), function (customers) {

@@ -7,7 +7,7 @@
 * Api Direct Test Module
 *
 * Call the persistence service with jQuery
-* instead of breeze EntityManager
+* instead of Breeze EntityManager
 ***********************************************************/
 // ReSharper disable InconsistentNaming
 

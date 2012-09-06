@@ -20,6 +20,8 @@
             //    defaults: new { id = RouteParameter.Optional }
             //    );
 
+            // Ex: ~
+            // Ex: ~/todosDemo
             routes.MapRoute(
                 name:"Default",
                 url:"{controller}/{action}/{id}",

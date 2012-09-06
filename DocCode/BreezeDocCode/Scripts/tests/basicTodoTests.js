@@ -21,7 +21,7 @@ define(["testFns"], function (testFns) {
         remoteAccessImplementation: entityModel.remoteAccess_webApi
     });
 
-    // Classes we'll need from the breeze namespaces
+    // Classes we'll need from the Breeze namespaces
     var EntityManager = entityModel.EntityManager;
     var EntityQuery = entityModel.EntityQuery;
     var Qop = entityModel.FilterQueryOp;
@@ -270,7 +270,7 @@ define(["testFns"], function (testFns) {
 
     test("new Todo is detached", 1, function () {
 
-        var newTodo = createTodo("Learn breeze");
+        var newTodo = createTodo("Learn Breeze");
 
         ok(newTodo.entityAspect.entityState.isDetached(),
             "new Todo is in 'detached' state");
@@ -283,7 +283,7 @@ define(["testFns"], function (testFns) {
 
     test("new Todo in cache is in added state", 2, function () {
 
-        var newTodo = createTodo("Learn breeze");
+        var newTodo = createTodo("Learn Breeze");
 
         var em = newEm();  // new empty EntityManager
 
@@ -358,7 +358,7 @@ define(["testFns"], function (testFns) {
     });
 
     /*********************************************************
-    * entityAspect.rejectChanges reverts changes
+    * entityAspect.rejectChanges reverts an entity's changes 
     *********************************************************/
 
     test("rejectChanges reverts pending changes", 5, function () {
@@ -390,10 +390,8 @@ define(["testFns"], function (testFns) {
 
             var changes = em.getChanges();
             equal(changes.length, 3, "exactly 3 changed Todos in cache");
-
-            /*** REVERT ***/
-            //   em.rejectChanges(); // future version of breeze
-            changes.forEach(function (o) { o.entityAspect.rejectChanges(); });
+          
+            em.rejectChanges(); // revert all changes
 
             ok(!em.hasChanges(), "# of changes in cache is " + em.getChanges().length);
 
@@ -559,9 +557,9 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * breeze propertyChanged raised when any property changes
+    * Breeze propertyChanged raised when any property changes
     *********************************************************/
-    test("breeze propertyChanged raised when any property changes", 1, function () {
+    test("Breeze propertyChanged raised when any property changes", 1, function () {
 
         var newTodo = createTodo("test me");
 
@@ -601,7 +599,7 @@ define(["testFns"], function (testFns) {
 
         var count = notices.length;
         equal(count, 3,
-            "Expected 3 breeze notices and got " + count + "; messages were " +
+            "Expected 3 Breeze notices and got " + count + "; messages were " +
                 notices.join(", "));
 
     }

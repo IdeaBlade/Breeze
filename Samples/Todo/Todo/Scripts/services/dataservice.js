@@ -76,19 +76,12 @@
             // Concurrency error 
             reason =
                 "Another user, perhaps the server, may have deleted one or all of the todos. ";
-            revertAllChanges();
+            manager.rejectChanges(); // DEMO ONLY: discard all pending changes
         }
 
         logger.error(error,
             "Failed to save changes. " + reason +
             "You may have to restart the app.");
-    };
-
-    function revertAllChanges() { // a demo-only approach
-        var changes = manager.getChanges();
-        for (var i = 0, len = changes.length; i < len; i++) {
-            changes[0].entityAspect.rejectChanges();
-        };
     };
 
     function purge(callback) {
