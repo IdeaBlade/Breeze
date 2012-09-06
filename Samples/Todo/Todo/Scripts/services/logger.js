@@ -36,7 +36,7 @@
     // http://code.google.com/p/chromium/issues/detail?id=48662
     function log() {
         var console = window.console;
-        !!console && console.log && console.log.apply(console, arguments);
+        !!console && console.log && console.log.apply && console.log.apply(console, arguments);
     }
 
     return logger;

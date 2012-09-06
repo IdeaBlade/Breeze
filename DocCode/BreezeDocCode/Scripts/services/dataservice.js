@@ -66,19 +66,32 @@
     };
 
     function handleSaveError(error) {
-        var reason = "",
-            detail = error.detail;
+        var reason = error.message;
+        var detail = error.detail;
 
+        if (reason === "Validation error") {
+            handleSaveValidationError(error);
+            return;
+        }
         if (detail && detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
             // Concurrency error 
             reason =
-                "Another user, perhaps the server, may have deleted one or all of the todos. ";
+                "Another user, perhaps the server, may have deleted one or all of the todos.";
             manager.rejectChanges(); // DEMO ONLY: discard all pending changes
         }
 
-        logger.error(error,
+        logger.error(
             "Failed to save changes. " + reason +
-            "You may have to restart the app.");
+            " You may have to restart the app.", "Save Error");
+    };
+
+    function handleSaveValidationError(error) {
+        var message = "Not saved due to validation error";
+        try { // fish out the first error
+            var firstErr = error.entitiesWithErrors[0].entityAspect.getValidationErrors()[0];
+            message += ": " + firstErr.errorMessage;
+        } catch (e) { /* eat it for now */ }
+        logger.error(message);
     };
 
     function purge(callback) {

@@ -42,7 +42,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("can save and requery a new Todo", 2, function () {
 
-        var todoDescription = "Learn to at " + new Date();
+        var todoDescription = "Save todo in Breeze";
         var newTodo = createTodo(todoDescription);
 
         var em = newEm();       // new empty EntityManager

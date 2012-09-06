@@ -96,6 +96,17 @@ define(["testFns"], function (testFns) {
         ok(err.indexOf("12345678") >= 0 && err.indexOf("between 2 AND 7") >= 0, v1.getMessage());
 
     });
+    
+    test("date validation", function () {
+        var v0 = Validator.date();
+        var r = v0.validate("asdf");
+        ok(r != null, r.errorMessage);
+        r= v0.validate("1234567");
+        ok(r != null, r.errorMessage);
+        ok(v0.validate(null) === null);
+        r = v0.validate(new Date(2001, 9, 11));
+        ok(r == null, "should be null");
+    });
 
     return testFns;
 });

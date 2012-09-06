@@ -2437,7 +2437,12 @@ function (core, Event, m_validate) {
             this.propertyChanged = new Event("propertyChanged");
             var entityType = entity.entityType;
             if (!entityType) {
-                throw new Error("Tracking has not yet been enabled on this entity");
+                var typeName = entity.prototype._$typeName;
+                if (!typeName) {
+                    throw new Error("This entity is not registered as a valid EntityType");
+                } else {
+                    throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
+                }
             }
             var proto = entityType.getEntityCtor().prototype;
             core.config.trackingImplementation.startTracking(entity, proto);
@@ -3654,14 +3659,17 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(entityCtor, "entityCtor").isFunction().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
             if (qualifiedTypeName) {
-                core.config.registerType(entityCtor, qualifiedTypeName);
                 var entityType = this._entityTypeMap[qualifiedTypeName];
-                entityType.setEntityCtor(entityCtor);
+                if (entityType) {
+                    entityType.setEntityCtor(entityCtor);
+                }
+                core.config.registerType(entityCtor, qualifiedTypeName);
             } else {
                 core.config.registerType(entityCtor, entityTypeName);
             }
 
         };
+      
 
         /**
         Returns whether this MetadataStore contains any metadata yet.
@@ -3771,6 +3779,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         // protected methods
+        
+        ctor.prototype._checkEntityType = function(entity) {
+            if (entity.entityType) return;
+            var typeName = entity.prototype._$typeName;
+            if (!typeName) {
+                throw new Error("This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method");
+            }
+            var entityType = this.getEntityType(typeName);
+            if (entityType) {
+                entity.entityType = entityType;
+            }
+        };
 
         ctor.prototype._updateCrossEntityRelationships = function () {
             this.getEntityTypes().forEach(function (et) { et._updateCrossEntityRelationships(); });
@@ -3807,6 +3827,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         entityType.serviceName = serviceName;
                         entityType._postProcess();
                         that._registerEntityType(entityType);
+                        // check if this entityTypeName, short version or qualified version has a registered ctor.
+                        var entityCtor = core.config.typeRegistry[entityType.name] || core.config.typeRegistry[entityType.shortName];
+                        if (entityCtor) {
+                             // next line is in case the entityType was originally registered with a shortname.
+                             entityCtor.prototype._$typeName = entityType.name; 
+                             entityType.setEntityCtor(entityCtor);
+                             that._entityTypeMap[entityType.name] = entityType;
+                        }
+                            
                     });
                 }
             });
@@ -4196,7 +4225,17 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // insure that all of the properties are on the 'template' instance before watching the class.
             calcUnmappedProperties(this, instance);
 
-            enableTracking(this, entityCtor.prototype, interceptor);
+            // enableTracking(this, entityCtor.prototype, interceptor);
+            var proto = entityCtor.prototype;
+            proto.entityType = this;
+
+            if (interceptor) {
+                proto.interceptor = interceptor;
+            } else {
+                proto.interceptor = defaultPropertyInterceptor;
+            }
+
+            core.config.trackingImplementation.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -4450,20 +4489,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
 
-        // interceptor is -> function(propName, newValue, accessorFn) - may be specified later
-        // by setting the prototype's interceptor property.
-        // interceptor is optional
-        function enableTracking(entityType, entityPrototype, interceptor) {
-            entityPrototype.entityType = entityType;
+//        // interceptor is -> function(propName, newValue, accessorFn) - may be specified later
+//        // by setting the prototype's interceptor property.
+//        // interceptor is optional
+//        function enableTracking(entityType, entityPrototype, interceptor) {
+//            entityPrototype.entityType = entityType;
 
-            if (interceptor) {
-                entityPrototype.interceptor = interceptor;
-            } else {
-                entityPrototype.interceptor = defaultPropertyInterceptor;
-            }
+//            if (interceptor) {
+//                entityPrototype.interceptor = interceptor;
+//            } else {
+//                entityPrototype.interceptor = defaultPropertyInterceptor;
+//            }
 
-            core.config.trackingImplementation.initializeEntityPrototype(entityPrototype);
-        }
+//            core.config.trackingImplementation.initializeEntityPrototype(entityPrototype);
+//        }
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
@@ -7328,7 +7367,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The added entity.
         **/
         ctor.prototype.addEntity = function (entity) {
-            assertParam(entity, "entity").isEntity().check();
             return this.attachEntity(entity, EntityState.Added);
         };
 
@@ -7345,7 +7383,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The attached entity.
         **/
         ctor.prototype.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, "entity").isEntity().check();
+            core.assertParam(entity, "entity").isRequired().check();
+            this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             var aspect = new EntityAspect(entity);
@@ -7371,6 +7410,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             return entity;
         };
+        
+        
 
         /**
         Detaches an entity from this EntityManager.

@@ -14,6 +14,8 @@ define(["testFns"], function (testFns) {
     var EntityState = entityModel.EntityState;
     var EntityAction = entityModel.EntityAction;
     var QueryOptions = entityModel.QueryOptions;
+    var SaveOptions = entityModel.SaveOptions;
+    var ValidationOptions = entityModel.ValidationOptions;
     var MergeStrategy = entityModel.MergeStrategy;
 
     var metadataStore = new MetadataStore();
@@ -40,7 +42,12 @@ define(["testFns"], function (testFns) {
 
     test("initialization", function () {
         var em = new EntityManager("foo");
-
+        var so = new SaveOptions();
+        em.setProperties({
+            queryOptions: new QueryOptions(),
+            saveOptions: new SaveOptions(),
+            validationOptions: new ValidationOptions()
+        });
         ok(em);
     });
 

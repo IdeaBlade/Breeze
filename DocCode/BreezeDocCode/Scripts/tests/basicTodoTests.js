@@ -390,7 +390,7 @@ define(["testFns"], function (testFns) {
 
             var changes = em.getChanges();
             equal(changes.length, 3, "exactly 3 changed Todos in cache");
-          
+
             em.rejectChanges(); // revert all changes
 
             ok(!em.hasChanges(), "# of changes in cache is " + em.getChanges().length);
@@ -605,21 +605,28 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * validation error raised when set Id to null (Id is required)
+    * validation errors raised when properties set to bad values
     *********************************************************/
-    test("validation error when set Id null", 2, function () {
+    test("validation errors raised when properties set to bad values", function () {
 
         var newTodo = createTodo("test me");
 
         newTodo.entityAspect
             .validationErrorsChanged.subscribe(assertIdValidationErrorAdded);
 
-        // validate automatically only when in cache
+        newTodo.Description(null); // description is required
+
         var em = newEm();  // new empty EntityManager
         em.addEntity(newTodo);
 
-        newTodo.Description(null); // ok. no rule
+        newTodo.IsDone(true); // ok. no rule
+
         newTodo.Id(null); // error: Id is the pk; automatically required
+
+        newTodo.Description(
+            "why can't I write short, crisp descriptions that fit in the allotted space?");
+
+        expect(3); // asserts of validation errors
 
     });
 
@@ -632,10 +639,9 @@ define(["testFns"], function (testFns) {
         }
 
         ok(addedCount,
-            "expected one error, got  " + addedCount);
+            "expected an error, got  " + addedCount +
+                "; message was: " + errorMessage);
 
-        ok(errorMessage.indexOf("'Id' is required") !== -1,
-            "first error is: " + errorMessage);
     }
 
 

@@ -7013,8 +7013,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [config.serviceName] {String}
         @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
         @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
-        @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
+        @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
         @param [config.remoteAccessImplementation] {instance of RemoteAccessImplementation interface}
         **/
@@ -7312,15 +7312,21 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param config {Object}
             @param [config.serviceName] {String}
             @param [config.queryOptions] {QueryOptions}
+            @param [config.saveOptions] {SaveOptions}
+            @param [config.validationOptions] {ValidationOptions}
             @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
             @param [config.propertyChangeNotificationEnabled] {Boolean}
             @param [config.entityChangeNotificationEnabled] {Boolean}
+            
+            
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("serviceName").isString().isOptional()
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
+                .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
+                .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
                 .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
                 .whereParam("propertyChangeNotificationEnabled").isBoolean().isOptional()

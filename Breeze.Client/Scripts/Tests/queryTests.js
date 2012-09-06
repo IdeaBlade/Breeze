@@ -309,6 +309,58 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
+   
+    asyncTest("predicate", function () {
+        var em = new EntityManager(testFns.ServiceName);
+
+        var baseQuery = EntityQuery.from("Orders");
+        var pred1 = new Predicate("Freight", ">", 100);
+        var pred2 = new Predicate("OrderDate", ">", new Date(1998, 3, 1));
+        var query = baseQuery.where(pred1.and(pred2));
+        var queryUrl = query._toUri();
+
+        em.executeQuery(query, function (data) {
+            var orders = data.results;
+            ok(orders.length > 0);
+            start();
+        }).fail(testFns.handleFail);
+    });
+    
+     asyncTest("predicate 2", function () {
+        var em = new EntityManager(testFns.ServiceName);
+
+        var baseQuery = EntityQuery.from("Orders");
+         var pred1 = Predicate.create("Freight", ">", 100);
+        var pred2 = Predicate.create("OrderDate", ">", new Date(1998, 3, 1));
+        var newPred = Predicate.and([pred1, pred2]);
+        var query = baseQuery.where(newPred);
+        var queryUrl = query._toUri();
+
+        em.executeQuery(query, function (data) {
+            var orders = data.results;
+            ok(orders.length > 0);
+            start();
+        }).fail(testFns.handleFail);
+    });
+
+    asyncTest("predicate 3", function () {
+        var em = new EntityManager(testFns.ServiceName);
+
+        var baseQuery = EntityQuery.from("Orders");
+        var pred = Predicate.create("Freight", ">", 100)
+            .and("OrderDate", ">", new Date(1998, 3, 1));
+        var query = baseQuery.where(pred);
+        var queryUrl = query._toUri();
+
+        em.executeQuery(query, function (data) {
+            var orders = data.results;
+            ok(orders.length > 0);
+            start();
+        }).fail(testFns.handleFail);
+    });
+
+
+
     asyncTest("not predicate with null", function () {
         var em = new EntityManager(testFns.ServiceName);
 
