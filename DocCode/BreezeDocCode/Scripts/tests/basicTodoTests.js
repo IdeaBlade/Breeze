@@ -605,45 +605,58 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * validation errors raised when properties set to bad values
+    * Todo validation errors raised when properties set to bad values
     *********************************************************/
-    test("validation errors raised when properties set to bad values", function () {
-
-        var newTodo = createTodo("test me");
-
-        newTodo.entityAspect
-            .validationErrorsChanged.subscribe(assertIdValidationErrorAdded);
-
-        newTodo.Description(null); // description is required
-
+    test("Todo validation errors raised when properties set to bad values", function () {
+        
         var em = newEm();  // new empty EntityManager
-        em.addEntity(newTodo);
+        var todo = createTodo("test me");
+        
+        // enter the cache as 'Unchanged'
+        em.attachEntity(todo); 
+        
+        // Start monitoring validation error changes
+        todo.entityAspect
+            .validationErrorsChanged.subscribe(assertValidationErrorsChangedRaised);
 
-        newTodo.IsDone(true); // ok. no rule
+        todo.Description(null); // 1. description is required
 
-        newTodo.Id(null); // error: Id is the pk; automatically required
+        todo.IsDone(true); // ok. no problem
 
-        newTodo.Description(
-            "why can't I write short, crisp descriptions that fit in the allotted space?");
+        todo.IsDone("true"); // 2. Wrong data type
 
-        expect(3); // asserts of validation errors
+        todo.Id(null); // 3. Id is the pk; automatically required
+
+        todo.Description( // 4. removes "required" error; 5. adds "too long"
+            "Endeavor to eschew sesquipedalian phrases");
+
+        todo.Description( // 6. ok; previous error removed
+            "Keep it simple");
+
+        todo.entityAspect.rejectChanges(); // (7,8) reverses Id & IsDone errors 
+        
+        expect(8); // asserts about validation errors
 
     });
 
-    function assertIdValidationErrorAdded(errorsChangedArgs) {
-        var errorMessage = "none";
-        var addedCount = errorsChangedArgs.added.length;
+    function assertValidationErrorsChangedRaised(errorsChangedArgs) {
 
+        var addedMessages = errorsChangedArgs.added.map(function (a) {
+            return a.errorMessage;
+        });
+        var addedCount = addedMessages.length;
         if (addedCount > 0) {
-            errorMessage = errorsChangedArgs.added[0].errorMessage;
+            ok(true, "added error: " + addedMessages.join(", "));
         }
 
-        ok(addedCount,
-            "expected an error, got  " + addedCount +
-                "; message was: " + errorMessage);
-
+        var removedMessages = errorsChangedArgs.removed.map(function (r) {
+            return r.errorMessage;
+        });
+        var removedCount = removedMessages.length;
+        if (removedCount > 0) {
+            ok(true, "removed error: " + removedMessages.join(", "));
+        }
     }
-
 
 
     /*********************************************************

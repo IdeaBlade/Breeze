@@ -145,6 +145,7 @@
     <Content Include="App_Data\readme.txt" />
     <Content Include="Scripts\tests\basicTodoTests.js" />
     <Content Include="Scripts\tests\apiDirectTests.js" />
+    <Content Include="Scripts\tests\validationTests.js" />
     <Content Include="Scripts\tests\metadataTests.js" />
     <Content Include="Scripts\tests\entityTests.js" />
     <Content Include="Scripts\tests\queryTests.js" />

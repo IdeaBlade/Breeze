@@ -239,8 +239,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [config.serviceName] {String}
         @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
         @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
-        @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
+        @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
         @param [config.remoteAccessImplementation] {instance of RemoteAccessImplementation interface}
         **&#x2F;
@@ -538,15 +538,21 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param config {Object}
             @param [config.serviceName] {String}
             @param [config.queryOptions] {QueryOptions}
+            @param [config.saveOptions] {SaveOptions}
+            @param [config.validationOptions] {ValidationOptions}
             @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
             @param [config.propertyChangeNotificationEnabled] {Boolean}
             @param [config.entityChangeNotificationEnabled] {Boolean}
+            
+            
         **&#x2F;
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
                 .whereParam(&quot;serviceName&quot;).isString().isOptional()
                 .whereParam(&quot;queryOptions&quot;).isInstanceOf(QueryOptions).isOptional()
+                .whereParam(&quot;saveOptions&quot;).isInstanceOf(SaveOptions).isOptional()
+                .whereParam(&quot;validationOptions&quot;).isInstanceOf(ValidationOptions).isOptional()
                 .whereParam(&quot;remoteAccessImplementation&quot;)
                 .whereParam(&quot;keyGeneratorCtor&quot;)
                 .whereParam(&quot;propertyChangeNotificationEnabled&quot;).isBoolean().isOptional()
@@ -593,7 +599,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The added entity.
         **&#x2F;
         ctor.prototype.addEntity = function (entity) {
-            assertParam(entity, &quot;entity&quot;).isEntity().check();
             return this.attachEntity(entity, EntityState.Added);
         };
 
@@ -610,7 +615,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Entity} The attached entity.
         **&#x2F;
         ctor.prototype.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, &quot;entity&quot;).isEntity().check();
+            core.assertParam(entity, &quot;entity&quot;).isRequired().check();
+            this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, &quot;entityState&quot;).isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             var aspect = new EntityAspect(entity);
@@ -636,6 +642,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             return entity;
         };
+        
+        
 
         &#x2F;**
         Detaches an entity from this EntityManager.

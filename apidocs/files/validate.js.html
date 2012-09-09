@@ -680,7 +680,9 @@ function (core) {
                 if (v == null) return true;
                 if (typeof v === &quot;string&quot;) {
                     try {
-                        return core.isDate(new Date(v));
+                        return !isNaN(Date.parse(v));
+                        &#x2F;&#x2F; old code
+                        &#x2F;&#x2F; return core.isDate(new Date(v));
                     } catch (e) {
                         return false;
                     }

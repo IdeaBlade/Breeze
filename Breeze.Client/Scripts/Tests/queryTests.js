@@ -70,6 +70,92 @@ define(["testFns"], function (testFns) {
         }
 
     });
+
+    test("update key on pk change", function() {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var customer = custType.createEntity();
+        customer.setProperty("CompanyName","[don't know name yet]");
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        em.attachEntity(customer);
+        customer.setProperty("CustomerID", alfredsID); 
+        var ek = customer.entityAspect.getKey();
+        var sameCustomer = em.findEntityByKey(ek);
+        ok(customer === sameCustomer, "customer should == sameCustomer");
+    });
+    
+    test("reject change to existing key", function() {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers").where("CustomerID", "==", alfredsID);
+        stop();
+        query.using(em).execute().then(function(data) {        
+            ok(data.results.length === 1,"should have fetched 1 record");
+            var customer = custType.createEntity();        
+            em.attachEntity(customer);
+            try {
+                customer.setProperty("CustomerID", alfredsID); 
+                ok(false, "should not get here");
+            } catch(e) {
+                ok(e.message.indexOf("key") > 0);
+            }
+            start();
+        }).fail(testFns.handleFail);
+    });
+
+    test("fill placeholder customer asynchronously", function() {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var customer = custType.createEntity();
+        customer.setProperty("CompanyName","[don't know name yet]");
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        // TEST PASSES (NO DUPLICATE) IF SET ID HERE ... BEFORE ATTACH
+        // customer.CustomerID(testFns.wellKnownData.alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
+
+        em.attachEntity(customer);
+
+        // TEST FAILS  (2 IN CACHE W/ SAME ID) ... CHANGING THE ID AFTER ATTACH
+        customer.setProperty("CustomerID", alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
+        var ek = customer.entityAspect.getKey();
+        var sameCustomer = em.findEntityByKey(ek);
+        customer.entityAspect.setUnchanged();
+        
+        // SHOULD BE THE SAME. EITHER WAY ITS AN ATTACHED UNCHANGED ENTITY
+        ok(customer.entityAspect.entityState.isUnchanged,
+            "Attached entity is in state " + customer.entityAspect.entityState);
+
+        ok(em.getEntities().length === 1,
+            "# of entities in cache is " + em.getEntities().length);
+
+        // this refresh query will fill the customer values from remote storage
+        var refreshQuery = entityModel.EntityQuery.fromEntities(customer);
+
+        stop(); // going async ...
+
+        refreshQuery.using(em).execute().then(function(data) {
+            var results = data.results, count = results.length;
+            if (count != 1) {
+                ok(false, "expected one result, got " + count);
+            } else {
+                var inCache = em.getEntities();
+                if (inCache.length === 2) {
+
+                    // DUPLICATE ID DETECTED SHOULD NEVER GET HERE
+                    var c1 = inCache[0], c2 = inCache[1];
+                    ok(false,
+                        "Two custs in cache with same ID, ({0})-{1} and ({2})-{3}".format(// format is my extension to String
+                            c1.getProperty("CustomerID"), c1.getProperty("CompanyName"), c2.getProperty("CustomerID"), c2.getProperty("CompanyName")));
+                }
+
+                // This test should succeed; it fails because of above bug!!!
+                ok(results[0] === customer,
+                    "refresh query result is the same as the customer in cache" +
+                        " whose updated name is " + customer.CompanyName());
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     
     test("resource name query case sensitivity", function() {
         var em = newEm();

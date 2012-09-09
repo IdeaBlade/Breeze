@@ -50,7 +50,7 @@ define(["testFns"], function (testFns) {
         });
         ok(em);
     });
-
+    
     test("getChanges", function () {
         var em = newEm();
         var orderType = metadataStore.getEntityType("Order");
@@ -314,6 +314,53 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+    
+
+    test("Export changes to local storage and re-import", 5, function () {
+
+        var em = newEm();
+
+         // add a new Cust to the cache
+         var newCust = em.addEntity(createCust("Export/import safely #1"));
+         // add some more
+         em.addEntity(createCust("Export/import safely #2"));
+         em.addEntity(createCust("Export/import safely #3"));
+
+         var changes = em.getChanges();
+         var changesExport = em.export(changes);
+
+         ok(window.localStorage, "this browser supports local storage");
+
+         var stashName = "stash_newTodos";
+         window.localStorage.setItem(stashName, changesExport);
+
+         em.clear();
+         ok(em.getEntities().length === 0,
+             "em should be empty after clearing it");
+
+         var changesImport = window.localStorage.getItem(stashName);
+         em.import(changesImport);
+
+         var entitiesInCache = em.getEntities();
+         var restoreCount = entitiesInCache.length;
+         equal(restoreCount, 3, "restored 3 new Custs from file");
+
+         var restoredCust = entitiesInCache[0];
+         var restoredState = restoredCust.entityAspect.entityState;
+
+         ok(restoredState.isAdded(),
+              core.formatString("State of restored first Cust %1 is %2", restoredCust.getProperty("CompanyName"), restoredState));
+
+         ok(newCust !== restoredCust,
+             "Restored Cust is not the same object as the original Cust");
+    });
+
+    function createCust(companyName) {
+        var custType = metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        cust.setProperty("CompanyName", companyName);
+        return cust;
+    }
 
     // Uncomment when doing FULL testing
 //    test("persist entityManager - large data", function () {

@@ -107,6 +107,24 @@ function (core, m_entityAspect) {
             } else {
               
                 // updating a dataProperty
+                if (property.isKeyProperty && entityManager && !entityManager.isLoading) {
+                    
+                    var keyProps = this.entityType.keyProperties;
+                    var values = keyProps.map(function(p) {
+                        if (p == property) {
+                            return newValue;
+                        } else {
+                            return this.getProperty(p.name);
+                        }
+                    }, this);
+                    var newKey = new EntityKey(this.entityType, values);
+                    if (entityManager.findEntityByKey(newKey)) {
+                        throw new Error("An entity with this key is already in the cache: " + newKey.toString());
+                    }
+                    var oldKey = this.entityAspect.getKey();
+                    var eg = entityManager.findEntityGroup(this.entityType);
+                    eg._replaceKey(oldKey, newKey);
+                }
                 rawAccessorFn(newValue);
                   // NOTE: next few lines are the same as above but not refactored for perf reasons.
                 if (entityManager && !entityManager.isLoading) {
@@ -135,8 +153,8 @@ function (core, m_entityAspect) {
                     // propogate pk change to all related entities;
                     if (oldValue && !aspect.entityState.isDetached()) {
                         aspect.primaryKeyWasChanged = true;
+                        
                     }
-
                     var that = this;
                     this.entityType.navigationProperties.forEach(function(np) {
                         var inverseNp = np.inverse;

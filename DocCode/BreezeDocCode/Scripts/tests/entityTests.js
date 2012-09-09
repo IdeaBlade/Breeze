@@ -113,6 +113,42 @@ define(["testFns"], function (testFns) {
     });
 
     /*********************************************************
+    * original values are tracked AFTER attached
+    *********************************************************/
+    test("original values are tracked AFTER entity is attached", 3, function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = getEmployeeType(em);
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.LastName("Smith"); // initial value before attached
+        employee.LastName("Jones"); // change value before attaching   
+
+        // Attach as "Unchanged". Original values captured
+        // Should be "Jones", not "Smith"
+        em.attachEntity(employee);
+
+        var origLastName = employee.entityAspect.originalValues['LastName'];
+        ok(typeof origLastName === "undefined", 
+            "Only have original value after value has changed.");
+
+        employee.LastName("What"); // change
+
+        // originalValues is a hash map so property syntax works
+        origLastName = employee.entityAspect.originalValues.LastName;
+        ok(origLastName === "Jones",
+            "New LastName is '{0}', original value is '{1}' "
+                .format(employee.LastName(), origLastName));
+        
+        em.rejectChanges(); //reverts to original values
+
+        var currentLastName = employee.LastName();
+        equal(currentLastName, origLastName,
+            "After rejectChanges, employee LastName is " + currentLastName);
+
+    });
+
+    /*********************************************************
     * can stash changes locally and restore
     *********************************************************/
     test("stash changes locally and restore", 6, function () {
@@ -135,7 +171,7 @@ define(["testFns"], function (testFns) {
         window.localStorage.setItem(stashName, changesExport);
 
         em.clear();
-        ok(em.getEntities().length === 0, 
+        ok(em.getEntities().length === 0,
             "em should be empty after clearing it");
 
         var changesImport = window.localStorage.getItem(stashName);
@@ -152,8 +188,8 @@ define(["testFns"], function (testFns) {
 
         var restoredCust = restoredOrder.Customer(); // by navigation
         ok(restoredCust !== null,
-             "Got Customer of restored Order '" + 
-                 restoredCust.CompanyName() + 
+             "Got Customer of restored Order '" +
+                 restoredCust.CompanyName() +
                  "'  by navigation");
 
         var restoredCustID = restoredCust.CustomerID();
@@ -202,6 +238,19 @@ define(["testFns"], function (testFns) {
         var customer = customerType.createEntity();
         customer.CompanyName(name);
         return customer;
+    }
+
+    function getEmployeeType(em) {
+        return em.metadataStore.getEntityType("Employee");
+    }
+
+    // new but not added to em
+    function createEmployee(em, lastName) {
+        lastName = lastName || "NewGuy";
+        var empType = getEmployeeType(em);
+        var emp = empType.createEntity();
+        emp.LastName(lastName);
+        return order;
     }
 
     function getOrderType(em) {

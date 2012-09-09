@@ -1156,6 +1156,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (newTempKeyValue === undefined) {
                         // merge added records with non temp keys
                         targetEntity = entityGroup.findEntityByKey(entityKey);
+                    } else {
+                        targetEntity = null;
                     }
                 } else {
                     targetEntity = entityGroup.findEntityByKey(entityKey);
@@ -1819,6 +1821,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             delete entity.entityAspect.hasTempKey;
             delete this._indexMap[tempValue];
             this._indexMap[realValue] = ix;
+        };
+
+        ctor.prototype._replaceKey = function(oldKey, newKey) {
+            var ix = this._indexMap[oldKey._keyInGroup];
+            delete this._indexMap[oldKey._keyInGroup];
+            this._indexMap[newKey._keyInGroup] = ix;
         };
         
         function getFilter(entityStates) {

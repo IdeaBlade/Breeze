@@ -22,6 +22,7 @@ require(["testFns" // always first
     , "basicTodoTests"
     , "queryTests"
     , "entityTests"
+    , "validationTests"
     , "metadataTests"
     , "saveTodoTests"
     , "apiDirectTests"

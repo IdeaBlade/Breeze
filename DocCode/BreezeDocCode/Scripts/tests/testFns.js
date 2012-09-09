@@ -12,9 +12,11 @@ define(["breeze"], function (breeze) {
 
     // Configure for Knockout binding and Web API persistence services
     core.config.setProperties({
-        trackingImplementation:     entityModel.entityTracking_ko,
+        trackingImplementation: entityModel.entityTracking_ko,
         remoteAccessImplementation: entityModel.remoteAccess_webApi
     });
+
+    extendString();
 
     /*********************************************************
     * testFns - the module object
@@ -62,6 +64,38 @@ define(["breeze"], function (breeze) {
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
 
+    /*******************************************************
+    * String extensions
+    *Monkey punching JavaScript native String class
+    * w/ format, startsWith, endsWith
+    * go ahead and shoot me but it's convenient 
+    ********************************************************/
+    function extendString() {
+        var stringFn = String.prototype;
+
+        stringFn.format = stringFn.format || function () {
+            var s = this;
+            for (var i = 0, len = arguments.length; i < len; i++) {
+                var reg = new RegExp("\\{" + i + "\\}", "gm");
+                s = s.replace(reg, arguments[i]);
+            }
+
+            return s;
+        };
+
+        stringFn.endsWith = stringFn.endsWith || function (suffix) {
+            return (this.substr(this.length - suffix.length) === suffix);
+        };
+
+        stringFn.startsWith = stringFn.startsWith || function (prefix) {
+            return (this.substr(0, prefix.length) === prefix);
+        };
+
+        stringFn.contains = stringFn.contains || function (value) {
+            return (this.indexOf(value) !== -1);
+        };
+    }
+
     /*********************************************************
     * Callback for test failures.
     *********************************************************/
@@ -93,7 +127,7 @@ define(["breeze"], function (breeze) {
         factory.options = {
             serviceName: serviceName,
             // every module gets its own metadataStore; they do not share the default
-            metadataStore: new entityModel.MetadataStore() 
+            metadataStore: new entityModel.MetadataStore()
         };
         return factory;
     }
@@ -124,7 +158,7 @@ define(["breeze"], function (breeze) {
     function populateMetadataStore(newEm, metadataSetupFn) {
 
         var metadataStore = newEm.options.metadataStore;
-        
+
         // Check if the module metadataStore is empty
         if (!metadataStore.isEmpty()) {
             return; // ok ... it's been populated ... we're done.
@@ -133,7 +167,7 @@ define(["breeze"], function (breeze) {
         // It's empty; get metadata
         var serviceName = newEm.options.serviceName;
         stop(); // tell testrunner to wait.
-        
+
         metadataStore.fetchMetadata(serviceName)
         .then(function () {
             if (typeof metadataSetupFn === "function") {
@@ -260,7 +294,7 @@ define(["breeze"], function (breeze) {
             .then(function (data) {
                 var results = data.results, count = results.length;
                 ok(expected(results),
-                    queryName + " returned " + (count ? count : "none"));
+                    "{0} returned {1} item(s)".format(queryName, count));
                 data.query = query;
                 data.queryName = queryName;
                 data.first = count ? data.results[0] : null;
@@ -317,9 +351,8 @@ define(["breeze"], function (breeze) {
         var count = data.results.length;
         var results = (limit) ? data.results.slice(0, limit) : data.results;
         var out = results.map(function (c) {
-            return [].concat(
-                c.CustomerID_OLD(), c.CompanyName(),
-                c.City(), (c.Region() || "null")).join(", ");
+            return "({0}) {1} in {2}, {3}".format(
+                c.CustomerID_OLD(), c.CompanyName(), c.City(), (c.Region() || "null"));
         });
         if (count > out.length) { out.push("..."); }
         return out;

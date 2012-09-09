@@ -489,7 +489,12 @@ function (core, Event, m_validate) {
             this.propertyChanged = new Event(&quot;propertyChanged&quot;);
             var entityType = entity.entityType;
             if (!entityType) {
-                throw new Error(&quot;Tracking has not yet been enabled on this entity&quot;);
+                var typeName = entity.prototype._$typeName;
+                if (!typeName) {
+                    throw new Error(&quot;This entity is not registered as a valid EntityType&quot;);
+                } else {
+                    throw new Error(&quot;Metadata for this entityType has not yet been resolved: &quot; + typeName);
+                }
             }
             var proto = entityType.getEntityCtor().prototype;
             core.config.trackingImplementation.startTracking(entity, proto);
