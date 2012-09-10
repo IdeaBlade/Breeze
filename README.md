@@ -47,4 +47,4 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 ## Copyright and license
 Copyright 2012 IdeaBlade, Inc.
 
-License TBD.
+Breeze uses the [MIT license](http://opensource.org/licenses/mit-license.php).
