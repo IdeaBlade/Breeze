@@ -223,6 +223,13 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_setAsDefault();">setAsDefault();</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_using">using</a>
 
                                 
@@ -400,6 +407,72 @@
                 <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
 // assume em1 is a preexisting EntityManager
 em1.setProperties( { queryOptions: newQo });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setAsDefault();" class="method item">
+    <h3 class="name"><code>setAsDefault();</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1984"><code>entityManager.js:1984</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Makes this instance the default instance.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+newQo.setAsDefault();
 </code></pre>
             </div>
         </div>

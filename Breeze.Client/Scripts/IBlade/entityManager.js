@@ -1980,6 +1980,19 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             } 
             return updateWithConfig(result, config);
         };
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault();
+        @example
+            var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+            newQo.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
 
         ctor.prototype.toJSON = function () {
             return {
@@ -2028,6 +2041,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         
         };
         ctor.prototype._$typeName = "SaveOptions";
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
         
         /**
         Whether another save can be occuring at the same time as this one - default is false.

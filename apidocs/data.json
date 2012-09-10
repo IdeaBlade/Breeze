@@ -360,7 +360,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2012,
+            "line": 2025,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
         },
         "ValidationOptions": {
@@ -374,7 +374,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2050,
+            "line": 2073,
             "description": "A ValidationOptions instance is used to specify the conditions under which validation will be executed."
         },
         "MetadataStore": {
@@ -2524,7 +2524,20 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2018,
+            "line": 1984,
+            "description": "Makes this instance the default instance.",
+            "itemtype": "method",
+            "name": "setAsDefault();",
+            "example": [
+                "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    newQo.setAsDefault();"
+            ],
+            "chainable": 1,
+            "class": "QueryOptions",
+            "module": "entityModel"
+        },
+        {
+            "file": "entityManager.js",
+            "line": 2031,
             "itemtype": "method",
             "name": "<ctor> SaveOptions",
             "params": [
@@ -2547,7 +2560,17 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2032,
+            "line": 2045,
+            "description": "Makes this instance the default instance.",
+            "itemtype": "method",
+            "name": "setAsDefault();",
+            "chainable": 1,
+            "class": "SaveOptions",
+            "module": "entityModel"
+        },
+        {
+            "file": "entityManager.js",
+            "line": 2055,
             "description": "Whether another save can be occuring at the same time as this one - default is false.\n\n__readOnly__",
             "itemtype": "property",
             "name": "allowConcurrentSaves",
@@ -2557,7 +2580,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2039,
+            "line": 2062,
             "description": "The default value whenever SaveOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2568,7 +2591,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2056,
+            "line": 2079,
             "description": "ValidationOptions constructor",
             "example": [
                 "\n    var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { validationOptions: newVo });"
@@ -2618,7 +2641,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2077,
+            "line": 2100,
             "description": "Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnAttach",
@@ -2628,7 +2651,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2084,
+            "line": 2107,
             "description": "Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnSave",
@@ -2638,7 +2661,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2091,
+            "line": 2114,
             "description": "Whether entity and property level validation should occur after entities are queried from a remote server.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnQuery",
@@ -2648,7 +2671,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2098,
+            "line": 2121,
             "description": "Whether property level validation should occur after entities are modified.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnPropertyChange",
@@ -2658,7 +2681,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2107,
+            "line": 2130,
             "description": "Returns a copy of this ValidationOptions with changes to the specified config properties.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions();\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );"
@@ -2708,7 +2731,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2127,
+            "line": 2150,
             "description": "Makes this instance the default instance.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
@@ -2721,7 +2744,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2141,
+            "line": 2164,
             "description": "The default value whenever ValidationOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
