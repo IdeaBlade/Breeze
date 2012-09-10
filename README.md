@@ -20,7 +20,7 @@ If you're using Visual Studio 2012:
 
 ## Learn more
 
-   * [breezejs.com](http://http://www.breezejs.com/)
+   * [Breezejs.com](http://http://www.breezejs.com/)
    * [Docs](http://http://www.breezejs.com/documentation/introduction)
    * [API](http://http://www.breezejs.com/sites/all/apidocs/index.html/)
 
@@ -47,4 +47,4 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 ## Copyright and license
 Copyright 2012 IdeaBlade, Inc.
 
-License TBD.
+Breeze uses the [MIT license](http://opensource.org/licenses/mit-license.php).
