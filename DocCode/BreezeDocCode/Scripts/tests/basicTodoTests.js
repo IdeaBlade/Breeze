@@ -658,6 +658,49 @@ define(["testFns"], function (testFns) {
         }
     }
 
+    /*********************************************************
+    * Export changes to local storage and re-import them
+    *********************************************************/
+    test("Export changes to local storage and re-import", 5, function () {
+
+        var em = newEm();
+
+        // add a new Todo to the cache
+        var newTodo = em.addEntity(createTodo("Export/import safely #1"));
+        // add some more
+        em.addEntity(createTodo("Export/import safely #2"));
+        em.addEntity(createTodo("Export/import safely #3"));
+
+        var changes = em.getChanges();
+        var changesExport = em.export(changes);
+
+        ok(window.localStorage, "this browser supports local storage");
+
+        var stashName = "stash_newTodos";
+        window.localStorage.setItem(stashName, changesExport);
+
+        em.clear();
+        ok(em.getEntities().length === 0,
+            "em should be empty after clearing it");
+
+        var changesImport = window.localStorage.getItem(stashName);
+        em.import(changesImport);
+
+        var entitiesInCache = em.getEntities();
+        var restoreCount = entitiesInCache.length;
+        equal(restoreCount, 3, "restored 3 new Todos from file");
+
+        var restoredTodo = entitiesInCache[0];
+        var restoredState = restoredTodo.entityAspect.entityState;
+
+        ok(restoredState.isAdded(),
+             "State of restored first Todo ({0}) is {1}".format(
+                 restoredTodo.Description(), restoredState));
+
+        ok(newTodo !== restoredState,
+            "Restored Todo is not the same object as the original Todo");
+    });
+        
 
     /*********************************************************
     * HELPERS

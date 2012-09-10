@@ -8,6 +8,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     var entityModel = testFns.breeze.entityModel;
 
+    var handleFail = testFns.handleFail;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
@@ -148,6 +149,63 @@ define(["testFns"], function (testFns) {
 
     });
 
+    /*********************************************************
+    * Can fill placeholder customer asynchronously
+    *
+    * Scenario: you know the ID but you don't have the data yet.
+    * You want to give the caller a placeholder customer to display
+    * and then fill it with proper values when they arrive
+    * preserving object identity as you do so.
+    *********************************************************/
+    test("fill placeholder customer asynchronously", 3, function () {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var customer = custType.createEntity();
+        customer.CustomerID(testFns.wellKnownData.alfredsID);
+        customer.CompanyName("[don't know name yet]");
+        em.attachEntity(customer); // pretend it's real and unchanged
+
+        var state = customer.entityAspect.entityState; 
+        ok(state.isUnchanged(),
+            "placeholder customer '{0}' is in {1} state.".format(
+            customer.CompanyName(), state));
+
+        customer.CompanyName.subscribe(function(value) {
+            // listen for KO to notify that name was refreshed
+            ok(value.indexOf("Alfreds") !== -1, 
+                "Knockout notifies UI that CompanyName updated as expected to "+value);
+            start(); // restart the test runner
+        });
+        
+        // this refresh query will fill the customer values from remote storage
+        var refreshQuery = entityModel.EntityQuery.fromEntities(customer);
+
+        stop(); // going async ...
+        
+        refreshQuery.using(em).execute()
+        // At this point you would return the customer to the caller
+        // who might data bind to it in a view.
+        // The customer data would be "provisional" until the 
+        // refreshQuery gets the actual values.
+
+        // In this test we wait for the result to confirm that the
+        // refreshed data have arrived and the customer become "real".
+        .then(function (data) {
+            var results = data.results, count = results.length;
+            if (count != 1) {
+                ok(false, "expected one result, got " + count);
+            } else {
+                ok(results[0] === customer,
+                    "'refresh query' returned same customer as the placeholder in cache" +
+                        " whose updated name is " + customer.CompanyName());
+            }
+        })
+        .fail(handleFail);
+        //.fin(start);   // let the KO subscription restart the test runner  
+    });
+    
+    
+    
     /*********************************************************
     * can stash changes locally and restore
     *********************************************************/

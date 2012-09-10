@@ -101,44 +101,7 @@ define(["testFns"], function (testFns) {
         verifyQuery(newEm, query, "customers starting w/ 'A'",
             showCustomerResults);
     });
-
-    /*********************************************************
-    * customers starting w/ 'A' (query the cache)
-    * Demonstrates that the same query works 
-    * for both server and cache.
-    *********************************************************/
-    test("customers starting w/ 'A' (cache)", 4, function () {
-
-        // query for customer starting with 'A', sorted by name 
-        // will be used BOTH on server AND on client
-        var query = new EntityQuery("Customers")
-            .where("CompanyName", "startsWith", "A")
-            .orderBy("CompanyName");
-
-        // query cache (synchronous)
-        var em = newEm();
-        var custs = em.executeQueryLocally(query);
-        var count = custs.length;
-        ok(count === 0,
-            "no cached customers at all in a new EntityManager");
-
-        stop(); // going async ...
-        // query server (same query object)
-        queryForSome(em, query, "Get 'A' custs from the server")
-
-        .then(function (data) { // ... back from the server
-            // query cache again (synchronous)
-            custs = em.executeQueryLocally(query);
-            count = custs.length;
-            ok(count > 0,
-                "have cached 'A' customers now; count = " + count);
-            showCustomerResults({ results: custs });
-        })
-
-        .fail(handleFail)
-        .fin(start);
-    });
-
+  
     /*********************************************************
     * orders with freight cost over 100.
     *********************************************************/
@@ -251,14 +214,16 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("Alfreds customer by key", 2, function () {
 
-        var customerType = getMetadataStore().getEntityType("Customer");
+        var em = newEm();
+        var customerType =
+            em.metadataStore.getEntityType("Customer");
 
         var key = new entityModel.EntityKey(customerType, testFns.wellKnownData.alfredsID);
 
         var query = EntityQuery.fromEntityKey(key);
 
         stop(); // going async ...
-        queryForOne(newEm, query, "customer by key") // querying ...
+        queryForOne(em, query, "customer by key") // querying ...
         .then(function (data) {   // back from query
             ok(true, "Customer name is " + data.first.CompanyName());
         })
@@ -959,14 +924,172 @@ define(["testFns"], function (testFns) {
 
 
 
+    /*** LOCAL QUERY EXECUTION ***/
+
+    module("queryTests (local)", testFns.getModuleOptions(newEm));
+
+    /*********************************************************
+    * customers starting w/ 'A' (query the cache)
+    * Demonstrates that the same query works 
+    * for both server and cache.
+    *********************************************************/
+    test("customers starting w/ 'A' (cache)", 4, function () {
+
+        // query for customer starting with 'A', sorted by name 
+        // will be used BOTH on server AND on client.
+        // The "expand will be ignored locally but will run remotely
+        var query = getQueryForCustomerA().expand("Orders"); 
+
+        // query cache (synchronous)
+        var em = newEm();
+        var custs = em.executeQueryLocally(query);
+        var count = custs.length;
+        ok(count === 0,
+            "no cached customers at all in a new EntityManager");
+
+        stop(); // going async ... query server (same query object)
+        queryForSome(em, query, "Get 'A' custs from the server")
+
+        .then(function (data) { // ... back from the server
+            // query cache again (synchronous)
+            custs = em.executeQueryLocally(query);
+            count = custs.length;
+            ok(count > 0,
+                "have cached 'A' customers now; count = " + count);
+            showCustomerResults({ results: custs });
+        })
+
+        .fail(handleFail)
+        .fin(start);
+    });
+
+    /*********************************************************
+    * Combine remote and local query to get all customers 
+    * including new, unsaved customers
+    *********************************************************/
+    test("combined remote & local query gets all customers w/ 'A'", 6, function () {
+
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        var newCustomer = addCustomer(em, "Acme");
+
+        // query cache (synchronous)
+        var custs = em.executeQueryLocally(query), count = custs.length;
+        equal(count, 1, "1st local query returns one cached 'A' customer");
+
+        stop(); // going async ... query server (same query object)
+
+        queryForSome(em, query, "remote query for 'A' custs")
+
+        .then(function (data) { // ... back from the server
+            ok(data.results.indexOf(newCustomer) === -1,
+                "remote query results do not include the unsaved newCustomer, " +
+                newCustomer.CompanyName());
+
+            // re-do both queries as a comboQuery
+            return executeComboQuery(em, query);
+
+        })
+
+        .then(function (customers) { // back from server with combined results
+            count = customers.length;
+            ok(count > 2,
+                "have combined remote/local 'A' customers now; count = " + count);
+            showCustomerResults({ results: customers });
+            ok(customers.indexOf(newCustomer) !== -1,
+                 "combo query results include the unsaved newCustomer, " +
+                newCustomer.CompanyName());
+        })
+
+        .fail(handleFail)
+        .fin(start);
+    });
+
+    /*********************************************************
+    * Combined query that pours results into a list 
+    * Caller doesn't have to wait for results
+    * Useful in data binding scenarios
+    *********************************************************/
+    test("query customers w/ 'A' into a list", 2, function () {
+        
+        // list could be an observable array bound to the UI
+        var customerList = []; 
+        
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        addCustomer(em, "Acme");
+        
+        stop(); // going async ..
+        
+        var promise = queryIntoList(em, query, customerList);
+        
+        // Application could ignore promise and 
+        // let observable array update the UI when customers arrive.
+        
+        // Our test waits to check that the list was filled
+        promise.then(function(list) {
+            var count = customerList.length;
+            ok(count > 2,
+              "have combined remote/local 'A' customers in list; count = " + count);
+            showCustomerResults({ results: customerList });
+        })
+        .fail(handleFail)
+        .fin(start);
+    });
+ 
+    /*********************************************************
+    * "Query Local" module helpers
+    *********************************************************/
+    
+    // a query for customers starting with 'A', sorted by name
+    function getQueryForCustomerA() {
+        return new EntityQuery("Customers")
+            .where("CompanyName", "startsWith", "A")
+            .orderBy("CompanyName");
+    }
+  
+    // USE THIS IN YOUR DATASERVICE?
+    // execute any query remotely, then execute locally
+    // returning the combination as a Q.js promise
+    function executeComboQuery(em, query) {
+        return em.executeQuery(query)
+            .then(function () { // ignore remote query results
+                return Q.fcall(// return synch query as a promise
+                    function () { return em.executeQueryLocally(query); }
+                );
+            });
+    }
+ 
+    // USE THIS IN YOUR DATASERVICE?
+    // pours results of any combined query into a list
+    // returns a promise to return that list after it's filled
+
+    function queryIntoList(em, query, list) {
+        list = list || [];
+        return executeComboQuery(em, query)
+            .then(function(customers) {
+                customers.forEach(function (c) { list.push(c); });
+                return list;
+            });
+    }
+
+    // create a new Customer and add to the EntityManager
+    function addCustomer(em, name) {
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var cust = customerType.createEntity();
+        cust.CompanyName(name || "a-new-company");
+        em.addEntity(cust);
+        return cust;
+    }
+
+
     /*********************************************************
     * helpers
     *********************************************************/
 
-    function getMetadataStore(em) {
-        if (em) { return em.metadataStore; }
-        // no em? no problem. We also stashed the store elsewhere
-        return newEm.options.metadataStore;
-    }
 
 });
