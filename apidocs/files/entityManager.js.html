@@ -1324,6 +1324,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (newTempKeyValue === undefined) {
                         &#x2F;&#x2F; merge added records with non temp keys
                         targetEntity = entityGroup.findEntityByKey(entityKey);
+                    } else {
+                        targetEntity = null;
                     }
                 } else {
                     targetEntity = entityGroup.findEntityByKey(entityKey);
@@ -1988,6 +1990,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             delete this._indexMap[tempValue];
             this._indexMap[realValue] = ix;
         };
+
+        ctor.prototype._replaceKey = function(oldKey, newKey) {
+            var ix = this._indexMap[oldKey._keyInGroup];
+            delete this._indexMap[oldKey._keyInGroup];
+            this._indexMap[newKey._keyInGroup] = ix;
+        };
         
         function getFilter(entityStates) {
             var filter;
@@ -2282,6 +2290,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var result = new ValidationOptions(this);
             updateWithConfig(result, config);
             return result;
+        };
+
+        &#x2F;**
+        Makes this instance the default instance.
+        @example
+            var validationOptions = new ValidationOptions()
+            var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+            var newOptions.setAsDefault();
+        @method setAsDefault();
+        @chainable
+        **&#x2F;
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
         };
 
         &#x2F;**

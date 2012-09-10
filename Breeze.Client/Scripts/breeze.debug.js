@@ -9087,6 +9087,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
+        Makes this instance the default instance.
+        @example
+            var validationOptions = new ValidationOptions()
+            var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+            var newOptions.setAsDefault();
+        @method setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
+
+        /**
         The default value whenever ValidationOptions are not specified.
         @property defaultInstance {ValidationOptions}
         @static

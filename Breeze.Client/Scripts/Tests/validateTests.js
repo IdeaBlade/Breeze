@@ -27,7 +27,13 @@ define(["testFns"], function (testFns) {
         vo = vo.using({ validateOnQuery: true, validateOnSave: false });
         ok(vo.validateOnQuery == true);
         ok(vo.validateOnSave == false);
-
+        vo.setAsDefault();
+        ok(ValidationOptions.defaultInstance.validateOnQuery == true, "now default voq == true");
+        ok(ValidationOptions.defaultInstance.validateOnSave == false);
+        // reset;
+        vo = new ValidationOptions().setAsDefault();
+        ok(ValidationOptions.defaultInstance.validateOnQuery == false,"reset");
+        ok(ValidationOptions.defaultInstance.validateOnSave == true, "reset");
     });
 
     test("string validation - custom messages", function () {
