@@ -2527,7 +2527,7 @@
             "line": 1984,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
-            "name": "setAsDefault();",
+            "name": "setAsDefault",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    newQo.setAsDefault();"
             ],
@@ -2563,7 +2563,7 @@
             "line": 2045,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
-            "name": "setAsDefault();",
+            "name": "setAsDefault",
             "chainable": 1,
             "class": "SaveOptions",
             "module": "entityModel"
@@ -2737,7 +2737,7 @@
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
             ],
             "itemtype": "method",
-            "name": "setAsDefault();",
+            "name": "setAsDefault",
             "chainable": 1,
             "class": "ValidationOptions",
             "module": "entityModel"

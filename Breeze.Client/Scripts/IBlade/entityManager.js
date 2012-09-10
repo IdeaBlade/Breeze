@@ -1983,7 +1983,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         /**
         Makes this instance the default instance.
-        @method setAsDefault();
+        @method setAsDefault
         @example
             var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
             newQo.setAsDefault();
@@ -2044,7 +2044,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         /**
         Makes this instance the default instance.
-        @method setAsDefault();
+        @method setAsDefault
         @chainable
         **/
         ctor.prototype.setAsDefault = function() {
@@ -2153,7 +2153,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var validationOptions = new ValidationOptions()
             var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
             var newOptions.setAsDefault();
-        @method setAsDefault();
+        @method setAsDefault
         @chainable
         **/
         ctor.prototype.setAsDefault = function() {
