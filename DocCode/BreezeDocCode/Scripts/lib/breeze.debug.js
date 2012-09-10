@@ -1,6 +1,8 @@
 /*
- * Breeze.js - v0.0.1 - Copyright (c) 2012, IdeaBlade  under the terms of the XXX
- * license found at http://ideablade/...
+ * Copyright 2012 IdeaBlade, Inc.  All Rights Reserved.  
+ * Use, reproduction, distribution, and modification of this code is subject to the terms and 
+ * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license.html
+ *
  * Author: Jay Traband
  */
 (function (definitionFn) {
@@ -8942,6 +8944,19 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             } 
             return updateWithConfig(result, config);
         };
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault();
+        @example
+            var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+            newQo.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
 
         ctor.prototype.toJSON = function () {
             return {
@@ -8990,6 +9005,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         
         };
         ctor.prototype._$typeName = "SaveOptions";
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
         
         /**
         Whether another save can be occuring at the same time as this one - default is false.
@@ -9084,6 +9109,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var result = new ValidationOptions(this);
             updateWithConfig(result, config);
             return result;
+        };
+
+        /**
+        Makes this instance the default instance.
+        @example
+            var validationOptions = new ValidationOptions()
+            var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+            var newOptions.setAsDefault();
+        @method setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
         };
 
         /**

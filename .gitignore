@@ -1,5 +1,4 @@
 .svn
-*.sdf
 _ReSharper*
 Sample_Odata
 Sample_WebApi_RC
@@ -20,3 +19,5 @@ Breeze.Client/packages.config
 Breeze.sln
 packages
 Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
+Samples/Todo/Todo/App_Data/Todos.sdf
+DocCode/BreezeDocCode/App_Data/Todos.sdf
