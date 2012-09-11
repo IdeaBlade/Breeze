@@ -500,6 +500,17 @@ define('coreFns',[],function () {
             return v.toString(16);
         });
     }
+    
+    // assumes no timezone in isoDateString
+    function dateFromIsoString(isoDateString) {
+        return fastDateParse.apply(null, isoDateString.split(/\D/));
+    }
+    
+    // used internally above
+    function fastDateParse(y, m, d, h, i, s, ms){
+        return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
+    }
+
 
     // is functions 
 
@@ -602,6 +613,7 @@ define('coreFns',[],function () {
         using: using,
         memoize: memoize,
         getUuid: getUuid,
+        dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,
@@ -5601,7 +5613,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             // force entityType validation;
             if (metadataStore) {
                 this._getEntityType(metadataStore, false);
-                
             }
 
             var eq = this;
@@ -7760,7 +7771,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             // HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
             var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
-            // var saveBundleStringified = stringifySaveBundle(saveBundle);
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -8479,7 +8489,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmappedProperty) return;
                 var propName = dp.name;
-                targetEntity.setProperty(propName, rawEntity[propName]);
+                var val = rawEntity[propName];
+                if (dp.dataType === DataType.DateTime && val) {
+                    // Does not work - returns time offset from GMT (i think)
+                    // val = new Date(val);
+                    val = core.dateFromIsoString(val);
+                }
+                targetEntity.setProperty(propName, val);
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {
@@ -8947,7 +8963,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         /**
         Makes this instance the default instance.
-        @method setAsDefault();
+        @method setAsDefault
         @example
             var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
             newQo.setAsDefault();
@@ -9008,7 +9024,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         /**
         Makes this instance the default instance.
-        @method setAsDefault();
+        @method setAsDefault
         @chainable
         **/
         ctor.prototype.setAsDefault = function() {
@@ -9117,7 +9133,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var validationOptions = new ValidationOptions()
             var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
             var newOptions.setAsDefault();
-        @method setAsDefault();
+        @method setAsDefault
         @chainable
         **/
         ctor.prototype.setAsDefault = function() {

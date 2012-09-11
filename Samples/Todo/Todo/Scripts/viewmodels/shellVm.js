@@ -2,33 +2,17 @@
     var dataservice = require('services/dataservice');
     var logger = require("logger");
 
-    var markingAll;
+    var suspendItemSave;
 
     var shellVm = {
         newTodo: ko.observable(""),
         items: ko.observableArray([]),
-        addItem: function () {
-            var item = dataservice.createTodo();
-
-            item.IsDone(this.markAllCompleted());
-            item.Description(this.newTodo());
-            item.CreatedAt(new Date());
-
-            extendItem(item);
-            this.items.push(item);
-            dataservice.saveChanges();
-
-            this.newTodo("");
-        },
+        addItem: addItem,
         edit: function (item) {
-            if (item) {
-                item.isEditing(true);
-            }
+            if (item) { item.isEditing(true); }
         },
         completeEdit: function (item) {
-            if (item) {
-                item.isEditing(false);
-            }
+            if (item) { item.isEditing(false); }
         },
         removeItem: function (item) {
             this.items.remove(item);
@@ -36,20 +20,15 @@
             dataservice.saveChanges();
         },
         includeArchived: ko.observable(false),
-        archiveCompletedItems: function () {
-            var state = getStateOfItems();
-            state.itemsDone.forEach(function (item) {
-                if (!shellVm.includeArchived()) {
-                    this.items.remove(item);
-                }
-                item.IsArchived(true);
-            }, this);
-            dataservice.saveChanges();
-        },
+        archiveCompletedItems: archiveCompletedItems,
         purge: purge,
         reset: reset
     };
 
+    shellVm.includeArchived.subscribe(getAllTodos);
+    
+    /* Add ko.computed properties */
+    
     shellVm.archiveCompletedMessage = ko.computed(function () {
         var count = getStateOfItems().itemsDoneCount;
         if (count > 0) {
@@ -73,21 +52,19 @@
             return state.itemsLeftCount === 0 && shellVm.items().length > 0;
         },
         write: function (value) {
-            markingAll = true;
+            suspendItemSave = true;
             shellVm.items().forEach(function (item) {
                 item.IsDone(value);
             });
-            markingAll = false;
+            suspendItemSave = false;
             dataservice.saveChanges();
         },
         owner: shellVm
     });
+   
+    getAllTodos(); // Start the query 
 
-    shellVm.includeArchived.subscribe(getAllTodos);
-
-    getAllTodos();
-
-    return shellVm;
+    return shellVm; // done with setup; return module variable
 
     /*** Supporting private functions ***/
 
@@ -115,21 +92,70 @@
         if (item.isEditing) return; // already extended
 
         item.isEditing = ko.observable(false);
-        item.isEditing.subscribe(function (value) {
-            if (!value) {
-                dataservice.saveChangesAfterDelay();
-            }
-            logger.info("isEditing: " + value);
-        });
 
-        item.IsDone.subscribe(function () {
-            if (markingAll) {
-                return; // marking a bunch of items; don't save until done
-            }
-            dataservice.saveChangesAfterDelay();
+        // listen for changes with Breeze PropertyChanged event
+        item.entityAspect.propertyChanged.subscribe(function (args) {
+            if (item.propertyChangedPending || suspendItemSave) { return; }
+            // throttle property changed response
+            // allow time for other property changes (if any) to come through
+            item.propertyChangedPending = true;
+            setTimeout(function () {
+                if (item.entityAspect.validateEntity()) {
+                    if (item.entityAspect.entityState.isModified()) {
+                        dataservice.saveChanges();
+                    }
+                } else { // errors
+                    handleItemErrors(item);
+                    item.isEditing(true); // go back to editing
+                }
+                item.propertyChangedPending = false;
+            }, 10);
+
         });
     }
 
+    function handleItemErrors(item) {
+        if (!item) { return; }
+        var errs = item.entityAspect.getValidationErrors();
+        if (errs.length == 0) {
+            logger.info("No errors for current item");
+            return;
+        }
+        var firstErr = item.entityAspect.getValidationErrors()[0];
+        logger.error(firstErr.errorMessage);
+        item.entityAspect.rejectChanges(); // harsh for demo 
+    }
+    
+    function addItem() {
+        var item = dataservice.createTodo();
+
+        item.IsDone(this.markAllCompleted());
+        item.Description(this.newTodo());
+        item.CreatedAt(new Date());
+
+        if (item.entityAspect.validateEntity()) {
+            extendItem(item);
+            this.items.push(item);
+            dataservice.saveChanges();
+            this.newTodo("");
+        } else {
+            handleItemErrors(item);
+        }
+    }
+    
+    function archiveCompletedItems () {
+        var state = getStateOfItems();
+        suspendItemSave = true;
+        state.itemsDone.forEach(function (item) {
+            if (!shellVm.includeArchived()) {
+                this.items.remove(item);
+            }
+            item.IsArchived(true);
+        }, this);
+        suspendItemSave = false;
+        dataservice.saveChanges();
+    }
+    
     function getStateOfItems() {
         var itemsDone = [], itemsLeft = [];
 
