@@ -35,6 +35,32 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("Order.OrderDate is a DateTime", function () {
+
+        // This is what the type of a date should be
+        var someDate = new Date();
+        ok("object" === typeof someDate,
+            "typeof someDate is " + typeof someDate);
+    
+        var firstOrderQuery = new EntityQuery("Orders")
+            .take(1);
+
+        var em = newEm();
+        stop();
+        em.executeQuery(firstOrderQuery).then(function(data) {
+            var order = data.results[0];
+            var orderDate = order.getProperty("OrderDate");
+
+            // THIS TEST FAILS!
+            ok("object" === typeof orderDate,
+                "typeof OrderDate is " + typeof orderDate);
+            ok(core.isDate(orderDate), "should be a date");
+            start();
+        }).fail(testFns.handleFail);
+
+    });
+
+    
     test("queryOptions using", function() {
         var qo = new QueryOptions();
         ok(qo.fetchStrategy === FetchStrategy.FromServer, "fetchStrategy.FromServer");

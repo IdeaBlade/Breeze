@@ -174,7 +174,6 @@ define(["testFns"], function (testFns) {
             // listen for KO to notify that name was refreshed
             ok(value.indexOf("Alfreds") !== -1, 
                 "Knockout notifies UI that CompanyName updated as expected to "+value);
-            setTimeout(start,20); // restart the test runner after delay for IE
         });
         
         // this refresh query will fill the customer values from remote storage
@@ -200,8 +199,8 @@ define(["testFns"], function (testFns) {
                         " whose updated name is " + customer.CompanyName());
             }
         })
-        .fail(handleFail);
-        //.fin(start);   // let the KO subscription restart the test runner  
+        .fail(handleFail)
+        .fin(start);   // gets run after KO handler so restart the test runner here
     });
     
     

@@ -796,7 +796,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             // HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
             var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
-            // var saveBundleStringified = stringifySaveBundle(saveBundle);
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -1515,7 +1514,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmappedProperty) return;
                 var propName = dp.name;
-                targetEntity.setProperty(propName, rawEntity[propName]);
+                var val = rawEntity[propName];
+                if (dp.dataType === DataType.DateTime && val) {
+                    // Does not work - returns time offset from GMT (i think)
+                    // val = new Date(val);
+                    val = core.dateFromIsoString(val);
+                }
+                targetEntity.setProperty(propName, val);
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {

@@ -14,11 +14,14 @@
             item.Description(this.newTodo());
             item.CreatedAt(new Date());
 
-            extendItem(item);
-            this.items.push(item);
-            dataservice.saveChanges();
-
-            this.newTodo("");
+            if (item.entityAspect.validateEntity()) {
+                extendItem(item);
+                this.items.push(item);
+                dataservice.saveChanges();
+                this.newTodo("");
+            } else {
+                handleTodoErrors(item);
+            }
         },
         edit: function (item) {
             if (item) {
@@ -27,7 +30,11 @@
         },
         completeEdit: function (item) {
             if (item) {
-                item.isEditing(false);
+                if (item.entityAspect.validateEntity()) {
+                    item.isEditing(false);
+                } else {
+                    handleTodoErrors(item);
+                }
             }
         },
         removeItem: function (item) {
@@ -128,6 +135,18 @@
             }
             dataservice.saveChangesAfterDelay();
         });
+    }
+    
+    function handleTodoErrors(todo) {
+        if (!todo) { return; }
+        var errs = todo.entityAspect.getValidationErrors();
+        if (errs.length == 0) {
+            logger.info("No errors for current Todo" );
+            return;
+        }
+        var firstErr = todo.entityAspect.getValidationErrors()[0];
+        logger.error(firstErr.errorMessage);
+        todo.entityAspect.rejectChanges();
     }
 
     function getStateOfItems() {

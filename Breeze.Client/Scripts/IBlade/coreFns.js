@@ -205,6 +205,17 @@ define(function () {
             return v.toString(16);
         });
     }
+    
+    // assumes no timezone in isoDateString
+    function dateFromIsoString(isoDateString) {
+        return fastDateParse.apply(null, isoDateString.split(/\D/));
+    }
+    
+    // used internally above
+    function fastDateParse(y, m, d, h, i, s, ms){
+        return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
+    }
+
 
     // is functions 
 
@@ -307,6 +318,7 @@ define(function () {
         using: using,
         memoize: memoize,
         getUuid: getUuid,
+        dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,

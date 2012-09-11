@@ -21,7 +21,7 @@ define(["testFns"], function (testFns) {
     var metadataSetupFn = function (store) {
         cleanMetadataStore = cloneMetadataStore(store);
     };
-    
+
     var moduleOptions = {
         setup: function () {
             // get the module metadataStore from service first time
@@ -32,7 +32,7 @@ define(["testFns"], function (testFns) {
             newEm.options.metadataStore = cloneMetadataStore(cleanMetadataStore);
         }
     };
-    
+
     module("validationTests", moduleOptions);
 
 
@@ -82,7 +82,7 @@ define(["testFns"], function (testFns) {
         var errors = employee.entityAspect.getValidationErrors();
         equal(errors.length, 0,
             "expected no validation errors and got: " +
-                errors.map(function(a) {
+                errors.map(function (a) {
                     return a.errorMessage;
                 }));
 
@@ -94,7 +94,7 @@ define(["testFns"], function (testFns) {
     test("Attached employee validation errors raised when properties set to bad values", function () {
 
         var em = newEm();  // new empty EntityManager
-        var empType = getEmployeeType(em);;
+        var empType = getEmployeeType(em); ;
 
         var employee = empType.createEntity(); // created but not attached
         employee.FirstName("John");
@@ -173,14 +173,14 @@ define(["testFns"], function (testFns) {
         if (value == null) return true; // '== null' matches null and empty string
         return value.toUpperCase().startsWith("US");
     };
-    
+
     // custom validator ensures "Country" is US
     var countryIsUSValidator = new Validator(
         "countryIsUS",              // validator name
         countryIsUSValidationFn,        // validation function
         {                           // validator context
-            messageTemplate: "'%displayName%' must start with 'US'"
-        });
+        messageTemplate: "'%displayName%' must start with 'US'"
+    });
 
 
     function countryValidationFn(value, context) {
@@ -190,14 +190,14 @@ define(["testFns"], function (testFns) {
 
     // returns a countryValidator with its parameters filled
     function countryValidatorFactory(context) {
-        
+
         return new Validator(
             "countryIsIn" + context.country, // validator name
             countryValidationFn,             // validation function
             {                                // validator context
-                messageTemplate: "'%displayName%' must start with '%country%'",
-                country: context.country
-            });
+            messageTemplate: "'%displayName%' must start with '%country%'",
+            country: context.country
+        });
     }
 
     // The value to assess will be an entity 
@@ -216,28 +216,28 @@ define(["testFns"], function (testFns) {
         var re = /^\d{5}([\-]\d{4})?$/;
         return (re.test(value));
     }
-    
+
     var zipCodeValidator = new Validator(
         "zipCodeValidator",
          zipCodeValidationFn,
         { messageTemplate: "'%postalCode%' is not a valid US zip code" });
-    
+
     /*********************************************************
     * Employee can be from Canada (before countryIsInUS validator)
     *********************************************************/
     test("Employee can be from Canada (before countryIsInUS validator)", 1, function () {
         var emp = createEmployee("Wayne", "Gretzky");
         emp.Country("Canada");
-        
+
         // force validation of unattached employee
         emp.entityAspect.validateEntity();
-        
+
         // Ok for employee to be from Canada
         var errmsgs = getErrorMessages(emp);
         ok(errmsgs.length === 0,
             "should have no errors: \"{0}\"".format(errmsgs));
     });
-    
+
     /*********************************************************
     * Employee must be from US (after countryIsInUS validator)
     *********************************************************/
@@ -245,12 +245,12 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var emp = createEmployee("Shania", "Twain");
         em.attachEntity(emp);
-        
+
         // add the US-only validator
         emp.entityType
             .getProperty("Country")
             .validators.push(countryIsUSValidator);
-        
+
         // non-US employees no longer allowed 
         emp.Country("CA");
         var errmsgs = getErrorMessages(emp);
@@ -263,11 +263,11 @@ define(["testFns"], function (testFns) {
         ok(errmsgs.length === 0,
             "should have no errors: \"{0}\"".format(errmsgs));
     });
-    
-   /*********************************************************
-   * Customer must be from US (after countryIsInUS validator)
-   * Illustrates reuse of validator on different entity type
-   *********************************************************/
+
+    /*********************************************************
+    * Customer must be from US (after countryIsInUS validator)
+    * Illustrates reuse of validator on different entity type
+    *********************************************************/
     test("Customer must be in US (after countryIsInUS Validator)", 2, function () {
 
         var em = newEm();
@@ -289,27 +289,27 @@ define(["testFns"], function (testFns) {
         ok(errmsgs.length === 0,
             "should have no errors: \"{0}\"".format(errmsgs));
     });
-    
+
     /*********************************************************
     * Customer must be from Canada (after configured countryValidator)
     * Illustrates reuse of validator on different entity type
     *********************************************************/
     test("Customer must be in Canada (after configured countryValidator)", 2, function () {
-        
+
         var em = newEm();
-        
+
         // create a Canada-only validator
         var canadaOnly = countryValidatorFactory({ country: "Canada" });
-        
+
         // add the Canada-only validator
         getCustomerType(em)
             .getProperty("Country")
             .validators.push(canadaOnly);
-        
+
         var cust = createCustomer("Univ. of Waterloo");
         em.attachEntity(cust);
         cust.Country("USA"); // try to sneak it into the USA
-        
+
         var errmsgs = getErrorMessages(cust);
         ok(errmsgs.length !== 0,
             "should have 1 error: \"{0}\"".format(errmsgs));
@@ -319,7 +319,7 @@ define(["testFns"], function (testFns) {
         ok(errmsgs.length === 0,
             "should have no errors: \"{0}\"".format(errmsgs));
     });
-    
+
     /*********************************************************
     * US Customer must have valid zip code
     *********************************************************/
@@ -332,20 +332,20 @@ define(["testFns"], function (testFns) {
             .validators.push(zipCodeValidator);
 
         var cust = createCustomer("Boogaloo Board Games");
-        
+
         em.attachEntity(cust);
         cust.Country("USA");
         cust.PostalCode("N2L 3G1"); // a Canadian postal code
 
         // Validate the entire entity to engage this rule
         cust.entityAspect.validateEntity();
-        
+
         var errmsgs = getErrorMessages(cust);
         ok(errmsgs.length !== 0,
             "should have 1 error: \"{0}\"".format(errmsgs));
 
         cust.Country("Canada");
-        
+
         cust.entityAspect.validateEntity();
 
         errmsgs = getErrorMessages(cust);
@@ -354,7 +354,7 @@ define(["testFns"], function (testFns) {
     });
 
     /*********************************************************
-    * Remove a rule
+    * Remove a rule ... and an error
     *********************************************************/
     test("Remove a rule", 2, function () {
 
@@ -362,12 +362,12 @@ define(["testFns"], function (testFns) {
 
         var alwaysWrong = new Validator(
             "alwaysWrong",
-            function() { return false; },
+            function () { return false; },
             { message: "You are always wrong!" }
         );
 
         var custValidators = getCustomerType(em).validators;
-        
+
         // add alwaysWrong to the entity (not to a property)
         custValidators.push(alwaysWrong);
 
@@ -377,20 +377,69 @@ define(["testFns"], function (testFns) {
         em.attachEntity(cust);
 
         var errmsgs = getErrorMessages(cust);
-        
+
         ok(errmsgs.length !== 0,
             "should have 1 error: \"{0}\"".format(errmsgs));
-        
+
         // remove validation rule
         custValidators.splice(custValidators.indexOf(alwaysWrong), 1);
- 
-        // Try another
-        cust = createCustomer("Sublime Innocence");
-        em.attachEntity(cust);
-        
+
+        // Clear out the "alwaysWrong" error
+        // Must do manually because that rule is now gone
+        // and, therefore, can't cleanup after itself
+        cust.entityAspect.removeValidationError(alwaysWrong);
+
+        cust.entityAspect.validateEntity(); // re-validate
+
         errmsgs = getErrorMessages(cust);
         ok(errmsgs.length === 0,
             "should have no errors: \"{0}\"".format(errmsgs));
+    });
+
+    /*********************************************************
+    * Add and remove a (fake) ValidationError
+    *********************************************************/
+    test("Add and remove a (fake) ValidationError", 3, function () {
+
+        var em = newEm();
+
+        // We need a validator to make a ValidationError
+        // but it could be anything and we won't register it
+        var fakeValidator = new Validator(
+            "fakeValidator",
+            function () { return false; },
+            { message: "You are always wrong!" }
+        );
+       
+        var cust = createCustomer("Presumed Guilty");
+        em.attachEntity(cust);
+        
+        var errmsgs = getErrorMessages(cust);
+        ok(errmsgs.length === 0,
+            "should have no errors at test start: \"{0}\"".format(errmsgs));
+        
+        // create a fake error
+        var fakeError = new entityModel.ValidationError(
+            fakeValidator,                // the marker validator
+            {},                           // validation context
+            "You were wrong this time!"   // error message
+        );
+        
+        // add the fake error
+        cust.entityAspect.addValidationError(fakeError);
+
+        errmsgs = getErrorMessages(cust);
+        ok(errmsgs.length !== 0,
+            "should have 1 error after add: \"{0}\"".format(errmsgs));
+
+        // Now remove that error
+        cust.entityAspect.removeValidationError(fakeValidator);
+
+        cust.entityAspect.validateEntity(); // re-validate
+
+        errmsgs = getErrorMessages(cust);
+        ok(errmsgs.length === 0,
+            "should have no errors after remove: \"{0}\"".format(errmsgs));
     });
     
     /*********************************************************
@@ -423,7 +472,7 @@ define(["testFns"], function (testFns) {
             .getValidationErrors()
             .map(function (err) { return err.errorMessage; })
     }
-    
+
     function createCustomer(name) {
         var entityType = getCustomerType();
         var cust = entityType.createEntity();
@@ -438,20 +487,19 @@ define(["testFns"], function (testFns) {
         return emp;
     }
     function getEmployeeType(em) {
-        return getMetadataStore(em).getEntityType("Employee");      
+        return getMetadataStore(em).getEntityType("Employee");
     }
     function getCustomerType(em) {
-        return getMetadataStore(em).getEntityType("Customer");      
-    } 
-    function getOrderType(em)
-    {
-        return getMetadataStore(em).getEntityType("Order");    
+        return getMetadataStore(em).getEntityType("Customer");
+    }
+    function getOrderType(em) {
+        return getMetadataStore(em).getEntityType("Order");
     }
 
     function getMetadataStore(em) {
         return (em) ? em.metadataStore : newEm.options.metadataStore;
     }
-    
+
     function cloneMetadataStore(metadataStore) {
         return new entityModel.MetadataStore()
             .import(metadataStore.export());
