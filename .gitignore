@@ -8,6 +8,8 @@ TestResults
 __Notes.txt
 *.vsmdi
 *.cmd
+*.mdf
+*.ldf
 *.testsettings
 bin
 obj

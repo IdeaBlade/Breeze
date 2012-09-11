@@ -656,7 +656,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             // force entityType validation;
             if (metadataStore) {
                 this._getEntityType(metadataStore, false);
-                
             }
 
             var eq = this;
