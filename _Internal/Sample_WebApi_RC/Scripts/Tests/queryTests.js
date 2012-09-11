@@ -212,7 +212,7 @@ define(["testFns"], function (testFns) {
         }).then(function () {
             var q2 = new EntityQuery().from("customers");
             var customers = em.executeQueryLocally(q2);
-            ok(customers.length > 0, "local query should have some results")
+            ok(customers.length > 0, "local query should have some results");
             start();
         }).fail(testFns.handleFail);
 

@@ -5712,11 +5712,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         // private functions
         
         function normalizeResourceName(resourceName) {
-            if (resourceName) {
-                return resourceName.toLowerCase();
-            } else {
-                return undefined;
-            }
+            return resourceName;
+//            if (resourceName) {
+//                return resourceName.toLowerCase();
+//            } else {
+//                return undefined;
+//            }
         }
 
         function buildPredicate(entity) {

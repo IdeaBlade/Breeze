@@ -297,6 +297,7 @@ define(["testFns"], function (testFns) {
         em.attachEntity(emp);
         // now fetch
         var q = EntityQuery.fromEntities(emp);
+        var uri = q._toUri();
         stop();
         em.executeQuery(q, function(data) {
             ok(changes.length === 1, "query merges should only fire a single property change");
