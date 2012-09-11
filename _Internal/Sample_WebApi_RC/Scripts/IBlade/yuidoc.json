@@ -1,0 +1,10 @@
+{
+    "name": "The Breeze API",
+    "description": "Client-Server data managment ... in JavaScript.",
+    "version": "0.0.2012.09.06 5:00pm",
+    "url": "http://www.breezejs.com/",
+    "options": {
+        "outdir": "../../../apidocs"
+    },
+    "logo": "http://www.ideablade.com/images/IdeaBladeBanner/IdeaBlade_logo_tm.png"
+}

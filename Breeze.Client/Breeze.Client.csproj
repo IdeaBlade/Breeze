@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9BDE026E-CE0A-42F1-A508-4BE30124DD67}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dummy</RootNamespace>
+    <AssemblyName>Dummy</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Scripts\IBlade\assertParam.js" />
+    <None Include="packages.config" />
+    <None Include="Scripts\IBlade\build.ps1.old" />
+    <None Include="Scripts\IBlade\buildend.frag" />
+    <None Include="Scripts\IBlade\buildstart.frag" />
+    <None Include="Scripts\IBlade\yuidoc.json" />
+    <Content Include="Scripts\IBlade\buildx.js" />
+    <Content Include="Scripts\IBlade\remoteAccessInterface.js" />
+    <Content Include="Scripts\IBlade\entityTrackingInterface.js" />
+    <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
+    <Content Include="Scripts\IBlade\core.js" />
+    <Content Include="Scripts\IBlade\coreFns.js" />
+    <Content Include="Scripts\IBlade\dataType.js" />
+    <Content Include="Scripts\IBlade\defaultPropertyInterceptor.js" />
+    <Content Include="Scripts\IBlade\entityAspect.js" />
+    <Content Include="Scripts\IBlade\entityManager.js" />
+    <Content Include="Scripts\IBlade\entityMetadata.js" />
+    <Content Include="Scripts\IBlade\entityModel.js" />
+    <Content Include="Scripts\IBlade\entityQuery.js" />
+    <Content Include="Scripts\IBlade\entityTracking_backingStore.js" />
+    <Content Include="Scripts\IBlade\entityTracking_ko.js" />
+    <Content Include="Scripts\IBlade\enum.js" />
+    <Content Include="Scripts\IBlade\event.js" />
+    <Content Include="Scripts\IBlade\keyGenerator.js" />
+    <Content Include="Scripts\IBlade\relationArray.js" />
+    <Content Include="Scripts\IBlade\remoteAccess_odata.js" />
+    <Content Include="Scripts\IBlade\remoteAccess_webApi.js" />
+    <Content Include="Scripts\IBlade\root.js" />
+    <Content Include="Scripts\IBlade\testFns.js" />
+    <Content Include="Scripts\IBlade\validate.js" />
+    <Content Include="Scripts\Tests\attachTests.js" />
+    <Content Include="Scripts\Tests\classRewriteTests.js" />
+    <Content Include="Scripts\Tests\queryDatatypeTests.js" />
+    <Content Include="Scripts\Tests\entityManagerTests.js" />
+    <Content Include="Scripts\Tests\entityQueryCtorTests.js" />
+    <Content Include="Scripts\Tests\entityTests.js" />
+    <Content Include="Scripts\Tests\metadataTests.js" />
+    <Content Include="Scripts\Tests\miscTests.js" />
+    <Content Include="Scripts\Tests\paramTests.js" />
+    <Content Include="Scripts\Tests\queryTests.js" />
+    <Content Include="Scripts\Tests\saveTests.js" />
+    <Content Include="Scripts\Tests\testRunner.js" />
+    <Content Include="Scripts\Tests\validateEntityTests.js" />
+    <Content Include="Scripts\Tests\validateTests.js" />
+    <Content Include="Scripts\ThirdParty\datajs-1.0.2.js" />
+    <Content Include="Scripts\ThirdParty\jquery-1.6.2-vsdoc.js" />
+    <Content Include="Scripts\ThirdParty\jquery-1.6.2.js" />
+    <Content Include="Scripts\ThirdParty\jquery-1.6.2.min.js" />
+    <Content Include="Scripts\ThirdParty\knockout-2.1.0.debug.js" />
+    <Content Include="Scripts\ThirdParty\knockout-2.1.0.js" />
+    <Content Include="Scripts\ThirdParty\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\ThirdParty\q.js" />
+    <Content Include="Scripts\ThirdParty\q.min.js" />
+    <Content Include="Scripts\ThirdParty\qunit.css" />
+    <Content Include="Scripts\ThirdParty\qunit.js" />
+    <Content Include="Scripts\ThirdParty\require.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\IBlade\build.ps1" />
+    <None Include="Scripts\ThirdParty\q.README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scripts\Unused\Enums\" />
+    <Folder Include="Scripts\Unused\JQuery\" />
+    <Folder Include="Scripts\Unused\OQuery\" />
+    <Folder Include="Scripts\Unused\Pavlov\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>cd $(ProjectDir)\Scripts\iblade
+pause
+powershell .\build</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

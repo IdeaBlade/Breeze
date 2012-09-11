@@ -1,0 +1,345 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B77E7970-47AF-43CC-A6F8-DE9C16B07DC4}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Breeze_OData</RootNamespace>
+    <AssemblyName>Breeze_OData</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <UseIISExpress>false</UseIISExpress>
+    <JSLintSkip>\Scripts\DataJs\datajs-1.0.2.js|\Scripts\Qunit\qunit.js|\Scripts\IBlade\metadataStore.js|\Scripts\IBlade\entityQuery.js|\Scripts\IBlade\queryStrategy.js|\Scripts\IBlade\entityManager.js</JSLintSkip>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Services" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\assertParam.js">
+      <Link>Scripts\IBlade\assertParam.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\core.js">
+      <Link>Scripts\IBlade\core.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\coreFns.js">
+      <Link>Scripts\IBlade\coreFns.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\coreFns.notyetneeded.js">
+      <Link>Scripts\IBlade\coreFns.notyetneeded.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\dataType.js">
+      <Link>Scripts\IBlade\dataType.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\defaultPropertyInterceptor.js">
+      <Link>Scripts\IBlade\defaultPropertyInterceptor.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityAspect.js">
+      <Link>Scripts\IBlade\entityAspect.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityManager.js">
+      <Link>Scripts\IBlade\entityManager.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityMetadata.js">
+      <Link>Scripts\IBlade\entityMetadata.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityModel.js">
+      <Link>Scripts\IBlade\entityModel.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityQuery.js">
+      <Link>Scripts\IBlade\entityQuery.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backingStore.js">
+      <Link>Scripts\IBlade\entityTracking_backingStore.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_ko.js">
+      <Link>Scripts\IBlade\entityTracking_ko.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\enum.js">
+      <Link>Scripts\IBlade\enum.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\event.js">
+      <Link>Scripts\IBlade\event.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\keyGenerator.js">
+      <Link>Scripts\IBlade\keyGenerator.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\relationArray.js">
+      <Link>Scripts\IBlade\relationArray.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\remoteAccess_odata.js">
+      <Link>Scripts\IBlade\remoteAccess_odata.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\remoteAccess_webApi.js">
+      <Link>Scripts\IBlade\remoteAccess_webApi.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\root.js">
+      <Link>Scripts\IBlade\root.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\testFns.js">
+      <Link>Scripts\IBlade\testFns.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\validate.js">
+      <Link>Scripts\IBlade\validate.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\attachTests.js">
+      <Link>Scripts\Tests\attachTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\classRewriteTests.js">
+      <Link>Scripts\Tests\classRewriteTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\entityManagerTests.js">
+      <Link>Scripts\Tests\entityManagerTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\entityQueryCtorTests.js">
+      <Link>Scripts\Tests\entityQueryCtorTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\entityTests.js">
+      <Link>Scripts\Tests\entityTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\example.pavlovtest.js">
+      <Link>Scripts\Tests\example.pavlovtest.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\metadataTests.js">
+      <Link>Scripts\Tests\metadataTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\miscTests.js">
+      <Link>Scripts\Tests\miscTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\paramTests.js">
+      <Link>Scripts\Tests\paramTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryDatatypeTests.js">
+      <Link>Scripts\Tests\queryDatatypeTests.js</Link>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryTests.js">
+      <Link>Scripts\Tests\queryTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTests.js">
+      <Link>Scripts\Tests\saveTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\testRunner.js">
+      <Link>Scripts\Tests\testRunner.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\validateEntityTests.js">
+      <Link>Scripts\Tests\validateEntityTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\validateTests.js">
+      <Link>Scripts\Tests\validateTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\almond.js">
+      <Link>Scripts\ThirdParty\almond.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\datajs-1.0.2.js">
+      <Link>Scripts\ThirdParty\datajs-1.0.2.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\jquery-1.6.2-vsdoc.js">
+      <Link>Scripts\ThirdParty\jquery-1.6.2-vsdoc.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\jquery-1.6.2.js">
+      <Link>Scripts\ThirdParty\jquery-1.6.2.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\jquery-1.6.2.min.js">
+      <Link>Scripts\ThirdParty\jquery-1.6.2.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\knockout-2.1.0.debug.js">
+      <Link>Scripts\ThirdParty\knockout-2.1.0.debug.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\modernizr-2.0.6-development-only.js">
+      <Link>Scripts\ThirdParty\modernizr-2.0.6-development-only.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\q.js">
+      <Link>Scripts\ThirdParty\q.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\q.min.js">
+      <Link>Scripts\ThirdParty\q.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.css">
+      <Link>Scripts\ThirdParty\qunit.css</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.js">
+      <Link>Scripts\ThirdParty\qunit.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.test.js">
+      <Link>Scripts\ThirdParty\qunit.test.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\r.js">
+      <Link>Scripts\ThirdParty\r.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\require.js">
+      <Link>Scripts\ThirdParty\require.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\require.min.js">
+      <Link>Scripts\ThirdParty\require.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Default.aspx" />
+    <Content Include="Global.asax" />
+    <Content Include="ODataService.svc" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="NorthwindIB.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>NorthwindIB.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="NorthwindIBEntities.ext.cs" />
+    <Compile Include="ODataService.svc.cs">
+      <DependentUpon>ODataService.svc</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="log\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EntityDeploy Include="NorthwindIB.edmx">
+      <EntityManagerName>.NorthwindIBEntities</EntityManagerName>
+      <CodeGenNamespace>__default__</CodeGenNamespace>
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>NorthwindIB.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Breeze.Client\Scripts\ThirdParty\q.README.md">
+      <Link>Scripts\ThirdParty\q.README.md</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>False</AutoAssignPort>
+          <DevelopmentServerPort>9009</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /E "$(TargetDir)\Scripts" "$(ProjectDir)\Scripts"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

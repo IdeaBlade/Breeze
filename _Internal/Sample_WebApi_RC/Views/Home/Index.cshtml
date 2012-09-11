@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>ASP.NET Web API</title>
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="@Url.Content("~/Scripts/ThirdParty/qunit.css")" type="text/css" media="screen"/>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/modernizr-2.0.6-development-only.js")" ></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/qunit.js")"></script> 
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/datajs-1.0.2.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/q.min.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/knockout-2.1.0.debug.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/require.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ThirdParty/jquery-1.6.2.js")"></script>
+    <script type="text/javascript">
+         DEBUG_KO = true;
+         DEBUG_WEBAPI = true;
+    </script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/Tests/testRunner.js")"></script>
+  <meta name="viewport" content="width=device-width" />
+</head>
+<body>
+  <header>
+    <div class="content-wrapper">       
+      <div class="float-left">
+        <p class="site-title"><a href="/">Breeze - ASP.NET Web API</a></p>
+            <div id="message"></div>
+      </div>
+    </div>
+  </header>
+    <div id="body">
+        <h1 id="qunit-header">QUnit Test Suite</h1>
+        <h2 id="qunit-banner"></h2>
+        <div id="qunit-testrunner-toolbar"></div>
+        <h2 id="qunit-userAgent"></h2>
+        <ol id="qunit-tests"></ol>
+        <div id="qunit-fixture">test markup</div>
+        <h2>Test queries and metadata</h2>
+    </div>
+</body>
+</html>
