@@ -6,6 +6,8 @@ function (core, m_entityMetadata) {
 
     var remoteAccess_odata = {};
     // -------------------------------------------
+    
+    OData.jsonHandler.recognizeDates = true;
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
@@ -70,6 +72,10 @@ function (core, m_entityMetadata) {
             OData.metadataHandler
         );
 
+    };
+
+    remoteAccess_odata.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+        throw new Error("Breeze does not yet support saving thru OData");
     };
 
     function getMetadataUrl(serviceName) {

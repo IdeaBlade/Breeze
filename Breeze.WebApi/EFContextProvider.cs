@@ -243,6 +243,7 @@ namespace Breeze.WebApi {
         return entityInfo;
       }
       var entity = entityInfo.Entity;
+      
       entityInfo.OriginalValuesMap.ToList().ForEach(kvp => {
         var value = ((JValue) kvp.Value).Value;
         SetPropertyValue(entity, kvp.Key, value);
@@ -253,7 +254,7 @@ namespace Breeze.WebApi {
 
     private static void UpdateOriginalValues(ObjectStateEntry entry, EntityInfo entityInfo) {
       var originalValuesMap = entityInfo.OriginalValuesMap;
-      if (originalValuesMap == null) return;
+      if (originalValuesMap == null || originalValuesMap.Keys.Count == 0) return;
 
       var originalValuesRecord = entry.GetUpdatableOriginalValues();
       originalValuesMap.ToList().ForEach(kvp => {

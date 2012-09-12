@@ -17,6 +17,8 @@ namespace Breeze_OData {
       config.SetEntitySetAccessRule("Products", EntitySetRights.All);
       config.SetEntitySetAccessRule("OrderDetails", EntitySetRights.All);
       config.SetEntitySetAccessRule("Categories", EntitySetRights.All);
+      config.SetEntitySetAccessRule("Regions", EntitySetRights.All);
+      config.SetEntitySetAccessRule("Territories", EntitySetRights.All);
 
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);

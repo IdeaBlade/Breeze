@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
- * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license.html
+ * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Jay Traband
  */
@@ -3778,7 +3778,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         */
         ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
-            return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            return this._resourceEntityTypeMap[resourceName];
         };
 
         /*
@@ -3796,7 +3797,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
-            resourceName = resourceName.toLowerCase();
+            // resourceName = resourceName.toLowerCase();
             var entityTypeName;
             if (entityTypeOrName instanceof EntityType) {
                 entityTypeName = entityTypeOrName.name;
@@ -4211,7 +4212,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("defaultResourceName").isString().isOptional()
                 .applyAll(this);
             if (config.defaultResourceName) {
-                this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                // this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                this.defaultResourceName = config.defaultResourceName;
             }
         };
 
@@ -4540,23 +4542,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
-            var isTrackableProperty = core.config.trackingImplementation.isTrackableProperty;
+            var isUnmappedProperty = function(inst, propName) {
+                if (core.isFunction(inst[propName])) return false;
+                if (core.stringStartsWith(propName, "_$")) return false;
+                if (propName === "entityType") return false;
+                if (currentPropertyNames.indexOf(propName) >= 0) return false;
+                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
+            };
 
-            Object.getOwnPropertyNames(instance).forEach(function (propName) {
-                if (isTrackableProperty(instance, propName)) {
-                    if (currentPropertyNames.indexOf(propName) === -1) {
-                        var newProp = new DataProperty({
-                            parentEntityType: entityType,
-                            name: propName,
-                            dataType: DataType.Undefined,
-                            isNullable: true,
-                            isUnmappedProperty: true
-                        });
-                        entityType.dataProperties.push(newProp);
-                        entityType.unmappedProperties.push(newProp);
-                    }
+            for (var propertyName in instance) {
+                if (isUnmappedProperty(instance, propertyName)) {
+                    var newProp = new DataProperty({
+                        parentEntityType: entityType,
+                        name: propertyName,
+                        dataType: DataType.Undefined,
+                        isNullable: true,
+                        isUnmappedProperty: true
+                    });
+                    entityType.dataProperties.push(newProp);
+                    entityType.unmappedProperties.push(newProp);
                 }
-            });
+            };
         }
 
         return ctor;
@@ -8391,7 +8397,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
         }
 
-        function mergeEntity(rawEntity, queryContext, isSaving) {
+        function mergeEntity(rawEntity, queryContext, isSaving, isNestedInAnon) {
             
             var em = queryContext.entityManager;
             var mergeStrategy = queryContext.mergeStrategy;
@@ -8406,7 +8412,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             // TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
-            if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            // if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            if (queryContext.query.selectClause && !isNestedInAnon) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
             var entityType = em.metadataStore.getEntityType(entityTypeName);
@@ -8457,14 +8464,22 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var result = core.objectMapValue(rawEntity, function(key, value) {
+                if (value == null) {
+                    return value;
+                }
+                if (key == "__metadata") {
+                    return undefined;
+                }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
                     return undefined;
-                }
+                } 
                 if (Array.isArray(value)) {
                     return value.map(function(v) {
-                        if (v.$type) {
-                            return mergeEntity(v, queryContext, isSaving);
+                        if (v == null) {
+                            return v;
+                        } else if (v.$type || v.__metadata) {
+                            return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
                             return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
                         } else {
@@ -8472,8 +8487,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         }
                     });
                 } else {
-                    if (value.$type) {
-                        return mergeEntity(value, queryContext, isSaving);
+                    if (value.$type || value.__metadata) {
+                        return mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
                         return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
@@ -8494,7 +8509,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 if (dp.dataType === DataType.DateTime && val) {
                     // Does not work - returns time offset from GMT (i think)
                     // val = new Date(val);
-                    val = core.dateFromIsoString(val);
+                    // val = core.dateFromIsoString(val);
+                    val = core.config.remoteAccessImplementation.convertStringToDate(val);
                 }
                 targetEntity.setProperty(propName, val);
             });
@@ -9303,6 +9319,11 @@ function (core, m_entityMetadata) {
 
         queryContext.refId = rawEntity['$id'];
     };
+    
+
+    remoteAccess_webApi.convertStringToDate = function(dateString) {
+        return core.dateFromIsoString(dateString);
+    };
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
@@ -9355,10 +9376,17 @@ function (core, m_entityMetadata) {
 
     var remoteAccess_odata = {};
     // -------------------------------------------
+    
+    OData.jsonHandler.recognizeDates = true;
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
     };
+
+    remoteAccess_odata.convertStringToDate = function(dateString) {
+        return dateString;
+    };
+    
 
     remoteAccess_odata.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
         var metadataStore = entityManager.metadataStore;
@@ -9691,7 +9719,7 @@ function (core, makeRelationArray) {
 
     trackingImpl.isTrackableProperty = function (entity, propertyName) {
         if (propertyName === '_backingStore') return false;
-        if (core.isFunction(entity[propertyName])) return false;
+        if (propertyName === "_pendingSets") return false;
         return true;
     };
 

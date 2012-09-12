@@ -93,7 +93,7 @@ function (core, makeRelationArray) {
 
     trackingImpl.isTrackableProperty = function (entity, propertyName) {
         if (propertyName === '_backingStore') return false;
-        if (core.isFunction(entity[propertyName])) return false;
+        if (propertyName === "_pendingSets") return false;
         return true;
     };
 

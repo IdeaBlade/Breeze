@@ -182,7 +182,6 @@ define(["testFns"], function (testFns) {
     test("unmapped import export", function() {
 
         // use a different metadata store for this em - so we don't polute other tests
-        // use a different metadata store for this em - so we don't polute other tests
         var em1 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
         var Customer = function() {
             this.miscData = "asdf";
@@ -194,6 +193,7 @@ define(["testFns"], function (testFns) {
             var custType = em1.metadataStore.getEntityType("Customer");
             var cust = custType.createEntity();
             em1.addEntity(cust);
+            cust.setProperty("CompanyName", "foo2");
             cust.setProperty("miscData", "zzz");
             var bundle = em1.export();
             var em2 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: em1.metadataStore });
@@ -201,8 +201,10 @@ define(["testFns"], function (testFns) {
             var entities = em2.getEntities();
             ok(entities.length === 1);
             var sameCust = entities[0];
+            var cname = sameCust.getProperty("CompanyName");
+            ok(cname === "foo2","CompanyName should === 'foo2'");
             var miscData = sameCust.getProperty("miscData");
-            ok(miscData === "zzz");
+            ok(miscData === "zzz","miscData should === 'zzz'");
             start();
         }).fail(testFns.handleFail);
     });

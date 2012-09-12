@@ -3778,7 +3778,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         */
         ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
-            return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            return this._resourceEntityTypeMap[resourceName];
         };
 
         /*
@@ -3796,7 +3797,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
-            resourceName = resourceName.toLowerCase();
+            // resourceName = resourceName.toLowerCase();
             var entityTypeName;
             if (entityTypeOrName instanceof EntityType) {
                 entityTypeName = entityTypeOrName.name;
@@ -4211,7 +4212,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("defaultResourceName").isString().isOptional()
                 .applyAll(this);
             if (config.defaultResourceName) {
-                this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                // this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                this.defaultResourceName = config.defaultResourceName;
             }
         };
 
@@ -5712,11 +5714,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         // private functions
         
         function normalizeResourceName(resourceName) {
-            if (resourceName) {
-                return resourceName.toLowerCase();
-            } else {
-                return undefined;
-            }
+            return resourceName;
+//            if (resourceName) {
+//                return resourceName.toLowerCase();
+//            } else {
+//                return undefined;
+//            }
         }
 
         function buildPredicate(entity) {

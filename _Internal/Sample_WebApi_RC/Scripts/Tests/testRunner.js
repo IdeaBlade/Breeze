@@ -13,7 +13,7 @@ require([
     "queryDatatypeTests",
     "validateTests",
     "validateEntityTests",
-    // "saveTests"
+     "saveTests"
 
 ], function (testFns) {
     testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);

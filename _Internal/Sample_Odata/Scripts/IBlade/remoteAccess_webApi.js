@@ -92,6 +92,7 @@ function (core, m_entityMetadata) {
 
         queryContext.refId = rawEntity['$id'];
     };
+    
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;

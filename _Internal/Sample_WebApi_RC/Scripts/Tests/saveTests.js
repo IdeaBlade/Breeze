@@ -55,7 +55,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    test("unmappped", function() {
+    test("unmapped save", function() {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm();
@@ -91,7 +91,7 @@ define(["testFns"], function (testFns) {
         var zzz = createParentAndChildren(em);
         stop();
         em.saveChanges(null, null,
-            function (saveResult) {
+            function(saveResult) {
                 ok(zzz.cust1.entityAspect.entityState.isUnchanged());
                 ok(zzz.cust2.entityAspect.entityState.isUnchanged());
                 ok(zzz.order1.entityAspect.entityState.isUnchanged());
@@ -105,10 +105,10 @@ define(["testFns"], function (testFns) {
                 ok(zzz.cust1.getProperty("Orders").length === 2);
                 ok(zzz.cust2.getProperty("Orders").length === 0);
                 start();
-            }, function (err) {
+            }, function(err) {
                 ok(false, "should not get here - " + err);
                 start();
-            });
+            }).fail(testFns.handleFail);
     });
 
     test("allow concurrent saves with concurrency column", function() {

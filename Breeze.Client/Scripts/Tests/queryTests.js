@@ -43,6 +43,7 @@ define(["testFns"], function (testFns) {
             "typeof someDate is " + typeof someDate);
     
         var firstOrderQuery = new EntityQuery("Orders")
+            .where("OrderDate", ">", new Date(1998, 3, 1))
             .take(1);
 
         var em = newEm();
@@ -177,48 +178,14 @@ define(["testFns"], function (testFns) {
                 // This test should succeed; it fails because of above bug!!!
                 ok(results[0] === customer,
                     "refresh query result is the same as the customer in cache" +
-                        " whose updated name is " + customer.CompanyName());
+                        " whose updated name is " + customer.getProperty("CompanyName"));
             }
-        }).fail(testFns.handleFail).fin(start);
+            start();
+        }).fail(testFns.handleFail);
     });
 
     
-    test("resource name query case sensitivity", function() {
-        var em = newEm();
-
-        var query = new EntityQuery()
-            .from("customers");
-        stop();
-        em.executeQuery(query).then(function(data) {
-            ok(data.results.length > 0, "should have some results");
-        }).then(function () {
-            var q2 = new EntityQuery().from("Customers");
-            return em.executeQuery(q2);
-        }).then(function (data2) {
-            ok(data2.results.length > 0, "should have some results - 2");
-            start();
-        }).fail(testFns.handleFail);
-
-    });
-
-    test("resource name local query case sensitivity", function() {
-        var em = newEm();
-
-        var query = new EntityQuery()
-            .from("Customers");
-        stop();
-        em.executeQuery(query).then(function(data) {
-            ok(data.results.length > 0, "should have some results");
-        }).then(function () {
-            var q2 = new EntityQuery().from("customers");
-            var customers = em.executeQueryLocally(q2);
-            ok(customers.length > 0, "local query should have some results");
-            start();
-        }).fail(testFns.handleFail);
-
-    });
-    
-     test("query deleted locally", function() {
+    test("query deleted locally", function() {
         var em = newEm();
 
         var query = new EntityQuery().from("Customers").take(5);
@@ -314,6 +281,9 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery.from("Customers")
             .where("CompanyName", "startsWith", "C")
             .select("Orders");
+        if (!testFns.DEBUG_WEBAPI) {
+            query = query.expand("Orders");
+        }
         var queryUrl = query._toUri();
         stop();
         em.executeQuery(query).then(function (data) {
@@ -339,6 +309,9 @@ define(["testFns"], function (testFns) {
             .where("CompanyName", "startsWith", "C")
             .orderBy("CompanyName")
             .select("CompanyName, Orders");
+        if (!testFns.DEBUG_WEBAPI) {
+            query = query.expand("Orders");
+        }        
         var queryUrl = query._toUri();
         stop();
         em.executeQuery(query).then(function (data) {
@@ -348,6 +321,7 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
+                ok(Object.keys(a).length === 2,"should have 2 properties");
                 ok(a.CompanyName);
                 ok(Array.isArray(a.Orders));
                 a.Orders.forEach(function(order) {
@@ -366,6 +340,10 @@ define(["testFns"], function (testFns) {
             .where("Customer.CompanyName", "startsWith", "C")
             .orderBy("Customer.CompanyName")
             .select("Customer.CompanyName, Customer, OrderDate");
+        if (!testFns.DEBUG_WEBAPI) {
+            query = query.expand("Customer");
+        }
+            
         var queryUrl = query._toUri();
         stop();
         em.executeQuery(query).then(function (data) {
@@ -375,6 +353,7 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
+                ok(Object.keys(a).length === 3,"should have 3 properties");
                 ok(typeof (a.Customer_CompanyName) == 'string', "Customer_CompanyName is not a string");
                 ok(a.Customer.entityType === customerType, "a.Customer is not of type Customer");
                 ok(a.OrderDate !== undefined, "OrderDate should be  undefined");
@@ -1218,6 +1197,9 @@ define(["testFns"], function (testFns) {
         ok(em, "no em found");
 
         var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$select=CompanyName, Orders";
+        if (!testFns.DEBUG_WEBAPI) {
+            query = query + "&$expand=Orders";
+        }
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");

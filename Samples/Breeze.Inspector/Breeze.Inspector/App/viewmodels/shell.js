@@ -60,6 +60,10 @@
         inspector: ko.observable(null)
     };
 
+    shell.showSaved = ko.computed(function() {
+        return this.canSave() && this.validationMessages().length == 0 && this.connectionAction() == 'Go Offline';
+    }, shell);
+
     dataservice.onCanSaveChanges(function(value) {
         shell.canSave(value);
     });

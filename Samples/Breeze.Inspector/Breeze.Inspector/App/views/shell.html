@@ -2,7 +2,7 @@
     <header>
         <button class="back" data-bind="click: goBack, visible: canGoBack">Back</button>
         <h1 data-bind="html: title"></h1>
-        <button class="save" data-bind="click: save, visible: canSave() && validationMessages().length == 0">Save</button>
+        <button class="save" data-bind="click: save, visible: showSaved">Save</button>
         <button class="save" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
     </header>
     <section id="contentHost">

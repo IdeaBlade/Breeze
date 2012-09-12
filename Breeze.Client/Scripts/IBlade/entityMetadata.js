@@ -1099,23 +1099,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
-            var isTrackableProperty = core.config.trackingImplementation.isTrackableProperty;
+            var isUnmappedProperty = function(inst, propName) {
+                if (core.isFunction(inst[propName])) return false;
+                if (core.stringStartsWith(propName, "_$")) return false;
+                if (propName === "entityType") return false;
+                if (currentPropertyNames.indexOf(propName) >= 0) return false;
+                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
+            };
 
-            Object.getOwnPropertyNames(instance).forEach(function (propName) {
-                if (isTrackableProperty(instance, propName)) {
-                    if (currentPropertyNames.indexOf(propName) === -1) {
-                        var newProp = new DataProperty({
-                            parentEntityType: entityType,
-                            name: propName,
-                            dataType: DataType.Undefined,
-                            isNullable: true,
-                            isUnmappedProperty: true
-                        });
-                        entityType.dataProperties.push(newProp);
-                        entityType.unmappedProperties.push(newProp);
-                    }
+            for (var propertyName in instance) {
+                if (isUnmappedProperty(instance, propertyName)) {
+                    var newProp = new DataProperty({
+                        parentEntityType: entityType,
+                        name: propertyName,
+                        dataType: DataType.Undefined,
+                        isNullable: true,
+                        isUnmappedProperty: true
+                    });
+                    entityType.dataProperties.push(newProp);
+                    entityType.unmappedProperties.push(newProp);
                 }
-            });
+            };
         }
 
         return ctor;
