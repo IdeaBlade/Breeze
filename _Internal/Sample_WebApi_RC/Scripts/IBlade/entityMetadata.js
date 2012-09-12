@@ -1100,6 +1100,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
             var isUnmappedProperty = function(inst, propName) {
+                if (Object.keys(inst).indexOf(propName) === -1) return false;
                 if (core.isFunction(inst[propName])) return false;
                 if (core.stringStartsWith(propName, "_$")) return false;
                 if (propName === "entityType") return false;

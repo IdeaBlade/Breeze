@@ -4543,6 +4543,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
             var isUnmappedProperty = function(inst, propName) {
+                if (Object.keys(inst).indexOf(propName) === -1) return false;
                 if (core.isFunction(inst[propName])) return false;
                 if (core.stringStartsWith(propName, "_$")) return false;
                 if (propName === "entityType") return false;
@@ -8413,7 +8414,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
             // if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-            if (queryContext.query.selectClause && !isNestedInAnon) {
+            if (isSelectQuery(queryContext.query) && !isNestedInAnon) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
             var entityType = em.metadataStore.getEntityType(entityTypeName);
@@ -8459,6 +8460,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
             }
             return targetEntity;
+        }
+        
+         function isSelectQuery(query) {
+            if (query == null) {
+                return false;
+            } else if (typeof query === 'string') {
+                return query.indexOf("$select") >= 0;
+            } else {
+                return !!query.selectClause;
+            }
         }
         
         function processAnonType(rawEntity, queryContext, isSaving) {
@@ -8507,10 +8518,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var propName = dp.name;
                 var val = rawEntity[propName];
                 if (dp.dataType === DataType.DateTime && val) {
-                    // Does not work - returns time offset from GMT (i think)
-                    // val = new Date(val);
-                    // val = core.dateFromIsoString(val);
-                    val = core.config.remoteAccessImplementation.convertStringToDate(val);
+                    if (!core.isDate(val)) {
+                        // Does not work - returns time offset from GMT (i think)
+                        // val = new Date(val);
+                        val = core.dateFromIsoString(val);
+                    }
                 }
                 targetEntity.setProperty(propName, val);
             });
@@ -9321,10 +9333,6 @@ function (core, m_entityMetadata) {
     };
     
 
-    remoteAccess_webApi.convertStringToDate = function(dateString) {
-        return core.dateFromIsoString(dateString);
-    };
-
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
         // remove any trailing "/"
@@ -9377,16 +9385,13 @@ function (core, m_entityMetadata) {
     var remoteAccess_odata = {};
     // -------------------------------------------
     
-    OData.jsonHandler.recognizeDates = true;
+    if (this.OData) {
+        this.OData.jsonHandler.recognizeDates = true;
+    }
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
     };
-
-    remoteAccess_odata.convertStringToDate = function(dateString) {
-        return dateString;
-    };
-    
 
     remoteAccess_odata.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
         var metadataStore = entityManager.metadataStore;
@@ -9447,6 +9452,10 @@ function (core, m_entityMetadata) {
             OData.metadataHandler
         );
 
+    };
+
+    remoteAccess_odata.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+        throw new Error("Breeze does not yet support saving thru OData");
     };
 
     function getMetadataUrl(serviceName) {

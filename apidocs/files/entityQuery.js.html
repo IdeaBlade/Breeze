@@ -23,11 +23,11 @@
 <div id="wrap">
 
 <div id="doc">
-<!-- commenting out until beta goes live
+<div class="header">
 <div class="logo">
 	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
 	</div>
--->
+
     <div class="primary-nav">
 <ul>
 		<li>
@@ -45,6 +45,7 @@
 		<li>
 			<a href="/contact">Contact</a></li>
 	</ul>
+</div>
 </div>
     <div id="bd" class="yui3-g">
 
@@ -824,7 +825,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             &#x2F;&#x2F; force entityType validation;
             if (metadataStore) {
                 this._getEntityType(metadataStore, false);
-                
             }
 
             var eq = this;
@@ -924,11 +924,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         &#x2F;&#x2F; private functions
         
         function normalizeResourceName(resourceName) {
-            if (resourceName) {
-                return resourceName.toLowerCase();
-            } else {
-                return undefined;
-            }
+            return resourceName;
+&#x2F;&#x2F;            if (resourceName) {
+&#x2F;&#x2F;                return resourceName.toLowerCase();
+&#x2F;&#x2F;            } else {
+&#x2F;&#x2F;                return undefined;
+&#x2F;&#x2F;            }
         }
 
         function buildPredicate(entity) {

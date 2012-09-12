@@ -23,11 +23,11 @@
 <div id="wrap">
 
 <div id="doc">
-<!-- commenting out until beta goes live
+<div class="header">
 <div class="logo">
 	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
 	</div>
--->
+
     <div class="primary-nav">
 <ul>
 		<li>
@@ -45,6 +45,7 @@
 		<li>
 			<a href="/contact">Contact</a></li>
 	</ul>
+</div>
 </div>
     <div id="bd" class="yui3-g">
 
@@ -503,7 +504,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         *&#x2F;
         ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, &quot;resourceName&quot;).isString().check();
-            return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            &#x2F;&#x2F; return this._resourceEntityTypeMap[resourceName.toLowerCase()];
+            return this._resourceEntityTypeMap[resourceName];
         };
 
         &#x2F;*
@@ -521,7 +523,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, &quot;resourceName&quot;).isString().check();
             assertParam(entityTypeOrName, &quot;entityTypeOrName&quot;).isInstanceOf(EntityType).or().isString().check();
-            resourceName = resourceName.toLowerCase();
+            &#x2F;&#x2F; resourceName = resourceName.toLowerCase();
             var entityTypeName;
             if (entityTypeOrName instanceof EntityType) {
                 entityTypeName = entityTypeOrName.name;
@@ -936,7 +938,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam(&quot;defaultResourceName&quot;).isString().isOptional()
                 .applyAll(this);
             if (config.defaultResourceName) {
-                this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                &#x2F;&#x2F; this.defaultResourceName = config.defaultResourceName.toLowerCase();
+                this.defaultResourceName = config.defaultResourceName;
             }
         };
 

@@ -1219,7 +1219,10 @@ define(["testFns"], function (testFns) {
     });
     
     test("raw odata - server side include many - customer and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function (data, status) {
             ok(data);
@@ -1231,7 +1234,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("raw odata - server side include 1 - order and customer", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function (data, status) {
             ok(data);
@@ -1244,7 +1250,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("WebApi metadata", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/Metadata", function (data, status) {
             // On success, 'data' contains the model metadata.

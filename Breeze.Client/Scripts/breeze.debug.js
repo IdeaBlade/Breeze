@@ -4543,6 +4543,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
             var isUnmappedProperty = function(inst, propName) {
+                if (Object.keys(inst).indexOf(propName) === -1) return false;
                 if (core.isFunction(inst[propName])) return false;
                 if (core.stringStartsWith(propName, "_$")) return false;
                 if (propName === "entityType") return false;
@@ -9384,7 +9385,9 @@ function (core, m_entityMetadata) {
     var remoteAccess_odata = {};
     // -------------------------------------------
     
-    OData.jsonHandler.recognizeDates = true;
+    if (this.OData) {
+        this.OData.jsonHandler.recognizeDates = true;
+    }
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);

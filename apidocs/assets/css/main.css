@@ -991,6 +991,8 @@ li.arg code {
 .logo a:hover  { text-decoration: none;}
 */
 
+.header {background:#0072c6; height:100px; padding:0px 2000px; margin:0px -2000px 0px -2000px;}
+
 /*Index*/
 .index-body {margin-top:105px;}
 
@@ -1004,7 +1006,7 @@ li.arg code {
 	.primary-nav  {font-size:25px; margin-top:-84px;}
 	.primary-nav-foot  {font-size:25px; margin-right: 32px; margin-top:15px;}
 	#api-options {margin-top: 78px; margin-left:.6%; margin-bottom:15px; }
-
+	.header {height:115px;}
 }
 
 @media all and (min-width: 1600px) 
@@ -1016,7 +1018,7 @@ li.arg code {
 	.primary-nav  {font-size:25px; margin-top:-95px; }
 	.primary-nav-foot  {font-size:25px; margin-right: 16%; margin-top:15px;}
 	#api-options {margin-top: 78px; margin-left:.2%; margin-bottom:15px; }
-
+	.header {height:135px;}
 }
 
 /* Button reskin */

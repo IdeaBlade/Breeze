@@ -7,8 +7,9 @@
         title: ko.observable(""),
         status: ko.observable(""),
         initialize: function() {
-            ko.compose('shell', null, "#applicationHost");
-            this.navigate('login');
+            ko.compose('shell', null, "#applicationHost", function() {
+                shell.navigate('login');
+            });
         },
         validationMessages: ko.observable([]),
         showErrors: function() {

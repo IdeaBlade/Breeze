@@ -7,7 +7,9 @@ function (core, m_entityMetadata) {
     var remoteAccess_odata = {};
     // -------------------------------------------
     
-    OData.jsonHandler.recognizeDates = true;
+    if (this.OData) {
+        this.OData.jsonHandler.recognizeDates = true;
+    }
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);

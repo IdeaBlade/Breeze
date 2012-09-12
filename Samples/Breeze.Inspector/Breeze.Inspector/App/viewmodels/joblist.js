@@ -16,12 +16,8 @@
     };
 
     function processJobQueryResults(data) {
-        shell.status(data.results.length + " jobs found.");
-
-        vm.jobs([]);
-        data.results.forEach(function(item) {
-            vm.jobs.push(item);
-        });
+        vm.jobs(data.results);
+        shell.status(vm.jobs().length + " jobs found.");
     }
 
     return vm;

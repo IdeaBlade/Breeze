@@ -23,11 +23,11 @@
 <div id="wrap">
 
 <div id="doc">
-<!-- commenting out until beta goes live
+<div class="header">
 <div class="logo">
 	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
 	</div>
--->
+
     <div class="primary-nav">
 <ul>
 		<li>
@@ -45,6 +45,7 @@
 		<li>
 			<a href="/contact">Contact</a></li>
 	</ul>
+</div>
 </div>
     <div id="bd" class="yui3-g">
 
@@ -964,7 +965,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             &#x2F;&#x2F; HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
             var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
-            &#x2F;&#x2F; var saveBundleStringified = stringifySaveBundle(saveBundle);
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -1683,7 +1683,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmappedProperty) return;
                 var propName = dp.name;
-                targetEntity.setProperty(propName, rawEntity[propName]);
+                var val = rawEntity[propName];
+                if (dp.dataType === DataType.DateTime &amp;&amp; val) {
+                    &#x2F;&#x2F; Does not work - returns time offset from GMT (i think)
+                    &#x2F;&#x2F; val = new Date(val);
+                    val = core.dateFromIsoString(val);
+                }
+                targetEntity.setProperty(propName, val);
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {
