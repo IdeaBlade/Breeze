@@ -20,9 +20,9 @@ If you're using Visual Studio 2012:
 
 ## Learn more
 
-   * [Breezejs.com](http://http://www.breezejs.com/)
-   * [Docs](http://http://www.breezejs.com/documentation/introduction)
-   * [API](http://http://www.breezejs.com/sites/all/apidocs/index.html/)
+   * [Breezejs.com](http://www.breezejs.com/)
+   * [Docs](http://www.breezejs.com/documentation/introduction)
+   * [API](http://www.breezejs.com/sites/all/apidocs/index.html)
 
 ##Contact us
 
