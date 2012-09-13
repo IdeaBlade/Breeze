@@ -250,10 +250,6 @@
       <Link>Scripts\ThirdParty\qunit.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.test.js">
-      <Link>Scripts\ThirdParty\qunit.test.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\r.js">
       <Link>Scripts\ThirdParty\r.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

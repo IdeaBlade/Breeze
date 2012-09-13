@@ -12,13 +12,15 @@ namespace Breeze.WebApi {
   public class ExpressionTreeBuilder {
 
     public ExpressionTreeBuilder() {
-      var grammer = new ODataFilterGrammar();
-      _parser = new Parser(grammer);
-
+      
     }
 
     public Expression Parse(Type rootType, String source) {
-      var parseTree = _parser.Parse(source);
+      if (__parser == null) {
+        var grammar = new ODataFilterGrammar();
+        __parser = new Parser(grammar);
+      }
+      var parseTree = __parser.Parse(source);
       if (parseTree == null || parseTree.Root == null) {
         throw new Exception("Unable to parse: " + source);
       }
@@ -27,7 +29,9 @@ namespace Breeze.WebApi {
       return expr;
     }
 
-    private Parser _parser;
+
+    [ThreadStatic]
+    private static Parser __parser;
 
   }
 

@@ -691,7 +691,7 @@ define(["testFns"], function (testFns) {
             var newq1Url = newq1._toUri();
             em.executeQuery(newq1, function (data1) {
                 var custs1 = data1.results;
-                equals(custs1.length, products.length - skipTakeCount);
+                equal(custs1.length, products.length - skipTakeCount);
                 sc.start();
             }).fail(testFns.handleFail);
 
@@ -699,7 +699,7 @@ define(["testFns"], function (testFns) {
             var newq2Url = newq1._toUri();
             em.executeQuery(newq2, function (data2) {
                 var custs2 = data2.results;
-                equals(custs2.length, skipTakeCount);
+                equal(custs2.length, skipTakeCount);
                 sc.start();
             }).fail(testFns.handleFail);
 
@@ -707,7 +707,7 @@ define(["testFns"], function (testFns) {
             var newq3Url = newq1._toUri();
             em.executeQuery(newq3, function (data3) {
                 var custs3 = data3.results;
-                equals(custs3.length, skipTakeCount);
+                equal(custs3.length, skipTakeCount);
                 sc.start();
             }).fail(testFns.handleFail);
 
@@ -1062,7 +1062,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("server side include many with filter - customers and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Not supported with OData");
+            return;
+        } 
         stop();
         var em = new EntityManager(testFns.ServiceName);
 
@@ -1096,7 +1099,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("server side include many with take - customers and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Not supported with OData");
+            return;
+        } 
         expect(5);
         var em = new EntityManager(testFns.ServiceName);
 
@@ -1139,7 +1145,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("server side include, followed by local query", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Not supported with OData");
+            return;
+        } 
         stop();
         var em = new EntityManager(testFns.ServiceName);
 
@@ -1219,7 +1228,10 @@ define(["testFns"], function (testFns) {
     });
     
     test("raw odata - server side include many - customer and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function (data, status) {
             ok(data);
@@ -1231,7 +1243,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("raw odata - server side include 1 - order and customer", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function (data, status) {
             ok(data);
@@ -1244,7 +1259,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("WebApi metadata", function () {
-        if (!testFns.DEBUG_WEBAPI) return;
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "NA for OData impl");
+            return;
+        }
         stop();
         $.getJSON("api/NorthwindIBModel/Metadata", function (data, status) {
             // On success, 'data' contains the model metadata.

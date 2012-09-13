@@ -38,17 +38,12 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
+    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
         $.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
-            var entities = core.using(entityManager, "isLoading", true, function () {
-                return data.map(function (rawEntity) {
-                    return entityCallback(rawEntity);
-                });
-            });
-            collectionCallback({ results: entities });
+            collectionCallback(data);
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
         });
@@ -87,7 +82,12 @@ function (core, m_entityMetadata) {
     remoteAccess_webApi.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
-            return queryContext.refMap[id];
+            var entity = queryContext.refMap[id];
+            if (entity === undefined) {
+                return function() { return queryContext.refIdMap[id]; };
+            } else {
+                return entity;
+            }
         }
 
         queryContext.refId = rawEntity['$id'];

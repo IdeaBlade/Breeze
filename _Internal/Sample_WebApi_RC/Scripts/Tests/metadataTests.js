@@ -54,12 +54,12 @@ define(["testFns"], function (testFns) {
             ok(navProp.isNavigationProperty);
             var notProp = custType.getProperty("foo");
             ok(!notProp);
-            equals(prop.name, keys[0].name);
+            equal(prop.name, keys[0].name);
             start();
         });
     });
 
-    test("initialization concurrent", function () {
+    test("initialization concurrent", 2, function () {
 
         var store = new MetadataStore();
         var sc = new testFns.StopCount(2);
@@ -70,10 +70,12 @@ define(["testFns"], function (testFns) {
         };
         testFns.remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
             typeMap = store._entityTypeMap;
+            ok(true, "should get here");
             sc.start();
         }, errFn);
         testFns.remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
             typeMap = store._entityTypeMap;
+            ok(true, "should also get here");
             sc.start();
         }, errFn);
     });

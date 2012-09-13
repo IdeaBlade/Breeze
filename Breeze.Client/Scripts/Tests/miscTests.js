@@ -65,8 +65,8 @@ define(["testFns"], function (testFns) {
         var obj = {};
         obj["foo"] = fn;
         obj["foo"]["bar"] = 999;
-        equals(999, obj.foo.bar);
-        equals(obj.foo(), undefined);
+        ok(999 === obj.foo.bar);
+        ok(obj.foo() === undefined);
     });
 
     test("attaching a property to a string is a noop", function () {

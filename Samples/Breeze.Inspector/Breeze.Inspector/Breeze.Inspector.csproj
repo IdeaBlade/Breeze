@@ -137,6 +137,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InspectorController.cs" />
+    <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -156,12 +157,15 @@
     <Content Include="App\lib\jquery-1.7.2.min.js" />
     <Content Include="App\lib\knockout-2.1.0.js" />
     <Content Include="App\lib\q.js" />
+    <Content Include="App\lib\qunit.js" />
     <Content Include="App\lib\require.js" />
     <Content Include="App\lib\text.js" />
     <Content Include="App\main.js" />
     <Content Include="App\services\dataservice.js" />
     <Content Include="App\behaviors\CheckboxGroup.js" />
     <Content Include="App\behaviors\Dropdown.js" />
+    <Content Include="App\testRunner.js" />
+    <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />
     <Content Include="App\viewmodels\inspection.js" />
     <Content Include="App\viewmodels\joblist.js" />
     <Content Include="App\viewmodels\login.js" />
@@ -184,6 +188,7 @@
     <Content Include="Global.asax" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
+    <Content Include="Styles\qunit.css" />
     <Content Include="Styles\reset.css" />
     <Content Include="Styles\shared.css" />
     <Content Include="Styles\wide.css" />
@@ -202,6 +207,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Test\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

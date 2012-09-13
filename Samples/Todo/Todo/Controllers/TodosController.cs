@@ -9,46 +9,43 @@
     public class TodosController : ApiController {
 
         static readonly TimeSpan RefreshRate = TimeSpan.FromMinutes(20);
-        static DateTime lastRefresh = DateTime.Now; // will first clear db at Now + "RefreshRate" 
+        private static readonly object Locker = new object();
+        static DateTime _lastRefresh = DateTime.Now; // will first clear db at Now + "RefreshRate" 
         // static DateTime lastRefresh = DateTime.MinValue; // will clear when server starts
 
-        readonly EFContextProvider<TodosContext> contextProvider =
+        readonly EFContextProvider<TodosContext> _contextProvider =
             new EFContextProvider<TodosContext>("TodosContext");
 
         public TodosController()
         {
-            if ((DateTime.Now - lastRefresh) > RefreshRate)
-            {
-                Reset();
-                lastRefresh = DateTime.Now;
-            }
+            PeriodicReset();
         }
 
 
         // ~/api/todos/Metadata 
         [AcceptVerbs("GET")]
         public string Metadata() {
-            return contextProvider.Metadata();
+            return _contextProvider.Metadata();
         }
 
         // ~/api/todos/Todos
         // ~/api/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
         [AcceptVerbs("GET")]
         public IQueryable<TodoItem> Todos() {
-            return contextProvider.Context.Todos;
+            return _contextProvider.Context.Todos;
         }
 
         // ~/api/todos/SaveChanges
         [AcceptVerbs("POST")]
         public SaveResult SaveChanges(JArray saveBundle) {
-            return contextProvider.SaveChanges(saveBundle);
+            return _contextProvider.SaveChanges(saveBundle);
         }
 
         // ~/api/todos/purge
         [AcceptVerbs("POST")]
         public string Purge()
         {
-            TodoDatabaseInitializer.PurgeDatabase(contextProvider.Context);
+            TodoDatabaseInitializer.PurgeDatabase(_contextProvider.Context);
             return "purged";
         }
 
@@ -57,8 +54,27 @@
         public string Reset()
         {
             Purge();
-            TodoDatabaseInitializer.SeedDatabase(contextProvider.Context);
+            TodoDatabaseInitializer.SeedDatabase(_contextProvider.Context);
             return "reset";
+        }
+
+        /// <summary>
+        /// Reset the database to it's initial data state after the server has run 
+        /// for "RefreshRate" minutes.
+        /// </summary>
+        private void PeriodicReset()
+        {
+            if ((DateTime.Now - _lastRefresh) > RefreshRate)
+            {
+                lock (Locker)
+                {
+                    if ((DateTime.Now - _lastRefresh) > RefreshRate)
+                    {
+                        _lastRefresh = DateTime.Now;
+                        Reset();
+                    }
+                }
+            }
         }
     }
 }

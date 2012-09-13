@@ -103,6 +103,7 @@ define(["testFns"], function (testFns) {
         }).fail(function(error) {
             // TODO: let see if we can't improve this error message.
             var x = error;
+            ok(true, "should get here");
             start();
         });
     });

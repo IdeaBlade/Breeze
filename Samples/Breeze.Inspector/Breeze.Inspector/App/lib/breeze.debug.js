@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
- * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license.html
+ * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Jay Traband
  */
@@ -4542,23 +4542,28 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
-            var isTrackableProperty = core.config.trackingImplementation.isTrackableProperty;
+            var isUnmappedProperty = function(inst, propName) {
+                if (Object.keys(inst).indexOf(propName) === -1) return false;
+                if (core.isFunction(inst[propName])) return false;
+                if (core.stringStartsWith(propName, "_$")) return false;
+                if (propName === "entityType") return false;
+                if (currentPropertyNames.indexOf(propName) >= 0) return false;
+                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
+            };
 
-            Object.getOwnPropertyNames(instance).forEach(function (propName) {
-                if (isTrackableProperty(instance, propName)) {
-                    if (currentPropertyNames.indexOf(propName) === -1) {
-                        var newProp = new DataProperty({
-                            parentEntityType: entityType,
-                            name: propName,
-                            dataType: DataType.Undefined,
-                            isNullable: true,
-                            isUnmappedProperty: true
-                        });
-                        entityType.dataProperties.push(newProp);
-                        entityType.unmappedProperties.push(newProp);
-                    }
+            for (var propertyName in instance) {
+                if (isUnmappedProperty(instance, propertyName)) {
+                    var newProp = new DataProperty({
+                        parentEntityType: entityType,
+                        name: propertyName,
+                        dataType: DataType.Undefined,
+                        isNullable: true,
+                        isUnmappedProperty: true
+                    });
+                    entityType.dataProperties.push(newProp);
+                    entityType.unmappedProperties.push(newProp);
                 }
-            });
+            };
         }
 
         return ctor;
@@ -8374,26 +8379,38 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
                 var odataQuery = toOdataQueryString(query, metadataStore);
-                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {} };
+                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {}, deferredFns: [] };
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
-                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntity) {
-                    var entity = mergeEntity(rawEntity, queryContext);
-                    // anon types and simple types will not have an entityAspect.
-                    if (validateOnQuery && entity.entityAspect) {
-                        entity.entityAspect.validateEntity();
-                    }
-                    return entity;
-                }, deferred.resolve, deferred.reject);
-
+                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
+                    var result = core.using(em, "isLoading", true, function() {
+                        var entities = rawEntities.map(function(rawEntity) {
+                            // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
+                            // mergeEntity can return deferred functions.
+                            var entity = mergeEntity(rawEntity, queryContext);
+                            // anon types and simple types will not have an entityAspect.
+                            if (validateOnQuery && entity.entityAspect) {
+                                entity.entityAspect.validateEntity();
+                            }
+                            return entity;
+                        });
+                        if (queryContext.deferredFns.length > 0) {
+                           queryContext.deferredFns.forEach(function(fn) {
+                                fn();
+                            });
+                        }
+                        return { results: entities };
+                    });
+                    deferred.resolve( result);
+                }, deferred.reject);
                 return promise;
             } catch (e) {
                 return Q.reject(e);
             }
         }
 
-        function mergeEntity(rawEntity, queryContext, isSaving) {
+        function mergeEntity(rawEntity, queryContext, isSaving, isNestedInAnon) {
             
             var em = queryContext.entityManager;
             var mergeStrategy = queryContext.mergeStrategy;
@@ -8408,7 +8425,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             // TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
-            if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            // if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            if (isSelectQuery(queryContext.query) && !isNestedInAnon) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
             var entityType = em.metadataStore.getEntityType(entityTypeName);
@@ -8456,17 +8474,35 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return targetEntity;
         }
         
+         function isSelectQuery(query) {
+            if (query == null) {
+                return false;
+            } else if (typeof query === 'string') {
+                return query.indexOf("$select") >= 0;
+            } else {
+                return !!query.selectClause;
+            }
+        }
+        
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var result = core.objectMapValue(rawEntity, function(key, value) {
+                if (value == null) {
+                    return value;
+                }
+                if (key == "__metadata") {
+                    return undefined;
+                }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
                     return undefined;
-                }
+                } 
                 if (Array.isArray(value)) {
                     return value.map(function(v) {
-                        if (v.$type) {
-                            return mergeEntity(v, queryContext, isSaving);
+                        if (v == null) {
+                            return v;
+                        } else if (v.$type || v.__metadata) {
+                            return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
                             return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
                         } else {
@@ -8474,8 +8510,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         }
                     });
                 } else {
-                    if (value.$type) {
-                        return mergeEntity(value, queryContext, isSaving);
+                    if (value.$type || value.__metadata) {
+                        return mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
                         return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
@@ -8494,9 +8530,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var propName = dp.name;
                 var val = rawEntity[propName];
                 if (dp.dataType === DataType.DateTime && val) {
-                    // Does not work - returns time offset from GMT (i think)
-                    // val = new Date(val);
-                    val = core.dateFromIsoString(val);
+                    if (!core.isDate(val)) {
+                        // Does not work - returns time offset from GMT (i think)
+                        // val = new Date(val);
+                        val = core.dateFromIsoString(val);
+                    }
                 }
                 targetEntity.setProperty(propName, val);
             });
@@ -8524,7 +8562,19 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return;
             }
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            if (typeof relatedEntity === 'function') {
+                queryContext.deferredFns.push(function() {
+                    relatedEntity = relatedEntity();
+                    updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
+                });
+            } else {
+                updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
+            }
+        }
+        
+        function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
             if (!relatedEntity) return;
+            var propName = navigationProperty.name;
             var currentRelatedEntity = targetEntity.getProperty(propName);
             // check if the related entity is already hooked up
             if (currentRelatedEntity != relatedEntity) {
@@ -8539,7 +8589,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     collection.push(targetEntity);
                 }
             }
-
         }
 
         function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
@@ -8559,16 +8608,27 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             relatedEntities.wasLoaded = true;
             relatedRawEntities.forEach(function (relatedRawEntity) {
                 var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
-                if (!relatedEntity) return;
-                // check if the related entity is already hooked up
-                var thisEntity = relatedEntity.getProperty(inverseProperty.name);
-                if (thisEntity !== targetEntity) {
-                    // if not - hook it up.
-                    relatedEntities.push(relatedEntity);
-                    relatedEntity.setProperty(inverseProperty.name, targetEntity);
+                if (typeof relatedEntity === 'function') {
+                    queryContext.deferredFns.push(function() {
+                        relatedEntity = relatedEntity();
+                        updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                    });
+                } else {
+                    updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
                 }
             });
         };
+        
+        function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
+            if (!relatedEntity) return;
+            // check if the related entity is already hooked up
+            var thisEntity = relatedEntity.getProperty(inverseProperty.name);
+            if (thisEntity !== targetEntity) {
+                // if not - hook it up.
+                relatedEntities.push(relatedEntity);
+                relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            }
+        }
 
         function updateConcurrencyProperties(entities) {
             var candidates = entities.filter(function (e) {
@@ -9251,17 +9311,12 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
+    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
         $.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
-            var entities = core.using(entityManager, "isLoading", true, function () {
-                return data.map(function (rawEntity) {
-                    return entityCallback(rawEntity);
-                });
-            });
-            collectionCallback({ results: entities });
+            collectionCallback(data);
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
         });
@@ -9300,11 +9355,17 @@ function (core, m_entityMetadata) {
     remoteAccess_webApi.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
-            return queryContext.refMap[id];
+            var entity = queryContext.refMap[id];
+            if (entity === undefined) {
+                return function() { return queryContext.refIdMap[id]; };
+            } else {
+                return entity;
+            }
         }
 
         queryContext.refId = rawEntity['$id'];
     };
+    
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
@@ -9357,23 +9418,20 @@ function (core, m_entityMetadata) {
 
     var remoteAccess_odata = {};
     // -------------------------------------------
+    
+    if (this.OData) {
+        this.OData.jsonHandler.recognizeDates = true;
+    }
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
     };
 
-    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
-        var metadataStore = entityManager.metadataStore;
+    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
-                var entities = core.using(entityManager, "isLoading", true, function () {
-                    // TODO: check response object here for possible errors.
-                    return data.results.map(function (rawEntity) {
-                        return entityCallback(rawEntity);
-                    });
-                });
-                collectionCallback({ results: entities });
+                collectionCallback( data.results);
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));
@@ -9421,6 +9479,10 @@ function (core, m_entityMetadata) {
             OData.metadataHandler
         );
 
+    };
+
+    remoteAccess_odata.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+        throw new Error("Breeze does not yet support saving thru OData");
     };
 
     function getMetadataUrl(serviceName) {
@@ -9693,7 +9755,7 @@ function (core, makeRelationArray) {
 
     trackingImpl.isTrackableProperty = function (entity, propertyName) {
         if (propertyName === '_backingStore') return false;
-        if (core.isFunction(entity[propertyName])) return false;
+        if (propertyName === "_pendingSets") return false;
         return true;
     };
 

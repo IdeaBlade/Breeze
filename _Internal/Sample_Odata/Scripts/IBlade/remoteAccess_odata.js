@@ -7,24 +7,19 @@ function (core, m_entityMetadata) {
     var remoteAccess_odata = {};
     // -------------------------------------------
     
-    OData.jsonHandler.recognizeDates = true;
+    if (this.OData) {
+        this.OData.jsonHandler.recognizeDates = true;
+    }
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
     };
 
-    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
-        var metadataStore = entityManager.metadataStore;
+    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
-                var entities = core.using(entityManager, "isLoading", true, function () {
-                    // TODO: check response object here for possible errors.
-                    return data.results.map(function (rawEntity) {
-                        return entityCallback(rawEntity);
-                    });
-                });
-                collectionCallback({ results: entities });
+                collectionCallback( data.results);
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));

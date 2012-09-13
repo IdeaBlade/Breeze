@@ -111,7 +111,7 @@ define(["testFns"], function (testFns) {
             }).fail(testFns.handleFail);
     });
 
-    test("allow concurrent saves with concurrency column", function() {
+    test("allow concurrent saves with concurrency column", 2, function() {
         var em = newEm();
         em.saveOptions = new SaveOptions({ allowConcurrentSaves: true });
         var q = new EntityQuery()
@@ -125,6 +125,7 @@ define(["testFns"], function (testFns) {
         function handleSaveResult(sr) {
             savedCount = savedCount + 1;
             if (savedCount == 1) {
+                ok(true, "should have gotten here");
                 return;
             }
             if (savedCount == 2) {
@@ -135,6 +136,7 @@ define(["testFns"], function (testFns) {
         function handleFailResult(err) {
             var msg = err.message;
             if ( msg.indexOf("Store update, insert")>=0) {
+                ok(true, "should also have gotten here");
                 start();
             } else {
                 ok(false, "should not get here: " + msg);
@@ -160,7 +162,7 @@ define(["testFns"], function (testFns) {
         });
     });
     
-    test("allow concurrent saves with NO concurrency column", function() {
+    test("allow concurrent saves with NO concurrency column", 2, function() {
         var em = newEm();
         em.saveOptions = new SaveOptions({ allowConcurrentSaves: true });
         var q = new EntityQuery()
@@ -175,6 +177,7 @@ define(["testFns"], function (testFns) {
         function handleSaveResult(sr) {
             savedCount = savedCount + 1;
             if (savedCount == 1) {
+                ok(true, "should have gotten here");
                 return;
             }
             if (savedCount == 2) {
@@ -209,7 +212,7 @@ define(["testFns"], function (testFns) {
         });
     });
     
-    test("disallow concurrent saves with NO concurrency column", function() {
+    test("disallow concurrent saves with NO concurrency column",2, function() {
         var em = newEm();
         // Next line is not needed because it is the default
         // em.saveOptions = new SaveOptions({ allowConcurrentSaves: false });
@@ -221,10 +224,15 @@ define(["testFns"], function (testFns) {
         var prod;
         
         var savedCount = 0;
+        var failedCount = 0;
         
         function handleSaveResult(sr) {
             savedCount = savedCount + 1;
             if (savedCount == 1) {
+                ok(true, "should have gotten here");
+                if (failedCount == 1) {
+                    start();
+                }
                 return;
             }
             if (savedCount == 2) {
@@ -234,9 +242,13 @@ define(["testFns"], function (testFns) {
         }
         
         function handleFailResult(err) {
+            failedCount = failedCount + 1;
             var msg = err.message;
             if ( msg.indexOf("allowConcurrentSaves")>=0) {
-                start();
+                ok(true, "should also have gotten here");
+                if (savedCount == 1) {
+                    start();
+                }
             } else {
                 ok(false, "should not get here: " + msg);
                 start();

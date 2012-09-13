@@ -8379,19 +8379,31 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
                 var odataQuery = toOdataQueryString(query, metadataStore);
-                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {} };
+                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {}, deferredFns: [] };
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
-                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntity) {
-                    var entity = mergeEntity(rawEntity, queryContext);
-                    // anon types and simple types will not have an entityAspect.
-                    if (validateOnQuery && entity.entityAspect) {
-                        entity.entityAspect.validateEntity();
-                    }
-                    return entity;
-                }, deferred.resolve, deferred.reject);
-
+                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
+                    var result = core.using(em, "isLoading", true, function() {
+                        var entities = rawEntities.map(function(rawEntity) {
+                            // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
+                            // mergeEntity can return deferred functions.
+                            var entity = mergeEntity(rawEntity, queryContext);
+                            // anon types and simple types will not have an entityAspect.
+                            if (validateOnQuery && entity.entityAspect) {
+                                entity.entityAspect.validateEntity();
+                            }
+                            return entity;
+                        });
+                        if (queryContext.deferredFns.length > 0) {
+                           queryContext.deferredFns.forEach(function(fn) {
+                                fn();
+                            });
+                        }
+                        return { results: entities };
+                    });
+                    deferred.resolve( result);
+                }, deferred.reject);
                 return promise;
             } catch (e) {
                 return Q.reject(e);
@@ -8550,7 +8562,19 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return;
             }
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            if (typeof relatedEntity === 'function') {
+                queryContext.deferredFns.push(function() {
+                    relatedEntity = relatedEntity();
+                    updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
+                });
+            } else {
+                updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
+            }
+        }
+        
+        function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
             if (!relatedEntity) return;
+            var propName = navigationProperty.name;
             var currentRelatedEntity = targetEntity.getProperty(propName);
             // check if the related entity is already hooked up
             if (currentRelatedEntity != relatedEntity) {
@@ -8565,7 +8589,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     collection.push(targetEntity);
                 }
             }
-
         }
 
         function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
@@ -8585,16 +8608,27 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             relatedEntities.wasLoaded = true;
             relatedRawEntities.forEach(function (relatedRawEntity) {
                 var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
-                if (!relatedEntity) return;
-                // check if the related entity is already hooked up
-                var thisEntity = relatedEntity.getProperty(inverseProperty.name);
-                if (thisEntity !== targetEntity) {
-                    // if not - hook it up.
-                    relatedEntities.push(relatedEntity);
-                    relatedEntity.setProperty(inverseProperty.name, targetEntity);
+                if (typeof relatedEntity === 'function') {
+                    queryContext.deferredFns.push(function() {
+                        relatedEntity = relatedEntity();
+                        updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                    });
+                } else {
+                    updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
                 }
             });
         };
+        
+        function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
+            if (!relatedEntity) return;
+            // check if the related entity is already hooked up
+            var thisEntity = relatedEntity.getProperty(inverseProperty.name);
+            if (thisEntity !== targetEntity) {
+                // if not - hook it up.
+                relatedEntities.push(relatedEntity);
+                relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            }
+        }
 
         function updateConcurrencyProperties(entities) {
             var candidates = entities.filter(function (e) {
@@ -9277,17 +9311,12 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
+    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
         $.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
-            var entities = core.using(entityManager, "isLoading", true, function () {
-                return data.map(function (rawEntity) {
-                    return entityCallback(rawEntity);
-                });
-            });
-            collectionCallback({ results: entities });
+            collectionCallback(data);
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
         });
@@ -9326,7 +9355,12 @@ function (core, m_entityMetadata) {
     remoteAccess_webApi.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
-            return queryContext.refMap[id];
+            var entity = queryContext.refMap[id];
+            if (entity === undefined) {
+                return function() { return queryContext.refIdMap[id]; };
+            } else {
+                return entity;
+            }
         }
 
         queryContext.refId = rawEntity['$id'];
@@ -9393,18 +9427,11 @@ function (core, m_entityMetadata) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
     };
 
-    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, entityCallback, collectionCallback, errorCallback) {
-        var metadataStore = entityManager.metadataStore;
+    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
-                var entities = core.using(entityManager, "isLoading", true, function () {
-                    // TODO: check response object here for possible errors.
-                    return data.results.map(function (rawEntity) {
-                        return entityCallback(rawEntity);
-                    });
-                });
-                collectionCallback({ results: entities });
+                collectionCallback( data.results);
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));

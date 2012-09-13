@@ -225,6 +225,8 @@ define(["testFns"], function (testFns) {
     });
 
     test("createEntity and check default values", function () {
+        var et = metadataStore.getEntityType("Customer");
+        checkDefaultValues(et);
         var entityTypes = metadataStore.getEntityTypes();
         entityTypes.forEach(function (et) {
             checkDefaultValues(et);
@@ -490,8 +492,6 @@ define(["testFns"], function (testFns) {
         ok(c.getProperty("CompanyName") === "Test", "companyName should be 'Test' after rejectChanges");
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after reject changes");
     }
-
-
 
     function checkDefaultValues(entityType) {
         var props = entityType.getProperties();
