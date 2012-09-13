@@ -218,6 +218,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._entityTypeMap = {}; &#x2F;&#x2F; key is qualified entitytype name - value is entityType.
             this._shortNameMap = {}; &#x2F;&#x2F; key is shortName, value is qualified name
             this._id = __id++;
+            this._typeRegistry = { };
             
         };
         
@@ -418,16 +419,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(entityTypeName, &quot;entityTypeName&quot;).isString().check();
             assertParam(entityCtor, &quot;entityCtor&quot;).isFunction().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var typeName;
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
                     entityType.setEntityCtor(entityCtor);
                 }
-                core.config.registerType(entityCtor, qualifiedTypeName);
+                typeName = qualifiedTypeName;
             } else {
-                core.config.registerType(entityCtor, entityTypeName);
+                typeName = entityTypeName;
             }
-
+            entityCtor.prototype._$typeName = typeName;
+            this._typeRegistry[typeName] = entityCtor;
         };
       
 
@@ -589,7 +592,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         entityType._postProcess();
                         that._registerEntityType(entityType);
                         &#x2F;&#x2F; check if this entityTypeName, short version or qualified version has a registered ctor.
-                        var entityCtor = core.config.typeRegistry[entityType.name] || core.config.typeRegistry[entityType.shortName];
+                        var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
                         if (entityCtor) {
                              &#x2F;&#x2F; next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
@@ -967,7 +970,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **&#x2F;
         ctor.prototype.getEntityCtor = function () {
             if (this._entityCtor) return this._entityCtor;
-            var entityCtor = core.config.typeRegistry[this.name] || core.config.typeRegistry[this.shortName];
+            var typeRegistry = this.metadataStore._typeRegistry;
+            var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
                 entityCtor = function () { };
             }
@@ -1268,23 +1272,28 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
-            var isTrackableProperty = core.config.trackingImplementation.isTrackableProperty;
+            var isUnmappedProperty = function(inst, propName) {
+                if (Object.keys(inst).indexOf(propName) === -1) return false;
+                if (core.isFunction(inst[propName])) return false;
+                if (core.stringStartsWith(propName, &quot;_$&quot;)) return false;
+                if (propName === &quot;entityType&quot;) return false;
+                if (currentPropertyNames.indexOf(propName) &gt;= 0) return false;
+                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
+            };
 
-            Object.getOwnPropertyNames(instance).forEach(function (propName) {
-                if (isTrackableProperty(instance, propName)) {
-                    if (currentPropertyNames.indexOf(propName) === -1) {
-                        var newProp = new DataProperty({
-                            parentEntityType: entityType,
-                            name: propName,
-                            dataType: DataType.Undefined,
-                            isNullable: true,
-                            isUnmappedProperty: true
-                        });
-                        entityType.dataProperties.push(newProp);
-                        entityType.unmappedProperties.push(newProp);
-                    }
+            for (var propertyName in instance) {
+                if (isUnmappedProperty(instance, propertyName)) {
+                    var newProp = new DataProperty({
+                        parentEntityType: entityType,
+                        name: propertyName,
+                        dataType: DataType.Undefined,
+                        isNullable: true,
+                        isUnmappedProperty: true
+                    });
+                    entityType.dataProperties.push(newProp);
+                    entityType.unmappedProperties.push(newProp);
                 }
-            });
+            };
         }
 
         return ctor;

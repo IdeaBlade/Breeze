@@ -49,6 +49,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
+            this._typeRegistry = { };
             
         };
         
@@ -249,16 +250,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(entityCtor, "entityCtor").isFunction().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var typeName;
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
                     entityType.setEntityCtor(entityCtor);
                 }
-                core.config.registerType(entityCtor, qualifiedTypeName);
+                typeName = qualifiedTypeName;
             } else {
-                core.config.registerType(entityCtor, entityTypeName);
+                typeName = entityTypeName;
             }
-
+            entityCtor.prototype._$typeName = typeName;
+            this._typeRegistry[typeName] = entityCtor;
         };
       
 
@@ -420,7 +423,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         entityType._postProcess();
                         that._registerEntityType(entityType);
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
-                        var entityCtor = core.config.typeRegistry[entityType.name] || core.config.typeRegistry[entityType.shortName];
+                        var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
                         if (entityCtor) {
                              // next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
@@ -798,7 +801,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.getEntityCtor = function () {
             if (this._entityCtor) return this._entityCtor;
-            var entityCtor = core.config.typeRegistry[this.name] || core.config.typeRegistry[this.shortName];
+            var typeRegistry = this.metadataStore._typeRegistry;
+            var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
                 entityCtor = function () { };
             }
