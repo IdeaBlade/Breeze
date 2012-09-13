@@ -794,8 +794,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
             // are referenced are also in the partial save group
 
-            // HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
-            var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
+            var saveBundle = { entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions};
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();

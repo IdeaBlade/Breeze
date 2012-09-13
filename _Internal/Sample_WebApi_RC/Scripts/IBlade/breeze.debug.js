@@ -1442,14 +1442,6 @@ function (core, Enum, Event, m_assertParam) {
         });    
     @property remoteAccessImplementation {~remoteAccess-interface}
     **/
-    
-    /**
-    The version 'number' for this version of Breeze.
-
-    __readOnly__         
-    @property version {String}
-    **/
-    core.config.version = "0.53";
 
     /**
     @method setProperties
@@ -9985,7 +9977,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.88",
+        version: "0.53",
         core: core,
         entityModel: entityModel
     };
