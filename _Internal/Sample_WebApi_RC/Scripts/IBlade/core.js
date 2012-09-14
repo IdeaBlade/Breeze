@@ -64,7 +64,7 @@ function (core, Enum, Event, m_assertParam) {
         });    
     @property remoteAccessImplementation {~remoteAccess-interface}
     **/
-    
+
     /**
     @method setProperties
     @param config {Object}

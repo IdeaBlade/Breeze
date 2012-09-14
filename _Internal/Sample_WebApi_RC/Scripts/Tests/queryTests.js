@@ -35,7 +35,7 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    test("Order.OrderDate is a DateTime", function () {
+    test("date property is a DateTime", function () {
 
         // This is what the type of a date should be
         var someDate = new Date();
@@ -594,6 +594,25 @@ define(["testFns"], function (testFns) {
             ok(custs.length == 20, "should have 20 customers");
             ok(emps.length == 20, "should have 20 employees");
 
+            start();
+        }).fail(testFns.handleFail);
+    });
+    
+    test("expand recursive", function() {
+        var em = new EntityManager(testFns.ServiceName);
+
+        var query = new EntityQuery("Employees");
+
+        query = query.expand("Manager, DirectReports");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var emps = data.results;
+            
+            var managers = emps.map(function(emp) {
+                var manager = emp.getProperty("Manager");
+                ok(manager || manager==null, "manager should be null or have a value");
+                return manager;
+            });
             start();
         }).fail(testFns.handleFail);
     });
