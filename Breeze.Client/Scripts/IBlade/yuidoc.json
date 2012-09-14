@@ -1,7 +1,11 @@
 {
     "name": "The Breeze API",
     "description": "Client-Server data managment ... in JavaScript.",
+<<<<<<< PostBeta1-Build.054
     "version": "0.053",
+=======
+    "version": "0.53",
+>>>>>>> local
     "url": "http://www.breezejs.com/",
     "options": {
         "outdir": "../../../apidocs"
