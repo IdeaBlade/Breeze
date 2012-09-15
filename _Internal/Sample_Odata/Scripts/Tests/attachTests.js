@@ -23,9 +23,12 @@ define(["testFns"], function (testFns) {
             if (!metadataStore.isEmpty()) return;
             stop();
             var em = newEm();
-            em.fetchMetadata(function (rawMetadata) {
+            em.fetchMetadata(function(rawMetadata) {
                 var isEmptyMetadata = metadataStore.isEmpty();
                 ok(!isEmptyMetadata);
+                start();
+            }).fail(function(e) {
+                ok("false", "unable to initialize metadata: " + e);
                 start();
             });
         },

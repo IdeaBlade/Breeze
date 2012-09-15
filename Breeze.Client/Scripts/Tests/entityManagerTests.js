@@ -18,22 +18,11 @@ define(["testFns"], function (testFns) {
     var ValidationOptions = entityModel.ValidationOptions;
     var MergeStrategy = entityModel.MergeStrategy;
 
-    var metadataStore = new MetadataStore();
-
-    var newEm = function () {
-        return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
-    };
+    var newEm = testFns.newEm;
 
     module("entityManager", {
         setup: function () {
-            if (!metadataStore.isEmpty()) return;
-            stop();
-            var em = newEm();
-            em.fetchMetadata(function (rawMetadata) {
-                var isEmptyMetadata = metadataStore.isEmpty();
-                ok(!isEmptyMetadata);
-                start();
-            }).fail(testFns.handleFail);
+            testFns.setup();
         },
         teardown: function () {
 
@@ -53,9 +42,9 @@ define(["testFns"], function (testFns) {
     
     test("getChanges", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
-        var empType = metadataStore.getEntityType("Employee");
-        var custType = metadataStore.getEntityType("Customer");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
         for (var i = 0; i < 5; i++) {
             em.attachEntity(orderType.createEntity());
             em.attachEntity(empType.createEntity());
@@ -84,9 +73,9 @@ define(["testFns"], function (testFns) {
     
     test("entityChanged event", function() {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
-        var empType = metadataStore.getEntityType("Employee");
-        var custType = metadataStore.getEntityType("Customer");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
 
         var lastArgs, lastAction, lastEntity;
         em.entityChanged.subscribe(function(args) {
@@ -107,21 +96,21 @@ define(["testFns"], function (testFns) {
         ok(lastAction === EntityAction.Attach, "lastAction should have been 'Attach'");
         ok(lastEntity === emp, "last entity is wrong");
 
-        emp.setProperty("LastName", "Smith");
+        emp.setProperty("lastName", "Smith");
         ok(lastAction === EntityAction.PropertyChange, "lastAction should have been 'Attach'");
         ok(lastEntity === emp, "last entity is wrong");
-        ok(lastArgs.args.propertyName === "LastName", "PropertyName is wrong");
+        ok(lastArgs.args.propertyName === "lastName", "PropertyName is wrong");
 
         changedArgs = [];
         emp.entityAspect.rejectChanges();
         ok(changedArgs[0].entityAction === EntityAction.PropertyChange, "should have seen a property change");
-        ok(changedArgs[0].args.propertyName === "LastName", "PropertyName is wrong");
+        ok(changedArgs[0].args.propertyName === "lastName", "PropertyName is wrong");
         ok(changedArgs[1].entityAction === EntityAction.EntityStateChange, "should have seen a entityState change");
         ok(changedArgs[2].entityAction === EntityAction.RejectChanges, "lastAction should have been 'RejectChanges'");
         ok(lastEntity === emp, "last entity is wrong");
         
         
-        emp.setProperty("LastName", "Jones");
+        emp.setProperty("lastName", "Jones");
         changedArgs = [];
         emp.entityAspect.acceptChanges();
         ok(changedArgs[0].entityAction === EntityAction.EntityStateChange, "should have seen a entityState change");
@@ -145,7 +134,7 @@ define(["testFns"], function (testFns) {
         });
         var q = new EntityQuery()
             .from("Employees")
-            .orderBy("LastName")
+            .orderBy("lastName")
             .take(2);
         stop();
         em.executeQuery(q).then(function (data) {
@@ -155,7 +144,7 @@ define(["testFns"], function (testFns) {
             });
             var emps = data.results;
             ok(emps.length == 2, "results.length should be 2");
-            emps[0].setProperty("LastName", "Smith");
+            emps[0].setProperty("lastName", "Smith");
             changedArgs = [];
             return em.executeQuery(q);
         }).then(function(data1) {
@@ -178,9 +167,9 @@ define(["testFns"], function (testFns) {
 
     test("wasLoaded", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
-        var empType = metadataStore.getEntityType("Employee");
-        var custType = metadataStore.getEntityType("Customer");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
         var order1 = em.attachEntity(orderType.createEntity());
         ok(!order1.entityAspect.wasLoaded);
         var emp1 = em.attachEntity(empType.createEntity());
@@ -198,9 +187,9 @@ define(["testFns"], function (testFns) {
 
     test("persist entityMetadata", function () {
         var em = newEm();
-        var ets = metadataStore.getEntityTypes();
-        var snames = metadataStore.serviceNames;
-        var exportedStore = metadataStore.export();
+        var ets = em.metadataStore.getEntityTypes();
+        var snames = em.metadataStore.serviceNames;
+        var exportedStore = em.metadataStore.export();
         var newMs = new MetadataStore();
         newMs.import(exportedStore);
         var exportedStore2 = newMs.export();
@@ -233,28 +222,28 @@ define(["testFns"], function (testFns) {
 
     test("persist entityManager", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
+        var orderType = em.metadataStore.getEntityType("Order");
         // we want to have our reconsituted em to have different ids than our current em.
         em.keyGenerator.generateTempKeyValue(orderType);
-        var empType = metadataStore.getEntityType("Employee");
-        var custType = metadataStore.getEntityType("Customer");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
         var order1 = em.addEntity(orderType.createEntity());
         ok(!order1.entityAspect.wasLoaded);
         var emp1 = em.addEntity(empType.createEntity());
         ok(!emp1.entityAspect.wasLoaded);
-        emp1.setProperty("LastName", "bar");
+        emp1.setProperty("lastName", "bar");
         var cust1 = em.addEntity(custType.createEntity());
-        cust1.setProperty("CompanyName", "foo");
+        cust1.setProperty("companyName", "foo");
         ok(!cust1.entityAspect.wasLoaded);
-        order1.setProperty("Employee", emp1);
-        order1.setProperty("Customer", cust1);
+        order1.setProperty("employee", emp1);
+        order1.setProperty("customer", cust1);
         var q = new EntityQuery().from("Employees").take(2);
         stop();
         var em2;
         em.executeQuery(q, function (data) {
             ok(data.results.length == 2, "results.length should be 2");
             var exportedEm = em.export();
-            em2 = new EntityManager();
+            em2 = newEm();
             em2.import(exportedEm);
             var r2 = em2.executeQueryLocally(q);
             ok(r2.length === 2, "should return 2 records");
@@ -263,12 +252,12 @@ define(["testFns"], function (testFns) {
             var addedCusts = em2.getChanges(custType, EntityState.Added);
             ok(addedCusts.length === 1, "should be 1 added customer");
             var order1x = addedOrders[0];
-            var cust1x = order1x.getProperty("Customer");
+            var cust1x = order1x.getProperty("customer");
             ok(cust1x, "should have found a customer");
-            ok(cust1x.getProperty("CompanyName") === "foo", "CompanyName should be 'foo'");
-            var emp1x = order1x.getProperty("Employee");
+            ok(cust1x.getProperty("companyName") === "foo", "CompanyName should be 'foo'");
+            var emp1x = order1x.getProperty("employee");
             ok(emp1x, "should have found an employee");
-            ok(emp1x.getProperty("LastName") === "bar", "LastName should be 'bar'");
+            ok(emp1x.getProperty("lastName") === "bar", "LastName should be 'bar'");
         }).then(function (data3) {
             start();
         }).fail(testFns.handleFail);
@@ -276,21 +265,21 @@ define(["testFns"], function (testFns) {
     
    test("persist entityManager partial", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
+        var orderType = em.metadataStore.getEntityType("Order");
         // we want to have our reconsituted em to have different ids than our current em.
         em.keyGenerator.generateTempKeyValue(orderType);
-        var empType = metadataStore.getEntityType("Employee");
-        var custType = metadataStore.getEntityType("Customer");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
         var order1 = em.addEntity(orderType.createEntity());
         ok(!order1.entityAspect.wasLoaded);
         var emp1 = em.addEntity(empType.createEntity());
         ok(!emp1.entityAspect.wasLoaded);
-        emp1.setProperty("LastName", "bar");
+        emp1.setProperty("lastName", "bar");
         var cust1 = em.addEntity(custType.createEntity());
-        cust1.setProperty("CompanyName", "foo");
+        cust1.setProperty("companyName", "foo");
         ok(!cust1.entityAspect.wasLoaded);
         // order1.setProperty("Employee", emp1);
-        order1.setProperty("Customer", cust1);
+        order1.setProperty("customer", cust1);
         var q = new EntityQuery().from("Customers").take(2);
         stop();
         var em2;
@@ -298,7 +287,7 @@ define(["testFns"], function (testFns) {
             ok(data.results.length == 2, "results.length should be 2");
             var cust2 = data.results[0];
             var exportedEm = em.export([order1, cust1, cust2]);
-            em2 = new EntityManager();
+            em2 = newEm();
             em2.import(exportedEm);
             var r2 = em2.executeQueryLocally(q);
             ok(r2.length === 2, "should return 2 records");
@@ -307,9 +296,9 @@ define(["testFns"], function (testFns) {
             var addedCusts = em2.getChanges(custType, EntityState.Added);
             ok(addedCusts.length === 1, "should be 1 added customer");
             var order1x = addedOrders[0];
-            var cust1x = order1x.getProperty("Customer");
+            var cust1x = order1x.getProperty("customer");
             ok(cust1x, "should have found a customer");
-            ok(cust1x.getProperty("CompanyName") === "foo", "CompanyName should be 'foo'");
+            ok(cust1x.getProperty("companyName") === "foo", "CompanyName should be 'foo'");
         }).then(function (data3) {
             start();
         }).fail(testFns.handleFail);
@@ -321,10 +310,10 @@ define(["testFns"], function (testFns) {
         var em = newEm();
 
          // add a new Cust to the cache
-         var newCust = em.addEntity(createCust("Export/import safely #1"));
+         var newCust = em.addEntity(createCust(em, "Export/import safely #1"));
          // add some more
-         em.addEntity(createCust("Export/import safely #2"));
-         em.addEntity(createCust("Export/import safely #3"));
+         em.addEntity(createCust(em, "Export/import safely #2"));
+         em.addEntity(createCust(em, "Export/import safely #3"));
 
          var changes = em.getChanges();
          var changesExport = em.export(changes);
@@ -349,16 +338,16 @@ define(["testFns"], function (testFns) {
          var restoredState = restoredCust.entityAspect.entityState;
 
          ok(restoredState.isAdded(),
-              core.formatString("State of restored first Cust %1 is %2", restoredCust.getProperty("CompanyName"), restoredState));
+              core.formatString("State of restored first Cust %1 is %2", restoredCust.getProperty("companyName"), restoredState));
 
          ok(newCust !== restoredCust,
              "Restored Cust is not the same object as the original Cust");
     });
 
-    function createCust(companyName) {
-        var custType = metadataStore.getEntityType("Customer");
+    function createCust(em, companyName) {
+        var custType = em.metadataStore.getEntityType("Customer");
         var cust = custType.createEntity();
-        cust.setProperty("CompanyName", companyName);
+        cust.setProperty("companyName", companyName);
         return cust;
     }
 

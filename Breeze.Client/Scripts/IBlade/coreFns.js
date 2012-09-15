@@ -18,7 +18,7 @@ define(function () {
         return newMap;
     }
 
-    // shink an object's surface
+    // shrink an object's surface
     function objectFilter(obj, kvPredicate) {
         var result = {};
         for (var key in obj) {

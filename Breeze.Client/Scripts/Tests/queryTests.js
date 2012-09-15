@@ -225,11 +225,11 @@ define(["testFns"], function (testFns) {
     });
 
     test("named query", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersStartingWithA");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have some results");
@@ -237,7 +237,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-     test("query region and territories", function () {
+    test("query region and territories", function () {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
@@ -256,13 +256,13 @@ define(["testFns"], function (testFns) {
 
     
     test("select - anon simple", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("CompanyName", "startsWith", "C")
             .select("CompanyName");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -276,7 +276,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("select - anon collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery.from("Customers")
             .where("CompanyName", "startsWith", "C")
@@ -284,7 +284,7 @@ define(["testFns"], function (testFns) {
         if (!testFns.DEBUG_WEBAPI) {
             query = query.expand("Orders");
         }
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -303,7 +303,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("select - anon simple, collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Customers")
             .where("CompanyName", "startsWith", "C")
@@ -312,7 +312,7 @@ define(["testFns"], function (testFns) {
         if (!testFns.DEBUG_WEBAPI) {
             query = query.expand("Orders");
         }        
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -333,7 +333,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("select - anon simple, entity collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery
             .from("Orders")
@@ -344,7 +344,7 @@ define(["testFns"], function (testFns) {
             query = query.expand("Customer");
         }
             
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -363,13 +363,13 @@ define(["testFns"], function (testFns) {
     });
 
     test("starts with op", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("CompanyName", "startsWith", "C")
             .orderBy("CompanyName");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query, function (data) {
             var customers = data.results;
@@ -386,12 +386,12 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("greater than op", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery.from("Orders")
             .where("Freight", ">", 100);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -402,13 +402,13 @@ define(["testFns"], function (testFns) {
 
    
     asyncTest("predicate", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
         var pred1 = new Predicate("Freight", ">", 100);
         var pred2 = new Predicate("OrderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred1.and(pred2));
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -418,14 +418,14 @@ define(["testFns"], function (testFns) {
     });
     
      asyncTest("predicate 2", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
-         var pred1 = Predicate.create("Freight", ">", 100);
+        var pred1 = Predicate.create("Freight", ">", 100);
         var pred2 = Predicate.create("OrderDate", ">", new Date(1998, 3, 1));
         var newPred = Predicate.and([pred1, pred2]);
         var query = baseQuery.where(newPred);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -435,13 +435,13 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("predicate 3", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
         var pred = Predicate.create("Freight", ">", 100)
             .and("OrderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -453,7 +453,7 @@ define(["testFns"], function (testFns) {
 
 
     asyncTest("not predicate with null", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var pred = new Predicate("Region", FilterQueryOp.Equals, null);
         pred = pred.not();
@@ -462,7 +462,7 @@ define(["testFns"], function (testFns) {
             .where(pred)
             .take(10);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
@@ -476,7 +476,7 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("fromEntities", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
@@ -494,13 +494,13 @@ define(["testFns"], function (testFns) {
     });
 
     test("where nested property", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
              .from("Products")
              .where("Category.CategoryName", "startswith", "S")
              .expand("Category");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
@@ -516,12 +516,12 @@ define(["testFns"], function (testFns) {
     });
 
     test("where nested property 2", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
          var query = new EntityQuery()
              .from("Orders")
              .where("Customer.Region", "==", "CA");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             var customers = data.results;
@@ -531,7 +531,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("orderBy", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Products")
             .orderBy("ProductName desc")
@@ -546,7 +546,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("expand", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products");
@@ -570,7 +570,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("expand multiple", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Orders");
 
@@ -599,7 +599,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("expand nested", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders");
@@ -637,7 +637,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("orderBy nested", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
@@ -657,7 +657,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("orderBy two part nested", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
@@ -677,7 +677,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("skiptake", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
@@ -688,7 +688,7 @@ define(["testFns"], function (testFns) {
             var products = data.results;
 
             var newq1 = query.skip(skipTakeCount);
-            var newq1Url = newq1._toUri();
+            var newq1Url = newq1._toUri(metadataStore);
             em.executeQuery(newq1, function (data1) {
                 var custs1 = data1.results;
                 equal(custs1.length, products.length - skipTakeCount);
@@ -696,7 +696,7 @@ define(["testFns"], function (testFns) {
             }).fail(testFns.handleFail);
 
             var newq2 = query.take(skipTakeCount);
-            var newq2Url = newq1._toUri();
+            var newq2Url = newq1._toUri(metadataStore);
             em.executeQuery(newq2, function (data2) {
                 var custs2 = data2.results;
                 equal(custs2.length, skipTakeCount);
@@ -704,7 +704,7 @@ define(["testFns"], function (testFns) {
             }).fail(testFns.handleFail);
 
             var newq3 = query.skip(skipTakeCount).take(skipTakeCount);
-            var newq3Url = newq1._toUri();
+            var newq3Url = newq1._toUri(metadataStore);
             em.executeQuery(newq3, function (data3) {
                 var custs3 = data3.results;
                 equal(custs3.length, skipTakeCount);
@@ -715,12 +715,12 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("query expr - toLower", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("toLower(CompanyName)", "startsWith", "c");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function(data) {
             var custs = data.results;
@@ -733,14 +733,14 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - toUpper/substring", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - toUpper/substring", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("toUpper(substring(CompanyName, 1, 2))", "startsWith", "OM");
-        var queryUrl = query._toUri();
-
+        var queryUrl = query._toUri(metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
@@ -752,14 +752,14 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - length", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - length", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("length(CompanyName)", ">", 20);
-        var queryUrl = query._toUri();
-
+        var queryUrl = query._toUri(metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
@@ -771,15 +771,15 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - navigation then length", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - navigation then length", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
             .where("length(Customer.CompanyName)", ">", 30)
             .expand("Customer");
-        var queryUrl = query._toUri();
-
+        var queryUrl = query._toUri(metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
@@ -792,14 +792,14 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("bad query expr -  bad property name", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("bad query expr -  bad property name", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
             .where("length(Customer.FooName)", ">", 30);
-        var queryUrl = query._toUri();
-
+        // var queryUrl = query._toUri(metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             ok(false, "should not get here");
             start();
@@ -814,7 +814,7 @@ define(["testFns"], function (testFns) {
     test("bad odata expr", function () {
         stop();
 
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
         var query = "Customers?$filter=starxtswith(CompanyName, 'A') eq true&$orderby=CompanyName desc";
 
         em.executeQuery(query).fail(function (error) {
@@ -825,7 +825,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("bad filter operator", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
          try {
             var query = new EntityQuery()
@@ -839,12 +839,12 @@ define(["testFns"], function (testFns) {
     });   
 
     asyncTest("bad filter property", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("badCompanyName", "startsWith", "C");
-        var queryUrl = query._toUri();
+        // var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             ok(false, "shouldn't get here");
@@ -859,13 +859,13 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("bad orderBy property ", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("CompanyName", FilterQueryOp.StartsWith, "C")
             .orderBy("badCompanyName");
-        var queryUrl = query._toUri();
+        // var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             ok(false, "shouldn't get here");
@@ -1067,14 +1067,14 @@ define(["testFns"], function (testFns) {
             return;
         } 
         stop();
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
             .where("CompanyName", "startsWith", "A")
             .orderBy("CompanyName")
             .take(4);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
@@ -1104,7 +1104,7 @@ define(["testFns"], function (testFns) {
             return;
         } 
         expect(5);
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
@@ -1123,7 +1123,7 @@ define(["testFns"], function (testFns) {
             var custQuery = EntityQuery.fromEntities(cust);
 
             var ordersQuery = EntityQuery.fromEntities(orders);
-            var em2 = new EntityManager(testFns.ServiceName);
+            var em2 = newEm();
 
             em2.executeQuery(custQuery, function (data2) {
                 ok(data2.results.length === 1, "a single customer should have been fetched");
@@ -1150,14 +1150,14 @@ define(["testFns"], function (testFns) {
             return;
         } 
         stop();
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
             .where("CompanyName", "startsWith", "A")
             .orderBy("CompanyName")
             .take(4);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(metadataStore);
 
         em.executeQuery(query).then(function (data) {
             var customers = data.results;
@@ -1233,13 +1233,17 @@ define(["testFns"], function (testFns) {
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function (data, status) {
-            ok(data);
-            var str = JSON.stringify(data, undefined, 4);
-            testFns.output("Customers with orders");
-            testFns.output(str);
-            start();
-        });
+        try {
+            $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function(data, status) {
+                ok(data);
+                var str = JSON.stringify(data, undefined, 4);
+                testFns.output("Customers with orders");
+                testFns.output(str);
+                start();
+            });
+        } catch (e) {
+            testFns.handleFail(e);
+        }
     });
 
     test("raw odata - server side include 1 - order and customer", function () {
@@ -1248,14 +1252,18 @@ define(["testFns"], function (testFns) {
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function (data, status) {
-            ok(data);
-            var str = JSON.stringify(data, undefined, 4);
+        try {
+            $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function(data, status) {
+                ok(data);
+                var str = JSON.stringify(data, undefined, 4);
 
-            testFns.output("Orders with customers");
-            testFns.output(str);
-            start();
-        });
+                testFns.output("Orders with customers");
+                testFns.output(str);
+                start();
+            });
+        } catch (e) {
+            testFns.handleFail(e);
+        }
     });
 
     test("WebApi metadata", function () {

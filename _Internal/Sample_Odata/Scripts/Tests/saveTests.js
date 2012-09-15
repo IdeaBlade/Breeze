@@ -16,11 +16,25 @@ define(["testFns"], function (testFns) {
     var EntityState = entityModel.EntityState;
     var FilterQueryOp = entityModel.FilterQueryOp;
 
-
-    var metadataStore = new MetadataStore();
-    var newEm = function () {
+    var newMs = function() {
+        var ms = new MetadataStore({
+            namingConventions: {
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            }
+        });
+        return ms;
+    };
+    
+    var metadataStore = newMs();
+        var newEm = function () {
         return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
     };
+
 
     module("save", {
         setup: function () {

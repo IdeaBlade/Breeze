@@ -4,6 +4,7 @@ define(["testFns"], function (testFns) {
     var root = testFns.root;
     var core = root.core;
     var entityModel = root.entityModel;
+    var MetadataStore = entityModel.MetadataStore;
 
     var Enum = core.Enum;
 
@@ -24,6 +25,7 @@ define(["testFns"], function (testFns) {
     
     test("regex function matching", function() {
         var entity = new TestEntity();
+        var ms = new MetadataStore();
         
         var node0 = entityModel.FnNode.create("CompanyName");
         var val0 = node0.fn(entity);
@@ -32,19 +34,19 @@ define(["testFns"], function (testFns) {
         var node1 = entityModel.FnNode.create("substring(toUpper(CompanyName), length('adfasdf'))");
         var val1 = node1.fn(entity);
         ok(val1 === 'MPANY 1');
-        var url1 = node1.toOdataFragment();
+        var url1 = node1.toOdataFragment(ms);
 
         var node2 = entityModel.FnNode.create("substring(toUpper(toLower(CompanyName)), length('adfa,sdf'))");
         var val2 = node2.fn(entity);
-        var url2 = node2.toOdataFragment();
+        var url2 = node2.toOdataFragment(ms);
         
         var node3 = entityModel.FnNode.create("substring(substring(toLower(CompanyName), length('adf,asdf')),5)");
         var val3 = node3.fn(entity);
-        var url3 = node3.toOdataFragment();
+        var url3 = node3.toOdataFragment(ms);
 
         var node4 = entityModel.FnNode.create("substring(CompanyName, length(substring('xxxxxxx', 4)))");
         var val4 = node4.fn(entity);
-        var url4 = node4.toOdataFragment();
+        var url4 = node4.toOdataFragment(ms);
         
     });
 

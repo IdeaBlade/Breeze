@@ -100,7 +100,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 assert = assertConfig(config);
             }
             assert
-                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(MetadataStore.defaultInstance)
+                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore())
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
@@ -794,8 +794,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
             // are referenced are also in the partial save group
 
-            // HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
-            var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
+            var saveBundle = { entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions};
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -1396,7 +1395,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
                 var odataQuery = toOdataQueryString(query, metadataStore);
-                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {}, deferredFns: [] };
+                var queryContext = {
+                     query: query, 
+                     entityManager: em, 
+                     mergeStrategy: queryOptions.mergeStrategy, 
+                     refMap: {}, 
+                     deferredFns: []
+                };
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
@@ -1542,10 +1547,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
             var entityType = targetEntity.entityType;
+            var metadataStore = entityType.metadataStore;
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmappedProperty) return;
-                var propName = dp.name;
-                var val = rawEntity[propName];
+                var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime && val) {
                     if (!core.isDate(val)) {
                         // Does not work - returns time offset from GMT (i think)
@@ -1553,7 +1558,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         val = core.dateFromIsoString(val);
                     }
                 }
-                targetEntity.setProperty(propName, val);
+                targetEntity.setProperty(dp.name, val);
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {
@@ -1571,8 +1576,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         }
 
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var propName = navigationProperty.name;
-            var relatedRawEntity = rawEntity[propName];
+            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
             var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntity);
             if (deferred) {
@@ -1614,7 +1618,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             var inverseProperty = navigationProperty.inverse;
             if (!inverseProperty) return;
-            var relatedRawEntities = rawEntity[propName];
+            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
             var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntities);
@@ -1718,12 +1722,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var rawEntities = entities.map(function(e) {
                 var rawEntity = { };
                 e.entityType.dataProperties.forEach(function(dp) {
-                    rawEntity[dp.name] = e.getProperty(dp.name);
+                    rawEntity[dp.nameOnServer] = e.getProperty(dp.name);
                 });
                 var autoGeneratedKey = null;
                 if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
                     autoGeneratedKey = {
-                        propertyName: e.entityType.keyProperties[0].name,
+                        propertyName: e.entityType.keyProperties[0].nameOnServer,
                         autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
                     };
                 }
