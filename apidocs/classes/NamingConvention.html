@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>ValidationError - The Breeze API</title>
+    <title>NamingConvention - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -165,7 +165,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>ValidationError Class</h1>
+                        <h1>NamingConvention Class</h1>
 <div class="box meta">
     
 
@@ -173,7 +173,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;validate.js.html#l591"><code>validate.js:591</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l18"><code>entityMetadata.js:18</code></a>
         </div>
     
 
@@ -189,7 +189,10 @@
 
 
 <div class="box intro">
-    <p>A ValidatationError is used to describe a failed validation.</p>
+    <p>A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
+will translate property names between the server and the javascript client. </p>
+
+<p>The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.</p>
 </div>
 
 
@@ -219,7 +222,14 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
-                                <a href="#method_&lt;ctor&gt; ValidationError">&lt;ctor&gt; ValidationError</a>
+                                <a href="#method_&lt;ctor&gt; NamingConvention">&lt;ctor&gt; NamingConvention</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setAsDefault">setAsDefault</a>
 
                                 
                                 
@@ -236,29 +246,10 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
-                                <a href="#property_context">context</a>
+                                <a href="#property_defaultInstance">defaultInstance</a>
 
                                 
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_errorMessage">errorMessage</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_property">property</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_validator">validator</a>
-
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -277,8 +268,8 @@
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_&lt;ctor&gt; ValidationError" class="method item">
-    <h3 class="name"><code>&lt;ctor&gt; ValidationError</code></h3>
+                    <div id="method_&lt;ctor&gt; NamingConvention" class="method item">
+    <h3 class="name"><code>&lt;ctor&gt; NamingConvention</code></h3>
 
     
         <div class="args">
@@ -286,19 +277,7 @@
             
                 <li class="arg">
                     
-                        <code>validator</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>context</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>errorMessage</code>
+                        <code>config</code>
                     
                 </li>
             
@@ -331,7 +310,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l597"><code>validate.js:597</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l27"><code>entityMetadata.js:27</code></a>
         
         </p>
 
@@ -342,7 +321,7 @@
     </div>
 
     <div class="description">
-        
+        <p>NamingConvention constructor</p>
     </div>
 
     
@@ -353,22 +332,7 @@
             
                 <li class="param">
                     
-                        <code class="param-name">validator</code>
-                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
-                    
-
-                    
-
-                    <div class="param-description">
-                         
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">context</code>
+                        <code class="param-name">config</code>
                         <span class="type">Object</span>
                     
 
@@ -379,20 +343,35 @@
                     </div>
 
                     
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">errorMessage</code>
-                        <span class="type">String</span>
-                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">serverPropertyNameToClient</code>
+                                    <span class="type">Function</span>
+                                
 
-                    
+                                <div class="param-description">
+                                    <p>Function that takes a server property name add converts it into a client side property name.</p>
+                                </div>
 
-                    <div class="param-description">
-                         
-                    </div>
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">clientPropertyNameToServer</code>
+                                    <span class="type">Function</span>
+                                
 
+                                <div class="param-description">
+                                    <p>Function that takes a client property name add converts it into a server side property name.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
                     
                 </li>
             
@@ -402,6 +381,99 @@
 
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// A naming convention that converts the first character of every property name to uppercase on the server
+// and lowercase on the client.
+var namingConv = new NamingConvention({
+    serverPropertyNameToClient: function(serverPropertyName) {
+        return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+    },
+    clientPropertyNameToServer: function(clientPropertyName) {
+        return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+    }            
+});
+var ms = new MetadataStore({ namingConvention: namingConv });
+var em = new EntityManager( { metadataStore: ms });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setAsDefault" class="method item">
+    <h3 class="name"><code>setAsDefault</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l70"><code>entityMetadata.js:70</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Makes this instance the default instance.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var namingConv = new NamingConvention({
+    serverPropertyNameToClient: function(serverPropertyName) {
+        return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+    },
+    clientPropertyNameToServer: function(clientPropertyName) {
+        return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+    }            
+});
+namingConv.setAsDefault();
+</code></pre>
+            </div>
+        </div>
     
 </div>
 
@@ -414,9 +486,9 @@
                 <h2 class="off-left">Properties</h2>
 
                 
-                    <div id="property_context" class="property item">
-    <h3 class="name"><code>context</code></h3>
-    <span class="type">Object</span>
+                    <div id="property_defaultInstance" class="property item">
+    <h3 class="name"><code>defaultInstance</code></h3>
+    <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
 
     
 
@@ -425,51 +497,7 @@
     
 
     
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;validate.js.html#l620"><code>validate.js:620</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>A 'context' object associated with this ValidationError.</p>
-
-<p><strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_errorMessage" class="property item">
-    <h3 class="name"><code>errorMessage</code></h3>
-    <span class="type">String</span>
-
-    
-
-    
-
-    
-
+        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -483,7 +511,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l634"><code>validate.js:634</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l56"><code>entityMetadata.js:56</code></a>
         
         </p>
 
@@ -493,101 +521,7 @@
     </div>
 
     <div class="description">
-        <p>The error message associated with the ValidationError.</p>
-
-<p><strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_property" class="property item">
-    <h3 class="name"><code>property</code></h3>
-    <span class="type"><a href="..\classes\DataProperty.html" class="crosslink">DataProperty</a> | <a href="..\classes\NavigationProperty.html" class="crosslink">NavigationProperty</a></span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;validate.js.html#l627"><code>validate.js:627</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The DataProperty or NavigationProperty associated with this ValidationError.</p>
-
-<p><strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_validator" class="property item">
-    <h3 class="name"><code>validator</code></h3>
-    <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;validate.js.html#l613"><code>validate.js:613</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The Validator associated with this ValidationError.</p>
-
-<p><strong>readOnly</strong></p>
+        <p>The default value whenever NamingConventions are not specified.</p>
     </div>
 
     

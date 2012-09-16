@@ -1508,7 +1508,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {

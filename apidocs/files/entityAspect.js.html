@@ -102,6 +102,8 @@
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
             
+                <li><a href="..&#x2F;classes/NamingConvention.html">NamingConvention</a></li>
+            
                 <li><a href="..&#x2F;classes/NavigationProperty.html">NavigationProperty</a></li>
             
                 <li><a href="..&#x2F;classes/Predicate.html">Predicate</a></li>
@@ -1071,7 +1073,7 @@ function (core, Event, m_validate) {
 
         ctor._fromRawEntity = function (rawEntity, entityType) {
             var keyValues = entityType.keyProperties.map(function (p) {
-                return rawEntity[p.name];
+                return rawEntity[p.nameOnServer];
             });
             return new EntityKey(entityType, keyValues);
         };

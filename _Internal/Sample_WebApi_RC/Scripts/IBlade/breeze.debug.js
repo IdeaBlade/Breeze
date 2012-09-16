@@ -3457,8 +3457,32 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var Validator = m_validate.Validator;
 
     // TODO: still need to handle inheritence here.
-    
 
+    var NamingConvention = (function() {
+        var ctor = function(config) {
+            assertConfig(config)
+                .whereParam("serverPropertyNameToClient").isFunction()
+                .whereParam("clientPropertyNameToServer").isFunction()
+                .applyAll(this);
+        };
+
+        ctor.defaultInstance = new ctor()({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName;
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName;
+            }
+        });
+        
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
+        
+        return ctor;
+    })();
+    
     var MetadataStore = (function () {
 
         /**
@@ -3489,7 +3513,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         var ctor = function (config) {
             config = config || { };
             assertConfig(config)
-                .whereParam("namingConventions").isOptional().withDefault(ctor.defaultNamingConventions)
+                .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
                 .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
@@ -3498,27 +3522,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = { };
-            
-            var nc = this.namingConventions;
-            if ((!nc.serverPropertyNameToClient) || (!nc.clientPropertyNameToServer)) {
-                throw new Error("namingConventions not set on MetadataStore");
-            }
-
         };
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
         
-        ctor.defaultNamingConventions = {
-            serverPropertyNameToClient: function(serverPropertyName) {
-                return serverPropertyName;
-                // return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-            },
-            clientPropertyNameToServer: function(clientPropertyName) {
-                return clientPropertyName;
-                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-            }
-        };
         
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
@@ -3536,7 +3544,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.export = function () {
             var result = JSON.stringify(this, function (key, value) {
-                if (key === "namingConventions") {
+                if (key === "namingConvention") {
                     return undefined;
                 }
                 return value;
@@ -3836,7 +3844,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         // protected methods
 
         ctor.prototype._clientPropertyPathToServer = function(propertyPath) {
-            var fn = this.namingConventions.clientPropertyNameToServer;
+            var fn = this.namingConvention.clientPropertyNameToServer;
             var serverPropPath = propertyPath.split(".").map(function(p) {
                 return fn(p);
             }).join("/");
@@ -3844,7 +3852,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         ctor.prototype._clientObjectToServer = function(clientObject) {
-            var fn = this.namingConventions.clientPropertyNameToServer;
+            var fn = this.namingConvention.clientPropertyNameToServer;
             var result = { };
             core.objectForEach(clientObject, function(key, value) {
                 result[fn(key)] = value;
@@ -3938,10 +3946,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             toArray(odataEntityType.key.propertyRef).forEach(function (propertyRef) {
-                var keyPropName = metadataStore.namingConventions.serverPropertyNameToClient(propertyRef.name);
+                var keyPropName = metadataStore.namingConvention.serverPropertyNameToClient(propertyRef.name);
                 var keyProp = entityType.getDataProperty(keyPropName);
                 if (keyProp == null) {
-                    throw new Error("Unable to locate key property, confirm that metadataStore.namingConventions methods are correct");
+                    throw new Error("Unable to locate key property, confirm that metadataStore.namingConvention methods are correct");
                 }
                 keyProp.isKeyProperty = true;
             });
@@ -3959,7 +3967,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true';
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var name = entityType.metadataStore.namingConventions.serverPropertyNameToClient(odataProperty.name);
+            var name = entityType.metadataStore.namingConvention.serverPropertyNameToClient(odataProperty.name);
 
             var dp = new DataProperty({
                 parentEntityType: entityType,
@@ -4014,7 +4022,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         propertyRefs = toArray(dependent.propertyRef);
                     }
                     fkNames = propertyRefs.map(function (pr) {
-                        return entityType.metadataStore.namingConventions.serverPropertyNameToClient(pr.name);
+                        return entityType.metadataStore.namingConvention.serverPropertyNameToClient(pr.name);
                         // return entityType.getDataProperty(fkPropName).name;
                     });
                 }
@@ -4022,7 +4030,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
             var isScalar = !(toEnd.multiplicity === "*");
             var dataType = normalizeTypeName(toEnd.type, schema).typeName;
-            var name = entityType.metadataStore.namingConventions.serverPropertyNameToClient(odataProperty.name);
+            var name = entityType.metadataStore.namingConvention.serverPropertyNameToClient(odataProperty.name);
 
             var np = new NavigationProperty({
                 parentEntityType: entityType,
@@ -4642,7 +4650,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             } else if (this.defaultValue === null && !this.isNullable) {
                 throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
             }
-            this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
             // this.relatedNavigationProperty - this will be set for all foreignKey data properties.
@@ -4786,7 +4794,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
-            this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.inverse
             // this.entityType
@@ -5004,7 +5012,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
         DataType: DataType,
-        AutoGeneratedKeyType: AutoGeneratedKeyType
+        AutoGeneratedKeyType: AutoGeneratedKeyType,
+        NamingConvention: NamingConvention
     };
 
 })
@@ -8547,7 +8556,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
@@ -8587,43 +8596,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return result;
         }
         
-//        function processAnonType(rawEntity, queryContext, isSaving) {
-//            var em = queryContext.entityManager;
-//            var result = core.objectMapValue(rawEntity, function(key, value) {
-//                if (value == null) {
-//                    return value;
-//                }
-//                if (key == "__metadata") {
-//                    return undefined;
-//                }
-//                var firstChar = key.substr(0, 1);
-//                if (firstChar == "$") {
-//                    return undefined;
-//                } 
-//                if (Array.isArray(value)) {
-//                    return value.map(function(v) {
-//                        if (v == null) {
-//                            return v;
-//                        } else if (v.$type || v.__metadata) {
-//                            return mergeEntity(v, queryContext, isSaving, true);
-//                        } else if (v.$ref) {
-//                            return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
-//                        } else {
-//                            return v;
-//                        }
-//                    });
-//                } else {
-//                    if (value.$type || value.__metadata) {
-//                        return mergeEntity(value, queryContext, isSaving, true);
-//                    } else if (value.$ref) {
-//                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
-//                    } else {
-//                        return value;
-//                    }
-//                }
-//            });
-//            return result;
-//        }
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
