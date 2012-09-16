@@ -18,6 +18,10 @@
     <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -166,6 +170,7 @@
     <Content Include="App\behaviors\Dropdown.js" />
     <Content Include="App\testRunner.js" />
     <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />
+    <Content Include="App\tests\wardsDupTests.js" />
     <Content Include="App\viewmodels\inspection.js" />
     <Content Include="App\viewmodels\joblist.js" />
     <Content Include="App\viewmodels\login.js" />

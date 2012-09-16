@@ -10,6 +10,10 @@ function (core, m_entityAspect, m_entityQuery) {
     var Event = core.Event;
 
     relationArrayMixin.push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+       
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
         if (!goodAdds.length) {
             return this.length;
@@ -24,6 +28,7 @@ function (core, m_entityAspect, m_entityQuery) {
         if (!goodAdds.length) {
             return this.length;
         }
+        
         var result = Array.prototype.unshift.apply(this, goodAdds);
         processAdds(this, Array.prototype.slice.call(goodAdds));
         return result;
@@ -44,7 +49,7 @@ function (core, m_entityAspect, m_entityQuery) {
     relationArrayMixin.splice = function () {
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
         var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
-
+        
         var result = Array.prototype.splice.apply(this, newArgs);
         processRemoves(this, result);
 
@@ -71,7 +76,12 @@ function (core, m_entityAspect, m_entityQuery) {
         if (entityManager) {
             goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
-                    entityManager.attachEntity(add, EntityState.Added);
+                    relationArray._inProgress = true;
+                    try {
+                        entityManager.attachEntity(add, EntityState.Added);
+                    } finally {
+                        relationArray._inProgress = false;
+                    }
                 }
             });
         }

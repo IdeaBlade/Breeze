@@ -6,7 +6,6 @@
     var manager = new entityModel.EntityManager('api/inspector'),
         op = entityModel.FilterQueryOp,
         entityAction = entityModel.EntityAction,
-        answerType,
         inspectors,
         jobs = {};
 
@@ -16,13 +15,25 @@
         remoteAccessImplementation: entityModel.remoteAccess_webApi
     });
 
-    module("Jobs should not have duplicates");
+    function fetchMetadata() {
+        var deferred = Q.defer();
+
+        if (manager.metadataStore.isEmpty()) {
+            manager.fetchMetadata().then(function() {
+                deferred.resolve();
+            });
+        } else {
+            deferred.resolve();
+        }
+
+        return deferred.promise;
+    }
+
+    module("Jobs should not have duplicate inspections");
 
     function arrange() {
-        return manager.fetchMetadata()
+        return fetchMetadata()
             .then(function() {
-                answerType = manager.metadataStore.getEntityType("Answer");
-            }).then(function() {
                 var query = new entityModel.EntityQuery()
                     .from("Forms")
                     .expand("Questions");
@@ -46,22 +57,13 @@
             .orderBy("CreatedAt");
 
         return manager.executeQuery(query).then(function(data) {
-           jobs[inspectorId.toString()] = data.results;
+            jobs[inspectorId.toString()] = data.results;
         });
     };
 
     function act() {
         var tasks = [];
-        
-        // old code
-//        for (var i = 0; i < inspectors.length; i++) {
-//            var id = inspectors[i].Id();
-//            var promise = getJobsFor(id).then(function(data) {
-//                jobs[id.toString()] = data.results;
-//            });
-//            tasks.push(promise);
-//        }
-        
+
         for (var i = 0; i < inspectors.length; i++) {
             var id = inspectors[i].Id();
             var promise = getJobsFor(id, jobs);
@@ -72,23 +74,36 @@
     }
 
     function makeAssertions() {
-        ok(answerType, "Answer type defined.");
         equal(inspectors.length, 5, "Inspectors loaded.");
 
         for (var i = 0; i < inspectors.length; i++) {
             var id = inspectors[i].Id().toString();
             var work = jobs[id];
-            ok(work, "work not defined for jobs item: " + id);
+
             ok(work.length > 0, "Inspector " + id + " has " + work.length + " jobs.");
+
+            for (var j = 0; j < work.length; j++) {
+                var job = work[j];
+                var inspections = job.Inspections();
+                var inspectionIds = [];
+
+                ok(inspections.length > 0, "Job " + job.Id() + " has " + inspections.length + " inspections.");
+
+                for (var k = 0; k < inspections.length; k++) {
+                    var inspection = inspections[k];
+
+                    ok(inspectionIds.indexOf(inspection.Id()) == -1, "Not a duplication inspection.");
+                    inspectionIds.push(inspection.Id());
+                }
+            }
         }
-        
     }
-    
+
     function handleFail(e) {
         ok(false, "Exception: " + e);
     }
 
-    test("after navigating to different inspectors.", function() {
+    test("after enumerating the jobs and inspections of an inspector.", function() {
         stop();
         arrange().then(act).then(makeAssertions).fail(handleFail).fin(start);
     });
