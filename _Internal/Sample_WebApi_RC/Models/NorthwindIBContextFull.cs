@@ -178,6 +178,7 @@ namespace Sample_WebApi.Models {
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Category_RowVersion")]
+    [DefaultValue(2)]
     public int RowVersion {
       get;
       set;

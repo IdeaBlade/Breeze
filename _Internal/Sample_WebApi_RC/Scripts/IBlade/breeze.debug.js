@@ -9607,8 +9607,11 @@ function (core, m_entityAspect, m_entityQuery) {
             goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
-                    entityManager.attachEntity(add, EntityState.Added);
-                    relationArray._inProgress = false;
+                    try {
+                        entityManager.attachEntity(add, EntityState.Added);
+                    } finally {
+                        relationArray._inProgress = false;
+                    }
                 }
             });
         }

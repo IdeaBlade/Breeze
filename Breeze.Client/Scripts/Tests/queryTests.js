@@ -34,6 +34,44 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    
+    test("duplicates after relation query", function() {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("CustomerID", "==", alfredsID);
+            // bug goes away if you add this.
+            // .expand("Orders");
+        var customer;
+        stop();
+        query.using(em).execute().then(function(data) {
+            customer = data.results[0];
+            var q2 = EntityQuery.from("Orders")
+                .where("CustomerID", "==", alfredsID)
+                .expand("Customer"); // bug goes away if you remove this
+            return q2.using(em).execute();
+        }).then(function(data2) {
+            var details = customer.getProperty("Orders");
+            var dups = getDups(details);
+            ok(dups.length == 0, "should be no dups");
+        }).fail(testFns.handleFail).fin(start);
+        
+    });
+
+    
+     function getDups(items) {
+        var uniqueItems = [];
+        var dups = [];
+        items.forEach(function(item) {
+            if (uniqueItems.indexOf(item) === -1) {
+                uniqueItems.push(item);
+            } else {
+                dups.push(item);
+            }
+        });
+        return dups;
+    }
     
     test("date property is a DateTime", function () {
 
