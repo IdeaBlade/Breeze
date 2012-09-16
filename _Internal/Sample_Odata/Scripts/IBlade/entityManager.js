@@ -794,7 +794,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
             // are referenced are also in the partial save group
 
-            var saveBundle = { entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions};
+            var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: saveOptions};
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -1508,19 +1508,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var result = core.objectMapValue(rawEntity, function(key, value) {
-                if (value == null) {
-                    return value;
-                }
+            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var result = { };
+            core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
-                    return undefined;
+                    return;
                 }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
-                    return undefined;
+                    return;
                 } 
-                if (Array.isArray(value)) {
-                    return value.map(function(v) {
+                
+                var newKey = keyFn(key);
+                // == is deliberate here instead of ===
+                if (value == null) {
+                    result[newKey] = value;
+                } else if (Array.isArray(value)) {
+                    result[newKey] = value.map(function(v) {
                         if (v == null) {
                             return v;
                         } else if (v.$type || v.__metadata) {
@@ -1533,16 +1537,54 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     });
                 } else {
                     if (value.$type || value.__metadata) {
-                        return mergeEntity(value, queryContext, isSaving, true);
+                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
-                        return value;
+                        result[newKey] = value;
                     }
                 }
             });
             return result;
         }
+        
+//        function processAnonType(rawEntity, queryContext, isSaving) {
+//            var em = queryContext.entityManager;
+//            var result = core.objectMapValue(rawEntity, function(key, value) {
+//                if (value == null) {
+//                    return value;
+//                }
+//                if (key == "__metadata") {
+//                    return undefined;
+//                }
+//                var firstChar = key.substr(0, 1);
+//                if (firstChar == "$") {
+//                    return undefined;
+//                } 
+//                if (Array.isArray(value)) {
+//                    return value.map(function(v) {
+//                        if (v == null) {
+//                            return v;
+//                        } else if (v.$type || v.__metadata) {
+//                            return mergeEntity(v, queryContext, isSaving, true);
+//                        } else if (v.$ref) {
+//                            return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
+//                        } else {
+//                            return v;
+//                        }
+//                    });
+//                } else {
+//                    if (value.$type || value.__metadata) {
+//                        return mergeEntity(value, queryContext, isSaving, true);
+//                    } else if (value.$ref) {
+//                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+//                    } else {
+//                        return value;
+//                    }
+//                }
+//            });
+//            return result;
+//        }
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
@@ -1718,7 +1760,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return group;
         }
         
-        function unwrapEntities(entities) {
+        function unwrapEntities(entities, metadataStore) {
             var rawEntities = entities.map(function(e) {
                 var rawEntity = { };
                 e.entityType.dataProperties.forEach(function(dp) {
@@ -1731,10 +1773,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
                     };
                 }
+                
+                var originalValuesOnServer = metadataStore._clientObjectToServer(e.entityAspect.originalValues);
                 rawEntity.entityAspect = {
                     entityTypeName: e.entityType.name,
                     entityState: e.entityAspect.entityState.name,
-                    originalValuesMap: e.entityAspect.originalValues,
+                    originalValuesMap: originalValuesOnServer,
                     autoGeneratedKey: autoGeneratedKey
                 };
                 return rawEntity;

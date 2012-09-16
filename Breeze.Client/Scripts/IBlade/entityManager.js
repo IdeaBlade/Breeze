@@ -1508,19 +1508,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var result = core.objectMapValue(rawEntity, function(key, value) {
-                if (value == null) {
-                    return value;
-                }
+            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var result = { };
+            core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
-                    return undefined;
+                    return;
                 }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
-                    return undefined;
+                    return;
                 } 
-                if (Array.isArray(value)) {
-                    return value.map(function(v) {
+                
+                var newKey = keyFn(key);
+                // == is deliberate here instead of ===
+                if (value == null) {
+                    result[newKey] = value;
+                } else if (Array.isArray(value)) {
+                    result[newKey] = value.map(function(v) {
                         if (v == null) {
                             return v;
                         } else if (v.$type || v.__metadata) {
@@ -1533,16 +1537,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     });
                 } else {
                     if (value.$type || value.__metadata) {
-                        return mergeEntity(value, queryContext, isSaving, true);
+                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
-                        return value;
+                        result[newKey] = value;
                     }
                 }
             });
             return result;
         }
+        
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);

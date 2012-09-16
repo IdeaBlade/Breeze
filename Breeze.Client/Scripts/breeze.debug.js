@@ -3458,7 +3458,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
     
-    
 
     var MetadataStore = (function () {
 
@@ -4638,7 +4637,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
@@ -5448,13 +5451,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         ctor.prototype.expand = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
-            var eq = this._clone();
-            if (arguments.length === 0) {
-                eq.expandClause = null;
-            } else {
-                eq.expandClause = propertyPaths;
-            }
-            return eq;
+            return expandCore(this, propertyPaths);
         };
 
          // Implementations found in EntityManager
@@ -5714,7 +5711,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             function toExpandString() {
                 var clause = eq.expandClause;
                 if (!clause) return "";
-                return clause.replace(".", "/");
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toSkipString() {
@@ -5811,9 +5808,20 @@ function (core, m_entityMetadata, m_entityAspect) {
                 eq.selectClause = null;
                 return eq;
             }
-            eq.selectClause = SelectClause.create(propertyPaths);           
+            eq.selectClause = new SelectClause(propertyPaths);
             return eq;
         }
+        
+        function expandCore(that, propertyPaths) {
+            var eq = that._clone();
+            if (!propertyPaths) {
+                eq.expandClause = null;
+                return eq;
+            }
+            eq.expandClause = new ExpandClause(propertyPaths);
+            return eq;
+        }
+        
 
         function buildKeyPredicate(entityKey) {
             var keyProps = entityKey.entityType.keyProperties;
@@ -6771,24 +6779,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     // Not exposed
     var SelectClause = (function () {
-        /*
-        A SelectClause is a description of the properties that a query should project into its results.
-
-        For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
-
-            var obc = new SelectClause("Company.CompanyName, LastName") 
-                or 
-            var obc = new SelectClause("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause("LastName");
-        @class SelectClause
-        */
         
-        /*
-        @method <ctor> SelectClause
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
         var ctor = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
             this.propertyPaths = propertyPaths;
@@ -6797,24 +6788,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        /*
-        Alternative method of creating an SelectClause. 
-        Example for an Employee object with properties of 'Company' and 'LastName': 
-
-            var obc = SelectClause.create("Company.CompanyName, LastName") 
-                or 
-            var obc = SelectClause.create("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause.create("LastName");
-        @method create 
-        @static
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
-        ctor.create = function (propertyPaths) {
-            return new SelectClause(propertyPaths);
-        };
-         
         ctor.prototype.validate = function (entityType) {
             if (!entityType) {
                 return;
@@ -6830,11 +6803,36 @@ function (core, m_entityMetadata, m_entityAspect) {
                  return metadataStore._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
-             // return this.propertyPaths.replace(".", "/");
          };
 
          return ctor;
     })();
+    
+     // Not exposed
+    var ExpandClause = (function () {
+        
+        var ctor = function (propertyPaths) {
+            this.propertyPaths = propertyPaths;
+            this._pathStrings = propertyPaths.split(",").map(function(pp) {
+                return pp.trim();
+            });
+        };
+       
+//        // TODO:
+//        ctor.prototype.validate = function (entityType) {
+//            
+//        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            var frag = this._pathStrings.map(function(pp) {
+                return metadataStore._clientPropertyPathToServer(pp);
+            }).join(",");
+            return frag;
+        };
+
+        return ctor;
+    })();
+    
 
     // propertyPath can be either an array of paths or a '.' delimited string.
     
@@ -6900,8 +6898,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         EntityQuery: EntityQuery,
         FnNode: FnNode,
         // Not documented - only exposed for testing purposes
-        OrderByClause: OrderByClause,
-        SelectClause: SelectClause
+        OrderByClause: OrderByClause
     };
 });
 
@@ -8550,19 +8547,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var result = core.objectMapValue(rawEntity, function(key, value) {
-                if (value == null) {
-                    return value;
-                }
+            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var result = { };
+            core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
-                    return undefined;
+                    return;
                 }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
-                    return undefined;
+                    return;
                 } 
-                if (Array.isArray(value)) {
-                    return value.map(function(v) {
+                
+                var newKey = keyFn(key);
+                // == is deliberate here instead of ===
+                if (value == null) {
+                    result[newKey] = value;
+                } else if (Array.isArray(value)) {
+                    result[newKey] = value.map(function(v) {
                         if (v == null) {
                             return v;
                         } else if (v.$type || v.__metadata) {
@@ -8575,16 +8576,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     });
                 } else {
                     if (value.$type || value.__metadata) {
-                        return mergeEntity(value, queryContext, isSaving, true);
+                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
-                        return value;
+                        result[newKey] = value;
                     }
                 }
             });
             return result;
         }
+        
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);

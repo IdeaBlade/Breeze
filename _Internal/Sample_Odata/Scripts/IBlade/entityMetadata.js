@@ -15,7 +15,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
     
-    
 
     var MetadataStore = (function () {
 
@@ -56,7 +55,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = { };
-         
+            
+            var nc = this.namingConventions;
+            if ((!nc.serverPropertyNameToClient) || (!nc.clientPropertyNameToServer)) {
+                throw new Error("namingConventions not set on MetadataStore");
+            }
+
         };
         
         ctor.prototype._$typeName = "MetadataStore";
@@ -89,6 +93,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.export = function () {
             var result = JSON.stringify(this, function (key, value) {
+                if (key === "namingConventions") {
+                    return undefined;
+                }
                 return value;
             }, core.config.stringifyPad);
             return result;
@@ -392,6 +399,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }).join("/");
             return serverPropPath;
         };
+
+        ctor.prototype._clientObjectToServer = function(clientObject) {
+            var fn = this.namingConventions.clientPropertyNameToServer;
+            var result = { };
+            core.objectForEach(clientObject, function(key, value) {
+                result[fn(key)] = value;
+            });
+            return result;
+        };
         
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
@@ -555,7 +571,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         propertyRefs = toArray(dependent.propertyRef);
                     }
                     fkNames = propertyRefs.map(function (pr) {
-                        return entityType.getDataProperty(pr.name).name;
+                        return entityType.metadataStore.namingConventions.serverPropertyNameToClient(pr.name);
+                        // return entityType.getDataProperty(fkPropName).name;
                     });
                 }
             }
@@ -1177,7 +1194,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later

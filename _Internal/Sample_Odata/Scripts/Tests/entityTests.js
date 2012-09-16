@@ -11,21 +11,12 @@ define(["testFns"], function (testFns) {
     var EntityQuery = entityModel.EntityQuery;
     var EntityKey = entityModel.EntityKey;
 
-    var metadataStore = new MetadataStore();
-    var newEm = function () { return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore }); };
-
+    var newEm = testFns.newEm;
+    var newMs = testFns.newMs;
+    
     module("entity", {
         setup: function () {
-            // core.config.typeRegistry = { };
-            if (!metadataStore.isEmpty()) return;
-            var em = newEm();
-            stop();
-            em.fetchMetadata(function () {
-                var isEmptyMetadata = metadataStore.isEmpty();
-                ok(!isEmptyMetadata);
-                start();
-            });
-            
+            testFns.setup();
         },
         teardown: function () {
 
@@ -33,13 +24,13 @@ define(["testFns"], function (testFns) {
     });
 
     test("custom Customer type with createEntity", function() {
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em = newEm(newMs());
         
         var Customer = function() {
             this.miscData = "asdf";
         };
         Customer.prototype.getNameLength = function() {
-            return (this.getProperty("CompanyName") || "").length;
+            return (this.getProperty("companyName") || "").length;
         };
 
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
@@ -53,20 +44,20 @@ define(["testFns"], function (testFns) {
             ok(cust1.entityType === custType, "entityType should be Customer");
             ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
             ok(cust1.getProperty("miscData") === "asdf");
-            cust1.setProperty("CompanyName", "testxxx");
+            cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
             start();
         }).fail(testFns.handleFail);
     });
     
     test("custom Customer type with new", function() {
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em = newEm(newMs()); 
         
         var Customer = function() {
             this.miscData = "asdf";
         };
         Customer.prototype.getNameLength = function() {
-            return (this.getProperty("CompanyName") || "").length;
+            return (this.getProperty("companyName") || "").length;
         };
 
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
@@ -81,20 +72,20 @@ define(["testFns"], function (testFns) {
             ok(cust1.entityType === custType, "entityType should be Customer");
             ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
             ok(cust1.getProperty("miscData") === "asdf");
-            cust1.setProperty("CompanyName", "testxxx");
+            cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
             start();
         }).fail(testFns.handleFail);
     });
 
     test("custom Customer type with new - v2", function() {
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em = newEm(newMs());
         
         var Customer = function() {
             this.miscData = "asdf";
         };
         Customer.prototype.getNameLength = function() {
-            return (this.getProperty("CompanyName") || "").length;
+            return (this.getProperty("companyName") || "").length;
         };
 
         stop();
@@ -109,7 +100,7 @@ define(["testFns"], function (testFns) {
             ok(cust1.entityType === custType, "entityType should be Customer");
             ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
             ok(cust1.getProperty("miscData") === "asdf");
-            cust1.setProperty("CompanyName", "testxxx");
+            cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
             start();
         }).fail(testFns.handleFail);
@@ -132,34 +123,35 @@ define(["testFns"], function (testFns) {
         var em1 = newEm();
         var custType = em1.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
-        var sameCust = cust1.CompanyName("First");
+        var sameCust = cust1.companyName("First");
         ok(sameCust === cust1, "ko setters need to chain");
-        var val1 = cust1.CompanyName();
+        var val1 = cust1.companyName();
         ok(val1 === "First");
-        cust1.CompanyName("Second").ContactTitle("Foo").ContactName("Bar");
-        ok(cust1.ContactTitle() == "Foo");
-        ok(cust1.ContactName() == "Bar");
+        cust1.companyName("Second").contactTitle("Foo").contactName("Bar");
+        ok(cust1.contactTitle() == "Foo");
+        ok(cust1.contactName() == "Bar");
     });
    
 
 
     test("entityType.getProperty nested", function() {
-        var odType = metadataStore.getEntityType("OrderDetail");
-        var orderType = metadataStore.getEntityType("Order");
         
-        var customerProp = odType.getProperty("Order.Customer");
-        var customerProp2 = orderType.getProperty("Customer");
+        var odType = testFns.metadataStore.getEntityType("OrderDetail");
+        var orderType = testFns.metadataStore.getEntityType("Order");
+        
+        var customerProp = odType.getProperty("order.customer");
+        var customerProp2 = orderType.getProperty("customer");
         ok(customerProp, "should not be null");
         ok(customerProp == customerProp2, "should be the same prop");
-        var prop1 = odType.getProperty("Order.Customer.CompanyName");
-        var prop2 = orderType.getProperty("Customer.CompanyName");
+        var prop1 = odType.getProperty("order.customer.companyName");
+        var prop2 = orderType.getProperty("customer.companyName");
         ok(prop1, "should not be null");
         ok(prop1 == prop2, "should be the same prop");
     });
 
     test("entityCtor materialization with js class", function () {
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em1 = newEm(newMs());
         var Customer = function () {
             this.miscData = "asdf";
         };
@@ -178,7 +170,7 @@ define(["testFns"], function (testFns) {
     test("unmapped import export", function() {
 
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em1 = newEm(newMs());
         var Customer = function() {
             this.miscData = "asdf";
         };
@@ -189,7 +181,7 @@ define(["testFns"], function (testFns) {
             var custType = em1.metadataStore.getEntityType("Customer");
             var cust = custType.createEntity();
             em1.addEntity(cust);
-            cust.setProperty("CompanyName", "foo2");
+            cust.setProperty("companyName", "foo2");
             cust.setProperty("miscData", "zzz");
             var bundle = em1.export();
             var em2 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: em1.metadataStore });
@@ -197,8 +189,8 @@ define(["testFns"], function (testFns) {
             var entities = em2.getEntities();
             ok(entities.length === 1);
             var sameCust = entities[0];
-            var cname = sameCust.getProperty("CompanyName");
-            ok(cname === "foo2","CompanyName should === 'foo2'");
+            var cname = sameCust.getProperty("companyName");
+            ok(cname === "foo2","companyName should === 'foo2'");
             var miscData = sameCust.getProperty("miscData");
             ok(miscData === "zzz","miscData should === 'zzz'");
             start();
@@ -206,7 +198,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("generate ids", function () {
-        var orderType = metadataStore.getEntityType("Order");
+        var orderType = testFns.metadataStore.getEntityType("Order");
         var em = newEm();
         var count = 10;
         for (var i = 0; i < count; i++) {
@@ -221,9 +213,9 @@ define(["testFns"], function (testFns) {
     });
 
     test("createEntity and check default values", function () {
-        var et = metadataStore.getEntityType("Customer");
+        var et = testFns.metadataStore.getEntityType("Customer");
         checkDefaultValues(et);
-        var entityTypes = metadataStore.getEntityTypes();
+        var entityTypes = testFns.metadataStore.getEntityTypes();
         entityTypes.forEach(function (et) {
             checkDefaultValues(et);
         });
@@ -231,9 +223,9 @@ define(["testFns"], function (testFns) {
 
     test("propertyChanged", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
+        var orderType = em.metadataStore.getEntityType("Order");
         ok(orderType);
-        var orderDetailType = metadataStore.getEntityType("OrderDetail");
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         ok(orderDetailType);
         var order = orderType.createEntity();
         var lastProperty, lastOldValue, lastNewValue;
@@ -245,26 +237,26 @@ define(["testFns"], function (testFns) {
         });
         var order2 = orderType.createEntity();
 
-        order.setProperty("EmployeeID", 1);
-        order2.setProperty("EmployeeID", 999); // should not raise event
-        ok(lastProperty === "EmployeeID");
+        order.setProperty("employeeID", 1);
+        order2.setProperty("employeeID", 999); // should not raise event
+        ok(lastProperty === "employeeID");
         ok(lastNewValue === 1);
-        order.setProperty("Freight", 123.34);
-        ok(lastProperty === "Freight");
+        order.setProperty("freight", 123.34);
+        ok(lastProperty === "freight");
         ok(lastNewValue === 123.34);
-        order.setProperty("ShippedDate", new Date(2000, 1, 1));
-        ok(lastProperty === "ShippedDate");
+        order.setProperty("shippedDate", new Date(2000, 1, 1));
+        ok(lastProperty === "shippedDate");
         ok(lastNewValue.toDateString() == new Date(2000, 1, 1).toDateString());
 
-        order.setProperty("EmployeeID", 2);
-        ok(lastProperty === "EmployeeID");
+        order.setProperty("employeeID", 2);
+        ok(lastProperty === "employeeID");
         ok(lastNewValue === 2);
         ok(lastOldValue === 1);
     });
 
     test("propertyChanged unsubscribe", function () {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
+        var orderType = em.metadataStore.getEntityType("Order");
         ok(orderType);
         var order = orderType.createEntity();
         var lastProperty, lastOldValue, lastNewValue;
@@ -273,21 +265,21 @@ define(["testFns"], function (testFns) {
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
         });
-        order.setProperty("EmployeeID", 1);
-        ok(lastProperty === "EmployeeID");
+        order.setProperty("employeeID", 1);
+        ok(lastProperty === "employeeID");
         ok(lastNewValue === 1);
         order.entityAspect.propertyChanged.unsubscribe(key);
-        order.setProperty("EmployeeID", 999);
-        ok(lastProperty === "EmployeeID");
+        order.setProperty("employeeID", 999);
+        ok(lastProperty === "employeeID");
         ok(lastNewValue === 1);
     });
 
     test("propertyChanged on query", function () {
         var em = newEm();
-        var empType = metadataStore.getEntityType("Employee");
+        var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty("EmployeeID", 1);
+        emp.setProperty("employeeID", 1);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -295,7 +287,7 @@ define(["testFns"], function (testFns) {
         em.attachEntity(emp);
         // now fetch
         var q = EntityQuery.fromEntities(emp);
-        var uri = q._toUri(metadataStore);
+        var uri = q._toUri(em.metadataStore);
         stop();
         em.executeQuery(q, function(data) {
             ok(changes.length === 1, "query merges should only fire a single property change");
@@ -307,7 +299,7 @@ define(["testFns"], function (testFns) {
     test("delete entity - check children", function () {
         var em = newEm();
         var order = createOrderAndDetails(em);
-        var details = order.getProperty("OrderDetails");
+        var details = order.getProperty("orderDetails");
         var copyDetails = details.slice(0);
         ok(details.length > 0, "order should have details");
         order.entityAspect.setDeleted();
@@ -316,9 +308,9 @@ define(["testFns"], function (testFns) {
         ok(details.length === 0, "order should now have no details");
 
         copyDetails.forEach(function (od) {
-            ok(od.getProperty("Order") === null, "orderDetail.order should not be set");
-            var defaultOrderId = od.entityType.getProperty("OrderID").defaultValue;
-            ok(od.getProperty("OrderID") === defaultOrderId, "orderDetail.orderId should not be set");
+            ok(od.getProperty("order") === null, "orderDetail.order should not be set");
+            var defaultOrderId = od.entityType.getProperty("orderID").defaultValue;
+            ok(od.getProperty("orderID") === defaultOrderId, "orderDetail.orderId should not be set");
             ok(od.entityAspect.entityState.isModified(), "orderDetail should be 'modified");
         });
     });
@@ -326,7 +318,7 @@ define(["testFns"], function (testFns) {
     test("delete entity - check parent", function () {
         var em = newEm();
         var order = createOrderAndDetails(em);
-        var details = order.getProperty("OrderDetails");
+        var details = order.getProperty("orderDetails");
         var od = details[0];
         ok(details.indexOf(od) !== -1);
         var copyDetails = details.slice(0);
@@ -337,17 +329,17 @@ define(["testFns"], function (testFns) {
         ok(details.length === copyDetails.length - 1, "order should now have 1 less detail");
         ok(details.indexOf(od) === -1);
 
-        ok(od.getProperty("Order") === null, "orderDetail.order should not be set");
-        var defaultOrderId = od.entityType.getProperty("OrderID").defaultValue;
+        ok(od.getProperty("order") === null, "orderDetail.order should not be set");
+        var defaultOrderId = od.entityType.getProperty("orderID").defaultValue;
         // we deliberately leave the orderID alone after a delete - we are deleting the entity and do not want a 'mod' to cloud the issue
         // ( but we do 'detach' the Order itself.)
-        ok(od.getProperty("OrderID") === order.getProperty("OrderID"), "orderDetail.orderId should not change as a result of being deleted");
+        ok(od.getProperty("orderID") === order.getProperty("orderID"), "orderDetail.orderId should not change as a result of being deleted");
     });
 
     test("detach entity - check children", function () {
         var em = newEm();
         var order = createOrderAndDetails(em);
-        var details = order.getProperty("OrderDetails");
+        var details = order.getProperty("orderDetails");
         var copyDetails = details.slice(0);
         ok(details.length > 0, "order should have details");
         em.detachEntity(order);
@@ -356,18 +348,18 @@ define(["testFns"], function (testFns) {
         ok(details.length === 0, "order should now have no details");
 
         copyDetails.forEach(function (od) {
-            ok(od.getProperty("Order") === null, "orderDetail.order should not be set");
-            var defaultOrderId = od.entityType.getProperty("OrderID").defaultValue;
-            ok(od.getProperty("OrderID") === defaultOrderId, "orderDetail.orderId should not be set");
+            ok(od.getProperty("order") === null, "orderDetail.order should not be set");
+            var defaultOrderId = od.entityType.getProperty("orderID").defaultValue;
+            ok(od.getProperty("orderID") === defaultOrderId, "orderDetail.orderId should not be set");
             ok(od.entityAspect.entityState.isModified(), "orderDetail should be 'modified");
         });
     });
 
    test("hasChanges", function() {
         var em = newEm();
-        var metadataStore = em.metadataStore;
-        var orderType = metadataStore.getEntityType("Order");
-        var orderDetailType = metadataStore.getEntityType("OrderDetail");
+        
+        var orderType = em.metadataStore.getEntityType("Order");
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var order1 = createOrderAndDetails(em, false);
         var order2 = createOrderAndDetails(em, false);
         
@@ -395,8 +387,8 @@ define(["testFns"], function (testFns) {
     
     test("rejectChanges", function() {
         var em = newEm();
-        var orderType = metadataStore.getEntityType("Order");
-        var orderDetailType = metadataStore.getEntityType("OrderDetail");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var order1 = createOrderAndDetails(em, false);
         var order2 = createOrderAndDetails(em, false);
         
@@ -408,7 +400,7 @@ define(["testFns"], function (testFns) {
         ok(valid, "should have changes for Orders or OrderDetails");
         em.getChanges(orderType).forEach(function(e) {
             e.entityAspect.acceptChanges();
-            e.setProperty("Freight", 100);
+            e.setProperty("freight", 100);
             ok(e.entityAspect.entityState.isModified(), "should be modified");
         });
         var rejects = em.rejectChanges();
@@ -426,31 +418,31 @@ define(["testFns"], function (testFns) {
     function createOrderAndDetails(em, shouldAttachUnchanged) {
         if (shouldAttachUnchanged === undefined) shouldAttachUnchanged = true;
         var metadataStore = em.metadataStore;
-        var orderType = metadataStore.getEntityType("Order");
-        var orderDetailType = metadataStore.getEntityType("OrderDetail");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var order = orderType.createEntity();
         ok(order.entityAspect.entityState.isDetached(), "order should be 'detached");
         for (var i = 0; i < 3; i++) {
             var od = orderDetailType.createEntity();
-            od.setProperty("ProductID", i + 1); // part of pk
-            order.getProperty("OrderDetails").push(od);
+            od.setProperty("productID", i + 1); // part of pk
+            order.getProperty("orderDetails").push(od);
             ok(od.entityAspect.entityState.isDetached(), "orderDetail should be 'detached");
         }
         var orderId;
         if (shouldAttachUnchanged) {
             em.attachEntity(order);
-            orderId = order.getProperty("OrderID");
-            order.getProperty("OrderDetails").forEach(function (od) {
-                ok(od.getProperty("Order") === order, "orderDetail.order not set");
-                ok(od.getProperty("OrderID") === orderId, "orderDetail.orderId not set");
+            orderId = order.getProperty("orderID");
+            order.getProperty("orderDetails").forEach(function (od) {
+                ok(od.getProperty("order") === order, "orderDetail.order not set");
+                ok(od.getProperty("orderID") === orderId, "orderDetail.orderId not set");
                 ok(od.entityAspect.entityState.isUnchanged(), "orderDetail should be 'unchanged");
             });
         } else {
             em.addEntity(order);
-            orderId = order.getProperty("OrderID");
-            order.getProperty("OrderDetails").forEach(function (od) {
-                ok(od.getProperty("Order") === order, "orderDetail.order not set");
-                ok(od.getProperty("OrderID") === orderId, "orderDetail.orderId not set");
+            orderId = order.getProperty("orderID");
+            order.getProperty("orderDetails").forEach(function (od) {
+                ok(od.getProperty("order") === order, "orderDetail.order not set");
+                ok(od.getProperty("orderID") === orderId, "orderDetail.orderId not set");
                 ok(od.entityAspect.entityState.isAdded(), "orderDetail should be 'added");
             });
         }
@@ -462,8 +454,8 @@ define(["testFns"], function (testFns) {
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("CompanyName", "startsWith", "C")
-            .orderBy("CompanyName");
+            .where("companyName", "startsWith", "C")
+            .orderBy("companyName");
 
         em.executeQuery(query, function (data) {
             callback(data.results);
@@ -471,19 +463,19 @@ define(["testFns"], function (testFns) {
     }
 
     function testEntityState(c) {
-        ok(c.getProperty("CompanyName"), 'should have a companyName property');
+        ok(c.getProperty("companyName"), 'should have a companyName property');
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged");
-        c.setProperty("CompanyName", "Test");
-        ok(c.getProperty("CompanyName") === "Test", "companyName should be 'Test'");
+        c.setProperty("companyName", "Test");
+        ok(c.getProperty("companyName") === "Test", "companyName should be 'Test'");
         ok(c.entityAspect.entityState.isModified(), "should be modified after change");
         c.entityAspect.acceptChanges();
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after acceptChanges");
 
-        c.setProperty("CompanyName", "Test2");
-        ok(c.getProperty("CompanyName") === "Test2", "companyName should be 'Test2'");
+        c.setProperty("companyName", "Test2");
+        ok(c.getProperty("companyName") === "Test2", "companyName should be 'Test2'");
         ok(c.entityAspect.entityState.isModified(), "should be modified after change");
         c.entityAspect.rejectChanges();
-        ok(c.getProperty("CompanyName") === "Test", "companyName should be 'Test' after rejectChanges");
+        ok(c.getProperty("companyName") === "Test", "companyName should be 'Test' after rejectChanges");
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after reject changes");
     }
 

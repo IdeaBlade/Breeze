@@ -15,7 +15,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
     
-    
 
     var MetadataStore = (function () {
 
@@ -1195,7 +1194,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later

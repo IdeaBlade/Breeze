@@ -438,13 +438,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         ctor.prototype.expand = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
-            var eq = this._clone();
-            if (arguments.length === 0) {
-                eq.expandClause = null;
-            } else {
-                eq.expandClause = propertyPaths;
-            }
-            return eq;
+            return expandCore(this, propertyPaths);
         };
 
          // Implementations found in EntityManager
@@ -704,7 +698,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             function toExpandString() {
                 var clause = eq.expandClause;
                 if (!clause) return "";
-                return clause.replace(".", "/");
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toSkipString() {
@@ -801,9 +795,20 @@ function (core, m_entityMetadata, m_entityAspect) {
                 eq.selectClause = null;
                 return eq;
             }
-            eq.selectClause = SelectClause.create(propertyPaths);           
+            eq.selectClause = new SelectClause(propertyPaths);
             return eq;
         }
+        
+        function expandCore(that, propertyPaths) {
+            var eq = that._clone();
+            if (!propertyPaths) {
+                eq.expandClause = null;
+                return eq;
+            }
+            eq.expandClause = new ExpandClause(propertyPaths);
+            return eq;
+        }
+        
 
         function buildKeyPredicate(entityKey) {
             var keyProps = entityKey.entityType.keyProperties;
@@ -1761,24 +1766,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     // Not exposed
     var SelectClause = (function () {
-        /*
-        A SelectClause is a description of the properties that a query should project into its results.
-
-        For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
-
-            var obc = new SelectClause("Company.CompanyName, LastName") 
-                or 
-            var obc = new SelectClause("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause("LastName");
-        @class SelectClause
-        */
         
-        /*
-        @method <ctor> SelectClause
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
         var ctor = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
             this.propertyPaths = propertyPaths;
@@ -1787,24 +1775,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        /*
-        Alternative method of creating an SelectClause. 
-        Example for an Employee object with properties of 'Company' and 'LastName': 
-
-            var obc = SelectClause.create("Company.CompanyName, LastName") 
-                or 
-            var obc = SelectClause.create("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause.create("LastName");
-        @method create 
-        @static
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
-        ctor.create = function (propertyPaths) {
-            return new SelectClause(propertyPaths);
-        };
-         
         ctor.prototype.validate = function (entityType) {
             if (!entityType) {
                 return;
@@ -1820,11 +1790,36 @@ function (core, m_entityMetadata, m_entityAspect) {
                  return metadataStore._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
-             // return this.propertyPaths.replace(".", "/");
          };
 
          return ctor;
     })();
+    
+     // Not exposed
+    var ExpandClause = (function () {
+        
+        var ctor = function (propertyPaths) {
+            this.propertyPaths = propertyPaths;
+            this._pathStrings = propertyPaths.split(",").map(function(pp) {
+                return pp.trim();
+            });
+        };
+       
+//        // TODO:
+//        ctor.prototype.validate = function (entityType) {
+//            
+//        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            var frag = this._pathStrings.map(function(pp) {
+                return metadataStore._clientPropertyPathToServer(pp);
+            }).join(",");
+            return frag;
+        };
+
+        return ctor;
+    })();
+    
 
     // propertyPath can be either an array of paths or a '.' delimited string.
     
@@ -1890,7 +1885,6 @@ function (core, m_entityMetadata, m_entityAspect) {
         EntityQuery: EntityQuery,
         FnNode: FnNode,
         // Not documented - only exposed for testing purposes
-        OrderByClause: OrderByClause,
-        SelectClause: SelectClause
+        OrderByClause: OrderByClause
     };
 });
