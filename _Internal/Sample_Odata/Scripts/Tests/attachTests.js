@@ -24,6 +24,31 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("Defect 2182 - new entity case", 0, function () {
+
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var newOrder = orderType.createEntity();
+
+        em.addEntity(newOrder);
+        em.detachEntity(newOrder); 
+        em.addEntity(newOrder);// Exception thrown: "this key is already attached"
+
+    });
+
+
+    test("Defect 2182 - existing entity case", 0, function () {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        em.attachEntity(order);
+
+        em.detachEntity(order);
+        em.attachEntity(order);// Exception thrown: "this key is already attached"
+
+    });
+
+    
     test("exception if set nav to entity with different manager", function  () {
         var em1 = newEm();
         var orderType = em1.metadataStore.getEntityType("Order");

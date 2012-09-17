@@ -1848,6 +1848,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 // shouldn't happen.
                 throw new Error("internal error - entity cannot be found in group");
             }
+            delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
             aspect.entityState = EntityState.Detached;
