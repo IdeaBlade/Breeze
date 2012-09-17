@@ -39,7 +39,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         });
         var ms = new MetadataStore({ namingConvention: namingConv });
         var em = new EntityManager( { metadataStore: ms });
-    @method <ctor> QueryOptions
+    @method <ctor> NamingConvention
     @param config {Object}
     @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
     @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
@@ -52,6 +52,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .applyAll(this);
         };
 
+        
+        /**
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
         ctor.defaultInstance = new ctor({
             serverPropertyNameToClient: function(serverPropertyName) {
                 return serverPropertyName;
@@ -61,6 +67,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         });
         
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var namingConv = new NamingConvention({
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            });
+            namingConv.setAsDefault();
+        @chainable
+        **/
         ctor.prototype.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
@@ -95,6 +116,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // Assume em1 is an existing EntityManager
             em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
+        @param [config] {Object} Configuration settings .
+        @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
+        between client and server. Uses the NamingConvention.defaultInstance if not specified.
         **/
         var ctor = function (config) {
             config = config || { };

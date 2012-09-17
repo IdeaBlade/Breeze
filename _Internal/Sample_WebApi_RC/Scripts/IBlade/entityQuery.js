@@ -1319,12 +1319,6 @@ function (core, m_entityMetadata, m_entityAspect) {
         // methods defined in both subclasses of Predicate
 
         /**  
-        Returns the OData expression for this Predicate.
-        @method toODataFragement
-        @return {String}
-        **/
-
-        /**  
         Returns the function that will be used to execute this Predicate against the local cache.
         @method toFunction
         @return {Function}

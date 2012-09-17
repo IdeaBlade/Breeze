@@ -3458,15 +3458,50 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
 
+    /**
+    A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
+    will translate property names between the server and the javascript client. 
+
+    The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
+
+    @class NamingConvention
+    **/
+        
+    /**
+    NamingConvention constructor
+    @example
+        // A naming convention that converts the first character of every property name to uppercase on the server
+        // and lowercase on the client.
+        var namingConv = new NamingConvention({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }            
+        });
+        var ms = new MetadataStore({ namingConvention: namingConv });
+        var em = new EntityManager( { metadataStore: ms });
+    @method <ctor> NamingConvention
+    @param config {Object}
+    @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
+    @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
+    **/
     var NamingConvention = (function() {
         var ctor = function(config) {
-            assertConfig(config)
+            assertConfig(config || {})
                 .whereParam("serverPropertyNameToClient").isFunction()
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
         };
 
-        ctor.defaultInstance = new ctor()({
+        
+        /**
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
+        ctor.defaultInstance = new ctor({
             serverPropertyNameToClient: function(serverPropertyName) {
                 return serverPropertyName;
             },
@@ -3475,6 +3510,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         });
         
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var namingConv = new NamingConvention({
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            });
+            namingConv.setAsDefault();
+        @chainable
+        **/
         ctor.prototype.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
@@ -3509,6 +3559,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // Assume em1 is an existing EntityManager
             em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
+        @param [config] {Object} Configuration settings .
+        @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
+        between client and server. Uses the NamingConvention.defaultInstance if not specified.
         **/
         var ctor = function (config) {
             config = config || { };
@@ -3967,7 +4020,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true';
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var name = entityType.metadataStore.namingConvention.serverPropertyNameToClient(odataProperty.name);
+            var name = toClientName(entityType, odataProperty.name);
 
             var dp = new DataProperty({
                 parentEntityType: entityType,
@@ -4030,7 +4083,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
             var isScalar = !(toEnd.multiplicity === "*");
             var dataType = normalizeTypeName(toEnd.type, schema).typeName;
-            var name = entityType.metadataStore.namingConvention.serverPropertyNameToClient(odataProperty.name);
+            var name = toClientName(entityType, odataProperty.name);
 
             var np = new NavigationProperty({
                 parentEntityType: entityType,
@@ -4043,6 +4096,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return np;
 
 
+        }
+        
+        function toClientName(entityType, serverPropertyName) {
+            var nc = entityType.metadataStore.namingConvention;
+            var name = nc.serverPropertyNameToClient(serverPropertyName);
+            var testName = nc.clientPropertyNameToServer(name);
+            if (serverPropertyName !== testName) {
+                throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverPropertyName + "-->" + testName);
+            }
+            return name;
         }
 
         function isIdentityProperty(odataProperty) {
@@ -6339,12 +6402,6 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         // methods defined in both subclasses of Predicate
-
-        /**  
-        Returns the OData expression for this Predicate.
-        @method toODataFragement
-        @return {String}
-        **/
 
         /**  
         Returns the function that will be used to execute this Predicate against the local cache.
@@ -10059,7 +10116,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.53",
+        version: "0.54",
         core: core,
         entityModel: entityModel
     };
