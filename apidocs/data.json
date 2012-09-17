@@ -4559,19 +4559,6 @@
         {
             "file": "entityQuery.js",
             "line": 1321,
-            "description": "Returns the OData expression for this Predicate.",
-            "itemtype": "method",
-            "name": "toODataFragement",
-            "return": {
-                "description": "",
-                "type": "String"
-            },
-            "class": "Predicate",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityQuery.js",
-            "line": 1327,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -4584,7 +4571,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1333,
+            "line": 1327,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -4597,7 +4584,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1339,
+            "line": 1333,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",

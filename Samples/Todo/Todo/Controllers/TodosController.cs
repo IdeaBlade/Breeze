@@ -37,7 +37,7 @@
 
         // ~/api/todos/SaveChanges
         [AcceptVerbs("POST")]
-        public SaveResult SaveChanges(JArray saveBundle) {
+        public SaveResult SaveChanges(JObject saveBundle) {
             return _contextProvider.SaveChanges(saveBundle);
         }
 

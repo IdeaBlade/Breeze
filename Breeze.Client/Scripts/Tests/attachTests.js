@@ -23,7 +23,7 @@ define(["testFns"], function (testFns) {
 
         }
     });
-    
+       
      test("rejectChanges on added entity", function () {
         var em = newEm();
         var typeInfo = em.metadataStore.getEntityType("Order");

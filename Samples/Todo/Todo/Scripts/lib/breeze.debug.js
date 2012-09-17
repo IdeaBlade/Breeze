@@ -313,7 +313,7 @@ define('coreFns',[],function () {
         return newMap;
     }
 
-    // shink an object's surface
+    // shrink an object's surface
     function objectFilter(obj, kvPredicate) {
         var result = {};
         for (var key in obj) {
@@ -3034,7 +3034,7 @@ function (core, Event, m_validate) {
 
         ctor._fromRawEntity = function (rawEntity, entityType) {
             var keyValues = entityType.keyProperties.map(function (p) {
-                return rawEntity[p.name];
+                return rawEntity[p.nameOnServer];
             });
             return new EntityKey(entityType, keyValues);
         };
@@ -3458,6 +3458,81 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
 
+    /**
+    A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
+    will translate property names between the server and the javascript client. 
+
+    The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
+
+    @class NamingConvention
+    **/
+        
+    /**
+    NamingConvention constructor
+    @example
+        // A naming convention that converts the first character of every property name to uppercase on the server
+        // and lowercase on the client.
+        var namingConv = new NamingConvention({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }            
+        });
+        var ms = new MetadataStore({ namingConvention: namingConv });
+        var em = new EntityManager( { metadataStore: ms });
+    @method <ctor> NamingConvention
+    @param config {Object}
+    @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
+    @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
+    **/
+    var NamingConvention = (function() {
+        var ctor = function(config) {
+            assertConfig(config || {})
+                .whereParam("serverPropertyNameToClient").isFunction()
+                .whereParam("clientPropertyNameToServer").isFunction()
+                .applyAll(this);
+        };
+
+        
+        /**
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
+        ctor.defaultInstance = new ctor({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName;
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName;
+            }
+        });
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var namingConv = new NamingConvention({
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            });
+            namingConv.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
+        
+        return ctor;
+    })();
+    
     var MetadataStore = (function () {
 
         /**
@@ -3484,27 +3559,28 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // Assume em1 is an existing EntityManager
             em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
+        @param [config] {Object} Configuration settings .
+        @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
+        between client and server. Uses the NamingConvention.defaultInstance if not specified.
         **/
-        var ctor = function () {
+        var ctor = function (config) {
+            config = config || { };
+            assertConfig(config)
+                .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
-            
+            this._typeRegistry = { };
         };
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
-
-        /**
-        The 'default' MetadataStore to be used when none is specified.
-        @property defaultInstance
-        @static    
-        **/
-        ctor.defaultInstance = new ctor();
-
+        
+        
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
         internally when exporting an EntityManager. 
@@ -3521,6 +3597,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.export = function () {
             var result = JSON.stringify(this, function (key, value) {
+                if (key === "namingConvention") {
+                    return undefined;
+                }
                 return value;
             }, core.config.stringifyPad);
             return result;
@@ -3692,16 +3771,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(entityCtor, "entityCtor").isFunction().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var typeName;
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
                     entityType.setEntityCtor(entityCtor);
                 }
-                core.config.registerType(entityCtor, qualifiedTypeName);
+                typeName = qualifiedTypeName;
             } else {
-                core.config.registerType(entityCtor, entityTypeName);
+                typeName = entityTypeName;
             }
-
+            entityCtor.prototype._$typeName = typeName;
+            this._typeRegistry[typeName] = entityCtor;
         };
       
 
@@ -3814,6 +3895,23 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         // protected methods
+
+        ctor.prototype._clientPropertyPathToServer = function(propertyPath) {
+            var fn = this.namingConvention.clientPropertyNameToServer;
+            var serverPropPath = propertyPath.split(".").map(function(p) {
+                return fn(p);
+            }).join("/");
+            return serverPropPath;
+        };
+
+        ctor.prototype._clientObjectToServer = function(clientObject) {
+            var fn = this.namingConvention.clientPropertyNameToServer;
+            var result = { };
+            core.objectForEach(clientObject, function(key, value) {
+                result[fn(key)] = value;
+            });
+            return result;
+        };
         
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
@@ -3863,7 +3961,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         entityType._postProcess();
                         that._registerEntityType(entityType);
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
-                        var entityCtor = core.config.typeRegistry[entityType.name] || core.config.typeRegistry[entityType.shortName];
+                        var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
                         if (entityCtor) {
                              // next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
@@ -3901,7 +3999,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             toArray(odataEntityType.key.propertyRef).forEach(function (propertyRef) {
-                var keyProp = entityType.getDataProperty(propertyRef.name);
+                var keyPropName = metadataStore.namingConvention.serverPropertyNameToClient(propertyRef.name);
+                var keyProp = entityType.getDataProperty(keyPropName);
+                if (keyProp == null) {
+                    throw new Error("Unable to locate key property, confirm that metadataStore.namingConvention methods are correct");
+                }
                 keyProp.isKeyProperty = true;
             });
 
@@ -3918,10 +4020,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true';
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+            var name = toClientName(entityType, odataProperty.name);
 
             var dp = new DataProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 dataType: dataType,
                 isNullable: isNullable,
                 maxLength: odataProperty.maxLength,
@@ -3972,17 +4075,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         propertyRefs = toArray(dependent.propertyRef);
                     }
                     fkNames = propertyRefs.map(function (pr) {
-                        return entityType.getDataProperty(pr.name).name;
+                        return entityType.metadataStore.namingConvention.serverPropertyNameToClient(pr.name);
+                        // return entityType.getDataProperty(fkPropName).name;
                     });
                 }
             }
 
             var isScalar = !(toEnd.multiplicity === "*");
             var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+            var name = toClientName(entityType, odataProperty.name);
 
             var np = new NavigationProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 entityTypeName: dataType,
                 isScalar: isScalar,
                 associationName: association.name,
@@ -3991,6 +4096,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return np;
 
 
+        }
+        
+        function toClientName(entityType, serverPropertyName) {
+            var nc = entityType.metadataStore.namingConvention;
+            var name = nc.serverPropertyNameToClient(serverPropertyName);
+            var testName = nc.clientPropertyNameToServer(name);
+            if (serverPropertyName !== testName) {
+                throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverPropertyName + "-->" + testName);
+            }
+            return name;
         }
 
         function isIdentityProperty(odataProperty) {
@@ -4241,7 +4356,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.getEntityCtor = function () {
             if (this._entityCtor) return this._entityCtor;
-            var entityCtor = core.config.typeRegistry[this.name] || core.config.typeRegistry[this.shortName];
+            var typeRegistry = this.metadataStore._typeRegistry;
+            var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
                 entityCtor = function () { };
             }
@@ -4592,8 +4708,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
             // this.relatedNavigationProperty - this will be set for all foreignKey data properties.
@@ -4737,7 +4857,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
-
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.inverse
             // this.entityType
@@ -4955,7 +5075,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
         DataType: DataType,
-        AutoGeneratedKeyType: AutoGeneratedKeyType
+        AutoGeneratedKeyType: AutoGeneratedKeyType,
+        NamingConvention: NamingConvention
     };
 
 })
@@ -5095,7 +5216,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
                 entityType = metadataStore.getEntityType(entityTypeName);
                 if (!entityType) {
-                    throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
+                    if (throwErrorIfNotFound) {
+                        throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
+                    } else {
+                        return null;
+                    }
                 }
                 this.entityType = entityType;
             }
@@ -5398,13 +5523,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         ctor.prototype.expand = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
-            var eq = this._clone();
-            if (arguments.length === 0) {
-                eq.expandClause = null;
-            } else {
-                eq.expandClause = propertyPaths;
-            }
-            return eq;
+            return expandCore(this, propertyPaths);
         };
 
          // Implementations found in EntityManager
@@ -5618,9 +5737,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype._toUri = function (metadataStore) {
             // force entityType validation;
-            if (metadataStore) {
-                this._getEntityType(metadataStore, false);
-            }
+            this._getEntityType(metadataStore, false);          
 
             var eq = this;
             var queryOptions = {};
@@ -5642,7 +5759,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toOrderByString() {
@@ -5651,7 +5768,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
             
              function toSelectString() {
@@ -5660,13 +5777,13 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
             
             function toExpandString() {
                 var clause = eq.expandClause;
                 if (!clause) return "";
-                return clause.replace(".", "/");
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toSkipString() {
@@ -5763,9 +5880,20 @@ function (core, m_entityMetadata, m_entityAspect) {
                 eq.selectClause = null;
                 return eq;
             }
-            eq.selectClause = SelectClause.create(propertyPaths);           
+            eq.selectClause = new SelectClause(propertyPaths);
             return eq;
         }
+        
+        function expandCore(that, propertyPaths) {
+            var eq = that._clone();
+            if (!propertyPaths) {
+                eq.expandClause = null;
+                return eq;
+            }
+            eq.expandClause = new ExpandClause(propertyPaths);
+            return eq;
+        }
+        
 
         function buildKeyPredicate(entityKey) {
             var keyProps = entityKey.entityType.keyProperties;
@@ -5894,10 +6022,22 @@ function (core, m_entityMetadata, m_entityAspect) {
             return node;
         };
 
-        ctor.prototype.toOdataFragment = function() {
+        ctor.prototype.toString = function() {
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
-                    return fnNode.toOdataFragment();
+                    return fnNode.toString();
+                });
+                var uri = this.fnName + "(" + args.join(",") + ")";
+                return uri;
+            } else {
+                return this.value;
+            }
+        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            if (this.fnName) {
+                var args = this.fnNodes.map(function(fnNode) {
+                    return fnNode.toOdataFragment(metadataStore);
                 });                
                 var uri = this.fnName + "(" + args.join(",") + ")";
                 return uri;
@@ -5905,8 +6045,10 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var firstChar = this.value.substr(0, 1);
                 if (firstChar === "'" || firstChar === '"') {
                     return this.value;                  
+                } else if (this.value == this.propertyPath) {
+                    return metadataStore._clientPropertyPathToServer(this.propertyPath);
                 } else {
-                    return this.value.replace(".", "/");
+                    return this.value;
                 }
             }
         };
@@ -6321,8 +6463,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function () {
-            var exprFrag = this._fnNode.toOdataFragment();
+        ctor.prototype.toOdataFragment = function (metadataStore) {
+            var exprFrag = this._fnNode.toOdataFragment(metadataStore);
             var val = formatValue(this._value);
             if (this._filterQueryOp.isFunction) {
                 return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
@@ -6341,7 +6483,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.toString = function () {
             var val = formatValue(this._value);
-            return this._fnNode.toOdataFragment() + " " + this._filterQueryOp.operator + " " + val;
+            return this._fnNode.toString() + " " + this._filterQueryOp.operator + " " + val;
         };
 
         ctor.prototype.validate = function (entityType) {
@@ -6437,12 +6579,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function () {
+        ctor.prototype.toOdataFragment = function (metadataStore) {
             if (this._predicates.length == 1) {
-                return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment() + ")";
+                return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(metadataStore) + ")";
             } else {
                 var result = this._predicates.map(function (p) {
-                    return "(" + p.toOdataFragment() + ")";
+                    return "(" + p.toOdataFragment(metadataStore) + ")";
                 }).join(" " + this._booleanQueryOp.operator + " ");
                 return result;
             }
@@ -6632,18 +6774,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             entityType.getProperty(this.propertyPath, true);
         };
 
-        ctor.prototype.toOdataFragment = function () {
-            return this.propertyPath.replace(".", "/") + (this.isDesc ? " desc" : "");
-//            // At first I thought that we only wanted to replace the last "." with a '/' per the OData spec.
-//            var propertyPath = this.propertyPath;
-//            var ix = propertyPath.lastIndexOf(".");
-//            var result;
-//            if (ix === -1) {
-//                result = propertyPath;
-//            } else {
-//                result = propertyPath.substr(0, ix) + "/" + propertyPath.substr(ix + 1);
-//            }
-//            return result + (this.isDesc ? " desc" : "");
+        ctor.prototype.toOdataFragment = function (metadataStore) {
+            return metadataStore._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
+            // return this.propertyPath.replace(".", "/") + (this.isDesc ? " desc" : "");
         };
 
         ctor.prototype.getComparer = function () {
@@ -6691,9 +6824,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        ctor.prototype.toOdataFragment = function () {
+        ctor.prototype.toOdataFragment = function (metadataStore) {
             var strings = this._orderByClauses.map(function (obc) {
-                return obc.toOdataFragment();
+                return obc.toOdataFragment(metadataStore);
             });
             // should return something like CompanyName,Address/City desc
             return strings.join(',');
@@ -6718,48 +6851,15 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     // Not exposed
     var SelectClause = (function () {
-        /*
-        A SelectClause is a description of the properties that a query should project into its results.
-
-        For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
-
-            var obc = new SelectClause("Company.CompanyName, LastName") 
-                or 
-            var obc = new SelectClause("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause("LastName");
-        @class SelectClause
-        */
         
-        /*
-        @method <ctor> SelectClause
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
         var ctor = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
             this.propertyPaths = propertyPaths;
-            this._pathStrings = propertyPaths.split(",");
+            this._pathStrings = propertyPaths.split(",").map(function(pp) {
+                return pp.trim();
+            });
         };
 
-        /*
-        Alternative method of creating an SelectClause. 
-        Example for an Employee object with properties of 'Company' and 'LastName': 
-
-            var obc = SelectClause.create("Company.CompanyName, LastName") 
-                or 
-            var obc = SelectClause.create("Company.CompanyName, Orders") 
-                or 
-            var obc = new SelectClause.create("LastName");
-        @method create 
-        @static
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        */
-        ctor.create = function (propertyPaths) {
-            return new SelectClause(propertyPaths);
-        };
-         
         ctor.prototype.validate = function (entityType) {
             if (!entityType) {
                 return;
@@ -6770,12 +6870,41 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
          };
 
-         ctor.prototype.toOdataFragment = function() {
-             return this.propertyPaths.replace(".", "/");
+         ctor.prototype.toOdataFragment = function(metadataStore) {
+             var frag = this._pathStrings.map(function(pp) {
+                 return metadataStore._clientPropertyPathToServer(pp);
+             }).join(",");
+             return frag;
          };
 
          return ctor;
     })();
+    
+     // Not exposed
+    var ExpandClause = (function () {
+        
+        var ctor = function (propertyPaths) {
+            this.propertyPaths = propertyPaths;
+            this._pathStrings = propertyPaths.split(",").map(function(pp) {
+                return pp.trim();
+            });
+        };
+       
+//        // TODO:
+//        ctor.prototype.validate = function (entityType) {
+//            
+//        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            var frag = this._pathStrings.map(function(pp) {
+                return metadataStore._clientPropertyPathToServer(pp);
+            }).join(",");
+            return frag;
+        };
+
+        return ctor;
+    })();
+    
 
     // propertyPath can be either an array of paths or a '.' delimited string.
     
@@ -6841,8 +6970,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         EntityQuery: EntityQuery,
         FnNode: FnNode,
         // Not documented - only exposed for testing purposes
-        OrderByClause: OrderByClause,
-        SelectClause: SelectClause
+        OrderByClause: OrderByClause
     };
 });
 
@@ -7083,7 +7211,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 assert = assertConfig(config);
             }
             assert
-                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(MetadataStore.defaultInstance)
+                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore())
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
@@ -7777,8 +7905,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
             // are referenced are also in the partial save group
 
-            // HACK: need to put it in an array because top level JArray seems to serialize fine but JObject has problems.
-            var saveBundle = [{ entities: unwrapEntities(entitiesToSave), saveOptions: saveOptions}];
+            var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: saveOptions};
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
@@ -8379,7 +8506,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
                 var odataQuery = toOdataQueryString(query, metadataStore);
-                var queryContext = { query: query, entityManager: em, mergeStrategy: queryOptions.mergeStrategy, refMap: {}, deferredFns: [] };
+                var queryContext = {
+                     query: query, 
+                     entityManager: em, 
+                     mergeStrategy: queryOptions.mergeStrategy, 
+                     refMap: {}, 
+                     deferredFns: []
+                };
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
@@ -8486,19 +8619,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var result = core.objectMapValue(rawEntity, function(key, value) {
-                if (value == null) {
-                    return value;
-                }
+            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
+            var result = { };
+            core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
-                    return undefined;
+                    return;
                 }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
-                    return undefined;
+                    return;
                 } 
-                if (Array.isArray(value)) {
-                    return value.map(function(v) {
+                
+                var newKey = keyFn(key);
+                // == is deliberate here instead of ===
+                if (value == null) {
+                    result[newKey] = value;
+                } else if (Array.isArray(value)) {
+                    result[newKey] = value.map(function(v) {
                         if (v == null) {
                             return v;
                         } else if (v.$type || v.__metadata) {
@@ -8511,24 +8648,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     });
                 } else {
                     if (value.$type || value.__metadata) {
-                        return mergeEntity(value, queryContext, isSaving, true);
+                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
                     } else {
-                        return value;
+                        result[newKey] = value;
                     }
                 }
             });
             return result;
         }
+        
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
             var entityType = targetEntity.entityType;
+            var metadataStore = entityType.metadataStore;
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmappedProperty) return;
-                var propName = dp.name;
-                var val = rawEntity[propName];
+                var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime && val) {
                     if (!core.isDate(val)) {
                         // Does not work - returns time offset from GMT (i think)
@@ -8536,7 +8674,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         val = core.dateFromIsoString(val);
                     }
                 }
-                targetEntity.setProperty(propName, val);
+                targetEntity.setProperty(dp.name, val);
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {
@@ -8554,8 +8692,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         }
 
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var propName = navigationProperty.name;
-            var relatedRawEntity = rawEntity[propName];
+            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
             var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntity);
             if (deferred) {
@@ -8597,7 +8734,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             var inverseProperty = navigationProperty.inverse;
             if (!inverseProperty) return;
-            var relatedRawEntities = rawEntity[propName];
+            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
             var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntities);
@@ -8697,23 +8834,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return group;
         }
         
-        function unwrapEntities(entities) {
+        function unwrapEntities(entities, metadataStore) {
             var rawEntities = entities.map(function(e) {
                 var rawEntity = { };
                 e.entityType.dataProperties.forEach(function(dp) {
-                    rawEntity[dp.name] = e.getProperty(dp.name);
+                    rawEntity[dp.nameOnServer] = e.getProperty(dp.name);
                 });
                 var autoGeneratedKey = null;
                 if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
                     autoGeneratedKey = {
-                        propertyName: e.entityType.keyProperties[0].name,
+                        propertyName: e.entityType.keyProperties[0].nameOnServer,
                         autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
                     };
                 }
+                
+                var originalValuesOnServer = metadataStore._clientObjectToServer(e.entityAspect.originalValues);
                 rawEntity.entityAspect = {
                     entityTypeName: e.entityType.name,
                     entityState: e.entityAspect.entityState.name,
-                    originalValuesMap: e.entityAspect.originalValues,
+                    originalValuesMap: originalValuesOnServer,
                     autoGeneratedKey: autoGeneratedKey
                 };
                 return rawEntity;
@@ -9536,6 +9675,10 @@ function (core, m_entityAspect, m_entityQuery) {
     var Event = core.Event;
 
     relationArrayMixin.push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+       
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
         if (!goodAdds.length) {
             return this.length;
@@ -9550,6 +9693,7 @@ function (core, m_entityAspect, m_entityQuery) {
         if (!goodAdds.length) {
             return this.length;
         }
+        
         var result = Array.prototype.unshift.apply(this, goodAdds);
         processAdds(this, Array.prototype.slice.call(goodAdds));
         return result;
@@ -9570,7 +9714,7 @@ function (core, m_entityAspect, m_entityQuery) {
     relationArrayMixin.splice = function () {
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
         var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
-
+        
         var result = Array.prototype.splice.apply(this, newArgs);
         processRemoves(this, result);
 
@@ -9597,7 +9741,12 @@ function (core, m_entityAspect, m_entityQuery) {
         if (entityManager) {
             goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
-                    entityManager.attachEntity(add, EntityState.Added);
+                    relationArray._inProgress = true;
+                    try {
+                        entityManager.attachEntity(add, EntityState.Added);
+                    } finally {
+                        relationArray._inProgress = false;
+                    }
                 }
             });
         }
