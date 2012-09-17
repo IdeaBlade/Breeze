@@ -52,8 +52,14 @@ function (core, m_entityAspect) {
 
                 var inverseProp = property.inverse;
                 if (newValue) {
-                    if (entityManager && newValue.entityAspect.entityState.isDetached()) {
-                        entityManager.attachEntity(newValue, EntityState.Added);
+                    if (entityManager) {
+                        if (newValue.entityAspect.entityState.isDetached()) {
+                            entityManager.attachEntity(newValue, EntityState.Added);
+                        } else {
+                            if (newValue.entityAspect.entityManager !== entityManager) {
+                                throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+                            }
+                        }
                     }
                     // process related updates ( the inverse relationship) first so that collection dups check works properly.
                     // update inverse relationship

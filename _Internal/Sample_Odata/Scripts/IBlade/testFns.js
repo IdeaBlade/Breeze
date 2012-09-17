@@ -10,6 +10,7 @@ define(["root"], function (root) {
     var entityModel = root.entityModel;
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
+    var NamingConvention = entityModel.NamingConvention;
     
     var testFns = {};
     testFns.message = "";
@@ -47,16 +48,15 @@ define(["root"], function (root) {
     };
       
     testFns.newMs = function() {
-        var ms = new MetadataStore({
-            namingConventions: {
-                serverPropertyNameToClient: function(serverPropertyName) {
-                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-                },
-                clientPropertyNameToServer: function(clientPropertyName) {
-                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-                }            
-            }
+        var namingConv = new NamingConvention({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }            
         });
+        var ms = new MetadataStore({ namingConvention: namingConv });
         return ms;
     };
     
@@ -98,6 +98,19 @@ define(["root"], function (root) {
             ok(false, "Failed: " + error.toString());
         }
         start();
+    };
+
+    testFns.getDups = function(items) {
+        var uniqueItems = [];
+        var dups = [];
+        items.forEach(function(item) {
+            if (uniqueItems.indexOf(item) === -1) {
+                uniqueItems.push(item);
+            } else {
+                dups.push(item);
+            }
+        });
+        return dups;
     };
 
     testFns.morphStringProp = function (entity, propName) {

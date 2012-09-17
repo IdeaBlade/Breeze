@@ -24,7 +24,46 @@ define(["testFns"], function (testFns) {
         }
     });
     
-     test("rejectChanges on added entity", function () {
+    test("exception if set nav to entity with different manager", function  () {
+        var em1 = newEm();
+        var orderType = em1.metadataStore.getEntityType("Order");
+        var o1 = orderType.createEntity();
+        em1.attachEntity(o1);
+
+        var em2 = newEm();
+        var customerType = em2.metadataStore.getEntityType("Customer");
+        var c1 = customerType.createEntity();
+        em2.attachEntity(c1);
+
+        ok(c1.entityAspect.entityManager !== o1.entityAspect.entityManager,
+            "existingCustomer and existingOrder have different managers"); 
+
+        try {
+            o1.setProperty("customer", c1);
+            ok(false, "shouldn't get here");
+        } catch (e) {
+            ok(e.message.indexOf("EntityManager") >= 0);
+        }
+
+    });
+
+
+    
+    test("attach across entityManagers", function() {
+        var em1 = newEm();
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.attachEntity(cust);
+        var em2 = newEm();
+        try {
+            em2.attachEntity(cust);
+            ok("fail", "should not be able to attach an entity to more than one entityManager");
+        } catch (e) {
+            ok(e.message.indexOf("EntityManager"));
+        }
+    });
+       
+    test("rejectChanges on added entity", function () {
         var em = newEm();
         var typeInfo = em.metadataStore.getEntityType("Order");
         var newEntity = typeInfo.createEntity();
