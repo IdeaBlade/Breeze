@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample_Odata", "_Internal\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample_WebApi_RC", "_Internal\Sample_WebApi_RC\Sample_WebApi_RC.csproj", "{0A47E825-89C1-4D5B-AC39-F8F9024AEE9D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeDocCode", "DocCode\BreezeDocCode\BreezeDocCode.csproj", "{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Breeze.vsmdi
@@ -91,6 +93,16 @@ Global
 		{0A47E825-89C1-4D5B-AC39-F8F9024AEE9D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{0A47E825-89C1-4D5B-AC39-F8F9024AEE9D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{0A47E825-89C1-4D5B-AC39-F8F9024AEE9D}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

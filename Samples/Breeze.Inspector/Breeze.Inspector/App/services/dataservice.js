@@ -21,6 +21,8 @@
             canSave(false);
         } else if (args.entity.entityAspect.entityState.isAddedModifiedOrDeleted()) {
             canSave(true);
+            console.log(args.entity.entityAspect.entityState);
+            console.log(args.entity);
         }
     });
 
