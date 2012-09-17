@@ -51,7 +51,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
         };
+        
+        /**
+        The function used to convert server side property names to client side property names.
 
+        __readOnly__
+        @property serverPropertyNameToClient {Function}
+        **/
+
+        /**
+        The function used to convert client side property names to server side property names.
+
+        __readOnly__
+        @property clientPropertyNameToClient {Function}
+        **/
         
         /**
         The default value whenever NamingConventions are not specified.
