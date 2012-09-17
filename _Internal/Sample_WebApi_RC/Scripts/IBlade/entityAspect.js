@@ -902,7 +902,7 @@ function (core, Event, m_validate) {
 
         ctor._fromRawEntity = function (rawEntity, entityType) {
             var keyValues = entityType.keyProperties.map(function (p) {
-                return rawEntity[p.name];
+                return rawEntity[p.nameOnServer];
             });
             return new EntityKey(entityType, keyValues);
         };

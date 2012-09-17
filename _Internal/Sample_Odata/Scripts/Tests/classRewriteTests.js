@@ -35,7 +35,7 @@ define(["testFns"], function (testFns) {
 
     test("class watcher - inherited", function () {
 
-        var metadataStore = MetadataStore.defaultInstance;
+        var metadataStore = new MetadataStore();
         var Entity = function () {
 
         };
@@ -92,7 +92,7 @@ define(["testFns"], function (testFns) {
             this.companyName = null;
         };
 
-        var metadataStore = MetadataStore.defaultInstance;
+        var metadataStore = new MetadataStore();
         metadataStore.trackUnmappedType(Customer, this.interceptor);
 
         var cust1 = new Customer();
@@ -112,7 +112,7 @@ define(["testFns"], function (testFns) {
             this.companyName = null;
         };
 
-        var metadataStore = MetadataStore.defaultInstance;
+        var metadataStore = new MetadataStore();
         metadataStore.trackUnmappedType(Customer, this.interceptor);
 
         var cust1 = new Customer();

@@ -102,6 +102,8 @@
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
             
+                <li><a href="..&#x2F;classes/NamingConvention.html">NamingConvention</a></li>
+            
                 <li><a href="..&#x2F;classes/NavigationProperty.html">NavigationProperty</a></li>
             
                 <li><a href="..&#x2F;classes/Predicate.html">Predicate</a></li>
@@ -171,7 +173,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l20"><code>entityMetadata.js:20</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l95"><code>entityMetadata.js:95</code></a>
         </div>
     
 
@@ -201,8 +203,6 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
         
             <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
         
-        
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
         
         
         
@@ -302,23 +302,6 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
             
 
             
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_defaultInstance">defaultInstance</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
 
             
 
@@ -334,7 +317,17 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
     <h3 class="name"><code>&lt;ctor&gt; MetadataStore</code></h3>
 
     
-        <span class="paren">()</span>
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[config]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
     
 
     
@@ -362,7 +355,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l29"><code>entityMetadata.js:29</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l104"><code>entityMetadata.js:104</code></a>
         
         </p>
 
@@ -376,6 +369,49 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
         <p>Constructs a new MetadataStore.</p>
     </div>
 
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[config]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Configuration settings .</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[namingConvention=NamingConvention.defaultInstance]</code>
+                                    <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>NamingConvention to be used in mapping property names
+between client and server. Uses the NamingConvention.defaultInstance if not specified.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
     
 
     
@@ -439,7 +475,7 @@ em1.setProperties( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l66"><code>entityMetadata.js:66</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l141"><code>entityMetadata.js:141</code></a>
         
         </p>
 
@@ -556,7 +592,7 @@ newMetadataStore.import(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l153"><code>entityMetadata.js:153</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l231"><code>entityMetadata.js:231</code></a>
         
         </p>
 
@@ -770,7 +806,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l282"><code>entityMetadata.js:282</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l360"><code>entityMetadata.js:360</code></a>
         
         </p>
 
@@ -878,7 +914,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l312"><code>entityMetadata.js:312</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l390"><code>entityMetadata.js:390</code></a>
         
         </p>
 
@@ -956,7 +992,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l137"><code>entityMetadata.js:137</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l215"><code>entityMetadata.js:215</code></a>
         
         </p>
 
@@ -1073,7 +1109,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l116"><code>entityMetadata.js:116</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l194"><code>entityMetadata.js:194</code></a>
         
         </p>
 
@@ -1193,7 +1229,7 @@ var newMetadataStore = MetadataStore.import(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l87"><code>entityMetadata.js:87</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l165"><code>entityMetadata.js:165</code></a>
         
         </p>
 
@@ -1298,7 +1334,7 @@ newMetadataStore.import(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l268"><code>entityMetadata.js:268</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l346"><code>entityMetadata.js:346</code></a>
         
         </p>
 
@@ -1380,7 +1416,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l228"><code>entityMetadata.js:228</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l306"><code>entityMetadata.js:306</code></a>
         
         </p>
 
@@ -1510,7 +1546,7 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l212"><code>entityMetadata.js:212</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l290"><code>entityMetadata.js:290</code></a>
         
         </p>
 
@@ -1575,58 +1611,6 @@ i.e. an unmapped type.</p>
             </div>
         
 
-        
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
-
-                
-                    <div id="property_defaultInstance" class="property item">
-    <h3 class="name"><code>defaultInstance</code></h3>
-    <span class="type">Unknown</span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l59"><code>entityMetadata.js:59</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The 'default' MetadataStore to be used when none is specified.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-            </div>
         
 
         

@@ -18,6 +18,7 @@ YUI.add("yuidoc-meta", function(Y) {
         "FilterQueryOp",
         "MergeStrategy",
         "MetadataStore",
+        "NamingConvention",
         "NavigationProperty",
         "Predicate",
         "QueryOptions",

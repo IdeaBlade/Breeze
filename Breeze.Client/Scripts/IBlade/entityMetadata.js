@@ -15,6 +15,81 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
 
+    /**
+    A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
+    will translate property names between the server and the javascript client. 
+
+    The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
+
+    @class NamingConvention
+    **/
+        
+    /**
+    NamingConvention constructor
+    @example
+        // A naming convention that converts the first character of every property name to uppercase on the server
+        // and lowercase on the client.
+        var namingConv = new NamingConvention({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }            
+        });
+        var ms = new MetadataStore({ namingConvention: namingConv });
+        var em = new EntityManager( { metadataStore: ms });
+    @method <ctor> NamingConvention
+    @param config {Object}
+    @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
+    @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
+    **/
+    var NamingConvention = (function() {
+        var ctor = function(config) {
+            assertConfig(config || {})
+                .whereParam("serverPropertyNameToClient").isFunction()
+                .whereParam("clientPropertyNameToServer").isFunction()
+                .applyAll(this);
+        };
+
+        
+        /**
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
+        ctor.defaultInstance = new ctor({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName;
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName;
+            }
+        });
+        
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var namingConv = new NamingConvention({
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            });
+            namingConv.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function() {
+            ctor.defaultInstance = this;
+            return this;
+        };
+        
+        return ctor;
+    })();
+    
     var MetadataStore = (function () {
 
         /**
@@ -41,8 +116,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // Assume em1 is an existing EntityManager
             em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
+        @param [config] {Object} Configuration settings .
+        @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
+        between client and server. Uses the NamingConvention.defaultInstance if not specified.
         **/
-        var ctor = function () {
+        var ctor = function (config) {
+            config = config || { };
+            assertConfig(config)
+                .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
@@ -50,19 +132,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = { };
-            
         };
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
-
-        /**
-        The 'default' MetadataStore to be used when none is specified.
-        @property defaultInstance
-        @static    
-        **/
-        ctor.defaultInstance = new ctor();
-
+        
+        
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
         internally when exporting an EntityManager. 
@@ -79,6 +154,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.export = function () {
             var result = JSON.stringify(this, function (key, value) {
+                if (key === "namingConvention") {
+                    return undefined;
+                }
                 return value;
             }, core.config.stringifyPad);
             return result;
@@ -374,6 +452,23 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         // protected methods
+
+        ctor.prototype._clientPropertyPathToServer = function(propertyPath) {
+            var fn = this.namingConvention.clientPropertyNameToServer;
+            var serverPropPath = propertyPath.split(".").map(function(p) {
+                return fn(p);
+            }).join("/");
+            return serverPropPath;
+        };
+
+        ctor.prototype._clientObjectToServer = function(clientObject) {
+            var fn = this.namingConvention.clientPropertyNameToServer;
+            var result = { };
+            core.objectForEach(clientObject, function(key, value) {
+                result[fn(key)] = value;
+            });
+            return result;
+        };
         
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
@@ -461,7 +556,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             toArray(odataEntityType.key.propertyRef).forEach(function (propertyRef) {
-                var keyProp = entityType.getDataProperty(propertyRef.name);
+                var keyPropName = metadataStore.namingConvention.serverPropertyNameToClient(propertyRef.name);
+                var keyProp = entityType.getDataProperty(keyPropName);
+                if (keyProp == null) {
+                    throw new Error("Unable to locate key property, confirm that metadataStore.namingConvention methods are correct");
+                }
                 keyProp.isKeyProperty = true;
             });
 
@@ -478,10 +577,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true';
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+            var name = toClientName(entityType, odataProperty.name);
 
             var dp = new DataProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 dataType: dataType,
                 isNullable: isNullable,
                 maxLength: odataProperty.maxLength,
@@ -532,17 +632,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         propertyRefs = toArray(dependent.propertyRef);
                     }
                     fkNames = propertyRefs.map(function (pr) {
-                        return entityType.getDataProperty(pr.name).name;
+                        return entityType.metadataStore.namingConvention.serverPropertyNameToClient(pr.name);
+                        // return entityType.getDataProperty(fkPropName).name;
                     });
                 }
             }
 
             var isScalar = !(toEnd.multiplicity === "*");
             var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+            var name = toClientName(entityType, odataProperty.name);
 
             var np = new NavigationProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 entityTypeName: dataType,
                 isScalar: isScalar,
                 associationName: association.name,
@@ -551,6 +653,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return np;
 
 
+        }
+        
+        function toClientName(entityType, serverPropertyName) {
+            var nc = entityType.metadataStore.namingConvention;
+            var name = nc.serverPropertyNameToClient(serverPropertyName);
+            var testName = nc.clientPropertyNameToServer(name);
+            if (serverPropertyName !== testName) {
+                throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverPropertyName + "-->" + testName);
+            }
+            return name;
         }
 
         function isIdentityProperty(odataProperty) {
@@ -1153,8 +1265,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
             // this.relatedNavigationProperty - this will be set for all foreignKey data properties.
@@ -1298,7 +1414,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
-
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.inverse
             // this.entityType
@@ -1516,7 +1632,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
         DataType: DataType,
-        AutoGeneratedKeyType: AutoGeneratedKeyType
+        AutoGeneratedKeyType: AutoGeneratedKeyType,
+        NamingConvention: NamingConvention
     };
 
 })

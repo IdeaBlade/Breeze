@@ -102,6 +102,8 @@
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
             
+                <li><a href="..&#x2F;classes/NamingConvention.html">NamingConvention</a></li>
+            
                 <li><a href="..&#x2F;classes/NavigationProperty.html">NavigationProperty</a></li>
             
                 <li><a href="..&#x2F;classes/Predicate.html">Predicate</a></li>
@@ -171,7 +173,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1093"><code>entityQuery.js:1093</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1114"><code>entityQuery.js:1114</code></a>
         </div>
     
 
@@ -296,13 +298,6 @@ method that would modify a Predicate actually returns a new Predicate.</p>
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_toODataFragement">toODataFragement</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
                                 <a href="#method_toString">toString</a>
 
                                 
@@ -386,7 +381,7 @@ method that would modify a Predicate actually returns a new Predicate.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1099"><code>entityQuery.js:1099</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1120"><code>entityQuery.js:1120</code></a>
         
         </p>
 
@@ -517,7 +512,7 @@ var query = new EntityQuery("Customers").where(p2);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1230"><code>entityQuery.js:1230</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1251"><code>entityQuery.js:1251</code></a>
         
         </p>
 
@@ -629,7 +624,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1161"><code>entityQuery.js:1161</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1182"><code>entityQuery.js:1182</code></a>
         
         </p>
 
@@ -749,7 +744,7 @@ var newPred = Predicate.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1136"><code>entityQuery.js:1136</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1157"><code>entityQuery.js:1157</code></a>
         
         </p>
 
@@ -884,7 +879,7 @@ var p1 = Predicate.create(predArgs);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1121"><code>entityQuery.js:1121</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1142"><code>entityQuery.js:1142</code></a>
         
         </p>
 
@@ -985,7 +980,7 @@ if (Predicate.isPredicate(p1)) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1211"><code>entityQuery.js:1211</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1232"><code>entityQuery.js:1232</code></a>
         
         </p>
 
@@ -1078,7 +1073,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1280"><code>entityQuery.js:1280</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1301"><code>entityQuery.js:1301</code></a>
         
         </p>
 
@@ -1161,7 +1156,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1186"><code>entityQuery.js:1186</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1207"><code>entityQuery.js:1207</code></a>
         
         </p>
 
@@ -1267,7 +1262,7 @@ var newPred = Predicate.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1255"><code>entityQuery.js:1255</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1276"><code>entityQuery.js:1276</code></a>
         
         </p>
 
@@ -1371,7 +1366,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1306"><code>entityQuery.js:1306</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1321"><code>entityQuery.js:1321</code></a>
         
         </p>
 
@@ -1395,76 +1390,6 @@ var newPred = p1.and(preds);
                 
                     
                         <span class="type">Function</span>:
-                    
-                
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-                    <div id="method_toODataFragement" class="method item">
-    <h3 class="name"><code>toODataFragement</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type">String</span>
-        </span>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1300"><code>entityQuery.js:1300</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Returns the OData expression for this Predicate.</p>
-    </div>
-
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-                
-                    
-                        <span class="type">String</span>:
                     
                 
             </div>
@@ -1511,7 +1436,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1312"><code>entityQuery.js:1312</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1327"><code>entityQuery.js:1327</code></a>
         
         </p>
 
@@ -1587,7 +1512,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1318"><code>entityQuery.js:1318</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1333"><code>entityQuery.js:1333</code></a>
         
         </p>
 

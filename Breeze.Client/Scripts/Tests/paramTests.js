@@ -20,7 +20,6 @@ define(["testFns"], function (testFns) {
     });
 
 
-
     test("assertParam not ok", function () {
         var x = {};
         var Customer = function () {

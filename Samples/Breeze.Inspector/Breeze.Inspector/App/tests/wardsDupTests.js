@@ -34,16 +34,17 @@
 
     // this test passes even when getFormsAndQuestions
     // apparently must get inspectors jobs individually to trigger the problem
-    test("v2 - no duplicate inspection entities for a job", 1, function () {
-        manager.clear();
-        stop();
-        getMetadata()
-            .then(getFormsAndQuestions) // harmless either way
-            .then(getJobs)
-            .then(lookForDupInspectionsByJobs)
-            .fail(handleFail)
-            .fin(start);
-    });
+    test("v2 - no duplicate inspection entities for a job", 1,
+       function () {
+           manager.clear();
+           stop();
+           getMetadata()
+               .then(getFormsAndQuestions) // harmless either way
+               .then(getJobs)
+               .then(lookForDupInspectionsByJobs)
+               .fail(handleFail)
+               .fin(start);
+       });
    
     /****************  HELPERS *****************/
     
@@ -113,41 +114,23 @@
         equal(dupCount, 0, "Expected no duplicate inspections");
     }
     
-//    function lookForDupInspectionsInJobsArray(jobs, dupCountInc) {
-//        jobs.forEach(function (job) {
-//            var inspections = job.Inspections();
-//            var uniqueInspections = [];
-//            var duplicateInspections = [];
-//            inspections.forEach(function (inspection) {
-//                if (uniqueInspections.indexOf(inspection) === -1) {
-//                    uniqueInspections.push(inspection);
-//                } else {
-//                    duplicateInspections.push(inspection);
-//                }
-//            });
-//            var dups = duplicateInspections.length;
-//            if (dups > 0) {
-//                var inspector = job.Inspector();
-//                ok(false,
-//                    "Found " + dups +
-//                    " duplicate inspection(s) for job=" + job.Id() +
-//                    " of inspector " + inspector.Id() +
-//                    " " + inspector.Name());
-//                dupCountInc(dups);
-//            }
-//        });
-//    } 
-    
     function lookForDupInspectionsInJobsArray(jobs, dupCountInc) {
         jobs.forEach(function (job) {
             var inspections = job.Inspections();
             var uniqueInspections = [];
             var duplicateInspections = [];
-            var dups = getDups(inspections);
-            if (dups.length > 0) {
+            inspections.forEach(function (inspection) {
+                if (uniqueInspections.indexOf(inspection) === -1) {
+                    uniqueInspections.push(inspection);
+                } else {
+                    duplicateInspections.push(inspection);
+                }
+            });
+            var dups = duplicateInspections.length;
+            if (dups > 0) {
                 var inspector = job.Inspector();
                 ok(false,
-                    "Found " + dups.length +
+                    "Found " + dups +
                     " duplicate inspection(s) for job=" + job.Id() +
                     " of inspector " + inspector.Id() +
                     " " + inspector.Name());
@@ -155,29 +138,5 @@
             }
         });
     } 
-    
-    function unique(items) {
-        var uniqueItems = [];
-        items.forEach(function(item) {
-            if (uniqueItems.indexOf(item) === -1) {
-                uniqueItems.push(item);
-            }
-        });
-        return uniqueItems;
-    }
-
-    function getDups(items) {
-        var uniqueItems = [];
-        var dups = [];
-        items.forEach(function(item) {
-            if (uniqueItems.indexOf(item) === -1) {
-                uniqueItems.push(item);
-            } else {
-                dups.push(item);
-            }
-        });
-        return dups;
-    }
-    
 
 });

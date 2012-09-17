@@ -14,6 +14,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var Validator = m_validate.Validator;
 
     // TODO: still need to handle inheritence here.
+    
 
     var MetadataStore = (function () {
 
@@ -42,7 +43,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             em1.setProperties( { metadataStore: ms });
         @method <ctor> MetadataStore
         **/
-        var ctor = function () {
+        var ctor = function (config) {
+            config = config || { };
+            assertConfig(config)
+                .whereParam("namingConventions").isOptional().withDefault(ctor.defaultNamingConventions)
+                .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
@@ -51,18 +56,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._id = __id++;
             this._typeRegistry = { };
             
+            var nc = this.namingConventions;
+            if ((!nc.serverPropertyNameToClient) || (!nc.clientPropertyNameToServer)) {
+                throw new Error("namingConventions not set on MetadataStore");
+            }
+
         };
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
-
-        /**
-        The 'default' MetadataStore to be used when none is specified.
-        @property defaultInstance
-        @static    
-        **/
-        ctor.defaultInstance = new ctor();
-
+        
+        ctor.defaultNamingConventions = {
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName;
+                // return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName;
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }
+        };
+        
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
         internally when exporting an EntityManager. 
@@ -79,6 +93,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.export = function () {
             var result = JSON.stringify(this, function (key, value) {
+                if (key === "namingConventions") {
+                    return undefined;
+                }
                 return value;
             }, core.config.stringifyPad);
             return result;
@@ -374,6 +391,23 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         };
 
         // protected methods
+
+        ctor.prototype._clientPropertyPathToServer = function(propertyPath) {
+            var fn = this.namingConventions.clientPropertyNameToServer;
+            var serverPropPath = propertyPath.split(".").map(function(p) {
+                return fn(p);
+            }).join("/");
+            return serverPropPath;
+        };
+
+        ctor.prototype._clientObjectToServer = function(clientObject) {
+            var fn = this.namingConventions.clientPropertyNameToServer;
+            var result = { };
+            core.objectForEach(clientObject, function(key, value) {
+                result[fn(key)] = value;
+            });
+            return result;
+        };
         
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
@@ -461,7 +495,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             toArray(odataEntityType.key.propertyRef).forEach(function (propertyRef) {
-                var keyProp = entityType.getDataProperty(propertyRef.name);
+                var keyPropName = metadataStore.namingConventions.serverPropertyNameToClient(propertyRef.name);
+                var keyProp = entityType.getDataProperty(keyPropName);
+                if (keyProp == null) {
+                    throw new Error("Unable to locate key property, confirm that metadataStore.namingConventions methods are correct");
+                }
                 keyProp.isKeyProperty = true;
             });
 
@@ -478,10 +516,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true';
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+            var name = entityType.metadataStore.namingConventions.serverPropertyNameToClient(odataProperty.name);
 
             var dp = new DataProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 dataType: dataType,
                 isNullable: isNullable,
                 maxLength: odataProperty.maxLength,
@@ -532,17 +571,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         propertyRefs = toArray(dependent.propertyRef);
                     }
                     fkNames = propertyRefs.map(function (pr) {
-                        return entityType.getDataProperty(pr.name).name;
+                        return entityType.metadataStore.namingConventions.serverPropertyNameToClient(pr.name);
+                        // return entityType.getDataProperty(fkPropName).name;
                     });
                 }
             }
 
             var isScalar = !(toEnd.multiplicity === "*");
             var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+            var name = entityType.metadataStore.namingConventions.serverPropertyNameToClient(odataProperty.name);
 
             var np = new NavigationProperty({
                 parentEntityType: entityType,
-                name: odataProperty.name,
+                name: name,
                 entityTypeName: dataType,
                 isScalar: isScalar,
                 associationName: association.name,
@@ -1153,8 +1194,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-
+            if (this.defaultValue === undefined ) {
+                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+            } else if (this.defaultValue === null && !this.isNullable) {
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+            }
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
             // this.relatedNavigationProperty - this will be set for all foreignKey data properties.
@@ -1298,7 +1343,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
-
+            this.nameOnServer = this.parentEntityType.metadataStore.namingConventions.clientPropertyNameToServer(this.name);
             // Set later:
             // this.inverse
             // this.entityType

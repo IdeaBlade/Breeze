@@ -351,13 +351,13 @@ define(["testFns"], function (testFns) {
 
 
         var query = baseQuery.where(pred);
-
-        ok(true, "OData predicate: " + pred.toOdataFragment());
+        var em = newEm();
+        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
 
         stop();
 
         // all should return exactly 15 orders
-        runQuery(newEm, query, "AND orders query", 15)
+        runQuery(em, query, "AND orders query", 15)
         .fail(handleFail)
         .fin(start);
     });
@@ -385,13 +385,13 @@ define(["testFns"], function (testFns) {
 
 
         var query = baseQuery.where(pred);
-
-        ok(true, "OData predicate: " + pred.toOdataFragment());
+        var em = newEm();
+        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
 
         stop();
 
         // all should return exactly 256 orders
-        runQuery(newEm, query, "OR orders query", 256)
+        runQuery(em, query, "OR orders query", 256)
         .fail(handleFail)
         .fin(start);
     });
@@ -410,13 +410,13 @@ define(["testFns"], function (testFns) {
         // pred = Predicate.not(basePred);
 
         var query = baseQuery.where(pred);
-
-        ok(true, "OData predicate: " + pred.toOdataFragment());
+        var em = newEm();
+        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
 
         stop();
 
         // all should return exactly 256 orders
-        runQuery(newEm, query, "NOT orders query", 643)
+        runQuery(em, query, "NOT orders query", 643)
         .fail(handleFail)
         .fin(start);
     });
@@ -429,7 +429,8 @@ define(["testFns"], function (testFns) {
 
         // Get the predicate and show what it looks like in OData
         var pred = getOrderedIn1996Predicate();
-        ok(true, "OData predicate: " + pred.toOdataFragment());
+        var em = newEm();
+        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
 
         var query = new EntityQuery("Orders").where(pred);
 

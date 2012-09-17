@@ -24,7 +24,7 @@ namespace Sample_WebApi.Controllers {
     }
 
     [AcceptVerbs("POST")]
-    public SaveResult SaveChanges(JArray saveBundle) {
+    public SaveResult SaveChanges(JObject saveBundle) {
       return ContextProvider.SaveChanges(saveBundle);
     }
 

@@ -33,10 +33,10 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("initialization", function () {
+    test("initialization", function () {
 
         var store = new MetadataStore();
-
+        stop();
         testFns.remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
 
             var typeMap = store._entityTypeMap;

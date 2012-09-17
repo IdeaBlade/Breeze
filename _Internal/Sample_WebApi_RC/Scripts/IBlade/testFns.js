@@ -8,6 +8,10 @@ define(["root"], function (root) {
 
     var core = root.core;
     var entityModel = root.entityModel;
+    var MetadataStore = entityModel.MetadataStore;
+    var EntityManager = entityModel.EntityManager;
+    var NamingConvention = entityModel.NamingConvention;
+    
     var testFns = {};
     testFns.message = "";
 
@@ -42,21 +46,47 @@ define(["root"], function (root) {
             });
         }
     };
+      
+    testFns.newMs = function() {
+        var namingConv = new NamingConvention({
+            serverPropertyNameToClient: function(serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function(clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }            
+        });
+        var ms = new MetadataStore({ namingConvention: namingConv });
+        return ms;
+    };
+    
+    testFns.newEm = function (metadataStore) {
+        if (metadataStore) {
+            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
+        } else {
+            if (!testFns.metadataStore) {
+                testFns.metadataStore = testFns.newMs();
+            }
+            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: testFns.metadataStore });
+        }
+    };
 
-    testFns.assertIsSorted = function (collection, propertyName, isDescending) {
-        isDescending = isDescending || false;
-        var fn = function (a, b) {
-            // localeCompare has issues in Chrome.
-            // var compareResult = a[propertyName].localeCompare(b.propertyName);
-            var av = a.getProperty(propertyName);
-            var bv = b.getProperty(propertyName);
-            var compareResult = av < bv ? -1 : (av > bv ? 1 : 0);
-            return isDescending ? compareResult : compareResult * -1;
-        };
-        var arrayCopy = collection.map(function (o) { return o; });
-        arrayCopy.sort(fn);
-        ok(core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
+    testFns.setup = function(fn) {
+        if (!testFns.metadataStore) {
+            testFns.metadataStore = testFns.newMs();
+        } 
 
+        if (!testFns.metadataStore.isEmpty()) {
+            if (fn) fn();
+            return;
+        }
+        
+        stop();
+        var em = testFns.newEm();
+        em.fetchMetadata(function(rawMetadata) {
+            if (fn) fn();
+            start();
+        }).fail(testFns.handleFail);
     };
 
     testFns.handleFail = function (error) {
@@ -68,6 +98,19 @@ define(["root"], function (root) {
             ok(false, "Failed: " + error.toString());
         }
         start();
+    };
+
+    testFns.getDups = function(items) {
+        var uniqueItems = [];
+        var dups = [];
+        items.forEach(function(item) {
+            if (uniqueItems.indexOf(item) === -1) {
+                uniqueItems.push(item);
+            } else {
+                dups.push(item);
+            }
+        });
+        return dups;
     };
 
     testFns.morphStringProp = function (entity, propName) {
@@ -86,6 +129,22 @@ define(["root"], function (root) {
         } else {
             return str + "_X";
         }
+    };
+    
+    testFns.assertIsSorted = function (collection, propertyName, isDescending) {
+        isDescending = isDescending || false;
+        var fn = function (a, b) {
+            // localeCompare has issues in Chrome.
+            // var compareResult = a[propertyName].localeCompare(b.propertyName);
+            var av = a.getProperty(propertyName);
+            var bv = b.getProperty(propertyName);
+            var compareResult = av < bv ? -1 : (av > bv ? 1 : 0);
+            return isDescending ? compareResult : compareResult * -1;
+        };
+        var arrayCopy = collection.map(function (o) { return o; });
+        arrayCopy.sort(fn);
+        ok(core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
+
     };
 
     testFns.StopCount = function (count) {

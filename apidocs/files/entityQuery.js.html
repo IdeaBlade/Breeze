@@ -102,6 +102,8 @@
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
             
+                <li><a href="..&#x2F;classes/NamingConvention.html">NamingConvention</a></li>
+            
                 <li><a href="..&#x2F;classes/NavigationProperty.html">NavigationProperty</a></li>
             
                 <li><a href="..&#x2F;classes/Predicate.html">Predicate</a></li>
@@ -300,7 +302,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
                 entityType = metadataStore.getEntityType(entityTypeName);
                 if (!entityType) {
-                    throw new Error(&quot;Cannot find an entityType for an entityTypeName of: &quot; + entityTypeName);
+                    if (throwErrorIfNotFound) {
+                        throw new Error(&quot;Cannot find an entityType for an entityTypeName of: &quot; + entityTypeName);
+                    } else {
+                        return null;
+                    }
                 }
                 this.entityType = entityType;
             }
@@ -603,13 +609,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **&#x2F;
         ctor.prototype.expand = function (propertyPaths) {
             assertParam(propertyPaths, &quot;propertyPaths&quot;).isString().check();
-            var eq = this._clone();
-            if (arguments.length === 0) {
-                eq.expandClause = null;
-            } else {
-                eq.expandClause = propertyPaths;
-            }
-            return eq;
+            return expandCore(this, propertyPaths);
         };
 
          &#x2F;&#x2F; Implementations found in EntityManager
@@ -823,9 +823,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype._toUri = function (metadataStore) {
             &#x2F;&#x2F; force entityType validation;
-            if (metadataStore) {
-                this._getEntityType(metadataStore, false);
-            }
+            this._getEntityType(metadataStore, false);          
 
             var eq = this;
             var queryOptions = {};
@@ -847,7 +845,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toOrderByString() {
@@ -856,7 +854,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
             
              function toSelectString() {
@@ -865,13 +863,13 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment();
+                return clause.toOdataFragment(metadataStore);
             }
             
             function toExpandString() {
                 var clause = eq.expandClause;
                 if (!clause) return &quot;&quot;;
-                return clause.replace(&quot;.&quot;, &quot;&#x2F;&quot;);
+                return clause.toOdataFragment(metadataStore);
             }
 
             function toSkipString() {
@@ -968,9 +966,20 @@ function (core, m_entityMetadata, m_entityAspect) {
                 eq.selectClause = null;
                 return eq;
             }
-            eq.selectClause = SelectClause.create(propertyPaths);           
+            eq.selectClause = new SelectClause(propertyPaths);
             return eq;
         }
+        
+        function expandCore(that, propertyPaths) {
+            var eq = that._clone();
+            if (!propertyPaths) {
+                eq.expandClause = null;
+                return eq;
+            }
+            eq.expandClause = new ExpandClause(propertyPaths);
+            return eq;
+        }
+        
 
         function buildKeyPredicate(entityKey) {
             var keyProps = entityKey.entityType.keyProperties;
@@ -1099,10 +1108,22 @@ function (core, m_entityMetadata, m_entityAspect) {
             return node;
         };
 
-        ctor.prototype.toOdataFragment = function() {
+        ctor.prototype.toString = function() {
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
-                    return fnNode.toOdataFragment();
+                    return fnNode.toString();
+                });
+                var uri = this.fnName + &quot;(&quot; + args.join(&quot;,&quot;) + &quot;)&quot;;
+                return uri;
+            } else {
+                return this.value;
+            }
+        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            if (this.fnName) {
+                var args = this.fnNodes.map(function(fnNode) {
+                    return fnNode.toOdataFragment(metadataStore);
                 });                
                 var uri = this.fnName + &quot;(&quot; + args.join(&quot;,&quot;) + &quot;)&quot;;
                 return uri;
@@ -1110,8 +1131,10 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var firstChar = this.value.substr(0, 1);
                 if (firstChar === &quot;&#x27;&quot; || firstChar === &#x27;&quot;&#x27;) {
                     return this.value;                  
+                } else if (this.value == this.propertyPath) {
+                    return metadataStore._clientPropertyPathToServer(this.propertyPath);
                 } else {
-                    return this.value.replace(&quot;.&quot;, &quot;&#x2F;&quot;);
+                    return this.value;
                 }
             }
         };
@@ -1467,12 +1490,6 @@ function (core, m_entityMetadata, m_entityAspect) {
         &#x2F;&#x2F; methods defined in both subclasses of Predicate
 
         &#x2F;**  
-        Returns the OData expression for this Predicate.
-        @method toODataFragement
-        @return {String}
-        **&#x2F;
-
-        &#x2F;**  
         Returns the function that will be used to execute this Predicate against the local cache.
         @method toFunction
         @return {Function}
@@ -1526,8 +1543,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function () {
-            var exprFrag = this._fnNode.toOdataFragment();
+        ctor.prototype.toOdataFragment = function (metadataStore) {
+            var exprFrag = this._fnNode.toOdataFragment(metadataStore);
             var val = formatValue(this._value);
             if (this._filterQueryOp.isFunction) {
                 return this._filterQueryOp.operator + &quot;(&quot; + exprFrag + &quot;,&quot; + val + &quot;) eq true&quot;;
@@ -1546,7 +1563,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.toString = function () {
             var val = formatValue(this._value);
-            return this._fnNode.toOdataFragment() + &quot; &quot; + this._filterQueryOp.operator + &quot; &quot; + val;
+            return this._fnNode.toString() + &quot; &quot; + this._filterQueryOp.operator + &quot; &quot; + val;
         };
 
         ctor.prototype.validate = function (entityType) {
@@ -1642,12 +1659,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function () {
+        ctor.prototype.toOdataFragment = function (metadataStore) {
             if (this._predicates.length == 1) {
-                return this._booleanQueryOp.operator + &quot; &quot; + &quot;(&quot; + this._predicates[0].toOdataFragment() + &quot;)&quot;;
+                return this._booleanQueryOp.operator + &quot; &quot; + &quot;(&quot; + this._predicates[0].toOdataFragment(metadataStore) + &quot;)&quot;;
             } else {
                 var result = this._predicates.map(function (p) {
-                    return &quot;(&quot; + p.toOdataFragment() + &quot;)&quot;;
+                    return &quot;(&quot; + p.toOdataFragment(metadataStore) + &quot;)&quot;;
                 }).join(&quot; &quot; + this._booleanQueryOp.operator + &quot; &quot;);
                 return result;
             }
@@ -1837,18 +1854,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             entityType.getProperty(this.propertyPath, true);
         };
 
-        ctor.prototype.toOdataFragment = function () {
-            return this.propertyPath.replace(&quot;.&quot;, &quot;&#x2F;&quot;) + (this.isDesc ? &quot; desc&quot; : &quot;&quot;);
-&#x2F;&#x2F;            &#x2F;&#x2F; At first I thought that we only wanted to replace the last &quot;.&quot; with a &#x27;&#x2F;&#x27; per the OData spec.
-&#x2F;&#x2F;            var propertyPath = this.propertyPath;
-&#x2F;&#x2F;            var ix = propertyPath.lastIndexOf(&quot;.&quot;);
-&#x2F;&#x2F;            var result;
-&#x2F;&#x2F;            if (ix === -1) {
-&#x2F;&#x2F;                result = propertyPath;
-&#x2F;&#x2F;            } else {
-&#x2F;&#x2F;                result = propertyPath.substr(0, ix) + &quot;&#x2F;&quot; + propertyPath.substr(ix + 1);
-&#x2F;&#x2F;            }
-&#x2F;&#x2F;            return result + (this.isDesc ? &quot; desc&quot; : &quot;&quot;);
+        ctor.prototype.toOdataFragment = function (metadataStore) {
+            return metadataStore._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? &quot; desc&quot; : &quot;&quot;);
+            &#x2F;&#x2F; return this.propertyPath.replace(&quot;.&quot;, &quot;&#x2F;&quot;) + (this.isDesc ? &quot; desc&quot; : &quot;&quot;);
         };
 
         ctor.prototype.getComparer = function () {
@@ -1896,9 +1904,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        ctor.prototype.toOdataFragment = function () {
+        ctor.prototype.toOdataFragment = function (metadataStore) {
             var strings = this._orderByClauses.map(function (obc) {
-                return obc.toOdataFragment();
+                return obc.toOdataFragment(metadataStore);
             });
             &#x2F;&#x2F; should return something like CompanyName,Address&#x2F;City desc
             return strings.join(&#x27;,&#x27;);
@@ -1923,48 +1931,15 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     &#x2F;&#x2F; Not exposed
     var SelectClause = (function () {
-        &#x2F;*
-        A SelectClause is a description of the properties that a query should project into its results.
-
-        For example for an Employee object with properties of &#x27;Company&#x27; and &#x27;LastName&#x27; the following would be valid expressions:
-
-            var obc = new SelectClause(&quot;Company.CompanyName, LastName&quot;) 
-                or 
-            var obc = new SelectClause(&quot;Company.CompanyName, Orders&quot;) 
-                or 
-            var obc = new SelectClause(&quot;LastName&quot;);
-        @class SelectClause
-        *&#x2F;
         
-        &#x2F;*
-        @method &lt;ctor&gt; SelectClause
-        @param propertyPaths {String} A &#x27;,&#x27; delimited string of &#x27;propertyPaths&#x27;. Each substring of the &#x27;propertyPaths&#x27; 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        *&#x2F;
         var ctor = function (propertyPaths) {
             assertParam(propertyPaths, &quot;propertyPaths&quot;).isString().check();
             this.propertyPaths = propertyPaths;
-            this._pathStrings = propertyPaths.split(&quot;,&quot;);
+            this._pathStrings = propertyPaths.split(&quot;,&quot;).map(function(pp) {
+                return pp.trim();
+            });
         };
 
-        &#x2F;*
-        Alternative method of creating an SelectClause. 
-        Example for an Employee object with properties of &#x27;Company&#x27; and &#x27;LastName&#x27;: 
-
-            var obc = SelectClause.create(&quot;Company.CompanyName, LastName&quot;) 
-                or 
-            var obc = SelectClause.create(&quot;Company.CompanyName, Orders&quot;) 
-                or 
-            var obc = new SelectClause.create(&quot;LastName&quot;);
-        @method create 
-        @static
-        @param propertyPaths {String} A &#x27;,&#x27; delimited string of &#x27;propertyPaths&#x27;. Each substring of the &#x27;propertyPaths&#x27; 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
-        *&#x2F;
-        ctor.create = function (propertyPaths) {
-            return new SelectClause(propertyPaths);
-        };
-         
         ctor.prototype.validate = function (entityType) {
             if (!entityType) {
                 return;
@@ -1975,12 +1950,41 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
          };
 
-         ctor.prototype.toOdataFragment = function() {
-             return this.propertyPaths.replace(&quot;.&quot;, &quot;&#x2F;&quot;);
+         ctor.prototype.toOdataFragment = function(metadataStore) {
+             var frag = this._pathStrings.map(function(pp) {
+                 return metadataStore._clientPropertyPathToServer(pp);
+             }).join(&quot;,&quot;);
+             return frag;
          };
 
          return ctor;
     })();
+    
+     &#x2F;&#x2F; Not exposed
+    var ExpandClause = (function () {
+        
+        var ctor = function (propertyPaths) {
+            this.propertyPaths = propertyPaths;
+            this._pathStrings = propertyPaths.split(&quot;,&quot;).map(function(pp) {
+                return pp.trim();
+            });
+        };
+       
+&#x2F;&#x2F;        &#x2F;&#x2F; TODO:
+&#x2F;&#x2F;        ctor.prototype.validate = function (entityType) {
+&#x2F;&#x2F;            
+&#x2F;&#x2F;        };
+
+        ctor.prototype.toOdataFragment = function(metadataStore) {
+            var frag = this._pathStrings.map(function(pp) {
+                return metadataStore._clientPropertyPathToServer(pp);
+            }).join(&quot;,&quot;);
+            return frag;
+        };
+
+        return ctor;
+    })();
+    
 
     &#x2F;&#x2F; propertyPath can be either an array of paths or a &#x27;.&#x27; delimited string.
     
@@ -2046,8 +2050,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         EntityQuery: EntityQuery,
         FnNode: FnNode,
         &#x2F;&#x2F; Not documented - only exposed for testing purposes
-        OrderByClause: OrderByClause,
-        SelectClause: SelectClause
+        OrderByClause: OrderByClause
     };
 });
     </pre>

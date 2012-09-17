@@ -14,22 +14,11 @@ define(["testFns"], function (testFns) {
     var FetchStrategy = entityModel.FetchStrategy;
     var MergeStrategy = entityModel.MergeStrategy;
 
-    var metadataStore = new MetadataStore();
-    var newEm = function () {
-        return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
-    };
+    var newEm = testFns.newEm;
 
     module("queryDatatype", {
         setup: function () {
-            if (!metadataStore.isEmpty()) return;
-            stop();
-            var em = newEm();
-            em.fetchMetadata(function (rawMetadata) {
-                var isEmptyMetadata = metadataStore.isEmpty();
-                ok(!isEmptyMetadata);
-
-                start();
-            }).fail(testFns.handleFail);
+            testFns.setup();
         },
         teardown: function () {
         }
@@ -38,7 +27,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nullable int", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
-            .where("RowVersion", "==", 1);
+            .where("rowVersion", "==", 1);
 
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
@@ -49,7 +38,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nullable int == null", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
-            .where("RowVersion", "==", null);
+            .where("rowVersion", "==", null);
 
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
@@ -60,7 +49,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nullable date", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
-            .where("OrderDate", ">", new Date(1998, 1, 1))
+            .where("orderDate", ">", new Date(1998, 1, 1))
             .take(10);
 
         em.executeQuery(query).then(function (data) {
@@ -72,7 +61,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nullable date == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
-            .where("OrderDate", "==", null);
+            .where("orderDate", "==", null);
 
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0 );
@@ -84,7 +73,7 @@ define(["testFns"], function (testFns) {
     asyncTest("bool", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
-            .where("Discontinued", "==", true );
+            .where("discontinued", "==", true );
 
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0);
@@ -95,7 +84,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nonnullable bool == null", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
-            .where("Discontinued", "==", null );
+            .where("discontinued", "==", null );
 
         em.executeQuery(query).then(function(data) {
             ok(false);
@@ -113,7 +102,7 @@ define(["testFns"], function (testFns) {
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var em = newEm();
         var query = new EntityQuery("Orders")
-                .where("CustomerID", "==", alfredsID);
+                .where("customerID", "==", alfredsID);
 
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
@@ -124,7 +113,7 @@ define(["testFns"], function (testFns) {
     asyncTest("nullable guid == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
-            .where("CustomerID", "==", null);
+            .where("customerID", "==", null);
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
             start();
@@ -132,20 +121,20 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("string equals null", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("Region", FilterQueryOp.Equals, null)
+            .where("region", FilterQueryOp.Equals, null)
             .take(20);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 0);
             customers.forEach(function (customer) {
-                var region = customer.getProperty("Region");
+                var region = customer.getProperty("region");
                 ok(region == null, "region should be either null or undefined");
             });
             start();
@@ -153,20 +142,20 @@ define(["testFns"], function (testFns) {
     });
     
     asyncTest("string not equals null", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("Region", FilterQueryOp.NotEquals, null)
+            .where("region", FilterQueryOp.NotEquals, null)
             .take(10);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 0);
             customers.forEach(function (customer) {
-                var region = customer.getProperty("Region");
+                var region = customer.getProperty("region");
                 ok(region != null, "region should not be either null or undefined");
             });
             start();

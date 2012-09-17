@@ -67,8 +67,8 @@ namespace Breeze.WebApi {
       return __jsonMetadata;
     }
 
-    public SaveResult SaveChanges(JArray saveBundle) {
-      var dynSaveBundle = (dynamic) saveBundle.First;
+    public SaveResult SaveChanges(JObject saveBundle) {
+      var dynSaveBundle = (dynamic) saveBundle;
       var entitiesArray = (JArray) dynSaveBundle.entities;
       var saveOptions = dynSaveBundle.saveOptions;
       var jsonSerializer = new JsonSerializer();

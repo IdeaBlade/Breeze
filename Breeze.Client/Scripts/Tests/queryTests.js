@@ -14,64 +14,39 @@ define(["testFns"], function (testFns) {
     var FetchStrategy = entityModel.FetchStrategy;
     var MergeStrategy = entityModel.MergeStrategy;
 
-    var metadataStore = new MetadataStore();
-    var newEm = function () {
-        return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
-    };
-
+    var newEm = testFns.newEm;
+    
     module("query", {
         setup: function () {
-            if (!metadataStore.isEmpty()) return;
-            stop();
-            var em = newEm();
-            em.fetchMetadata(function (rawMetadata) {
-                var isEmptyMetadata = metadataStore.isEmpty();
-                ok(!isEmptyMetadata);
-
-                start();
-            }).fail(testFns.handleFail);
+            testFns.setup();
         },
         teardown: function () {
         }
     });
-
     
-    test("duplicates after relation query", function() {
+     test("duplicates after relation query", function() {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("CustomerID", "==", alfredsID);
+            .where("customerID", "==", alfredsID);
             // bug goes away if you add this.
-            // .expand("Orders");
+            // .expand("orders");
         var customer;
         stop();
         query.using(em).execute().then(function(data) {
             customer = data.results[0];
             var q2 = EntityQuery.from("Orders")
-                .where("CustomerID", "==", alfredsID)
-                .expand("Customer"); // bug goes away if you remove this
+                .where("customerID", "==", alfredsID)
+                .expand("customer"); // bug goes away if you remove this
             return q2.using(em).execute();
         }).then(function(data2) {
-            var details = customer.getProperty("Orders");
-            var dups = getDups(details);
+            var details = customer.getProperty("orders");
+            var dups = testFns.getDups(details);
             ok(dups.length == 0, "should be no dups");
         }).fail(testFns.handleFail).fin(start);
         
     });
-
     
-     function getDups(items) {
-        var uniqueItems = [];
-        var dups = [];
-        items.forEach(function(item) {
-            if (uniqueItems.indexOf(item) === -1) {
-                uniqueItems.push(item);
-            } else {
-                dups.push(item);
-            }
-        });
-        return dups;
-    }
     
     test("date property is a DateTime", function () {
 
@@ -81,18 +56,18 @@ define(["testFns"], function (testFns) {
             "typeof someDate is " + typeof someDate);
     
         var firstOrderQuery = new EntityQuery("Orders")
-            .where("OrderDate", ">", new Date(1998, 3, 1))
+            .where("orderDate", ">", new Date(1998, 3, 1))
             .take(1);
 
         var em = newEm();
         stop();
         em.executeQuery(firstOrderQuery).then(function(data) {
             var order = data.results[0];
-            var orderDate = order.getProperty("OrderDate");
+            var orderDate = order.getProperty("orderDate");
 
             // THIS TEST FAILS!
             ok("object" === typeof orderDate,
-                "typeof OrderDate is " + typeof orderDate);
+                "typeof orderDate is " + typeof orderDate);
             ok(core.isDate(orderDate), "should be a date");
             start();
         }).fail(testFns.handleFail);
@@ -140,10 +115,10 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var customer = custType.createEntity();
-        customer.setProperty("CompanyName","[don't know name yet]");
+        customer.setProperty("companyName","[don't know name yet]");
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         em.attachEntity(customer);
-        customer.setProperty("CustomerID", alfredsID); 
+        customer.setProperty("customerID", alfredsID); 
         var ek = customer.entityAspect.getKey();
         var sameCustomer = em.findEntityByKey(ek);
         ok(customer === sameCustomer, "customer should == sameCustomer");
@@ -153,14 +128,14 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
-        var query = EntityQuery.from("Customers").where("CustomerID", "==", alfredsID);
+        var query = EntityQuery.from("Customers").where("customerID", "==", alfredsID);
         stop();
         query.using(em).execute().then(function(data) {        
             ok(data.results.length === 1,"should have fetched 1 record");
             var customer = custType.createEntity();        
             em.attachEntity(customer);
             try {
-                customer.setProperty("CustomerID", alfredsID); 
+                customer.setProperty("customerID", alfredsID); 
                 ok(false, "should not get here");
             } catch(e) {
                 ok(e.message.indexOf("key") > 0);
@@ -173,7 +148,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var customer = custType.createEntity();
-        customer.setProperty("CompanyName","[don't know name yet]");
+        customer.setProperty("companyName","[don't know name yet]");
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         // TEST PASSES (NO DUPLICATE) IF SET ID HERE ... BEFORE ATTACH
         // customer.CustomerID(testFns.wellKnownData.alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
@@ -181,7 +156,7 @@ define(["testFns"], function (testFns) {
         em.attachEntity(customer);
 
         // TEST FAILS  (2 IN CACHE W/ SAME ID) ... CHANGING THE ID AFTER ATTACH
-        customer.setProperty("CustomerID", alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
+        customer.setProperty("customerID", alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
         var ek = customer.entityAspect.getKey();
         var sameCustomer = em.findEntityByKey(ek);
         customer.entityAspect.setUnchanged();
@@ -210,13 +185,13 @@ define(["testFns"], function (testFns) {
                     var c1 = inCache[0], c2 = inCache[1];
                     ok(false,
                         "Two custs in cache with same ID, ({0})-{1} and ({2})-{3}".format(// format is my extension to String
-                            c1.getProperty("CustomerID"), c1.getProperty("CompanyName"), c2.getProperty("CustomerID"), c2.getProperty("CompanyName")));
+                            c1.getProperty("customerID"), c1.getProperty("companyName"), c2.getProperty("customerID"), c2.getProperty("companyName")));
                 }
 
                 // This test should succeed; it fails because of above bug!!!
                 ok(results[0] === customer,
                     "refresh query result is the same as the customer in cache" +
-                        " whose updated name is " + customer.getProperty("CompanyName"));
+                        " whose updated name is " + customer.getProperty("companyName"));
             }
             start();
         }).fail(testFns.handleFail);
@@ -246,7 +221,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
 
         var query = new EntityQuery().from("Customers")
-            .where("CompanyName", "startsWith", "C");
+            .where("companyName", "startsWith", "C");
         stop();
         em.executeQuery(query).then(function(data) {
             var count = data.results.length;
@@ -263,11 +238,11 @@ define(["testFns"], function (testFns) {
     });
 
     test("named query", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersStartingWithA");
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have some results");
@@ -275,7 +250,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-     test("query region and territories", function () {
+    test("query region and territories", function () {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
@@ -284,7 +259,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var region = data.results[0];
-            var terrs = region.getProperty("Territories");
+            var terrs = region.getProperty("territories");
             return terrs.load();
         }).then(function (data2) {
             ok(data2.results.length > 0);
@@ -294,35 +269,35 @@ define(["testFns"], function (testFns) {
 
     
     test("select - anon simple", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("CompanyName", "startsWith", "C")
-            .select("CompanyName");
-        var queryUrl = query._toUri();
+            .where("companyName", "startsWith", "C")
+            .select("companyName");
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
-                ok(a.CompanyName);
+                ok(a.companyName);
             });
             start();
         }).fail(testFns.handleFail);
     });
     
     test("select - anon collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery.from("Customers")
-            .where("CompanyName", "startsWith", "C")
-            .select("Orders");
+            .where("companyName", "startsWith", "C")
+            .select("orders");
         if (!testFns.DEBUG_WEBAPI) {
-            query = query.expand("Orders");
+            query = query.expand("orders");
         }
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -331,8 +306,8 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
-                ok(Array.isArray(a.Orders));
-                a.Orders.forEach(function(order) {
+                ok(Array.isArray(a.orders));
+                a.orders.forEach(function(order) {
                     ok(order.entityType === orderType);
                 });
             });
@@ -341,16 +316,16 @@ define(["testFns"], function (testFns) {
     });
 
     test("select - anon simple, collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Customers")
-            .where("CompanyName", "startsWith", "C")
-            .orderBy("CompanyName")
-            .select("CompanyName, Orders");
+            .where("companyName", "startsWith", "C")
+            .orderBy("companyName")
+            .select("companyName, orders");
         if (!testFns.DEBUG_WEBAPI) {
-            query = query.expand("Orders");
+            query = query.expand("orders");
         }        
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -360,9 +335,9 @@ define(["testFns"], function (testFns) {
             var anons = data.results;
             anons.forEach(function (a) {
                 ok(Object.keys(a).length === 2,"should have 2 properties");
-                ok(a.CompanyName);
-                ok(Array.isArray(a.Orders));
-                a.Orders.forEach(function(order) {
+                ok(a.companyName);
+                ok(Array.isArray(a.orders));
+                a.orders.forEach(function(order) {
                     ok(order.entityType === orderType);
                 });
             });
@@ -371,18 +346,18 @@ define(["testFns"], function (testFns) {
     });
     
     test("select - anon simple, entity collection", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery
             .from("Orders")
-            .where("Customer.CompanyName", "startsWith", "C")
-            .orderBy("Customer.CompanyName")
-            .select("Customer.CompanyName, Customer, OrderDate");
+            .where("customer.companyName", "startsWith", "C")
+            .orderBy("customer.companyName")
+            .select("customer.companyName, customer, orderDate");
         if (!testFns.DEBUG_WEBAPI) {
-            query = query.expand("Customer");
+            query = query.expand("customer");
         }
             
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
@@ -392,28 +367,28 @@ define(["testFns"], function (testFns) {
             var anons = data.results;
             anons.forEach(function (a) {
                 ok(Object.keys(a).length === 3,"should have 3 properties");
-                ok(typeof (a.Customer_CompanyName) == 'string', "Customer_CompanyName is not a string");
-                ok(a.Customer.entityType === customerType, "a.Customer is not of type Customer");
-                ok(a.OrderDate !== undefined, "OrderDate should be  undefined");
+                ok(typeof (a.customer_CompanyName) === 'string', "customer_CompanyName is not a string");
+                ok(a.customer.entityType === customerType, "a.customer is not of type Customer");
+                ok(a.orderDate !== undefined, "OrderDate should not be undefined");
             });
             start();
         }).fail(testFns.handleFail);
     });
 
     test("starts with op", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("CompanyName", "startsWith", "C")
-            .orderBy("CompanyName");
-        var queryUrl = query._toUri();
+            .where("companyName", "startsWith", "C")
+            .orderBy("companyName");
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query, function (data) {
             var customers = data.results;
-            testFns.assertIsSorted(customers, "CompanyName");
+            testFns.assertIsSorted(customers, "companyName");
             customers.forEach(function (c) {
-                ok(c.CompanyName, 'should have a companyName property');
+                ok(c.companyName, 'should have a companyName property');
                 var key = c.entityAspect.getKey();
                 ok(key, "missing key");
                 var c2 = em.findEntityByKey(key);
@@ -424,12 +399,12 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("greater than op", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = EntityQuery.from("Orders")
-            .where("Freight", ">", 100);
+            .where("freight", ">", 100);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -440,13 +415,13 @@ define(["testFns"], function (testFns) {
 
    
     asyncTest("predicate", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
-        var pred1 = new Predicate("Freight", ">", 100);
-        var pred2 = new Predicate("OrderDate", ">", new Date(1998, 3, 1));
+        var pred1 = new Predicate("freight", ">", 100);
+        var pred2 = new Predicate("orderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred1.and(pred2));
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -456,14 +431,14 @@ define(["testFns"], function (testFns) {
     });
     
      asyncTest("predicate 2", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
-         var pred1 = Predicate.create("Freight", ">", 100);
-        var pred2 = Predicate.create("OrderDate", ">", new Date(1998, 3, 1));
+        var pred1 = Predicate.create("freight", ">", 100);
+        var pred2 = Predicate.create("orderDate", ">", new Date(1998, 3, 1));
         var newPred = Predicate.and([pred1, pred2]);
         var query = baseQuery.where(newPred);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -473,13 +448,13 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("predicate 3", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
-        var pred = Predicate.create("Freight", ">", 100)
-            .and("OrderDate", ">", new Date(1998, 3, 1));
+        var pred = Predicate.create("freight", ">", 100)
+            .and("orderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var orders = data.results;
@@ -491,22 +466,22 @@ define(["testFns"], function (testFns) {
 
 
     asyncTest("not predicate with null", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
-        var pred = new Predicate("Region", FilterQueryOp.Equals, null);
+        var pred = new Predicate("region", FilterQueryOp.Equals, null);
         pred = pred.not();
         var query = new EntityQuery()
             .from("Customers")
             .where(pred)
             .take(10);
 
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 0);
             customers.forEach(function (customer) {
-                var region = customer.getProperty("Region");
+                var region = customer.getProperty("region");
                 ok(region != null, "region should not be either null or undefined");
             });
             start();
@@ -514,7 +489,7 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("fromEntities", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
@@ -532,21 +507,21 @@ define(["testFns"], function (testFns) {
     });
 
     test("where nested property", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
              .from("Products")
-             .where("Category.CategoryName", "startswith", "S")
-             .expand("Category");
-        var queryUrl = query._toUri();
+             .where("category.categoryName", "startswith", "S")
+             .expand("category");
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
             var cats = products.map(function (product) {
-                return product.getProperty("Category");
+                return product.getProperty("category");
             });
             cats.forEach(function(cat) {
-                var catName = cat.getProperty("CategoryName");
+                var catName = cat.getProperty("categoryName");
                 ok(core.stringStartsWith(catName, "S"));
             });
             start();
@@ -554,12 +529,12 @@ define(["testFns"], function (testFns) {
     });
 
     test("where nested property 2", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
          var query = new EntityQuery()
              .from("Orders")
-             .where("Customer.Region", "==", "CA");
-        var queryUrl = query._toUri();
+             .where("customer.region", "==", "CA");
+        var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
             var customers = data.results;
@@ -569,34 +544,34 @@ define(["testFns"], function (testFns) {
     });
 
     test("orderBy", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Products")
-            .orderBy("ProductName desc")
+            .orderBy("productName desc")
             .take(5);
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
-            var productName = products[0].getProperty("ProductName");
-            testFns.assertIsSorted(products, "ProductName", false);
+            var productName = products[0].getProperty("productName");
+            testFns.assertIsSorted(products, "productName", false);
             start();
         }).fail(testFns.handleFail);
     });
 
     test("expand", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products");
 
-        query = query.expand("Category")
+        query = query.expand("category")
             .take(5);
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
             var cats = [];
             products.map(function (product) {
-                var cat = product.getProperty("Category");
+                var cat = product.getProperty("category");
                 if (cat) {
                     cats.push(cats);
                 }
@@ -608,11 +583,11 @@ define(["testFns"], function (testFns) {
     });
 
     test("expand multiple", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery("Orders");
 
-        query = query.expand("Customer, Employee")
+        query = query.expand("customer, employee")
             .take(20);
         stop();
         em.executeQuery(query).then(function(data) {
@@ -620,11 +595,11 @@ define(["testFns"], function (testFns) {
             var custs = [];
             var emps = [];
             orders.map(function(order) {
-                var cust = order.getProperty("Customer");
+                var cust = order.getProperty("customer");
                 if (cust) {
                     custs.push(cust);
                 }
-                var emp = order.getProperty("Employee");
+                var emp = order.getProperty("employee");
                 if (emp) {
                     emps.push(emp);
                 }
@@ -636,32 +611,13 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    test("expand recursive", function() {
-        var em = new EntityManager(testFns.ServiceName);
-
-        var query = new EntityQuery("Employees");
-
-        query = query.expand("Manager, DirectReports");
-        stop();
-        em.executeQuery(query).then(function(data) {
-            var emps = data.results;
-            
-            var managers = emps.map(function(emp) {
-                var manager = emp.getProperty("Manager");
-                ok(manager || manager==null, "manager should be null or have a value");
-                return manager;
-            });
-            start();
-        }).fail(testFns.handleFail);
-    });
-    
     test("expand nested", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders");
 
-        query = query.expand("Customer, OrderDetails, OrderDetails.Product")
+        query = query.expand("customer, orderDetails, orderDetails.product")
             .take(5);
         stop();
         em.executeQuery(query).then(function(data) {
@@ -670,15 +626,15 @@ define(["testFns"], function (testFns) {
             var orderDetails = [];
             var products = [];
             orders.map(function(order) {
-                var cust = order.getProperty("Customer");
+                var cust = order.getProperty("customer");
                 if (cust) {
                     custs.push(cust);
                 }
-                var orderDetailItems = order.getProperty("OrderDetails");
+                var orderDetailItems = order.getProperty("orderDetails");
                 if (orderDetailItems) {
                     Array.prototype.push.apply(orderDetails, orderDetailItems);
                     orderDetailItems.map(function(orderDetail) {
-                        var product = orderDetail.getProperty("Product");
+                        var product = orderDetail.getProperty("product");
                         if (product) {
                             products.push(product);
                         }
@@ -694,58 +650,58 @@ define(["testFns"], function (testFns) {
     });
 
     test("orderBy nested", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
-            .orderBy("Category.CategoryName desc")
-            .expand("Category");
+            .orderBy("category.categoryName desc")
+            .expand("category");
 
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
             var cats = products.map(function (product) {
-                return product.getProperty("Category");
+                return product.getProperty("category");
             });
 
-            testFns.assertIsSorted(cats, "CategoryName", true);
+            testFns.assertIsSorted(cats, "categoryName", true);
             start();
         }).fail(testFns.handleFail);
     });
 
     test("orderBy two part nested", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
-            .orderBy("Category.CategoryName desc, ProductName")
-            .expand("Category");
+            .orderBy("category.categoryName desc, productName")
+            .expand("category");
 
         stop();
         em.executeQuery(query).then(function (data) {
             var products = data.results;
             var cats = products.map(function (product) {
-                return product.getProperty("Category");
+                return product.getProperty("category");
             });
 
-            testFns.assertIsSorted(cats, "CategoryName", true);
+            testFns.assertIsSorted(cats, "categoryName", true);
             start();
         }).fail(testFns.handleFail);
     });
 
     test("skiptake", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Products")
-            .orderBy("ProductName");
+            .orderBy("productName");
         var sc = new testFns.StopCount(3);
         var skipTakeCount = 5;
         em.executeQuery(query, function (data) {
             var products = data.results;
 
             var newq1 = query.skip(skipTakeCount);
-            var newq1Url = newq1._toUri();
+            var newq1Url = newq1._toUri(em.metadataStore);
             em.executeQuery(newq1, function (data1) {
                 var custs1 = data1.results;
                 equal(custs1.length, products.length - skipTakeCount);
@@ -753,7 +709,7 @@ define(["testFns"], function (testFns) {
             }).fail(testFns.handleFail);
 
             var newq2 = query.take(skipTakeCount);
-            var newq2Url = newq1._toUri();
+            var newq2Url = newq1._toUri(em.metadataStore);
             em.executeQuery(newq2, function (data2) {
                 var custs2 = data2.results;
                 equal(custs2.length, skipTakeCount);
@@ -761,7 +717,7 @@ define(["testFns"], function (testFns) {
             }).fail(testFns.handleFail);
 
             var newq3 = query.skip(skipTakeCount).take(skipTakeCount);
-            var newq3Url = newq1._toUri();
+            var newq3Url = newq1._toUri(em.metadataStore);
             em.executeQuery(newq3, function (data3) {
                 var custs3 = data3.results;
                 equal(custs3.length, skipTakeCount);
@@ -772,97 +728,97 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("query expr - toLower", function() {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("toLower(CompanyName)", "startsWith", "c");
-        var queryUrl = query._toUri();
+            .where("toLower(companyName)", "startsWith", "c");
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
-                var name = cust.getProperty("CompanyName").toLowerCase();
+                var name = cust.getProperty("companyName").toLowerCase();
                 return core.stringStartsWith(name, "c");
             }), "every cust should startwith a 'c'");
             start();
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - toUpper/substring", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - toUpper/substring", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("toUpper(substring(CompanyName, 1, 2))", "startsWith", "OM");
-        var queryUrl = query._toUri();
-
+            .where("toUpper(substring(companyName, 1, 2))", "startsWith", "OM");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
-                var val= cust.getProperty("CompanyName").substr(1,2).toUpperCase();
+                var val= cust.getProperty("companyName").substr(1,2).toUpperCase();
                 return val == "OM";
             }), "every cust should have 'OM' as the 2nd and 3rd letters");
             start();
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - length", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - length", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("length(CompanyName)", ">", 20);
-        var queryUrl = query._toUri();
-
+            .where("length(companyName)", ">", 20);
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
-                var val = cust.getProperty("CompanyName");
+                var val = cust.getProperty("companyName");
                 return val.length > 20;
             }), "every cust have a name longer than 20 chars");
             start();
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("query expr - navigation then length", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("query expr - navigation then length", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
-            .where("length(Customer.CompanyName)", ">", 30)
-            .expand("Customer");
-        var queryUrl = query._toUri();
-
+            .where("length(customer.companyName)", ">", 30)
+            .expand("customer");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
             ok(orders.every(function(order) {
-                var cust = order.getProperty("Customer");
-                var val = cust.getProperty("CompanyName");
+                var cust = order.getProperty("customer");
+                var val = cust.getProperty("companyName");
                 return val.length > 30;
             }), "every order must have a cust with a name longer than 30 chars");
             start();
         }).fail(testFns.handleFail);
     });
     
-    asyncTest("bad query expr -  bad property name", function() {
-        var em = new EntityManager(testFns.ServiceName);
+    test("bad query expr -  bad property name", function() {
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
-            .where("length(Customer.FooName)", ">", 30);
-        var queryUrl = query._toUri();
-
+            .where("length(customer.fooName)", ">", 30);
+        // var queryUrl = query._toUri(em.metadataStore);
+        stop();
         em.executeQuery(query, function(data) {
             ok(false, "should not get here");
             start();
         }, function (error) {
             ok(error instanceof Error);
-            ok(error.message.indexOf("FooName") > 0, "bad message");
+            ok(error.message.indexOf("fooName") > 0, "bad message");
             error.handled = true;
             start();
         }).fail(testFns.handleFail);
@@ -871,7 +827,7 @@ define(["testFns"], function (testFns) {
     test("bad odata expr", function () {
         stop();
 
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
         var query = "Customers?$filter=starxtswith(CompanyName, 'A') eq true&$orderby=CompanyName desc";
 
         em.executeQuery(query).fail(function (error) {
@@ -882,12 +838,12 @@ define(["testFns"], function (testFns) {
     });
     
     test("bad filter operator", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
          try {
             var query = new EntityQuery()
             .from("Customers")
-            .where("CompanyName", "startsXWith", "C");
+            .where("companyName", "startsXWith", "C");
             ok(false, "shouldn't get here");
         } catch (error) {
             ok(error instanceof Error);
@@ -896,12 +852,12 @@ define(["testFns"], function (testFns) {
     });   
 
     asyncTest("bad filter property", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("badCompanyName", "startsWith", "C");
-        var queryUrl = query._toUri();
+        // var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             ok(false, "shouldn't get here");
@@ -916,13 +872,13 @@ define(["testFns"], function (testFns) {
     });
 
     asyncTest("bad orderBy property ", function () {
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
-            .where("CompanyName", FilterQueryOp.StartsWith, "C")
+            .where("companyName", FilterQueryOp.StartsWith, "C")
             .orderBy("badCompanyName");
-        var queryUrl = query._toUri();
+        // var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             ok(false, "shouldn't get here");
@@ -938,14 +894,14 @@ define(["testFns"], function (testFns) {
 
     test("by EntityQuery.fromEntityKey ", function () {
         var em = newEm();
-        var empType = metadataStore.getEntityType("Employee");
+        var empType = em.metadataStore.getEntityType("Employee");
         var entityKey = new EntityKey(empType, 1);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
         em.executeQuery(query, function (data) {
             var emp = data.results[0];
-            ok(emp.getProperty("EmployeeID") === 1);
+            ok(emp.getProperty("employeeID") === 1);
             start();
             return;
         }).fail(testFns.handleFail);
@@ -954,21 +910,21 @@ define(["testFns"], function (testFns) {
 
     test("by EntityQuery.fromEntityNavigation  - (-> n) ", function () {
         var em = newEm();
-        var empType = metadataStore.getEntityType("Employee");
-        var orderType = metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var orderType = em.metadataStore.getEntityType("Order");
         var entityKey = new EntityKey(empType, 1);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
         em.executeQuery(query, function (data) {
             var emp = data.results[0];
-            ok(emp.getProperty("EmployeeID") === 1);
-            var np = emp.entityType.getProperty("Orders");
+            ok(emp.getProperty("employeeID") === 1);
+            var np = emp.entityType.getProperty("orders");
             var q2 = EntityQuery.fromEntityNavigation(emp, np);
             em.executeQuery(q2, function (data2) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType === orderType; }));
-                var orders = emp.getProperty("Orders");
+                var orders = emp.getProperty("orders");
                 ok(orders.length == data2.results.length, "local array does not match queried results");
                 start();
             }).fail(testFns.handleFail);
@@ -985,7 +941,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query, function(data) {
             var order = data.results[0];
             ok(order.entityType.shortName === "Order");
-            var np = order.entityType.getProperty("Employee");
+            var np = order.entityType.getProperty("employee");
             ok(np, "can't find nav prop 'Employee'");
             var q2 = EntityQuery.fromEntityNavigation(order, np);
             em.executeQuery(q2, function(data2) {
@@ -999,17 +955,17 @@ define(["testFns"], function (testFns) {
 
     test("by entityAspect.loadNavigationProperty - (-> n) ", function () {
         var em = newEm();
-        var empType = metadataStore.getEntityType("Employee");
+        var empType = em.metadataStore.getEntityType("Employee");
         var entityKey = new EntityKey(empType, 1);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
         em.executeQuery(query, function (data) {
             var emp = data.results[0];
-            emp.entityAspect.loadNavigationProperty("Orders", function (data2) {
+            emp.entityAspect.loadNavigationProperty("orders", function (data2) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType.shortName = "Order"; }));
-                var orders = emp.getProperty("Orders");
+                var orders = emp.getProperty("orders");
                 ok(orders.length == data2.results.length, "local array does not match queried results");
                 start();
             }).fail(testFns.handleFail);
@@ -1026,15 +982,15 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function (data) {
             order = data.results[0];
             ok(order.entityType.shortName === "Order");
-            var emp = order.getProperty("Employee");
+            var emp = order.getProperty("employee");
             ok(emp === null, "emp should start null");
-            return order.entityAspect.loadNavigationProperty("Employee");
+            return order.entityAspect.loadNavigationProperty("employee");
         }).then(function (data2) {
             ok(data2.results.length === 1, "wrong amount of data returned");
             ok(data2.results[0].entityType.shortName === "Employee");
-            var sameEmp = order.getProperty("Employee");
+            var sameEmp = order.getProperty("employee");
             ok(data2.results[0] === sameEmp, "query results do not match nav results");
-            var orders = sameEmp.getProperty("Orders");
+            var orders = sameEmp.getProperty("orders");
             var ix = orders.indexOf(order);
             ok(ix >= 0, "can't find order in reverse lookup");
             start();
@@ -1044,15 +1000,15 @@ define(["testFns"], function (testFns) {
 
     test("load from navigationProperty value.load (-> n)", function () {
         var em = newEm();
-        var empType = metadataStore.getEntityType("Employee");
-        var orderType = metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var orderType = em.metadataStore.getEntityType("Order");
         var entityKey = new EntityKey(empType, 1);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
         em.executeQuery(query, function (data) {
             var emp = data.results[0];
-            var orders = emp.getProperty("Orders");
+            var orders = emp.getProperty("orders");
             ok(orders.length === 0, "orders length should start at 0");
             orders.load(function (data2) {
                 ok(data2.results.length > 0, "no data returned");
@@ -1069,11 +1025,11 @@ define(["testFns"], function (testFns) {
 
         var query = new EntityQuery()
             .from("Orders")
-            .where("Freight", ">", 100);
+            .where("freight", ">", 100);
 
         var query2 = new EntityQuery()
             .from("Orders")
-            .where("Freight", ">=", 500);
+            .where("freight", ">=", 500);
 
 
         em.executeQuery(query, function (data) {
@@ -1083,7 +1039,7 @@ define(["testFns"], function (testFns) {
             var orders2 = em.executeQueryLocally(query2);
             ok(orders2.length > 0);
             ok(orders2.length < orders.length);
-            ok(orders2.every(function (o) { return o.getProperty("Freight") >= 500; }));
+            ok(orders2.every(function (o) { return o.getProperty("freight") >= 500; }));
             start();
         }).fail(testFns.handleFail);
     });
@@ -1093,11 +1049,11 @@ define(["testFns"], function (testFns) {
 
         var query = new EntityQuery()
             .from("Orders")
-            .where("Freight", ">", 100);
+            .where("freight", ">", 100);
 
         var query2 = new EntityQuery()
             .from("Orders")
-            .where("Freight", ">=", 500);
+            .where("freight", ">=", 500);
 
         var orders;
         em.executeQuery(query).then(function (data) {
@@ -1113,7 +1069,7 @@ define(["testFns"], function (testFns) {
             var orders2 = data2.results;
             ok(orders2.length > 0);
             ok(orders2.length < orders.length);
-            ok(orders2.every(function(o) { return o.getProperty("Freight") >= 500; }));
+            ok(orders2.every(function(o) { return o.getProperty("freight") >= 500; }));
             start();
         }).fail(testFns.handleFail);
     });
@@ -1124,24 +1080,24 @@ define(["testFns"], function (testFns) {
             return;
         } 
         stop();
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
-            .where("CompanyName", "startsWith", "A")
-            .orderBy("CompanyName")
+            .where("companyName", "startsWith", "A")
+            .orderBy("companyName")
             .take(4);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 2, "no customers found");
-            testFns.assertIsSorted(customers, "CompanyName");
+            testFns.assertIsSorted(customers, "companyName");
             customers.forEach(function (c) {
-                ok(c.getProperty("CompanyName"), 'should have a companyName property');
-                var orders = c.getProperty("Orders");
-                ok(orders.length > 0, "Orders should be populated");
-                var matchingCust = orders[0].getProperty("Customer");
+                ok(c.getProperty("companyName"), 'should have a companyName property');
+                var orders = c.getProperty("orders");
+                ok(orders.length > 0, "orders should be populated");
+                var matchingCust = orders[0].getProperty("customer");
                 ok(c === matchingCust, "relationship not updated");
                 var ckey = c.entityAspect.getKey();
                 ok(ckey, "missing key");
@@ -1161,11 +1117,11 @@ define(["testFns"], function (testFns) {
             return;
         } 
         expect(5);
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
-            .where("CompanyName", FilterQueryOp.StartsWith, "C")
+            .where("companyName", FilterQueryOp.StartsWith, "C")
             .take(1);
 
         var sc = new testFns.StopCount(2);
@@ -1175,12 +1131,12 @@ define(["testFns"], function (testFns) {
             ok(data.results.length === 1, "query should only return a single cust");
             var cust = data.results[0];
             var custKey = cust.entityAspect.getKey();
-            var orders = cust.getProperty("Orders");
+            var orders = cust.getProperty("orders");
             var orderKeys = orders.map(function (o) { return o.entityAspect.getKey(); });
             var custQuery = EntityQuery.fromEntities(cust);
 
             var ordersQuery = EntityQuery.fromEntities(orders);
-            var em2 = new EntityManager(testFns.ServiceName);
+            var em2 = newEm();
 
             em2.executeQuery(custQuery, function (data2) {
                 ok(data2.results.length === 1, "a single customer should have been fetched");
@@ -1207,24 +1163,24 @@ define(["testFns"], function (testFns) {
             return;
         } 
         stop();
-        var em = new EntityManager(testFns.ServiceName);
+        var em = newEm();
 
         var query = new EntityQuery()
             .from("CustomersAndOrders")
-            .where("CompanyName", "startsWith", "A")
-            .orderBy("CompanyName")
+            .where("companyName", "startsWith", "A")
+            .orderBy("companyName")
             .take(4);
-        var queryUrl = query._toUri();
+        var queryUrl = query._toUri(em.metadataStore);
 
         em.executeQuery(query).then(function (data) {
             var customers = data.results;
             ok(customers.length == 4, "wrong number of customers");
 
             customers.forEach(function (c) {
-                ok(c.getProperty("CompanyName"), 'should have a companyName property');
-                var orders = c.getProperty("Orders");
+                ok(c.getProperty("companyName"), 'should have a companyName property');
+                var orders = c.getProperty("orders");
                 ok(orders.length > 0, "Orders should be populated");
-                var matchingCust = orders[0].getProperty("Customer");
+                var matchingCust = orders[0].getProperty("customer");
                 ok(c === matchingCust, "relationship not updated");
                 var ckey = c.entityAspect.getKey();
                 ok(ckey, "missing key");
@@ -1240,7 +1196,7 @@ define(["testFns"], function (testFns) {
     
     test("raw odata with filter and order by", function () {
         stop();
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em = newEm(testFns.newMs());
         ok(em, "no em found");
 
         var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$orderby=CompanyName desc&$expand=Orders";
@@ -1250,7 +1206,7 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var customers = data.results;
             customers.forEach(function (c) {
-                ok(c.getProperty("CompanyName"), "missing CompanyName property");
+                ok(c.getProperty("companyName"), "missing companyName property");
                 var key = c.entityAspect.getKey();
                 ok(key, "missing key");
             });
@@ -1259,9 +1215,9 @@ define(["testFns"], function (testFns) {
     });
 
     test("raw odata with select", function () {
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: new MetadataStore() });
+        var em = newEm(testFns.newMs());
         ok(em, "no em found");
-
+        
         var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$select=CompanyName, Orders";
         if (!testFns.DEBUG_WEBAPI) {
             query = query + "&$expand=Orders";
@@ -1274,9 +1230,9 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
-                ok(a.CompanyName);
-                ok(Array.isArray(a.Orders));
-                a.Orders.forEach(function(order) {
+                ok(a.companyName);
+                ok(Array.isArray(a.orders));
+                a.orders.forEach(function(order) {
                     ok(order.entityType === orderType);
                 });
             });
@@ -1290,13 +1246,17 @@ define(["testFns"], function (testFns) {
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function (data, status) {
-            ok(data);
-            var str = JSON.stringify(data, undefined, 4);
-            testFns.output("Customers with orders");
-            testFns.output(str);
-            start();
-        });
+        try {
+            $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function(data, status) {
+                ok(data);
+                var str = JSON.stringify(data, undefined, 4);
+                testFns.output("Customers with orders");
+                testFns.output(str);
+                start();
+            });
+        } catch (e) {
+            testFns.handleFail(e);
+        }
     });
 
     test("raw odata - server side include 1 - order and customer", function () {
@@ -1305,14 +1265,18 @@ define(["testFns"], function (testFns) {
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function (data, status) {
-            ok(data);
-            var str = JSON.stringify(data, undefined, 4);
+        try {
+            $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function(data, status) {
+                ok(data);
+                var str = JSON.stringify(data, undefined, 4);
 
-            testFns.output("Orders with customers");
-            testFns.output(str);
-            start();
-        });
+                testFns.output("Orders with customers");
+                testFns.output(str);
+                start();
+            });
+        } catch (e) {
+            testFns.handleFail(e);
+        }
     });
 
     test("WebApi metadata", function () {

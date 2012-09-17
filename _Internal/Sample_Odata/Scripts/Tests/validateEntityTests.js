@@ -15,25 +15,11 @@ define(["testFns"], function (testFns) {
     var Validator = entityModel.Validator;
 
 
-    var metadataStore = new MetadataStore();
-    var newEm = function (ms) {
-        if (ms) {
-            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: ms });
-        } else {
-            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
-        }
-    };
+    var newEm = testFns.newEm;
 
     module("validate entity", {
         setup: function () {
-            if (!metadataStore.isEmpty()) return;
-            stop();
-            var em = newEm();
-            em.fetchMetadata(function (rawMetadata) {
-                var isEmptyMetadata = metadataStore.isEmpty();
-                ok(!isEmptyMetadata);
-                start();
-            });
+            testFns.setup();
         },
         teardown: function () {
 
@@ -42,27 +28,27 @@ define(["testFns"], function (testFns) {
 
     test("validate props", function () {
         var em = newEm();
-        var custType = metadataStore.getEntityType("Customer");
+        var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
         em.attachEntity(cust1);
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;
-        cust1.setProperty("CompanyName", s);
+        cust1.setProperty("companyName", s);
         ok(cust1.entityAspect.getValidationErrors().length === 1);
         var valErrors = cust1.entityAspect.getValidationErrors();
         var errMessage = valErrors[0].errorMessage;
-        ok(errMessage.indexOf("CompanyName") >= 0, errMessage);
-        cust1.setProperty("CompanyName", "much shorter");
+        ok(errMessage.indexOf("companyName") >= 0, errMessage);
+        cust1.setProperty("companyName", "much shorter");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "should be no validation errors now");
-        cust1.setProperty("CompanyName", "");
+        cust1.setProperty("companyName", "");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "should be no validation errors now");
     });
 
     test("validate props - bad data types", function () {
         var em = newEm();
-        var custType = metadataStore.getEntityType("Customer");
+        var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
         em.attachEntity(cust1);
         var valErrorsChanged;
@@ -70,18 +56,18 @@ define(["testFns"], function (testFns) {
             ok(args.entity === cust1,"args.entity property should be set");
             valErrorsChanged = args;
         });
-        cust1.setProperty("CompanyName", 222);
-        ok(valErrorsChanged.added[0].property.name === "CompanyName");
+        cust1.setProperty("companyName", 222);
+        ok(valErrorsChanged.added[0].property.name === "companyName");
 
-        cust1.setProperty("RowVersion", 3.2);
-        ok(valErrorsChanged.added[0].property.name === "RowVersion");
-        cust1.setProperty("RowVersion", 3);
-        ok(valErrorsChanged.removed[0].property.name === "RowVersion");
+        cust1.setProperty("rowVersion", 3.2);
+        ok(valErrorsChanged.added[0].property.name === "rowVersion");
+        cust1.setProperty("rowVersion", 3);
+        ok(valErrorsChanged.removed[0].property.name === "rowVersion");
 
-        cust1.setProperty("RowVersion", "33");
-        ok(valErrorsChanged.added[0].property.name === "RowVersion");
+        cust1.setProperty("rowVersion", "33");
+        ok(valErrorsChanged.added[0].property.name === "rowVersion");
         valErrorsChanged = null;
-        cust1.setProperty("RowVersion", "33");
+        cust1.setProperty("rowVersion", "33");
         ok(valErrorsChanged === null);
 
 
@@ -89,7 +75,7 @@ define(["testFns"], function (testFns) {
 
     test("validationErrorsChanged event", function () {
         var em = newEm();
-        var custType = metadataStore.getEntityType("Customer");
+        var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
         em.attachEntity(cust1);
         var lastNotification;
@@ -100,24 +86,24 @@ define(["testFns"], function (testFns) {
         });
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;
-        cust1.setProperty("CompanyName", s);
+        cust1.setProperty("companyName", s);
         ok(lastNotification.added, "last notification should have been 'added'");
-        ok(lastNotification.added[0].property.name === "CompanyName");
-        ok(lastNotification.removed[0].property.name === "CompanyName");
+        ok(lastNotification.added[0].property.name === "companyName");
+        ok(lastNotification.removed[0].property.name === "companyName");
         ok(notificationCount === 1, "should have been 1 notification");
-        cust1.setProperty("CompanyName", "much shorter");
+        cust1.setProperty("companyName", "much shorter");
         ok(lastNotification.removed, "last notification should have been 'removed'");
-        ok(lastNotification.removed[0].property.name === "CompanyName");
+        ok(lastNotification.removed[0].property.name === "companyName");
         ok(notificationCount === 2, "should have been 2 notifications");
-        cust1.setProperty("CompanyName", "");
+        cust1.setProperty("companyName", "");
         ok(lastNotification.added, "last notification should have been 'added'");
-        ok(lastNotification.added[0].property.name === "CompanyName");
+        ok(lastNotification.added[0].property.name === "companyName");
         ok(notificationCount === 3, "should have been 3 notifications");
     });
 
     test("get validationError for a property", function () {
         var em = newEm();
-        var custType = metadataStore.getEntityType("Customer");
+        var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
         em.attachEntity(cust1);
         var lastNotification;
@@ -128,20 +114,20 @@ define(["testFns"], function (testFns) {
         });
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;
-        cust1.setProperty("CompanyName", s);
-        var errors = cust1.entityAspect.getValidationErrors("CompanyName");
+        cust1.setProperty("companyName", s);
+        var errors = cust1.entityAspect.getValidationErrors("companyName");
         ok(errors.length === 1);
         errors = cust1.entityAspect.getValidationErrors("foo");
         ok(errors.length === 0);
-        errors = cust1.entityAspect.getValidationErrors(custType.getProperty("CompanyName"));
+        errors = cust1.entityAspect.getValidationErrors(custType.getProperty("companyName"));
         ok(errors.length === 1);
     });
 
     test("custom property validation", function () {
-        var ms = MetadataStore.import(metadataStore.export());
+        var ms = MetadataStore.import(testFns.metadataStore.export());
         var em = newEm(ms);
         var custType = ms.getEntityType("Customer");
-        var prop = custType.getProperty("Country");
+        var prop = custType.getProperty("country");
 
         var valFn = function (v) {
             if (v == null) return true;
@@ -150,25 +136,25 @@ define(["testFns"], function (testFns) {
         var countryValidator = new Validator("countryIsUS", valFn, { displayName: "Country", messageTemplate: "'%displayName%' must start with 'US'" });
         prop.validators.push(countryValidator);
         var cust1 = custType.createEntity();
-        cust1.setProperty("Country", "GER");
+        cust1.setProperty("country", "GER");
         em.attachEntity(cust1);
         var valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 2, "length should be 2");
-        cust1.setProperty("Country", "US");
+        cust1.setProperty("country", "US");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "length should be 1");
     });
 
     test("custom entity validation", function () {
-        var ms = MetadataStore.import(metadataStore.export());
+        var ms = MetadataStore.import(testFns.metadataStore.export());
         var em = newEm(ms);
         var custType = ms.getEntityType("Customer");
            
         // v in this case will be a Customer entity
         var valFn = function (v) {
             // This validator only validates US Zip Codes.
-            if ( v.getProperty("Country") === "USA") {
-                var postalCode = v.getProperty("PostalCode");
+            if ( v.getProperty("country") === "USA") {
+                var postalCode = v.getProperty("postalCode");
                 return isValidZipCode(postalCode);
             }
             return true;
@@ -178,12 +164,12 @@ define(["testFns"], function (testFns) {
         custType.validators.push(zipCodeValidator);
 
         var cust1 = custType.createEntity();
-        cust1.setProperty("CompanyName", "Test1Co");
-        cust1.setProperty("Country", "GER");
+        cust1.setProperty("companyName", "Test1Co");
+        cust1.setProperty("country", "GER");
         em.attachEntity(cust1);
         var valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
-        cust1.setProperty("Country", "USA");
+        cust1.setProperty("country", "USA");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
         var isOk = cust1.entityAspect.validateEntity();
@@ -193,10 +179,10 @@ define(["testFns"], function (testFns) {
     });
     
     test("custom property numeric range validation", function () {
-        var ms = MetadataStore.import(metadataStore.export());
+        var ms = MetadataStore.import(testFns.metadataStore.export());
         var em = newEm(ms);
         var orderType = ms.getEntityType("Order");
-        var freightProperty = orderType.getProperty("Freight");
+        var freightProperty = orderType.getProperty("freight");
         
         var numericRangeValidator = function(context) {
             var valFn = function(v, ctx) {
@@ -219,11 +205,11 @@ define(["testFns"], function (testFns) {
         em.attachEntity(order1);
         var valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure
-        order1.setProperty("Freight", 0);
+        order1.setProperty("freight", 0);
         valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "length should be 1");
         var ix = valErrors[0].errorMessage.indexOf("between the values of 100 and 500");
-        order1.setProperty("Freight", 200);
+        order1.setProperty("freight", 200);
         valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
         
