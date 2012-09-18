@@ -1,12 +1,65 @@
 ﻿body {
-    width: 100%;
-    height: 100%;
+     margin: 0
 }
-
-.column {
-    
+.row, .col {
+     overflow: hidden; 
+     position: absolute;
 }
 
 .row {
-    
+     left: 0; 
+     right: 0;
+}
+
+.col {
+     top: 0; 
+     bottom: 0;
+}
+
+.scroll-x {
+     overflow-x: auto;
+}
+
+.scroll-y {
+     overflow-y: auto;
+}
+
+.header.row {
+     height: 75px; 
+     top: 0;
+}
+
+.body.row {
+     top: 75px; 
+     bottom: 50px;
+}
+
+.footer.row {
+     height: 50px; 
+     bottom: 0;
+}
+
+.left.col {
+     width: 250px;
+}
+
+.right.col {
+     left: 250px; 
+     right: 0;
+}
+
+.header.row {
+     height: 75px; 
+     line-height: 75px;
+}
+
+.body.row {
+     top: 75px; 
+     bottom: 50px;
+}
+
+.footer.row {
+     height: 50px; 
+     bottom: 0; 
+     line-height: 50px;
 }
