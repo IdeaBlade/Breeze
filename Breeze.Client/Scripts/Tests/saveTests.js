@@ -37,11 +37,10 @@ define(["testFns"], function (testFns) {
         stop();
         q.using(em).execute().then(function(data) {
             return em.saveChanges();
-        }).then(function (sr) {
+        }).then(function(sr) {
             ok(Array.isArray(sr.entities));
             ok(sr.entities.length == 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("unmapped save", function() {
@@ -51,7 +50,6 @@ define(["testFns"], function (testFns) {
         var Customer = function() {
             this.miscData = "asdf";
         };
-
 
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
@@ -67,12 +65,10 @@ define(["testFns"], function (testFns) {
             cust.setProperty("miscData", "xxx");
             ok(cust.entityAspect.entityState == EntityState.Modified);
             return em1.saveChanges();
-
         }).then(function(sr) {
             var saved = sr.entities;
             ok(saved.length === 1);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("add parent and children", function () {
@@ -93,11 +89,9 @@ define(["testFns"], function (testFns) {
                 ok(zzz.order2.getProperty("customer") === zzz.cust1);
                 ok(zzz.cust1.getProperty("orders").length === 2);
                 ok(zzz.cust2.getProperty("orders").length === 0);
-                start();
             }, function(err) {
                 ok(false, "should not get here - " + err);
-                start();
-            }).fail(testFns.handleFail);
+            }).fail(testFns.handleFail).fin(start);
     });
 
     test("allow concurrent saves with concurrency column", 2, function() {
@@ -269,13 +263,13 @@ define(["testFns"], function (testFns) {
             .where("companyName", "startsWith", "C")
             .take(2);
         stop();
-        em.executeQuery(query, function (data) {
+        em.executeQuery(query, function(data) {
             var cust = data.results[0];
             var orders = cust.getProperty("orders");
             var companyName = cust.getProperty("companyName");
             var newCompanyName = testFns.morphString(companyName);
             cust.setProperty("companyName", newCompanyName);
-            em.saveChanges(null, null, function (saveResult) {
+            em.saveChanges(null, null, function(saveResult) {
                 var entities = saveResult.entities;
                 ok(entities.length === 1);
                 ok(saveResult.keyMappings.length === 0);
@@ -283,7 +277,7 @@ define(["testFns"], function (testFns) {
                 ok(cust.getProperty("companyName") === newCompanyName);
                 ok(cust.entityAspect.entityState.isUnchanged());
                 var q2 = EntityQuery.fromEntities(cust);
-                em.executeQuery(q2, function (data2) {
+                em.executeQuery(q2, function(data2) {
                     var entities2 = data2.results;
                     ok(entities2.length === 1);
                     ok(entities2[0] === cust);
@@ -301,8 +295,8 @@ define(["testFns"], function (testFns) {
             .where("companyName", "startsWith", "C")
             .take(5);
         stop();
-        em.executeQuery(query, function (data) {
-            var cust = core.arrayFirst(data.results, function (c) {
+        em.executeQuery(query, function(data) {
+            var cust = core.arrayFirst(data.results, function(c) {
                 return c.getProperty("orders").length > 0;
             });
             ok(cust, "unable to find a customer with orders");
@@ -311,16 +305,16 @@ define(["testFns"], function (testFns) {
             var newCompanyName = testFns.morphStringProp(cust, "companyName");
             ok(cust.entityAspect.entityState.isModified(), "should be modified");
             var orders = cust.getProperty("orders");
-            orders.forEach(function (o) {
+            orders.forEach(function(o) {
                 testFns.morphStringProp(o, "shipName");
                 ok(o.entityAspect.entityState.isModified(), "should be modified");
             });
-            em.saveChanges(null, null, function (saveResult) {
+            em.saveChanges(null, null, function(saveResult) {
                 var entities = saveResult.entities;
                 ok(entities.length === 1 + orders.length, "wrong number of entities returned");
                 ok(saveResult.keyMappings.length === 0, "no key mappings should be returned");
 
-                entities.forEach(function (e) {
+                entities.forEach(function(e) {
                     ok(e.entityAspect.entityState.isUnchanged, "entity is not in unchanged state");
                     if (e.entityType === cust.entityType) {
                         ok(e === cust, "cust does not match");
@@ -333,60 +327,55 @@ define(["testFns"], function (testFns) {
                 ok(cust.entityAspect.entityState.isUnchanged(), "entityState should be unchanged");
                 var q2 = EntityQuery.fromEntities(cust);
 
-                em.executeQuery(q2, function (data2) {
+                em.executeQuery(q2, function(data2) {
                     var entities2 = data2.results;
                     ok(entities2.length === 1, "should only get a single entity");
                     ok(entities2[0] === cust, "requery does not match cust");
                     ok(cust.getProperty("companyName") === newCompanyName, "company name was not changed on requery");
-                    start();
                 }).fail(testFns.handleFail);
             }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail)
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete parent, children stranded", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges(null, null, function (saveResult) {
-
+        em.saveChanges(null, null, function(saveResult) {
             zzz.cust1.entityAspect.setDeleted();
-            em.saveChanges(null, null, function (sr) {
+            em.saveChanges(null, null, function(sr) {
                 ok(false, "shouldn't get here");
-                start();
-            }).fail(function (error) {
+            }).fail(function(error) {
                 ok(error instanceof Error, "should be an error");
                 ok(error.message.indexOf("FOREIGN KEY") >= 0, "message should contain 'FOREIGN KEY'");
-                start();
             });
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete parent then delete children", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges(null, null, function (saveResult) {
+        em.saveChanges(null, null, function(saveResult) {
             zzz.cust1.entityAspect.setDeleted();
             zzz.order1.entityAspect.setDeleted();
             zzz.order2.entityAspect.setDeleted();
             ok(zzz.order1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             ok(zzz.cust1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
-            em.saveChanges(null, null, function (sr) {
+            em.saveChanges(null, null, function(sr) {
                 ok(sr.entities.length === 3, "should be 3 entities saved");
                 ok(zzz.order1.entityAspect.entityState.isDetached(), "order1 should be marked as detached");
                 ok(zzz.order2.entityAspect.entityState.isDetached(), "order2 should be marked as detached");
                 ok(zzz.cust1.entityAspect.entityState.isDetached(), "cust1 should be marked as detached");
-                start();
             }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete children then delete parent", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges().then(function (saveResult) {
+        em.saveChanges().then(function(saveResult) {
             var orders = zzz.cust1.getProperty("orders");
             ok(zzz.order1 === orders[0]);
             var cust1a = zzz.order1.getProperty("customer");
@@ -399,13 +388,12 @@ define(["testFns"], function (testFns) {
             ok(zzz.order1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             ok(zzz.cust1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             return em.saveChanges();
-        }).then(function (sr) {
+        }).then(function(sr) {
             ok(sr.entities.length === 3, "should be 3 entities saved");
             ok(zzz.order1.entityAspect.entityState.isDetached(), "order1 should be marked as detached");
             ok(zzz.order2.entityAspect.entityState.isDetached(), "order2 should be marked as detached");
             ok(zzz.cust1.entityAspect.entityState.isDetached(), "cust1 should be marked as detached");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("delete children then delete parent after query", function () {
@@ -413,11 +401,11 @@ define(["testFns"], function (testFns) {
         var em2 = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges().then(function (saveResult) {
+        em.saveChanges().then(function(saveResult) {
             var q = EntityQuery.fromEntities(zzz.cust1);
             q = EntityQuery.from("CustomersAndOrders").where(q.wherePredicate);
             return em2.executeQuery(q);
-        }).then(function (data) {
+        }).then(function(data) {
             var cust = data.results[0];
             var orders = cust.getProperty("orders").slice(0);
             orders.forEach(function(o) {
@@ -427,20 +415,19 @@ define(["testFns"], function (testFns) {
             ok(orders[0].entityAspect.entityState.isDeleted(), "should be marked as deleted");
             ok(cust.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             return em2.saveChanges();
-        }).then(function (sr) {
+        }).then(function(sr) {
             ok(sr.entities.length === 3, "should be 3 entities saved");
             sr.entities.forEach(function(e) {
                 ok(e.entityAspect.entityState.isDetached(), "entity should be marked as detached");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete children, leave parent alone", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges(null, null, function (saveResult) {
+        em.saveChanges(null, null, function(saveResult) {
 
             zzz.order1.entityAspect.setDeleted();
 
@@ -449,19 +436,18 @@ define(["testFns"], function (testFns) {
             ok(zzz.cust1.getProperty("orders").length === 0, "should be no orders now");
             ok(zzz.order1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             ok(zzz.cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
-            em.saveChanges(null, null, function (sr) {
+            em.saveChanges(null, null, function(sr) {
                 ok(zzz.order1.entityAspect.entityState.isDetached(), "should be marked as detached");
                 ok(zzz.cust1.getProperty("orders").length === 0, "should be no orders now");
-                start();
             }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete parent, move children", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges().then(function (saveResult) {
+        em.saveChanges().then(function(saveResult) {
 
             zzz.cust1.entityAspect.setDeleted();
             zzz.order1.setProperty("customer", zzz.cust2);
@@ -469,13 +455,12 @@ define(["testFns"], function (testFns) {
             zzz.order2.setProperty("customer", zzz.cust2);
             ok(zzz.cust1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
 
-            em.saveChanges(null, null, function (sr2) {
+            em.saveChanges(null, null, function(sr2) {
                 ok(sr2.entities.length === 3);
                 ok(zzz.cust1.entityAspect.entityState.isDetached(), "should be marked as detached");
                 ok(zzz.order1.entityAspect.entityState.isUnchanged(), "should be marked as unchanged");
-                start();
             }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("concurrency violation", function () {
@@ -488,12 +473,12 @@ define(["testFns"], function (testFns) {
         stop();
         var cust;
         var sameCust;
-        em.executeQuery(q).then(function (data) {
+        em.executeQuery(q).then(function(data) {
             // query cust
             cust = data.results[0];
             var q2 = EntityQuery.fromEntities(cust);
             return em2.executeQuery(q2);
-        }).then(function (data2) {
+        }).then(function(data2) {
             // query same cust in dif em
             // and modify it and resave it
             ok(data2.results.length == 1, "should only have 1 result");
@@ -501,16 +486,14 @@ define(["testFns"], function (testFns) {
             ok(cust.entityAspect.getKey().equals(sameCust.entityAspect.getKey()), "should be the same key");
             testFns.morphStringProp(sameCust, "companyName");
             return em2.saveChanges();
-        }).then(function (sr2) {
+        }).then(function(sr2) {
             testFns.morphStringProp(cust, "companyName");
             return em.saveChanges();
-        }).then(function (sr2) {
+        }).then(function(sr2) {
             ok(false, "should not get here, save should have failed");
-            start();
-        }, function (error) {
+        }, function(error) {
             ok(error.detail.ExceptionType.toLowerCase().indexOf("concurrency") >= 0, "wrong error message: " + error.detail.ExceptionType);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("concurrency violation on delete", function () {
@@ -524,19 +507,18 @@ define(["testFns"], function (testFns) {
             .take(2);
 
         stop();
-        em.executeQuery(q).then(function (data) {
+        em.executeQuery(q).then(function(data) {
             var od = data.results[0];
             em.detachEntity(od);
             var em2 = newEm();
             em2.addEntity(od);
             return em2.saveChanges();
-        }).then(function (sr) {
+        }).then(function(sr) {
             ok(false, "shouldn't get here");
             start();
-        }, function (error) {
+        }, function(error) {
             ok(error.message.toLowerCase().indexOf("primary key constraint") >= 0, "wrong error message");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("insert with generated key", function () {
@@ -549,16 +531,15 @@ define(["testFns"], function (testFns) {
         var k2 = region2.entityAspect.getKey();
 
         stop();
-        em.saveChanges().then(function (data) {
+        em.saveChanges().then(function(data) {
             ok(data.entities.length === 2);
             ok(!region1.entityAspect.getKey().equals(k1));
             ok(!region2.entityAspect.getKey().equals(k2));
             return data;
-        }).then(function (data2) {
+        }).then(function(data2) {
             // curious about synchronous results
             ok(data2.entities.length == 2);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("insert with relationships with generated key", function () {
@@ -581,7 +562,7 @@ define(["testFns"], function (testFns) {
         terrs2.push(terr2b);
 
         stop();
-        em.saveChanges().then(function (data) {
+        em.saveChanges().then(function(data) {
             ok(data.entities.length === 6);
             ok(!region1.entityAspect.getKey().equals(k1));
             var terrs1x = region1.getProperty("territories");
@@ -592,8 +573,24 @@ define(["testFns"], function (testFns) {
             ok(terrs2x === terrs2);
             ok(terrs2x.length == 2);
             ok(terrs2x[0].getProperty("region") === region2);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save of deleted entity should not trigger validation", function() {
+        var em = newEm();
+        var region = createRegion(em, "x1");
+        stop();
+        em.saveChanges().then(function(sr) {
+            ok(sr.entities.length === 1, "one entity should have been saved");
+            ok(sr.entities[0] === region, "save result should contain region");
+            region.setProperty("regionDescription", "");
+            region.entityAspect.setDeleted();
+            return em.saveChanges();
+        }).then(function(sr2) {
+            ok(sr2.entities.length === 1, "one entity should have been saved");
+            ok(sr2.entities[0] === region, "save result should contain region");
+            ok(region.entityAspect.entityState.isDetached(), "region should now be detached");
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("bad save call", function () {
