@@ -18,4 +18,4 @@ packages
 Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
 Samples/Todo/Todo/App_Data/Todos.sdf
 DocCode/BreezeDocCode/App_Data/Todos.sdf
-Sample_WebApi_RC/Scripts/
+_Internal/Sample_WebApi_RC/Scripts
