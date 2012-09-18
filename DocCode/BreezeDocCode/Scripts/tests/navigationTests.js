@@ -388,9 +388,8 @@ define(["testFns"], function (testFns) {
    /*********************************************************
    * throws exception if set a navigation property with
    * entity in a different EntityManager
-   * Oops ... it SHOULD throw ... but doesn't. DEFECT #2180
    *********************************************************/
-    test("Defect #2180 - exception if set nav to entity with different manager", 3, function () {
+    test("exception if set nav to entity with different manager", 2, function () {
 
         var em1 = newEm();
         var existingOrder = getFakeExistingOrder(em1);
