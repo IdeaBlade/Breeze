@@ -42,6 +42,7 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 
 #### 0.54
 - NamingConvention support and minor bug fixes
+
 #### 0.53
 - Initial release
  
