@@ -190,6 +190,7 @@
     <Content Include="App\views\Checkbox.html" />
     <Content Include="App\views\Textarea.html" />
     <Content Include="App\views\Textbox.html" />
+    <Content Include="App_Data\readme.txt" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Styles\medium.css" />
@@ -208,9 +209,7 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>

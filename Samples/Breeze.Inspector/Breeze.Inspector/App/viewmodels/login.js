@@ -15,9 +15,7 @@
     };
 
     data.getInspectors().then(function(response) {
-        response.results.forEach(function(item) {
-            vm.inspectors.push(item);
-        });
+        vm.inspectors(response.results);
     });
 
     return vm;
