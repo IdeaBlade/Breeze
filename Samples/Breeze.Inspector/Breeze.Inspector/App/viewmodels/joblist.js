@@ -4,21 +4,19 @@
         InspectionViewModel = require('viewmodels/inspection');
 
     var vm = {
-        jobs: ko.observableArray([]),
-        activate: function() {
+        jobs:ko.observableArray([]),
+        activate:function() {
             shell.title("Job Locations");
             shell.status("Loading jobs...");
-            data.getJobsFor(shell.inspector().Id()).then(processJobQueryResults);
+            data.getJobsFor(shell.inspector().Id()).then(function(response) {
+                vm.jobs(response.results);
+                shell.status(vm.jobs().length + " jobs found.");
+            });
         },
-        navigateTo: function(inspection) {
+        navigateTo:function(inspection) {
             shell.navigate("inspection", new InspectionViewModel(inspection));
         }
     };
-
-    function processJobQueryResults(data) {
-        vm.jobs(data.results);
-        shell.status(vm.jobs().length + " jobs found.");
-    }
 
     return vm;
 });

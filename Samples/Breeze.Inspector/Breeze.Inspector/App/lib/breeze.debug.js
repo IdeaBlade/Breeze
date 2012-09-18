@@ -7929,7 +7929,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             if (this.validationOptions.validateOnSave) {
                 var failedEntities = entitiesToSave.filter(function (entity) {
-                    return (!entity.entityAspect.validateEntity());
+                    var aspect = entity.entityAspect;
+                    var isValid = aspect.entityState.isDeleted() || aspect.validateEntity();
+                    return !isValid;
                 });
                 if (failedEntities.length > 0) {
                     var valError = new Error("Validation error");

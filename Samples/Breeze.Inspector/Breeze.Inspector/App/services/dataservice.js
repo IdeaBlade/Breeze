@@ -87,7 +87,6 @@
         },
         saveChanges: function() {
             if (this.isOffline()) {
-                //TODO: how do I save the data when I'm disconnected?
                 localStorage.setItem("manager", manager.export());
                 return {
                     then: function(callback) {
