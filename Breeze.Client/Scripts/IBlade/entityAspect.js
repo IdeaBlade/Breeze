@@ -711,7 +711,8 @@ function (core, Event, m_validate) {
                         }
                     }
                 } else {
-                    npValue.forEach(function (v) {
+                    // npValue is a live list so we need to copy it first.
+                    npValue.slice(0).forEach(function (v) {
                         if (inverseNp.isScalar) {
                             v.setProperty(inverseNp.name, null);
                         } else {

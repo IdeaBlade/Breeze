@@ -77,11 +77,32 @@ function (core, m_entityAspect) {
                             if (oldValue) {
                                 var oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
-                                oldSiblings.splice(ix, 1);
+                                if (ix !== -1) {
+                                    oldSiblings.splice(ix, 1);
+                                }
                             }
                             var siblings = newValue.getProperty(inverseProp.name);
                             // recursion check if already in the collection is performed by the relationArray
                             siblings.push(this);
+                        }
+                    }
+                } else {
+                     if (inverseProp) {
+                        if (inverseProp.isScalar) {
+                            // navigation property change - undo old relation
+                            if (oldValue) {
+                                // TODO: null -> NullEntity later
+                                oldValue.setProperty(inverseProp.name, null);
+                            }
+                        } else {
+                            // navigation property change - undo old relation
+                            if (oldValue) {
+                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                var ix = oldSiblings.indexOf(this);
+                                if (ix !== -1) {
+                                    oldSiblings.splice(ix, 1);
+                                }
+                            }
                         }
                     }
                 }
@@ -144,14 +165,18 @@ function (core, m_entityAspect) {
                 // update corresponding nav property if attached.
                 if (property.relatedNavigationProperty && entityManager) {
                     var relatedNavProp = property.relatedNavigationProperty;
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    if (newValue) {
+                        var key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                        var relatedEntity = entityManager.findEntityByKey(key);
 
-                    if (relatedEntity) {
-                        this.setProperty(relatedNavProp.name, relatedEntity);
+                        if (relatedEntity) {
+                            this.setProperty(relatedNavProp.name, relatedEntity);
+                        } else {
+                            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                            entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                        }
                     } else {
-                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                        this.setProperty(relatedNavProp.name, null);
                     }
                 }
 

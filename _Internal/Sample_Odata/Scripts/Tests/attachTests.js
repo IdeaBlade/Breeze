@@ -24,8 +24,53 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    test("Defect 2182 - new entity case", 0, function () {
+    test("setting child's parent entity null removes it from old parent", 2, function () {
+        // D2183
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        em.attachEntity(customer);
 
+        var orderType = em.metadataStore.getEntityType("Order");
+        var newOrder = orderType.createEntity();
+        em.addEntity(newOrder);
+
+        newOrder.setProperty("customer", customer); // assign order to customer1
+        var orders = customer.getProperty("orders" );
+        ok(orders.indexOf(newOrder) >= 0,
+            "newOrder is among the customer's orders");
+
+        newOrder.setProperty("customer", null); // set null to decouple the order from a customer
+
+        orders = customer.getProperty("orders" );
+        ok(orders.indexOf(newOrder) === -1,
+            "newOrder is no longer among the customer's orders");
+
+    });
+
+    test("changing FK to null removes it from old parent", 2, function () {
+        // D2183
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        em.attachEntity(customer);
+
+        var orderType = em.metadataStore.getEntityType("Order");
+        var newOrder = orderType.createEntity();
+        em.addEntity(newOrder);
+
+        newOrder.setProperty("customer", customer); // assign order to customer1
+        ok(customer.getProperty("orders").indexOf(newOrder) >= 0,
+            "newOrder is among customer's orders");
+
+        newOrder.setProperty("customerID", null); 
+        ok(customer.getProperty("orders").indexOf(newOrder) === -1,
+            "newOrder is no longer among customer's orders");
+    });
+
+    
+    test("add, detach and readd", 0, function () {
+        // D2182
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         var newOrder = orderType.createEntity();
@@ -37,7 +82,8 @@ define(["testFns"], function (testFns) {
     });
 
 
-    test("Defect 2182 - existing entity case", 0, function () {
+    test("attach, detach, reattach", 0, function () {
+        // D2182
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         var order = orderType.createEntity();
@@ -45,7 +91,6 @@ define(["testFns"], function (testFns) {
 
         em.detachEntity(order);
         em.attachEntity(order);// Exception thrown: "this key is already attached"
-
     });
 
     
@@ -199,7 +244,7 @@ define(["testFns"], function (testFns) {
         orders.arrayChanged.subscribe(function (args) {
             arrayChangeCount += 1;
             if (args.removed[0] !== order2) {
-                ok(fail, "should not have gotten here");
+                ok(false, "should not have gotten here");
             }
         });
         var order2ChangeCount = 0;
@@ -210,14 +255,14 @@ define(["testFns"], function (testFns) {
             } else if (args2.propertyName === "customerID") {
                 order2ChangeCount += 1;
             } else {
-                ok("fail", "should not have gotten here");
+                ok(false, "should not have gotten here");
             }
         });
         var orders2 = cust1.getProperty("orders");
-        ok(orders === orders2);
+        ok(orders === orders2,"orders should === orders2");
         var ix = orders.indexOf(order2);
         orders.splice(ix, 1);
-        ok(orders.length === 1);
+        ok(orders.length === 1, "should only be 1 order");
         ok(arrayChangeCount === 1, "arrayChangeCount should be 1");
         ok(order2ChangeCount === 2, "order2ChangeCount should be 2");
 
