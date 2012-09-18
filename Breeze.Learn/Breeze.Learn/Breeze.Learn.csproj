@@ -121,6 +121,7 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\jquery-1.7.2.min.js" />
     <Content Include="Scripts\knockout-2.1.0.js" />
+    <Content Include="Styles\default.css" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

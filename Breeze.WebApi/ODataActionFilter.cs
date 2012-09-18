@@ -10,13 +10,18 @@ using System.Collections.Generic;
 
 
 namespace Breeze.WebApi {
+  [Obsolete("Use ODataActionFilter - will be removed after Dec 31 2012")]
+  public class EFActionFilter : ODataActionFilter {
+
+  };
+
   /// <summary>
   /// Used to parse and interpret OData like semantics on top of WebApi.
   /// </summary>
   /// <remarks>
   /// Remember to add it to the Filters for your configuration
   /// </remarks>
-  public class EFActionFilter : ActionFilterAttribute {
+  public class ODataActionFilter : ActionFilterAttribute {
     // For more information on ActionFilters see: 
     // http://blog.petegoo.com/index.php/2012/04/29/action-filter-to-support-odata-expands-as-ef-includes-in-asp-net-web-api/
     

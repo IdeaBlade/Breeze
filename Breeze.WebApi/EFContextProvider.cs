@@ -494,11 +494,45 @@ namespace Breeze.WebApi {
       var parts = entityTypeName.Split(delims, StringSplitOptions.None);
       var shortName = parts[0];
       var ns = parts[1];
-      var assembly = Context.GetType().Assembly;
-      var type = assembly.GetType(ns + "." + shortName);
-      return type;
+
+      var typeName = ns + "." + shortName;
+      var type = ProbeAssemblies.Value
+        .Select(a => a.GetType(typeName, false, true))
+        .FirstOrDefault(t => t != null);
+      if (type!=null) {
+        return type;
+      } else {
+        throw new ObjectNotFoundException("Assembly could not be found for " + entityTypeName);
+      }
     }
 
+    // Cache the ProbeAssemblies.
+    // Note: look at BuildManager.GetReferencedAssemblies if we start having
+    // issues with Assemblies not yet having been loaded.
+    private static Lazy<List<Assembly>> ProbeAssemblies = new Lazy<List<Assembly>>( () => 
+      AppDomain.CurrentDomain.GetAssemblies().Where(a => !IsFrameworkAssembly(a)).ToList()
+    );
+
+    private static bool IsFrameworkAssembly(Assembly assembly) {
+      var attrs = assembly.GetCustomAttributes(typeof(AssemblyProductAttribute), false).OfType<AssemblyProductAttribute>();
+      var attr = attrs.FirstOrDefault();
+      if (attr == null) {
+        return false;
+      }
+      var productName = attr.Product;
+      return FrameworkProductNames.Any(nm => productName.StartsWith(nm));
+    }
+
+    private static readonly List<String> FrameworkProductNames = new List<String> {
+      "Microsoft® .NET Framework",
+      "Microsoft (R) Visual Studio (R) 2010",
+      "Microsoft ASP.",
+      "System.Net.Http",
+      "Json.NET",
+      "Irony",
+      "Breeze.WebApi"
+    };
+  
 
     private const string ResourcePrefix = @"res://";
     private const string MetadataPrefix = "metadata=";
