@@ -382,7 +382,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * setting child's parent entity null removes it from old parent
     *********************************************************/
-    test("Defect #2183 - setting child's parent entity null removes it from old parent", 3, function () {
+    test("setting child's parent entity null removes it from old parent", 2, function () {
 
         var em = newEm();
         var customer = getFakeExistingCustomer(em);
@@ -394,9 +394,6 @@ define(["testFns"], function (testFns) {
 
         ok(customer.Orders().indexOf(newOrder) >= 0,
             "newOrder is among the customer's orders");
-
-        ok(newOrder.entityType.getProperty("Customer").isNullable,
-            "the Order.Customer property is nullable");
         
         newOrder.Customer(null); // set null to decouple the order from a customer
 
@@ -540,7 +537,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * changing FK to null removes it from old parent
     *********************************************************/
-    test("Defect #2183 - changing FK to null removes it from old parent", 2, function () {
+    test("changing FK to null removes it from old parent", 2, function () {
 
         var em = newEm();
         var customer = getFakeExistingCustomer(em);

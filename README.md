@@ -40,7 +40,10 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 
 ## Version history
 
-#### 0.1
+#### 0.54
+- NamingConvention support and minor bug fixes
+
+#### 0.53
 - Initial release
  
 
