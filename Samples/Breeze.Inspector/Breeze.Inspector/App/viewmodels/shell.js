@@ -65,9 +65,7 @@
         return this.canSave() && this.validationMessages().length == 0 && this.connectionAction() == 'Go Offline';
     }, shell);
 
-    dataservice.onCanSaveChanges(function(value) {
-        shell.canSave(value);
-    });
+    dataservice.onCanSaveChanges(shell.canSave);
 
     return shell;
 });

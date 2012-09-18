@@ -599,69 +599,6 @@ define(["testFns"], function (testFns) {
         ok(firstProduct !== null, "can navigate to first order's first detail's product");
     }
 
-    /*********************************************************
-    * get OrderDetails of Alfreds 1st order 
-    * via EntityQuery.fromEntityNavigation
-    * Use case: 
-    *   Have the order and the customer (by expand)
-    *   but not the OrderDetails. Need them now, so use
-    *   "fromEntityNavigation" to get them for the order
-    *********************************************************/
-    test("OrderDetails obtained fromEntityNavigation", 7, function () {
-
-        var alfredsFirstOrderQuery = new EntityQuery("Orders")
-          .where(alfredsPredicate)
-          .take(1)
-          .expand("Customer");
-
-        var em = newEm();
-        stop();
-        queryForOne(em, alfredsFirstOrderQuery, "Alfreds 1st order")
-        .then(queryOrderDetailsfromEntityNavigation)
-        .then(assertCanNavigateOrderOrderDetails)
-        .fail(handleFail)
-        .fin(start);
-
-    });
-
-    function queryOrderDetailsfromEntityNavigation(data) {
-        var firstOrder = data.first;
-
-        var navProp = firstOrder.entityType.getNavigationProperty("OrderDetails");
-
-        var navQuery = EntityQuery.fromEntityNavigation(firstOrder, navProp);
-
-        return firstOrder.entityAspect.entityManager.executeQuery(navQuery);
-    }
-
-    function assertCanNavigateOrderOrderDetails(data) {
-
-        // Work the navigation chain from OrderDetails
-
-        var details = data.results, count = details.length;
-        ok(count, "count of OrderDetails from navigation query = " + count);
-
-        var firstDetail = details[0];
-
-        var order = firstDetail.Order();
-        ok(order !== null, "OrderDetail.Order returns the parent Order");
-
-        equal(order.OrderDetails().length, details.length,
-            "Parent Orders's OrderDetails is same length as details retrieved by nav query");
-
-        var customer = order.Customer();
-        ok(customer !== null, "parent Order returns its parent Customer");
-
-        ok(customer.CustomerID() === testFns.wellKnownData.alfredsID,
-            "parent Customer by nav is Alfreds (in cache via initial query expand)");
-
-        ok(firstDetail.Product() === null,
-            "a detail's parent Product is not available " +
-            "presumably because there are no products in cache");
-    }
-
-
-
     /*** ORDERING AND PAGING ***/
 
     module("queryTests (ordering & paging)", testFns.getModuleOptions(newEm));

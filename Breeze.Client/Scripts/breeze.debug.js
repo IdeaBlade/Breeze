@@ -2843,7 +2843,8 @@ function (core, Event, m_validate) {
                         }
                     }
                 } else {
-                    npValue.forEach(function (v) {
+                    // npValue is a live list so we need to copy it first.
+                    npValue.slice(0).forEach(function (v) {
                         if (inverseNp.isScalar) {
                             v.setProperty(inverseNp.name, null);
                         } else {
@@ -3114,8 +3115,14 @@ function (core, m_entityAspect) {
 
                 var inverseProp = property.inverse;
                 if (newValue) {
-                    if (entityManager && newValue.entityAspect.entityState.isDetached()) {
-                        entityManager.attachEntity(newValue, EntityState.Added);
+                    if (entityManager) {
+                        if (newValue.entityAspect.entityState.isDetached()) {
+                            entityManager.attachEntity(newValue, EntityState.Added);
+                        } else {
+                            if (newValue.entityAspect.entityManager !== entityManager) {
+                                throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+                            }
+                        }
                     }
                     // process related updates ( the inverse relationship) first so that collection dups check works properly.
                     // update inverse relationship
@@ -3133,11 +3140,32 @@ function (core, m_entityAspect) {
                             if (oldValue) {
                                 var oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
-                                oldSiblings.splice(ix, 1);
+                                if (ix !== -1) {
+                                    oldSiblings.splice(ix, 1);
+                                }
                             }
                             var siblings = newValue.getProperty(inverseProp.name);
                             // recursion check if already in the collection is performed by the relationArray
                             siblings.push(this);
+                        }
+                    }
+                } else {
+                     if (inverseProp) {
+                        if (inverseProp.isScalar) {
+                            // navigation property change - undo old relation
+                            if (oldValue) {
+                                // TODO: null -> NullEntity later
+                                oldValue.setProperty(inverseProp.name, null);
+                            }
+                        } else {
+                            // navigation property change - undo old relation
+                            if (oldValue) {
+                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                var ix = oldSiblings.indexOf(this);
+                                if (ix !== -1) {
+                                    oldSiblings.splice(ix, 1);
+                                }
+                            }
                         }
                     }
                 }
@@ -3200,14 +3228,18 @@ function (core, m_entityAspect) {
                 // update corresponding nav property if attached.
                 if (property.relatedNavigationProperty && entityManager) {
                     var relatedNavProp = property.relatedNavigationProperty;
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    if (newValue) {
+                        var key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                        var relatedEntity = entityManager.findEntityByKey(key);
 
-                    if (relatedEntity) {
-                        this.setProperty(relatedNavProp.name, relatedEntity);
+                        if (relatedEntity) {
+                            this.setProperty(relatedNavProp.name, relatedEntity);
+                        } else {
+                            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                            entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                        }
                     } else {
-                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                        this.setProperty(relatedNavProp.name, null);
                     }
                 }
 
@@ -3494,7 +3526,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
         };
+        
+        /**
+        The function used to convert server side property names to client side property names.
 
+        __readOnly__
+        @property serverPropertyNameToClient {Function}
+        **/
+
+        /**
+        The function used to convert client side property names to server side property names.
+
+        __readOnly__
+        @property clientPropertyNameToClient {Function}
+        **/
         
         /**
         The default value whenever NamingConventions are not specified.
@@ -3817,8 +3862,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-            entityTypeName = getQualifiedTypeName(this, entityTypeName, false);
-            var entityType = this._entityTypeMap[entityTypeName];
+            var qualTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var entityType = this._entityTypeMap[qualTypeName];
             if (!entityType) {
                 if (okIfNotFound) return null;
                 throw new Error("Unable to locate an 'EntityType' by the name: " + entityTypeName);
@@ -8953,6 +8998,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 // shouldn't happen.
                 throw new Error("internal error - entity cannot be found in group");
             }
+            delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
             aspect.entityState = EntityState.Detached;
@@ -9406,10 +9452,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 // also needs JQuery
 
-define('remoteAccess_webApi',["core", "entityMetadata"], 
+define('remoteAccess_webApi',["core", "entityMetadata"],
 function (core, m_entityMetadata) {
 
-    var EntityType = m_entityMetadata.EntityType;   
+    var EntityType = m_entityMetadata.EntityType;
 
     var remoteAccess_webApi = {};
 
@@ -9490,7 +9536,7 @@ function (core, m_entityMetadata) {
         if (id) {
             var entity = queryContext.refMap[id];
             if (entity === undefined) {
-                return function() { return queryContext.refIdMap[id]; };
+                return function () { return queryContext.refIdMap[id]; };
             } else {
                 return entity;
             }
@@ -9498,7 +9544,7 @@ function (core, m_entityMetadata) {
 
         queryContext.refId = rawEntity['$id'];
     };
-    
+
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
@@ -9524,7 +9570,9 @@ function (core, m_entityMetadata) {
             try {
                 var responseObj = JSON.parse(jqXHR.responseText);
                 err.detail = responseObj;
-                if (responseObj.InnerException) {
+                if (responseObj.ExceptionMessage) {
+                    err.message = responseObj.ExceptionMessage;
+                } else if (responseObj.InnerException) {
                     err.message = responseObj.InnerException.Message;
                 } else if (responseObj.Message) {
                     err.message = responseObj.Message;

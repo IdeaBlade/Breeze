@@ -1,9 +1,9 @@
 ﻿// also needs JQuery
 
-define(["core", "entityMetadata"], 
+define(["core", "entityMetadata"],
 function (core, m_entityMetadata) {
 
-    var EntityType = m_entityMetadata.EntityType;   
+    var EntityType = m_entityMetadata.EntityType;
 
     var remoteAccess_webApi = {};
 
@@ -84,7 +84,7 @@ function (core, m_entityMetadata) {
         if (id) {
             var entity = queryContext.refMap[id];
             if (entity === undefined) {
-                return function() { return queryContext.refIdMap[id]; };
+                return function () { return queryContext.refIdMap[id]; };
             } else {
                 return entity;
             }
@@ -92,7 +92,7 @@ function (core, m_entityMetadata) {
 
         queryContext.refId = rawEntity['$id'];
     };
-    
+
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
@@ -118,7 +118,9 @@ function (core, m_entityMetadata) {
             try {
                 var responseObj = JSON.parse(jqXHR.responseText);
                 err.detail = responseObj;
-                if (responseObj.InnerException) {
+                if (responseObj.ExceptionMessage) {
+                    err.message = responseObj.ExceptionMessage;
+                } else if (responseObj.InnerException) {
                     err.message = responseObj.InnerException.Message;
                 } else if (responseObj.Message) {
                     err.message = responseObj.Message;

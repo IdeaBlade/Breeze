@@ -18,6 +18,10 @@
     <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -218,31 +222,31 @@
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>IF EXIST "$(SolutionDir)..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
-echo Source breeze.debug.js was not found in '$(SolutionDir)..\..\Breeze.Client\Scripts\' and was not copied
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
+echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
 GOTO chkWebApiLib
 
 :breezeExists
-echo Copying breeze.js from '$(SolutionDir)..\..\Breeze.Client\Scripts\' to Scripts\lib
-COPY "$(SolutionDir)..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts\lib" /Y
+echo Copying breeze.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\lib
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts\lib" /Y
 
 :chkWebApiLib
-IF EXIST "$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" GOTO webApiLibExists
-echo Breeze.WebApi.dll was not found in '$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\' and was not copied
+IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" GOTO webApiLibExists
+echo Breeze.WebApi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\' and was not copied
 GOTO chkIronyLib
 
 :webApiLibExists
-echo Copying BreezeWebApi.dll from '$(SolutionDir)..\Breeze.WebApi\bin\Debug\' to ThirdParty
-COPY "$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" "$(ProjectDir)ThirdParty" /Y
+echo Copying BreezeWebApi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\' to ThirdParty
+COPY "$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" "$(ProjectDir)ThirdParty" /Y
 
 :chkIronyLib
-IF EXIST "$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\Irony.dll" GOTO ironyLibExists
-echo Irony.dll was not found in '$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\' and was not copied
+IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\Irony.dll" GOTO ironyLibExists
+echo Irony.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\' and was not copied
 GOTO done
 
 :ironyLibExists
-echo Copying Irony.dll from '$(SolutionDir)..\Breeze.WebApi\bin\Debug\' to ThirdParty
-COPY "$(SolutionDir)..\..\Breeze.WebApi\bin\Debug\Irony.dll" "$(ProjectDir)ThirdParty" /Y
+echo Copying Irony.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\' to ThirdParty
+COPY "$(ProjectDir)..\..\..\Breeze.WebApi\bin\Debug\Irony.dll" "$(ProjectDir)ThirdParty" /Y
 
 :done</PreBuildEvent>
   </PropertyGroup>

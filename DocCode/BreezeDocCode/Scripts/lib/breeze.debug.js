@@ -3114,8 +3114,14 @@ function (core, m_entityAspect) {
 
                 var inverseProp = property.inverse;
                 if (newValue) {
-                    if (entityManager && newValue.entityAspect.entityState.isDetached()) {
-                        entityManager.attachEntity(newValue, EntityState.Added);
+                    if (entityManager) {
+                        if (newValue.entityAspect.entityState.isDetached()) {
+                            entityManager.attachEntity(newValue, EntityState.Added);
+                        } else {
+                            if (newValue.entityAspect.entityManager !== entityManager) {
+                                throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+                            }
+                        }
                     }
                     // process related updates ( the inverse relationship) first so that collection dups check works properly.
                     // update inverse relationship
@@ -3494,7 +3500,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
         };
+        
+        /**
+        The function used to convert server side property names to client side property names.
 
+        __readOnly__
+        @property serverPropertyNameToClient {Function}
+        **/
+
+        /**
+        The function used to convert client side property names to server side property names.
+
+        __readOnly__
+        @property clientPropertyNameToClient {Function}
+        **/
         
         /**
         The default value whenever NamingConventions are not specified.
@@ -3817,8 +3836,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-            entityTypeName = getQualifiedTypeName(this, entityTypeName, false);
-            var entityType = this._entityTypeMap[entityTypeName];
+            var qualTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var entityType = this._entityTypeMap[qualTypeName];
             if (!entityType) {
                 if (okIfNotFound) return null;
                 throw new Error("Unable to locate an 'EntityType' by the name: " + entityTypeName);
@@ -8953,6 +8972,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 // shouldn't happen.
                 throw new Error("internal error - entity cannot be found in group");
             }
+            delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
             aspect.entityState = EntityState.Detached;
@@ -10116,7 +10136,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.53",
+        version: "0.54",
         core: core,
         entityModel: entityModel
     };

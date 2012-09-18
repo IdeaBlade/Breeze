@@ -1508,7 +1508,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var keyFn = em.metadataStore.namingConventions.serverPropertyNameToClient;
+            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
@@ -1548,43 +1548,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return result;
         }
         
-//        function processAnonType(rawEntity, queryContext, isSaving) {
-//            var em = queryContext.entityManager;
-//            var result = core.objectMapValue(rawEntity, function(key, value) {
-//                if (value == null) {
-//                    return value;
-//                }
-//                if (key == "__metadata") {
-//                    return undefined;
-//                }
-//                var firstChar = key.substr(0, 1);
-//                if (firstChar == "$") {
-//                    return undefined;
-//                } 
-//                if (Array.isArray(value)) {
-//                    return value.map(function(v) {
-//                        if (v == null) {
-//                            return v;
-//                        } else if (v.$type || v.__metadata) {
-//                            return mergeEntity(v, queryContext, isSaving, true);
-//                        } else if (v.$ref) {
-//                            return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
-//                        } else {
-//                            return v;
-//                        }
-//                    });
-//                } else {
-//                    if (value.$type || value.__metadata) {
-//                        return mergeEntity(value, queryContext, isSaving, true);
-//                    } else if (value.$ref) {
-//                        return em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
-//                    } else {
-//                        return value;
-//                    }
-//                }
-//            });
-//            return result;
-//        }
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
@@ -1885,6 +1848,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 // shouldn't happen.
                 throw new Error("internal error - entity cannot be found in group");
             }
+            delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
             aspect.entityState = EntityState.Detached;

@@ -23,8 +23,8 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
-    
-     test("duplicates after relation query", function() {
+
+    test("duplicates after relation query", function() {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")

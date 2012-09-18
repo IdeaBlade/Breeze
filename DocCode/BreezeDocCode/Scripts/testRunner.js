@@ -21,10 +21,12 @@ require(["testFns" // always first
     // The test modules to run (prefix with comma):  
     , "basicTodoTests"
     , "queryTests"
+    , "navigationTests"
     , "entityTests"
     , "validationTests"
     , "metadataTests"
     , "saveTodoTests"
+    , "exportImportTests"
     , "apiDirectTests"
 
 ], function (testFns) {

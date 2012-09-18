@@ -17,7 +17,7 @@ requirejs.config(
 
 require([
     "jobsShouldNotHaveDuplicates"
- //   , "changeNotificationShouldNotHappen"  // ROB FORGOT TO CHECK IN
+    , "changeNotificationShouldNotHappen"
     ,"wardsDupTests"
 ], function() {
     QUnit.start(); //Tests loaded, run tests
