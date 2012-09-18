@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Breeze.WebApi")]
+[assembly: AssemblyTitle("Sample_CodeFirstModel")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Breeze.WebApi")]
+[assembly: AssemblyProduct("Sample_CodeFirstModel")]
 [assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("631e1681-7c76-42a8-ab0e-ec837a6bef67")]
+[assembly: Guid("ce52edf2-1d40-4eab-8ba1-6a820bafbc95")]
 
 // Version information for an assembly consists of the following four values:
 //
