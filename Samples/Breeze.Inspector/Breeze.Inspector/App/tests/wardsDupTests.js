@@ -4,6 +4,7 @@
         entityModel = breeze.entityModel;
 
     var manager = new entityModel.EntityManager('api/inspector');
+    var op = entityModel.FilterQueryOp;
 
     // Configure for Knockout binding and Web API persistence services
     core.config.setProperties({
@@ -16,6 +17,37 @@
     }
 
     module("Ward's Dup Tests");
+
+    
+    
+    test("getting jobs of inspectors does not change entityState", 1,
+        function () {
+            
+            manager.clear();
+            var subscriptionToken = manager.entityChanged.subscribe(entityChangedDuringQueryHandler);
+
+            stop();
+            getMetadata()
+                .then(getInspectors)
+                .then(getJobsForEachInspectorIndividually)
+                .then(lookForAnyChangedEntities)
+                .fail(handleFail)
+                .fin(function () {
+                    manager.entityChanged.unsubscribe(subscriptionToken);
+                    start();
+                });
+        });
+    
+    function lookForAnyChangedEntities() {
+        ok(manager.hasChanges(), "Manager does not have changes");
+    }
+    
+    function entityChangedDuringQueryHandler(args) {
+        if (args.entityAction === EntityAction.PropertyChange &&
+            args.entity.entityAspect.entityState.isAddedModifiedOrDeleted()) {
+            ok(false, "entity is in changed state during/after query");
+        }
+    }
     
     // This test fails if getFormsAndQuestions; passes if commented out
     test("v1 - no duplicate inspection entities for a job", 1,
@@ -75,11 +107,23 @@
     function getJobsForEachInspectorIndividually(data) {
 
         var inspectors = data.results;
- 
+        
+        // Rob's query in the dataservice is in this comment. 
+        // He should have written "InspectorId" instead of "Inspector.Id" but it shouldn't matter
+        
+        //var query = new entityModel.EntityQuery()
+        //   .from("Jobs")
+        //   .expand("Location, Inspections.Answers")
+        //   .where("Inspector.Id", op.Equals, inspectorId)
+        //   .orderBy("CreatedAt");
+        
+        // a faithful reproduction albeit unnecessarily faithful
         var queryPromises = inspectors.map(function(inspector) {
-            return new entityModel.EntityQuery("Inspectors")
-                .where("Id", "==", inspector.Id())
-                .expand("Jobs.Inspections")
+            return new entityModel.EntityQuery()
+                .from("Jobs")
+                .expand("Location, Inspections.Answers")
+                .where("Inspector.Id", op.Equals, inspector.Id())
+                .orderBy("CreatedAt")
                 .using(manager)
                 .execute();
         });
@@ -97,10 +141,9 @@
     
     function lookForDupInspectionsByInspectorsJobs(data) {
         var dupCount = 0;
-        var inspectors = data.map(function (promiseData) { return promiseData.results[0];});
+        var inspectorJobs = data.map(function (promiseData) { return promiseData.results;});
         
-        inspectors.forEach(function(inspector) {
-            var jobs = inspector.Jobs();
+        inspectorJobs.forEach(function (jobs) {
             lookForDupInspectionsInJobsArray(jobs, function (count) { dupCount += count; });
         });
 
