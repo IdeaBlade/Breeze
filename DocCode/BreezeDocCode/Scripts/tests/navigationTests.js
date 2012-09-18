@@ -306,23 +306,83 @@ define(["testFns"], function (testFns) {
 
         newOrder.Customer(customer1); // assign order to customer1
 
-        ok(customer1.Orders()[0] === newOrder,
-            "customer1's first order === newOrder after setting newOrder.Customer");
+        ok(customer1.Orders().indexOf(newOrder) >= 0,
+            "customer1 has the order after setting the order to customer1");
         equal(customer2.Orders().length, 0,
-            "customer2 has no orders after setting newOrder.Customer");
+            "customer2 has no orders after setting the order to customer1");
         
         newOrder.Customer(customer2); // move order to customer2
 
         equal(customer1.Orders().length, 0,
-            "customer1 has no orders after resetting newOrder.Customer");
-        ok(customer2.Orders()[0] === newOrder,
-            "customer2's first order === newOrder after resetting newOrder.Customer");
+            "customer1 has no orders after moving order to customer2");
+        ok(customer2.Orders().indexOf(newOrder) >= 0,
+            "customer2 has the order after moving order to customer2");
+    });
+
+    /*********************************************************
+    * undoing a change of parent nav restores original state
+    * for both the child entity and the related customers
+    *********************************************************/
+    test("undoing a change of parent nav restores original state", 5, function () {
+
+        var em = newEm();
+        var customer1 = getFakeExistingCustomer(em, "Customer 1");
+        var customer2 = getFakeExistingCustomer(em, "Customer 2");
+
+        var order = getFakeExistingOrder(em, "existing order", customer1);
+
+        ok(customer1.Orders().indexOf(order) >= 0,
+         "customer1 has the order before moving order to customer2");
+        
+        order.Customer(customer2); // move order to customer2
+
+        equal(customer1.Orders().length, 0,
+            "customer1 has no orders after moving order to customer2");
+        ok(customer2.Orders().indexOf(order) >= 0,
+            "customer2 has the order after moving order to customer2");
+
+        order.entityAspect.rejectChanges(); // undo the move
+        
+        ok(customer1.Orders().indexOf(order) >= 0,
+          "customer1 has the order after undoing the move");
+        equal(customer2.Orders().length, 0,
+            "customer2 has no orders after undoing the move");
+
+    });
+
+    /*********************************************************
+    * deleting a child's parent clears the parent nav & defaults the parent FK
+    * The child is left in a modified state, not deleted state; 
+    * Breeze does not cascade delete.
+    *********************************************************/
+    test("deleting a child's parent clears the parent nav & defaults the parent FK", 5, function () {
+
+        var em = newEm();
+        var customer = getFakeExistingCustomer(em);
+        var order = getFakeExistingOrder(em, "customer", customer);
+        
+        ok(customer.Orders()[0] === order,
+            "customer's first order === order ");
+
+        customer.entityAspect.setDeleted(); // delete the parent
+
+        equal(customer.Orders().length, 0,
+            "customer has no orders after deleting it");
+        
+        ok(order.Customer() === null,
+            "order's Customer is null after deleting former parent customer");
+
+        equal(order.CustomerID(), "00000000-0000-0000-0000-000000000000",
+            "order's CustomerID is the default Guid value after deleting former parent customer");
+        
+        equal(order.entityAspect.entityState, EntityState.Modified,
+             "order is modified after deletion of parent customer");
     });
 
     /*********************************************************
     * setting child's parent entity null removes it from old parent
     *********************************************************/
-    test("Defect #2183 - setting child's parent entity null removes it from old parent", 2, function () {
+    test("Defect #2183 - setting child's parent entity null removes it from old parent", 3, function () {
 
         var em = newEm();
         var customer = getFakeExistingCustomer(em);
@@ -335,6 +395,9 @@ define(["testFns"], function (testFns) {
         ok(customer.Orders().indexOf(newOrder) >= 0,
             "newOrder is among the customer's orders");
 
+        ok(newOrder.entityType.getProperty("Customer").isNullable,
+            "the Order.Customer property is nullable");
+        
         newOrder.Customer(null); // set null to decouple the order from a customer
 
         ok(customer.Orders().indexOf(newOrder) === -1,
@@ -343,6 +406,8 @@ define(["testFns"], function (testFns) {
 
     /*********************************************************
     * setting unattached child's parent entity pulls it into cache
+    * if you don't want this side-effect, 
+    * set the FK instead of the parent navigation property
     *********************************************************/
     test("setting unattached child's parent entity pulls it into cache", 3, function () {
 
@@ -358,6 +423,10 @@ define(["testFns"], function (testFns) {
         // Setting its parent Customer pulls it into the
         // manager of that parent Customer
         newOrder.Customer(existingCustomer);
+        
+        // Set the FK instead if you don't want to pull the order into cache
+        // newOrder.CustomerID(existingCustomer.CustomerID());
+        // em.addEntity(newOrder); // now must add explicitly
 
         equal(newOrder.entityAspect.entityState, entityModel.EntityState.Added,
             "newOrder's entityState is 'Added' after setting its Customer");
@@ -490,6 +559,69 @@ define(["testFns"], function (testFns) {
             "newOrder is no longer among customer's orders");
     });
     /*********************************************************
+    * deferred get of OrderDetails of Alfreds 1st order 
+    * via regular query
+    * Use case: 
+    *   Have the order and the customer (by expand)
+    *   but not the OrderDetails. Need them now, so use
+    *   query to get them for the order
+    * See/prefer "fromEntityNavigation" alternative.
+    *********************************************************/
+    test("deferred get of OrderDetails for an order via query", 8, function () {
+
+        var alfredsFirstOrderQuery = new EntityQuery("Orders")
+          .where(alfredsPredicate).take(1)
+          .expand("Customer");
+
+        var em = newEm();
+        stop();
+        queryForOne(em, alfredsFirstOrderQuery, "Alfreds 1st order")
+        .then(queryOrderDetailsForOrder)
+        .then(assertGotOrderDetailsFromNavQuery)
+        .fail(handleFail)
+        .fin(start);
+
+    });
+    
+    function queryOrderDetailsForOrder(data) {
+        var firstOrder = data.first;
+
+        var query = EntityQuery.from("OrderDetails")
+            .where("OrderID", "==", firstOrder.OrderID());
+
+        return firstOrder.entityAspect.entityManager.executeQuery(query);
+    }
+
+    function assertGotOrderDetailsFromNavQuery(data) {
+
+        // Work the navigation chain from OrderDetails
+
+        var details = data.results, count = details.length;
+        ok(count, "count of OrderDetails from query = " + count);
+
+        var firstDetail = details[0];
+
+        var order = firstDetail.Order();
+        ok(order !== null, "OrderDetail.Order returns the parent Order");
+
+        equal(order.entityAspect.entityState, entityModel.EntityState.Unchanged,
+            "order's entityState remains 'Unchanged' after getting its details by query");
+
+        equal(order.OrderDetails().length, details.length,
+            "Parent Orders's OrderDetails is same length as details retrieved by query");
+
+        var customer = order.Customer();
+        ok(customer !== null, "parent Order returns its parent Customer");
+
+        ok(customer.CustomerID() === testFns.wellKnownData.alfredsID,
+            "parent Customer by nav is Alfreds (in cache via initial query expand)");
+
+        ok(firstDetail.Product() === null,
+            "a detail's parent Product is not available " +
+            "presumably because there are no products in cache");
+    }
+
+    /*********************************************************
     * get OrderDetails of Alfreds 1st order 
     * via EntityQuery.fromEntityNavigation
     * Use case: 
@@ -497,7 +629,7 @@ define(["testFns"], function (testFns) {
     *   but not the OrderDetails. Need them now, so use
     *   "fromEntityNavigation" to get them for the order
     *********************************************************/
-    test("OrderDetails obtained fromEntityNavigation", 8, function () {
+    test("deferred get of OrderDetails for an order via 'fromEntityNavigation'", 8, function () {
 
         var alfredsFirstOrderQuery = new EntityQuery("Orders")
           .where(alfredsPredicate).take(1)
@@ -522,36 +654,6 @@ define(["testFns"], function (testFns) {
 
         return firstOrder.entityAspect.entityManager.executeQuery(navQuery);
     }
-
-    function assertGotOrderDetailsFromNavQuery(data) {
-
-        // Work the navigation chain from OrderDetails
-
-        var details = data.results, count = details.length;
-        ok(count, "count of OrderDetails from navigation query = " + count);
-
-        var firstDetail = details[0];
-
-        var order = firstDetail.Order();
-        ok(order !== null, "OrderDetail.Order returns the parent Order");
-
-        equal(order.entityAspect.entityState, entityModel.EntityState.Unchanged,
-            "order's entityState remains 'Unchanged' after getting its details by query");
-
-        equal(order.OrderDetails().length, details.length,
-            "Parent Orders's OrderDetails is same length as details retrieved by nav query");
-
-        var customer = order.Customer();
-        ok(customer !== null, "parent Order returns its parent Customer");
-
-        ok(customer.CustomerID() === testFns.wellKnownData.alfredsID,
-            "parent Customer by nav is Alfreds (in cache via initial query expand)");
-
-        ok(firstDetail.Product() === null,
-            "a detail's parent Product is not available " +
-            "presumably because there are no products in cache");
-    }
-
 
     /*********************************************************
     * Can fill placeholder customer asynchronously
@@ -614,15 +716,13 @@ define(["testFns"], function (testFns) {
     * Use case: NONE ... don't do this. It may work but that is accidental
     *********************************************************/
     test("can set child' parent navigation when both child and parent are detached", 5, function () {
-
-        var em = newEm();
         var newCustomer = createCustomer();
         var newOrder = createOrder();
 
         equal(newCustomer.entityAspect.entityState, entityModel.EntityState.Detached,
-            "newCustomer's entityState is 'Detached' because not yet in cache");
+            "newCustomer's entityState is 'Detached' because not in cache");
         equal(newOrder.entityAspect.entityState, entityModel.EntityState.Detached,
-            "newOrder's entityState is 'Detached' because not yet in cache");
+            "newOrder's entityState is 'Detached' because not in cache");
 
         newOrder.Customer(newCustomer);
 
@@ -677,9 +777,12 @@ define(["testFns"], function (testFns) {
     function getFakeExistingOrder(em, shipName, customer) {
         shipName = shipName || "Existing Order";
         var order = createOrder(shipName);
-        if (!!customer) { // if Customer argument supplied
-            order.Customer(customer); // set order to that customer
-        } 
+        if (!!customer) {
+            // setting the FK will keep the order from being
+            // added to the customer's EntityManager;
+            // we want to attach it as "existing" instead.
+            order.CustomerID(customer.CustomerID());
+        }
         em.attachEntity(order); // pretend already exists
         return order;
     }
