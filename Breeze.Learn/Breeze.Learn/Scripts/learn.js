@@ -26,15 +26,20 @@
     };
 
     learn.run = function() {
-
+        //create iframe
+        //write body and script
+        //write html
+        //add iframe to page
     };
 
     learn.selectTutorial = function() {
-
+        //show selection ui
+        //change activeTutorial and activeStep
     };
 
     learn.help = function() {
-
+        //ask user if the want to see final code
+        //switch editors to ending contents
     };
 
     ko.bindingHandlers.jsEditor = {
