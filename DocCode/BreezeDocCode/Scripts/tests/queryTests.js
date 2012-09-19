@@ -900,10 +900,10 @@ define(["testFns"], function (testFns) {
         .fail(handleFail)
         .fin(start);
     });
-
     /*********************************************************
     * Combine remote and local query to get all customers 
     * including new, unsaved customers
+    * v1 - Using FetchStrategy
     *********************************************************/
     test("combined remote & local query gets all customers w/ 'A'", 6, function () {
 
@@ -927,30 +927,84 @@ define(["testFns"], function (testFns) {
                 newCustomer.CompanyName());
 
             // re-do both queries as a comboQuery
-            return executeComboQuery(em, query);
+            return executeComboQueryWithExecuteLocally(em, query);
+            // return executeComboQueryWithFetchStrategy(em, query); 
 
         })
 
-        .then(function (customers) { // back from server with combined results
+        .then(function (data) { // back from server with combined results
+
+            var customers = data.results;
             count = customers.length;
             ok(count > 2,
                 "have combined remote/local 'A' customers now; count = " + count);
-            showCustomerResults({ results: customers });
-            ok(customers.indexOf(newCustomer) !== -1,
-                 "combo query results include the unsaved newCustomer, " +
+            showCustomerResults(data);
+            ok(customers.indexOf(newCustomer) >= 0,
+                 "combo query results should include the unsaved newCustomer, " +
                 newCustomer.CompanyName());
         })
 
         .fail(handleFail)
         .fin(start);
     });
+    /*********************************************************
+    * Combine remote and local query to get all customers 
+    * including new, unsaved customers
+    * v1=using FetchStrategy.FromLocalCache
+    *********************************************************/
+    test("combined remote & local query gets all customers w/ 'A' (v1 - FetchStrategy) ", 1, function () {
 
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        var newCustomer = addCustomer(em, "Acme");
+
+        stop();
+        executeComboQueryWithFetchStrategy(em, query)
+        .then(function (data) { // back from server with combined results
+
+            var customers = data.results;
+            ok(customers.indexOf(newCustomer) >= 0,
+                 "combo query results should include the unsaved newCustomer, " +
+                newCustomer.CompanyName());
+        })
+
+        .fail(handleFail)
+        .fin(start);
+    }); 
+    /*********************************************************
+    * Combine remote and local query to get all customers 
+    * including new, unsaved customers
+    * v2=using ExecuteLocally()
+    *********************************************************/
+    test("combined remote & local query gets all customers w/ 'A' (v2- ExecuteLocally) ", 1, function () {
+
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        var newCustomer = addCustomer(em, "Acme");
+
+        stop();
+        executeComboQueryWithExecuteLocally(em, query)
+        .then(function (data) { // back from server with combined results
+
+            var customers = data.results;
+            ok(customers.indexOf(newCustomer) >= 0,
+                 "combo query results should include the unsaved newCustomer, " +
+                newCustomer.CompanyName());
+        })
+
+        .fail(handleFail)
+        .fin(start);
+    });
     /*********************************************************
     * Combined query that pours results into a list 
     * Caller doesn't have to wait for results
     * Useful in data binding scenarios
     *********************************************************/
-    test("query customers w/ 'A' into a list", 2, function () {
+    test("query customers w/ 'A' into a list", 3, function () {
         
         // list could be an observable array bound to the UI
         var customerList = []; 
@@ -959,7 +1013,7 @@ define(["testFns"], function (testFns) {
 
         // new 'A' customer in cache ... not saved
         var em = newEm();
-        addCustomer(em, "Acme");
+        var newCustomer = addCustomer(em, "Acme");
         
         stop(); // going async ..
         
@@ -969,16 +1023,19 @@ define(["testFns"], function (testFns) {
         // let observable array update the UI when customers arrive.
         
         // Our test waits to check that the list was filled
-        promise.then(function(list) {
+        promise.then(function() {
             var count = customerList.length;
             ok(count > 2,
               "have combined remote/local 'A' customers in list; count = " + count);
             showCustomerResults({ results: customerList });
+            ok(customerList.indexOf(newCustomer) >= 0,
+                 "combo query results should include the unsaved newCustomer, " +
+                newCustomer.CompanyName());
         })
         .fail(handleFail)
         .fin(start);
     });
- 
+
     /*********************************************************
     * "Query Local" module helpers
     *********************************************************/
@@ -992,25 +1049,36 @@ define(["testFns"], function (testFns) {
   
     // USE THIS IN YOUR DATASERVICE?
     // execute any query remotely, then execute locally
-    // returning the combination as a Q.js promise
-    function executeComboQuery(em, query) {
-        return em.executeQuery(query)
+    // returning the same shaped promise as the remote query
+    // Defect #2188
+    function executeComboQueryWithFetchStrategy(em, query) {
+        query = query.using(em);
+        return query.execute()
+            .then(function() { // ignore remote query results
+                return query.using(entityModel.FetchStrategy.FromLocalCache).execute();
+            });
+    }
+    
+    // executeQueryLocally, wrapped in a promise, is the more tedious alternative
+    function executeComboQueryWithExecuteLocally(em, query) {
+        query = query.using(em);
+        return query.execute()
             .then(function () { // ignore remote query results
                 return Q.fcall(// return synch query as a promise
-                    function () { return em.executeQueryLocally(query); }
+                    function () { return { results: query.executeLocally() }; }
                 );
             });
     }
- 
+    
     // USE THIS IN YOUR DATASERVICE?
     // pours results of any combined query into a list
     // returns a promise to return that list after it's filled
-
     function queryIntoList(em, query, list) {
         list = list || [];
-        return executeComboQuery(em, query)
-            .then(function(customers) {
-                customers.forEach(function (c) { list.push(c); });
+        return executeComboQueryWithExecuteLocally(em, query)
+ //       return executeComboQueryWithFetchStrategy(em, query)
+            .then(function(data) {
+                data.results.forEach(function (c) { list.push(c); });
                 return list;
             });
     }
