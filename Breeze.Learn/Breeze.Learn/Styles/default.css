@@ -60,3 +60,77 @@
     top: 50%;
     height: 50%;
 }
+
+.page-links {
+    float: right;
+    line-height: 75px;
+    font-size: 125%;
+    padding-right: 1em;
+}
+
+.page-title {
+    float: left;
+    line-height: 75px;
+    padding-left: 1em;
+    font-size: 160%;
+    font-weight: bold;
+    color: #400;
+    text-shadow: rgba(230, 230, 230, .6) 0 1px 0;
+}
+
+.container-center {
+    float: left;
+    position: absolute;
+    left: 50%;
+}
+
+.tutorial-select {
+    float: left;
+    position: relative;
+    left: -50%;
+    
+    height: 2em;
+    margin-top: 1.2em;
+    line-height: 2em;
+    font-weight: normal;
+    font-size: 100%;
+    color: black;
+    padding: 0 3em 0 1em;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.button {
+    background: #E3D5C3;
+    background-repeat: repeat-x;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, .65);
+    -moz-border-radius: .4em;
+    border-radius: .4em;
+    -webkit-box-shadow: 0 2px 6px rgba(40, 20, 0, .6);
+    -moz-box-shadow: 0 2px 6px rgba(40,20,0,.6);
+    box-shadow: 0 2px 6px rgba(40, 20, 0, .6);
+    white-space: nowrap;
+    color: #333;
+}
+
+.button:hover {
+    background-color: white;
+    color: black;
+    background-image: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(40, 20, 0, .7)!important;
+}
+
+.arrow-down {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    background: url("/Images/arrowdown.png") no-repeat right top;
+}
+
+.tutorial-title {
+    font-weight: bold;
+}

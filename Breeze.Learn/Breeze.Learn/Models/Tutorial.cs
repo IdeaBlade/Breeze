@@ -2,6 +2,7 @@
     using System.Collections.Generic;
 
     public class Tutorial {
+        public int Order { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string StartingHtml { get; set; }
