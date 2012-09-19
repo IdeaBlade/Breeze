@@ -9782,7 +9782,9 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         var parentEntity = relationArray.parentEntity;
         var entityManager = parentEntity.entityAspect.entityManager;
-        if (entityManager) {
+        // we do not want to add an entity during loading
+        // because these will all be 'attached' at a later step.
+        if (entityManager && !entityManager.isLoading) {
             goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
