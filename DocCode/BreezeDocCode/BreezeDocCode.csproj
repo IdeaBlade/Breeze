@@ -256,22 +256,22 @@ echo Copying breeze.js from '$(ProjectDir)..\..\Breeze.Client\Scripts\' to Scrip
 COPY "$(ProjectDir)..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts\lib" /Y
 
 :chkWebApiLib
-IF EXIST "$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" GOTO webApiLibExists
-echo Breeze.WebApi.dll was not found in '$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\' and was not copied
+IF EXIST "$(ProjectDir)..\..\Breeze.WebApi\Breeze.WebApi.dll" GOTO webApiLibExists
+echo Breeze.WebApi.dll was not found in '$(ProjectDir)..\..\Breeze.WebApi' and was not copied
 GOTO chkIronyLib
 
 :webApiLibExists
-echo Copying BreezeWebApi.dll from '$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\' to ThirdParty
-COPY "$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\Breeze.WebApi.dll" "$(ProjectDir)ThirdParty" /Y
+echo Copying BreezeWebApi.dll from '$(ProjectDir)..\..\Breeze.WebApi' to ThirdParty
+COPY "$(ProjectDir)..\..\Breeze.WebApi\Breeze.WebApi.dll" "$(ProjectDir)ThirdParty" /Y
 
 :chkIronyLib
-IF EXIST "$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\Irony.dll" GOTO ironyLibExists
-echo Irony.dll was not found in '$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\' and was not copied
+IF EXIST "$(ProjectDir)..\..\ThirdParty\Irony.dll" GOTO ironyLibExists
+echo Irony.dll was not found in '$(ProjectDir)..\..\ThirdParty' and was not copied
 GOTO done
 
 :ironyLibExists
-echo Copying Irony.dll from '$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\' to ThirdParty
-COPY "$(ProjectDir)..\..\Breeze.WebApi\bin\Debug\Irony.dll" "$(ProjectDir)ThirdParty" /Y
+echo Copying Irony.dll from '$(ProjectDir)..\..\ThirdParty' to ThirdParty
+COPY "$(ProjectDir)..\..\ThirdParty\Irony.dll" "$(ProjectDir)ThirdParty" /Y
 
 :done</PreBuildEvent>
   </PropertyGroup>
