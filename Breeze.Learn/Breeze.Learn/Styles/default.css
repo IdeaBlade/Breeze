@@ -31,20 +31,14 @@
 
 .body.row {
      top: 75px; 
-     bottom: 50px;
-}
-
-.footer.row {
-     height: 50px; 
-     bottom: 0;
 }
 
 .left.col {
-     width: 250px;
+     width: 50%;
 }
 
 .right.col {
-     left: 250px; 
+     left: 50%; 
      right: 0;
 }
 
@@ -55,11 +49,14 @@
 
 .body.row {
      top: 75px; 
-     bottom: 50px;
+     bottom: 0px;
 }
 
-.footer.row {
-     height: 50px; 
-     bottom: 0; 
-     line-height: 50px;
+.row.top {
+    height: 50%;
+}
+
+.row.bottom {
+    top: 50%;
+    height: 50%;
 }
