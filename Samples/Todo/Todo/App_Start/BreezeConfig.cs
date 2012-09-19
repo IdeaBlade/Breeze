@@ -12,7 +12,7 @@ namespace Todo {
             // Apply query parameters, expressed as OData URI query strings, 
             // to results of Web API controller methods that return IQueryable<T>
             GlobalConfiguration.Configuration.Filters.Add(
-                new Breeze.WebApi.EFActionFilter());
+                new Breeze.WebApi.ODataActionFilter());
 
         }
     }

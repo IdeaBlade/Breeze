@@ -950,7 +950,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             if (this.validationOptions.validateOnSave) {
                 var failedEntities = entitiesToSave.filter(function (entity) {
-                    return (!entity.entityAspect.validateEntity());
+                    var aspect = entity.entityAspect;
+                    var isValid = aspect.entityState.isDeleted() || aspect.validateEntity();
+                    return !isValid;
                 });
                 if (failedEntities.length &gt; 0) {
                     var valError = new Error(&quot;Validation error&quot;);
@@ -2019,6 +2021,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 &#x2F;&#x2F; shouldn&#x27;t happen.
                 throw new Error(&quot;internal error - entity cannot be found in group&quot;);
             }
+            delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
             aspect.entityState = EntityState.Detached;

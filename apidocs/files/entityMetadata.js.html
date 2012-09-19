@@ -558,8 +558,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, &quot;entityTypeName&quot;).isString().check();
             assertParam(okIfNotFound, &quot;okIfNotFound&quot;).isBoolean().isOptional().check(false);
-            entityTypeName = getQualifiedTypeName(this, entityTypeName, false);
-            var entityType = this._entityTypeMap[entityTypeName];
+            var qualTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var entityType = this._entityTypeMap[qualTypeName];
             if (!entityType) {
                 if (okIfNotFound) return null;
                 throw new Error(&quot;Unable to locate an &#x27;EntityType&#x27; by the name: &quot; + entityTypeName);
