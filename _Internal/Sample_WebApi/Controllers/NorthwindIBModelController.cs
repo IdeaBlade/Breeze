@@ -6,16 +6,36 @@ using System.Web.Http;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 using Sample_WebApi.Models;
+using System.Collections.Generic;
 
 
 namespace Sample_WebApi.Controllers {
 
+  public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext>  {
+    public NorthwindContextProvider(String contextName)
+      : base(contextName) {
+    }
+
+    public override bool BeforeSaveEntity(EntityInfo entityInfo) {
+      return true;
+    }
+
+    public override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+      return saveMap;
+    }
+      
+    //public bool SaveCustomer(Customer c, EntityInfo entityInfo) {
+      
+    //}
+
+  }
+
   public class NorthwindIBModelController : ApiController {
 
 #if DBCONTEXT_PROVIDER 
-    EFContextProvider<NorthwindIBContext> ContextProvider = new EFContextProvider<NorthwindIBContext>("NorthwindIBContext");
+    EFContextProvider<NorthwindIBContext> ContextProvider = new NorthwindContextProvider("NorthwindIBContext");
 #else
-    EFContextProvider<NorthwindIBEntities> ContextProvider = new EFContextProvider<NorthwindIBEntities>("NorthwindIBEntities") ;
+    EFContextProvider<NorthwindIBEntities> ContextProvider = new NorthwindContextProvider("NorthwindIBEntities") ;
 #endif
 
     [AcceptVerbs("GET")]

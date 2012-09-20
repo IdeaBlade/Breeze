@@ -7929,7 +7929,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             if (this.validationOptions.validateOnSave) {
                 var failedEntities = entitiesToSave.filter(function (entity) {
-                    return (!entity.entityAspect.validateEntity());
+                    var aspect = entity.entityAspect;
+                    var isValid = aspect.entityState.isDeleted() || aspect.validateEntity();
+                    return !isValid;
                 });
                 if (failedEntities.length > 0) {
                     var valError = new Error("Validation error");
@@ -9780,7 +9782,9 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         var parentEntity = relationArray.parentEntity;
         var entityManager = parentEntity.entityAspect.entityManager;
-        if (entityManager) {
+        // we do not want to add an entity during loading
+        // because these will all be 'attached' at a later step.
+        if (entityManager && !entityManager.isLoading) {
             goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
@@ -10164,7 +10168,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.54",
+        version: "0.55",
         core: core,
         entityModel: entityModel
     };
