@@ -50,6 +50,12 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 
 ## Version history
 
+#### 0.55
+- Server model classes can be in different assembly and namespace; EFContextProvider will find them.
+- No longer automatically validates deleted entities as their validation state is typically irrelevant. Can still validate them manually if you wish.
+- EFActionFilter replaced by properly named ODataActionFilter; EFActionFilter deprecated.
+- other fixes.
+
 #### 0.54
 - NamingConvention support and minor bug fixes
 
