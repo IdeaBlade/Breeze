@@ -33,10 +33,10 @@
             
             <div class="right col">
                 <div class="top row">
-                    <textarea data-bind="htmlEditor: activeTutorial().StartingHtml"></textarea>
+                    <textarea data-bind="htmlEditor: currentHtml()"></textarea>
                 </div>
                 <div class="bottom row">
-                    <textarea data-bind="jsEditor: activeTutorial().StartingJavascript"></textarea>
+                    <textarea data-bind="jsEditor: currentJavascript()"></textarea>
                 </div>
             </div>
         </div>
@@ -51,10 +51,12 @@
                 </ul>
             </div>
         </script>
-
-        <div id="ask-help">
-            Do you really want help?
-        </div>
+        
+        <script id="ask-help-source" type="text/html">
+            <div id="ask-help">
+                Do you really want help?
+            </div>
+        </script>
 
         <script type="text/javascript">
             var Learn = (function(learn) {

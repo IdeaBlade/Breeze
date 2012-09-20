@@ -10,7 +10,7 @@
 ]]>
   </StartingHtml>
   <StartingJavascript>
-    <![CDATA[function matchwo(a,b) {
+    <![CDATA[function Func4(a,b) {
   if (a < b && a < 0) {
     return 1;
   }
