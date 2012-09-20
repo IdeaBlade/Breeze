@@ -559,14 +559,14 @@ define(["testFns"], function (testFns) {
 
     /*********************************************************
     * deferred get of OrderDetails via entityAspect.loadNavigationProperty 
-    * *** This is the most simple and preferred approach ***
+    * *** This is the most simple and generally preferred approach ***
     *
     * Use case: 
     *   Have the order and the customer (by expand)
     *   but not the OrderDetails. Need them now, so use
     *   "loadNavigationProperty" to get them for the order
     *********************************************************/
-    test("deferred get of OrderDetails for an order via 'loadNavigationProperty'", 8,
+    test("deferred get of OrderDetails for an order via 'loadNavigationProperty'", 7,
         loadOrderDetailsDeferred(queryOrderDetailsWithLoadNavigationProperty));
 
     // Get the OrderDetails using entityAspect.loadNavigationProperty
@@ -587,9 +587,11 @@ define(["testFns"], function (testFns) {
         var firstOrder = data.first;
 
         var query = EntityQuery.from("OrderDetails")
-            .where("OrderID", "==", firstOrder.OrderID());
+            .where("OrderID", "==", firstOrder.OrderID())
+            .expand("Product");
 
-        return firstOrder.entityAspect.entityManager.executeQuery(query);
+        return firstOrder.entityAspect.entityManager.executeQuery(query)
+            .then(assertGotProductsWithOrderDetails);
     }
 
     /*********************************************************
@@ -605,9 +607,12 @@ define(["testFns"], function (testFns) {
 
         var navProp = firstOrder.entityType.getNavigationProperty("OrderDetails");
 
-        var navQuery = EntityQuery.fromEntityNavigation(firstOrder, navProp);
+        var navQuery = EntityQuery
+            .fromEntityNavigation(firstOrder, navProp)
+            .expand("Product");
 
-        return firstOrder.entityAspect.entityManager.executeQuery(navQuery);
+        return firstOrder.entityAspect.entityManager.executeQuery(navQuery)
+            .then(assertGotProductsWithOrderDetails);
     }
     
     /*********************************************************
@@ -663,9 +668,16 @@ define(["testFns"], function (testFns) {
         ok(customer.CustomerID() === testFns.wellKnownData.alfredsID,
             "parent Customer by nav is Alfreds (in cache via initial query expand)");
 
-        ok(firstDetail.Product() === null,
-            "a detail's parent Product is not available " +
-            "presumably because there are no products in cache");
+        return data;
+    }
+    
+    function assertGotProductsWithOrderDetails(data) {
+        if (data.results.length !== 0) { // let another assert deal with no data.
+            var firstDetail = data.results[0];
+            ok(firstDetail.Product() !== null,
+                "first OrderDetail's parent Product is in cache thanks to expand");
+        };
+        return data;
     }
     
     /*********************************************************
