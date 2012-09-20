@@ -3,7 +3,6 @@ _ReSharper*
 TestResults
 *.user
 *.docx
-__Notes.txt
 *.vsmdi
 *.cmd
 *.mdf
