@@ -155,7 +155,7 @@
 }
 
 #simplemodal-container a.modalCloseImg {
-    background:url(/Images/x.png) no-repeat; 
+    background:url("/Images/x.png") no-repeat; 
     width:25px; 
     height:29px; 
     display:inline; 
@@ -195,4 +195,81 @@
     cursor: pointer;
     background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#1B2F53),color-stop(.2,#2F4367),color-stop(1,#43577B));
     background-image: -moz-linear-gradient(center bottom,#1B2F530%,#2F436720%,#43577B100%);
+}
+
+.panel-container, .panel-content  {
+    padding: 8px;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.panel {
+    height: 100%;
+    border: 1px solid gray;
+    background-color: white;
+    -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .6);
+    -moz-box-shadow: 0 0 8px rgba(0,0,0,.6);
+    box-shadow: 0 0 8px rgba(0, 0, 0, .6);
+}
+
+.panel-header {
+    background-color: #E5CDC1;
+    padding: 0 .25em;
+    height: 33px;
+    line-height: 34px;
+    color: #A71500;
+    font-size: .9em;
+    font-weight: bold;
+}
+
+.step-navigation {
+    line-height: 34px;
+}
+
+.step-next {
+    margin: 0 .1em;
+    cursor: pointer;
+    height: 26px;
+    padding: 0;
+    line-height: 26px;
+    border: 2px solid transparent;
+    background-color: transparent;
+    margin-top: 4px;
+    border-radius: .5em;
+    -moz-border-radius: .5em;
+    float: right;    
+}
+
+.step-previous {
+    margin: 0 .1em;
+    cursor: pointer;
+    height: 26px;
+    padding: 0;
+    line-height: 26px;
+    border: 2px solid transparent;
+    background-color: transparent;
+    margin-top: 4px;
+    border-radius: .5em;
+    -moz-border-radius: .5em;
+    float: left;    
+}
+
+.step-previous:hover, .step-next:hover {
+    border-color: #CBA;
+    background-color: #FCEDE5;
+}
+
+.arrow-left, .arrow-right {
+    background-image: url("/Images/arrows.png");
+    width: 16px;
+    height: 16px;
+    background-position: 16px 0;
+}
+
+.arrow-left {
+    background-position: 0 0;
+}
+
+.step-status {
+    text-align: center;
 }

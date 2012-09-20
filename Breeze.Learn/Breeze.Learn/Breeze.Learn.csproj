@@ -125,6 +125,7 @@
     <Content Include="App_Data\Tutorial1.xml" />
     <Content Include="Global.asax" />
     <Content Include="Images\arrowdown.png" />
+    <Content Include="Images\arrows.png" />
     <Content Include="Images\x.png" />
     <Content Include="Scripts\editor\codemirror.js" />
     <Content Include="Scripts\editor\css.js" />
