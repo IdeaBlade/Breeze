@@ -9,6 +9,8 @@ define(["testFns"], function (testFns) {
 
     var entityModel = testFns.breeze.entityModel;
     var MetadataStore = entityModel.MetadataStore;
+    
+
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
     var handleFail = testFns.handleFail;
@@ -108,8 +110,98 @@ define(["testFns"], function (testFns) {
         .fail(handleFail)
         .fin(start);
     });
+  
+    
 
 
+    /*** NamingConvention Tests ***/
+    
+    module("metadataTests (NamingConvention)",
+        { setup: namingConventionMetadataStoreSetup });
+
+    var camelCaseMetadataStore;
+
+    // Populate the namingConventionMetadataStore with Northwind service metadata
+    function namingConventionMetadataStoreSetup() {
+        
+        if (camelCaseMetadataStore) return; // got it already
+
+        camelCaseMetadataStore =
+            new MetadataStore({ namingConvention: camelCaseNamingConvention });
+
+        var fetchMetadataPromises =
+            [camelCaseMetadataStore.fetchMetadata(northwindService)];
+        
+        if (moduleMetadataStore.isEmpty()) {
+            // don't have default metadataStore; get it too
+            fetchMetadataPromises.push(
+                moduleMetadataStore.fetchMetadata(northwindService));
+        }
+        
+        stop(); // going async for metadata ...
+        Q.all(fetchMetadataPromises) // wait for all metadata fetches to finishe
+        .fail(handleFail)
+        .fin(start);
+    }
+
+    // A naming convention that converts the first character of every property name to uppercase on the server
+    // and lowercase on the client.
+    var camelCaseNamingConvention = new entityModel.NamingConvention({
+        serverPropertyNameToClient: function(serverPropertyName) {
+            return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+        },
+        clientPropertyNameToServer: function(clientPropertyName) {
+            return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+        }            
+    });
+    /*********************************************************
+    * camelCasing NamingConvention applies to entity creation
+    *********************************************************/
+    test("camelCasing NamingConvention applies to entity creation", 4, function () {
+
+        var defaultCustomerType = moduleMetadataStore.getEntityType("Customer");
+        var defaultCust = defaultCustomerType.createEntity();
+        
+        ok(defaultCust["CompanyName"],
+            "'CompanyName' property should be defined for Customer in default MetadataStore");
+        ok(!defaultCust["companyName"],
+            "'companyName' property should NOT be defined for Customer in default MetadataStore");
+        
+        var camelCustomerType = camelCaseMetadataStore.getEntityType("Customer");
+        var camelCust = camelCustomerType.createEntity();
+        
+        ok(!camelCust["CompanyName"],
+            "'CompanyName' property should NOT be defined for Customer in camelCaseMetadataStore");
+        ok(camelCust["companyName"],
+            "'companyName' property should be defined for Customer in camelCaseMetadataStore");
+
+    });
+    
+    /*********************************************************
+    * query with camelCase
+    *********************************************************/
+    test("query with camelCasing NamingConvention", 1, function () {
+
+        var em = new entityModel.EntityManager(
+            {
+                serviceName: northwindService,
+                metadataStore: camelCaseMetadataStore
+            });
+
+        var query = entityModel.EntityQuery.from("Customers")
+            // notice using camelCase property name in predicate!
+            .where("companyName", "startsWith", "A");
+
+        stop();
+        em.executeQuery(query)
+            .then(function(data) {
+                ok(data.results.length > 0,
+                    "should have 'camelCase companyName' query results");
+            })
+            .fail(handleFail)
+            .fin(start);
+        //testFns.verifyQuery(em, query, "camelCase companyName query");
+    });
 
 
     /*********************************************************
