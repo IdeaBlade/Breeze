@@ -1,6 +1,7 @@
 ﻿body {
      margin: 0
 }
+
 .row, .col {
      overflow: hidden; 
      position: absolute;
@@ -133,4 +134,65 @@
 
 .tutorial-title {
     font-weight: bold;
+}
+
+#ask-help, #select-tutorial {
+    display: none;
+}
+
+/* Overlay */
+#simplemodal-overlay {
+    background-color:#000; 
+    cursor:wait;
+}
+
+/* Container */
+#simplemodal-container {
+    width:400px; 
+    color:#bbb; 
+    background-color:#333; 
+    border:4px solid #444; 
+}
+
+#simplemodal-container a.modalCloseImg {
+    background:url(/Images/x.png) no-repeat; 
+    width:25px; 
+    height:29px; 
+    display:inline; 
+    z-index:3200; 
+    position:absolute; 
+    top:-15px; 
+    right:-16px; 
+    cursor:pointer;
+    color:#ddd;
+}
+
+.tutorial-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    max-height: 15em;
+    overflow: auto;
+}
+
+.tutorial-item {
+    border: 1px solid #D0D0D0;
+    border-bottom-width: 0;
+    padding: .6em .8em;
+    background-color: white;
+    color: #444;
+}
+
+.tutorial-item.selected {
+    background-color: #FFFFD7;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#EFEFBD),color-stop(.2,#F4F4CC),color-stop(1,#FFFFD7));
+    background-image: -moz-linear-gradient(center bottom,#EFEFBD0%,#F4F4CC20%,#FFFFD7100%);
+}
+
+.tutorial-item:hover {
+    background-color: #43577B;
+    color: white;
+    cursor: pointer;
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#1B2F53),color-stop(.2,#2F4367),color-stop(1,#43577B));
+    background-image: -moz-linear-gradient(center bottom,#1B2F530%,#2F436720%,#43577B100%);
 }

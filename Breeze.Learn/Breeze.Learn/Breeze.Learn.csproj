@@ -119,15 +119,20 @@
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="App_Data\Tutorial4.xml" />
+    <Content Include="App_Data\Tutorial3.xml" />
+    <Content Include="App_Data\Tutorial2.xml" />
     <Content Include="App_Data\Tutorial1.xml" />
     <Content Include="Global.asax" />
     <Content Include="Images\arrowdown.png" />
+    <Content Include="Images\x.png" />
     <Content Include="Scripts\editor\codemirror.js" />
     <Content Include="Scripts\editor\css.js" />
     <Content Include="Scripts\editor\htmlmixed.js" />
     <Content Include="Scripts\editor\javascript.js" />
     <Content Include="Scripts\editor\xml.js" />
     <Content Include="Scripts\jquery-1.7.2.min.js" />
+    <Content Include="Scripts\jquery.simplemodal.js" />
     <Content Include="Scripts\knockout-2.1.0.js" />
     <Content Include="Scripts\learn.js" />
     <Content Include="Styles\codemirror.css" />

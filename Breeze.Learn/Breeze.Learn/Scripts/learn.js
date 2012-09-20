@@ -33,11 +33,19 @@
     };
 
     learn.selectTutorial = function() {
-        //show selection ui
-        //change activeTutorial and activeStep
+        var $selectSource = $($('#select-tutorial-source').html());
+        ko.applyBindings(learn, $selectSource.get(0));
+        $selectSource.modal();
+    };
+
+    learn.finishSelection = function(tutorial) {
+        learn.activeTutorial(tutorial);
+        learn.activeStep(tutorial.Steps[0]);
     };
 
     learn.help = function() {
+        $('#ask-help').modal();
+
         //ask user if the want to see final code
         //switch editors to ending contents
     };
@@ -64,8 +72,8 @@
             el.val(value);
 
             var editor = CodeMirror.fromTextArea(element, {
-                mode:"text/html",
-                tabMode:"indent"
+                mode: "text/html",
+                tabMode: "indent"
             });
         }
     };
