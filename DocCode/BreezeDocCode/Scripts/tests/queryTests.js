@@ -927,8 +927,7 @@ define(["testFns"], function (testFns) {
                 newCustomer.CompanyName());
 
             // re-do both queries as a comboQuery
-            return executeComboQueryWithExecuteLocally(em, query);
-            // return executeComboQueryWithFetchStrategy(em, query); 
+            return executeComboQueryWithFetchStrategy(em, query); 
 
         })
 
@@ -1020,8 +1019,7 @@ define(["testFns"], function (testFns) {
         var promise = queryIntoList(em, query, customerList);
         
         // Application could ignore promise and 
-        // let observable array update the UI when customers arrive.
-        
+        // let observable array update the UI when customers arrive.      
         // Our test waits to check that the list was filled
         promise.then(function() {
             var count = customerList.length;
@@ -1036,6 +1034,18 @@ define(["testFns"], function (testFns) {
         .fin(start);
     });
 
+    // Pours results of any combined query into a list
+    // returns a promise to return that list after it's filled
+    // Consider for your "DataService" class
+    function queryIntoList(em, query, list) {
+        list = list || [];
+        return executeComboQueryWithFetchStrategy(em, query)
+            .then(function (data) {
+                data.results.forEach(function (c) { list.push(c); });
+                return list;
+            });
+    }
+    
     /*********************************************************
     * "Query Local" module helpers
     *********************************************************/
@@ -1047,10 +1057,9 @@ define(["testFns"], function (testFns) {
             .orderBy("CompanyName");
     }
   
-    // USE THIS IN YOUR DATASERVICE?
-    // execute any query remotely, then execute locally
+    // Execute any query remotely, then execute locally
     // returning the same shaped promise as the remote query
-    // Defect #2188
+    // Recommended for your "DataService" class
     function executeComboQueryWithFetchStrategy(em, query) {
         query = query.using(em);
         return query.execute()
@@ -1069,19 +1078,6 @@ define(["testFns"], function (testFns) {
                 );
             });
     }
-    
-    // USE THIS IN YOUR DATASERVICE?
-    // pours results of any combined query into a list
-    // returns a promise to return that list after it's filled
-    function queryIntoList(em, query, list) {
-        list = list || [];
-        return executeComboQueryWithExecuteLocally(em, query)
- //       return executeComboQueryWithFetchStrategy(em, query)
-            .then(function(data) {
-                data.results.forEach(function (c) { list.push(c); });
-                return list;
-            });
-    }
 
     // create a new Customer and add to the EntityManager
     function addCustomer(em, name) {
@@ -1091,11 +1087,5 @@ define(["testFns"], function (testFns) {
         em.addEntity(cust);
         return cust;
     }
-
-
-    /*********************************************************
-    * helpers
-    *********************************************************/
-
 
 });

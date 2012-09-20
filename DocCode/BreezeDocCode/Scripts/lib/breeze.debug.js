@@ -8546,6 +8546,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
+                if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
+                    return Q.fcall(function () {
+                        var results = em.executeQueryLocally(query);
+                        return { results: results };
+                    });
+                }
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
                      query: query, 
@@ -10168,7 +10174,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.55",
+        version: "0.56",
         core: core,
         entityModel: entityModel
     };
