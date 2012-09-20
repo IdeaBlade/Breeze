@@ -110,6 +110,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\JsonHelpers.cs" />
     <Compile Include="Models\Tutorial.cs" />
     <Compile Include="Models\TutorialCache.cs" />
     <Compile Include="Models\TutorialStep.cs" />
@@ -118,9 +119,18 @@
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="App_Data\Tutorial1.xml" />
     <Content Include="Global.asax" />
+    <Content Include="Images\arrowdown.png" />
+    <Content Include="Scripts\editor\codemirror.js" />
+    <Content Include="Scripts\editor\css.js" />
+    <Content Include="Scripts\editor\htmlmixed.js" />
+    <Content Include="Scripts\editor\javascript.js" />
+    <Content Include="Scripts\editor\xml.js" />
     <Content Include="Scripts\jquery-1.7.2.min.js" />
     <Content Include="Scripts\knockout-2.1.0.js" />
+    <Content Include="Scripts\learn.js" />
+    <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\default.css" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -132,7 +142,6 @@
     <Content Include="Views\Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Views\Shared\" />
   </ItemGroup>
   <ItemGroup>

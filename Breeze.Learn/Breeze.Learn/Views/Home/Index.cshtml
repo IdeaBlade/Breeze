@@ -1,61 +1,62 @@
-﻿<!DOCTYPE html>
+﻿@using Breeze.Learn.Models
+@using Breeze.Learn.Helpers
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Learn Breeze</title>
     <link rel="stylesheet" href="@Url.Content("~/Styles/default.css")"/>
+    <link rel="stylesheet" href="@Url.Content("~/Styles/codemirror.css")"/>
 </head>
     <body>
-        <div class="left col">
-            <div class="header row">
-                Navigation
-            </div>
-            <div class="body row scroll-y">
-                <ul class="listview">
-                    <li class="selected">One</li><li>Two</li><li>Three</li><li>One</li><li>Two</li><li>Three</li>
-                    <li>One</li><li>Two</li><li>Three</li><li>One</li><li>Two</li><li>Three</li>
-                    <li>One</li><li>Two</li><li>Three</li><li>One</li><li>Two</li><li>Three</li>
-                    <li>One</li><li>Two</li><li>Three</li><li>One</li><li>Two</li><li>Three</li>
-                </ul>
-            </div>
-            <div class="footer row">
-                Icons go here
-            </div>
-        </div>
-        <div class="right col">
-            <div class="header row">
-                View or edit something
-            </div>
-            <div class="body row scroll-y">
-                <h3>Here are some other controls</h3>
-                <ul class="listview inset">
-                    <li>One</li><li>Two</li><li>Three</li>
-                </ul>
-
-                <p>... and here's a horizontally-scrollable thing:</p>
-
-                <div class="scroll-x tiles">
-                    <ul>
-                        <li>Asia</li>
-                        <li>Africa</li>
-                        <li>America</li>
-                        <li>Antarctica</li>
-                        <li>Australia</li>
-                        <li>Europe</li>
-                    </ul>
+        <div class="header row">
+            <div class="page-links"></div>
+            <div class="page-title">learn.breeze.com</div>
+            <div class="container-center">
+                <div class="tutorial-select button" data-bind="click: selectTutorial">
+                    <span class="arrow-down"></span>
+                    Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
                 </div>
-
-                <p>That's enough.</p><p>That's enough.</p><p>That's enough.</p>
-            </div>
-            <div class="footer row">
-                Some status text here
             </div>
         </div>
+
+        <div class="body row">
+            <div class="left col">
+                <div class="top row">
+                    <div data-bind="html: activeStep().Instructions"></div>
+                </div>
+                <div class="bottom row">
+                    <iframe></iframe>
+                </div>
+            </div>
+            
+            <div class="right col">
+                <div class="top row">
+                    <textarea data-bind="htmlEditor: activeTutorial().StartingHtml"></textarea>
+                </div>
+                <div class="bottom row">
+                    <textarea data-bind="jsEditor: activeTutorial().StartingJavascript"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            var Learn = (function(learn) {
+                learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
+                return learn;
+            })(Learn || { });
+        </script>
         
         <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
         <script type="text/javascript">            window.jQuery || document.write('<script src="Scripts/jquery-1.7.2.min.js"><\/script>')</script>
         <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/editor/codemirror.js")" type="text/javascript" charset="utf-8"></script>
+        <script src="@Url.Content("~/Scripts/editor/xml.js")" type="text/javascript" charset="utf-8"></script>
+        <script src="@Url.Content("~/Scripts/editor/javascript.js")" type="text/javascript" charset="utf-8"></script>
+        <script src="@Url.Content("~/Scripts/editor/css.js")" type="text/javascript" charset="utf-8"></script>
+        <script src="@Url.Content("~/Scripts/editor/htmlmixed.js")" type="text/javascript" charset="utf-8"></script>
+        <script src="@Url.Content("~/Scripts/learn.js")" type="text/javascript"></script>
     </body>
 </html>

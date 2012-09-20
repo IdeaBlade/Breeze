@@ -555,41 +555,96 @@ define(["testFns"], function (testFns) {
         ok(customer.Orders().indexOf(newOrder) === -1,
             "newOrder is no longer among customer's orders");
     });
+
+
     /*********************************************************
-    * deferred get of OrderDetails of Alfreds 1st order 
-    * via regular query
+    * deferred get of OrderDetails via entityAspect.loadNavigationProperty 
+    * *** This is the most simple and generally preferred approach ***
+    *
     * Use case: 
     *   Have the order and the customer (by expand)
     *   but not the OrderDetails. Need them now, so use
-    *   query to get them for the order
-    * See/prefer "fromEntityNavigation" alternative.
+    *   "loadNavigationProperty" to get them for the order
     *********************************************************/
-    test("deferred get of OrderDetails for an order via query", 8, function () {
+    test("deferred get of OrderDetails for an order via 'loadNavigationProperty'", 7,
+        loadOrderDetailsDeferred(queryOrderDetailsWithLoadNavigationProperty));
 
-        var alfredsFirstOrderQuery = new EntityQuery("Orders")
-          .where(alfredsPredicate).take(1)
-          .expand("Customer");
+    // Get the OrderDetails using entityAspect.loadNavigationProperty
+    function queryOrderDetailsWithLoadNavigationProperty(data) {
+        var firstOrder = data.first;
+        return firstOrder.entityAspect.loadNavigationProperty("OrderDetails");
+    }
 
-        var em = newEm();
-        stop();
-        queryForOne(em, alfredsFirstOrderQuery, "Alfreds 1st order")
-        .then(queryOrderDetailsForOrder)
-        .then(assertGotOrderDetailsFromNavQuery)
-        .fail(handleFail)
-        .fin(start);
-
-    });
-    
-    function queryOrderDetailsForOrder(data) {
+    /*********************************************************
+    * deferred get of OrderDetails via regular query
+    * See "loadNavigationProperty" alternative which is preferred.
+    *********************************************************/
+    test("deferred get of OrderDetails for an order via regular query", 8, 
+        loadOrderDetailsDeferred(queryOrderDetailsWithRegularQuery));
+ 
+    // Get the OrderDetails using a regular query
+    function queryOrderDetailsWithRegularQuery(data) {
         var firstOrder = data.first;
 
         var query = EntityQuery.from("OrderDetails")
-            .where("OrderID", "==", firstOrder.OrderID());
+            .where("OrderID", "==", firstOrder.OrderID())
+            .expand("Product");
 
-        return firstOrder.entityAspect.entityManager.executeQuery(query);
+        return firstOrder.entityAspect.entityManager.executeQuery(query)
+            .then(assertGotProductsWithOrderDetails);
     }
 
-    function assertGotOrderDetailsFromNavQuery(data) {
+    /*********************************************************
+    * deferred get of OrderDetails via EntityQuery.fromEntityNavigation
+    * See "loadNavigationProperty" alternative which is preferred.
+    *********************************************************/
+    test("deferred get of OrderDetails for an order via 'fromEntityNavigation'", 8, 
+        loadOrderDetailsDeferred(queryOrderDetailsWithFromEntityNavigation));
+
+    // Get the OrderDetails using EntityQuery.fromEntityNavigation
+    function queryOrderDetailsWithFromEntityNavigation(data) {
+        var firstOrder = data.first;
+
+        var navProp = firstOrder.entityType.getNavigationProperty("OrderDetails");
+
+        var navQuery = EntityQuery
+            .fromEntityNavigation(firstOrder, navProp)
+            .expand("Product");
+
+        return firstOrder.entityAspect.entityManager.executeQuery(navQuery)
+            .then(assertGotProductsWithOrderDetails);
+    }
+    
+    /*********************************************************
+    * A test helper to run the same basic test multiple ways.
+    * Loads an order's OrderDetails using the technique 
+    * expressed in the 'orderDetailsQueryFn'.
+    *
+    * Returns the body of the test function after injecting        
+    * the 'orderDetailsQueryFn' with the technique we want to see.
+    *********************************************************/
+    function loadOrderDetailsDeferred(orderDetailsQueryFn) {
+
+        return function () {
+            // a query for a well-known order
+            var alfredsFirstOrderQuery = new EntityQuery("Orders")
+                .where(alfredsPredicate).take(1)
+                .expand("Customer");
+
+            var em = newEm();
+            stop();
+            // get an order via the well-known-order query,
+            // then get related OrderDetails using 'orderDetailsQueryFn'
+            // then assert that everything went well
+            queryForOne(em, alfredsFirstOrderQuery, "Alfreds 1st order")
+                .then(orderDetailsQueryFn)
+                .then(assertGotOrderDetailsFromQuery)
+                .fail(handleFail)
+                .fin(start);
+        };
+    }
+
+    function assertGotOrderDetailsFromQuery(data) {
 
         // Work the navigation chain from OrderDetails
 
@@ -613,45 +668,18 @@ define(["testFns"], function (testFns) {
         ok(customer.CustomerID() === testFns.wellKnownData.alfredsID,
             "parent Customer by nav is Alfreds (in cache via initial query expand)");
 
-        ok(firstDetail.Product() === null,
-            "a detail's parent Product is not available " +
-            "presumably because there are no products in cache");
+        return data;
     }
-
-    /*********************************************************
-    * get OrderDetails of Alfreds 1st order 
-    * via EntityQuery.fromEntityNavigation
-    * Use case: 
-    *   Have the order and the customer (by expand)
-    *   but not the OrderDetails. Need them now, so use
-    *   "fromEntityNavigation" to get them for the order
-    *********************************************************/
-    test("deferred get of OrderDetails for an order via 'fromEntityNavigation'", 8, function () {
-
-        var alfredsFirstOrderQuery = new EntityQuery("Orders")
-          .where(alfredsPredicate).take(1)
-          .expand("Customer");
-
-        var em = newEm();
-        stop();
-        queryForOne(em, alfredsFirstOrderQuery, "Alfreds 1st order")
-        .then(queryOrderDetailsfromEntityNavigation)
-        .then(assertGotOrderDetailsFromNavQuery)
-        .fail(handleFail)
-        .fin(start);
-
-    });
-
-    function queryOrderDetailsfromEntityNavigation(data) {
-        var firstOrder = data.first;
-
-        var navProp = firstOrder.entityType.getNavigationProperty("OrderDetails");
-
-        var navQuery = EntityQuery.fromEntityNavigation(firstOrder, navProp);
-
-        return firstOrder.entityAspect.entityManager.executeQuery(navQuery);
+    
+    function assertGotProductsWithOrderDetails(data) {
+        if (data.results.length !== 0) { // let another assert deal with no data.
+            var firstDetail = data.results[0];
+            ok(firstDetail.Product() !== null,
+                "first OrderDetail's parent Product is in cache thanks to expand");
+        };
+        return data;
     }
-
+    
     /*********************************************************
     * Can fill placeholder customer asynchronously
     *
