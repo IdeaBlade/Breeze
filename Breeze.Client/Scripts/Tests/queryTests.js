@@ -1073,6 +1073,71 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+    
+    test("local query - ExecuteLocally", function() {
+        // combined remote & local query gets all customers w/ 'A'
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        var newCustomer = addCustomer(em, "Acme");
+
+        stop();
+        executeComboQueryWithExecuteLocally(em, query).then(function (data) { // back from server with combined results
+            var customers = data.results;
+            ok(customers.indexOf(newCustomer) >= 0,
+                "combo query results should include the unsaved newCustomer, " +
+                    newCustomer.getProperty("companyName"));
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    function executeComboQueryWithExecuteLocally(em, query) {
+        query = query.using(em);
+        return query.execute().then(function () {
+            return Q.fcall(function () {
+                var results = query.executeLocally();
+                return { results: results };
+            });
+        });
+    }
+    
+    test("local query - FetchStrategy.FromLocalCache", function () {
+        // "combined remote & local query gets all customers w/ 'A'
+        var query = getQueryForCustomerA();
+
+        // new 'A' customer in cache ... not saved
+        var em = newEm();
+        var newCustomer = addCustomer(em, "Acme");
+
+        stop();
+        executeComboQueryWithFetchStrategy(em, query).then(function (data) { // back from server with combined results
+            var customers = data.results;
+            ok(customers.indexOf(newCustomer) >= 0,
+                 "combo query results should include the unsaved newCustomer, " +
+                newCustomer.getProperty("companyName"));
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    function executeComboQueryWithFetchStrategy(em, query) {
+        query = query.using(em);
+        return query.execute().then(function() {
+            return query.using(entityModel.FetchStrategy.FromLocalCache).execute();
+        });
+    }
+
+    function getQueryForCustomerA() {
+        return new EntityQuery("Customers")
+            .where("companyName", "startsWith", "A")
+            .orderBy("companyName");
+    }
+
+    function addCustomer(em, name) {
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", name || "a-new-company");
+        em.addEntity(cust);
+        return cust;
+    }
 
     test("server side include many with filter - customers and orders", function () {
         if (!testFns.DEBUG_WEBAPI) {
