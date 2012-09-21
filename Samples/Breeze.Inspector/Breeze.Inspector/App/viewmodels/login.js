@@ -5,7 +5,7 @@
     var vm = {
         inspectors: ko.observableArray([]),
         activate: function() {
-            shell.title("Breeze Inspector - Login");
+            shell.title("Breeze Inspector");
             shell.status('');
         },
         selectInspector: function(inspector) {

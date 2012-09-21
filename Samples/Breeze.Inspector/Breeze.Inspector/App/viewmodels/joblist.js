@@ -6,7 +6,7 @@
     var vm = {
         jobs:ko.observableArray([]),
         activate:function() {
-            shell.title("Job Locations");
+            shell.title(shell.inspector().Name());
             shell.status("Loading jobs...");
             data.getJobsFor(shell.inspector().Id()).then(function(response) {
                 vm.jobs(response.results);

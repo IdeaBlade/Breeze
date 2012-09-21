@@ -26,21 +26,16 @@
 header {
     position: fixed;
     text-align: center;
-    border-bottom: 1px solid black;
     color: white;
     font-weight: bold;
     width: 100%;
-    background: #1e5799;
+    background: black;
     z-index: 10;
     
     -o-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
     -webkit-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
     -moz-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
     box-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
-}
-
-header h1 {
-    text-shadow:rgba(0, 0, 0, .5) 2.5px 2.5px 2px;
 }
 
 header button {
@@ -88,40 +83,13 @@ section {
     overflow-y: auto;
 }
 
-footer {
-    position: fixed;
-    border-top: 1px solid black;
-    width: 100%;
-    background: #1e5799;
-    bottom: 0px;
-    
-    -o-box-shadow: rgba(0, 0, 0, 1) -1px 0px 1px;
-    -webkit-box-shadow: rgba(0, 0, 0, 1) -1px 0px 1px;
-    -moz-box-shadow: rgba(0, 0, 0, 1) -1px 0px 1px;
-    box-shadow: rgba(0, 0, 0, 1) 0px -1px 1px;
-}
-
-footer h3 {
-    text-shadow:rgba(0, 0, 0, .5) 2.5px 2.5px 2px;
-    color: white;
-    font-weight: bold;
-    float: left;
-}
-
-footer button {
-    float: right;
-    padding: 2px 8px;
-}
-
 .login {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 7em;
-    margin: auto;
-    padding-bottom: 16em;
+    margin-top: 3em;
     text-align: center;
 }
 
@@ -133,25 +101,24 @@ footer button {
 
 .login ul {
     margin-top: 2em;
+    position: absolute;
+    left: 50%;
 }
 
 .login ul li {
-    margin-bottom: 2em;
+    text-align: left;
+    margin-left: -75%;
+    border-bottom: 1px solid blue;
+    padding: 16px 0px;
+    margin-right: 25%;
+}
+
+.login ul li:last-child {
+    border-bottom: none;
 }
 
 .login a {
     font-size: 1.3em;
-    border: 1px solid black;
-    padding: 8px 50px;
-    
-    -moz-border-radius: 6px;
-	-webkit-border-radius: 6px;
-	border-radius: 6px;
-	
-	-o-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -webkit-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -moz-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    box-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
 }
 
 .login a:hover {
@@ -160,29 +127,24 @@ footer button {
 }
 
 .job-list ul {
-    margin: 2em;
+    margin: 1em;
 }
 
 .job-list ul li {
-    border: 1px solid black;
-    padding: .5em;
+    border-bottom: 1px solid blue;
     font-size: 2em;
-    margin-bottom: 1em;
-    
-    -moz-border-radius: 6px;
-	-webkit-border-radius: 6px;
-	border-radius: 6px;
-	
-	-o-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -webkit-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -moz-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    box-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
+    padding: 0;
+    margin-top: 1em;
 }
 
-.job-list ul li div.inspections {
-    margin-left: 1em;
-    margin-top: .25em;
-    line-height: 1.5em;
+.job-list ul li:last-child {
+    border-bottom: none;
+}
+
+ul.inspections li{
+    font-size: 1em;
+    border: none;
+    margin: .5em 0;
 }
 
 .inspection-form {
