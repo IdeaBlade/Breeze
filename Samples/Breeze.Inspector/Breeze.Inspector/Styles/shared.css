@@ -19,8 +19,6 @@
     -moz-border-radius: 20px;
 	-webkit-border-radius: 20px;
 	border-radius: 20px;
-    
-    text-shadow:rgba(0, 0, 0, .5) 2.5px 2.5px 2px;
 }
 
 header {
@@ -37,8 +35,8 @@ header button {
 }
 
 header button.back {
-    left: .5em;
-    top: .65em;
+    left: 1.5em;
+    top: .25em;
     background: transparent;
     background-image: url("/Images/Back.png");
     border: none;
@@ -46,7 +44,7 @@ header button.back {
     height: 60px;
 }
 
-header button.save {
+button.save, button.errors {
     right: .5em;
 }
 
@@ -56,6 +54,18 @@ section {
     right: 0;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.commands.left {
+    position: absolute;
+    left: 1em;
+    top: 4.5em;
+}
+
+.commands.right {
+    position: absolute;
+    right: 1em;
+    top: 4.5em;
 }
 
 .login {

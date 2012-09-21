@@ -5,8 +5,9 @@
 
     var shell = {
         title: ko.observable(""),
-        subtitle1:ko.observable(""),
-        subtitle2:ko.observable(""),
+        subtitle1: ko.observable(""),
+        subtitle2: ko.observable(""),
+        commands: ko.observableArray([]),
         initialize: function() {
             ko.compose('shell', null, "#applicationHost", function() {
                 shell.navigate('login');
@@ -44,13 +45,21 @@
         canGoBack: ko.computed(function() {
             return backStack().length != 0;
         }),
+        resetHeader: function() {
+            this.title("");
+            this.subtitle1("");
+            this.subtitle2("");
+            this.commands.removeAll();
+        },
         goBack: function() {
             var previous = backStack.pop();
+            this.resetHeader();
             ko.compose(previous.name, previous.viewModel, null, function() {
                 currentScreen = previous;
             });
         },
         navigate: function(name, viewModel) {
+            this.resetHeader();
             ko.compose(name, viewModel, null, function(newScreen) {
                 if (currentScreen) {
                     backStack.push(currentScreen);
