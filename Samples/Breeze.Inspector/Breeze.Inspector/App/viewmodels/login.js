@@ -5,8 +5,14 @@
     var vm = {
         inspectors: ko.observableArray([]),
         activate: function() {
-            shell.title("Breeze Inspector - Login");
-            shell.status('');
+            shell.title("Breeze Inspector");
+            shell.commands.push({
+                name: 'reset',
+                canExecute: true,
+                execute: function() {
+                    alert('not implemented');
+                }
+            });
         },
         selectInspector: function(inspector) {
             shell.inspector(inspector);

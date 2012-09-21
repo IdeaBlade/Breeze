@@ -8,6 +8,7 @@ QUnit.config.testTimeout = 20000;
 requirejs.config(
     {
         baseUrl: "Scripts/Tests",
+        urlArgs: 'cb=' + Math.random(), // cache buster
 
         // well-know paths to selected scripts
         paths: {

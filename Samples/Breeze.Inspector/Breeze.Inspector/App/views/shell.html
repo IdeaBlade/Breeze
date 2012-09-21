@@ -1,15 +1,18 @@
 ﻿<div>
     <header>
-        <button class="back" data-bind="click: goBack, visible: canGoBack">Back</button>
+        <button class="back" data-bind="click: goBack, visible: canGoBack"></button>
         <h1 data-bind="html: title"></h1>
+        <h2 data-bind="html: subtitle1"></h2>
+        <h2 data-bind="html: subtitle2"></h2>
         <button class="save" data-bind="click: save, visible: showSaved">Save</button>
-        <button class="save" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
+        <button class="errors" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
+        <div class="commands left" data-bind="foreach: commands">
+            <a data-bind="text: name, click: execute, enabled: canExecute"></a>
+        </div>
+        <div class="commands right">
+            <a>offline</a>
+            <a>help</a>
+        </div>
     </header>
-    <section id="contentHost">
-        
-    </section>
-    <footer>
-        <h3 data-bind="html: status"></h3>
-        <button data-bind="click: toggleConnection, html: connectionAction, visible: inspector() != null"></button>
-    </footer>
+    <section id="contentHost"></section>
 </div>

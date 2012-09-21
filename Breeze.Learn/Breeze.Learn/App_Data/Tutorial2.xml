@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tutorial>
-  <Order>1</Order>
-  <Title>Tutorial 1</Title>
-  <Description>Description 1</Description>
+  <Order>2</Order>
+  <Title>Tutorial 2</Title>
+  <Description>Description 2</Description>
   <StartingHtml>
     <![CDATA[<div>
   <div></div>
@@ -10,7 +10,7 @@
 ]]>
   </StartingHtml>
   <StartingJavascript>
-    <![CDATA[function Func1(a,b) {
+    <![CDATA[function Func2(a,b) {
   if (a < b && a < 0) {
     return 1;
   }

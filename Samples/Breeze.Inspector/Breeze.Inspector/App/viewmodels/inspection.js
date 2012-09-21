@@ -54,6 +54,10 @@
 
     vm.prototype.activate = function() {
         shell.title(this.inspection.Form().Type());
+        shell.subtitle1("Inspector " + shell.inspector().Name());
+
+        var loc = this.inspection.Job().Location();
+        shell.subtitle2(loc.Street1() + ", " + loc.City() + ", " + loc.State());
     };
 
     return vm;

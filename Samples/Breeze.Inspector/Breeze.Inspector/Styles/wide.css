@@ -3,7 +3,7 @@
 }
 
 header {
-    height: 4em;
+    height: 6em;
 }
 
 header h1 {
@@ -15,14 +15,9 @@ header button {
     top: .125em;
 }
 
-button {
-    font-size: 1.5em;
-    padding: .5em 1em;
-}
-
 section {
-    top: 4em;
-    bottom: 2.5em;
+    top: 6em;
+    bottom: 0;
 }
 
 footer {

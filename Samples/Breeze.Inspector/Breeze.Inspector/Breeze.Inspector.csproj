@@ -193,6 +193,7 @@
     <Content Include="App_Data\readme.txt" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Images\Back.png" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
     <Content Include="Styles\qunit.css" />
