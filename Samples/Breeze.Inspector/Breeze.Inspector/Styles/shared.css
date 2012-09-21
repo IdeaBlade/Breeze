@@ -38,7 +38,7 @@ header button {
 
 header button.back {
     left: .5em;
-    top: .25em;
+    top: .65em;
     background: transparent;
     background-image: url("/Images/Back.png");
     border: none;
