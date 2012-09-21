@@ -7,11 +7,13 @@
                 <span data-bind="text: State"/>,&nbsp;
                 <span data-bind="text: Zip"/>
             </div>
-            <div class="inspections" data-bind="foreach: Inspections">
-                <a href="#" data-bind="click: function(){ $root.navigateTo($data) }">
-                    <span data-bind="text: Form().Type"/>
-                </a>&nbsp;&nbsp;
-            </div>
+            <ul class="inspections" data-bind="foreach: Inspections">
+                <li>
+                    <a href="#" data-bind="click: function(){ $root.navigateTo($data) }">
+                        <span data-bind="text: Form().Type"/>
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
 </div>
