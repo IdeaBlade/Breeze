@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_CF", "_In
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_EDMX", "_Internal\Model_NorthwindIB_EDMX\Model_NorthwindIB_EDMX.csproj", "{370B1324-F59F-45F6-9519-B29258405CFB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeDocCode", "DocCode\BreezeDocCode\BreezeDocCode.csproj", "{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Breeze.vsmdi
@@ -115,6 +117,16 @@ Global
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

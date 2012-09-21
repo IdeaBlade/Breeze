@@ -765,7 +765,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 }
             }
             var dataType = DataType.toDataType(odataProperty.type);
-            var isNullable = odataProperty.nullable === &#x27;true&#x27;;
+            var isNullable = odataProperty.nullable === &#x27;true&#x27; || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
             var name = toClientName(entityType, odataProperty.name);
 
@@ -1458,7 +1458,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.defaultValue === undefined ) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
             } else if (this.defaultValue === null &amp;&amp; !this.isNullable) {
-                throw new Error(&quot;A nonnullable DataProperty cannot have a null defaultValue&quot;);
+                throw new Error(&quot;A nonnullable DataProperty cannot have a null defaultValue. Name: &quot; + this.name);
             }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             &#x2F;&#x2F; Set later:

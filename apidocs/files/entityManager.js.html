@@ -1626,11 +1626,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             &#x2F;&#x2F; TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
-            &#x2F;&#x2F; if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-            if (isSelectQuery(queryContext.query) &amp;&amp; !isNestedInAnon) {
+            
+            var entityType = em.metadataStore.getEntityType(entityTypeName, true);
+            &#x2F;&#x2F; all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
+            if (entityType == null &amp;&amp; isSelectQuery(queryContext.query) &amp;&amp; !isNestedInAnon) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
-            var entityType = em.metadataStore.getEntityType(entityTypeName);
 
             rawEntity.entityType = entityType;
             var entityKey = EntityKey._fromRawEntity(rawEntity, entityType);
@@ -1691,6 +1692,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == &quot;__metadata&quot;) {
+                    return;
+                }
+                &#x2F;&#x2F; EntityKey properties can be produced by EDMX models
+                if (key == &quot;EntityKey&quot; &amp;&amp; value.$type &amp;&amp; core.stringStartsWith(value.$type, &quot;System.Data&quot;)) {
                     return;
                 }
                 var firstChar = key.substr(0, 1);
