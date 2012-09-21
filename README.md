@@ -8,11 +8,10 @@ When used with a databinding framework like Knockout, Breeze enables you to code
 
 The Breeze source is free, open-source, and available here on GitHub. If you don't need the full source code, you can download one of the official releases.
 
-###[Runtime 0.55](http://www.breezejs.com/sites/all/packages/breeze-runtime-0.55.zip)
-Includes breeze.debug.js and its minified version, breeze.js. The runtime package also includes Breeze.webApi.dll and Irony.dll for building backend services with an ASP Web API.
+###[Runtime and Runtime + samples](http://www.breezejs.com/documentation/download)
+The Runtime package includes breeze.debug.js, its minified version, breeze.js, and Breeze.webApi.dll and Irony.dll for building backend services with an ASP Web API.
 
-###[Runtime + samples 0.55](http://www.breezejs.com/sites/all/packages/breeze-runtime-plus-0.55.zip)
-Includes the runtime package above plus the code samples and the DocCode companion to the Breeze online documentation.
+Runtime + samples includes the same, plus the code samples and the DocCode companion to the Breeze online documentation. 
 
 ## Prerequisites
 To build the Todo sample the following must first be installed on your system:
@@ -50,17 +49,7 @@ Follow [@IdeaBlade](http://twitter.com/#!/ideablade) on Twitter and [Facebook](h
 
 ## Version history
 
-#### 0.55
-- Server model classes can be in different assembly and namespace; EFContextProvider will find them.
-- No longer automatically validates deleted entities as their validation state is typically irrelevant. Can still validate them manually if you wish.
-- EFActionFilter replaced by properly named ODataActionFilter; EFActionFilter deprecated.
-- other fixes.
-
-#### 0.54
-- NamingConvention support and minor bug fixes
-
-#### 0.53
-- Initial release
+Please read the release notes at [Breezejs.com](http://www.breezejs.com/documentation/download#release notes).
  
 
 ## Copyright and license
