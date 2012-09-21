@@ -1,7 +1,9 @@
 ﻿<div>
     <header>
-        <button class="back" data-bind="click: goBack, visible: canGoBack">Back</button>
+        <button class="back" data-bind="click: goBack, visible: canGoBack"></button>
         <h1 data-bind="html: title"></h1>
+        <h2 data-bind="html: subtitle1"></h2>
+        <h2 data-bind="html: subtitle2"></h2>
         <button class="save" data-bind="click: save, visible: showSaved">Save</button>
         <button class="save" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
     </header>

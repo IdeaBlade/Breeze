@@ -6,7 +6,8 @@
         inspectors: ko.observableArray([]),
         activate: function() {
             shell.title("Breeze Inspector");
-            shell.status('');
+            shell.subtitle1("");
+            shell.subtitle2("");
         },
         selectInspector: function(inspector) {
             shell.inspector(inspector);

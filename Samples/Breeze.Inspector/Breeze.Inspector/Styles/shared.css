@@ -13,7 +13,7 @@
     margin: auto;
     padding-bottom: .125em;
     text-align: center;
-    background: #1e5799;
+    background: black;
     color: white;
     
     -moz-border-radius: 20px;
@@ -24,18 +24,12 @@
 }
 
 header {
-    position: fixed;
     text-align: center;
     color: white;
     font-weight: bold;
     width: 100%;
     background: black;
     z-index: 10;
-    
-    -o-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -webkit-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    -moz-box-shadow: rgba(0, 0, 0, 1) 1px 0px 1px;
-    box-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
 }
 
 header button {
@@ -43,36 +37,17 @@ header button {
 }
 
 header button.back {
-    left: .5em;    
+    left: .5em;
+    top: .25em;
+    background: transparent;
+    background-image: url("/Images/Back.png");
+    border: none;
+    width: 70px;
+    height: 60px;
 }
 
 header button.save {
     right: .5em;
-}
-
-button {
-	font-family: Arial, Helvetica, sans-serif;
-	color: #ffffff;
-    font-weight: bold;
-    background: black;
-	background: -moz-linear-gradient(top, #575757 0%, #000000);
-	background: -webkit-gradient(linear, left top, left bottom, from(#575757), to(#000000));
-	-moz-border-radius: 6px;
-	-webkit-border-radius: 6px;
-	border-radius: 6px;
-	border: 1px solid #000000;
-	-moz-box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	-webkit-box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	text-shadow:
-		0px -1px 0px rgba(000,000,000,0.2),
-		0px 1px 0px rgba(255,255,255,0.4);
 }
 
 section {

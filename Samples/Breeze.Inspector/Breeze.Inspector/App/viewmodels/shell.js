@@ -5,7 +5,8 @@
 
     var shell = {
         title: ko.observable(""),
-        status: ko.observable(""),
+        subtitle1:ko.observable(""),
+        subtitle2:ko.observable(""),
         initialize: function() {
             ko.compose('shell', null, "#applicationHost", function() {
                 shell.navigate('login');
