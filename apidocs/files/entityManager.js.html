@@ -1567,6 +1567,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error(&quot;cannot execute _executeQueryCore until metadataStore is populated.&quot;);
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
+                if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
+                    return Q.fcall(function () {
+                        var results = em.executeQueryLocally(query);
+                        return { results: results };
+                    });
+                }
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
                      query: query, 

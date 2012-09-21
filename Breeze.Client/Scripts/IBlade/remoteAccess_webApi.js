@@ -43,7 +43,12 @@ function (core, m_entityMetadata) {
         var url = entityManager.serviceName + odataQuery;
         $.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
-            collectionCallback(data);
+            try {
+                collectionCallback(data);
+            } catch (e) {
+                // needed because it doesn't look like jquery calls .fail if an error occurs within the function
+                if (errorCallback) errorCallback(e);
+            }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
         });

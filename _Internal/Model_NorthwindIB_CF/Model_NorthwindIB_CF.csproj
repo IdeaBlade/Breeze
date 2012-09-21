@@ -8,8 +8,8 @@
     <ProjectGuid>{763B4341-7A4E-4880-A4E2-31AADC05F1AD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sample_CodeFirstModel</RootNamespace>
-    <AssemblyName>Sample_CodeFirstModel</AssemblyName>
+    <RootNamespace>Models.NorthwindIB.CF</RootNamespace>
+    <AssemblyName>Model_NorthwindIB_CF</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>

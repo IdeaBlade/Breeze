@@ -9,11 +9,11 @@ namespace Breeze.WebApi {
 
   public class NumericKeyGenerator : IKeyGenerator {
 
-    public NumericKeyGenerator(DbConnection dbConnection) {
-      _connection = dbConnection;
+    public NumericKeyGenerator(String storeConnectionString) {
+      _connectionString = storeConnectionString;
+      _providerName = GetProviderName(_connectionString);
+      _providerFactory = DbProviderFactories.GetFactory(_providerName);
     }
-
-    private DbConnection _connection;
 
     public void UpdateKeys(List<TempKeyInfo> keys) {
 
@@ -54,12 +54,10 @@ namespace Breeze.WebApi {
       // allocate the larger of the amount requested or the default alloc group size
       pCount = Math.Max(pCount, DefaultGroupSize);
 
-      var wasClosed = _connection.State != ConnectionState.Open;
-      try {
-        if (wasClosed) {
-          _connection.Open();
-        }
-        IDbCommand aCommand = CreateDbCommand(_connection);
+      var aConnection = CreateDbConnection();
+      aConnection.Open();
+      using (aConnection) {
+        IDbCommand aCommand = CreateDbCommand(aConnection);
 
         for (int trys = 0; trys <= MaxTrys; trys++) {
 
@@ -84,16 +82,46 @@ namespace Breeze.WebApi {
             return;
           }
         }
-      } finally {
-          if (wasClosed) {
-            _connection.Close();
-          }
       }
       throw new Exception("Unable to generate a new id");
     }
 
-    private DbCommand CreateDbCommand(IDbConnection connection) {
-      IDbCommand command = connection.CreateCommand();
+    protected String GetConnectionString(String connectionName) {
+      var item = ConfigurationManager.ConnectionStrings[connectionName];
+      return item.ConnectionString;
+    }
+
+    private String GetProviderName(string connectionString) {
+      var csb = new DbConnectionStringBuilder {ConnectionString = connectionString};
+      String providerName = null;
+      if (csb.ContainsKey("provider")) {
+        providerName = csb["provider"].ToString();
+      } else {
+        var css = ConfigurationManager
+          .ConnectionStrings
+          .Cast<ConnectionStringSettings>()
+          .FirstOrDefault(x => x.ConnectionString == connectionString);
+        if (css != null) providerName = css.ProviderName;
+      }
+      return providerName;
+    }
+
+    private DbConnection CreateDbConnection() {
+      if (String.IsNullOrEmpty(_connectionString)) {
+        throw new Exception("No connection string available");
+      }
+
+      var connection = _providerFactory.CreateConnection();
+      connection.ConnectionString = _connectionString;
+      if (connection == null) {
+        throw new Exception(String.Format("Unable to connect to connection string: {0}", _connectionString));
+      }
+      return connection;
+    }
+
+    private DbCommand CreateDbCommand(IDbConnection pConnection) {
+      if (pConnection.State != ConnectionState.Open) pConnection.Open();
+      IDbCommand command = pConnection.CreateCommand();
       try {
         return (DbCommand) command;
       } catch {
@@ -101,6 +129,10 @@ namespace Breeze.WebApi {
       }
     }
 
+    private string _connectionStringName;
+    private string _connectionString;
+    private DbProviderFactory _providerFactory;
+    private string _providerName;
     private static long __nextId;
     private static long __maxNextId;
 

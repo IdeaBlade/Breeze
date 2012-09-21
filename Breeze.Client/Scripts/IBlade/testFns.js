@@ -90,6 +90,16 @@ define(["root"], function (root) {
     };
 
     testFns.handleFail = function (error) {
+        if (!error) {
+            ok(false, "unknown error");
+            start();
+            return;
+        }
+        if (error.handled === undefined) {
+            ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message);
+            start();
+            return;
+        }
         if (error.handled === true) return;
         ok(false, "failed");
         if (error.message) {

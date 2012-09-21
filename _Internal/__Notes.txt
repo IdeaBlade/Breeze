@@ -22,7 +22,7 @@ Todo:
   2) Make all EntityGroup refs internal
   4) Insure that a server query for a resourceName that is not in metadata i.e. "CustomerAndOrders", adds to the client side resourceName map when it returns.
   13) Add tests for fixup cleanup after a RejectChanges call.
-	
+    
 Think about:
   1) Adding AndWhere and OrWhere methods to EntityQuery
   2) Standard method for documenting an 'interface' i.e. entityTracking or remoteAccess

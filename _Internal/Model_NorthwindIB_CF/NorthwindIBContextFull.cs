@@ -18,16 +18,16 @@ using System.Linq;
 using System.Runtime.Serialization;
 // using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Sample_WebApi.Models {
+namespace Models.NorthwindIB.CF {
 
-  public class NorthwindIBContext : DbContext {
-    static NorthwindIBContext() {
-      InitializeTestContext();
+  public class NorthwindIBContext_CF : DbContext {
+    static NorthwindIBContext_CF() {
+      // InitializeTestContext();
     }
 
 
-    public static NorthwindIBContext InitializeTestContext() {
-      var context = new NorthwindIBContext();
+    public static NorthwindIBContext_CF InitializeTestContext() {
+      var context = new NorthwindIBContext_CF();
       try {
         var customers = context.Customers.ToList();
       } catch (Exception e) {
@@ -37,8 +37,8 @@ namespace Sample_WebApi.Models {
     }
   
     // Use the constructor to target a specific named connection string
-    public NorthwindIBContext() : 
-      base(nameOrConnectionString: "NorthwindIBContext") {
+    public NorthwindIBContext_CF() : 
+      base(nameOrConnectionString: "NorthwindIBContext_CF") {
       // Disable proxy creation as this messes up the data service.
       this.Configuration.ProxyCreationEnabled = false;
       this.Configuration.LazyLoadingEnabled = false;

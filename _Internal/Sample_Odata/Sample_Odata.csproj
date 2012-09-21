@@ -270,12 +270,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NorthwindIB.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>NorthwindIB.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="NorthwindIBEntities.ext.cs" />
     <Compile Include="ODataService.svc.cs">
       <DependentUpon>ODataService.svc</DependentUpon>
     </Compile>
@@ -285,20 +279,18 @@
     <Folder Include="log\" />
   </ItemGroup>
   <ItemGroup>
-    <EntityDeploy Include="NorthwindIB.edmx">
-      <EntityManagerName>.NorthwindIBEntities</EntityManagerName>
-      <CodeGenNamespace>__default__</CodeGenNamespace>
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>NorthwindIB.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Model_NorthwindIB_EDMX\Model_NorthwindIB_EDMX.csproj">
+      <Project>{370B1324-F59F-45F6-9519-B29258405CFB}</Project>
+      <Name>Model_NorthwindIB_EDMX</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

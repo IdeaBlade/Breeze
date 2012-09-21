@@ -150,6 +150,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
         
+        /**
+        The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
+
+        __readOnly__
+        @property namingConvention {NamingConvention}
+        **/
         
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
@@ -588,7 +594,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 }
             }
             var dataType = DataType.toDataType(odataProperty.type);
-            var isNullable = odataProperty.nullable === 'true';
+            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
             var name = toClientName(entityType, odataProperty.name);
 
@@ -1281,7 +1287,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.defaultValue === undefined ) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
             } else if (this.defaultValue === null && !this.isNullable) {
-                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
             }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:

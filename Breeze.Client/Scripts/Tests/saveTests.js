@@ -81,8 +81,8 @@ define(["testFns"], function (testFns) {
                 ok(zzz.cust2.entityAspect.entityState.isUnchanged());
                 ok(zzz.order1.entityAspect.entityState.isUnchanged());
                 ok(zzz.order2.entityAspect.entityState.isUnchanged());
-                ok(zzz.cust1.getProperty("customerID") != zzz.keyValues[0]);
-                ok(zzz.cust2.getProperty("customerID") != zzz.keyValues[1]);
+                ok(zzz.cust1.getProperty("customerID") != zzz.keyValues[0], "cust1.customerID should not match original values");
+                ok(zzz.cust2.getProperty("customerID") != zzz.keyValues[1], "cust2.customerID should not match original values");
                 ok(zzz.order1.getProperty("orderID") != zzz.keyValues[2]);
                 ok(zzz.order2.getProperty("orderID") != zzz.keyValues[3]);
                 ok(zzz.order1.getProperty("customer") === zzz.cust1);

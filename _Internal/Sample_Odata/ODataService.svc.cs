@@ -1,8 +1,9 @@
 ﻿using System.Data.Services;
 using System.Data.Services.Common;
+using Models.NorthwindIB.EDMX;
 
 namespace Breeze_OData {
-  public class ODataService : DataService<NorthwindIBEntities> {
+  public class ODataService : DataService<NorthwindIBContext_EDMX> {
 
     // This method is called only once to initialize service-wide policies.
     public static void InitializeService(DataServiceConfiguration config) {

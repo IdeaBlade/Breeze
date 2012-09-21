@@ -19,6 +19,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Web;
+using System.Data.EntityClient;
 
 namespace Breeze.WebApi {
 
@@ -26,25 +27,30 @@ namespace Breeze.WebApi {
   // T is either a subclass of DbContext or a subclass of ObjectContext
   public class EFContextProvider<T> where T : class, new() {
 
-    // contextName is the connectionString name for an ObjectContext, may be null for a DbContext.
-    /// <summary>
-    /// Public constructor
-    /// </summary>
-    /// <param name="contextName">This parameter may be null where T is a DbContext; otherwise it is the connectionString name for an ObjectContext</param>
-    public EFContextProvider(String contextName) {
-      if (String.IsNullOrEmpty(contextName) && typeof (ObjectContext).IsAssignableFrom(typeof (T))) {
-        throw new Exception("A contextName must be provided where 'T' is a subclass of ObjectContext.");
-      }
-      ContextName = contextName;
+    public EFContextProvider() {
+      
     }
 
-    public String ContextName { get; private set; }
+    [Obsolete("The contextName is no longer needed. This overload will be removed after Dec 31st 2012.")]
+    public EFContextProvider(string contextName) {
+      
+    } 
+
     public IKeyGenerator KeyGenerator { get; set; }
 
     public T Context {
       get {
         if (_context == null) {
           _context = new T();
+          // Disable lazy loading and proxy creation as this messes up the data service.
+          if (typeof(ObjectContext).IsAssignableFrom(typeof(T))) {
+            var objCtx = (ObjectContext)(Object)_context;
+            objCtx.ContextOptions.LazyLoadingEnabled = false;
+          } else {
+            var dbCtx = (DbContext)(Object)_context;
+            dbCtx.Configuration.ProxyCreationEnabled = false;
+            dbCtx.Configuration.LazyLoadingEnabled = false;
+          }
         }
         return _context;
       }
@@ -52,10 +58,21 @@ namespace Breeze.WebApi {
 
     public ObjectContext ObjectContext {
       get {
-        if (typeof (ObjectContext).IsAssignableFrom(typeof (T))) {
-          return (ObjectContext) (Object) Context;
-        } else {
+        if (Context is DbContext) {
           return ((IObjectContextAdapter) Context).ObjectContext;
+        } else {
+          return (ObjectContext) (Object) Context;
+        } 
+      }
+    }
+
+    private IDbConnection DbConnection {
+      get {
+        var ec = ObjectContext.Connection as EntityConnection;
+        if (ec != null) {
+          return ec.StoreConnection;
+        } else {
+          throw new Exception("Unable to create a StoreConnection");
         }
       }
     }
@@ -65,7 +82,7 @@ namespace Breeze.WebApi {
         if (Context is DbContext) {
           __jsonMetadata = GetJsonMetadataFromDbContext((DbContext) (Object) Context);
         } else {
-          __jsonMetadata = GetJsonMetadataFromObjectContext((ObjectContext) (Object) Context, ContextName);
+          __jsonMetadata = GetJsonMetadataFromObjectContext((ObjectContext) (Object) Context);
         }
       }
       return __jsonMetadata;
@@ -137,7 +154,7 @@ namespace Breeze.WebApi {
 
     private IKeyGenerator GetKeyGenerator() {
       var generatorType = KeyGeneratorType.Value;
-      return (IKeyGenerator) Activator.CreateInstance(generatorType, ContextName);
+      return (IKeyGenerator) Activator.CreateInstance(generatorType, DbConnection);
     }
 
     private EntityInfo CreateEntityInfo(dynamic jo, Type entityType, JsonSerializer jsonSerializer) {
@@ -390,8 +407,8 @@ namespace Breeze.WebApi {
 
     #region Metadata methods
 
-    protected string GetJsonMetadataFromObjectContext(ObjectContext objectContext, string connectionName) {
-      var xmlDoc = GetCsdlFromObjectContext(objectContext, connectionName);
+    protected string GetJsonMetadataFromObjectContext(ObjectContext objectContext) {
+      var xmlDoc = GetCsdlFromObjectContext(objectContext);
       var jsonText = CsdlToJson(xmlDoc);
 
       /* Original version
@@ -410,22 +427,37 @@ namespace Breeze.WebApi {
       return jsonText;
     }
 
-    protected XDocument GetCsdlFromObjectContext(ObjectContext objectContext, String connectionName) {
+    protected XDocument GetCsdlFromObjectContext(ObjectContext objectContext) {
       var ocType = objectContext.GetType();
       var ocAssembly = ocType.Assembly;
       var ocNamespace = ocType.Namespace;
-      var conn = GetConnectionString(connectionName);
-      if (!conn.StartsWith(MetadataPrefix)) {
-        throw new Exception("This connection string does not starts with:" + MetadataPrefix);
+      var ec = objectContext.Connection as EntityConnection;
+      
+      if (ec == null) {
+        throw new Exception("Unable to create an EntityConnection for this ObjectContext");
+      } 
+      var ecBuilder = new EntityConnectionStringBuilder(ec.ConnectionString);
+      var metadataString = "";
+      if (!String.IsNullOrEmpty(ecBuilder.Name)) {
+        metadataString = GetConnectionStringFromConfig(ecBuilder.Name);
+      } else if (!String.IsNullOrEmpty(ecBuilder.Metadata)) {
+        metadataString = ecBuilder.Metadata;
+      } else {
+        throw new Exception("Unable to locate EDMX metadata for " + ec.ConnectionString);
       }
+      
 
-      var csdlResource = conn.Split('|', ';', '=')
+      //if (!edmxConnectionString.StartsWith(MetadataPrefix)) {
+      //  throw new Exception("This connection string does not starts with:" + MetadataPrefix);
+      //}
+
+      var csdlResource = metadataString.Split('|', ';', '=')
         .FirstOrDefault(s => {
           s = s.Trim();
           return s.StartsWith(ResourcePrefix) && s.EndsWith(".csdl");
         });
       if (csdlResource == null) {
-        throw new Exception("Unable to locate a 'csdl' resource within this connection:" + conn);
+        throw new Exception("Unable to locate a 'csdl' resource within this connection:" + ec.ConnectionString);
       }
 
       var parts = csdlResource.Split('/', '.');
@@ -481,7 +513,7 @@ namespace Breeze.WebApi {
       return jsonText;
     }
 
-    protected String GetConnectionString(String connectionName) {
+    protected String GetConnectionStringFromConfig(String connectionName) {
       var item = ConfigurationManager.ConnectionStrings[connectionName];
       return item.ConnectionString;
     }

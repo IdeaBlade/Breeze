@@ -1,20 +1,30 @@
 ﻿#define DBCONTEXT_PROVIDER 
-
+// 
 using System;
 using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
-using Sample_WebApi.Models;
+
 using System.Collections.Generic;
+
+#if DBCONTEXT_PROVIDER
+using Models.NorthwindIB.CF;
+#else
+using Models.NorthwindIB.EDMX;
+#endif
 
 
 namespace Sample_WebApi.Controllers {
 
-  public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext>  {
-    public NorthwindContextProvider(String contextName)
-      : base(contextName) {
-    }
+#if DBCONTEXT_PROVIDER
+  public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_CF>  {
+    public NorthwindContextProvider() : base() { }
+#else 
+  public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_EDMX>  {
+    public NorthwindContextProvider() : base() { }
+#endif
+    
 
     public override bool BeforeSaveEntity(EntityInfo entityInfo) {
       return true;
@@ -32,11 +42,9 @@ namespace Sample_WebApi.Controllers {
 
   public class NorthwindIBModelController : ApiController {
 
-#if DBCONTEXT_PROVIDER 
-    EFContextProvider<NorthwindIBContext> ContextProvider = new NorthwindContextProvider("NorthwindIBContext");
-#else
-    EFContextProvider<NorthwindIBEntities> ContextProvider = new NorthwindContextProvider("NorthwindIBEntities") ;
-#endif
+
+    NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
+
 
     [AcceptVerbs("GET")]
     public String Metadata() {

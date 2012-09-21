@@ -18,53 +18,52 @@ using System.Runtime.Serialization;
 [assembly: EdmSchemaAttribute()]
 #region EDM Relationship Metadata
 
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Order), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Employee_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.Employee), "Employee1", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Employee), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Employee), "EmployeeTerritory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.EmployeeTerritory), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Order_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.Employee), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Order), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Territory", "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Territory), "EmployeeTerritory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.EmployeeTerritory), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_InternationalOrder_Order", "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Order), "InternationalOrder", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.InternationalOrder), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_OrderDetail_Order", "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Order), "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.OrderDetail), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_OrderDetail_Product", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Product), "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.OrderDetail), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Territory_Region", "Region", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Breeze_OData.Region), "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Territory), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Product_Category", "Category", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.Category), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Product), true)]
-[assembly: EdmRelationshipAttribute("NorthwindIBModel", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Breeze_OData.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Breeze_OData.Product), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Employee_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Employee), "Employee1", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Employee), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Employee), "EmployeeTerritory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.EmployeeTerritory), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Employee", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Employee), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Territory", "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Territory), "EmployeeTerritory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.EmployeeTerritory), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Order", "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Order), "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.OrderDetail), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Product", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Product), "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.OrderDetail), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Territory_Region", "Region", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Region), "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Territory), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Category", "Category", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Category), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 
 #endregion
 
-namespace Breeze_OData
+namespace Models.NorthwindIB.EDMX
 {
     #region Contexts
     
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    public partial class NorthwindIBEntities : ObjectContext
+    public partial class NorthwindIBContext_EDMX : ObjectContext
     {
         #region Constructors
     
         /// <summary>
-        /// Initializes a new NorthwindIBEntities object using the connection string found in the 'NorthwindIBEntities' section of the application configuration file.
+        /// Initializes a new NorthwindIBContext_EDMX object using the connection string found in the 'NorthwindIBContext_EDMX' section of the application configuration file.
         /// </summary>
-        public NorthwindIBEntities() : base("name=NorthwindIBEntities", "NorthwindIBEntities")
+        public NorthwindIBContext_EDMX() : base("name=NorthwindIBContext_EDMX", "NorthwindIBContext_EDMX")
         {
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
         }
     
         /// <summary>
-        /// Initialize a new NorthwindIBEntities object.
+        /// Initialize a new NorthwindIBContext_EDMX object.
         /// </summary>
-        public NorthwindIBEntities(string connectionString) : base(connectionString, "NorthwindIBEntities")
+        public NorthwindIBContext_EDMX(string connectionString) : base(connectionString, "NorthwindIBContext_EDMX")
         {
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
         }
     
         /// <summary>
-        /// Initialize a new NorthwindIBEntities object.
+        /// Initialize a new NorthwindIBContext_EDMX object.
         /// </summary>
-        public NorthwindIBEntities(EntityConnection connection) : base(connection, "NorthwindIBEntities")
+        public NorthwindIBContext_EDMX(EntityConnection connection) : base(connection, "NorthwindIBContext_EDMX")
         {
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
@@ -143,22 +142,6 @@ namespace Breeze_OData
             }
         }
         private ObjectSet<EmployeeTerritory> _EmployeeTerritories;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        public ObjectSet<InternationalOrder> InternationalOrders
-        {
-            get
-            {
-                if ((_InternationalOrders == null))
-                {
-                    _InternationalOrders = base.CreateObjectSet<InternationalOrder>("InternationalOrders");
-                }
-                return _InternationalOrders;
-            }
-        }
-        private ObjectSet<InternationalOrder> _InternationalOrders;
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -292,14 +275,6 @@ namespace Breeze_OData
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the InternationalOrders EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToInternationalOrders(InternationalOrder internationalOrder)
-        {
-            base.AddObject("InternationalOrders", internationalOrder);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the OrderDetails EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToOrderDetails(OrderDetail orderDetail)
@@ -358,7 +333,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Category")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Category")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Category : EntityObject
@@ -516,18 +491,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Product_Category", "Product")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Product_Category", "Product")]
         public EntityCollection<Product> Products
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Product>("NorthwindIBModel.FK_Product_Category", "Product");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Product>("Models.NorthwindIB.EDMX.FK_Product_Category", "Product");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Product>("NorthwindIBModel.FK_Product_Category", "Product", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Product>("Models.NorthwindIB.EDMX.FK_Product_Category", "Product", value);
                 }
             }
         }
@@ -538,7 +513,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Customer")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Customer")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Customer : EntityObject
@@ -886,18 +861,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Order_Customer", "Order")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Order")]
         public EntityCollection<Order> Orders
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Order>("NorthwindIBModel.FK_Order_Customer", "Order");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Order>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Order");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Order>("NorthwindIBModel.FK_Order_Customer", "Order", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Order>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Order", value);
                 }
             }
         }
@@ -908,7 +883,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Employee")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Employee")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Employee : EntityObject
@@ -1404,18 +1379,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Employee_Employee", "Employee1")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Employee_Employee", "Employee1")]
         public EntityCollection<Employee> DirectReports
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee1");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee1");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee1", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee1", value);
                 }
             }
         }
@@ -1426,16 +1401,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Employee_Employee", "Employee")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Employee_Employee", "Employee")]
         public Employee Manager
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee").Value = value;
             }
         }
         /// <summary>
@@ -1447,13 +1422,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("NorthwindIBModel.FK_Employee_Employee", "Employee", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Employee_Employee", "Employee", value);
                 }
             }
         }
@@ -1464,18 +1439,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Employee", "EmployeeTerritory")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Employee", "EmployeeTerritory")]
         public EntityCollection<EmployeeTerritory> EmployeeTerritories
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<EmployeeTerritory>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "EmployeeTerritory");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<EmployeeTerritory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "EmployeeTerritory");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<EmployeeTerritory>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "EmployeeTerritory", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<EmployeeTerritory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "EmployeeTerritory", value);
                 }
             }
         }
@@ -1486,18 +1461,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Order_Employee", "Order")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Order_Employee", "Order")]
         public EntityCollection<Order> Orders
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Order>("NorthwindIBModel.FK_Order_Employee", "Order");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Order>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Order");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Order>("NorthwindIBModel.FK_Order_Employee", "Order", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Order>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Order", value);
                 }
             }
         }
@@ -1508,7 +1483,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="EmployeeTerritory")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="EmployeeTerritory")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class EmployeeTerritory : EntityObject
@@ -1644,16 +1619,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Employee", "Employee")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Employee", "Employee")]
         public Employee Employee
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "Employee").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "Employee").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "Employee").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "Employee").Value = value;
             }
         }
         /// <summary>
@@ -1665,13 +1640,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "Employee");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "Employee");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("NorthwindIBModel.FK_EmployeeTerritory_Employee", "Employee", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee", "Employee", value);
                 }
             }
         }
@@ -1682,16 +1657,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Territory", "Territory")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Territory", "Territory")]
         public Territory Territory
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "Territory").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "Territory").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "Territory").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "Territory").Value = value;
             }
         }
         /// <summary>
@@ -1703,13 +1678,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "Territory");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Territory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "Territory");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Territory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "Territory", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Territory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "Territory", value);
                 }
             }
         }
@@ -1720,181 +1695,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="InternationalOrder")]
-    [Serializable()]
-    [DataContractAttribute(IsReference=true)]
-    public partial class InternationalOrder : EntityObject
-    {
-        #region Factory Method
-    
-        /// <summary>
-        /// Create a new InternationalOrder object.
-        /// </summary>
-        /// <param name="orderID">Initial value of the OrderID property.</param>
-        /// <param name="customsDescription">Initial value of the CustomsDescription property.</param>
-        /// <param name="exciseTax">Initial value of the ExciseTax property.</param>
-        /// <param name="rowVersion">Initial value of the RowVersion property.</param>
-        public static InternationalOrder CreateInternationalOrder(global::System.Int32 orderID, global::System.String customsDescription, global::System.Decimal exciseTax, global::System.Int32 rowVersion)
-        {
-            InternationalOrder internationalOrder = new InternationalOrder();
-            internationalOrder.OrderID = orderID;
-            internationalOrder.CustomsDescription = customsDescription;
-            internationalOrder.ExciseTax = exciseTax;
-            internationalOrder.RowVersion = rowVersion;
-            return internationalOrder;
-        }
-
-        #endregion
-        #region Primitive Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 OrderID
-        {
-            get
-            {
-                return _OrderID;
-            }
-            set
-            {
-                if (_OrderID != value)
-                {
-                    OnOrderIDChanging(value);
-                    ReportPropertyChanging("OrderID");
-                    _OrderID = StructuralObject.SetValidValue(value);
-                    ReportPropertyChanged("OrderID");
-                    OnOrderIDChanged();
-                }
-            }
-        }
-        private global::System.Int32 _OrderID;
-        partial void OnOrderIDChanging(global::System.Int32 value);
-        partial void OnOrderIDChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.String CustomsDescription
-        {
-            get
-            {
-                return _CustomsDescription;
-            }
-            set
-            {
-                OnCustomsDescriptionChanging(value);
-                ReportPropertyChanging("CustomsDescription");
-                _CustomsDescription = StructuralObject.SetValidValue(value, false);
-                ReportPropertyChanged("CustomsDescription");
-                OnCustomsDescriptionChanged();
-            }
-        }
-        private global::System.String _CustomsDescription;
-        partial void OnCustomsDescriptionChanging(global::System.String value);
-        partial void OnCustomsDescriptionChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Decimal ExciseTax
-        {
-            get
-            {
-                return _ExciseTax;
-            }
-            set
-            {
-                OnExciseTaxChanging(value);
-                ReportPropertyChanging("ExciseTax");
-                _ExciseTax = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("ExciseTax");
-                OnExciseTaxChanged();
-            }
-        }
-        private global::System.Decimal _ExciseTax;
-        partial void OnExciseTaxChanging(global::System.Decimal value);
-        partial void OnExciseTaxChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 RowVersion
-        {
-            get
-            {
-                return _RowVersion;
-            }
-            set
-            {
-                OnRowVersionChanging(value);
-                ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("RowVersion");
-                OnRowVersionChanged();
-            }
-        }
-        private global::System.Int32 _RowVersion;
-        partial void OnRowVersionChanging(global::System.Int32 value);
-        partial void OnRowVersionChanged();
-
-        #endregion
-    
-        #region Navigation Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_InternationalOrder_Order", "Order")]
-        public Order Order
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_InternationalOrder_Order", "Order").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_InternationalOrder_Order", "Order").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<Order> OrderReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_InternationalOrder_Order", "Order");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Order>("NorthwindIBModel.FK_InternationalOrder_Order", "Order", value);
-                }
-            }
-        }
-
-        #endregion
-    }
-    
-    /// <summary>
-    /// No Metadata Documentation available.
-    /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Order")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Order")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Order : EntityObject
@@ -2266,16 +2067,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Order_Customer", "Customer")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer")]
         public Customer Customer
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("NorthwindIBModel.FK_Order_Customer", "Customer").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Customer").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("NorthwindIBModel.FK_Order_Customer", "Customer").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Customer").Value = value;
             }
         }
         /// <summary>
@@ -2287,13 +2088,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("NorthwindIBModel.FK_Order_Customer", "Customer");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Customer>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Customer");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Customer>("NorthwindIBModel.FK_Order_Customer", "Customer", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Customer>("Models.NorthwindIB.EDMX.FK_Order_Customer", "Customer", value);
                 }
             }
         }
@@ -2304,16 +2105,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Order_Employee", "Employee")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Order_Employee", "Employee")]
         public Employee Employee
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Order_Employee", "Employee").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Employee").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Order_Employee", "Employee").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Employee").Value = value;
             }
         }
         /// <summary>
@@ -2325,13 +2126,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("NorthwindIBModel.FK_Order_Employee", "Employee");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Employee");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("NorthwindIBModel.FK_Order_Employee", "Employee", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Employee>("Models.NorthwindIB.EDMX.FK_Order_Employee", "Employee", value);
                 }
             }
         }
@@ -2342,56 +2143,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_InternationalOrder_Order", "InternationalOrder")]
-        public InternationalOrder InternationalOrder
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("NorthwindIBModel.FK_InternationalOrder_Order", "InternationalOrder").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("NorthwindIBModel.FK_InternationalOrder_Order", "InternationalOrder").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<InternationalOrder> InternationalOrderReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("NorthwindIBModel.FK_InternationalOrder_Order", "InternationalOrder");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<InternationalOrder>("NorthwindIBModel.FK_InternationalOrder_Order", "InternationalOrder", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_OrderDetail_Order", "OrderDetail")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Order", "OrderDetail")]
         public EntityCollection<OrderDetail> OrderDetails
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<OrderDetail>("NorthwindIBModel.FK_OrderDetail_Order", "OrderDetail");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<OrderDetail>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "OrderDetail");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<OrderDetail>("NorthwindIBModel.FK_OrderDetail_Order", "OrderDetail", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<OrderDetail>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "OrderDetail", value);
                 }
             }
         }
@@ -2402,7 +2165,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="OrderDetail")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="OrderDetail")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class OrderDetail : EntityObject
@@ -2593,16 +2356,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_OrderDetail_Order", "Order")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Order", "Order")]
         public Order Order
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_OrderDetail_Order", "Order").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "Order").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_OrderDetail_Order", "Order").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "Order").Value = value;
             }
         }
         /// <summary>
@@ -2614,13 +2377,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("NorthwindIBModel.FK_OrderDetail_Order", "Order");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "Order");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Order>("NorthwindIBModel.FK_OrderDetail_Order", "Order", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_OrderDetail_Order", "Order", value);
                 }
             }
         }
@@ -2631,16 +2394,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_OrderDetail_Product", "Product")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Product", "Product")]
         public Product Product
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("NorthwindIBModel.FK_OrderDetail_Product", "Product").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "Product").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("NorthwindIBModel.FK_OrderDetail_Product", "Product").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "Product").Value = value;
             }
         }
         /// <summary>
@@ -2652,13 +2415,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("NorthwindIBModel.FK_OrderDetail_Product", "Product");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "Product");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Product>("NorthwindIBModel.FK_OrderDetail_Product", "Product", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "Product", value);
                 }
             }
         }
@@ -2669,7 +2432,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Product")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Product")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Product : EntityObject
@@ -2997,18 +2760,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_OrderDetail_Product", "OrderDetail")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_OrderDetail_Product", "OrderDetail")]
         public EntityCollection<OrderDetail> OrderDetails
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<OrderDetail>("NorthwindIBModel.FK_OrderDetail_Product", "OrderDetail");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<OrderDetail>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "OrderDetail");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<OrderDetail>("NorthwindIBModel.FK_OrderDetail_Product", "OrderDetail", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<OrderDetail>("Models.NorthwindIB.EDMX.FK_OrderDetail_Product", "OrderDetail", value);
                 }
             }
         }
@@ -3019,16 +2782,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Product_Category", "Category")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Product_Category", "Category")]
         public Category Category
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("NorthwindIBModel.FK_Product_Category", "Category").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("Models.NorthwindIB.EDMX.FK_Product_Category", "Category").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("NorthwindIBModel.FK_Product_Category", "Category").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("Models.NorthwindIB.EDMX.FK_Product_Category", "Category").Value = value;
             }
         }
         /// <summary>
@@ -3040,13 +2803,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("NorthwindIBModel.FK_Product_Category", "Category");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Category>("Models.NorthwindIB.EDMX.FK_Product_Category", "Category");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Category>("NorthwindIBModel.FK_Product_Category", "Category", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Category>("Models.NorthwindIB.EDMX.FK_Product_Category", "Category", value);
                 }
             }
         }
@@ -3057,16 +2820,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Product_Supplier", "Supplier")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier")]
         public Supplier Supplier
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("NorthwindIBModel.FK_Product_Supplier", "Supplier").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Supplier").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("NorthwindIBModel.FK_Product_Supplier", "Supplier").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Supplier").Value = value;
             }
         }
         /// <summary>
@@ -3078,13 +2841,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("NorthwindIBModel.FK_Product_Supplier", "Supplier");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Supplier>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Supplier");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Supplier>("NorthwindIBModel.FK_Product_Supplier", "Supplier", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Supplier>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Supplier", value);
                 }
             }
         }
@@ -3095,7 +2858,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Region")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Region")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Region : EntityObject
@@ -3205,18 +2968,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Territory_Region", "Territory")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Territory_Region", "Territory")]
         public EntityCollection<Territory> Territories
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Territory>("NorthwindIBModel.FK_Territory_Region", "Territory");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Territory>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Territory");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Territory>("NorthwindIBModel.FK_Territory_Region", "Territory", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Territory>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Territory", value);
                 }
             }
         }
@@ -3227,7 +2990,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Supplier")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Supplier")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Supplier : EntityObject
@@ -3577,18 +3340,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Product_Supplier", "Product")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Product")]
         public EntityCollection<Product> Products
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Product>("NorthwindIBModel.FK_Product_Supplier", "Product");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Product>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Product");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Product>("NorthwindIBModel.FK_Product_Supplier", "Product", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Product>("Models.NorthwindIB.EDMX.FK_Product_Supplier", "Product", value);
                 }
             }
         }
@@ -3599,7 +3362,7 @@ namespace Breeze_OData
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="NorthwindIBModel", Name="Territory")]
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Territory")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
     public partial class Territory : EntityObject
@@ -3735,18 +3498,18 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_EmployeeTerritory_Territory", "EmployeeTerritory")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_EmployeeTerritory_Territory", "EmployeeTerritory")]
         public EntityCollection<EmployeeTerritory> EmployeeTerritories
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<EmployeeTerritory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "EmployeeTerritory");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<EmployeeTerritory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "EmployeeTerritory");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<EmployeeTerritory>("NorthwindIBModel.FK_EmployeeTerritory_Territory", "EmployeeTerritory", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<EmployeeTerritory>("Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Territory", "EmployeeTerritory", value);
                 }
             }
         }
@@ -3757,16 +3520,16 @@ namespace Breeze_OData
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("NorthwindIBModel", "FK_Territory_Region", "Region")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_Territory_Region", "Region")]
         public Region Region
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("NorthwindIBModel.FK_Territory_Region", "Region").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Region").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("NorthwindIBModel.FK_Territory_Region", "Region").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Region").Value = value;
             }
         }
         /// <summary>
@@ -3778,13 +3541,13 @@ namespace Breeze_OData
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("NorthwindIBModel.FK_Territory_Region", "Region");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Region>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Region");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Region>("NorthwindIBModel.FK_Territory_Region", "Region", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Region>("Models.NorthwindIB.EDMX.FK_Territory_Region", "Region", value);
                 }
             }
         }

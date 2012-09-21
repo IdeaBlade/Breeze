@@ -401,9 +401,13 @@
       <Project>{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}</Project>
       <Name>Breeze.WebApi</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sample_CodeFirstModel\Sample_CodeFirstModel.csproj">
+    <ProjectReference Include="..\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj">
       <Project>{763B4341-7A4E-4880-A4E2-31AADC05F1AD}</Project>
-      <Name>Sample_CodeFirstModel</Name>
+      <Name>Model_NorthwindIB_CF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_NorthwindIB_EDMX\Model_NorthwindIB_EDMX.csproj">
+      <Project>{370B1324-F59F-45F6-9519-B29258405CFB}</Project>
+      <Name>Model_NorthwindIB_EDMX</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

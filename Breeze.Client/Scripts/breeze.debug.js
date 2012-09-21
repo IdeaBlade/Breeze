@@ -3625,6 +3625,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
         
+        /**
+        The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
+
+        __readOnly__
+        @property namingConvention {NamingConvention}
+        **/
         
         /**
         Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called 
@@ -4063,7 +4069,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 }
             }
             var dataType = DataType.toDataType(odataProperty.type);
-            var isNullable = odataProperty.nullable === 'true';
+            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
             var name = toClientName(entityType, odataProperty.name);
 
@@ -4756,7 +4762,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.defaultValue === undefined ) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
             } else if (this.defaultValue === null && !this.isNullable) {
-                throw new Error("A nonnullable DataProperty cannot have a null defaultValue");
+                throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
             }
             this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
@@ -8605,11 +8611,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
             // TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
-            // if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-            if (isSelectQuery(queryContext.query) && !isNestedInAnon) {
+            
+            var entityType = em.metadataStore.getEntityType(entityTypeName, true);
+            // all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
+            if (entityType == null && isSelectQuery(queryContext.query) && !isNestedInAnon) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
-            var entityType = em.metadataStore.getEntityType(entityTypeName);
 
             rawEntity.entityType = entityType;
             var entityKey = EntityKey._fromRawEntity(rawEntity, entityType);
@@ -8670,6 +8677,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {
+                    return;
+                }
+                // EntityKey properties can be produced by EDMX models
+                if (key == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data")) {
                     return;
                 }
                 var firstChar = key.substr(0, 1);
@@ -9503,7 +9514,12 @@ function (core, m_entityMetadata) {
         var url = entityManager.serviceName + odataQuery;
         $.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
-            collectionCallback(data);
+            try {
+                collectionCallback(data);
+            } catch (e) {
+                // needed because it doesn't look like jquery calls .fail if an error occurs within the function
+                if (errorCallback) errorCallback(e);
+            }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
         });
