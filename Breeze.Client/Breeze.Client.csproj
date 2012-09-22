@@ -41,7 +41,6 @@
   <ItemGroup>
     <Content Include="Scripts\IBlade\assertParam.js" />
     <None Include="packages.config" />
-    <None Include="Scripts\IBlade\build.ps1.old" />
     <None Include="Scripts\IBlade\buildend.frag" />
     <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\yuidoc.json" />
@@ -109,8 +108,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd $(ProjectDir)\Scripts\iblade
-pause
+    <PostBuildEvent>cd $(ProjectDir)Scripts\iblade
 powershell .\build</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

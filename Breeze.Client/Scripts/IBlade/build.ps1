@@ -1,6 +1,6 @@
 ﻿$env:path += ";c:\program files (x86)\nodejs"
 
-node ../ThirdParty/r.js -o buildx.js 
+node ../ThirdParty/r.js -o buildx.js out=../breeze.js
 
 node ../ThirdParty/r.js -o buildx.js out=../breeze.debug.js optimize=none 
 
