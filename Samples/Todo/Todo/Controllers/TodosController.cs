@@ -14,7 +14,7 @@
         // static DateTime lastRefresh = DateTime.MinValue; // will clear when server starts
 
         readonly EFContextProvider<TodosContext> _contextProvider =
-            new EFContextProvider<TodosContext>("TodosContext");
+            new EFContextProvider<TodosContext>();
 
         public TodosController()
         {

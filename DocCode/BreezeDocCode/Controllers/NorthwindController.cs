@@ -13,7 +13,7 @@ namespace BreezeDocCode.Controllers
   public class NorthwindController : ApiController {
 
     readonly EFContextProvider<NorthwindContext> ContextProvider =
-        new EFContextProvider<NorthwindContext>(NorthwindContext.ContextName);
+        new EFContextProvider<NorthwindContext>();
 
     [AcceptVerbs("GET")]
     public String Metadata() {
