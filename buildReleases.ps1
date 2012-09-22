@@ -1,8 +1,23 @@
-function pauseAndThrow($msg) {
-    Write-Host $msg
+function pauseAndThrow($msg="") {
+    if ($msg -ne "") {
+        Write-Host $msg
+    }
     Write-Host "Press any key to continue ..."
     cmd /c pause | out-null
     throw $msg
+}
+
+function checkIfCurrent([string] $filePath, [int] $minutesOld) {
+    $now = [datetime]::Now
+    $lastWrite = $now.AddMinutes(-1*$minutesOld)
+    $oldFiles = get-childItem $filePath | Where {$_.LastWriteTime -lt "$lastWrite"}
+    $oldFiles | foreach-object {
+        $fileName = $_.fullName
+        write-host "The $fileName file is too old" 
+    }
+    if ($oldFiles -ne $null) {
+       pauseAndThrow("")
+    }        
 }
 
 # make sure 7-Zip is available
@@ -24,25 +39,16 @@ if (test-path $destDir) {
 }
 
 # Check that all files have been updated within the last 5 minutes
-$now = [datetime]::Now
-$LastWrite = $Now.AddMinutes(-5)
-
-$webApiDllFile = Get-ChildItem $srcDir\Breeze.WebApi\Breeze.WebApi.dll |  Where {$_.LastWriteTime -ge "$LastWrite"}
-if (($webApiDllFile -eq $null) -or (-not $webApiDllFile.count -eq $null)) {
-    pauseAndThrow("The Breeze.WebApi.dll file is too old - rebuild it before rerunning this script")
-}
-$jsFiles = Get-ChildItem $srcDir\Breeze.Client\Scripts\*.js |  Where {$_.LastWriteTime -ge "$LastWrite"}
-if (($jsFiles -eq $null) -or ($jsFiles.count -ne 2)) {
-    pauseAndThrow("The Breeze.debug.js and Breeze.js files are too old - rebuild them before rerunning this script")
-}
-
+$minutes = 5
+checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
+checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 # erases all files in any bin,obj and resharper folders below $srcDir and any .suo files
 get-childItem $srcDir\ -include bin,obj,packages,*_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
 
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
-copy-item $srcDir\Breeze.Client\Scripts\*.js $destDir\Scripts 
+copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
 new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
 copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi
