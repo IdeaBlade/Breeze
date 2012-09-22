@@ -1,5 +1,7 @@
 .svn
 _ReSharper*
+_temp
+release*.zip
 TestResults
 *.user
 *.docx
