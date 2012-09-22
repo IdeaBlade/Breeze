@@ -6,7 +6,8 @@
     using Newtonsoft.Json.Linq;
 
     public class InspectorController : ApiController {
-        readonly EFContextProvider<InspectorContext> contextProvider = new EFContextProvider<InspectorContext>("InspectorContext");
+        readonly EFContextProvider<InspectorContext> contextProvider = 
+            new EFContextProvider<InspectorContext>();
 
         [AcceptVerbs("GET")]
         public string Metadata() {

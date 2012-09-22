@@ -9,7 +9,7 @@
     public class TodosController : ApiController {
 
         readonly EFContextProvider<TodosContext> ContextProvider = 
-            new EFContextProvider<TodosContext>("TodosContext");
+            new EFContextProvider<TodosContext>();
 
         // ~/api/todos/Metadata 
         [AcceptVerbs("GET")]
