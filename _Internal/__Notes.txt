@@ -3,6 +3,17 @@ ApiDocs
     Run
         yuidoc -t "C:\Subversion\Breeze\apidoc-theme\breeze" .
 
+Powershell
+    Start with an 'admin' security command prompt
+
+    then for each of these powershell executables - they look reversed but they are correct.
+        32-bit PowerShell 	C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe
+        64-bit PowerShell 	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+    run
+        set-executionpolicy remotesigned
+
+
 Semantic Versioning:
     see: http://semver.org/
 
