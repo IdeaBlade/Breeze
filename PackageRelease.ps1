@@ -30,7 +30,6 @@ if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
 } 
 
 
-
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $destDir = $srcDir+"\_temp"
