@@ -29,9 +29,16 @@ if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
     pauseAndThrow("$env:ProgramFiles\7-Zip\7z.exe or $env:ProgramFiles (x86)\7-Zip\7z.exe needed")
 } 
 
+$versionFile = $srcDir+"\Breeze.Client\Scripts\IBlade\root.js"
+$versionFileText = get-content $versionFile
+$versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
+
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $destDir = $srcDir+"\_temp"
+$versionFile = $srcDir+"\Breeze.Client\Scripts\IBlade\root.js"
+$text = get-content $versionFile
+$versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
 
 # erase the destDir if it exists
 if (test-path $destDir) {
@@ -53,7 +60,8 @@ new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
 copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi
 copy-item $srcDir\readme.txt $destDir\readme.txt
-$zipFile = $srcDir+"\release.zip"
+"Version: $VersionNum" | out-file $destDir\version.txt
+$zipFile = $srcDir+"\release-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }
@@ -63,7 +71,7 @@ sz a -tzip "$zipFile" "$destDir\*"
 copy-item $srcDir\DocCode $destDir\DocCode -recurse
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
-$zipFile = $srcDir+"\release-plus.zip"
+$zipFile = $srcDir+"\release-plus-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }
