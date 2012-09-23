@@ -61,7 +61,7 @@ copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
 copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi
 copy-item $srcDir\readme.txt $destDir\readme.txt
 "Version: $VersionNum" | out-file $destDir\version.txt
-$zipFile = $srcDir+"\release-$versionNum.zip"
+$zipFile = $srcDir+"\breeze-runtime-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }
@@ -71,7 +71,7 @@ sz a -tzip "$zipFile" "$destDir\*"
 copy-item $srcDir\DocCode $destDir\DocCode -recurse
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
-$zipFile = $srcDir+"\release-plus-$versionNum.zip"
+$zipFile = $srcDir+"\breeze-runtime-plus-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }
