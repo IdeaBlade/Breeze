@@ -1,11 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{F42A48E6-42D1-4989-8ED9-F80C37D8A62D}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{870357DE-CA2C-4B2E-9AF2-3B822E26D57B}"
 	ProjectSection(SolutionItems) = preProject
 		_Internal\__Notes.txt = _Internal\__Notes.txt
@@ -23,6 +18,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi.Test", "Breeze.WebApi.Test\Breeze.WebApi.Test.csproj", "{84B5B5C8-5CA9-4FA7-B762-DC8775787F91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi", "Breeze.WebApi\Breeze.WebApi.csproj", "{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BreezeDocCode", "DocCode\BreezeDocCode\BreezeDocCode.csproj", "{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9BDE026E-CE0A-42F1-A508-4BE30124DD67} = {9BDE026E-CE0A-42F1-A508-4BE30124DD67}
+		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754} = {4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo", "Samples\Todo\Todo\Todo.csproj", "{FB25AC6F-644E-444D-83A2-79CF228FDBCE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9BDE026E-CE0A-42F1-A508-4BE30124DD67} = {9BDE026E-CE0A-42F1-A508-4BE30124DD67}
+		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754} = {4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -67,6 +74,26 @@ Global
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1F73A94F-1DFD-4E2D-97A8-4B0EA2BEC5F9}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{FB25AC6F-644E-444D-83A2-79CF228FDBCE}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

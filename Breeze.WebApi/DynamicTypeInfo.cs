@@ -64,7 +64,6 @@ namespace Breeze.WebApi {
     /// <param name="anonOrDynType"></param>
     /// <returns></returns>
     public static DynamicTypeInfo FindOrCreate(Type anonOrDynType) {
-      DynamicTypeInfo result;
       if (DynamicTypeInfo.IsDynamicType(anonOrDynType)) {
         return FindByDynamicTypeName(anonOrDynType.Name);
       } else {
