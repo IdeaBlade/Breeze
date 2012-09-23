@@ -11,12 +11,12 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
     $now = [datetime]::Now
     $lastWrite = $now.AddMinutes(-1*$minutesOld)
     $oldFiles = get-childItem $filePath | Where {$_.LastWriteTime -lt "$lastWrite"}
-    $oldFiles | foreach-object {
-        $fileName = $_.fullName
-        write-host "The $fileName file is too old" 
-    }
     if ($oldFiles -ne $null) {
-       pauseAndThrow("")
+        $oldFiles | foreach-object {
+            $fileName = $_.fullName
+            write-host "The $fileName file is too old" 
+        }
+        pauseAndThrow("")
     }        
 }
 
@@ -29,13 +29,12 @@ if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
     pauseAndThrow("$env:ProgramFiles\7-Zip\7z.exe or $env:ProgramFiles (x86)\7-Zip\7z.exe needed")
 } 
 
-$versionFile = $srcDir+"\Breeze.Client\Scripts\IBlade\root.js"
-$versionFileText = get-content $versionFile
-$versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
+
 
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $destDir = $srcDir+"\_temp"
+
 $versionFile = $srcDir+"\Breeze.Client\Scripts\IBlade\root.js"
 $text = get-content $versionFile
 $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
