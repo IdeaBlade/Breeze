@@ -4,10 +4,8 @@
         <h1 data-bind="html: title"></h1>
         <h2 data-bind="html: subtitle1"></h2>
         <h2 data-bind="html: subtitle2"></h2>
-        <button class="save" data-bind="click: save, visible: showSaved">Save</button>
-        <button class="errors" data-bind="click: showErrors, visible: validationMessages().length != 0">Errors</button>
         <div class="commands left" data-bind="foreach: commands">
-            <a data-bind="text: name, click: execute, enabled: canExecute"></a>
+            <a data-bind="text: name, click: execute, css:{ disabled: !canExecute() }"></a>
         </div>
         <div class="commands right">
             <a>offline</a>

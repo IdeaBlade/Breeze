@@ -58,6 +58,31 @@
 
         var loc = this.inspection.Job().Location();
         shell.subtitle2(loc.Street1() + ", " + loc.City() + ", " + loc.State());
+
+        shell.addCommand('save',
+            function() {
+                alert('not implemented');
+            }
+        );
+
+        shell.addCommand('clear',
+            function() {
+                alert('not implemented');
+            }
+        );
+
+        shell.addCommand('done', //or reopen
+            function() {
+                alert('not implemented');
+            }
+        );
+
+        shell.addCommand('cancel',
+            function() {
+                alert('not implemented');
+            },
+            ko.observable(false)
+        );
     };
 
     return vm;

@@ -8,6 +8,19 @@
         subtitle1: ko.observable(""),
         subtitle2: ko.observable(""),
         commands: ko.observableArray([]),
+        addCommand: function(name, execute, canExecute) {
+            canExecute = canExecute || function() { return true; };
+
+            this.commands.push({
+                name: name,
+                execute: function() {
+                    if (canExecute()) {
+                        execute();
+                    }
+                },
+                canExecute: canExecute
+            });
+        },
         initialize: function() {
             ko.compose('shell', null, "#applicationHost", function() {
                 shell.navigate('login');

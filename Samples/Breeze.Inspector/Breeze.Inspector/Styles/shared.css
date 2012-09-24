@@ -68,6 +68,14 @@ section {
     top: 4.5em;
 }
 
+.commands a {
+    margin-right: 20px;
+}
+
+.commands a.disabled {
+    color: lightgray;
+}
+
 .login {
     position: absolute;
     top: 0;
