@@ -8,9 +8,10 @@
             <a data-bind="text: name, click: execute, css:{ disabled: !canExecute() }"></a>
         </div>
         <div class="commands right">
-            <a>offline</a>
-            <a>help</a>
+            <a data-bind="click: toggleConnection, html:connectionAction"></a>
+            <a data-bind="click: showHelp">help</a>
         </div>
+        <div class="status" data-bind="css:{ inProgress:status() == 'InProgress', canceled:status() == 'Canceled', done:status() == 'Done' }"></div>
     </header>
     <section id="contentHost"></section>
 </div>

@@ -44,10 +44,6 @@ header button.back {
     height: 60px;
 }
 
-button.save, button.errors {
-    right: .5em;
-}
-
 section {
     position: absolute;
     left: 0;
@@ -74,6 +70,23 @@ section {
 
 .commands a.disabled {
     color: lightgray;
+}
+
+.status {
+     position: absolute;
+    right: .5em;
+}
+
+.status.inProgress {
+    
+}
+
+.status.canceled {
+    
+}
+
+.status.done {
+    
 }
 
 .login {

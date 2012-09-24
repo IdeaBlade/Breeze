@@ -9,7 +9,7 @@
             shell.title(shell.inspector().Name());
             shell.addCommand('add',
                 function() {
-                    alert('not implemented');
+                    shell.navigate("createJob");
                 }
             );
             data.getJobsFor(shell.inspector().Id()).then(function(response) {

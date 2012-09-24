@@ -3,11 +3,12 @@
     var backStack = ko.observableArray([]);
     var currentScreen;
 
-    var shell = {
+    return {
         title: ko.observable(""),
         subtitle1: ko.observable(""),
         subtitle2: ko.observable(""),
         commands: ko.observableArray([]),
+        status: ko.observable(null),
         addCommand: function(name, execute, canExecute) {
             canExecute = canExecute || function() { return true; };
 
@@ -22,38 +23,23 @@
             });
         },
         initialize: function() {
-            ko.compose('shell', null, "#applicationHost", function() {
-                shell.navigate('login');
-            });
-        },
-        validationMessages: ko.observable([]),
-        showErrors: function() {
-            var message = "The following problems were found:\n\n";
-
-            this.validationMessages().forEach(function(item) {
-                message += item + "\n";
-            });
-
-            alert(message);
-        },
-        canSave: ko.observable(false),
-        save: function() {
             var that = this;
-            that.status("Saving...");
-            dataservice.saveChanges().then(function() {
-                that.status("");
+            ko.compose('shell', null, "#applicationHost", function() {
+                that.navigate('login');
             });
         },
-        connectionAction: ko.observable(dataservice.isOffline() ? "Connect" : "Go Offline"),
+        connectionAction: ko.observable(dataservice.isOffline() ? "connect" : "offline"),
         toggleConnection: function() {
             dataservice.toggleConnection();
 
             if (dataservice.isOffline()) {
-                this.connectionAction("Connect");
+                this.connectionAction("connect");
             } else {
-                this.connectionAction("Go Offline");
-                this.canSave(dataservice.hasChanges());
+                this.connectionAction("offline");
             }
+        },
+        showHelp: function() {
+            alert('not implemented');
         },
         canGoBack: ko.computed(function() {
             return backStack().length != 0;
@@ -63,6 +49,7 @@
             this.subtitle1("");
             this.subtitle2("");
             this.commands.removeAll();
+            this.status(null);
         },
         goBack: function() {
             var previous = backStack.pop();
@@ -83,12 +70,4 @@
         },
         inspector: ko.observable(null)
     };
-
-    shell.showSaved = ko.computed(function() {
-        return this.canSave() && this.validationMessages().length == 0 && this.connectionAction() == 'Go Offline';
-    }, shell);
-
-    dataservice.onCanSaveChanges(shell.canSave);
-
-    return shell;
 });

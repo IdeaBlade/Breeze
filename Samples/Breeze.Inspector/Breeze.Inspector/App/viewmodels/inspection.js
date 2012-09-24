@@ -32,24 +32,6 @@
 
             this.fields.push(new Field(question, answer));
         }
-
-        this.validationMessages = ko.computed(function() {
-            var messages = [];
-
-            this.fields().forEach(function(field) {
-                var message = field.validationMessage();
-
-                if (message) {
-                    messages.push(message);
-                }
-            });
-
-            return messages;
-        }, this);
-
-        this.validationMessages.subscribe(function(value) {
-            shell.validationMessages(value);
-        });
     };
 
     vm.prototype.activate = function() {
@@ -74,7 +56,20 @@
         shell.addCommand('done', //or reopen
             function() {
                 alert('not implemented');
-            }
+            },
+            ko.computed(function() {
+                var messages = [];
+
+                this.fields().forEach(function(field) {
+                    var message = field.validationMessage();
+
+                    if (message) {
+                        messages.push(message);
+                    }
+                });
+
+                return messages.length == 0;
+            }, this)
         );
 
         shell.addCommand('cancel',

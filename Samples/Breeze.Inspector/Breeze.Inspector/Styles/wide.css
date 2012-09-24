@@ -9,6 +9,7 @@ header {
 header h1 {
     font-size: 3em;
     padding-top: .125em;
+    padding-bottom: .1em;
 }
 
 header button {
