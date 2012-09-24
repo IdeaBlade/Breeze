@@ -5,13 +5,18 @@
  *
  * Author: Jay Traband
  */
-(function (definitionFn) {
-    if (typeof define === "function") {
-        define([], definitionFn);
+(function (window, definitionFn) {
+    if ( typeof define === "function") {
+        if (define.amd && define.amd.breeze ) {
+            define( "breeze", [], definitionFn );
+        } else {
+            define([], definitionFn);
+        }
     } else {
         definitionFn();
     }
-}( function() {
+    
+}(window, function () {
 
 /**
  * almond 0.0.3 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -10190,7 +10195,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.56",
+        version: "0.57",
         core: core,
         entityModel: entityModel
     };
@@ -10199,5 +10204,7 @@ function (core, entityModel) {
 });
 
     var breeze = requirejs('root');
+    // If two instances are loaded last one sets window.breeze.
+    this.window.breeze = breeze;
     return breeze;
 }));

@@ -5,10 +5,15 @@
  *
  * Author: Jay Traband
  */
-(function (definitionFn) {
-    if (typeof define === "function") {
-        define([], definitionFn);
+(function (window, definitionFn) {
+    if ( typeof define === "function") {
+        if (define.amd && define.amd.breeze ) {
+            define( "breeze", [], definitionFn );
+        } else {
+            define([], definitionFn);
+        }
     } else {
         definitionFn();
     }
-}( function() {
+    
+}(window, function () {
