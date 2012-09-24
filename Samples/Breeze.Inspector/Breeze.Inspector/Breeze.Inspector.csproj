@@ -160,6 +160,7 @@
   <ItemGroup>
     <Content Include="App\lib\breeze.debug.js" />
     <Content Include="App\lib\jquery-1.7.2.min.js" />
+    <Content Include="App\lib\jquery.simplemodal.js" />
     <Content Include="App\lib\knockout-2.1.0.js" />
     <Content Include="App\lib\q.js" />
     <Content Include="App\lib\qunit.js" />
@@ -173,6 +174,7 @@
     <Content Include="App\tests\changeNotificationShouldNotHappen.js" />
     <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />
     <Content Include="App\tests\wardsDupTests.js" />
+    <Content Include="App\viewmodels\addInspection.js" />
     <Content Include="App\viewmodels\createJob.js" />
     <Content Include="App\viewmodels\field.js" />
     <Content Include="App\viewmodels\inspection.js" />
@@ -183,6 +185,7 @@
     <Content Include="App\behaviors\Checkbox.js" />
     <Content Include="App\behaviors\Textarea.js" />
     <Content Include="App\behaviors\Textbox.js" />
+    <Content Include="App\views\addInspection.html" />
     <Content Include="App\views\CheckboxGroup.html" />
     <Content Include="App\views\createJob.html" />
     <Content Include="App\views\Dropdown.html" />
