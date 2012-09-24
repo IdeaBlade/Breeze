@@ -67,12 +67,15 @@ sz a -tzip "$zipFile" "$destDir\*"
 
 #create basic plus... release folder structure and zip it
 copy-item $srcDir\DocCode $destDir\DocCode -recurse
+gci $destDir\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
+gci $destDir\Samples\Todo -include *.sdf -recurse -force | remove-Item -recurse -force
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = $srcDir+"\breeze-runtime-plus-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }
+
 sz a -tzip "$zipFile" "$destDir\*"    
 
 Write-Host "Press any key to continue ..."

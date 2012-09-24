@@ -10124,28 +10124,30 @@ function (core, makeRelationArray) {
         return true;
     };
 
-    ko.extenders.intercept = function (target, interceptorOptions) {
-        var instance = interceptorOptions.instance;
-        var property = interceptorOptions.property;
-        // var interceptor = interceptorOptions.interceptor;
-        // create a computed observable to intercept writes to our observable
-        var result;
-        if (target.splice) {
-            result = ko.computed({
-                read: target  //always return the original observables value
-            });
-        } else {
-            result = ko.computed({
-                read: target,  //always return the original observables value
-                write: function (newValue) {
-                    instance.interceptor(property, newValue, target);
-                    return instance;
-                }
-            });
-        }
-        //return the new computed observable
-        return result;
-    };
+    if (ko) {
+        ko.extenders.intercept = function(target, interceptorOptions) {
+            var instance = interceptorOptions.instance;
+            var property = interceptorOptions.property;
+            // var interceptor = interceptorOptions.interceptor;
+            // create a computed observable to intercept writes to our observable
+            var result;
+            if (target.splice) {
+                result = ko.computed({
+                    read: target  //always return the original observables value
+                });
+            } else {
+                result = ko.computed({
+                    read: target,  //always return the original observables value
+                    write: function(newValue) {
+                        instance.interceptor(property, newValue, target);
+                        return instance;
+                    }
+                });
+            }
+            //return the new computed observable
+            return result;
+        };
+    }
 
     return trackingImpl;
 
