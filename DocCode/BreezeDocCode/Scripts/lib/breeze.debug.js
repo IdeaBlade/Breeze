@@ -6,8 +6,12 @@
  * Author: Jay Traband
  */
 (function (window, definitionFn) {
-    if ( typeof define === "function" && define.amd && define.amd.breeze ) {
-        define( "breeze", [], definitionFn );
+    if ( typeof define === "function") {
+        if (define.amd && define.amd.breeze ) {
+            define( "breeze", [], definitionFn );
+        } else {
+            define([], definitionFn);
+        }
     } else {
         definitionFn();
     }
