@@ -9,7 +9,9 @@
                     return null;
                 }
 
-                return new RegExp(question.ResponsePattern()).test(answer.Response()) ? null : question.Text() + " format incorrect";
+                return new RegExp(question.ResponsePattern()).test(answer.Response())
+                    ? null
+                    : question.Text() + " format incorrect";
             }
 
             if (question.IsRequired()) {

@@ -8,6 +8,7 @@ namespace Breeze.Inspector.Models {
         public int Id { get; set; }
         
         public List<Answer> Answers { get; set; }
+        public string Status { get; set; }
 
         [ForeignKey("Form")]
         public int FormId { get; set; }
@@ -19,6 +20,7 @@ namespace Breeze.Inspector.Models {
 
         public Inspection() {
             Answers = new List<Answer>();
+            Status = InspectionStatus.InProgress;
         }
     }
 }

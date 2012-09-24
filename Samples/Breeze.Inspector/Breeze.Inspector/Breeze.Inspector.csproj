@@ -149,6 +149,7 @@
     <Compile Include="Models\Answer.cs" />
     <Compile Include="Models\Inspection.cs" />
     <Compile Include="Models\InspectionForm.cs" />
+    <Compile Include="Models\InspectionStatus.cs" />
     <Compile Include="Models\Inspector.cs" />
     <Compile Include="Models\InspectorContext.cs" />
     <Compile Include="Models\Job.cs" />
@@ -172,6 +173,8 @@
     <Content Include="App\tests\changeNotificationShouldNotHappen.js" />
     <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />
     <Content Include="App\tests\wardsDupTests.js" />
+    <Content Include="App\viewmodels\createJob.js" />
+    <Content Include="App\viewmodels\field.js" />
     <Content Include="App\viewmodels\inspection.js" />
     <Content Include="App\viewmodels\joblist.js" />
     <Content Include="App\viewmodels\login.js" />
@@ -181,6 +184,7 @@
     <Content Include="App\behaviors\Textarea.js" />
     <Content Include="App\behaviors\Textbox.js" />
     <Content Include="App\views\CheckboxGroup.html" />
+    <Content Include="App\views\createJob.html" />
     <Content Include="App\views\Dropdown.html" />
     <Content Include="App\views\inspection.html" />
     <Content Include="App\views\joblist.html" />
