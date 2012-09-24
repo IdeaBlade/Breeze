@@ -7,13 +7,11 @@
         jobs: ko.observableArray([]),
         activate: function() {
             shell.title(shell.inspector().Name());
-            shell.commands.push({
-                name: 'add',
-                canExecute: true,
-                execute: function() {
+            shell.addCommand('add',
+                function() {
                     alert('not implemented');
                 }
-            });
+            );
             data.getJobsFor(shell.inspector().Id()).then(function(response) {
                 vm.jobs(response.results);
                 var locations = vm.jobs().length;

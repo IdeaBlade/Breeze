@@ -6,13 +6,11 @@
         inspectors: ko.observableArray([]),
         activate: function() {
             shell.title("Breeze Inspector");
-            shell.commands.push({
-                name: 'reset',
-                canExecute: true,
-                execute: function() {
+            shell.addCommand('reset',
+                function() {
                     alert('not implemented');
                 }
-            });
+            );
         },
         selectInspector: function(inspector) {
             shell.inspector(inspector);

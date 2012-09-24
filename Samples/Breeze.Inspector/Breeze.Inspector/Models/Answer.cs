@@ -1,5 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 namespace Breeze.Inspector.Models {
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public class Answer {
         [Key]
         public int Id { get; set; }
