@@ -1,3 +1,6 @@
+var xx = require(["breeze.debug.js"], function(x) {
+    return x;
+});
 QUnit.config.autostart = false;
 require.config({ baseUrl: "Scripts/Tests" });
 require([

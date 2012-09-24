@@ -16,6 +16,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 // using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models.NorthwindIB.CF {
