@@ -34,10 +34,6 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
       
-    //public bool SaveCustomer(Customer c, EntityInfo entityInfo) {
-      
-    //}
-
   }
 
   public class NorthwindIBModelController : ApiController {
