@@ -502,6 +502,6 @@ define(["testFns"], function (testFns) {
 
     function cloneMetadataStore(metadataStore) {
         return new entityModel.MetadataStore()
-            .import(metadataStore.export());
+            .importMetadata(metadataStore.exportMetadata());
     };
 });

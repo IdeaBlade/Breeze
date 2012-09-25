@@ -672,7 +672,7 @@ define(["testFns"], function (testFns) {
         em.addEntity(createTodo("Export/import safely #3"));
 
         var changes = em.getChanges();
-        var changesExport = em.export(changes);
+        var changesExport = em.exportEntities(changes);
 
         ok(window.localStorage, "this browser supports local storage");
 
@@ -684,7 +684,7 @@ define(["testFns"], function (testFns) {
             "em should be empty after clearing it");
 
         var changesImport = window.localStorage.getItem(stashName);
-        em.import(changesImport);
+        em.importEntities(changesImport);
 
         var entitiesInCache = em.getEntities();
         var restoreCount = entitiesInCache.length;

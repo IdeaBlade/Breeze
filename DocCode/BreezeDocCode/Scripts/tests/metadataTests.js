@@ -51,9 +51,9 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("export and import a metadataStore", 2, function () {
 
-        var metaExport = moduleMetadataStore.export();
+        var metaExport = moduleMetadataStore.exportMetadata();
         var newStore = new MetadataStore();
-        newStore.import(metaExport);
+        newStore.importMetadata(metaExport);
 
         ok(newStore.hasMetadataFor(northwindService), "newStore has metadata for Northwind");
 
@@ -66,7 +66,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("export and import a metadataStore from local storage", 2, function () {
 
-        var metaExport = moduleMetadataStore.export();
+        var metaExport = moduleMetadataStore.exportMetadata();
 
         ok(window.localStorage, "this browser supports local storage");
 
@@ -74,7 +74,7 @@ define(["testFns"], function (testFns) {
 
         var metaImport = window.localStorage.getItem('metadata');
 
-        var newStore = new MetadataStore().import(metaImport);
+        var newStore = new MetadataStore().importMetadata(metaImport);
 
         ok(newStore.hasMetadataFor(northwindService), "newStore has metadata for Northwind");
     });
@@ -212,7 +212,7 @@ define(["testFns"], function (testFns) {
     }
 
     function cloneStore(source) {
-        var metaExport = source.export();
-        return new MetadataStore().import(metaExport);
+        var metaExport = source.exportMetadata();
+        return new MetadataStore().importMetadata(metaExport);
     }
 });
