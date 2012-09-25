@@ -415,25 +415,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         Creates a new EntityManager and imports a previously exported result into it.
         @example
             &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             &#x2F;&#x2F; can be stored via the web storage api
             window.localStorage.setItem(&quot;myEntityManager&quot;, bundle);
             &#x2F;&#x2F; assume the code below occurs in a different session.
             var bundleFromStorage = window.localStorage.getItem(&quot;myEntityManager&quot;);
             &#x2F;&#x2F; and imported
-            var em2 = EntityManager.import(bundleFromStorage);
+            var em2 = EntityManager.importEntities(bundleFromStorage);
             &#x2F;&#x2F; em2 will now have a complete copy of what was in em1
-        @method import
+        @method importEntities
         @static
-        @param exportedString {String} The result of a previous &#x27;export&#x27; call.
+        @param exportedString {String} The result of a previous &#x27;exportEntities&#x27; call.
         @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} to use when 
         merging into an existing EntityManager.
         @return {EntityManager} A new EntityManager.
         **&#x2F;
-        ctor.import = function (exportedString, config) {
+        ctor.importEntities = function (exportedString, config) {
             var em = new EntityManager();
-            em.import(exportedString, config);
+            em.importEntities(exportedString, config);
             return em;
         };
 
@@ -446,7 +446,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         memory.  This snapshot can be restored or merged into an another EntityManager at some later date. 
         @example
             &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             &#x2F;&#x2F; can be stored via the web storage api
             window.localStorage.setItem(&quot;myEntityManager&quot;, bundle);
             &#x2F;&#x2F; assume the code below occurs in a different session.
@@ -455,23 +455,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 serviceName: em1.serviceName, 
                 metadataStore: em1.metadataStore 
             });
-            em2.import(bundleFromStorage);
+            em2.importEntities(bundleFromStorage);
             &#x2F;&#x2F; em2 will now have a complete copy of what was in em1
         You can also control exactly which entities are exported. 
         @example
             &#x2F;&#x2F; assume entitiesToExport is an array of entities to export.
-            var bundle = em1.export(entitiesToExport);
+            var bundle = em1.exportEntities(entitiesToExport);
             &#x2F;&#x2F; assume em2 is another entityManager containing some of the same entities possibly with modifications.
-            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
-        @method export
+            em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+        @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
         @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **&#x2F;
-        ctor.prototype.export = function (entities) {
+        ctor.prototype.exportEntities = function (entities) {
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
-                metadataStore: this.metadataStore.export(),
+                metadataStore: this.metadataStore.exportMetadata(),
                 serviceName: this.serviceName,
                 saveOptions: this.saveOptions,
                 queryOptions: this.queryOptions,
@@ -491,30 +491,30 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         very similar process. 
         @example
             &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             &#x2F;&#x2F; bundle can be stored in window.localStorage or just held in memory.
             var em2 = new EntityManager({ 
                 serviceName: em1.serviceName, 
                 metadataStore: em1.metadataStore 
             });
-            em2.import(bundle);
+            em2.importEntities(bundle);
             &#x2F;&#x2F; em2 will now have a complete copy of what was in em1
         It can also be used to merge the contents of a previously created EntityManager with an 
         existing EntityManager with control over how the two are merged.
         @example
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             &#x2F;&#x2F; assume em2 is another entityManager containing some of the same entities possibly with modifications.
-            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+            em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             &#x2F;&#x2F; em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
             &#x2F;&#x2F; made modifications will not have been touched, but all other entities from em1 will have been imported.
-        @method import
+        @method importEntities
         @param exportedString {String} The result of a previous &#x27;export&#x27; call.
         @param [config] {Object} A configuration object.
             @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} to use when 
             merging into an existing EntityManager.
         @chainable
         **&#x2F;
-        ctor.prototype.import = function (exportedString, config) {
+        ctor.prototype.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
                 .whereParam(&quot;mergeStrategy&quot;).isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
@@ -522,7 +522,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var that = this;
             
             var json = JSON.parse(exportedString);
-            this.metadataStore.import(json.metadataStore);
+            this.metadataStore.importMetadata(json.metadataStore);
             this.serviceName = json.serviceName;
             this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
@@ -760,9 +760,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             &#x2F;&#x2F; TEST::: see if serialization actually works completely
 &#x2F;&#x2F;            var that = this;
 &#x2F;&#x2F;            promise = promise.then(function () {
-&#x2F;&#x2F;                var stringified = that.metadataStore.export();
+&#x2F;&#x2F;                var stringified = that.metadataStore.exportMetadata();
 &#x2F;&#x2F;                that.metadataStore = new MetadataStore();
-&#x2F;&#x2F;                that.metadataStore.import(stringified);
+&#x2F;&#x2F;                that.metadataStore.importMetadata(stringified);
 &#x2F;&#x2F;            });
 
             return promiseWithCallbacks(promise, callback, errorCallback);

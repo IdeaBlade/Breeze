@@ -314,7 +314,7 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_export">export</a>
+                                <a href="#method_exportEntities">exportEntities</a>
 
                                 
                                 
@@ -363,7 +363,7 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_import">import</a>
+                                <a href="#method_importEntities">importEntities</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -372,7 +372,7 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_import">import</a>
+                                <a href="#method_importEntities">importEntities</a>
 
                                 
                                 
@@ -1626,8 +1626,8 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
 </div>
 
                 
-                    <div id="method_export" class="method item">
-    <h3 class="name"><code>export</code></h3>
+                    <div id="method_exportEntities" class="method item">
+    <h3 class="name"><code>exportEntities</code></h3>
 
     
         <div class="args">
@@ -1756,7 +1756,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             <div class="example-content">
                 <p>This method can be used to take a snapshot of an EntityManager that can be either stored offline or held 
 memory.  This snapshot can be restored or merged into an another EntityManager at some later date. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
-var bundle = em1.export();
+var bundle = em1.exportEntities();
 // can be stored via the web storage api
 window.localStorage.setItem("myEntityManager", bundle);
 // assume the code below occurs in a different session.
@@ -1765,14 +1765,14 @@ var em2 = new EntityManager({
     serviceName: em1.serviceName, 
     metadataStore: em1.metadataStore 
 });
-em2.import(bundleFromStorage);
+em2.importEntities(bundleFromStorage);
 // em2 will now have a complete copy of what was in em1
 </code></pre>
 
 <p>You can also control exactly which entities are exported. </p><pre class="code"><code class="prettyprint">// assume entitiesToExport is an array of entities to export.
-var bundle = em1.export(entitiesToExport);
+var bundle = em1.exportEntities(entitiesToExport);
 // assume em2 is another entityManager containing some of the same entities possibly with modifications.
-em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
 </code></pre>
             </div>
         </div>
@@ -2631,8 +2631,8 @@ if ( em1.hasChanges( [custType, orderType]) {
 </div>
 
                 
-                    <div id="method_import" class="method item">
-    <h3 class="name"><code>import</code></h3>
+                    <div id="method_importEntities" class="method item">
+    <h3 class="name"><code>importEntities</code></h3>
 
     
         <div class="args">
@@ -2714,7 +2714,7 @@ if ( em1.hasChanges( [custType, orderType]) {
                     
 
                     <div class="param-description">
-                        <p>The result of a previous 'export' call.</p>
+                        <p>The result of a previous 'exportEntities' call.</p>
                     </div>
 
                     
@@ -2780,13 +2780,13 @@ merging into an existing EntityManager.</p>
 
             <div class="example-content">
                 <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
-var bundle = em1.export();
+var bundle = em1.exportEntities();
 // can be stored via the web storage api
 window.localStorage.setItem("myEntityManager", bundle);
 // assume the code below occurs in a different session.
 var bundleFromStorage = window.localStorage.getItem("myEntityManager");
 // and imported
-var em2 = EntityManager.import(bundleFromStorage);
+var em2 = EntityManager.importEntities(bundleFromStorage);
 // em2 will now have a complete copy of what was in em1
 </code></pre>
             </div>
@@ -2795,8 +2795,8 @@ var em2 = EntityManager.import(bundleFromStorage);
 </div>
 
                 
-                    <div id="method_import" class="method item">
-    <h3 class="name"><code>import</code></h3>
+                    <div id="method_importEntities" class="method item">
+    <h3 class="name"><code>importEntities</code></h3>
 
     
         <div class="args">
@@ -2929,20 +2929,20 @@ var em2 = EntityManager.import(bundleFromStorage);
                 <p>This method can be used to make a complete copy of any previously created entityManager, even if created
 in a previous session and stored in localStorage. The static version of this method performs a
 very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
-var bundle = em1.export();
+var bundle = em1.exportEntities();
 // bundle can be stored in window.localStorage or just held in memory.
 var em2 = new EntityManager({ 
     serviceName: em1.serviceName, 
     metadataStore: em1.metadataStore 
 });
-em2.import(bundle);
+em2.importEntities(bundle);
 // em2 will now have a complete copy of what was in em1
 </code></pre>
 
 <p>It can also be used to merge the contents of a previously created EntityManager with an 
-existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.export();
+existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.exportEntities();
 // assume em2 is another entityManager containing some of the same entities possibly with modifications.
-em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
 // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
 // made modifications will not have been touched, but all other entities from em1 will have been imported.
 </code></pre>
