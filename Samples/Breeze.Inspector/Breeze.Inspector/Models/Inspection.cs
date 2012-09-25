@@ -20,7 +20,7 @@ namespace Breeze.Inspector.Models {
 
         public Inspection() {
             Answers = new List<Answer>();
-            Status = InspectionStatus.InProgress;
+            Status = InspectionStatus.New;
         }
     }
 }

@@ -5,13 +5,18 @@
  *
  * Author: Jay Traband
  */
-(function (definitionFn) {
-    if (typeof define === "function") {
-        define([], definitionFn);
+(function (window, definitionFn) {
+    if ( typeof define === "function") {
+        if (define.amd && define.amd.breeze ) {
+            define( "breeze", [], definitionFn );
+        } else {
+            define([], definitionFn);
+        }
     } else {
         definitionFn();
     }
-}( function() {
+    
+}(window, function () {
 
 /**
  * almond 0.0.3 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -1454,6 +1459,12 @@ function (core, Enum, Event, m_assertParam) {
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .applyAll(core.config);
+        if (config.remoteAccessImplementation) {
+            config.remoteAccessImplementation.initialize();
+        }
+        if (config.trackingImplementation) {
+            config.trackingImplementation.initialize();
+        }
     };
     
        // this is needed for reflection purposes when deserializing an object that needs a ctor.
@@ -3719,6 +3730,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.hasMetadataFor = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
+            if (serviceName.substr(-1) !== "/") {
+                serviceName = serviceName + '/';
+            }
             return this.serviceNames.indexOf(serviceName) >= 0;
         };
 
@@ -3762,6 +3776,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .isOptional().hasProperty("fetchMetadata").check(core.config.remoteAccessImplementation);
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            
+            if (serviceName.substr(-1) !== "/") {
+                serviceName = serviceName + '/';
+            }
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
@@ -9479,10 +9497,22 @@ function (core, m_entityMetadata) {
     var remoteAccess_webApi = {};
 
     // -------------------------------------------
+    var jQuery;
+    
+    remoteAccess_webApi.initialize = function() {
+        jQuery = window.jQuery;
+        if ((!jQuery) && require) {
+            jQuery = require("jQuery");
+        }
+        if (!jQuery) {
+            throw new Error("Breeze currently needs jQuery for ajax support with WebApi and was unable to initialize jQuery.");
+        }
+        
+    };
 
     remoteAccess_webApi.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        $.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+        jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
             if (!metadata) {
                 if (errorCallback) errorCallback(new Error("No schema found for: " + metadataSvcUrl));
@@ -9512,7 +9542,7 @@ function (core, m_entityMetadata) {
     remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        $.getJSON(url).done(function (data, textStatus, jqXHR) {
+        jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
             try {
                 collectionCallback(data);
@@ -9527,7 +9557,7 @@ function (core, m_entityMetadata) {
 
     remoteAccess_webApi.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        $.ajax(url, {
+        jQuery.ajax(url, {
             type: "POST",
             contentType: "application/json",
             data: saveBundleStringified
@@ -9623,10 +9653,17 @@ function (core, m_entityMetadata) {
 
     var remoteAccess_odata = {};
     // -------------------------------------------
-    
-    if (this.OData) {
-        this.OData.jsonHandler.recognizeDates = true;
-    }
+
+    var OData;
+
+    remoteAccess_odata.initialize = function() {
+        OData = window.OData;
+        if (!OData) {
+            throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
+        }
+        OData.jsonHandler.recognizeDates = true;
+        
+    };
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
@@ -9642,9 +9679,8 @@ function (core, m_entityMetadata) {
                 if (errorCallback) errorCallback(createError(error));
             });
     };
-
-
-
+    
+ 
     remoteAccess_odata.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };
@@ -9883,6 +9919,10 @@ function (core, makeRelationArray) {
     
 
     var trackingImpl = {};
+    
+    trackingImpl.initialize = function() {
+        // nothing to do yet;
+    };
 
     trackingImpl.name = "Backing store entity tracking impl";
 
@@ -10055,26 +10095,62 @@ define('entityTracking_ko',["core", "relationArray"],
 function (core, makeRelationArray) {
     
 
-    var trackingImpl = {};
+    var trackingImpl = { };
+
+    var ko;
+    
+    trackingImpl.initialize = function() {
+        ko = window.ko;
+        if ((!ko) && require) {
+            ko = require("ko");
+        }
+        if (!ko) {
+            throw new Error("Unable to initialize Knockout.");
+        }
+        
+        ko.extenders.intercept = function(target, interceptorOptions) {
+            var instance = interceptorOptions.instance;
+            var property = interceptorOptions.property;
+            // var interceptor = interceptorOptions.interceptor;
+            // create a computed observable to intercept writes to our observable
+            var result;
+            if (target.splice) {
+                result = ko.computed({
+                    read: target  //always return the original observables value
+                });
+            } else {
+                result = ko.computed({
+                    read: target,  //always return the original observables value
+                    write: function(newValue) {
+                        instance.interceptor(property, newValue, target);
+                        return instance;
+                    }
+                });
+            }
+            //return the new computed observable
+            return result;
+        };
+
+    };
 
     trackingImpl.name = "knockout entity tracking implementation";
 
-    trackingImpl.initializeEntityPrototype = function (proto) {
+    trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function (propertyName) {
+        proto.getProperty = function(propertyName) {
             return this[propertyName]();
         };
 
-        proto.setProperty = function (propertyName, value) {
+        proto.setProperty = function(propertyName, value) {
             this[propertyName](value);
             // allow set property chaining.
             return this;
         };
     };
 
-    trackingImpl.startTracking = function (entity, proto) {
+    trackingImpl.startTracking = function(entity, proto) {
         // create ko's for each property and assign defaultValues
-        entity.entityType.getProperties().forEach(function (prop) {
+        entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
             var koObj;
@@ -10107,39 +10183,16 @@ function (core, makeRelationArray) {
                     throw new Error("unknown property: " + propName);
                 }
             }
-            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop} });
+            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop } });
         });
 
     };
 
-    trackingImpl.isTrackableProperty = function (entity, propertyName) {
+    trackingImpl.isTrackableProperty = function(entity, propertyName) {
         var propValue = entity[propertyName];
         if (ko.isObservable(propValue)) return true;
         if (core.isFunction(propValue)) return false;
         return true;
-    };
-
-    ko.extenders.intercept = function (target, interceptorOptions) {
-        var instance = interceptorOptions.instance;
-        var property = interceptorOptions.property;
-        // var interceptor = interceptorOptions.interceptor;
-        // create a computed observable to intercept writes to our observable
-        var result;
-        if (target.splice) {
-            result = ko.computed({
-                read: target  //always return the original observables value
-            });
-        } else {
-            result = ko.computed({
-                read: target,  //always return the original observables value
-                write: function (newValue) {
-                    instance.interceptor(property, newValue, target);
-                    return instance;
-                }
-            });
-        }
-        //return the new computed observable
-        return result;
     };
 
     return trackingImpl;
@@ -10190,7 +10243,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.56",
+        version: "0.58",
         core: core,
         entityModel: entityModel
     };
@@ -10199,6 +10252,7 @@ function (core, entityModel) {
 });
 
     var breeze = requirejs('root');
-    window.breeze = breeze;
+    // If two instances are loaded last one sets window.breeze.
+    this.window.breeze = breeze;
     return breeze;
 }));

@@ -6,12 +6,12 @@
         },
         show: function() {
             var that = this;
-            return jQuery.Deferred(function(dfd) {
+            return $.Deferred(function(dfd) {
                 that.dfd = dfd;
-                require(['text!addInspection.html'], function(html) {
+                require(['text!views/addInspection.html'], function(html) {
                     setTimeout(function() {
-                        var view = jQuery(html);
-                        ko.applyBindings(this, view.get(0));
+                        var view = $(html);
+                        ko.applyBindings(that, view.get(0));
                         view.modal();
                     }, 1);
                 });
