@@ -3730,6 +3730,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.hasMetadataFor = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
+            if (serviceName.substr(-1) !== "/") {
+                serviceName = serviceName + '/';
+            }
             return this.serviceNames.indexOf(serviceName) >= 0;
         };
 
@@ -3774,7 +3777,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
-
+            if (serviceName.substr(-1) !== "/") {
+                serviceName = serviceName + '/';
+            }
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
