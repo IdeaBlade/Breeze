@@ -189,10 +189,10 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var ets = em.metadataStore.getEntityTypes();
         var snames = em.metadataStore.serviceNames;
-        var exportedStore = em.metadataStore.export();
+        var exportedStore = em.metadataStore.exportMetadata();
         var newMs = new MetadataStore();
-        newMs.import(exportedStore);
-        var exportedStore2 = newMs.export();
+        newMs.importMetadata(exportedStore);
+        var exportedStore2 = newMs.exportMetadata();
         ok(exportedStore.length === exportedStore2.length, "exported lengths should be the same");
         var newEts = newMs.getEntityTypes();
         ok(ets.length == newEts.length);
@@ -242,9 +242,9 @@ define(["testFns"], function (testFns) {
         var em2;
         em.executeQuery(q, function (data) {
             ok(data.results.length == 2, "results.length should be 2");
-            var exportedEm = em.export();
+            var exportedEm = em.exportEntities();
             em2 = newEm();
-            em2.import(exportedEm);
+            em2.importEntities(exportedEm);
             var r2 = em2.executeQueryLocally(q);
             ok(r2.length === 2, "should return 2 records");
             var addedOrders = em2.getChanges(orderType, EntityState.Added);
@@ -286,9 +286,9 @@ define(["testFns"], function (testFns) {
         em.executeQuery(q, function (data) {
             ok(data.results.length == 2, "results.length should be 2");
             var cust2 = data.results[0];
-            var exportedEm = em.export([order1, cust1, cust2]);
+            var exportedEm = em.exportEntities([order1, cust1, cust2]);
             em2 = newEm();
-            em2.import(exportedEm);
+            em2.importEntities(exportedEm);
             var r2 = em2.executeQueryLocally(q);
             ok(r2.length === 2, "should return 2 records");
             var addedOrders = em2.getChanges(orderType, EntityState.Added);
@@ -316,7 +316,7 @@ define(["testFns"], function (testFns) {
          em.addEntity(createCust(em, "Export/import safely #3"));
 
          var changes = em.getChanges();
-         var changesExport = em.export(changes);
+         var changesExport = em.exportEntities(changes);
 
          ok(window.localStorage, "this browser supports local storage");
 
@@ -328,7 +328,7 @@ define(["testFns"], function (testFns) {
              "em should be empty after clearing it");
 
          var changesImport = window.localStorage.getItem(stashName);
-         em.import(changesImport);
+         em.importEntities(changesImport);
 
          var entitiesInCache = em.getEntities();
          var restoreCount = entitiesInCache.length;
@@ -358,15 +358,15 @@ define(["testFns"], function (testFns) {
 //        stop();
 //        em1.executeQuery(q).then(function (data) {
 //            var entities1 = em1.getEntities();
-//            var exportedMs = em1.metadataStore.export();
-//            var exportedEm = em1.export();
+//            var exportedMs = em1.metadataStore.exportMetadata();
+//            var exportedEm = em1.exportEntities();
 //            ok(exportedEm.length > 200000, "exported size is too small");
-//            var em2 = EntityManager.import(exportedEm);
+//            var em2 = EntityManager.importEntities(exportedEm);
 //            var entities2 = em2.getEntities();
 
 //            ok(entities1.length == entities2.length, "lengths should be the same");
-//            var exportedMs2 = em2.metadataStore.export();
-//            var exportedEm2 = em2.export();
+//            var exportedMs2 = em2.metadataStore.exportMetadata();
+//            var exportedEm2 = em2.exportEntities();
 //            ok(exportedMs.length === exportedMs2.length, "exported metadata sizes should be the same: " + exportedMs.length + " vs " + exportedMs2.length);
 //            ok(exportedEm.length === exportedEm2.length, "exported entity manager sizes should be the same: " + exportedEm.length + " vs " + exportedEm2.length);
 //            start();

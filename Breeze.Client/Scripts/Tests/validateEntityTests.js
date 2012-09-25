@@ -124,7 +124,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("custom property validation", function () {
-        var ms = MetadataStore.import(testFns.metadataStore.export());
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var em = newEm(ms);
         var custType = ms.getEntityType("Customer");
         var prop = custType.getProperty("country");
@@ -146,7 +146,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("custom entity validation", function () {
-        var ms = MetadataStore.import(testFns.metadataStore.export());
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var em = newEm(ms);
         var custType = ms.getEntityType("Customer");
            
@@ -179,7 +179,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("custom property numeric range validation", function () {
-        var ms = MetadataStore.import(testFns.metadataStore.export());
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var em = newEm(ms);
         var orderType = ms.getEntityType("Order");
         var freightProperty = orderType.getProperty("freight");

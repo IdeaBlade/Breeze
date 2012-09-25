@@ -3648,16 +3648,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         internally when exporting an EntityManager. 
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session imported
             var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
-            newMetadataStore.import(metadataFromStorage);
-        @method export
+            newMetadataStore.importMetadata(metadataFromStorage);
+        @method exportMetadata
         @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
         **/
-        ctor.prototype.export = function () {
+        ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "namingConvention") {
                     return undefined;
@@ -3671,18 +3671,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Imports a previously exported serialized MetadataStore into this MetadataStore.
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
             var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
-            newMetadataStore.import(metadataFromStorage);
-        @method import
+            newMetadataStore.importMetadata(metadataFromStorage);
+        @method importMetadata
         @param exportedString {String} A previously exported MetadataStore.
         @return {MetadataStore} This MetadataStore.
         @chainable
         **/
-        ctor.prototype.import = function (exportedString) {
+        ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var entityTypeMap = {};
             var that = this;
@@ -3700,20 +3700,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Creates a new MetadataStore from a previously exported serialized MetadataStore
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
             var metadataFromStorage = window.localStorage.getItem("metadata");
-            var newMetadataStore = MetadataStore.import(metadataFromStorage);
-        @method import
+            var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
+        @method importMetadata
         @static
         @param exportedString {String} A previously exported MetadataStore.
         @return {MetadataStore} A new MetadataStore.
         
         **/
-        ctor.import = function(exportedString) {
+        ctor.importMetadata = function(exportedString) {
             var ms = new MetadataStore();
-            ms.import(exportedString);
+            ms.importMetadata(exportedString);
             return ms;
         };
 
@@ -7381,25 +7381,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         Creates a new EntityManager and imports a previously exported result into it.
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             // can be stored via the web storage api
             window.localStorage.setItem("myEntityManager", bundle);
             // assume the code below occurs in a different session.
             var bundleFromStorage = window.localStorage.getItem("myEntityManager");
             // and imported
-            var em2 = EntityManager.import(bundleFromStorage);
+            var em2 = EntityManager.importEntities(bundleFromStorage);
             // em2 will now have a complete copy of what was in em1
-        @method import
+        @method importEntities
         @static
-        @param exportedString {String} The result of a previous 'export' call.
+        @param exportedString {String} The result of a previous 'exportEntities' call.
         @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
         @return {EntityManager} A new EntityManager.
         **/
-        ctor.import = function (exportedString, config) {
+        ctor.importEntities = function (exportedString, config) {
             var em = new EntityManager();
-            em.import(exportedString, config);
+            em.importEntities(exportedString, config);
             return em;
         };
 
@@ -7412,7 +7412,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         memory.  This snapshot can be restored or merged into an another EntityManager at some later date. 
         @example
             // assume em1 is an EntityManager containing a number of existing entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             // can be stored via the web storage api
             window.localStorage.setItem("myEntityManager", bundle);
             // assume the code below occurs in a different session.
@@ -7421,23 +7421,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 serviceName: em1.serviceName, 
                 metadataStore: em1.metadataStore 
             });
-            em2.import(bundleFromStorage);
+            em2.importEntities(bundleFromStorage);
             // em2 will now have a complete copy of what was in em1
         You can also control exactly which entities are exported. 
         @example
             // assume entitiesToExport is an array of entities to export.
-            var bundle = em1.export(entitiesToExport);
+            var bundle = em1.exportEntities(entitiesToExport);
             // assume em2 is another entityManager containing some of the same entities possibly with modifications.
-            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
-        @method export
+            em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+        @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
         @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **/
-        ctor.prototype.export = function (entities) {
+        ctor.prototype.exportEntities = function (entities) {
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
-                metadataStore: this.metadataStore.export(),
+                metadataStore: this.metadataStore.exportMetadata(),
                 serviceName: this.serviceName,
                 saveOptions: this.saveOptions,
                 queryOptions: this.queryOptions,
@@ -7457,30 +7457,30 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         very similar process. 
         @example
             // assume em1 is an EntityManager containing a number of existing entities.
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             // bundle can be stored in window.localStorage or just held in memory.
             var em2 = new EntityManager({ 
                 serviceName: em1.serviceName, 
                 metadataStore: em1.metadataStore 
             });
-            em2.import(bundle);
+            em2.importEntities(bundle);
             // em2 will now have a complete copy of what was in em1
         It can also be used to merge the contents of a previously created EntityManager with an 
         existing EntityManager with control over how the two are merged.
         @example
-            var bundle = em1.export();
+            var bundle = em1.exportEntities();
             // assume em2 is another entityManager containing some of the same entities possibly with modifications.
-            em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+            em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
             // made modifications will not have been touched, but all other entities from em1 will have been imported.
-        @method import
+        @method importEntities
         @param exportedString {String} The result of a previous 'export' call.
         @param [config] {Object} A configuration object.
             @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
             merging into an existing EntityManager.
         @chainable
         **/
-        ctor.prototype.import = function (exportedString, config) {
+        ctor.prototype.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
@@ -7488,7 +7488,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var that = this;
             
             var json = JSON.parse(exportedString);
-            this.metadataStore.import(json.metadataStore);
+            this.metadataStore.importMetadata(json.metadataStore);
             this.serviceName = json.serviceName;
             this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
@@ -7726,9 +7726,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TEST::: see if serialization actually works completely
 //            var that = this;
 //            promise = promise.then(function () {
-//                var stringified = that.metadataStore.export();
+//                var stringified = that.metadataStore.exportMetadata();
 //                that.metadataStore = new MetadataStore();
-//                that.metadataStore.import(stringified);
+//                that.metadataStore.importMetadata(stringified);
 //            });
 
             return promiseWithCallbacks(promise, callback, errorCallback);

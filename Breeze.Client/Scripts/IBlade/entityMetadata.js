@@ -162,16 +162,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         internally when exporting an EntityManager. 
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session imported
             var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
-            newMetadataStore.import(metadataFromStorage);
-        @method export
+            newMetadataStore.importMetadata(metadataFromStorage);
+        @method exportMetadata
         @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
         **/
-        ctor.prototype.export = function () {
+        ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "namingConvention") {
                     return undefined;
@@ -185,18 +185,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Imports a previously exported serialized MetadataStore into this MetadataStore.
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
             var metadataFromStorage = window.localStorage.getItem("metadata");
             var newMetadataStore = new MetadataStore();
-            newMetadataStore.import(metadataFromStorage);
-        @method import
+            newMetadataStore.importMetadata(metadataFromStorage);
+        @method importMetadata
         @param exportedString {String} A previously exported MetadataStore.
         @return {MetadataStore} This MetadataStore.
         @chainable
         **/
-        ctor.prototype.import = function (exportedString) {
+        ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var entityTypeMap = {};
             var that = this;
@@ -214,20 +214,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Creates a new MetadataStore from a previously exported serialized MetadataStore
         @example
             // assume ms is a previously created MetadataStore
-            var metadataAsString = ms.export();
+            var metadataAsString = ms.exportMetadata();
             window.localStorage.setItem("metadata", metadataAsString);
             // and later, usually in a different session
             var metadataFromStorage = window.localStorage.getItem("metadata");
-            var newMetadataStore = MetadataStore.import(metadataFromStorage);
-        @method import
+            var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
+        @method importMetadata
         @static
         @param exportedString {String} A previously exported MetadataStore.
         @return {MetadataStore} A new MetadataStore.
         
         **/
-        ctor.import = function(exportedString) {
+        ctor.importMetadata = function(exportedString) {
             var ms = new MetadataStore();
-            ms.import(exportedString);
+            ms.importMetadata(exportedString);
             return ms;
         };
 
