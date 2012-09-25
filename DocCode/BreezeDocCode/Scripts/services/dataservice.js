@@ -5,8 +5,12 @@
 
     var logger = require('logger');
 
-    core.config.trackingImplementation = entityModel.entityTracking_ko;
-    core.config.remoteAccessImplementation = entityModel.remoteAccess_webApi;
+    // Configure for Knockout binding and Web API persistence services
+    // testFns does this for the test suite; you must do it in your app
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
 
     var serviceName = 'api/todos';
     var manager = new entityModel.EntityManager(serviceName);
