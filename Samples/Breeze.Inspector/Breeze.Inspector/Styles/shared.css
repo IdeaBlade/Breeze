@@ -153,29 +153,36 @@ ul.inspections li{
     margin: .5em 0;
 }
 
-.inspection-form {
+.form {
     margin: 2em;
+    display: table;
 }
 
-.inspection-form textarea {
+.field textarea {
     margin-top: 1em;
     width: 100%;
 }
 
-.inspection-form .field {
+.form .field {
     margin-bottom: 2em;
+    display: table-row;
 }
 
-.inspection-form ul {
+.form .field ul {
     margin-top: 1em;
+    display: table-cell;
 }
 
-.inspection-form .field .label {
+.form .field .label {
     font-size: 1.2em;
+    display: table-cell;
+    padding-right: .5em;
+    text-align: right;
 }
 
-.inspection-form .field input, .inspection-form .field textarea, .inspection-form .field select {
+.form .field input, .field .field textarea, .field .field select {
     font-size: 1.2em;
+    display: table-cell;
 }
 
 .invalid {
