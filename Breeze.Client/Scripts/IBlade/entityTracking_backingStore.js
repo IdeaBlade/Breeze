@@ -4,6 +4,10 @@ function (core, makeRelationArray) {
     "use strict";
 
     var trackingImpl = {};
+    
+    trackingImpl.initialize = function() {
+        // nothing to do yet;
+    };
 
     trackingImpl.name = "Backing store entity tracking impl";
 

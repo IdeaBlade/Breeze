@@ -3,26 +3,62 @@ define(["core", "relationArray"],
 function (core, makeRelationArray) {
     "use strict";
 
-    var trackingImpl = {};
+    var trackingImpl = { };
+
+    var ko;
+    
+    trackingImpl.initialize = function() {
+        ko = window.ko;
+        if ((!ko) && require) {
+            ko = require("ko");
+        }
+        if (!ko) {
+            throw new Error("Unable to initialize Knockout.");
+        }
+        
+        ko.extenders.intercept = function(target, interceptorOptions) {
+            var instance = interceptorOptions.instance;
+            var property = interceptorOptions.property;
+            // var interceptor = interceptorOptions.interceptor;
+            // create a computed observable to intercept writes to our observable
+            var result;
+            if (target.splice) {
+                result = ko.computed({
+                    read: target  //always return the original observables value
+                });
+            } else {
+                result = ko.computed({
+                    read: target,  //always return the original observables value
+                    write: function(newValue) {
+                        instance.interceptor(property, newValue, target);
+                        return instance;
+                    }
+                });
+            }
+            //return the new computed observable
+            return result;
+        };
+
+    };
 
     trackingImpl.name = "knockout entity tracking implementation";
 
-    trackingImpl.initializeEntityPrototype = function (proto) {
+    trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function (propertyName) {
+        proto.getProperty = function(propertyName) {
             return this[propertyName]();
         };
 
-        proto.setProperty = function (propertyName, value) {
+        proto.setProperty = function(propertyName, value) {
             this[propertyName](value);
             // allow set property chaining.
             return this;
         };
     };
 
-    trackingImpl.startTracking = function (entity, proto) {
+    trackingImpl.startTracking = function(entity, proto) {
         // create ko's for each property and assign defaultValues
-        entity.entityType.getProperties().forEach(function (prop) {
+        entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
             var koObj;
@@ -55,42 +91,17 @@ function (core, makeRelationArray) {
                     throw new Error("unknown property: " + propName);
                 }
             }
-            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop} });
+            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop } });
         });
 
     };
 
-    trackingImpl.isTrackableProperty = function (entity, propertyName) {
+    trackingImpl.isTrackableProperty = function(entity, propertyName) {
         var propValue = entity[propertyName];
         if (ko.isObservable(propValue)) return true;
         if (core.isFunction(propValue)) return false;
         return true;
     };
-
-    if (ko) {
-        ko.extenders.intercept = function(target, interceptorOptions) {
-            var instance = interceptorOptions.instance;
-            var property = interceptorOptions.property;
-            // var interceptor = interceptorOptions.interceptor;
-            // create a computed observable to intercept writes to our observable
-            var result;
-            if (target.splice) {
-                result = ko.computed({
-                    read: target  //always return the original observables value
-                });
-            } else {
-                result = ko.computed({
-                    read: target,  //always return the original observables value
-                    write: function(newValue) {
-                        instance.interceptor(property, newValue, target);
-                        return instance;
-                    }
-                });
-            }
-            //return the new computed observable
-            return result;
-        };
-    }
 
     return trackingImpl;
 

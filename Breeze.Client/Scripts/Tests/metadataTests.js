@@ -15,6 +15,7 @@ define(["testFns"], function (testFns) {
 
     var EntityType = entityModel.EntityType;
     var MetadataStore = entityModel.MetadataStore;
+    var EntityManager = entityModel.EntityManager;
 
     module("metadata", {
         setup: function () {
@@ -57,6 +58,18 @@ define(["testFns"], function (testFns) {
             equal(prop.name, keys[0].name);
             start();
         });
+    });
+
+    test("initialize only once", function() {
+        var store = new MetadataStore();
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: store });
+        stop();
+        store.fetchMetadata(testFns.ServiceName).then(function() {
+            ok(!store.isEmpty());
+            ok(store.hasMetadataFor(testFns.ServiceName));
+            ok(em.metadataStore.hasMetadataFor(em.serviceName), "manager serviceName is not the same as the metadataStore name");
+            start();
+        }).fail(testFns.handleFail);
     });
 
     test("initialization concurrent", 2, function () {

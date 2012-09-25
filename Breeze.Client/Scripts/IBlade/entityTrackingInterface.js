@@ -18,6 +18,11 @@ Name of this implementation
 **/
 
 /**
+Method that is called once when the implementation is first used.  This method is called before any other method.
+@method initialize
+**/
+
+/**
 Provides access to initialize the prototype before any instances of this type are created.
 @method initializeEntityPrototype
 @param proto {Object} A prototype

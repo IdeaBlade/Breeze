@@ -76,6 +76,12 @@ function (core, Enum, Event, m_assertParam) {
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .applyAll(core.config);
+        if (config.remoteAccessImplementation) {
+            config.remoteAccessImplementation.initialize();
+        }
+        if (config.trackingImplementation) {
+            config.trackingImplementation.initialize();
+        }
     };
     
        // this is needed for reflection purposes when deserializing an object that needs a ctor.

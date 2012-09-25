@@ -6,10 +6,17 @@ function (core, m_entityMetadata) {
 
     var remoteAccess_odata = {};
     // -------------------------------------------
-    
-    if (this.OData) {
-        this.OData.jsonHandler.recognizeDates = true;
-    }
+
+    var OData;
+
+    remoteAccess_odata.initialize = function() {
+        OData = window.OData;
+        if (!OData) {
+            throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
+        }
+        OData.jsonHandler.recognizeDates = true;
+        
+    };
 
     remoteAccess_odata.getEntityTypeName = function (rawEntity) {
         return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
@@ -25,9 +32,8 @@ function (core, m_entityMetadata) {
                 if (errorCallback) errorCallback(createError(error));
             });
     };
-
-
-
+    
+ 
     remoteAccess_odata.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };

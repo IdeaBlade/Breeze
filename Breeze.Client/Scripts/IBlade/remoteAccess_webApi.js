@@ -8,10 +8,22 @@ function (core, m_entityMetadata) {
     var remoteAccess_webApi = {};
 
     // -------------------------------------------
+    var jQuery;
+    
+    remoteAccess_webApi.initialize = function() {
+        jQuery = window.jQuery;
+        if ((!jQuery) && require) {
+            jQuery = require("jQuery");
+        }
+        if (!jQuery) {
+            throw new Error("Breeze currently needs jQuery for ajax support with WebApi and was unable to initialize jQuery.");
+        }
+        
+    };
 
     remoteAccess_webApi.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        $.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+        jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
             if (!metadata) {
                 if (errorCallback) errorCallback(new Error("No schema found for: " + metadataSvcUrl));
@@ -41,7 +53,7 @@ function (core, m_entityMetadata) {
     remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        $.getJSON(url).done(function (data, textStatus, jqXHR) {
+        jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
             try {
                 collectionCallback(data);
@@ -56,7 +68,7 @@ function (core, m_entityMetadata) {
 
     remoteAccess_webApi.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        $.ajax(url, {
+        jQuery.ajax(url, {
             type: "POST",
             contentType: "application/json",
             data: saveBundleStringified
