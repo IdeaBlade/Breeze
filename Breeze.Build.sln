@@ -1,6 +1,6 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual Studio 2011
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{870357DE-CA2C-4B2E-9AF2-3B822E26D57B}"
 	ProjectSection(SolutionItems) = preProject
 		_Internal\__Notes.txt = _Internal\__Notes.txt
