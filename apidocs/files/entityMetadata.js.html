@@ -20,7 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-<<<<<<< HEAD
 
 <script type="text/javascript">
 
@@ -58,8 +57,6 @@
 
 
 
-=======
->>>>>>> parent of 95e4016... Added Google Analytics to API and regenerated.
 <div id="wrap">
 
 <div id="doc">
@@ -455,6 +452,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **&#x2F;
         ctor.prototype.hasMetadataFor = function (serviceName) {
             assertParam(serviceName, &quot;serviceName&quot;).isString().check();
+            if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
+                serviceName = serviceName + &#x27;&#x2F;&#x27;;
+            }
             return this.serviceNames.indexOf(serviceName) &gt;= 0;
         };
 
@@ -498,6 +498,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .isOptional().hasProperty(&quot;fetchMetadata&quot;).check(core.config.remoteAccessImplementation);
             assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
             assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
+            
+            if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
+                serviceName = serviceName + &#x27;&#x2F;&#x27;;
+            }
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + serviceName);
