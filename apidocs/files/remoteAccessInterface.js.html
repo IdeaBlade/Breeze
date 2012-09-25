@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>core.js - The Breeze API</title>
+    <title>remoteAccessInterface.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -20,46 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-<<<<<<< HEAD
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
-=======
->>>>>>> parent of 95e4016... Added Google Analytics to API and regenerated.
 <div id="wrap">
 
 <div id="doc">
@@ -205,110 +165,50 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: core.js</h1>
+                        <h1 class="file-heading">File: remoteAccessInterface.js</h1>
 
 <div class="file">
     <pre class="code prettyprint linenums">
-﻿define([&quot;coreFns&quot;, &quot;enum&quot;, &quot;event&quot;, &quot;assertParam&quot;],
-function (core, Enum, Event, m_assertParam) {
-    
-    &#x2F;**
-    Utility types and functions of generally global applicability.
-    @module core
-    @main core
-    **&#x2F;
-    core.Enum = Enum;
-    core.Event = Event;
-    core.extend(core, m_assertParam);
-    core.config = { };
-    core.config.functionRegistry = { };
-    core.config.typeRegistry = { };
-    
-    var assertParam = core.assertParam;
-    var assertConfig = core.assertConfig;
-      
-    &#x2F;**
-    A singleton object that is the repository of all entityModel specific configuration options.
-       
-        core.config.setProperties( {
-            trackingImplemenation: entityModel.entityTracking_ko,
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
-        });
-        
-    @class config
-    **&#x2F;
-    
-    &#x2F;**        
-    The implementation currently in use for tracking entities
-    @example
-        var name = entityModel.trackingImplementation.name;
-    There are currently two implementations of this interface.
-    @example
-        &#x2F;&#x2F; For knockout.js
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_ko 
-        });
-    or
-    @example
-        &#x2F;&#x2F; Generic js implementation of observability
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_backingStore
-        });
-        
-    @property trackingImplementation {~entityTracking-interface}
-    **&#x2F;
+﻿&#x2F;**
+@module entityModel
+**&#x2F;
 
-    &#x2F;**        
-    The implementation currently in use for communicating with a remote server and service.
-    @example
-        var name = entityModel.remoteAccessImplementation.name;
-    There are currently two implementations of this interface.
-    Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
-        });
-    or an implementation of the remoteAccess interface that supports OData services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_odata
-        });    
-    @property remoteAccessImplementation {~remoteAccess-interface}
-    **&#x2F;
+&#x2F;**
+This is an interface description. Any class that implements the methods and properties defined here is considered a valid
+implementation of this interface.
 
-    &#x2F;**
-    @method setProperties
-    @param config {Object}
-        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
-        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
-    **&#x2F;
-    core.config.setProperties = function (config) {
-        assertConfig(config)
-            .whereParam(&quot;remoteAccessImplementation&quot;).isOptional()
-            .whereParam(&quot;trackingImplementation&quot;).isOptional()
-            .applyAll(core.config);
-    };
-    
-       &#x2F;&#x2F; this is needed for reflection purposes when deserializing an object that needs a ctor.
-    core.config.registerFunction = function (fn, fnName) {
-        core.assertParam(fn, &quot;fn&quot;).isFunction().check();
-        core.assertParam(fnName, &quot;fnName&quot;).isString().check();
-        fn.prototype._$fnName = fnName;
-        core.config.functionRegistry[fnName] = fn;
-    };
-    
-  
-    core.config.registerType = function (ctor, typeName) {
-        core.assertParam(ctor, &quot;ctor&quot;).isFunction().check();
-        core.assertParam(typeName, &quot;typeName&quot;).isString().check();
-        ctor.prototype._$typeName = typeName;
-        core.config.typeRegistry[typeName] = ctor;
-    };
+Each EntityManager can have a single KeyGenerator implementation that it will use to manage the generation of all &#x27;temporary&#x27; keys.
 
-    core.config.stringifyPad = &quot;  &quot;;
+A KeyGenerator implementation is assigned to an EntityManager via the {{#crossLink &quot;EntityManager&#x2F;setProperties&quot;}}{{&#x2F;crossLink}} 
+method with a config parameter of &#x27;keyGeneratorCtor&#x27;. 
 
-    return core;
-});
+    MyKeyGenerator = function() { 
+        &#x2F;&#x2F; your code here
+    }
+    MyKeyGenerator.prototype.generateTempKeyValue = function(entityType) {
+        &#x2F;&#x2F; your implementation here.
+    }
+    em.setProperties( {keyGeneratorCtor: MyKeyGenerator });
+The assigned KeyGenerator is then called whenever the 
+EntityManager.generateTempKeyValue method is called.  The EntityManager internally keeps track of all of the generated keys
+and handles all of the mapping of these temporary keys to real keys after any save.  
+
+The KeyGenerator implementation only needs to do one thing.  Return a unique key value of the correct datatype for each 
+call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT supported for multipart keys.  
+
+If no KeyGenerator is supplied, a default KeyGenerator will be automatically provided.
+@class ~keyGenerator-interface
+**&#x2F;
+
+&#x2F;**
+Returns a unique &#x27;temporary&#x27; key for the specified {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}}. 
+Uniqueness is defined for this purpose as being unique within this KeyGenerator. This is sufficient 
+because each EntityManager will have its own instance of a KeyGenerator and any entities imported into
+the EntityManager with temporary keys will have them regenerated and remapped on import.
+
+@method generateTempKeyValue
+@param entityType {EntityType}
+**&#x2F;
 
     </pre>
 </div>
