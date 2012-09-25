@@ -2,7 +2,7 @@
     "project": {
         "name": "The Breeze API",
         "description": "Client-Server data managment ... in JavaScript.",
-        "version": "0.54",
+        "version": "0.59",
         "url": "http://www.breezejs.com/",
         "logo": "http://www.ideablade.com/images/IdeaBladeBanner/IdeaBlade_logo_tm.png"
     },
@@ -1763,15 +1763,15 @@
             "line": 206,
             "description": "Creates a new EntityManager and imports a previously exported result into it.",
             "example": [
-                "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var bundle = em1.export();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    // and imported\n    var em2 = EntityManager.import(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1"
+                "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var bundle = em1.exportEntities();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    // and imported\n    var em2 = EntityManager.importEntities(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1"
             ],
             "itemtype": "method",
-            "name": "import",
+            "name": "importEntities",
             "static": 1,
             "params": [
                 {
                     "name": "exportedString",
-                    "description": "The result of a previous 'export' call.",
+                    "description": "The result of a previous 'exportEntities' call.",
                     "type": "String"
                 },
                 {
@@ -1802,11 +1802,11 @@
             "description": "Exports an entire EntityManager or just selected entities into a serialized string for external storage.",
             "example": [
                 "\nThis method can be used to take a snapshot of an EntityManager that can be either stored offline or held \nmemory.  This snapshot can be restored or merged into an another EntityManager at some later date. ",
-                "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var bundle = em1.export();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    var em2 = new EntityManager({ \n        serviceName: em1.serviceName, \n        metadataStore: em1.metadataStore \n    });\n    em2.import(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1\nYou can also control exactly which entities are exported. ",
-                "\n    // assume entitiesToExport is an array of entities to export.\n    var bundle = em1.export(entitiesToExport);\n    // assume em2 is another entityManager containing some of the same entities possibly with modifications.\n    em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );"
+                "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var bundle = em1.exportEntities();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    var em2 = new EntityManager({ \n        serviceName: em1.serviceName, \n        metadataStore: em1.metadataStore \n    });\n    em2.importEntities(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1\nYou can also control exactly which entities are exported. ",
+                "\n    // assume entitiesToExport is an array of entities to export.\n    var bundle = em1.exportEntities(entitiesToExport);\n    // assume em2 is another entityManager containing some of the same entities possibly with modifications.\n    em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );"
             ],
             "itemtype": "method",
-            "name": "export",
+            "name": "exportEntities",
             "params": [
                 {
                     "name": "entities",
@@ -1834,11 +1834,11 @@
             "description": "Imports a previously exported result into this EntityManager.",
             "example": [
                 "\nThis method can be used to make a complete copy of any previously created entityManager, even if created\nin a previous session and stored in localStorage. The static version of this method performs a\nvery similar process. ",
-                "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var bundle = em1.export();\n    // bundle can be stored in window.localStorage or just held in memory.\n    var em2 = new EntityManager({ \n        serviceName: em1.serviceName, \n        metadataStore: em1.metadataStore \n    });\n    em2.import(bundle);\n    // em2 will now have a complete copy of what was in em1\nIt can also be used to merge the contents of a previously created EntityManager with an \nexisting EntityManager with control over how the two are merged.",
-                "\n    var bundle = em1.export();\n    // assume em2 is another entityManager containing some of the same entities possibly with modifications.\n    em2.import(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );\n    // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously \n    // made modifications will not have been touched, but all other entities from em1 will have been imported."
+                "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var bundle = em1.exportEntities();\n    // bundle can be stored in window.localStorage or just held in memory.\n    var em2 = new EntityManager({ \n        serviceName: em1.serviceName, \n        metadataStore: em1.metadataStore \n    });\n    em2.importEntities(bundle);\n    // em2 will now have a complete copy of what was in em1\nIt can also be used to merge the contents of a previously created EntityManager with an \nexisting EntityManager with control over how the two are merged.",
+                "\n    var bundle = em1.exportEntities();\n    // assume em2 is another entityManager containing some of the same entities possibly with modifications.\n    em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );\n    // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously \n    // made modifications will not have been touched, but all other entities from em1 will have been imported."
             ],
             "itemtype": "method",
-            "name": "import",
+            "name": "importEntities",
             "params": [
                 {
                     "name": "exportedString",
@@ -2883,10 +2883,10 @@
             "line": 160,
             "description": "Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called \ninternally when exporting an EntityManager.",
             "example": [
-                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.export();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session imported\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.import(metadataFromStorage);"
+                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session imported\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
             ],
             "itemtype": "method",
-            "name": "export",
+            "name": "exportMetadata",
             "return": {
                 "description": "A serialized version of this MetadataStore that may be stored locally and later restored.",
                 "type": "String"
@@ -2899,10 +2899,10 @@
             "line": 184,
             "description": "Imports a previously exported serialized MetadataStore into this MetadataStore.",
             "example": [
-                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.export();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.import(metadataFromStorage);"
+                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
             ],
             "itemtype": "method",
-            "name": "import",
+            "name": "importMetadata",
             "params": [
                 {
                     "name": "exportedString",
@@ -2923,10 +2923,10 @@
             "line": 213,
             "description": "Creates a new MetadataStore from a previously exported serialized MetadataStore",
             "example": [
-                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.export();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = MetadataStore.import(metadataFromStorage);"
+                "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);"
             ],
             "itemtype": "method",
-            "name": "import",
+            "name": "importMetadata",
             "static": 1,
             "params": [
                 {

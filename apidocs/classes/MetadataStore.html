@@ -265,7 +265,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_export">export</a>
+                                <a href="#method_exportMetadata">exportMetadata</a>
 
                                 
                                 
@@ -300,7 +300,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_import">import</a>
+                                <a href="#method_importMetadata">importMetadata</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -309,7 +309,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_import">import</a>
+                                <a href="#method_importMetadata">importMetadata</a>
 
                                 
                                 
@@ -493,8 +493,8 @@ em1.setProperties( { metadataStore: ms });
 </div>
 
                 
-                    <div id="method_export" class="method item">
-    <h3 class="name"><code>export</code></h3>
+                    <div id="method_exportMetadata" class="method item">
+    <h3 class="name"><code>exportMetadata</code></h3>
 
     
         <span class="paren">()</span>
@@ -567,12 +567,12 @@ internally when exporting an EntityManager.</p>
 
             <div class="example-content">
                 <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
-var metadataAsString = ms.export();
+var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session imported
 var metadataFromStorage = window.localStorage.getItem("metadata");
 var newMetadataStore = new MetadataStore();
-newMetadataStore.import(metadataFromStorage);
+newMetadataStore.importMetadata(metadataFromStorage);
 </code></pre>
             </div>
         </div>
@@ -1115,8 +1115,8 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
 </div>
 
                 
-                    <div id="method_import" class="method item">
-    <h3 class="name"><code>import</code></h3>
+                    <div id="method_importMetadata" class="method item">
+    <h3 class="name"><code>importMetadata</code></h3>
 
     
         <div class="args">
@@ -1223,11 +1223,11 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
 
             <div class="example-content">
                 <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
-var metadataAsString = ms.export();
+var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session
 var metadataFromStorage = window.localStorage.getItem("metadata");
-var newMetadataStore = MetadataStore.import(metadataFromStorage);
+var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
 </code></pre>
             </div>
         </div>
@@ -1235,8 +1235,8 @@ var newMetadataStore = MetadataStore.import(metadataFromStorage);
 </div>
 
                 
-                    <div id="method_import" class="method item">
-    <h3 class="name"><code>import</code></h3>
+                    <div id="method_importMetadata" class="method item">
+    <h3 class="name"><code>importMetadata</code></h3>
 
     
         <div class="args">
@@ -1343,12 +1343,12 @@ var newMetadataStore = MetadataStore.import(metadataFromStorage);
 
             <div class="example-content">
                 <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
-var metadataAsString = ms.export();
+var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session
 var metadataFromStorage = window.localStorage.getItem("metadata");
 var newMetadataStore = new MetadataStore();
-newMetadataStore.import(metadataFromStorage);
+newMetadataStore.importMetadata(metadataFromStorage);
 </code></pre>
             </div>
         </div>
