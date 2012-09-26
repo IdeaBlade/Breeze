@@ -10,7 +10,7 @@
 
             field.options = options;
 
-            ko.compose("Dropdown", field, view, false);
+            ko.compose("Dropdown", field, view, false, true);
         }
     };
 });

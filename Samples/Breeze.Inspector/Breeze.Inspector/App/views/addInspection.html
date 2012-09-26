@@ -1,3 +1,12 @@
-﻿<div>
-    <button class="simplemodal-close" data-bind="click: selectForm"></button>
+﻿<div class="modal">
+    <div>
+        <div class="header">Add Inspection</div>
+        <div class="body">
+            <ul data-bind="foreach: forms">
+                <li class="simplemodal-close form-type" data-bind="click: function() { $parent.selectForm($data) }">
+                    <span data-bind="text: Type"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>

@@ -1,6 +1,7 @@
 ﻿#define DBCONTEXT_PROVIDER 
 // 
 using System;
+using System.Data;
 using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
@@ -27,7 +28,12 @@ namespace Sample_WebApi.Controllers {
     
 
     public override bool BeforeSaveEntity(EntityInfo entityInfo) {
-      return true;
+      // prohibit any additions of entities of type 'Role'
+      if (entityInfo.Entity.GetType() == typeof(Role) && entityInfo.EntityState == EntityState.Added) {
+        return false;
+      } else {
+        return true;
+      }
     }
 
     public override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {

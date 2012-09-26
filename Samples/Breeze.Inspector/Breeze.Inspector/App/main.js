@@ -17,7 +17,7 @@ define(['text', 'breeze'], function() {
         }
     };
 
-    ko.compose = function(name, viewModel, location, callback) {
+    ko.compose = function(name, viewModel, location, callback, replace) {
         var dependencies = ['text!views/' + name + '.html'];
 
         if (!viewModel) {
@@ -31,8 +31,13 @@ define(['text', 'breeze'], function() {
             setTimeout(function() {
                 var view = jQuery(html);
                 ko.applyBindings(finalViewModel, view.get(0));
-                jQuery(location || "#contentHost").empty().append(view);
 
+                if (replace) {
+                    jQuery(location).replaceWith(view);
+                } else {
+                    jQuery(location || "#contentHost").empty().append(view);
+                }
+                
                 if (finalViewModel.activate) {
                     finalViewModel.activate();
                 }

@@ -10,7 +10,7 @@
                 }
             });
 
-            ko.compose("Checkbox", field, view, false);
+            ko.compose("Checkbox", field, view, false, true);
         }
     };
 });

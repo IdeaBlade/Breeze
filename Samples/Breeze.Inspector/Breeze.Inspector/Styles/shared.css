@@ -159,7 +159,6 @@ ul.inspections li{
 }
 
 .field textarea {
-    margin-top: 1em;
     width: 100%;
 }
 
@@ -178,6 +177,7 @@ ul.inspections li{
     display: table-cell;
     padding-right: .5em;
     text-align: right;
+    vertical-align: top;
 }
 
 .form .field input, .field .field textarea, .field .field select {
@@ -187,4 +187,70 @@ ul.inspections li{
 
 .invalid {
     color: red;
+}
+
+button.add {
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+button.add span {
+    position: relative;
+    font-size: 1.5em;
+    top: -14px;
+    left: 4px;
+}
+
+.modal {
+    
+    
+}
+
+/* Overlay */
+#simplemodal-overlay {
+    background-color:#000; 
+    cursor:wait;
+}
+
+/* Container */
+#simplemodal-container {
+    width:400px; 
+    color:#bbb; 
+    background-color:#333; 
+    border:4px solid #444;
+    height: auto;
+}
+
+#simplemodal-container a.modalCloseImg {
+    background:url("/Images/x.png") no-repeat; 
+    width:25px; 
+    height:29px; 
+    display:inline; 
+    z-index:3200; 
+    position:absolute; 
+    top:-15px; 
+    right:-16px; 
+    cursor:pointer;
+    color:#ddd;
+}
+
+.form-type {
+    font-size: 1.5em;
+    cursor: pointer;
+    color: black;
+    margin: .25em;
+}
+
+.modal .header {
+    font-size: 2em;
+    color: white;
+    background: black;
+    padding: .5em;
+}
+
+.modal .body 
+{
+    padding: .25em;
+    background: white;
 }

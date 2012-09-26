@@ -17,7 +17,7 @@
             field.options = options;
             field.name = getNextName();
 
-            ko.compose("Dropdown", field, view, false);
+            ko.compose("Dropdown", field, view, false, true);
         }
     };
 });

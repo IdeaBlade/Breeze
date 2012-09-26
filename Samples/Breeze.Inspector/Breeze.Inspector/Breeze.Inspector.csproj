@@ -201,6 +201,8 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\Back.png" />
+    <Content Include="Images\Plus.png" />
+    <Content Include="Images\x.png" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
     <Content Include="Styles\qunit.css" />
