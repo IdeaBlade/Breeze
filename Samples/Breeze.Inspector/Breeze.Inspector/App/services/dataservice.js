@@ -12,7 +12,7 @@
     var op = entityModel.FilterQueryOp,
         EntityAction = entityModel.EntityAction,
         manager = new entityModel.EntityManager('api/inspector'),
-        answerType, jobType, addressType,
+        answerType, jobType, addressType, inspection,
         canSave,
         data;
 
@@ -52,6 +52,7 @@
                     answerType = manager.metadataStore.getEntityType("Answer");
                     jobType = manager.metadataStore.getEntityType("Job");
                     addressType = manager.metadataStore.getEntityType("Address");
+                    inspection = manager.metadataStore.getEntityType("Inspection");
 
                     var query = new entityModel.EntityQuery()
                         .from("Forms")
@@ -94,8 +95,14 @@
             var job = manager.addEntity(jobType.createEntity());
             job.Inspector(inspector);
             job.CreatedAt(new Date());
-            job.Location(addressType.createEntity());
+            job.Location(manager.addEntity(addressType.createEntity()));
             return job;
+        },
+        createInspection: function(inspectionForm) {
+            var newInspection = manager.addEntity(inspection.createEntity());
+            newInspection.Form(inspectionForm);
+            newInspection.Status("New");
+            return newInspection;
         },
         onCanSaveChanges: function(callback) {
             canSave = callback;

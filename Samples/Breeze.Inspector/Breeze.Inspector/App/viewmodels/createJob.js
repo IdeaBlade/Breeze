@@ -11,8 +11,10 @@
     ctor.prototype.addInspection = function() {
         var that = this;
         addInspectionDialog.show().then(function(selection) {
-            that.job().Inspections().push(selection);
+            var inspection = data.createInspection(selection);
+            that.job().Inspections().push(inspection);
         });
+        return true;
     };
 
     ctor.prototype.activate = function() {
