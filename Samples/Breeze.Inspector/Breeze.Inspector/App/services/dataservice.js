@@ -12,7 +12,7 @@
     var op = entityModel.FilterQueryOp,
         EntityAction = entityModel.EntityAction,
         manager = new entityModel.EntityManager('api/inspector'),
-        answerType,
+        answerType, jobType, addressType,
         canSave,
         data;
 
@@ -50,6 +50,8 @@
             return $.Deferred(function(def) {
                 manager.fetchMetadata().then(function() {
                     answerType = manager.metadataStore.getEntityType("Answer");
+                    jobType = manager.metadataStore.getEntityType("Job");
+                    addressType = manager.metadataStore.getEntityType("Address");
 
                     var query = new entityModel.EntityQuery()
                         .from("Forms")
@@ -60,6 +62,12 @@
                     });
                 });
             }).promise();
+        },
+        getForms: function() {
+            var query = new entityModel.EntityQuery()
+                .from("Forms");
+
+            return executeQuery(query);
         },
         getInspectors: function() {
             var query = new entityModel.EntityQuery()
@@ -81,6 +89,13 @@
             answer.Inspection(inspection);
             answer.Question(question);
             return answer;
+        },
+        createJob: function(inspector) {
+            var job = manager.addEntity(jobType.createEntity());
+            job.Inspector(inspector);
+            job.CreatedAt(new Date());
+            job.Location(addressType.createEntity());
+            return job;
         },
         onCanSaveChanges: function(callback) {
             canSave = callback;

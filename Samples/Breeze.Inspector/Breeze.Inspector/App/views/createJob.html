@@ -1,12 +1,12 @@
 ﻿<div class="form">
     <div class="field textbox">
         <span class="label">Street</span>
-        <input type="text" />
+        <input type="text" data-bind="value: job().Location().Street1" />
     </div>
     
     <div class="field textbox">
         <span class="label">City</span>
-        <input type="text" />
+        <input type="text"  data-bind="value: job().Location().City"/>
     </div>
     
     <div class="field dropdown">
@@ -16,10 +16,20 @@
     
     <div class="field textbox">
         <span class="label">Zip</span>
-        <input type="text" />
+        <input type="text"  data-bind="value: job().Location().Zip"/>
     </div>
     
     <div>
-        <button data-bind="click: addInspection">Add Inspection</button>
+        <button class="add" data-bind="click: addInspection">
+            <img src="/Images/Plus.png"/>
+            <span>Add Inspection</span>
+        </button>
+    </div>
+    <div>
+        <ul data-bind="foreach: job().Inspections()">
+            <li>
+                <span data-bind="text: Type"></span>
+            </li>
+        </ul>
     </div>
 </div>

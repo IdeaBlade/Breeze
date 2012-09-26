@@ -30,7 +30,7 @@
 
             field.options = options;
 
-            ko.compose("CheckboxGroup", field, view, false);
+            ko.compose("CheckboxGroup", field, view, false, true);
         }
     };
 });

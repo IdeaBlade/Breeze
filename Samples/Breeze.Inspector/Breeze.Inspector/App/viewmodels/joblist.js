@@ -1,7 +1,8 @@
 ﻿define(function(require) {
     var data = require('services/dataservice'),
         shell = require('viewmodels/shell'),
-        InspectionViewModel = require('viewmodels/inspection');
+        InspectionViewModel = require('viewmodels/inspection'),
+        CreateJobViewModel = require('viewmodels/createJob');
 
     var vm = {
         jobs: ko.observableArray([]),
@@ -9,7 +10,7 @@
             shell.title(shell.inspector().Name());
             shell.addCommand('add',
                 function() {
-                    shell.navigate("createJob");
+                    shell.navigate("createJob", new CreateJobViewModel());
                 }
             );
             data.getJobsFor(shell.inspector().Id()).then(function(response) {
