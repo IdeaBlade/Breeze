@@ -22,3 +22,4 @@ DocCode/BreezeDocCode/App_Data/Todos.sdf
 _Internal/Sample_WebApi/Scripts/
 _Internal/Sample_OData/Scripts/
 /Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
+GetFtpCredential.ps1
