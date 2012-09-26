@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.EntityClient;
 using System.Data.Metadata.Edm;
 using System.Data.Objects;
 using System.Globalization;
@@ -17,9 +18,6 @@ using System.Xml.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-using System.Text;
-using System.Web;
-using System.Data.EntityClient;
 
 namespace Breeze.WebApi {
 
@@ -119,6 +117,13 @@ namespace Breeze.WebApi {
       return new SaveResult() {Entities = entities, KeyMappings = keyMappings};
     }
 
+    /// <summary>
+    /// The method is called for each entity to be saved before the save occurs.  If this method returns 'false'
+    /// then the entity will be excluded from the save. There is no need to call the base implementation of this
+    /// method when overriding it. 
+    /// </summary>
+    /// <param name="entityInfo"></param>
+    /// <returns></returns>
     public virtual bool BeforeSaveEntity(EntityInfo entityInfo) {
       return true;
     }
@@ -176,7 +181,6 @@ namespace Breeze.WebApi {
     #region Save related methods
 
     private List<EntityInfo> ProcessSaves(Dictionary<Type, List<EntityInfo>> saveMap) {
-      saveMap = BeforeSaveEntities(saveMap);
       var deletedEntities = new List<EntityInfo>();
       foreach (var kvp in saveMap) {
         var entityType = kvp.Key;
