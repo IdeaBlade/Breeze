@@ -8,33 +8,33 @@
 
     public class TodosController : ApiController {
 
-        readonly EFContextProvider<TodosContext> ContextProvider = 
+        readonly EFContextProvider<TodosContext> _contextProvider = 
             new EFContextProvider<TodosContext>();
 
         // ~/api/todos/Metadata 
         [AcceptVerbs("GET")]
         public string Metadata() {
-            return ContextProvider.Metadata();
+            return _contextProvider.Metadata();
         }
 
         // ~/api/todos/Todos
         // ~/api/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
         [AcceptVerbs("GET")]
         public IQueryable<TodoItem> Todos() {
-            return ContextProvider.Context.Todos;
+            return _contextProvider.Context.Todos;
         }
 
         // ~/api/todos/SaveChanges
         [AcceptVerbs("POST")]
         public SaveResult SaveChanges(JObject saveBundle) {
-            return ContextProvider.SaveChanges(saveBundle);
+            return _contextProvider.SaveChanges(saveBundle);
         }
 
         // ~/api/todos/purge
         [AcceptVerbs("POST")]
         public string Purge()
         {
-            TodoDatabaseInitializer.PurgeDatabase(ContextProvider.Context);
+            TodoDatabaseInitializer.PurgeDatabase(_contextProvider.Context);
             return "purged";
         }
 
@@ -43,7 +43,7 @@
         public string Reset()
         {
             Purge();
-            TodoDatabaseInitializer.SeedDatabase(ContextProvider.Context);
+            TodoDatabaseInitializer.SeedDatabase(_contextProvider.Context);
             return "reset";
         }
     }
