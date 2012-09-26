@@ -13,6 +13,15 @@ The Runtime package includes breeze.debug.js, its minified version, breeze.js, a
 
 Runtime + samples includes the same, plus the code samples and the DocCode companion to the Breeze online documentation. 
 
+## Dependencies
+Please note: Both Q and jQuery are both included in the Runtime + samples package. they are not included in the Runtime package.
+
+###[Q.js](https://github.com/kriskowal/q)
+We use Q.js for making and composing asynchronus promises.
+
+###[jQuery](http://jquery.com/)
+We only use jQuery for Ajax calls. We'll eventually make it so you can use your own Ajaxlibrary.
+
 ## Prerequisites
 To build the Todo sample the following must first be installed on your system:
 
