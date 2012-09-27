@@ -397,12 +397,15 @@ function (core) {
         **/
 
         // TODO: may need to have seperate logic for single.
-        ctor.number = ctor.double = ctor.single = function () {
-            var valFn = function (v) {
+        ctor.number = ctor.double = ctor.single = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === "number");
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === "number" && !isNaN(v));
             };
-            return new ctor("number", valFn);
+            return new ctor("number", valFn, context);
         };
 
         /**
@@ -417,12 +420,15 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.integer = ctor.int64 = function () {
-            var valFn = function (v) {
+        ctor.integer = ctor.int64 = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === "number") && Math.floor(v) === v;
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v;
             };
-            return new ctor("integer", valFn );
+            return new ctor("integer", valFn, context );
         };
 
         /**
@@ -436,7 +442,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.int32 = intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX);
+        ctor.int32 = function(context) {
+            return intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX, context)();
+        };
 
         /**
         Returns a standard 16 bit integer data type Validator.
@@ -450,7 +458,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.int16 = intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX);
+        ctor.int16 = function (context) {
+            return intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX, context)();
+        };
 
         /**
         Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).
@@ -465,7 +475,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.byte = intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX);
+        ctor.byte = function (context) {
+            return intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX, context)();
+        };
 
         /**
         Returns a standard boolean data type Validator.
@@ -561,13 +573,16 @@ function (core) {
             });
         }
 
-        function intRangeValidatorCtor(validatorName, minValue, maxValue) {
+        function intRangeValidatorCtor(validatorName, minValue, maxValue, context) {
             ctor.messageTemplates[validatorName] = core.formatString("'%displayName%' must be an integer between the values of %1 and %2",
                 minValue, maxValue);
             return function () {
                 var valFn = function (v, ctx) {
                     if (v == null) return true;
-                    if ((typeof v === "number") && Math.floor(v) === v) {
+                    if (typeof v === "string" && ctx && ctx.allowString)  {
+                        v = parseInt(v, 0);
+                    }
+                    if ((typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v) {
                         if (minValue != null && v < minValue) {
                             return false;
                         }
@@ -579,7 +594,7 @@ function (core) {
                         return false;
                     }
                 };
-                return new ctor(validatorName, valFn);
+                return new ctor(validatorName, valFn, context);
             };
 
         }

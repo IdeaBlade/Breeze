@@ -193,7 +193,7 @@
             "namespaces": {},
             "tag": "main",
             "file": "validate.js",
-            "line": 591,
+            "line": 606,
             "description": "The entityModel namespace.",
             "itemtype": "main"
         }
@@ -596,7 +596,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "validate.js",
-            "line": 591,
+            "line": 606,
             "description": "A ValidatationError is used to describe a failed validation."
         }
     },
@@ -5321,7 +5321,7 @@
         },
         {
             "file": "validate.js",
-            "line": 408,
+            "line": 411,
             "description": "Returns a standard large integer data type - 64 bit - Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.\n    freightProperty.validators.push(Validator.int64());"
@@ -5337,7 +5337,7 @@
         },
         {
             "file": "validate.js",
-            "line": 428,
+            "line": 434,
             "description": "Returns a standard 32 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    freightProperty.validators.push(Validator.int32());"
@@ -5353,7 +5353,7 @@
         },
         {
             "file": "validate.js",
-            "line": 441,
+            "line": 449,
             "description": "Returns a standard 16 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    freightProperty.validators.push(Validator.int16());"
@@ -5369,7 +5369,7 @@
         },
         {
             "file": "validate.js",
-            "line": 455,
+            "line": 465,
             "description": "Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    // Probably not a very good validation to place on the Freight property.\n    regionProperty.validators.push(Validator.byte());"
@@ -5385,7 +5385,7 @@
         },
         {
             "file": "validate.js",
-            "line": 470,
+            "line": 482,
             "description": "Returns a standard boolean data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var productType = em1.metadataStore.getEntityType(\"Product\");\n    var discontinuedProperty - productType.getProperty(\"Discontinued\");\n    // Validates that the value of the Discontinued property on Product is a boolean\n    discontinuedProperty.validators.push(Validator.bool());"
@@ -5401,7 +5401,7 @@
         },
         {
             "file": "validate.js",
-            "line": 497,
+            "line": 509,
             "description": "Returns a standard date data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var orderDateProperty - orderType.getProperty(\"OrderDate\");\n    // Validates that the value of the OrderDate property on Order is a date\n    // Probably not a very good validation to place on the Freight property.\n    orderDateProperty.validators.push(Validator.date());"
@@ -5417,7 +5417,7 @@
         },
         {
             "file": "validate.js",
-            "line": 597,
+            "line": 612,
             "itemtype": "method",
             "name": "<ctor> ValidationError",
             "params": [
@@ -5442,7 +5442,7 @@
         },
         {
             "file": "validate.js",
-            "line": 613,
+            "line": 628,
             "description": "The Validator associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validator",
@@ -5452,7 +5452,7 @@
         },
         {
             "file": "validate.js",
-            "line": 620,
+            "line": 635,
             "description": "A 'context' object associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "context",
@@ -5462,7 +5462,7 @@
         },
         {
             "file": "validate.js",
-            "line": 627,
+            "line": 642,
             "description": "The DataProperty or NavigationProperty associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "property",
@@ -5472,7 +5472,7 @@
         },
         {
             "file": "validate.js",
-            "line": 634,
+            "line": 649,
             "description": "The error message associated with the ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "errorMessage",

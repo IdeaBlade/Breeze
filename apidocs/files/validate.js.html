@@ -568,12 +568,15 @@ function (core) {
         **&#x2F;
 
         &#x2F;&#x2F; TODO: may need to have seperate logic for single.
-        ctor.number = ctor.double = ctor.single = function () {
-            var valFn = function (v) {
+        ctor.number = ctor.double = ctor.single = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === &quot;number&quot;);
+                if (typeof v === &quot;string&quot; &amp;&amp; ctx &amp;&amp; ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === &quot;number&quot; &amp;&amp; !isNaN(v));
             };
-            return new ctor(&quot;number&quot;, valFn);
+            return new ctor(&quot;number&quot;, valFn, context);
         };
 
         &#x2F;**
@@ -588,12 +591,15 @@ function (core) {
         @static
         @return A new Validator
         **&#x2F;
-        ctor.integer = ctor.int64 = function () {
-            var valFn = function (v) {
+        ctor.integer = ctor.int64 = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === &quot;number&quot;) &amp;&amp; Math.floor(v) === v;
+                if (typeof v === &quot;string&quot; &amp;&amp; ctx &amp;&amp; ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === &quot;number&quot;) &amp;&amp; (!isNaN(v)) &amp;&amp; Math.floor(v) === v;
             };
-            return new ctor(&quot;integer&quot;, valFn );
+            return new ctor(&quot;integer&quot;, valFn, context );
         };
 
         &#x2F;**
@@ -607,7 +613,9 @@ function (core) {
         @static
         @return A new Validator
         **&#x2F;
-        ctor.int32 = intRangeValidatorCtor(&quot;int32&quot;, INT32_MIN, INT32_MAX);
+        ctor.int32 = function(context) {
+            return intRangeValidatorCtor(&quot;int32&quot;, INT32_MIN, INT32_MAX, context)();
+        };
 
         &#x2F;**
         Returns a standard 16 bit integer data type Validator.
@@ -621,7 +629,9 @@ function (core) {
         @static
         @return A new Validator
         **&#x2F;
-        ctor.int16 = intRangeValidatorCtor(&quot;int16&quot;, INT16_MIN, INT16_MAX);
+        ctor.int16 = function (context) {
+            return intRangeValidatorCtor(&quot;int16&quot;, INT16_MIN, INT16_MAX, context)();
+        };
 
         &#x2F;**
         Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).
@@ -636,7 +646,9 @@ function (core) {
         @static
         @return A new Validator
         **&#x2F;
-        ctor.byte = intRangeValidatorCtor(&quot;byte&quot;, BYTE_MIN, BYTE_MAX);
+        ctor.byte = function (context) {
+            return intRangeValidatorCtor(&quot;byte&quot;, BYTE_MIN, BYTE_MAX, context)();
+        };
 
         &#x2F;**
         Returns a standard boolean data type Validator.
@@ -732,13 +744,16 @@ function (core) {
             });
         }
 
-        function intRangeValidatorCtor(validatorName, minValue, maxValue) {
+        function intRangeValidatorCtor(validatorName, minValue, maxValue, context) {
             ctor.messageTemplates[validatorName] = core.formatString(&quot;&#x27;%displayName%&#x27; must be an integer between the values of %1 and %2&quot;,
                 minValue, maxValue);
             return function () {
                 var valFn = function (v, ctx) {
                     if (v == null) return true;
-                    if ((typeof v === &quot;number&quot;) &amp;&amp; Math.floor(v) === v) {
+                    if (typeof v === &quot;string&quot; &amp;&amp; ctx &amp;&amp; ctx.allowString)  {
+                        v = parseInt(v, 0);
+                    }
+                    if ((typeof v === &quot;number&quot;) &amp;&amp; (!isNaN(v)) &amp;&amp; Math.floor(v) === v) {
                         if (minValue != null &amp;&amp; v &lt; minValue) {
                             return false;
                         }
@@ -750,7 +765,7 @@ function (core) {
                         return false;
                     }
                 };
-                return new ctor(validatorName, valFn);
+                return new ctor(validatorName, valFn, context);
             };
 
         }
