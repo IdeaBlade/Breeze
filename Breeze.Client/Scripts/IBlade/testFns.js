@@ -187,6 +187,8 @@ define(["root"], function (root) {
     };
 
     testFns.root = root;
+    testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
+    testFns.setFlag("DEBUG_KO", DEBUG_KO);
 
     return testFns;
 });

@@ -5,7 +5,7 @@ require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
       "miscTests",
-      "attachTests",
+       "attachTests",
       "classRewriteTests",
       "metadataTests",
       "entityManagerTests",
@@ -18,8 +18,6 @@ require([
        "saveTests"
 
 ], function (testFns) {
-    testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
-    testFns.setFlag("DEBUG_KO", DEBUG_KO);
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
     QUnit.start(); //Tests loaded, run tests
 

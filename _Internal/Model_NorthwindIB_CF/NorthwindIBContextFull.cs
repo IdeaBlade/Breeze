@@ -879,7 +879,7 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets or sets the Product. </summary>
     [DataMember]
     [ForeignKey("ProductID")]
-    [InverseProperty("OrderDetails")]
+    // [InverseProperty("OrderDetails")]
     public Product Product {
       get;
       set;
@@ -1206,13 +1206,13 @@ namespace Models.NorthwindIB.CF {
       set;
     }
 
-    /// <summary>Gets the OrderDetails. </summary>
-    [DataMember]
-    [InverseProperty("Product")]
-    public ICollection<OrderDetail> OrderDetails {
-      get;
-      set;
-    }
+    ///// <summary>Gets the OrderDetails. </summary>
+    //[DataMember]
+    //[InverseProperty("Product")]
+    //public ICollection<OrderDetail> OrderDetails {
+    //  get;
+    //  set;
+    //}
 
     /// <summary>Gets or sets the Supplier. </summary>
     [DataMember]

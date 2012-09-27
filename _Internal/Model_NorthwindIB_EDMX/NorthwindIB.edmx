@@ -14,8 +14,11 @@
           <EntitySet Name="OrderDetail" EntityType="NorthwindIBModel.Store.OrderDetail" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Product" EntityType="NorthwindIBModel.Store.Product" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Region" EntityType="NorthwindIBModel.Store.Region" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Role" EntityType="NorthwindIBModel.Store.Role" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Supplier" EntityType="NorthwindIBModel.Store.Supplier" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
             <End Role="Employee" EntitySet="Employee" />
             <End Role="Employee1" EntitySet="Employee" />
@@ -55,6 +58,14 @@
           <AssociationSet Name="FK_Territory_Region" Association="NorthwindIBModel.Store.FK_Territory_Region">
             <End Role="Region" EntitySet="Region" />
             <End Role="Territory" EntitySet="Territory" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserRole_Role" Association="NorthwindIBModel.Store.FK_UserRole_Role">
+            <End Role="Role" EntitySet="Role" />
+            <End Role="UserRole" EntitySet="UserRole" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserRole_User" Association="NorthwindIBModel.Store.FK_UserRole_User">
+            <End Role="User" EntitySet="User" />
+            <End Role="UserRole" EntitySet="UserRole" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="Category">
@@ -174,6 +185,14 @@
           <Property Name="RegionDescription" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="Role">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Description" Type="nvarchar" MaxLength="2000" />
+        </EntityType>
         <EntityType Name="Supplier">
           <Key>
             <PropertyRef Name="SupplierID" />
@@ -200,6 +219,32 @@
           <Property Name="TerritoryDescription" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="RegionID" Type="int" Nullable="false" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="User">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="UserName" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="UserPassword" Type="varchar" MaxLength="200" />
+          <Property Name="FirstName" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="LastName" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="Email" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="RowVersion" Type="money" Nullable="false" />
+          <Property Name="CreatedBy" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="CreatedByUserId" Type="bigint" Nullable="false" />
+          <Property Name="CreatedDate" Type="datetime" Nullable="false" />
+          <Property Name="ModifiedBy" Type="varchar" Nullable="false" MaxLength="100" />
+          <Property Name="ModifiedByUserId" Type="bigint" Nullable="false" />
+          <Property Name="ModifiedDate" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UserRole">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="bigint" Nullable="false" />
+          <Property Name="RoleId" Type="bigint" Nullable="false" />
         </EntityType>
         <Association Name="FK_Employee_Employee">
           <End Role="Employee" Type="NorthwindIBModel.Store.Employee" Multiplicity="0..1" />
@@ -321,6 +366,30 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_UserRole_Role">
+          <End Role="Role" Type="NorthwindIBModel.Store.Role" Multiplicity="1" />
+          <End Role="UserRole" Type="NorthwindIBModel.Store.UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Role">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserRole">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserRole_User">
+          <End Role="User" Type="NorthwindIBModel.Store.User" Multiplicity="1" />
+          <End Role="UserRole" Type="NorthwindIBModel.Store.UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="User">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserRole">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
@@ -376,6 +445,17 @@
             <End Role="Supplier" EntitySet="Suppliers" />
             <End Role="Product" EntitySet="Products" />
           </AssociationSet>
+          <EntitySet Name="Roles" EntityType="Models.NorthwindIB.EDMX.Role" />
+          <EntitySet Name="Users" EntityType="Models.NorthwindIB.EDMX.User" />
+          <EntitySet Name="UserRoles" EntityType="Models.NorthwindIB.EDMX.UserRole" />
+          <AssociationSet Name="FK_UserRole_Role" Association="Models.NorthwindIB.EDMX.FK_UserRole_Role">
+            <End Role="Role" EntitySet="Roles" />
+            <End Role="UserRole" EntitySet="UserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserRole_User" Association="Models.NorthwindIB.EDMX.FK_UserRole_User">
+            <End Role="User" EntitySet="Users" />
+            <End Role="UserRole" EntitySet="UserRoles" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="Customer">
           <Key>
@@ -404,9 +484,9 @@
           <Property Name="CustomerID" Type="Guid">
           </Property>
           <Property Name="EmployeeID" Type="Int32" />
-          <Property Name="OrderDate" Type="DateTime" />
-          <Property Name="RequiredDate" Type="DateTime" />
-          <Property Name="ShippedDate" Type="DateTime" />
+          <Property Name="OrderDate" Type="DateTime" Precision="3" />
+          <Property Name="RequiredDate" Type="DateTime" Precision="3" />
+          <Property Name="ShippedDate" Type="DateTime" Precision="3" />
           <Property Name="Freight" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="ShipName" Type="String" MaxLength="40" Unicode="true" FixedLength="false" />
           <Property Name="ShipAddress" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
@@ -440,8 +520,8 @@
           <Property Type="String" Name="FirstName" Nullable="false" MaxLength="30" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Title" MaxLength="30" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="TitleOfCourtesy" MaxLength="25" FixedLength="false" Unicode="true" />
-          <Property Type="DateTime" Name="BirthDate" />
-          <Property Type="DateTime" Name="HireDate" />
+          <Property Type="DateTime" Name="BirthDate" Precision="3" />
+          <Property Type="DateTime" Name="HireDate" Precision="3" />
           <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
@@ -498,9 +578,8 @@
           <Property Type="Int16" Name="UnitsOnOrder" />
           <Property Type="Int16" Name="ReorderLevel" />
           <Property Type="Boolean" Name="Discontinued" Nullable="false" />
-          <Property Type="DateTime" Name="DiscontinuedDate" />
+          <Property Type="DateTime" Name="DiscontinuedDate" Precision="3" />
           <Property Type="Int32" Name="RowVersion" Nullable="false" />
-          <NavigationProperty Name="OrderDetails" Relationship="Models.NorthwindIB.EDMX.FK_OrderDetail_Product" FromRole="Product" ToRole="OrderDetail" />
           <NavigationProperty Name="Category" Relationship="Models.NorthwindIB.EDMX.FK_Product_Category" FromRole="Product" ToRole="Category" />
           <NavigationProperty Name="Supplier" Relationship="Models.NorthwindIB.EDMX.FK_Product_Supplier" FromRole="Product" ToRole="Supplier" />
         </EntityType>
@@ -664,6 +743,68 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Role">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int64" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="Name" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Description" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="UserRoles" Relationship="Models.NorthwindIB.EDMX.FK_UserRole_Role" FromRole="Role" ToRole="UserRole" />
+        </EntityType>
+        <EntityType Name="User">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int64" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="UserPassword" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="FirstName" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="LastName" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="Email" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="Decimal" Name="RowVersion" Nullable="false" Precision="19" Scale="4" />
+          <Property Type="String" Name="CreatedBy" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="Int64" Name="CreatedByUserId" Nullable="false" />
+          <Property Type="DateTime" Name="CreatedDate" Nullable="false" Precision="3" />
+          <Property Type="String" Name="ModifiedBy" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="Int64" Name="ModifiedByUserId" Nullable="false" />
+          <Property Type="DateTime" Name="ModifiedDate" Nullable="false" Precision="3" />
+          <NavigationProperty Name="UserRoles" Relationship="Models.NorthwindIB.EDMX.FK_UserRole_User" FromRole="User" ToRole="UserRole" />
+        </EntityType>
+        <EntityType Name="UserRole">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Type="Int64" Name="ID" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int64" Name="UserId" Nullable="false" />
+          <Property Type="Int64" Name="RoleId" Nullable="false" />
+          <NavigationProperty Name="Role" Relationship="Models.NorthwindIB.EDMX.FK_UserRole_Role" FromRole="UserRole" ToRole="Role" />
+          <NavigationProperty Name="User" Relationship="Models.NorthwindIB.EDMX.FK_UserRole_User" FromRole="UserRole" ToRole="User" />
+        </EntityType>
+        <Association Name="FK_UserRole_Role">
+          <End Type="Models.NorthwindIB.EDMX.Role" Role="Role" Multiplicity="1" />
+          <End Type="Models.NorthwindIB.EDMX.UserRole" Role="UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Role">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserRole">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserRole_User">
+          <End Type="Models.NorthwindIB.EDMX.User" Role="User" Multiplicity="1" />
+          <End Type="Models.NorthwindIB.EDMX.UserRole" Role="UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="User">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserRole">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -815,6 +956,43 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Roles">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Role">
+              <MappingFragment StoreEntitySet="Role">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.User">
+              <MappingFragment StoreEntitySet="User">
+                <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />
+                <ScalarProperty Name="ModifiedByUserId" ColumnName="ModifiedByUserId" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="CreatedByUserId" ColumnName="CreatedByUserId" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="UserPassword" ColumnName="UserPassword" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserRoles">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.UserRole">
+              <MappingFragment StoreEntitySet="UserRole">
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
@@ -845,7 +1023,7 @@
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Employee" Width="2" PointX="5.375" PointY="4.125" Height="5.4417122395833308" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.EmployeeTerritory" Width="1.5" PointX="9.75" PointY="6.875" Height="2.1725878906250005" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.OrderDetail" Width="1.5" PointX="8.25" PointY="3.5" Height="2.5571907552083322" />
-        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Product" Width="1.5" PointX="6" PointY="11" Height="3.5186979166666674" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Product" Width="1.5" PointX="6.75" PointY="11.125" Height="3.5186979166666674" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Region" Width="1.5" PointX="3.125" PointY="16" Height="1.7879850260416674" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Territory" Width="1.5" PointX="5.375" PointY="15.75" Height="2.1725878906249996" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_Employee_Employee">
@@ -875,10 +1053,7 @@
           <ConnectorPoint PointX="4.5" PointY="3.78125" />
           <ConnectorPoint PointX="8.25" PointY="3.78125" />
         </AssociationConnector>
-        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_OrderDetail_Product">
-          <ConnectorPoint PointX="7.46875" PointY="11" />
-          <ConnectorPoint PointX="7.46875" PointY="3.879886093750001" />
-          <ConnectorPoint PointX="8.25" PointY="3.879886093750001" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_OrderDetail_Product" ManuallyRouted="false">
         </AssociationConnector>
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_Territory_Region">
           <ConnectorPoint PointX="4.625" PointY="16.893992513020834" />
@@ -895,6 +1070,11 @@
           <ConnectorPoint PointX="7.21875" PointY="21.355499674479166" />
           <ConnectorPoint PointX="7.21875" PointY="14.90330078125" />
         </AssociationConnector>
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Role" Width="1.5" PointX="3.033666373711855" PointY="20.036252269538238" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.User" Width="1.5" PointX="3.1582185435845602" PointY="20.903400520283451" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.UserRole" Width="1.5" PointX="1.6928986952141387" PointY="22.012397523043862" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_UserRole_Role" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_UserRole_User" />
       </Diagram>
     </Diagrams>
   </Designer>
