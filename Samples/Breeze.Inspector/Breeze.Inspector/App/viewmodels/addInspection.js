@@ -12,16 +12,17 @@
                 that.dfd = dfd;
                 require(['text!views/addInspection.html'], function(html) {
                     setTimeout(function() {
-                        var view = $(html);
-                        ko.applyBindings(that, view.get(0));
-                        view.modal();
-                        $("#simplemodal-container").css("height", "auto");
-                        
+                        //var view = $(html);
+                        //ko.applyBindings(that, view.get(0));
+                        //view.modal();
+                        //$("#simplemodal-container").css("height", "auto");
+
                         if (that.forms().length == 0) {
                             data.getForms().then(function(response) {
-                                that.forms(response.results);
+                                //that.forms(response.results);
+                                dfd.resolve(response.results[0]);
                             });
-                        } 
+                        }
                     }, 1);
                 });
             }).promise();
