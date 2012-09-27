@@ -1890,10 +1890,10 @@ function (core) {
         ctor.number = ctor.double = ctor.single = function (context) {
             var valFn = function (v, ctx) {
                 if (v == null) return true;
-                if (typeof v === "string" && ctx && ctx.shouldConvertString) {
-                    v = parseInt(v, 0);
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
                 }
-                return (typeof v === "number");
+                return (typeof v === "number" && !isNaN(v));
             };
             return new ctor("number", valFn, context);
         };
@@ -1913,10 +1913,10 @@ function (core) {
         ctor.integer = ctor.int64 = function (context) {
             var valFn = function (v, ctx) {
                 if (v == null) return true;
-                if (typeof v === "string" && ctx && ctx.shouldConvertString) {
-                    v = parseInt(v, 0);
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
                 }
-                return (typeof v === "number") && Math.floor(v) === v;
+                return (typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v;
             };
             return new ctor("integer", valFn, context );
         };
@@ -2069,10 +2069,10 @@ function (core) {
             return function () {
                 var valFn = function (v, ctx) {
                     if (v == null) return true;
-                    if (typeof v === "string" && ctx && ctx.shouldConvertString)  {
+                    if (typeof v === "string" && ctx && ctx.allowString)  {
                         v = parseInt(v, 0);
                     }
-                    if ((typeof v === "number") && Math.floor(v) === v) {
+                    if ((typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v) {
                         if (minValue != null && v < minValue) {
                             return false;
                         }

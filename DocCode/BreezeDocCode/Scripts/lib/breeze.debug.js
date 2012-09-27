@@ -1887,12 +1887,15 @@ function (core) {
         **/
 
         // TODO: may need to have seperate logic for single.
-        ctor.number = ctor.double = ctor.single = function () {
-            var valFn = function (v) {
+        ctor.number = ctor.double = ctor.single = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === "number");
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === "number" && !isNaN(v));
             };
-            return new ctor("number", valFn);
+            return new ctor("number", valFn, context);
         };
 
         /**
@@ -1907,12 +1910,15 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.integer = ctor.int64 = function () {
-            var valFn = function (v) {
+        ctor.integer = ctor.int64 = function (context) {
+            var valFn = function (v, ctx) {
                 if (v == null) return true;
-                return (typeof v === "number") && Math.floor(v) === v;
+                if (typeof v === "string" && ctx && ctx.allowString) {
+                    v = parseInt(v, 10);
+                }
+                return (typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v;
             };
-            return new ctor("integer", valFn );
+            return new ctor("integer", valFn, context );
         };
 
         /**
@@ -1926,7 +1932,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.int32 = intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX);
+        ctor.int32 = function(context) {
+            return intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX, context)();
+        };
 
         /**
         Returns a standard 16 bit integer data type Validator.
@@ -1940,7 +1948,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.int16 = intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX);
+        ctor.int16 = function (context) {
+            return intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX, context)();
+        };
 
         /**
         Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).
@@ -1955,7 +1965,9 @@ function (core) {
         @static
         @return A new Validator
         **/
-        ctor.byte = intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX);
+        ctor.byte = function (context) {
+            return intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX, context)();
+        };
 
         /**
         Returns a standard boolean data type Validator.
@@ -2051,13 +2063,16 @@ function (core) {
             });
         }
 
-        function intRangeValidatorCtor(validatorName, minValue, maxValue) {
+        function intRangeValidatorCtor(validatorName, minValue, maxValue, context) {
             ctor.messageTemplates[validatorName] = core.formatString("'%displayName%' must be an integer between the values of %1 and %2",
                 minValue, maxValue);
             return function () {
                 var valFn = function (v, ctx) {
                     if (v == null) return true;
-                    if ((typeof v === "number") && Math.floor(v) === v) {
+                    if (typeof v === "string" && ctx && ctx.allowString)  {
+                        v = parseInt(v, 0);
+                    }
+                    if ((typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v) {
                         if (minValue != null && v < minValue) {
                             return false;
                         }
@@ -2069,7 +2084,7 @@ function (core) {
                         return false;
                     }
                 };
-                return new ctor(validatorName, valFn);
+                return new ctor(validatorName, valFn, context);
             };
 
         }
@@ -2471,8 +2486,17 @@ function (core, Event, m_validate) {
                     throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
                 }
             }
-            var proto = entityType.getEntityCtor().prototype;
-            core.config.trackingImplementation.startTracking(entity, proto);
+            var entityCtor = entityType.getEntityCtor();
+            core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            var initFn = entityCtor._$initializationFn;
+            if (initFn) {
+                if (typeof initFn === "string") {
+                    entity[initFn](entity);
+                } else {
+                    entityCtor._$initializationFn(entity);
+                }
+            }
+            
         };
 
         /**
@@ -3193,7 +3217,7 @@ function (core, m_entityAspect) {
                 }
                 // update fk data property
                 if (property.relatedDataProperties) {
-                    if (!aspect.entityState.isDeleted()) {
+                    if (inverseProp && !aspect.entityState.isDeleted()) {
                         var inverseKeyProps = inverseProp.parentEntityType.keyProperties;
                         if (inverseKeyProps.length !== 1 && !newValue) {
                             throw new Error("Only single property foreign keys are currently supported.");
@@ -3812,7 +3836,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(interceptor, "interceptor").isFunction().isOptional().check();
             // TODO: think about adding this to the MetadataStore.
             var entityType = new EntityType(this);
-            entityType.setEntityCtor(entityCtor, interceptor);
+            entityType._setEntityCtor(entityCtor, interceptor);
         };
 
         /**
@@ -3835,16 +3859,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
+        @param [initializationFn] {InitializationFunction} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+            
+        initializationFn(entity)
+        @param initializationFn.entity {Entity} The entity being created or materialized.
         **/
-        ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor) {
+        ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor, initializationFn) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(entityCtor, "entityCtor").isFunction().check();
+            assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
             var typeName;
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
-                    entityType.setEntityCtor(entityCtor);
+                    entityType._setEntityCtor(entityCtor);
                 }
                 typeName = qualifiedTypeName;
             } else {
@@ -3852,6 +3881,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             entityCtor.prototype._$typeName = typeName;
             this._typeRegistry[typeName] = entityCtor;
+            if (initializationFn) {
+                entityCtor._$initializationFn = initializationFn;
+            }
         };
       
 
@@ -4034,7 +4066,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         if (entityCtor) {
                              // next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
-                             entityType.setEntityCtor(entityCtor);
+                             entityType._setEntityCtor(entityCtor);
                              that._entityTypeMap[entityType.name] = entityType;
                         }
                             
@@ -4430,30 +4462,24 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!entityCtor) {
                 entityCtor = function () { };
             }
-            this.setEntityCtor(entityCtor);
+            this._setEntityCtor(entityCtor);
             return entityCtor;
         };
 
-        /**
-        Sets the constructor for this EntityType.
-        @method setEntityCtor
-        @param entityCtor {Function} An constructor function for this EntityType that requires no arguments.
-        @param interceptor {Not yet documented}
-        **/
-        ctor.prototype.setEntityCtor = function (entityCtor, interceptor) {
+        // May make public later.
+        ctor.prototype._setEntityCtor = function (entityCtor, interceptor) {
             var instance = new entityCtor();
 
             // insure that all of the properties are on the 'template' instance before watching the class.
             calcUnmappedProperties(this, instance);
 
-            // enableTracking(this, entityCtor.prototype, interceptor);
             var proto = entityCtor.prototype;
             proto.entityType = this;
 
             if (interceptor) {
-                proto.interceptor = interceptor;
+                proto._$interceptor = interceptor;
             } else {
-                proto.interceptor = defaultPropertyInterceptor;
+                proto._$interceptor = defaultPropertyInterceptor;
             }
 
             core.config.trackingImplementation.initializeEntityPrototype(proto);
@@ -4708,22 +4734,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._needsInitialization = !isInitialized;
 
         };
-
-
-//        // interceptor is -> function(propName, newValue, accessorFn) - may be specified later
-//        // by setting the prototype's interceptor property.
-//        // interceptor is optional
-//        function enableTracking(entityType, entityPrototype, interceptor) {
-//            entityPrototype.entityType = entityType;
-
-//            if (interceptor) {
-//                entityPrototype.interceptor = interceptor;
-//            } else {
-//                entityPrototype.interceptor = defaultPropertyInterceptor;
-//            }
-
-//            core.config.trackingImplementation.initializeEntityPrototype(entityPrototype);
-//        }
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();
@@ -7171,8 +7181,6 @@ function (core, m_entityMetadata, m_entityAspect) {
 
     return ctor;
 });
-
-
 
 define('entityManager',["core", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
 function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
@@ -10074,8 +10082,8 @@ function (core, makeRelationArray) {
                     return;
                 }
                 var accessorFn = getAccessorFn(bs);
-                if (this.interceptor) {
-                    this.interceptor(property, value, accessorFn);
+                if (this._$interceptor) {
+                    this._$interceptor(property, value, accessorFn);
 
                 } else {
                     accessorFn(value);
@@ -10095,9 +10103,10 @@ define('entityTracking_ko',["core", "relationArray"],
 function (core, makeRelationArray) {
     
 
-    var trackingImpl = { };
-
     var ko;
+    var trackingImpl = { };
+    
+    trackingImpl.name = "knockout entity tracking implementation";
     
     trackingImpl.initialize = function() {
         ko = window.ko;
@@ -10111,7 +10120,7 @@ function (core, makeRelationArray) {
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;
-            // var interceptor = interceptorOptions.interceptor;
+            
             // create a computed observable to intercept writes to our observable
             var result;
             if (target.splice) {
@@ -10122,7 +10131,7 @@ function (core, makeRelationArray) {
                 result = ko.computed({
                     read: target,  //always return the original observables value
                     write: function(newValue) {
-                        instance.interceptor(property, newValue, target);
+                        instance._$interceptor(property, newValue, target);
                         return instance;
                     }
                 });
@@ -10132,8 +10141,6 @@ function (core, makeRelationArray) {
         };
 
     };
-
-    trackingImpl.name = "knockout entity tracking implementation";
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
@@ -10157,7 +10164,7 @@ function (core, makeRelationArray) {
             // check if property is already exposed as a ko object
             if (ko.isObservable(val)) {
                 // if so
-                if (prop.IsNavigationProperty) {
+                if (prop.isNavigationProperty) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
                 }
                 koObj = val;
@@ -10243,7 +10250,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.59",
+        version: "0.60",
         core: core,
         entityModel: entityModel
     };
