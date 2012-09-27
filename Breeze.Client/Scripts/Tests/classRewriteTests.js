@@ -121,12 +121,12 @@ define(["testFns"], function (testFns) {
         cust1.setProperty("companyName", "foo");
         cust1.setProperty("companyName", "foox");
         ok(cust1.prevValues.length === 1);
-        var oldInterceptor = Customer.prototype.interceptor;
-        Customer.prototype.interceptor = function (p, v, a) { a(v); };
+        var oldInterceptor = Customer.prototype._$interceptor;
+        Customer.prototype._$interceptor = function (p, v, a) { a(v); };
         cust1.setProperty("companyName", "bar");
         ok(cust1.getProperty("companyName") === "bar");
         ok(cust1.prevValues.length === 1);
-        Customer.prototype.interceptor = oldInterceptor;
+        Customer.prototype._$interceptor = oldInterceptor;
         cust1.setProperty("companyName", "foo2");
         ok(cust1.getProperty("companyName") == "foo2");
         ok(cust1.prevValues.length === 2);

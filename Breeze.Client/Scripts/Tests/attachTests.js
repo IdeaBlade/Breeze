@@ -81,8 +81,75 @@ define(["testFns"], function (testFns) {
         entityKey = new EntityKey(productType, [7]);
         sameProduct = em.findEntityByKey(entityKey);
         ok(product === sameProduct);
+    });
+
+    test("post create init 1", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function() {
+            this.isObsolete = false;
+        };
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, function(entity) {
+            ok(entity.entityType === productType, "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        });
+
+        var product = productType.createEntity();
+        ok(product.getProperty("isObsolete") === true);
+    });
+    
+    test("post create init 2", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function () {
+            this.isObsolete = false;
+        };
+        Product.prototype.init = function (entity) {
+            ok(entity.entityType === productType, "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        };
         
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+
+        var product = productType.createEntity();
+        ok(product.getProperty("isObsolete") === true);
+    });
+
+    test("post create init 3", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function () {
+            this.isObsolete = false;
+            this.init = function (entity) {
+                ok(entity.entityType === productType, "entity's productType should be 'Product'");
+                ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+                entity.setProperty("isObsolete", true);
+            };
+        };
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+
+        var product = productType.createEntity();
+        ok(product.getProperty("isObsolete") === true);
+    });
+    
+    test("post create init after new and attach", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function () {
+            this.isObsolete = false;
+            this.init = function (entity) {
+                ok(entity.entityType === productType, "entity's productType should be 'Product'");
+                ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+                entity.setProperty("isObsolete", true);
+            };
+        };
+        var product = new Product();
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+        em.attachEntity(product);
         
+        ok(product.getProperty("isObsolete") === true);
     });
 
     test("changing FK to null removes it from old parent", 2, function () {

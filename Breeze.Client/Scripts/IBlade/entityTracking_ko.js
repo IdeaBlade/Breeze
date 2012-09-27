@@ -3,9 +3,10 @@ define(["core", "relationArray"],
 function (core, makeRelationArray) {
     "use strict";
 
-    var trackingImpl = { };
-
     var ko;
+    var trackingImpl = { };
+    
+    trackingImpl.name = "knockout entity tracking implementation";
     
     trackingImpl.initialize = function() {
         ko = window.ko;
@@ -19,7 +20,7 @@ function (core, makeRelationArray) {
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;
-            // var interceptor = interceptorOptions.interceptor;
+            
             // create a computed observable to intercept writes to our observable
             var result;
             if (target.splice) {
@@ -30,7 +31,7 @@ function (core, makeRelationArray) {
                 result = ko.computed({
                     read: target,  //always return the original observables value
                     write: function(newValue) {
-                        instance.interceptor(property, newValue, target);
+                        instance._$interceptor(property, newValue, target);
                         return instance;
                     }
                 });
@@ -40,8 +41,6 @@ function (core, makeRelationArray) {
         };
 
     };
-
-    trackingImpl.name = "knockout entity tracking implementation";
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
@@ -65,7 +64,7 @@ function (core, makeRelationArray) {
             // check if property is already exposed as a ko object
             if (ko.isObservable(val)) {
                 // if so
-                if (prop.IsNavigationProperty) {
+                if (prop.isNavigationProperty) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
                 }
                 koObj = val;

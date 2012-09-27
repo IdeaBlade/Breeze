@@ -46,7 +46,29 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
         
     });
-    
+
+    test("post create init after materialization", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function () {
+            this.isObsolete = false;
+        };
+        Product.prototype.init = function (entity) {
+            ok(entity.entityType === productType, "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        };
+       
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+        var query = EntityQuery.from("Products").take(3);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var products = data.results;
+            products.forEach(function(p) {
+                ok(p.getProperty("isObsolete") === true,"isObsolete should be true");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("date property is a DateTime", function () {
 

@@ -328,8 +328,17 @@ function (core, Event, m_validate) {
                     throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
                 }
             }
-            var proto = entityType.getEntityCtor().prototype;
-            core.config.trackingImplementation.startTracking(entity, proto);
+            var entityCtor = entityType.getEntityCtor();
+            core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            var initFn = entityCtor._$initializationFn;
+            if (initFn) {
+                if (typeof initFn === "string") {
+                    entity[initFn](entity);
+                } else {
+                    entityCtor._$initializationFn(entity);
+                }
+            }
+            
         };
 
         /**
