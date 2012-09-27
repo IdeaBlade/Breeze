@@ -48,6 +48,24 @@ define(["testFns"], function (testFns) {
 
     });
 
+    test("unidirectional attach", function () {
+        var em = newEm();
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
+        var orderDetail = orderDetailType.createEntity();
+        var productType = em.metadataStore.getEntityType("Product");
+        var product = productType.createEntity();
+        orderDetail.setProperty("orderID", -99);
+        em.attachEntity(orderDetail);
+        em.attachEntity(product);
+        var nullProduct = orderDetail.getProperty("product");
+        ok(nullProduct === null);
+        product.setProperty("productID", 7);
+        orderDetail.setProperty("productID", 7);
+        var sameProduct = orderDetail.getProperty("product");
+        ok(product === sameProduct);
+       
+    });
+
     test("changing FK to null removes it from old parent", 2, function () {
         // D2183
         var em = newEm();
