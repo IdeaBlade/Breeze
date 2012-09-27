@@ -66,6 +66,25 @@ define(["testFns"], function (testFns) {
        
     });
 
+    test("primary key fixup", function () {
+        var em = newEm();
+        var productType = em.metadataStore.getEntityType("Product");
+        var product = productType.createEntity();
+        em.attachEntity(product);
+        var origProductId = product.getProperty("productID");
+        var entityKey = new EntityKey(productType, [origProductId]);
+        var sameProduct = em.findEntityByKey(entityKey);
+        ok(product === sameProduct);
+        product.setProperty("productID", 7);
+        sameProduct = em.findEntityByKey(entityKey);
+        ok(sameProduct === null);
+        entityKey = new EntityKey(productType, [7]);
+        sameProduct = em.findEntityByKey(entityKey);
+        ok(product === sameProduct);
+        
+        
+    });
+
     test("changing FK to null removes it from old parent", 2, function () {
         // D2183
         var em = newEm();
