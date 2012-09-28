@@ -10145,12 +10145,7 @@ function (core, makeRelationArray) {
     trackingImpl.initializeEntityPrototype = function(proto) {
 
         proto.getProperty = function (propertyName) {
-            var val = this[propertyName];
-            if (val._$isObsArr) {
-                return val;
-            } else {
-                return val();
-            }
+            return this[propertyName]();          
         };
 
         proto.setProperty = function(propertyName, value) {
@@ -10190,6 +10185,9 @@ function (core, makeRelationArray) {
                     } else {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+                        koObj.equalityComparer = function() {
+                            throw new Error("Collection navigation properties may be set.");
+                        };
                     }
                 } else {
                     throw new Error("unknown property: " + propName);

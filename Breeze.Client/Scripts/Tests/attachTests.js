@@ -23,6 +23,21 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("disallow setting collection navigation properties", function() {
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        em.attachEntity(customer);
+        ok(customer.getProperty("orders").length === 0);
+        try {
+            // customer.setProperty("orders", []);
+            customer.orders([]);
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message.indexOf("navigation")>=0, "Exception should relate to navigation:" + e);
+        }
+    });
     
     test("setting child's parent entity null removes it from old parent", 2, function () {
         // D2183
