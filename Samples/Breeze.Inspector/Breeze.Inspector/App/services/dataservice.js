@@ -12,7 +12,7 @@
     var op = entityModel.FilterQueryOp,
         EntityAction = entityModel.EntityAction,
         manager = new entityModel.EntityManager('api/inspector'),
-        answerType, jobType, addressType, inspection,
+        answerType, jobType, addressType, inspectionType,
         canSave,
         data,
         forms;
@@ -39,37 +39,32 @@
         }
     }
 
+    function preloadData(def) {
+        var query = new entityModel.EntityQuery()
+            .from("Forms")
+            .expand("Questions");
+
+        answerType = manager.metadataStore.getEntityType("Answer");
+        jobType = manager.metadataStore.getEntityType("Job");
+        addressType = manager.metadataStore.getEntityType("Address");
+        inspectionType = manager.metadataStore.getEntityType("Inspection");
+
+        executeQuery(query).then(function(response) {
+            forms = response.results;
+            def.resolve();
+        });
+    }
+
     data = {
         ready: function() {
-            var query = new entityModel.EntityQuery()
-                .from("Forms")
-                .expand("Questions");
-
-            if (this.isOffline()) {
-                answerType = manager.metadataStore.getEntityType("Answer");
-                jobType = manager.metadataStore.getEntityType("Job");
-                addressType = manager.metadataStore.getEntityType("Address");
-                inspection = manager.metadataStore.getEntityType("Inspection");
-                forms = manager.executeQueryLocally(query);
-
-                return $.Deferred(function(def) {
-                    def.resolve();
-                });
-            }
-
             return $.Deferred(function(def) {
-                manager.fetchMetadata().then(function() {
-                    answerType = manager.metadataStore.getEntityType("Answer");
-                    jobType = manager.metadataStore.getEntityType("Job");
-                    addressType = manager.metadataStore.getEntityType("Address");
-                    inspection = manager.metadataStore.getEntityType("Inspection");
-
-                    executeQuery(query).then(function(response) {
-                        forms = response.results;
-                        console.log(forms);
-                        def.resolve();
+                if (data.isOffline()) {
+                    preloadData(def);
+                } else {
+                    manager.fetchMetadata().then(function() {
+                        preloadData(def);
                     });
-                });
+                }
             }).promise();
         },
         getForms: function() {
@@ -104,10 +99,10 @@
             return job;
         },
         createInspection: function(inspectionForm) {
-            var newInspection = manager.addEntity(inspection.createEntity());
-            newInspection.Form(inspectionForm);
-            newInspection.Status("New");
-            return newInspection;
+            var inspection = manager.addEntity(inspectionType.createEntity());
+            inspection.Form(inspectionForm);
+            inspection.Status("New");
+            return inspection;
         },
         onCanSaveChanges: function(callback) {
             canSave = callback;
@@ -143,7 +138,7 @@
     };
 
     if (data.isOffline()) {
-        manager.import(localStorage.getItem("manager"));
+        manager.importEntities(localStorage.getItem("manager"));
     }
 
     return data;
