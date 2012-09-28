@@ -1,7 +1,7 @@
 ﻿<div class="form">
     <div class="field textbox">
         <span class="label">Street</span>
-        <input type="text" data-bind="value: job().Location().Street1" />
+        <input type="text" data-bind="value: job().Location().Street1, valueUpdate: 'afterkeyup'" />
     </div>
     
     <div class="field textbox">

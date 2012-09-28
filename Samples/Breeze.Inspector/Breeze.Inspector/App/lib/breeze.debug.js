@@ -5677,7 +5677,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         
            successFunction([data])
            @param [callback.data] {Object} 
-           @param [callback.data.results] {Array of Entity}
+           @param callback.data.results {Array of Entity}
+           @param callback.data.query {EntityQuery} The original query
 
         @param errorCallback {failureFunction} Function called on failure.
             
@@ -7786,8 +7787,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [callback] {successFunction} Function called on success.
         
             successFunction([data])
-            @param [callback.data] {Object} 
-            @param [callback.data.results] {Array of Entity}
+            @param callback.data {Object} 
+            @param callback.data.results {Array of Entity}
+            @param callback.data.query {EntityQuery} The original query
 
         @param [errorCallback] {failureFunction} Function called on failure.
             
@@ -8581,7 +8583,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
                     return Q.fcall(function () {
                         var results = em.executeQueryLocally(query);
-                        return { results: results };
+                        return { results: results, query: query };
                     });
                 }
                 var odataQuery = toOdataQueryString(query, metadataStore);
@@ -8612,7 +8614,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                                 fn();
                             });
                         }
-                        return { results: entities };
+                        return { results: entities, query: query };
                     });
                     deferred.resolve( result);
                 }, deferred.reject);
@@ -10144,8 +10146,8 @@ function (core, makeRelationArray) {
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function(propertyName) {
-            return this[propertyName]();
+        proto.getProperty = function (propertyName) {
+            return this[propertyName]();          
         };
 
         proto.setProperty = function(propertyName, value) {
@@ -10185,12 +10187,29 @@ function (core, makeRelationArray) {
                     } else {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+                        koObj.equalityComparer = function() {
+                            throw new Error("Collection navigation properties may NOT be set.");
+                        };
+                        // Alternative formulation - perf is not as good.
+                        //koObj.subscribe(function(item) {
+                        //    if (this.target() !== val) {
+                        //        this.target(val); // reset it
+                        //        throw new Error("Collection navigation properties may NOT be set");
+                        //    }
+                        //});
+                        
                     }
                 } else {
                     throw new Error("unknown property: " + propName);
                 }
             }
-            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop } });
+            if (prop.isNavigationProperty && !prop.isScalar) {
+                entity[propName] = koObj;
+            } else {
+                var koExt = koObj.extend({ intercept: { instance: entity, property: prop } });
+                entity[propName] = koExt;
+            }
+
         });
 
     };

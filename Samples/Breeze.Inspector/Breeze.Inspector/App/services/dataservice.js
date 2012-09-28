@@ -14,7 +14,8 @@
         manager = new entityModel.EntityManager('api/inspector'),
         answerType, jobType, addressType, inspection,
         canSave,
-        data;
+        data,
+        forms;
 
     manager.entityChanged.subscribe(function(args) {
         if (args.entityAction === EntityAction.Clear) {
@@ -40,8 +41,17 @@
 
     data = {
         ready: function() {
+            var query = new entityModel.EntityQuery()
+                .from("Forms")
+                .expand("Questions");
+
             if (this.isOffline()) {
                 answerType = manager.metadataStore.getEntityType("Answer");
+                jobType = manager.metadataStore.getEntityType("Job");
+                addressType = manager.metadataStore.getEntityType("Address");
+                inspection = manager.metadataStore.getEntityType("Inspection");
+                forms = manager.executeQueryLocally(query);
+
                 return $.Deferred(function(def) {
                     def.resolve();
                 });
@@ -54,21 +64,16 @@
                     addressType = manager.metadataStore.getEntityType("Address");
                     inspection = manager.metadataStore.getEntityType("Inspection");
 
-                    var query = new entityModel.EntityQuery()
-                        .from("Forms")
-                        .expand("Questions");
-
-                    executeQuery(query).then(function() {
+                    executeQuery(query).then(function(response) {
+                        forms = response.results;
+                        console.log(forms);
                         def.resolve();
                     });
                 });
             }).promise();
         },
         getForms: function() {
-            var query = new entityModel.EntityQuery()
-                .from("Forms");
-
-            return executeQuery(query);
+            return forms;
         },
         getInspectors: function() {
             var query = new entityModel.EntityQuery()

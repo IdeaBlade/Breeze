@@ -9,14 +9,11 @@
     };
 
     ctor.prototype.addInspection = function() {
-        console.log("test");
         var that = this;
         addInspectionDialog.show().then(function(selection) {
             var inspection = data.createInspection(selection);
-            that.job().Inspections().push(inspection);
-            console.log(that.job().Inspections());
+            that.job().Inspections.push(inspection);
         });
-        return true;
     };
 
     ctor.prototype.activate = function() {
@@ -26,7 +23,11 @@
         shell.subtitle1('Inspector ' + shell.inspector().Name());
 
         that.job().Location().Street1.subscribe(function(value) {
-            shell.title(value);
+            if(!value || value.length == 0) {
+                shell.title('[new]');
+            } else {
+                shell.title(value);
+            }
         });
 
         shell.addCommand('save', function() {
