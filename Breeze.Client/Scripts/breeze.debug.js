@@ -8612,7 +8612,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                                 fn();
                             });
                         }
-                        return { results: entities };
+                        return { results: entities, query: query };
                     });
                     deferred.resolve( result);
                 }, deferred.reject);

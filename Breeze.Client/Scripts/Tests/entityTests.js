@@ -115,22 +115,7 @@ define(["testFns"], function (testFns) {
         });
     });
 
-    test("knockout chaining on write", function() {
-        if (!testFns.DEBUG_KO) {
-            ok("Test skipped - Not running under Knockout");
-            return;
-        };
-        var em1 = newEm();
-        var custType = em1.metadataStore.getEntityType("Customer");
-        var cust1 = custType.createEntity();
-        var sameCust = cust1.companyName("First");
-        ok(sameCust === cust1, "ko setters need to chain");
-        var val1 = cust1.companyName();
-        ok(val1 === "First");
-        cust1.companyName("Second").contactTitle("Foo").contactName("Bar");
-        ok(cust1.contactTitle() == "Foo");
-        ok(cust1.contactName() == "Bar");
-    });
+   
    
 
 

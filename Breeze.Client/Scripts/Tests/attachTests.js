@@ -32,16 +32,16 @@ define(["testFns"], function (testFns) {
         var orderType = em.metadataStore.getEntityType("Order");
         var order = orderType.createEntity();
         em.attachEntity(customer);
-        var origOrders = customer.orders();
+        var origOrders = customer.getProperty("orders");
         ok(origOrders.length === 0);
         customer.orders.push(order);
         ok(origOrders.length === 1);
         try {
-            customer.orders(["foo", "bar"]);
+            customer.setProperty("orders", ["foo", "bar"]);
             ok(false, "should not get here");
         } catch (e) {
             ok(e.message.indexOf("navigation") >= 0, "Exception should relate to navigation:" + e);
-            ok(customer.orders() == origOrders);
+            ok(customer.getProperty("orders") == origOrders);
         }
     });
     
@@ -203,7 +203,7 @@ define(["testFns"], function (testFns) {
         em.addEntity(newOrder);
         em.detachEntity(newOrder); 
         em.addEntity(newOrder);// Exception thrown: "this key is already attached"
-
+        ok(true);
     });
 
 
@@ -216,6 +216,7 @@ define(["testFns"], function (testFns) {
 
         em.detachEntity(order);
         em.attachEntity(order);// Exception thrown: "this key is already attached"
+        ok(true);
     });
 
     

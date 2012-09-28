@@ -24,6 +24,20 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("query results include query", function() {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .using(em);
+        stop();
+        query.execute().then(function(data) {
+            var customer = data.results[0];
+            var sameQuery = data.query;
+            ok(query === sameQuery, "not the same query");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("duplicates after relation query", function() {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';

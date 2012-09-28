@@ -70,6 +70,7 @@
     <Content Include="Scripts\IBlade\validate.js" />
     <Content Include="Scripts\Tests\attachTests.js" />
     <Content Include="Scripts\Tests\classRewriteTests.js" />
+    <Content Include="Scripts\Tests\koSpecificTests.js" />
     <Content Include="Scripts\Tests\queryDatatypeTests.js" />
     <Content Include="Scripts\Tests\entityManagerTests.js" />
     <Content Include="Scripts\Tests\entityQueryCtorTests.js" />

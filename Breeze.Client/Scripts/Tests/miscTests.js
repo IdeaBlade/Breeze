@@ -26,37 +26,6 @@ define(["testFns"], function (testFns) {
         ok(true);
     });
     
-    test("ko observable array", function () {
-        var items = [];
-        var oa = ko.observableArray(items);
-        var changeCount = 0;
-        oa.subscribe(function() {
-            changeCount++;
-        });
-        oa.push("adfadf");
-        var em = newEm();
-
-        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
-        var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
-            .expand("orders");
-        var customer;
-        stop();
-        query.using(em).execute().then(function (data) {
-            customer = data.results[0];
-            var orderType = em.metadataStore.getEntityType("Order");
-            var order = orderType.createEntity();
-            var count = customer.orders().length;
-            var ix = 0;
-            customer.orders.subscribe(function() {
-                ix = ix + 1;
-            });
-            customer.orders.push(order);
-            var count2 = customer.orders().length;
-            ok(count2 == count + 1);
-        }).fail(testFns.handleFail).fin(start);
-
-    });
     
     test("regex function matching", function() {
         var entity = new TestEntity();

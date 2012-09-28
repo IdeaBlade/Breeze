@@ -5,6 +5,7 @@ require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
       "miscTests",
+      "koSpecificTests",
       "attachTests",
       "classRewriteTests",
       "metadataTests",

@@ -235,6 +235,10 @@
       <Link>Scripts\Tests\entityTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\koSpecificTests.js">
+      <Link>Scripts\Tests\koSpecificTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\metadataTests.js">
       <Link>Scripts\Tests\metadataTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
