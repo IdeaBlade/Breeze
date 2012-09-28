@@ -86,8 +86,16 @@ function (core, makeRelationArray) {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
                         koObj.equalityComparer = function() {
-                            throw new Error("Collection navigation properties may be set.");
+                            throw new Error("Collection navigation properties may NOT be set.");
                         };
+                        // Alternative formulation - perf is not as good.
+                        //koObj.subscribe(function(item) {
+                        //    if (this.target() !== val) {
+                        //        this.target(val); // reset it
+                        //        throw new Error("Collection navigation properties may NOT be set");
+                        //    }
+                        //});
+                        
                     }
                 } else {
                     throw new Error("unknown property: " + propName);
