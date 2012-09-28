@@ -44,8 +44,13 @@ function (core, makeRelationArray) {
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function(propertyName) {
-            return this[propertyName]();
+        proto.getProperty = function (propertyName) {
+            var val = this[propertyName];
+            if (val._$isObsArr) {
+                return val;
+            } else {
+                return val();
+            }
         };
 
         proto.setProperty = function(propertyName, value) {
@@ -90,7 +95,13 @@ function (core, makeRelationArray) {
                     throw new Error("unknown property: " + propName);
                 }
             }
-            entity[propName] = koObj.extend({ intercept: { instance: entity, property: prop } });
+            if (prop.isNavigationProperty && !prop.isScalar) {
+                entity[propName] = koObj;
+            } else {
+                var koExt = koObj.extend({ intercept: { instance: entity, property: prop } });
+                entity[propName] = koExt;
+            }
+
         });
 
     };
