@@ -513,7 +513,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         
            successFunction([data])
            @param [callback.data] {Object} 
-           @param [callback.data.results] {Array of Entity}
+           @param callback.data.results {Array of Entity}
+           @param callback.data.query {EntityQuery} The original query
 
         @param errorCallback {failureFunction} Function called on failure.
             

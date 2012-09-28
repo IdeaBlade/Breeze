@@ -602,8 +602,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [callback] {successFunction} Function called on success.
         
             successFunction([data])
-            @param [callback.data] {Object} 
-            @param [callback.data.results] {Array of Entity}
+            @param callback.data {Object} 
+            @param callback.data.results {Array of Entity}
+            @param callback.data.query {EntityQuery} The original query
 
         @param [errorCallback] {failureFunction} Function called on failure.
             
@@ -1397,7 +1398,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
                     return Q.fcall(function () {
                         var results = em.executeQueryLocally(query);
-                        return { results: results };
+                        return { results: results, query: query };
                     });
                 }
                 var odataQuery = toOdataQueryString(query, metadataStore);

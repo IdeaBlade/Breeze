@@ -20,43 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
 <div id="wrap">
 
 <div id="doc">
@@ -810,8 +773,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [callback] {successFunction} Function called on success.
         
             successFunction([data])
-            @param [callback.data] {Object} 
-            @param [callback.data.results] {Array of Entity}
+            @param callback.data {Object} 
+            @param callback.data.results {Array of Entity}
+            @param callback.data.query {EntityQuery} The original query
 
         @param [errorCallback] {failureFunction} Function called on failure.
             
@@ -1605,7 +1569,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
                     return Q.fcall(function () {
                         var results = em.executeQueryLocally(query);
-                        return { results: results };
+                        return { results: results, query: query };
                     });
                 }
                 var odataQuery = toOdataQueryString(query, metadataStore);
@@ -1636,7 +1600,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                                 fn();
                             });
                         }
-                        return { results: entities };
+                        return { results: entities, query: query };
                     });
                     deferred.resolve( result);
                 }, deferred.reject);
