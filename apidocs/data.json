@@ -2,7 +2,7 @@
     "project": {
         "name": "The Breeze API",
         "description": "Client-Server data managment ... in JavaScript.",
-        "version": "0.59",
+        "version": "0.60",
         "url": "http://www.breezejs.com/",
         "logo": "http://www.ideablade.com/images/IdeaBladeBanner/IdeaBlade_logo_tm.png"
     },
