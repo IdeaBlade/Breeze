@@ -241,7 +241,45 @@ define(["testFns"], function (testFns) {
         equal(existingCustomer.entityAspect.entityState, EntityState.Unchanged,
             "adding to the customer's orders does not change the customer's state");
     });
+    /*********************************************************
+    * Adding to a collection navigation property raises KO notification
+    *********************************************************/
+    test("adding to a collection navigation property raises KO notification", 2,
+        function () {
 
+        var em = newEm();
+        var existingCustomer = getFakeExistingCustomer(em);
+
+        var newOrder1 = createOrder();
+        em.addEntity(newOrder1);
+
+        var newOrder2 = createOrder();
+        em.addEntity(newOrder2);
+
+        var breezeOrderChangedCount = 0;
+        
+        // listening on the special array returned by Breeze nav property
+        existingCustomer.Orders().arrayChanged.subscribe(
+        function () { breezeOrderChangedCount += 1; });
+        
+        var koOrdersChangedCount = 0;     
+        existingCustomer.Orders.subscribe(
+            function () { koOrdersChangedCount += 1; });
+        
+        // two ways to push
+        // ko says this one should not notify
+        // but Breeze notifies
+        existingCustomer.Orders().push(newOrder1);
+        
+        // ko says this one should notify and Breeze notifies
+        existingCustomer.Orders.push(newOrder2);
+
+        equal(koOrdersChangedCount, 1,
+            "should have one ko 'Orders' changed notification");
+        
+        equal(breezeOrderChangedCount, 2,
+            "should have two Breeze 'Orders' changed notifications");
+    });
     /*********************************************************
     * detaching a child entity empties its navigations
     *********************************************************/
