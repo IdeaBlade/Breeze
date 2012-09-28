@@ -81,8 +81,11 @@ section {
 }
 
 .status {
-     position: absolute;
-    right: .5em;
+    position: absolute;
+    right: 1.5em;
+    width: 56px;
+    height: 54px;
+    top: .7em;
 }
 
 .login {
@@ -263,15 +266,28 @@ button.add span {
     background: url('/Images/Check_Large.png');
 }
 
-.small-icon.inProgress {
+.small-icon {
+    display: inline-block;
+}
+
+.small-icon.inProgress 
+{
+    width: 27px;
+    height: 23px;
     background: url('/Images/Warn_Small.png');
 }
 
-.small-icon.canceled {
+.small-icon.canceled 
+{
+    width: 25px;
+    height: 29px;
     background: url('/Images/x.png');
 }
 
-.small-icon.done {
+.small-icon.done 
+{
+    width: 26px;
+    height: 26px;
     background: url('/Images/Check_Small.png');
 }
 

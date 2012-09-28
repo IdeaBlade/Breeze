@@ -56,9 +56,14 @@
         var loc = this.inspection.Job().Location();
         shell.subtitle2(loc.Street1() + ", " + loc.City() + ", " + loc.State());
 
+        shell.status(that.inspection.Status());
+        that.inspection.Status.subscribe(function(value) {
+            shell.status(value);
+        });
+
         shell.addCommand('save',
             function() {
-                if(that.inspection.Status() == "New") {
+                if (that.inspection.Status() == "New") {
                     that.inspection.Status("In Progress");
                 }
 
@@ -77,17 +82,26 @@
                 }
 
                 that.inspection.Status("In Progress");
-            }
-        );
-
-        shell.addCommand('done', //or reopen
-            function() {
-                that.inspection.Status('Done');
-                //TODO: save
             },
             ko.computed(function() {
-                return this.isValid() && this.inspection.Status() != 'Done';
+                return this.inspection.Status() != 'Done';
             }, this)
+        );
+
+        shell.addCommand(
+            ko.computed(function() {
+                return this.inspection.Status() == 'Done' ? 'reopen' : 'done';
+            }, this),
+            function() {
+                if (that.inspection.Status() == 'Done') {
+                    that.inspection.Status('In Progress');
+                } else {
+                    that.inspection.Status('Done');
+                }
+
+                //TODO: save
+            },
+            ko.computed(this.isValid, this)
         );
 
         shell.addCommand('cancel',
