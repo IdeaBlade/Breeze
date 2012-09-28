@@ -201,8 +201,13 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\Back.png" />
+    <Content Include="Images\Check_Large.png" />
+    <Content Include="Images\Check_Small.png" />
     <Content Include="Images\Plus.png" />
+    <Content Include="Images\Warn_Large.png" />
+    <Content Include="Images\Warn_Small.png" />
     <Content Include="Images\x.png" />
+    <Content Include="Images\X_Large.png" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
     <Content Include="Styles\qunit.css" />

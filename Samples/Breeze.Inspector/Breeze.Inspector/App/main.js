@@ -37,7 +37,7 @@ define(['text', 'breeze'], function() {
                 } else {
                     jQuery(location || "#contentHost").empty().append(view);
                 }
-                
+
                 if (finalViewModel.activate) {
                     finalViewModel.activate();
                 }

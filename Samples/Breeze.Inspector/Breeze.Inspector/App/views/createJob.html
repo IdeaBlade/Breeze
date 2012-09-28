@@ -28,6 +28,7 @@
     <div>
         <ul data-bind="foreach: job().Inspections">
             <li>
+                <span class="small-icon" data-bind="css:{ inProgress:Status() == 'In Progress', canceled:Status() == 'Canceled', done:Status() == 'Done' }"></span>
                 <span data-bind="text: Form().Type"></span>
             </li>
         </ul>

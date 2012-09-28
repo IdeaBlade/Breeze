@@ -1,7 +1,8 @@
 ﻿define(function(require) {
-    var field = function(question, answer) {
+    var field = function(owner, question, answer) {
         this.question = question;
         this.answer = answer;
+
         this.validationMessage = ko.computed(function() {
             function checkPattern() {
                 var pattern = question.ResponsePattern();

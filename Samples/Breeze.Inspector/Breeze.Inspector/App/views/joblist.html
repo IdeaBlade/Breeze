@@ -9,6 +9,7 @@
             <ul class="inspections" data-bind="foreach: Inspections">
                 <li>
                     <a href="#" data-bind="click: function(){ $root.navigateTo($data) }">
+                        <span class="small-icon" data-bind="css:{ inProgress:Status() == 'In Progress', canceled:Status() == 'Canceled', done:Status() == 'Done' }"></span>
                         <span data-bind="text: Form().Type"/>
                     </a>
                 </li>

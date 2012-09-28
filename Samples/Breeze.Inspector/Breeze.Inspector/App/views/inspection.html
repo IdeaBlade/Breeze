@@ -1,3 +1,6 @@
-﻿<div class="form" data-bind="foreach: fields">
-    <div data-bind="behavior: $data.question.Type()"></div>
+﻿<div>
+    <h3 data-bind="html: inspection.Status, css:{newText:inspection.Status() == 'New', inProgressText:inspection.Status() == 'In Progress', doneText:inspection.Status() == 'Done', canceledText:inspection.Status() == 'Canceled' }"></h3>
+    <div class="form" data-bind="foreach: fields">
+        <div data-bind="behavior: $data.question.Type()"></div>
+    </div>
 </div>

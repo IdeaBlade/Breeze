@@ -20,9 +20,22 @@
         return newAnswer;
     }
 
-    var vm = function(inspection) {
+    var ctor = function(inspection) {
         this.inspection = inspection;
         this.fields = ko.observableArray([]);
+        this.isValid = ko.computed(function() {
+            var messages = [];
+
+            this.fields().forEach(function(field) {
+                var message = field.validationMessage();
+
+                if (message) {
+                    messages.push(message);
+                }
+            });
+
+            return messages.length == 0;
+        }, this);
 
         var questions = inspection.Form().Questions();
 
@@ -30,11 +43,13 @@
             var question = questions[i];
             var answer = findOrCreateAnswer(inspection, question);
 
-            this.fields.push(new Field(question, answer));
+            this.fields.push(new Field(this, question, answer));
         }
     };
 
-    vm.prototype.activate = function() {
+    ctor.prototype.activate = function() {
+        var that = this;
+
         shell.title(this.inspection.Form().Type());
         shell.subtitle1("Inspector " + shell.inspector().Name());
 
@@ -43,42 +58,48 @@
 
         shell.addCommand('save',
             function() {
-                alert('not implemented');
-            }
+                if(that.inspection.Status() == "New") {
+                    that.inspection.Status("In Progress");
+                }
+
+                //TODO: save
+            },
+            ko.computed(function() {
+                return this.inspection.Status() != 'Done';
+            }, this)
         );
 
         shell.addCommand('clear',
             function() {
-                alert('not implemented');
+                for (var i = 0; i < that.fields.length; i++) {
+                    var current = that.fields[i];
+                    current.answer.Response('');
+                }
+
+                that.inspection.Status("In Progress");
             }
         );
 
         shell.addCommand('done', //or reopen
             function() {
-                alert('not implemented');
+                that.inspection.Status('Done');
+                //TODO: save
             },
             ko.computed(function() {
-                var messages = [];
-
-                this.fields().forEach(function(field) {
-                    var message = field.validationMessage();
-
-                    if (message) {
-                        messages.push(message);
-                    }
-                });
-
-                return messages.length == 0;
+                return this.isValid() && this.inspection.Status() != 'Done';
             }, this)
         );
 
         shell.addCommand('cancel',
             function() {
-                alert('not implemented');
+                that.inspection.Status('Canceled');
+                shell.goBack();
             },
-            ko.observable(false)
+            ko.computed(function() {
+                return this.inspection.Status() != 'Done' && this.inspection.Status() != 'Canceled';
+            }, this)
         );
     };
 
-    return vm;
+    return ctor;
 });

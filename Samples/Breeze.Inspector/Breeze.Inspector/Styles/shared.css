@@ -30,6 +30,12 @@ header {
     z-index: 10;
 }
 
+h3 {
+    text-align: center;
+    margin: .5em;
+    font-size: 2.5em;
+}
+
 header button {
     position: absolute;
 }
@@ -66,27 +72,17 @@ section {
 
 .commands a {
     margin-right: 20px;
+    cursor: pointer;
 }
 
 .commands a.disabled {
     color: lightgray;
+    cursor: auto;
 }
 
 .status {
      position: absolute;
     right: .5em;
-}
-
-.status.inProgress {
-    
-}
-
-.status.canceled {
-    
-}
-
-.status.done {
-    
 }
 
 .login {
@@ -253,4 +249,44 @@ button.add span {
 {
     padding: .25em;
     background: white;
+}
+
+.inProgress {
+    background: url('/Images/Warn_Large.png');
+}
+
+.canceled {
+    background: url('/Images/X_Large.png');
+}
+
+.done {
+    background: url('/Images/Check_Large.png');
+}
+
+.small-icon.inProgress {
+    background: url('/Images/Warn_Small.png');
+}
+
+.small-icon.canceled {
+    background: url('/Images/x.png');
+}
+
+.small-icon.done {
+    background: url('/Images/Check_Small.png');
+}
+
+.newText {
+    color: gray;
+}
+
+.inProgressText {
+    color: orange;
+}
+
+.doneText {
+    color: green;
+}
+
+.canceledText {
+    color: red;
 }
