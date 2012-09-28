@@ -46,7 +46,29 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
         
     });
-    
+
+    test("post create init after materialization", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Product = function () {
+            this.isObsolete = false;
+        };
+        Product.prototype.init = function (entity) {
+            ok(entity.entityType === productType, "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        };
+       
+        var productType = em.metadataStore.getEntityType("Product");
+        em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+        var query = EntityQuery.from("Products").take(3);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var products = data.results;
+            products.forEach(function(p) {
+                ok(p.getProperty("isObsolete") === true,"isObsolete should be true");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("date property is a DateTime", function () {
 
@@ -237,7 +259,11 @@ define(["testFns"], function (testFns) {
               
     });
 
-    test("named query", function() {
+    test("named query", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "OData does not support named queries like 'CustomersStartingWithA'");
+            return;
+        }
         var em = newEm();
 
         var query = new EntityQuery()
@@ -315,7 +341,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    test("select - anon simple, collection", function () {
+    test("select - anon simple, entity collection projection", function () {
         var em = newEm();
 
         var query = new EntityQuery("Customers")
@@ -345,15 +371,18 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    test("select - anon simple, entity collection", function () {
+    test("select - anon simple, entity scalar projection", function () {
+        
         var em = newEm();
-
+        
         var query = EntityQuery
             .from("Orders")
             .where("customer.companyName", "startsWith", "C")
-            .orderBy("customer.companyName")
-            .select("customer.companyName, customer, orderDate");
-        if (!testFns.DEBUG_WEBAPI) {
+            .orderBy("customer.companyName");
+        if (testFns.DEBUG_WEBAPI) {
+            query = query.select("customer.companyName, customer, orderDate");
+        } else {
+            query = query.select("customer, orderDate");
             query = query.expand("customer");
         }
             
@@ -366,14 +395,20 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
-                ok(Object.keys(a).length === 3,"should have 3 properties");
-                ok(typeof (a.customer_CompanyName) === 'string', "customer_CompanyName is not a string");
+                if (testFns.DEBUG_WEBAPI) {
+                    ok(Object.keys(a).length === 3, "should have 3 properties");
+                    ok(typeof(a.customer_CompanyName) === 'string', "customer_CompanyName is not a string");
+                } else {
+                    ok(Object.keys(a).length === 2, "should have 2 properties");
+                }
                 ok(a.customer.entityType === customerType, "a.customer is not of type Customer");
                 ok(a.orderDate !== undefined, "OrderDate should not be undefined");
             });
             start();
         }).fail(testFns.handleFail);
     });
+    
+
 
     test("starts with op", function () {
         var em = newEm();
@@ -447,7 +482,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    asyncTest("predicate 3", function () {
+    test("predicate 3", function () {
         var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
@@ -455,17 +490,16 @@ define(["testFns"], function (testFns) {
             .and("orderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred);
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
 
 
-    asyncTest("not predicate with null", function () {
+    test("not predicate with null", function () {
         var em = newEm();
 
         var pred = new Predicate("region", FilterQueryOp.Equals, null);
@@ -476,7 +510,7 @@ define(["testFns"], function (testFns) {
             .take(10);
 
         var queryUrl = query._toUri(em.metadataStore);
-
+        stop();
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 0);
@@ -484,17 +518,72 @@ define(["testFns"], function (testFns) {
                 var region = customer.getProperty("region");
                 ok(region != null, "region should not be either null or undefined");
             });
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("unidirectional navigation load", function() {
+        var em = newEm();
+        var count = 5;
+        var query = EntityQuery.from("OrderDetails").take(count);
+        stop();
+        query.using(em).execute().then(function(data) {
+            var orderDetails = data.results;
+            ok(orderDetails.length == count);
+            orderDetails.forEach(function(od) {
+                od.entityAspect.loadNavigationProperty("product").then(function (data2) {
+                    var products = data2.results;
+                    ok(products.length === 1, "should only return a single product");
+                    count--;
+                    if (count === 0) start();
+                });
+            });
+        }).fail(testFns.handleFail);
+    });
+    
+    test("unidirectional navigation query", function () {
+        var em = newEm();
+        
+        var query = EntityQuery.from("OrderDetails")
+            .where("product.productID", "==", 1);
+        stop();
+        query.using(em).execute().then(function (data) {
+            var orderDetails = data.results;
+            ok(orderDetails.length > 0);
+            orderDetails.forEach(function (od) {
+                ok(od.getProperty("productID") === 1, "productID should === 1");
+            });
             start();
         }).fail(testFns.handleFail);
     });
+    
+    test("unidirectional navigation bad query", function () {
+        var em = newEm();
 
-    asyncTest("fromEntities", function () {
+        var query = EntityQuery.from("Product")
+            .where("productID", "==", 1)
+            .expand("orderDetails");
+        stop();
+        query.using(em).execute().then(function(data) {
+            ok(false, "should not get here");
+            start();
+        }).fail(function (err) {
+            if (testFns.DEBUG_WEBAPI) {
+                ok(err.message.indexOf("OrderDetails") >= 1, " message should be about missing OrderDetails property");
+            } else {
+                ok(err.message.indexOf("Product") >= 1, "should be an error message about the Product query");
+            }
+            start();
+        });
+    });
+
+
+    test("fromEntities", function () {
         var em = newEm();
 
         var query = new EntityQuery()
             .from("Orders")
             .take(2);
-
+        stop();
         em.executeQuery(query).then(function (data) {
             var orders = data.results;
             ok(orders.length == 2, "data.results length should be 2");
@@ -502,8 +591,7 @@ define(["testFns"], function (testFns) {
             return em.executeQuery(q2);
         }).then(function (data2) {
             ok(data2.results.length == 2, "data.results length should be 2");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("where nested property", function () {
@@ -641,12 +729,13 @@ define(["testFns"], function (testFns) {
                     });
                 }
             });
-            ok(custs.length == 5, "should have 5 customers");            
+            ok(custs.length == 5, "should have 5 customers");
             ok(orderDetails.length > 5, "should have > 5 orderDetails");
             ok(products.length > 5, "should have > 5 products");
-
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(function(e) {
+            testFns.handleFail(e);
+        }).fin(start);
+            
     });
 
     test("orderBy nested", function () {

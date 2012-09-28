@@ -326,7 +326,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertParam(interceptor, "interceptor").isFunction().isOptional().check();
             // TODO: think about adding this to the MetadataStore.
             var entityType = new EntityType(this);
-            entityType.setEntityCtor(entityCtor, interceptor);
+            entityType._setEntityCtor(entityCtor, interceptor);
         };
 
         /**
@@ -349,16 +349,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
+        @param [initializationFn] {InitializationFunction} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+            
+        initializationFn(entity)
+        @param initializationFn.entity {Entity} The entity being created or materialized.
         **/
-        ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor) {
+        ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor, initializationFn) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(entityCtor, "entityCtor").isFunction().check();
+            assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
             var typeName;
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
-                    entityType.setEntityCtor(entityCtor);
+                    entityType._setEntityCtor(entityCtor);
                 }
                 typeName = qualifiedTypeName;
             } else {
@@ -366,6 +371,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             entityCtor.prototype._$typeName = typeName;
             this._typeRegistry[typeName] = entityCtor;
+            if (initializationFn) {
+                entityCtor._$initializationFn = initializationFn;
+            }
         };
       
 
@@ -548,7 +556,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                         if (entityCtor) {
                              // next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
-                             entityType.setEntityCtor(entityCtor);
+                             entityType._setEntityCtor(entityCtor);
                              that._entityTypeMap[entityType.name] = entityType;
                         }
                             
@@ -944,30 +952,24 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!entityCtor) {
                 entityCtor = function () { };
             }
-            this.setEntityCtor(entityCtor);
+            this._setEntityCtor(entityCtor);
             return entityCtor;
         };
 
-        /**
-        Sets the constructor for this EntityType.
-        @method setEntityCtor
-        @param entityCtor {Function} An constructor function for this EntityType that requires no arguments.
-        @param interceptor {Not yet documented}
-        **/
-        ctor.prototype.setEntityCtor = function (entityCtor, interceptor) {
+        // May make public later.
+        ctor.prototype._setEntityCtor = function (entityCtor, interceptor) {
             var instance = new entityCtor();
 
             // insure that all of the properties are on the 'template' instance before watching the class.
             calcUnmappedProperties(this, instance);
 
-            // enableTracking(this, entityCtor.prototype, interceptor);
             var proto = entityCtor.prototype;
             proto.entityType = this;
 
             if (interceptor) {
-                proto.interceptor = interceptor;
+                proto._$interceptor = interceptor;
             } else {
-                proto.interceptor = defaultPropertyInterceptor;
+                proto._$interceptor = defaultPropertyInterceptor;
             }
 
             core.config.trackingImplementation.initializeEntityPrototype(proto);
@@ -1222,22 +1224,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._needsInitialization = !isInitialized;
 
         };
-
-
-//        // interceptor is -> function(propName, newValue, accessorFn) - may be specified later
-//        // by setting the prototype's interceptor property.
-//        // interceptor is optional
-//        function enableTracking(entityType, entityPrototype, interceptor) {
-//            entityPrototype.entityType = entityType;
-
-//            if (interceptor) {
-//                entityPrototype.interceptor = interceptor;
-//            } else {
-//                entityPrototype.interceptor = defaultPropertyInterceptor;
-//            }
-
-//            core.config.trackingImplementation.initializeEntityPrototype(entityPrototype);
-//        }
 
         function calcUnmappedProperties(entityType, instance) {
             var currentPropertyNames = entityType.getPropertyNames();

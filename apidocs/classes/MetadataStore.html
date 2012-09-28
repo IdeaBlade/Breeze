@@ -860,7 +860,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l386"><code>entityMetadata.js:386</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l394"><code>entityMetadata.js:394</code></a>
         
         </p>
 
@@ -968,7 +968,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l416"><code>entityMetadata.js:416</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l424"><code>entityMetadata.js:424</code></a>
         
         </p>
 
@@ -1388,7 +1388,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l372"><code>entityMetadata.js:372</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l380"><code>entityMetadata.js:380</code></a>
         
         </p>
 
@@ -1438,6 +1438,12 @@ if (em1.metadataStore.isEmpty()) {
                 <li class="arg">
                     
                         <code>entityCtor</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[initializationFn]</code>
                     
                 </li>
             
@@ -1521,6 +1527,41 @@ Metadata discovery.</p>
                         <p>The constructor for this EntityType.</p>
                     </div>
 
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[initializationFn]</code>
+                        <span class="type">InitializationFunction</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A function or the name of a function on the entity that is to be executed immediately after the entity has been created.</p>
+
+<p>initializationFn(entity)</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">entity</code>
+                                    <span class="type">Entity</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The entity being created or materialized.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
                     
                 </li>
             

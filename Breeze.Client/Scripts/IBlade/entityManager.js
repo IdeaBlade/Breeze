@@ -1,6 +1,4 @@
-﻿
-
-define(["core", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
+﻿define(["core", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
 function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     "use strict";
     /**

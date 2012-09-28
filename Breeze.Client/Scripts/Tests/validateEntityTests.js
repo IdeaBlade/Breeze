@@ -26,6 +26,41 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("numeric validators - disallow string", function () {
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var em = newEm(ms);
+        var empType = em.metadataStore.getEntityType("Employee");
+        var extnProp = empType.getDataProperty("extension");
+        var emp = empType.createEntity();
+        var vo = em.validationOptions.using({ validateOnAttach: false });
+        em.setProperties({ validationOptions: vo });
+        em.attachEntity(emp);
+        extnProp.validators.push(Validator.number());
+        emp.setProperty("extension", "456");
+        var valErrors = emp.entityAspect.getValidationErrors();
+        ok(valErrors.length === 1);
+        ok(valErrors[0].errorMessage.indexOf("number"));
+    });
+    
+    test("numeric validators - allow string", function () {
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var em = newEm(ms);
+        var empType = em.metadataStore.getEntityType("Employee");
+        var extnProp = empType.getDataProperty("extension");
+        var emp = empType.createEntity();
+        var vo = em.validationOptions.using({ validateOnAttach: false });
+        em.setProperties({ validationOptions: vo });
+        em.attachEntity(emp);
+        extnProp.validators.push(Validator.number( { allowString: true}));
+        emp.setProperty("extension", "456");
+        var valErrors = emp.entityAspect.getValidationErrors();
+        ok(valErrors.length === 0);
+        emp.setProperty("extension", "x456");
+        valErrors = emp.entityAspect.getValidationErrors();
+        ok(valErrors.length === 1);
+        ok(valErrors[0].errorMessage.indexOf("number"));
+    });
+
     test("validate props", function () {
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");

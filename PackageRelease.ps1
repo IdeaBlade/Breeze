@@ -49,7 +49,9 @@ checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 # erases all files in any bin,obj and resharper folders below $srcDir and any .suo files
-get-childItem $srcDir\ -include bin,obj,packages,*_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+get-childItem $srcDir\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+get-childItem $srcDir\ -include *_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+get-childItem $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname -Force }
 
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory

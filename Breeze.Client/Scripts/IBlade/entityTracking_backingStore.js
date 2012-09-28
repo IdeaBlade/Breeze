@@ -159,8 +159,8 @@ function (core, makeRelationArray) {
                     return;
                 }
                 var accessorFn = getAccessorFn(bs);
-                if (this.interceptor) {
-                    this.interceptor(property, value, accessorFn);
+                if (this._$interceptor) {
+                    this._$interceptor(property, value, accessorFn);
 
                 } else {
                     accessorFn(value);
