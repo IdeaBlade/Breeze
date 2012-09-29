@@ -260,11 +260,15 @@ define(["testFns"], function (testFns) {
         
         // listening on the special array returned by Breeze nav property
         existingCustomer.Orders().arrayChanged.subscribe(
-        function () { breezeOrderChangedCount += 1; });
+        function () {
+             breezeOrderChangedCount += 1;
+        });
         
         var koOrdersChangedCount = 0;     
         existingCustomer.Orders.subscribe(
-            function () { koOrdersChangedCount += 1; });
+            function () {
+                 koOrdersChangedCount += 1;
+            });
         
         // two ways to push
         // ko says this one should not notify
