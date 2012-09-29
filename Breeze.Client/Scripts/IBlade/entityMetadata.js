@@ -706,8 +706,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         function getAssociation(odataNavProperty, schema) {
             var assocName = normalizeTypeName(odataNavProperty.relationship, schema).shortTypeName;
-
-            var association = core.arrayFirst(schema.association, function (assoc) {
+            var assocs = schema.association;
+            if (!assocs) return null;
+            if (!Array.isArray(assocs)) {
+                assocs = [assocs];
+            }
+            var association = core.arrayFirst(assocs, function (assoc) {
                 return assoc.name === assocName;
             });
             return association;
