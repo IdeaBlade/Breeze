@@ -27,38 +27,7 @@ define(["testFns"], function (testFns) {
         ok(true);
     });
     
-    test("simple query non entity primitive results", function () {
-        var em = newEm();
-        
-        var query = EntityQuery.from("CompanyNames")
-            .using(em);
-        stop();
-        query.execute().then(function (data) {
-            var names = data.results[0];
-            ok(names.length > 0);
-            ok(typeof names[0] === 'string');
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
-    });
-    
-    test("simple query non entity primitive results", function () {
-        var em = newEm();
 
-        var query = EntityQuery.from("CompanyNamesAndIds")
-            .using(em);
-        stop();
-        query.execute().then(function (data) {
-            var results = data.results;
-            ok(results.length > 0);
-            ok(results[0].companyName, results[0].companyName);
-            ok(results[0].customerID, results[0].customerID);
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
-    });
-
-    
     test("regex function matching", function() {
         var entity = new TestEntity();
         var ms = new MetadataStore();

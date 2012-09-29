@@ -1570,7 +1570,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var entityType = targetEntity.entityType;
             var metadataStore = entityType.metadataStore;
             entityType.dataProperties.forEach(function (dp) {
-                if (dp.isUnmappedProperty) return;
+                if (dp.isUnmapped) return;
                 var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime && val) {
                     if (!core.isDate(val)) {

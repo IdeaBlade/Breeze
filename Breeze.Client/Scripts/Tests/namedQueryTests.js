@@ -111,10 +111,10 @@ define(["testFns"], function (testFns) {
         query.execute().then(function (data) {
             var results = data.results;
             ok(results.length > 0);
-            results.forEach(function (r) {
+            results.forEach(function(r) {
                 ok(r.companyName.substr(0, 1) === "A", "should start with an 'A'");
                 ok(r.customerID, "should have a customerId");
-            })
+            });
         }).fail(function (e) {
             testFns.handleFail(e);
         }).fin(start);
