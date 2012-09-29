@@ -689,7 +689,7 @@ function (core, Event, m_validate) {
             // NavigationProperty doesn't yet exist
             // core.assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
             var fkNames = navigationProperty.foreignKeyNames;
-            if (!fkNames) return null;
+            if (fkNames.length === 0) return null;
             var that = this;
             var fkValues = fkNames.map(function (fkn) {
                 return that.entity.getProperty(fkn);

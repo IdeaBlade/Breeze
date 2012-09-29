@@ -665,7 +665,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: there may be multiple groups once we go further with inheritence
             var group = findOrCreateEntityGroup(this, entityType);
             // filter then order then skip then take
-            var filterFunc = query._toFilterFunction(metadataStore);
+            var filterFunc = query._toFilterFunction(entityType);
         
             if (filterFunc) {
                 var undeletedFilterFunc = function(entity) {
@@ -678,7 +678,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 });
             }
             
-            var orderByComparer = query._toOrderByComparer(metadataStore);
+            var orderByComparer = query._toOrderByComparer(entityType);
             if (orderByComparer) {
                 result.sort(orderByComparer);
             }
@@ -1749,7 +1749,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     };
                 }
                 
-                var originalValuesOnServer = metadataStore._clientObjectToServer(e.entityAspect.originalValues);
+                var originalValuesOnServer = e.entityType._clientObjectToServer(e.entityAspect.originalValues);
                 rawEntity.entityAspect = {
                     entityTypeName: e.entityType.name,
                     entityState: e.entityAspect.entityState.name,

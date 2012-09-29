@@ -190,7 +190,7 @@ function (core, m_entityAspect) {
                     this.entityType.navigationProperties.forEach(function(np) {
                         var inverseNp = np.inverse;
                         if (!inverseNp) return;
-                        if (!inverseNp.foreignKeyNames) return;
+                        if (inverseNp.foreignKeyNames.length === 0) return;
                         var npValue = that.getProperty(np.name);
                         var propertyIx = that.entityType.keyProperties.indexOf(property);
                         var fkName = inverseNp.foreignKeyNames[propertyIx];

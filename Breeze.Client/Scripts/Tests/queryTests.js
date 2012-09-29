@@ -576,6 +576,7 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery.from("Product")
             .where("productID", "==", 1)
             .expand("orderDetails");
+
         stop();
         query.using(em).execute().then(function(data) {
             ok(false, "should not get here");

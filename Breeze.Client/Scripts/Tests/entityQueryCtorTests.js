@@ -7,6 +7,7 @@ define(["testFns"], function (testFns) {
     var Predicate = entityModel.Predicate;
     var OrderByClause = entityModel.OrderByClause;
     var MetadataStore = entityModel.MetadataStore;
+    var EntityType = entityModel.EntityType;
 
     module("entityQuery ctor", {
         setup: function () {
@@ -48,22 +49,23 @@ define(["testFns"], function (testFns) {
 
     test("predicateBuilder simple toOdata()", function () {
         var ms = new MetadataStore();
+        var nullEt = new EntityType(ms);
         var dt = new Date(88, 9, 12);
         var dateStr = dt.toISOString(dt);
         var p = Predicate.create("OrderDate", ">", dt);
-        var txt = p.toOdataFragment(ms);
+        var txt = p.toOdataFragment(nullEt);
         equal(txt, "OrderDate gt datetime'" + dateStr + "'");
         var p2 = Predicate.create("OrderDate", "gt", dt);
-        var txt2 = p2.toOdataFragment(ms);
+        var txt2 = p2.toOdataFragment(nullEt);
         equal(txt2, "OrderDate gt datetime'" + dateStr + "'");
         var p3 = Predicate.create("OrderDate", "==", dt);
-        var txt3 = p3.toOdataFragment(ms);
+        var txt3 = p3.toOdataFragment(nullEt);
         equal(txt3, "OrderDate eq datetime'" + dateStr + "'");
         var p4 = new Predicate("OrderDate", "ne", dt);
-        var txt4 = p4.toOdataFragment(ms);
+        var txt4 = p4.toOdataFragment(nullEt);
         equal(txt4, "OrderDate ne datetime'" + dateStr + "'");
         var p5 = new Predicate("ShipCity", "stArtsWiTH", "C");
-        var txt5 = p5.toOdataFragment(ms);
+        var txt5 = p5.toOdataFragment(nullEt);
         equal(txt5, "startswith(ShipCity,'C') eq true");
     });
 

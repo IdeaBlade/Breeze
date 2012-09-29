@@ -13,6 +13,7 @@ define(["testFns"], function (testFns) {
 
     var handleFail = testFns.handleFail;
     var EntityQuery = entityModel.EntityQuery;
+    var EntityType = entityModel.EntityType;
     var FilterQueryOp = entityModel.FilterQueryOp;
     var Predicate = entityModel.Predicate;
 
@@ -352,7 +353,8 @@ define(["testFns"], function (testFns) {
 
         var query = baseQuery.where(pred);
         var em = newEm();
-        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
+        var nullEntityType = new EntityType(em.metadataStore);
+        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
 
         stop();
 
@@ -386,7 +388,8 @@ define(["testFns"], function (testFns) {
 
         var query = baseQuery.where(pred);
         var em = newEm();
-        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
+        var nullEntityType = new EntityType(em.metadataStore);
+        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
 
         stop();
 
@@ -411,7 +414,8 @@ define(["testFns"], function (testFns) {
 
         var query = baseQuery.where(pred);
         var em = newEm();
-        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
+        var nullEntityType = new EntityType(em.metadataStore);
+        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
 
         stop();
 
@@ -430,7 +434,8 @@ define(["testFns"], function (testFns) {
         // Get the predicate and show what it looks like in OData
         var pred = getOrderedIn1996Predicate();
         var em = newEm();
-        ok(true, "OData predicate: " + pred.toOdataFragment(em.metadataStore));
+        var nullEntityType = new EntityType(em.metadataStore);
+        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
 
         var query = new EntityQuery("Orders").where(pred);
 

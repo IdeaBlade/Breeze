@@ -194,7 +194,7 @@ define(["testFns"], function (testFns) {
     });
 
     
-    test("add, detach and readd", 0, function () {
+    test("add, detach and readd",  function () {
         // D2182
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
@@ -207,7 +207,7 @@ define(["testFns"], function (testFns) {
     });
 
 
-    test("attach, detach, reattach", 0, function () {
+    test("attach, detach, reattach",  function () {
         // D2182
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");

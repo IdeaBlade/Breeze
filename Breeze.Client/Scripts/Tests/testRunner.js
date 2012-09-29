@@ -4,7 +4,7 @@ QUnit.config.autostart = false;
 require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
-      "miscTests",
+       "miscTests",
       "koSpecificTests",
       "attachTests",
       "classRewriteTests",

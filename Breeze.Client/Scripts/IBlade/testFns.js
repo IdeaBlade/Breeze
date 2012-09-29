@@ -11,6 +11,7 @@ define(["root"], function (root) {
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
     var NamingConvention = entityModel.NamingConvention;
+    var DataType = entityModel.DataType;
     
     var testFns = {};
     testFns.message = "";
@@ -49,11 +50,19 @@ define(["root"], function (root) {
       
     testFns.newMs = function() {
         var namingConv = new NamingConvention({
-            serverPropertyNameToClient: function(serverPropertyName) {
-                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            serverPropertyNameToClient: function (serverPropertyName, prop) {
+                if (prop && prop.isDataProperty && prop.dataType === DataType.Boolean) {
+                    return "is" + serverPropertyName;
+                } else {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                }
             },
-            clientPropertyNameToServer: function(clientPropertyName) {
-                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            clientPropertyNameToServer: function (clientPropertyName, prop) {
+                if (prop && prop.isDataProperty && prop.dataType === DataType.Boolean) {
+                    return clientPropertyName.substr(2);
+                } else {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }
             }            
         });
         var ms = new MetadataStore({ namingConvention: namingConv });

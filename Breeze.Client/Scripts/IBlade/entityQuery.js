@@ -10,9 +10,11 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     var MetadataStore = m_entityMetadata.MetadataStore;
     var NavigationProperty = m_entityMetadata.NavigationProperty;
-
+    var EntityType = m_entityMetadata.EntityType;
+    
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
+    
     
     var EntityQuery = (function () {
         /**
@@ -653,7 +655,10 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype._toUri = function (metadataStore) {
             // force entityType validation;
-            this._getEntityType(metadataStore, false);          
+            var entityType = this._getEntityType(metadataStore, false);
+            if (!entityType) {
+                entityType = new EntityType(metadataStore);
+            }
 
             var eq = this;
             var queryOptions = {};
@@ -675,7 +680,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment(metadataStore);
+                return clause.toOdataFragment(entityType);
             }
 
             function toOrderByString() {
@@ -684,7 +689,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment(metadataStore);
+                return clause.toOdataFragment(entityType);
             }
             
              function toSelectString() {
@@ -693,13 +698,13 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (eq.entityType) {
                     clause.validate(eq.entityType);
                 }
-                return clause.toOdataFragment(metadataStore);
+                return clause.toOdataFragment(entityType);
             }
             
             function toExpandString() {
                 var clause = eq.expandClause;
                 if (!clause) return "";
-                return clause.toOdataFragment(metadataStore);
+                return clause.toOdataFragment(entityType);
             }
 
             function toSkipString() {
@@ -731,19 +736,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype._toFilterFunction = function (metadataStore) {
+        ctor.prototype._toFilterFunction = function (entityType) {
             var wherePredicate = this.wherePredicate;
             if (!wherePredicate) return null;
-            var entityType = this._getEntityType(metadataStore);
             // may throw an exception
             wherePredicate.validate(entityType);
             return wherePredicate.toFunction();
         };
 
-        ctor.prototype._toOrderByComparer = function (metadataStore) {
+        ctor.prototype._toOrderByComparer = function (entityType) {
             var orderByClause = this.orderByClause;
             if (!orderByClause) return null;
-            var entityType = this._getEntityType(metadataStore);
             // may throw an exception
             orderByClause.validate(entityType);
             return orderByClause.getComparer();
@@ -822,7 +825,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         function buildNavigationPredicate(entity, navigationProperty) {
             if (navigationProperty.isScalar) {
-                if (!navigationProperty.foreignKeyNames) return null;
+                if (navigationProperty.foreignKeyNames.length === 0) return null;
                 var relatedKeyValues = navigationProperty.foreignKeyNames.map(function (fkName) {
                     return entity.getProperty(fkName);
                 });
@@ -832,7 +835,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var inverseNp = navigationProperty.inverse;
                 if (!inverseNp) return null;
                 var foreignKeyNames = inverseNp.foreignKeyNames;
-                if (!foreignKeyNames) return null;
+                if (foreignKeyNames.length === 0) return null;
                 var keyValues = entity.entityAspect.getKey().values;
                 var predParts = core.arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
                     return Predicate.create(fkName, FilterQueryOp.Equals, kv);
@@ -950,10 +953,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toOdataFragment = function(metadataStore) {
+        ctor.prototype.toOdataFragment = function(entityType) {
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
-                    return fnNode.toOdataFragment(metadataStore);
+                    return fnNode.toOdataFragment(entityType);
                 });                
                 var uri = this.fnName + "(" + args.join(",") + ")";
                 return uri;
@@ -962,7 +965,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (firstChar === "'" || firstChar === '"') {
                     return this.value;                  
                 } else if (this.value == this.propertyPath) {
-                    return metadataStore._clientPropertyPathToServer(this.propertyPath);
+                    return entityType._clientPropertyPathToServer(this.propertyPath);
                 } else {
                     return this.value;
                 }
@@ -1373,8 +1376,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function (metadataStore) {
-            var exprFrag = this._fnNode.toOdataFragment(metadataStore);
+        ctor.prototype.toOdataFragment = function (entityType) {
+            var exprFrag = this._fnNode.toOdataFragment(entityType);
             var val = formatValue(this._value);
             if (this._filterQueryOp.isFunction) {
                 return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
@@ -1489,12 +1492,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         ctor.prototype = new Predicate({ prototype: true });
 
-        ctor.prototype.toOdataFragment = function (metadataStore) {
+        ctor.prototype.toOdataFragment = function (entityType) {
             if (this._predicates.length == 1) {
-                return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(metadataStore) + ")";
+                return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(entityType) + ")";
             } else {
                 var result = this._predicates.map(function (p) {
-                    return "(" + p.toOdataFragment(metadataStore) + ")";
+                    return "(" + p.toOdataFragment(entityType) + ")";
                 }).join(" " + this._booleanQueryOp.operator + " ");
                 return result;
             }
@@ -1684,9 +1687,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             entityType.getProperty(this.propertyPath, true);
         };
 
-        ctor.prototype.toOdataFragment = function (metadataStore) {
-            return metadataStore._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
-            // return this.propertyPath.replace(".", "/") + (this.isDesc ? " desc" : "");
+        ctor.prototype.toOdataFragment = function (entityType) {
+            return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
         };
 
         ctor.prototype.getComparer = function () {
@@ -1734,9 +1736,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        ctor.prototype.toOdataFragment = function (metadataStore) {
+        ctor.prototype.toOdataFragment = function (entityType) {
             var strings = this._orderByClauses.map(function (obc) {
-                return obc.toOdataFragment(metadataStore);
+                return obc.toOdataFragment(entityType);
             });
             // should return something like CompanyName,Address/City desc
             return strings.join(',');
@@ -1780,9 +1782,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
          };
 
-         ctor.prototype.toOdataFragment = function(metadataStore) {
+         ctor.prototype.toOdataFragment = function(entityType) {
              var frag = this._pathStrings.map(function(pp) {
-                 return metadataStore._clientPropertyPathToServer(pp);
+                 return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
          };
@@ -1805,9 +1807,9 @@ function (core, m_entityMetadata, m_entityAspect) {
 //            
 //        };
 
-        ctor.prototype.toOdataFragment = function(metadataStore) {
+        ctor.prototype.toOdataFragment = function(entityType) {
             var frag = this._pathStrings.map(function(pp) {
-                return metadataStore._clientPropertyPathToServer(pp);
+                return entityType._clientPropertyPathToServer(pp);
             }).join(",");
             return frag;
         };

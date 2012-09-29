@@ -487,23 +487,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         // protected methods
 
-        ctor.prototype._clientPropertyPathToServer = function(propertyPath) {
-            var fn = this.namingConvention.clientPropertyNameToServer;
-            var serverPropPath = propertyPath.split(".").map(function(p) {
-                return fn(p);
-            }).join("/");
-            return serverPropPath;
-        };
-
-        ctor.prototype._clientObjectToServer = function(clientObject) {
-            var fn = this.namingConvention.clientPropertyNameToServer;
-            var result = { };
-            core.objectForEach(clientObject, function(key, value) {
-                result[fn(key)] = value;
-            });
-            return result;
-        };
-        
+       
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
             var typeName = entity.prototype._$typeName;
@@ -590,8 +574,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             toArray(odataEntityType.key.propertyRef).forEach(function (propertyRef) {
-                var keyPropName = metadataStore.namingConvention.serverPropertyNameToClient(propertyRef.name);
-                var keyProp = entityType.getDataProperty(keyPropName);
+                // lookup by serverName
+                var keyProp = entityType.getDataProperty(propertyRef.name, true);
                 if (keyProp == null) {
                     throw new Error("Unable to locate key property, confirm that metadataStore.namingConvention methods are correct");
                 }
@@ -611,11 +595,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var name = toClientName(entityType, odataProperty.name);
-
+            // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 parentEntityType: entityType,
-                name: name,
+                name: "",
+                nameOnServer: odataProperty.name,
                 dataType: dataType,
                 isNullable: isNullable,
                 maxLength: odataProperty.maxLength,
@@ -624,6 +608,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             });
 
             addValidators(dp);
+            
             return dp;
         }
 
@@ -653,52 +638,40 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var toEnd = core.arrayFirst(association.end, function (assocEnd) {
                 return assocEnd.role === odataProperty.toRole;
             });
-            var fkNames = null;
-            if (toEnd && toEnd.multiplicity !== "*") {
+            
+            var isScalar = !(toEnd.multiplicity === "*");
+            var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+            
+            // can't set the name until we go thru namingConventions and these need the np.
+            // name and foreignKeyNames set later.
+            var np = new NavigationProperty({
+                parentEntityType: entityType,
+                name: "",
+                nameOnServer: odataProperty.name,
+                entityTypeName: dataType,
+                isScalar: isScalar,
+                associationName: association.name,
+            });
+            
+            if (toEnd && isScalar) {
                 var constraint = association.referentialConstraint;
                 if (constraint) {
                     var principal = constraint.principal;
                     var dependent = constraint.dependent;
-                    var propertyRefs;
+                    var propRefs;
                     if (odataProperty.fromRole === principal.role) {
-                        propertyRefs = toArray(principal.propertyRef);
+                        propRefs = toArray(principal.propertyRef);
                     } else {
-                        propertyRefs = toArray(dependent.propertyRef);
+                        propRefs = toArray(dependent.propertyRef); 
                     }
-                    fkNames = propertyRefs.map(function (pr) {
-                        return entityType.metadataStore.namingConvention.serverPropertyNameToClient(pr.name);
-                        // return entityType.getDataProperty(fkPropName).name;
-                    });
+                    // will be used later by np._update
+                    var propRefNames = propRefs.map(core.pluck("name"));
+                    np._foreignKeyNamesOnServer = propRefNames;
                 }
-            }
-
-            var isScalar = !(toEnd.multiplicity === "*");
-            var dataType = normalizeTypeName(toEnd.type, schema).typeName;
-            var name = toClientName(entityType, odataProperty.name);
-
-            var np = new NavigationProperty({
-                parentEntityType: entityType,
-                name: name,
-                entityTypeName: dataType,
-                isScalar: isScalar,
-                associationName: association.name,
-                foreignKeyNames: fkNames
-            });
+            } 
             return np;
-
-
         }
         
-        function toClientName(entityType, serverPropertyName) {
-            var nc = entityType.metadataStore.namingConvention;
-            var name = nc.serverPropertyNameToClient(serverPropertyName);
-            var testName = nc.clientPropertyNameToServer(name);
-            if (serverPropertyName !== testName) {
-                throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverPropertyName + "-->" + testName);
-            }
-            return name;
-        }
-
         function isIdentityProperty(odataProperty) {
             // see if web api feed
             var propName = core.arrayFirst(Object.keys(odataProperty), function (pn) {
@@ -752,45 +725,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         return ctor;
     })();
-
-    var AutoGeneratedKeyType = function() {
-        /**
-        AutoGeneratedKeyType is an 'Enum' containing all of the valid states for an automatically generated key.
-        @class AutoGeneratedKeyType
-        @static
-        @final
-        **/
-        var ctor = new Enum("AutoGeneratedKeyType");
-        /**
-        This entity does not have an autogenerated key. 
-        The client must set the key before adding the entity to the EntityManager
-        @property None {symbol}
-        @final
-        @static
-        **/
-        ctor.None = ctor.addSymbol();
-        /**
-        This entity's key is an Identity column and is set by the backend database. 
-        Keys for new entities will be temporary until the entities are saved at which point the keys will
-        be converted to their 'real' versions.
-        @property Identity {symbol}
-        @final
-        @static
-        **/
-        ctor.Identity = ctor.addSymbol();
-        /**
-        This entity's key is generated by a KeyGenerator and is set by the backend database. 
-        Keys for new entities will be temporary until the entities are saved at which point the keys will
-        be converted to their 'real' versions.
-        @property KeyGenerator {symbol}
-        @final
-        @static
-        **/
-        ctor.KeyGenerator = ctor.addSymbol();
-        ctor.seal();
-
-        return ctor;
-    }();
 
     var EntityType = (function () {
         /**
@@ -1053,8 +987,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param propertyName {String}
         @return {DataProperty|null}
         **/
-        ctor.prototype.getDataProperty = function (propertyName) {
-            return core.arrayFirst(this.dataProperties, core.propEq("name", propertyName));
+        ctor.prototype.getDataProperty = function (propertyName, isServerName) {
+            var propName = isServerName ? "nameOnServer" : "name";
+            return core.arrayFirst(this.dataProperties, core.propEq(propName, propertyName));
         };
 
         /**
@@ -1067,8 +1002,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param propertyName {String}
         @return {NavigationProperty|null}
         **/
-        ctor.prototype.getNavigationProperty = function (propertyName) {
-            return core.arrayFirst(this.navigationProperties, core.propEq("name", propertyName));
+        ctor.prototype.getNavigationProperty = function (propertyName, isServerName) {
+            var propName = isServerName ? "nameOnServer" : "name";
+            return core.arrayFirst(this.navigationProperties, core.propEq(propName, propertyName));
         };
 
         /**
@@ -1159,6 +1095,49 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             et._postProcess();
             return et;
         };
+        
+        ctor.prototype._clientPropertyPathToServer = function (propertyPath) {
+            var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
+            var that = this;
+            var serverPropPath = propertyPath.split(".").map(function (propName) {
+                var prop = that.getProperty(propName);
+                return fn(propName, prop);
+            }).join("/");
+            return serverPropPath;
+        };
+
+        ctor.prototype._clientObjectToServer = function (clientObject) {
+            var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
+            var result = {};
+            var that = this;
+            core.objectForEach(clientObject, function (propName, value) {
+                var prop = that.getProperty(propName);
+                result[fn(propName, prop)] = value;
+            });
+            return result;
+        };
+
+        ctor.prototype._updatePropertyNames = function (property) {
+            var nc = this.metadataStore.namingConvention;
+            var serverName = property.nameOnServer;
+            var clientName, testName;
+            if (serverName) {
+                clientName = nc.serverPropertyNameToClient(serverName, property);
+                testName = nc.clientPropertyNameToServer(clientName, property);
+                if (serverName !== testName) {
+                    throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverName + "-->" + testName);
+                }
+                property.name = clientName;
+            } else {
+                clientName = property.name;
+                serverName = nc.clientPropertyNameToServer(clientName, property);
+                testName = nc.serverPropertyNameToClient(serverName, property);
+                if (clientName !== testName) {
+                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+                }
+                property.nameOnServer = serverName;
+            }
+        };
 
         ctor._getNormalizedTypeName = core.memoize(function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; });
         // for debugging use the line below instead.
@@ -1193,22 +1172,40 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 return dp.concurrencyMode && dp.concurrencyMode !== "None";
             });
 
-            // update fk dataproperties to point back to navProperties.
-            var that = this;
-            this.navigationProperties.filter(function (np) {
-                var fkNames = np.foreignKeyNames;
-                if (!fkNames) return;
-                fkNames.forEach(function (fkn) {
-                    var dp = that.getDataProperty(fkn);
-                    dp.relatedNavigationProperty = np;
-                    if (np.relatedDataProperties) {
-                        np.relatedDataProperties.push(dp);
-                    } else {
-                        np.relatedDataProperties = [dp];
-                    }
-                });
+            // update fk fkNames and dataproperties to point back to navProperties.
+            this.navigationProperties.forEach(function (np) {
+                fixupNavProperty(np);
             });
+            
+            
         };
+        
+        function fixupNavProperty(np) {
+            var fkNames = np.foreignKeyNames;
+            var parentEntityType = np.parentEntityType;
+            if (fkNames.length == 0) {
+                np.foreignKeyProperties = np._foreignKeyNamesOnServer.map(function(nameOnServer) {
+                    var fkProp = parentEntityType.getDataProperty(nameOnServer, true);
+                    if (!fkProp) {
+                        var errMessage = core.formatString("Unable to locate foreign key name: EntityType: '%1' server property name: '%2'",
+                            parentEntityType.name, nameOnServer);
+                        throw new Error(errMessage);
+                    }
+                    fkNames.push(fkProp.name);
+                    return fkProp;
+                });
+            }
+            
+            fkNames.forEach(function (fkn) {
+                var dp = parentEntityType.getDataProperty(fkn);
+                dp.relatedNavigationProperty = np;
+                if (np.relatedDataProperties) {
+                    np.relatedDataProperties.push(dp);
+                } else {
+                    np.relatedDataProperties = [dp];
+                }
+            });
+        }
 
         ctor.prototype._updateCrossEntityRelationships = function () {
             if (!this._needsInitialization) return;
@@ -1218,7 +1215,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
             var isInitialized = true;
             unresolvedNavProps.forEach(function (np) {
-                var updated = np._update();
+                var updated = np._updateCrossEntityRelationship();
                 isInitialized &= updated;
             });
             this._needsInitialization = !isInitialized;
@@ -1267,6 +1264,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertConfig(config)
                 .whereParam("parentEntityType").isInstanceOf(EntityType)
                 .whereParam("name").isString()
+                .whereParam("nameOnServer").isOptional().isString()
                 .whereParam("dataType").isEnumOf(DataType)
                 .whereParam("isNullable").isBoolean().isOptional()
                 .whereParam("defaultValue").isOptional()
@@ -1277,19 +1275,20 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
-            if (this.defaultValue === undefined ) {
+            this.parentEntityType._updatePropertyNames(this);
+
+            if (this.defaultValue === undefined) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
             } else if (this.defaultValue === null && !this.isNullable) {
                 throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
             }
-            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
             // Set later:
             // this.isKeyProperty - on deserialization this will come in config - on metadata retrieval it will be set later
             // this.relatedNavigationProperty - this will be set for all foreignKey data properties.
-
         };
+        
         ctor.prototype._$typeName = "DataProperty";
-
+       
         /**
         The name of this property
 
@@ -1402,6 +1401,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dp = new DataProperty(json);
             return dp;
         };
+        
+      
 
         return ctor;
     })();
@@ -1419,14 +1420,18 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             assertConfig(config)
                 .whereParam("parentEntityType").isInstanceOf(EntityType)
                 .whereParam("name").isString()
+                .whereParam("nameOnServer").isOptional().isString()
                 .whereParam("entityTypeName").isString()
                 .whereParam("isScalar").isBoolean()
                 .whereParam("associationName").isString().isOptional()
                 .whereParam("foreignKeyNames").isArray().isString().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
+            this.foreignKeyNames = this.foreignKeyNames || [];
+            this._foreignKeyNamesOnServer = []; // will be set later
             this.relatedDataProperties = null; // will be set later for all navProps with corresponding foreignKey properties.
-            this.nameOnServer = this.parentEntityType.metadataStore.namingConvention.clientPropertyNameToServer(this.name);
+            this.parentEntityType._updatePropertyNames(this);
+
             // Set later:
             // this.inverse
             // this.entityType
@@ -1434,7 +1439,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         };
         ctor.prototype._$typeName = "NavigationProperty";
-
+        
+        
         /**
         The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
         __readOnly__
@@ -1541,23 +1547,62 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return np;
         };
 
-        ctor.prototype._update = function () {
+        ctor.prototype._updateCrossEntityRelationship = function () {
             var metadataStore = this.parentEntityType.metadataStore;
+            
             this.entityType = metadataStore.getEntityType(this.entityTypeName);
-            if (!this.entityType) {
+            var entityType = this.entityType;
+            if (!entityType) {
                 throw new Error("Unable to find entityType: " + entityTypeName);
             }
             var that = this;
-            this.inverse = core.arrayFirst(this.entityType.navigationProperties, function (np) {
+            this.inverse = core.arrayFirst(entityType.navigationProperties, function(np) {
                 return np.associationName === that.associationName && np !== that;
             });
-            return true;
+            
         };
-
-      
 
         return ctor;
     })();
+    
+    var AutoGeneratedKeyType = function () {
+        /**
+        AutoGeneratedKeyType is an 'Enum' containing all of the valid states for an automatically generated key.
+        @class AutoGeneratedKeyType
+        @static
+        @final
+        **/
+        var ctor = new Enum("AutoGeneratedKeyType");
+        /**
+        This entity does not have an autogenerated key. 
+        The client must set the key before adding the entity to the EntityManager
+        @property None {symbol}
+        @final
+        @static
+        **/
+        ctor.None = ctor.addSymbol();
+        /**
+        This entity's key is an Identity column and is set by the backend database. 
+        Keys for new entities will be temporary until the entities are saved at which point the keys will
+        be converted to their 'real' versions.
+        @property Identity {symbol}
+        @final
+        @static
+        **/
+        ctor.Identity = ctor.addSymbol();
+        /**
+        This entity's key is generated by a KeyGenerator and is set by the backend database. 
+        Keys for new entities will be temporary until the entities are saved at which point the keys will
+        be converted to their 'real' versions.
+        @property KeyGenerator {symbol}
+        @final
+        @static
+        **/
+        ctor.KeyGenerator = ctor.addSymbol();
+        ctor.seal();
+
+        return ctor;
+    }();
 
     // mixin methods
 

@@ -73,10 +73,14 @@ define(["testFns"], function (testFns) {
     asyncTest("bool", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
-            .where("discontinued", "==", true );
+            .where("isDiscontinued", "==", true );
 
         em.executeQuery(query).then(function (data) {
-            ok(data.results.length > 0);
+            var products = data.results;
+            ok(products.length > 0);
+            ok(products.every(function(p) {
+                return p.getProperty("isDiscontinued") === true;
+            }));
             start();
          }).fail(testFns.handleFail);
     });
