@@ -55,15 +55,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         The function used to convert server side property names to client side property names.
 
-        __readOnly__
-        @property serverPropertyNameToClient {Function}
+        @method serverPropertyNameToClient
+        @param serverPropertyName {String}
+        @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
+        @return {String} The client side property name.
         **/
 
         /**
         The function used to convert client side property names to server side property names.
 
-        __readOnly__
-        @property clientPropertyNameToClient {Function}
+        @method clientPropertyNameToServer
+        @param clientPropertyName {String}
+        @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
+        @return {String} The server side property name.
         **/
         
         /**

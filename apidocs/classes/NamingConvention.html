@@ -229,6 +229,20 @@ will translate property names between the server and the javascript client. </p>
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_clientPropertyNameToServer">clientPropertyNameToServer</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_serverPropertyNameToClient">serverPropertyNameToClient</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_setAsDefault">setAsDefault</a>
 
                                 
@@ -246,24 +260,10 @@ will translate property names between the server and the javascript client. </p>
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
-                                <a href="#property_clientPropertyNameToClient">clientPropertyNameToClient</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
                                 <a href="#property_defaultInstance">defaultInstance</a>
 
                                 
                                     <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_serverPropertyNameToClient">serverPropertyNameToClient</a>
-
                                 
                                 
                             </li>
@@ -419,6 +419,258 @@ var em = new EntityManager( { metadataStore: ms });
 </div>
 
                 
+                    <div id="method_clientPropertyNameToServer" class="method item">
+    <h3 class="name"><code>clientPropertyNameToServer</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>clientPropertyName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[property]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l64"><code>entityMetadata.js:64</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The function used to convert client side property names to server side property names.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">clientPropertyName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[property]</code>
+                        <span class="type"><a href="..\classes\DataProperty.html" class="crosslink">DataProperty</a> | <a href="..\classes\NavigationProperty.html" class="crosslink">NavigationProperty</a></span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The actual DataProperty or NavigationProperty corresponding to the property name.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">String</span>:
+                    
+                    The server side property name.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_serverPropertyNameToClient" class="method item">
+    <h3 class="name"><code>serverPropertyNameToClient</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>serverPropertyName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[property]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l55"><code>entityMetadata.js:55</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The function used to convert server side property names to client side property names.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">serverPropertyName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[property]</code>
+                        <span class="type"><a href="..\classes\DataProperty.html" class="crosslink">DataProperty</a> | <a href="..\classes\NavigationProperty.html" class="crosslink">NavigationProperty</a></span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The actual DataProperty or NavigationProperty corresponding to the property name.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">String</span>:
+                    
+                    The client side property name.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
                     <div id="method_setAsDefault" class="method item">
     <h3 class="name"><code>setAsDefault</code></h3>
 
@@ -453,7 +705,7 @@ var em = new EntityManager( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l83"><code>entityMetadata.js:83</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l87"><code>entityMetadata.js:87</code></a>
         
         </p>
 
@@ -500,52 +752,6 @@ namingConv.setAsDefault();
                 <h2 class="off-left">Properties</h2>
 
                 
-                    <div id="property_clientPropertyNameToClient" class="property item">
-    <h3 class="name"><code>clientPropertyNameToClient</code></h3>
-    <span class="type">Function</span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l62"><code>entityMetadata.js:62</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The function used to convert client side property names to server side property names.</p>
-
-<p><strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
                     <div id="property_defaultInstance" class="property item">
     <h3 class="name"><code>defaultInstance</code></h3>
     <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
@@ -571,7 +777,7 @@ namingConv.setAsDefault();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l69"><code>entityMetadata.js:69</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l73"><code>entityMetadata.js:73</code></a>
         
         </p>
 
@@ -582,52 +788,6 @@ namingConv.setAsDefault();
 
     <div class="description">
         <p>The default value whenever NamingConventions are not specified.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_serverPropertyNameToClient" class="property item">
-    <h3 class="name"><code>serverPropertyNameToClient</code></h3>
-    <span class="type">Function</span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l55"><code>entityMetadata.js:55</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The function used to convert server side property names to client side property names.</p>
-
-<p><strong>readOnly</strong></p>
     </div>
 
     
