@@ -122,6 +122,15 @@ namespace Sample_WebApi.Controllers {
     }
 
     [AcceptVerbs("GET")]
+    public IQueryable<Object> TypeEnvelopes() {
+      var stuff =this.GetType().Assembly.GetTypes()
+        .Select(t => new {t.Assembly.FullName, t.Name, t.Namespace})
+        .AsQueryable();
+      return stuff;
+    }
+
+
+    [AcceptVerbs("GET")]
     public IQueryable<Customer> CustomersAndOrders() {
       var custs = ContextProvider.Context.Customers.Include("Orders");
       return custs;
@@ -139,6 +148,7 @@ namespace Sample_WebApi.Controllers {
       var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
       return custs;
     }
+
 
     #endregion
   }

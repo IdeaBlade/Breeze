@@ -66,6 +66,40 @@ define(["testFns"], function (testFns) {
             testFns.handleFail(e);
         }).fin(start);
     });
+
+    test("project enumerables", function() {
+        var em = newEm();
+        var query = EntityQuery.from("TypeEnvelopes")
+            .take(5)
+            .using(em);
+        stop();
+        query.execute().then(function (data) {
+            var results = data.results;
+            ok(results.length === 5);
+            ok(results[0].name);
+            ok(results[0].namespace);
+            ok(results[0].fullName);
+        }).fail(function (e) {
+            testFns.handleFail(e);
+        }).fin(start);
+    });
+    
+    test("project enumerables with filter", function () {
+        var em = newEm();
+        var query = EntityQuery.from("TypeEnvelopes")
+            .where("name.length",">", 10)
+            .using(em);
+        stop();
+        query.execute().then(function (data) {
+            var results = data.results;
+            ok(results.length > 0);
+            ok(results[0].name.length > 10);
+            ok(results[0].namespace);
+            ok(results[0].fullName);
+        }).fail(function (e) {
+            testFns.handleFail(e);
+        }).fin(start);
+    });
     
     test("project primitive objects with filter", function () {
         var em = newEm();
