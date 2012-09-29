@@ -273,23 +273,7 @@ define(["testFns"], function (testFns) {
               
     });
 
-    test("named query", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "OData does not support named queries like 'CustomersStartingWithA'");
-            return;
-        }
-        var em = newEm();
-
-        var query = new EntityQuery()
-            .from("CustomersStartingWithA");
-        var queryUrl = query._toUri(em.metadataStore);
-        stop();
-        em.executeQuery(query).then(function(data) {
-            ok(data.results.length > 0, "should have some results");
-            start();
-        }).fail(testFns.handleFail);
-    });
-    
+   
     test("query region and territories", function () {
         var em = newEm();
         var q = new EntityQuery()
@@ -928,18 +912,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
-    test("bad odata expr", function () {
-        stop();
-
-        var em = newEm();
-        var query = "Customers?$filter=starxtswith(CompanyName, 'A') eq true&$orderby=CompanyName desc";
-
-        em.executeQuery(query).fail(function (error) {
-            ok(error instanceof Error, "should be an error");
-            ok(error.message.indexOf("starxtswith") > -1, "error message has wrong text");
-            start();
-        }).fail(testFns.handleFail);
-    });
+  
     
     test("bad filter operator", function () {
         var em = newEm();
@@ -1243,210 +1216,9 @@ define(["testFns"], function (testFns) {
         return cust;
     }
 
-    test("server side include many with filter - customers and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "Not supported with OData");
-            return;
-        } 
-        stop();
-        var em = newEm();
 
-        var query = new EntityQuery()
-            .from("CustomersAndOrders")
-            .where("companyName", "startsWith", "A")
-            .orderBy("companyName")
-            .take(4);
-        var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
-            var customers = data.results;
-            ok(customers.length > 2, "no customers found");
-            testFns.assertIsSorted(customers, "companyName");
-            customers.forEach(function (c) {
-                ok(c.getProperty("companyName"), 'should have a companyName property');
-                var orders = c.getProperty("orders");
-                ok(orders.length > 0, "orders should be populated");
-                var matchingCust = orders[0].getProperty("customer");
-                ok(c === matchingCust, "relationship not updated");
-                var ckey = c.entityAspect.getKey();
-                ok(ckey, "missing key");
-                var c2 = em.findEntityByKey(ckey);
-                ok(c2 === c, "cust not cached");
-                var okey = orders[0].entityAspect.getKey();
-                var o2 = em.findEntityByKey(okey);
-                ok(o2 === orders[0], "order not cached");
-            });
-            start();
-        }).fail(testFns.handleFail);
-    });
-
-    test("server side include many with take - customers and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "Not supported with OData");
-            return;
-        } 
-        expect(5);
-        var em = newEm();
-
-        var query = new EntityQuery()
-            .from("CustomersAndOrders")
-            .where("companyName", FilterQueryOp.StartsWith, "C")
-            .take(1);
-
-        var sc = new testFns.StopCount(2);
-
-        em.executeQuery(query, function (data) {
-
-            ok(data.results.length === 1, "query should only return a single cust");
-            var cust = data.results[0];
-            var custKey = cust.entityAspect.getKey();
-            var orders = cust.getProperty("orders");
-            var orderKeys = orders.map(function (o) { return o.entityAspect.getKey(); });
-            var custQuery = EntityQuery.fromEntities(cust);
-
-            var ordersQuery = EntityQuery.fromEntities(orders);
-            var em2 = newEm();
-
-            em2.executeQuery(custQuery, function (data2) {
-                ok(data2.results.length === 1, "a single customer should have been fetched");
-                var cust2 = data2.results[0];
-                var cust2Key = cust2.entityAspect.getKey();
-                ok(custKey.equals(cust2Key), "customer keys do not match");
-                em2.clear();
-                sc.start();
-            }).fail(sc.handleFail);
-
-            em2.executeQuery(ordersQuery, function (data3) {
-                var orders3 = data3.results;
-                ok(orders3.length === orders.length, "orders query results are the wrong length");
-                var order3Keys = orders3.map(function (o) { return o.entityAspect.getKey(); });
-                ok(core.arrayEquals(orderKeys, order3Keys, EntityKey.equals), "orders query do not return the correct entities");
-                sc.start();
-            }).fail(sc.handleFail);
-        });
-    });
-
-    test("server side include, followed by local query", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "Not supported with OData");
-            return;
-        } 
-        stop();
-        var em = newEm();
-
-        var query = new EntityQuery()
-            .from("CustomersAndOrders")
-            .where("companyName", "startsWith", "A")
-            .orderBy("companyName")
-            .take(4);
-        var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query).then(function (data) {
-            var customers = data.results;
-            ok(customers.length == 4, "wrong number of customers");
-
-            customers.forEach(function (c) {
-                ok(c.getProperty("companyName"), 'should have a companyName property');
-                var orders = c.getProperty("orders");
-                ok(orders.length > 0, "Orders should be populated");
-                var matchingCust = orders[0].getProperty("customer");
-                ok(c === matchingCust, "relationship not updated");
-                var ckey = c.entityAspect.getKey();
-                ok(ckey, "missing key");
-                var c2 = em.findEntityByKey(ckey);
-                ok(c2 === c, "cust not cached");
-                var okey = orders[0].entityAspect.getKey();
-                var o2 = em.findEntityByKey(okey);
-                ok(o2 === orders[0], "order not cached");
-            });
-            start();
-        }).fail(testFns.handleFail);
-    });
     
-    test("raw odata with filter and order by", function () {
-        stop();
-        var em = newEm(testFns.newMs());
-        ok(em, "no em found");
 
-        var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$orderby=CompanyName desc&$expand=Orders";
-        em.executeQuery(query).then(function (data) {
-            ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
-            ok(data, "no data");
-            ok(data.results.length > 0, "empty data");
-            var customers = data.results;
-            customers.forEach(function (c) {
-                ok(c.getProperty("companyName"), "missing companyName property");
-                var key = c.entityAspect.getKey();
-                ok(key, "missing key");
-            });
-            start();
-        }).fail(testFns.handleFail);
-    });
-
-    test("raw odata with select", function () {
-        var em = newEm(testFns.newMs());
-        ok(em, "no em found");
-        
-        var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$select=CompanyName, Orders";
-        if (!testFns.DEBUG_WEBAPI) {
-            query = query + "&$expand=Orders";
-        }
-        stop();
-        em.executeQuery(query).then(function (data) {
-            ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
-            var orderType = em.metadataStore.getEntityType("Order");
-            ok(data, "no data");
-            ok(data.results.length > 0, "empty data");
-            var anons = data.results;
-            anons.forEach(function (a) {
-                ok(a.companyName);
-                ok(Array.isArray(a.orders));
-                a.orders.forEach(function(order) {
-                    ok(order.entityType === orderType);
-                });
-            });
-            start();
-        }).fail(testFns.handleFail);
-    });
-    
-    test("raw odata - server side include many - customer and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "NA for OData impl");
-            return;
-        }
-        stop();
-        try {
-            $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function(data, status) {
-                ok(data);
-                var str = JSON.stringify(data, undefined, 4);
-                testFns.output("Customers with orders");
-                testFns.output(str);
-                start();
-            });
-        } catch (e) {
-            testFns.handleFail(e);
-        }
-    });
-
-    test("raw odata - server side include 1 - order and customer", function () {
-        if (!testFns.DEBUG_WEBAPI) {
-            ok(true, "NA for OData impl");
-            return;
-        }
-        stop();
-        try {
-            $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function(data, status) {
-                ok(data);
-                var str = JSON.stringify(data, undefined, 4);
-
-                testFns.output("Orders with customers");
-                testFns.output(str);
-                start();
-            });
-        } catch (e) {
-            testFns.handleFail(e);
-        }
-    });
 
     test("WebApi metadata", function () {
         if (!testFns.DEBUG_WEBAPI) {

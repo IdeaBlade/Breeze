@@ -1143,7 +1143,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         };
 
-        ctor._getNormalizedTypeName = core.memoize(function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; });
+        ctor._getNormalizedTypeName = core.memoize(function (rawTypeName) {
+            return rawTypeName && normalizeTypeName(rawTypeName).typeName;
+        });
         // for debugging use the line below instead.
         //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
 
@@ -1638,6 +1640,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // schema is only needed for navProperty type name
     function normalizeTypeName(entityTypeName, schema) {
+        if (!entityTypeName) {
+            return null;
+        }
         if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
             return {
                 shortTypeName: entityTypeName,

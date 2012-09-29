@@ -247,6 +247,10 @@
       <Link>Scripts\Tests\miscTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\namedQueryTests.js">
+      <Link>Scripts\Tests\namedQueryTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\paramTests.js">
       <Link>Scripts\Tests\paramTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -257,6 +261,10 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryTests.js">
       <Link>Scripts\Tests\queryTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\rawOdataQueryTests.js">
+      <Link>Scripts\Tests\rawOdataQueryTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTests.js">

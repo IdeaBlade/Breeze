@@ -3565,15 +3565,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         The function used to convert server side property names to client side property names.
 
-        __readOnly__
-        @property serverPropertyNameToClient {Function}
+        @method serverPropertyNameToClient
+        @param serverPropertyName {String}
+        @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
+        @return {String} The client side property name.
         **/
 
         /**
         The function used to convert client side property names to server side property names.
 
-        __readOnly__
-        @property clientPropertyNameToClient {Function}
+        @method clientPropertyNameToServer
+        @param clientPropertyName {String}
+        @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
+        @return {String} The server side property name.
         **/
         
         /**
@@ -4649,7 +4653,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         };
 
-        ctor._getNormalizedTypeName = core.memoize(function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; });
+        ctor._getNormalizedTypeName = core.memoize(function (rawTypeName) {
+            return rawTypeName && normalizeTypeName(rawTypeName).typeName;
+        });
         // for debugging use the line below instead.
         //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
 
@@ -5144,6 +5150,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // schema is only needed for navProperty type name
     function normalizeTypeName(entityTypeName, schema) {
+        if (!entityTypeName) {
+            return null;
+        }
         if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
             return {
                 shortTypeName: entityTypeName,
@@ -8687,9 +8696,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
             
-            var entityType = em.metadataStore.getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && em.metadataStore.getEntityType(entityTypeName, true);
             // all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
-            if (entityType == null && isSelectQuery(queryContext.query) && !isNestedInAnon) {
+            // if (entityType == null && isSelectQuery(queryContext.query) && !isNestedInAnon) {
+            if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
 
@@ -8749,6 +8759,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
+            if (typeof rawEntity !== 'object') {
+                return rawEntity;
+            }
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == "__metadata") {

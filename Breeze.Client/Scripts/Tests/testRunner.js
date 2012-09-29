@@ -14,6 +14,8 @@ require([
       "entityTests",
       "queryTests",
       "queryDatatypeTests",
+      "namedQueryTests",
+      "rawOdataQueryTests",
       "validateTests",
       "validateEntityTests",
        "saveTests"

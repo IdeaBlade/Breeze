@@ -58,6 +58,8 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    #region standard queries
+
     [AcceptVerbs("GET")]
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
@@ -65,31 +67,11 @@ namespace Sample_WebApi.Controllers {
     }
 
     [AcceptVerbs("GET")]
-    public IQueryable<Customer> CustomersAndOrders() {
-      var custs = ContextProvider.Context.Customers.Include("Orders");
-      return custs;
-    }
-
-    [AcceptVerbs("GET")]
-    public IQueryable<Customer> CustomersStartingWithA() {
-      var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
-      return custs;
-    }
-
-
-    [AcceptVerbs("GET")]
     public IQueryable<Order> Orders() {
       var orders = ContextProvider.Context.Orders;
       return orders;
     }
-
-    [AcceptVerbs("GET")]
-    public IQueryable<Order> OrdersAndCustomers() {
-      var orders = ContextProvider.Context.Orders.Include("Customer");
-      return orders;
-    }
-
-    // [Queryable]
+    
     [AcceptVerbs("GET")]
     public IQueryable<Employee> Employees() {
       return ContextProvider.Context.Employees;
@@ -107,18 +89,58 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Products;
     }
 
-    // [Queryable]
     [AcceptVerbs("GET")]
     public IQueryable<Region> Regions() {
       return ContextProvider.Context.Regions;
     }
 
-    //[Queryable]
+    
     [AcceptVerbs("GET")]
     public IQueryable<Territory> Territories() {
       return ContextProvider.Context.Territories;
     }
-    
+    #endregion
+
+    #region named queries
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Object> CompanyNames() {
+      var stuff = ContextProvider.Context.Customers.Select(c => c.CompanyName);
+      return stuff;
+    }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Object> CompanyNamesAndIds() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID });
+      return stuff;
+    }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Object> CompanyInfoAndOrders() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+      return stuff;
+    }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Customer> CustomersAndOrders() {
+      var custs = ContextProvider.Context.Customers.Include("Orders");
+      return custs;
+    }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Order> OrdersAndCustomers() {
+      var orders = ContextProvider.Context.Orders.Include("Customer");
+      return orders;
+    }
+
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Customer> CustomersStartingWithA() {
+      var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
+      return custs;
+    }
+
+    #endregion
   }
 
   
