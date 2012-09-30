@@ -40,6 +40,19 @@ define(function () {
             }
         }
     }
+    
+    function objectMapToArray(obj, kvFn) {
+        var results = [];
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key)) {
+                var result = kvFn(key, obj[key]);
+                if (result) {
+                    results.push(result);
+                }
+            }
+        }
+        return results;
+    }
 
     // Functional extensions 
 
@@ -301,6 +314,7 @@ define(function () {
         getOwnPropertyValues: getOwnPropertyValues,
         objectForEach: objectForEach,
         objectMapValue: objectMapValue,
+        objectMapToArray: objectMapToArray,
         objectFilter: objectFilter,
 
         extend: extend,
