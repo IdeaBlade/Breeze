@@ -163,13 +163,14 @@ define(["testFns"], function (testFns) {
         newOrder.Customer(existingCustomer);
 
         equal(orderPropertyChangedRaised, 2,
-            "setting the order's customer raised order's property changed twice");
+            "setting the order's customer raised order's property changed twice, "+
+            "once for FK change and once for the navigation property change");
         
         equal(customerPropertyChangedRaised, 0,
             "setting the order's customer did NOT raise customer's property changed");      
 
-        equal(!customerOrdersPropertyChangedRaised, 1,
-            "setting the order's customer raised Customer.Orders array property changed");
+        equal(customerOrdersPropertyChangedRaised, 1,
+            "setting the order's customer raised Customer.Orders array property changed once");
     });
 
     /*********************************************************
@@ -266,7 +267,7 @@ define(["testFns"], function (testFns) {
         
         var koOrdersChangedCount = 0;     
         existingCustomer.Orders.subscribe(
-            function () {
+            function (newValue) {
                  koOrdersChangedCount += 1;
             });
         
