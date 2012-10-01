@@ -162,13 +162,15 @@ define(["testFns"], function (testFns) {
 
         newOrder.Customer(existingCustomer);
 
+        // once to set the foreign key and once to set the navigation property
         equal(orderPropertyChangedRaised, 2,
             "setting the order's customer raised order's property changed twice");
         
+        // the customer order's collection changed, not the customer.
         equal(customerPropertyChangedRaised, 0,
             "setting the order's customer did NOT raise customer's property changed");      
 
-        equal(!customerOrdersPropertyChangedRaised, 1,
+        equal(customerOrdersPropertyChangedRaised, 1,
             "setting the order's customer raised Customer.Orders array property changed");
     });
 
@@ -278,7 +280,7 @@ define(["testFns"], function (testFns) {
         // ko says this one should notify and Breeze notifies
         existingCustomer.Orders.push(newOrder2);
 
-        equal(koOrdersChangedCount, 1,
+        equal(koOrdersChangedCount, 2,
             "should have one ko 'Orders' changed notification");
         
         equal(breezeOrderChangedCount, 2,

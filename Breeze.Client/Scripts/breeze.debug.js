@@ -9970,6 +9970,8 @@ function (core, m_entityAspect, m_entityQuery) {
     var EntityQuery = m_entityQuery.EntityQuery;
 
     var Event = core.Event;
+    
+
 
     relationArrayMixin.push = function () {
         if (this._inProgress) {
@@ -10372,8 +10374,18 @@ function (core, makeRelationArray) {
                     } else {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
-                        val.arrayChanged.subscribe(function(args) {
-                            koObj.valueHasMutated();
+                        // new code to suppress extra breeze notification when 
+                        // ko's array methods are called.
+                        koObj.subscribe(function (b) {
+                            koObj._suppressBreeze = true;
+                        }, null, "beforeChange");
+                        // code to insure that any been changes notify ko
+                        val.arrayChanged.subscribe(function (args) {
+                            if (koObj._suppressBreeze) {
+                                koObj._suppressBreeze = false;
+                            } else {
+                                koObj.valueHasMutated();
+                            }
                         });
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
