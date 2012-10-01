@@ -8,7 +8,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     *********************************************************/
     var breeze = testFns.breeze,
         entityModel = breeze.entityModel;
-    
+
+    var EntityQuery = entityModel.EntityQuery;    
     var MergeStrategy = entityModel.MergeStrategy;
     
     var serviceName = testFns.northwindServiceName;
@@ -87,8 +88,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var restoredCustID = restoredCust.CustomerID();
         var newCustID = expected.newCust.CustomerID();
         notEqual(restoredCustID, newCustID,
-             "restoredNewCust ID !== newCust's ID because " +
-             "import new into another manager gets new temp ID");
+             "restoredNewCust ID should not equal newCust's ID " +
+             "because the imported newCust gets a new temp key");
     });
     /*********************************************************
      * cannot attach an entity from another manager
@@ -160,7 +161,53 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
                 "should have import cust name, Foo");
 
     });
-    
+    /*********************************************************
+    * can query locally for entities to export to another manager
+    *********************************************************/
+    test("can query entities to export to another manager", 1,
+        function () {
+            var em1 = newEm();
+            var expected = testData.primeTheCache(em1);
+
+            var selectedCusts = EntityQuery.from("Customers")
+                .where("CompanyName", "startsWith", "Customer")
+                .using(em1)
+                .executeLocally();
+            var selectedCustsCount = selectedCusts.length;
+
+            var exports = em1.exportEntities(selectedCusts);
+
+            var em2 = newEm();
+            em2.importEntities(exports);
+
+            var entitiesInCache = em2.getEntities();
+            var copyCount = entitiesInCache.length;
+            equal(copyCount, selectedCustsCount,
+                "should have imported {0} queried entities"
+                .format(selectedCustsCount));
+        });
+    /*********************************************************
+    * temporary keys change after importing
+    *********************************************************/
+    test("temporary keys change after importing", 2, function () {
+        var em1 = newEm();
+        var newCust1a = testData.createCustomer(em1);
+        em1.addEntity(newCust1a);
+
+        var em2 = newEm();
+        var exports = em1.exportEntities([newCust1a]);
+
+        em2.importEntities(exports);
+        var newCust1b = em2.getChanges()[0];
+
+        equal(newCust1a.CompanyName(), newCust1b.CompanyName(),
+            "newCust1a's name should match newCust1b's name.");
+
+        notEqual(newCust1a.CustomerID(), newCust1b.CustomerID(),
+             "newCust1a's ID should not equal newCust1b's ID because " +
+             "the imported new entity gets a new temp key");
+    });
+
     /*********************************************************
     * can safely merge and preserve pending changes
     * fails D#2207
