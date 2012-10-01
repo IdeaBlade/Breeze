@@ -170,6 +170,7 @@
     <Content Include="App\services\dataservice.js" />
     <Content Include="App\behaviors\CheckboxGroup.js" />
     <Content Include="App\behaviors\Dropdown.js" />
+    <Content Include="App\services\states.js" />
     <Content Include="App\testRunner.js" />
     <Content Include="App\tests\changeNotificationShouldNotHappen.js" />
     <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />

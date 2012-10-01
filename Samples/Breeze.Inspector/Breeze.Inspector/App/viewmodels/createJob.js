@@ -1,11 +1,12 @@
 ﻿define(function(require) {
     var shell = require('viewmodels/shell'),
         addInspectionDialog = require('viewmodels/addInspection'),
-        data = require('services/dataservice');
+        data = require('services/dataservice'),
+        states = require('services/states');
 
     var ctor = function() {
         this.job = ko.observable(data.createJob(shell.inspector()));
-        this.states = [];
+        this.states = states;
     };
 
     ctor.prototype.addInspection = function() {

@@ -13,7 +13,7 @@
         EntityAction = entityModel.EntityAction,
         manager = new entityModel.EntityManager('api/inspector'),
         answerType, jobType, addressType, inspectionType,
-        canSave,
+        canSave = ko.observable(false),
         data,
         forms;
 
@@ -22,8 +22,6 @@
             canSave(false);
         } else if (args.entity.entityAspect.entityState.isAddedModifiedOrDeleted()) {
             canSave(true);
-            console.log(args.entity.entityAspect.entityState);
-            console.log(args.entity);
         }
     });
 
@@ -104,9 +102,7 @@
             inspection.Status("New");
             return inspection;
         },
-        onCanSaveChanges: function(callback) {
-            canSave = callback;
-        },
+        canSave:canSave,
         saveChanges: function() {
             if (this.isOffline()) {
                 localStorage.setItem("manager", manager.export());
@@ -123,9 +119,6 @@
         },
         isOffline: function() {
             return localStorage.getItem("offline") == "true";
-        },
-        hasChanges: function() {
-            return manager.getChanges().length > 0;
         },
         toggleConnection: function() {
             if (!this.isOffline()) {

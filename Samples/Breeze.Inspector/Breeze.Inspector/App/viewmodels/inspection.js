@@ -81,7 +81,9 @@
                     current.answer.Response('');
                 }
 
-                that.inspection.Status("In Progress");
+                if (that.inspection.Status() != "New") {
+                    that.inspection.Status("In Progress");
+                }
             },
             ko.computed(function() {
                 return this.inspection.Status() != 'Done';
