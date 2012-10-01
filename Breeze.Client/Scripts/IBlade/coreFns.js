@@ -193,6 +193,16 @@ define(function () {
             obj[property] = originalValue;
         }
     }
+    
+    function wrapExecution(startFn, endFn, fn) {
+        var state;
+        try {
+            state = startFn();
+            return fn();
+        } finally {
+            endFn(state);
+        }
+    }
 
     function memoize(fn) {
         return function () {
@@ -330,6 +340,7 @@ define(function () {
         arrayZip: arrayZip,
 
         using: using,
+        wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
         dateFromIsoString: dateFromIsoString,

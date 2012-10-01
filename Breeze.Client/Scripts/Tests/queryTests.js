@@ -23,6 +23,64 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+    
+    test("query results notification", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .using(em);
+        stop();
+        var arrayChangedCount = 0;
+        var adds;
+        var orders;
+        query.execute().then(function (data) {
+            var customer = data.results[0];
+            orders = customer.getProperty("orders");
+            orders.arrayChanged.subscribe(function(args) {
+                arrayChangedCount++;
+                adds = args.added;
+            });
+            return query.expand("orders").execute();
+        }).then(function (data2) {
+            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(adds && adds.length > 0, "should have been multiple entities shown as added");
+            var orderType = em.metadataStore.getEntityType("Order");
+            var newOrder = orderType.createEntity();
+            orders.push(newOrder);
+            ok(arrayChangedCount === 2, "should have incremented by 1");
+            ok(adds && adds.length === 1, "should have only a single entity added here");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("navigation results notification", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .using(em);
+        stop();
+        var arrayChangedCount = 0;
+        var adds;
+        var orders;
+        query.execute().then(function (data) {
+            var customer = data.results[0];
+            orders = customer.getProperty("orders");
+            orders.arrayChanged.subscribe(function (args) {
+                arrayChangedCount++;
+                adds = args.added;
+            });
+            return customer.entityAspect.loadNavigationProperty("orders");
+        }).then(function (data2) {
+            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(adds && adds.length > 0, "should have been multiple entities shown as added");
+            var orderType = em.metadataStore.getEntityType("Order");
+            var newOrder = orderType.createEntity();
+            orders.push(newOrder);
+            ok(arrayChangedCount === 2, "should have incremented by 1");
+            ok(adds && adds.length === 1, "should have only a single entity added here");
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("query results include query", function() {
         var em = newEm();

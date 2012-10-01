@@ -31,6 +31,36 @@ define(["testFns"], function (testFns) {
         return testFns;
     };
     
+    test("query results notification", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .using(em);
+        stop();
+        var arrayChangedCount = 0;
+        var koArrayChangedCount = 0;
+        var adds;
+        var koAdds;
+        query.execute().then(function (data) {
+            var customer = data.results[0];
+            customer.orders.subscribe(function(val) {
+                koArrayChangedCount++;
+                koAdds = val;
+            });
+            customer.orders().arrayChanged.subscribe(function (args) {
+                arrayChangedCount++;
+                adds = args.added;
+            });
+            return query.expand("orders").execute();
+        }).then(function (data2) {
+            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(koArrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(adds && adds.length > 0, "should have been multiple entities shown as added");
+            deepEqual(adds, koAdds, "adds and koAdds should be the same");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("chaining on write", function () {
      
         var em1 = newEm();

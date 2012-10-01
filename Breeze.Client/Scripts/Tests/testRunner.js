@@ -12,7 +12,7 @@ require([
       "entityManagerTests",
       "entityQueryCtorTests",
       "entityTests",
-       "queryTests",
+      "queryTests",
       "queryDatatypeTests",
       "namedQueryTests",
       "rawOdataQueryTests",

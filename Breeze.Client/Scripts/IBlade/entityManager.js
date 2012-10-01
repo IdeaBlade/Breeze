@@ -324,14 +324,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
             });
             config.tempKeyMap = tempKeyMap;
-
-            core.objectForEach(json.entityGroupMap, function (entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
-                var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
-
+            core.wrapExecution(function() {
+                that._pendingPubs = [];
+            }, function(state) {
+                that._pendingPubs.forEach(function(fn) { fn(); });
+                that._pendingPubs = null;
+            }, function() {
+                core.objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
+                    var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                    var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
+                    importEntityGroup(targetEntityGroup, jsonGroup, config);
+                });
             });
-
             return this;
         };
 
@@ -1412,8 +1416,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
+                
                 em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
-                    var result = core.using(em, "isLoading", true, function() {
+                    var result = core.wrapExecution(function () {
+                        var state = { isLoading: em.isLoading };
+                        em.isLoading = true;
+                        em._pendingPubs = [];
+                        return state;
+                    }, function (state) {
+                        em.isLoading = state.isLoading;
+                        em._pendingPubs.forEach(function(fn) { fn(); });
+                        em._pendingPubs = null;
+                    }, function() {
                         var entities = rawEntities.map(function(rawEntity) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.

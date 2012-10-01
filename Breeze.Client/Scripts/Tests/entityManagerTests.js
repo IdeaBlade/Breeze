@@ -40,6 +40,37 @@ define(["testFns"], function (testFns) {
         ok(em);
     });
     
+    test("import results notification", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .expand("orders")
+            .using(em);
+        stop();
+        var exportedEm;
+        var exportedCustomer;
+        var arrayChangedCount = 0;
+        var adds;
+        query.execute().then(function (data) {
+            var customer = data.results[0];
+            exportedCustomer = em.exportEntities([customer]);
+            exportedEm = em.exportEntities();
+            em2.importEntities(exportedCustomer);
+            var sameCustomer = em2.findEntityByKey(customer.entityAspect.getKey());
+            var orders = sameCustomer.getProperty("orders");
+            ok(orders.length === 0, "orders should be empty to start");
+            orders.arrayChanged.subscribe(function (args) {
+                arrayChangedCount++;
+                adds = args.added;
+            });
+            em2.importEntities(exportedEm);
+            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(adds && adds.length > 1, "should have been multiple entities shown as added");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("getChanges", function () {
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
