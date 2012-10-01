@@ -272,14 +272,10 @@ define(["testFns"], function (testFns) {
             });
         
         // two ways to push
-        // ko says this one should not notify
-        // but Breeze notifies
         existingCustomer.Orders().push(newOrder1);
-        
-        // ko says this one should notify and Breeze notifies
         existingCustomer.Orders.push(newOrder2);
 
-        equal(koOrdersChangedCount, 1,
+        equal(koOrdersChangedCount, 2,
             "should have one ko 'Orders' changed notification");
         
         equal(breezeOrderChangedCount, 2,

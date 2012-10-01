@@ -335,6 +335,53 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
     
+   test("importEntities  can safely merge and preserve or overwrite pending changes", 4, function () {
+           // D#2207
+           var em1 = newEm();
+           var customerType = em1.metadataStore
+               .getEntityType("Customer");
+
+           var cust1 = customerType.createEntity();
+           var cust1Id = core.getUuid();
+           cust1.setProperty("customerID", cust1Id);
+           cust1.setProperty("companyName","Foo");
+           em1.attachEntity(cust1);
+
+           var exports = em1.exportEntities();
+
+           // As if em2 queried for same customer
+           var em2 = newEm();
+           var cust1b = customerType.createEntity();
+           cust1b.setProperty("customerID", cust1Id);
+           cust1b.setProperty("companyName","Foo");
+           em2.attachEntity(cust1b);
+
+           // then the user changed it but hasn't saved.
+           var changedName = "Changed name";
+           cust1b.setProperty("companyName", changedName);
+
+           // Import from em1
+           em2.importEntities(exports);
+
+           ok(cust1b.entityAspect.entityState.isModified(),
+               "cust1b should still be in Modified state after import");
+
+           // Fails: D#2207
+           equal(cust1b.getProperty("companyName"), changedName, 
+               core.formatString("should retain pending cust name change, '%1'", changedName));
+
+       
+           em2.importEntities(exports, 
+             { mergeStrategy: MergeStrategy.OverwriteChanges });
+       
+           ok(cust1b.entityAspect.entityState.isUnchanged(),
+                   "cust1b should be in Unchanged state after import");
+
+        
+           notEqual(cust1b.getProperty("companyName"), changedName,
+               "customer should not retain pending name change");
+               
+    });
 
     test("Export changes to local storage and re-import", 5, function () {
 

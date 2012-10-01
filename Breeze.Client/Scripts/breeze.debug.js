@@ -7684,8 +7684,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         ctor.prototype.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
-                .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
-                .applyAll(this);
+                .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+                .applyAll(config);
             var that = this;
             
             var json = JSON.parse(exportedString);
@@ -8517,7 +8517,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var tempKeyMap = config.tempKeyMap;
 
             var entityType = entityGroup.entityType;
-            var shouldOverwrite = config.MergeStrategy ? config.MergeStategy === MergeStrategy.OverwriteChanges : true;
+            var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
             var keyIxs = entityType.keyProperties.map(function (kp) {
