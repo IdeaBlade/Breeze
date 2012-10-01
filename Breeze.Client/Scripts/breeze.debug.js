@@ -10372,6 +10372,9 @@ function (core, makeRelationArray) {
                     } else {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+                        val.arrayChanged.subscribe(function(args) {
+                            koObj.valueHasMutated();
+                        });
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };

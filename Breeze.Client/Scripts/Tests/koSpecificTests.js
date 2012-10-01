@@ -77,6 +77,36 @@ define(["testFns"], function (testFns) {
 
     });
     
+    test("observable array mutate on change", function () {
+        var em = newEm();
+
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID);
+        var customer;
+        stop();
+        var orders;
+        var koOrders;
+        var arrayChangeCount = 0;
+        var koChangeCount = 0;
+        query.using(em).execute().then(function (data) {
+            customer = data.results[0];
+            orders = customer.orders();
+            orders.arrayChanged.subscribe(function(changes) {
+                arrayChangeCount++;
+            });
+            koOrders = customer.orders;
+            koOrders.subscribe(function(x) {
+                koChangeCount++;
+            });
+            return customer.entityAspect.loadNavigationProperty("orders");
+        }).then(function (orders2) {
+            var x = orders2;
+            ok(arrayChangeCount === koChangeCount);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
     test("disallow setting collection navigation properties", function () {
         // ko specific
         var em = newEm();
