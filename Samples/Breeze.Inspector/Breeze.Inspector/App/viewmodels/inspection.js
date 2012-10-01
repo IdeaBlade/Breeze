@@ -76,8 +76,9 @@
 
         shell.addCommand('clear',
             function() {
-                for (var i = 0; i < that.fields.length; i++) {
-                    var current = that.fields[i];
+                var fields = that.fields();
+                for (var i = 0; i < fields.length; i++) {
+                    var current = fields[i];
                     current.answer.Response('');
                 }
 
