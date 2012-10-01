@@ -67,7 +67,7 @@
                     that.inspection.Status("In Progress");
                 }
 
-                //TODO: save
+                dataservice.saveInspection(that.inspection);
             },
             ko.computed(function() {
                 return this.inspection.Status() != 'Done';
@@ -76,12 +76,15 @@
 
         shell.addCommand('clear',
             function() {
-                for (var i = 0; i < that.fields.length; i++) {
-                    var current = that.fields[i];
+                var fields = that.fields();
+                for (var i = 0; i < fields.length; i++) {
+                    var current = fields[i];
                     current.answer.Response('');
                 }
 
-                that.inspection.Status("In Progress");
+                if (that.inspection.Status() != "New") {
+                    that.inspection.Status("In Progress");
+                }
             },
             ko.computed(function() {
                 return this.inspection.Status() != 'Done';
@@ -99,7 +102,7 @@
                     that.inspection.Status('Done');
                 }
 
-                //TODO: save
+                dataservice.saveInspection(that.inspection);
             },
             ko.computed(this.isValid, this)
         );
@@ -107,6 +110,7 @@
         shell.addCommand('cancel',
             function() {
                 that.inspection.Status('Canceled');
+                dataservice.saveInspection(that.inspection);
                 shell.goBack();
             },
             ko.computed(function() {

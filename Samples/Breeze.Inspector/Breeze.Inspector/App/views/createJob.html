@@ -6,12 +6,12 @@
     
     <div class="field textbox">
         <span class="label">City</span>
-        <input type="text"  data-bind="value: job().Location().City"/>
+        <input type="text" data-bind="value: job().Location().City"/>
     </div>
     
     <div class="field dropdown">
         <span class="label">State</span>
-        <select />
+        <select data-bind="options: states, optionsText: 'abbreviation', value: job().Location().State" />
     </div>
     
     <div class="field textbox">

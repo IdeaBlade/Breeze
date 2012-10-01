@@ -254,11 +254,17 @@ button.add span {
     background: white;
 }
 
-.inProgress {
+.inProgress 
+{
+    width: 56px;
+    height: 62px;
     background: url('/Images/Warn_Large.png');
 }
 
-.canceled {
+.canceled 
+{
+    width: 58px;
+    height: 60px;
     background: url('/Images/X_Large.png');
 }
 
