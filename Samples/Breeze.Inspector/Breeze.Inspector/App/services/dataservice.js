@@ -10,20 +10,10 @@
     });
 
     var op = entityModel.FilterQueryOp,
-        EntityAction = entityModel.EntityAction,
         manager = new entityModel.EntityManager('api/inspector'),
         answerType, jobType, addressType, inspectionType,
-        canSave = ko.observable(false),
         data,
         forms;
-
-    manager.entityChanged.subscribe(function(args) {
-        if (args.entityAction === EntityAction.Clear) {
-            canSave(false);
-        } else if (args.entity.entityAspect.entityState.isAddedModifiedOrDeleted()) {
-            canSave(true);
-        }
-    });
 
     function executeQuery(query) {
         if (data.isOffline()) {
@@ -84,25 +74,32 @@
             return executeQuery(query);
         },
         createAnswer: function(inspection, question) {
-            var answer = manager.addEntity(answerType.createEntity());
+            var answer = answerType.createEntity();
             answer.Inspection(inspection);
             answer.Question(question);
             return answer;
         },
         createJob: function(inspector) {
-            var job = manager.addEntity(jobType.createEntity());
+            var job = jobType.createEntity();
             job.Inspector(inspector);
             job.CreatedAt(new Date());
-            job.Location(manager.addEntity(addressType.createEntity()));
+            job.Location(addressType.createEntity());
             return job;
         },
+        saveJob: function(job) {
+            manager.addEntity(job);
+            return this.saveChanges();
+        },
         createInspection: function(inspectionForm) {
-            var inspection = manager.addEntity(inspectionType.createEntity());
+            var inspection = inspectionType.createEntity();
             inspection.Form(inspectionForm);
             inspection.Status("New");
             return inspection;
         },
-        canSave:canSave,
+        saveInspection: function(inspection) {
+            manager.addEntity(inspection);
+            return this.saveChanges();
+        },
         saveChanges: function() {
             if (this.isOffline()) {
                 localStorage.setItem("manager", manager.export());
@@ -113,9 +110,7 @@
                 };
             }
 
-            return manager.saveChanges().then(function(saveResult) {
-                canSave(false);
-            });
+            return manager.saveChanges();
         },
         isOffline: function() {
             return localStorage.getItem("offline") == "true";

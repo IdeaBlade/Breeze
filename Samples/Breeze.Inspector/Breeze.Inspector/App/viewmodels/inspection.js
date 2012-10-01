@@ -67,7 +67,7 @@
                     that.inspection.Status("In Progress");
                 }
 
-                //TODO: save
+                dataservice.saveInspection(that.inspection);
             },
             ko.computed(function() {
                 return this.inspection.Status() != 'Done';
@@ -101,7 +101,7 @@
                     that.inspection.Status('Done');
                 }
 
-                //TODO: save
+                dataservice.saveInspection(that.inspection);
             },
             ko.computed(this.isValid, this)
         );
@@ -109,6 +109,7 @@
         shell.addCommand('cancel',
             function() {
                 that.inspection.Status('Canceled');
+                dataservice.saveInspection(that.inspection);
                 shell.goBack();
             },
             ko.computed(function() {
