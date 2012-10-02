@@ -88,7 +88,13 @@
         },
         saveJob: function(job) {
             manager.addEntity(job);
-            return this.saveChanges();
+            return this.saveChanges().then(function(result) {
+                if (result.error) {
+                    toastr.error("There was a problem saving the job!");
+                } else {
+                    toastr.success("Job succesfully saved.");
+                }
+            });
         },
         createInspection: function(inspectionForm) {
             var inspection = inspectionType.createEntity();
@@ -98,14 +104,21 @@
         },
         saveInspection: function(inspection) {
             manager.addEntity(inspection);
-            return this.saveChanges();
+            return this.saveChanges().then(function(result) {
+                if (result.error) {
+                    toastr.error("There was a problem saving the inspection!");
+                } else {
+                    toastr.success("Inspection succesfully saved.");
+                }
+            });
         },
         saveChanges: function() {
             if (this.isOffline()) {
-                localStorage.setItem("manager", manager.export());
+                localStorage.setItem("manager", manager.exportEntities());
                 return {
                     then: function(callback) {
-                        callback();
+                        toastr.info("Changes saved to local storage during offline mode.");
+                        callback({});
                     }
                 };
             }
@@ -117,16 +130,25 @@
         },
         toggleConnection: function() {
             if (!this.isOffline()) {
-                localStorage.setItem("manager", manager.export());
+                localStorage.setItem("manager", manager.exportEntities());
                 localStorage.setItem("offline", "true");
+                toastr.warning("Switching to offline mode.");
             } else {
                 localStorage.removeItem("offline");
+                manager.saveChanges().then(function(result) {
+                    if (result.error) {
+                        toastr.error("Unable to sync with server!");
+                    } else {
+                        toastr.success("Switched to online mode and synced with server.");
+                    }
+                });
             }
         }
     };
 
     if (data.isOffline()) {
         manager.importEntities(localStorage.getItem("manager"));
+        toastr.warning("Starting up in offline mode.");
     }
 
     return data;

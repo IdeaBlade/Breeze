@@ -166,6 +166,7 @@
     <Content Include="App\lib\qunit.js" />
     <Content Include="App\lib\require.js" />
     <Content Include="App\lib\text.js" />
+    <Content Include="App\lib\toastr.js" />
     <Content Include="App\main.js" />
     <Content Include="App\services\dataservice.js" />
     <Content Include="App\behaviors\CheckboxGroup.js" />
@@ -225,7 +226,10 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Styles\toastr-responsive.css" />
+    <Content Include="Styles\toastr.css" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>

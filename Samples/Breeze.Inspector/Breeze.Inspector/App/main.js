@@ -52,6 +52,8 @@ define(['text', 'breeze'], function() {
         });
     };
 
+    toastr.options.positionClass = "toast-bottom-right";
+
     require(['services/dataservice', 'viewmodels/shell'], function(data, shell) {
         data.ready().then(function() { shell.initialize(); });
     });
