@@ -2,11 +2,13 @@
     var shell = require('viewmodels/shell'),
         addInspectionDialog = require('viewmodels/addInspection'),
         data = require('services/dataservice'),
-        states = require('services/states');
+        states = require('services/states'),
+        ValidationHelper = require('services/validationHelper');
 
     var ctor = function() {
         this.job = ko.observable(data.createJob(shell.inspector()));
         this.states = states;
+        this.validation = new ValidationHelper(this.job().Location());
     };
 
     ctor.prototype.addInspection = function() {

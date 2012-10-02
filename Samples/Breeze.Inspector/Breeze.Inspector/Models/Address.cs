@@ -6,10 +6,16 @@ namespace Breeze.Inspector.Models {
         [Key]
         public int Id { get; set; }
 
+        [Required]
         public string Street1 { get; set; }
         public string Street2 { get; set; }
+
+        [Required]
         public string City { get; set; }
+
+        [Required]
         public string State { get; set; }
+
         public string Zip { get; set; }
         
         public List<Job> Jobs { get; set; }
