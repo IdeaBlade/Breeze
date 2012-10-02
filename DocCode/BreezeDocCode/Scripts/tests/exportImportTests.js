@@ -10,7 +10,6 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         entityModel = breeze.entityModel;
 
     var EntityQuery = entityModel.EntityQuery;    
-    var MergeStrategy = entityModel.MergeStrategy;
     
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
@@ -31,14 +30,14 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     test("stash entire cache locally and restore", 1, function() {
         var em1 = newEm();
         var expected = testData.primeTheCache(em1);
-        var exports = em1.exportEntities();
+        var exportData = em1.exportEntities();
 
         var stashName = "stash_everything";
-        window.localStorage.setItem(stashName, exports);
+        window.localStorage.setItem(stashName, exportData);
         
         var em2 = newEm();
-        var imports = window.localStorage.getItem(stashName);
-        em2.importEntities(imports);
+        var importData = window.localStorage.getItem(stashName);
+        em2.importEntities(importData);
 
         var entitiesInCache = em2.getEntities();
         var restoreCount = entitiesInCache.length;
@@ -55,15 +54,15 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var expected = testData.primeTheCache(em1);
 
         var changes = em1.getChanges();
-        var exports = em1.exportEntities(changes);
+        var exportData = em1.exportEntities(changes);
         
         var stashName = "stash_changes";
-        window.localStorage.setItem(stashName, exports);
+        window.localStorage.setItem(stashName, exportData);
 
         var em2 = newEm();
 
-        var imports = window.localStorage.getItem(stashName);
-        em2.importEntities(imports);
+        var importData = window.localStorage.getItem(stashName);
+        em2.importEntities(importData);
 
         var entitiesInCache = em2.getEntities();
         var restoreCount = entitiesInCache.length;
@@ -111,10 +110,10 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         function () {
         var em1 = newEm();
         var expected = testData.primeTheCache(em1);
-        var exports = em1.exportEntities(expected.unchanged);
+        var exportData = em1.exportEntities(expected.unchanged);
 
         var em2 = newEm();
-        em2.importEntities(exports);
+        em2.importEntities(exportData);
         
         var entitiesInCache = em2.getEntities();
         var copyCount = entitiesInCache.length;
@@ -138,7 +137,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
             em1.attachEntity(cust1);
 
             // cust1's name is "Foo" in em1
-            var exports = em1.exportEntities();
+            var exportData = em1.exportEntities();
 
             // Suppose em2 queried for same customer 
             // much earlier when it had the name "Bar"
@@ -152,7 +151,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
                 "should have cust name, Bar, before import");
             
             // Import from em1
-            em2.importEntities(exports);
+            em2.importEntities(exportData);
 
             ok(cust1b.entityAspect.entityState.isUnchanged(),
                 "cust should still be unchanged after import.");
@@ -167,7 +166,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     test("can query entities to export to another manager", 1,
         function () {
             var em1 = newEm();
-            var expected = testData.primeTheCache(em1);
+            testData.primeTheCache(em1);
 
             var selectedCusts = EntityQuery.from("Customers")
                 .where("CompanyName", "startsWith", "Customer")
@@ -175,10 +174,10 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
                 .executeLocally();
             var selectedCustsCount = selectedCusts.length;
 
-            var exports = em1.exportEntities(selectedCusts);
+            var exportData = em1.exportEntities(selectedCusts);
 
             var em2 = newEm();
-            em2.importEntities(exports);
+            em2.importEntities(exportData);
 
             var entitiesInCache = em2.getEntities();
             var copyCount = entitiesInCache.length;
@@ -195,9 +194,9 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         em1.addEntity(newCust1a);
 
         var em2 = newEm();
-        var exports = em1.exportEntities([newCust1a]);
+        var exportData = em1.exportEntities([newCust1a]);
 
-        em2.importEntities(exports);
+        em2.importEntities(exportData);
         var newCust1b = em2.getChanges()[0];
 
         equal(newCust1a.CompanyName(), newCust1b.CompanyName(),
@@ -210,9 +209,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
 
     /*********************************************************
     * can safely merge and preserve pending changes
-    * fails D#2207
     *********************************************************/
-    test("D#2207 can safely merge and preserve pending changes", 2,
+    test("can safely merge and preserve pending changes", 2,
         function () {
         var em1 = newEm();
         var customerType = em1.metadataStore
@@ -224,7 +222,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         cust1.CompanyName("Foo");
         em1.attachEntity(cust1);
 
-        var exports = em1.exportEntities();
+        var exportData = em1.exportEntities();
 
         // As if em2 queried for same customer
         var em2 = newEm();
@@ -237,12 +235,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var changedName = "Changed name";
         cust1b.CompanyName(changedName);
 
-        // Import from em1
-        em2.importEntities(exports);
-
-        // Does not help to be explicit about merge strategy
-        //em2.importEntities(exports, 
-        //    { mergeStrategy: MergeStrategy.PreserveChanges });
+        // Import from em1; preserves changes by default
+        em2.importEntities(exportData);
 
         ok(cust1b.entityAspect.entityState.isModified(),
             "cust1b should still be in Modified state after import");
