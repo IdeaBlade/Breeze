@@ -34,7 +34,7 @@
         });
 
         shell.addCommand('save', function() {
-            data.saveJob(that.job);
+            data.saveJob(that.job());
         });
         shell.addCommand('cancel', function() {
             shell.goBack();
