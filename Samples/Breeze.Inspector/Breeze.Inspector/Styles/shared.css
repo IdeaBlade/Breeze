@@ -185,6 +185,10 @@ ul.inspections li{
 }
 
 .invalid {
+    border: 1px solid red;
+}
+
+.validation-message {
     color: red;
 }
 

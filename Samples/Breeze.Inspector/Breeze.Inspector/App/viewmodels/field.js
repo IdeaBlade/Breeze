@@ -26,6 +26,10 @@
 
             return checkPattern();
         });
+
+        this.invalid = ko.computed(function() {
+            return this.validationMessage() != null;
+        }, this);
     };
 
     return field;

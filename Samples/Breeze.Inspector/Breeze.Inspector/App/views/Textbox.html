@@ -1,5 +1,5 @@
-﻿<div class="field textbox">
+﻿<div class="field textbox" data-bind="css:{invalid:invalid}">
     <span class="label" data-bind="text: question.Text, valueUpdate: 'afterkeyup'"></span>
-    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <span class="validation-message" data-bind="visible: invalid, text: validationMessage"></span>
     <input type="text" data-bind="value: answer.Response" />
 </div>

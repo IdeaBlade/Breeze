@@ -1,6 +1,6 @@
-﻿<div class="field radio-group">
+﻿<div class="field radio-group" data-bind="css:{invalid:invalid}">
     <span class="label" data-bind="text: question.Text"></span>
-    <span class="invalid" data-bind="visible: validationMessage() != null, attr:{title:validationMessage}">*</span>
+    <span class="validation-message" data-bind="visible: invalid, text: validationMessage"></span>
     <ul>
         <!-- ko foreach: options -->
         <li>
