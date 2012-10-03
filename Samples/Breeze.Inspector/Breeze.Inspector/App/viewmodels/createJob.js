@@ -37,7 +37,8 @@
 
         shell.addCommand('save', function() {
             data.saveJob(that.job());
-        });
+        }, this.validation.isValid);
+
         shell.addCommand('cancel', function() {
             shell.goBack();
         });

@@ -1,5 +1,5 @@
 ﻿<div class="form">
-    <div class="field textbox" data-bind="css:{invalid:validation.Street1Valid() == false}">
+    <div class="field textbox">
         <span class="label">Street</span>
         <input type="text" data-bind="value: job().Location().Street1, valueUpdate: 'afterkeyup'" />
         <span class="validation-message" data-bind="visible:validation.Street1Valid() == false, text: validation.Street1Error()"></span>
@@ -7,17 +7,20 @@
     
     <div class="field textbox">
         <span class="label">City</span>
-        <input type="text" data-bind="value: job().Location().City"/>
+        <input type="text" data-bind="value: job().Location().City, valueUpdate: 'afterkeyup'"/>
+        <span class="validation-message" data-bind="visible:validation.CityValid() == false, text: validation.CityError()"></span>
     </div>
     
     <div class="field dropdown">
         <span class="label">State</span>
-        <select data-bind="options: states, optionsText: 'abbreviation', value: job().Location().State" />
+        <select data-bind="options: states, optionsText: 'abbreviation', optionsValue:'abbreviation', value: job().Location().State" />
+        <span class="validation-message" data-bind="visible:validation.StateValid() == false, text: validation.StateError()"></span>
     </div>
     
     <div class="field textbox">
         <span class="label">Zip</span>
-        <input type="text"  data-bind="value: job().Location().Zip"/>
+        <input type="text"  data-bind="value: job().Location().Zip, valueUpdate: 'afterkeyup'"/>
+        <span class="validation-message" data-bind="visible:validation.ZipValid() == false, text: validation.ZipError()"></span>
     </div>
     
     <div>

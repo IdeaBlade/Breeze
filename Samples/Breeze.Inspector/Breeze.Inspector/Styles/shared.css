@@ -155,6 +155,7 @@ ul.inspections li{
 .form {
     margin: 2em;
     display: table;
+    border-collapse: collapse;
 }
 
 .field textarea {
@@ -176,7 +177,10 @@ ul.inspections li{
     display: table-cell;
     padding-right: .5em;
     text-align: right;
-    vertical-align: top;
+}
+
+.form .field .label.top {
+    vertical-align: top;    
 }
 
 .form .field input, .field .field textarea, .field .field select {
@@ -184,12 +188,19 @@ ul.inspections li{
     display: table-cell;
 }
 
-.invalid {
-    border: 1px solid red;
-}
-
 .validation-message {
-    color: red;
+    color: white;
+    background: red;
+    padding: 2px 6px;
+    
+    -moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	
+	-o-box-shadow: rgba(0, 0, 0, .5) 2px 2px 10px;
+    -webkit-box-shadow: rgba(0, 0, 0, .5) 2px 2px 10px;
+    -moz-box-shadow: rgba(0, 0, 0, .5) 2px 2px 10px;
+    box-shadow: rgba(0, 0, 0, .5) 2px 2px 10px;
 }
 
 button.add {

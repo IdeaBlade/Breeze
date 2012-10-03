@@ -304,34 +304,6 @@ define('coreFns',[],function () {
 
     var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-    // transform an object's values
-    function objectMapValue(obj, kvProjection) {
-        var value, newMap = {};
-        for (var key in obj) {
-            if (hasOwnProperty.call(obj, key)) {
-                value = kvProjection(key, obj[key]);
-                if (value !== undefined) {
-                    newMap[key] = value;
-                }
-            }
-        }
-        return newMap;
-    }
-
-    // shrink an object's surface
-    function objectFilter(obj, kvPredicate) {
-        var result = {};
-        for (var key in obj) {
-            if (hasOwnProperty.call(obj, key)) {
-                var value = obj[key];
-                if (kvPredicate(key, value)) {
-                    result[key] = value;
-                }
-            }
-        }
-        return result;
-    };
-
     // iterate over object
     function objectForEach(obj, kvFn) {
         for (var key in obj) {
@@ -353,6 +325,39 @@ define('coreFns',[],function () {
         }
         return results;
     }
+    
+    // Not yet needed 
+
+    //// transform an object's values
+    //function objectMapValue(obj, kvProjection) {
+    //    var value, newMap = {};
+    //    for (var key in obj) {
+    //        if (hasOwnProperty.call(obj, key)) {
+    //            value = kvProjection(key, obj[key]);
+    //            if (value !== undefined) {
+    //                newMap[key] = value;
+    //            }
+    //        }
+    //    }
+    //    return newMap;
+    //}
+
+
+    //// shrink an object's surface
+    //function objectFilter(obj, kvPredicate) {
+    //    var result = {};
+    //    for (var key in obj) {
+    //        if (hasOwnProperty.call(obj, key)) {
+    //            var value = obj[key];
+    //            if (kvPredicate(key, value)) {
+    //                result[key] = value;
+    //            }
+    //        }
+    //    }
+    //    return result;
+    //};
+    
+   
 
     // Functional extensions 
 
@@ -410,11 +415,11 @@ define('coreFns',[],function () {
         return -1;
     }
 
-    function arrayRemoveItem(array, callbackOrItem) {
-        var callback = isFunction(callbackOrItem) ? callbackOrItem : undefined;
+    function arrayRemoveItem(array, predicateOrItem) {
+        var predicate = isFunction(predicateOrItem) ? predicateOrItem : undefined;
         var l = array.length;
         for (var index = 0; index < l; index++) {
-            if (callback ? callback(array[index]) : (array[index] === callbackOrItem)) {
+            if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
                 array.splice(index, 1);
                 return index;
             }
@@ -443,18 +448,19 @@ define('coreFns',[],function () {
         return result;
     }
 
-    // much faster but only works on array items with a toString method that
-    // returns distinct string for distinct objects.  So this is safe for arrays with primitive
-    // types but not for arrays with object types, unless toString() has been implemented.
-    function arrayDistinctUnsafe(array) {
-        var o = {}, i, l = array.length, r = [];
-        for (i = 0; i < l; i += 1) {
-            var v = array[i];
-            o[v] = v;
-        }
-        for (i in o) r.push(o[i]);
-        return r;
-    }
+    // Not yet needed
+    //// much faster but only works on array items with a toString method that
+    //// returns distinct string for distinct objects.  So this is safe for arrays with primitive
+    //// types but not for arrays with object types, unless toString() has been implemented.
+    //function arrayDistinctUnsafe(array) {
+    //    var o = {}, i, l = array.length, r = [];
+    //    for (i = 0; i < l; i += 1) {
+    //        var v = array[i];
+    //        o[v] = v;
+    //    }
+    //    for (i in o) r.push(o[i]);
+    //    return r;
+    //}
 
     function arrayEquals(a1, a2, equalsFn) {
         //Check if the arrays are undefined/null
@@ -623,16 +629,16 @@ define('coreFns',[],function () {
     return {
         getOwnPropertyValues: getOwnPropertyValues,
         objectForEach: objectForEach,
-        objectMapValue: objectMapValue,
         objectMapToArray: objectMapToArray,
-        objectFilter: objectFilter,
+        //objectMapValue: objectMapValue,
+        //objectFilter: objectFilter,
 
         extend: extend,
         propEq: propEq,
         pluck: pluck,
 
         arrayDistinct: arrayDistinct,
-        arrayDistinctUnsafe: arrayDistinctUnsafe,
+        // arrayDistinctUnsafe: arrayDistinctUnsafe,
         arrayEquals: arrayEquals,
         arrayFirst: arrayFirst,
         arrayIndexOf: arrayIndexOf,
@@ -926,21 +932,24 @@ define('enum',["coreFns"], function (core) {
     return Enum;
 
 });
-define('event',["coreFns"], function (core) {
+define('event',["coreFns"], function(core) {
     
+
     /**
     @module core
     **/
+
+    var __eventNameMap = { };
 
     /**
     Class to support basic event publication and subscription semantics.
     @class Event
     **/
-        
+
     /**
     Constructor for an Event
     @example
-        salaryEvent = new Event("salaryEvent");
+        salaryEvent = new Event("salaryEvent", person);
     @method <ctor> Event
     @param name {String}
     @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
@@ -948,8 +957,11 @@ define('event',["coreFns"], function (core) {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function (name, defaultErrorCallback) {
+    var Event = function (name, publisher, defaultErrorCallback) {
         this.name = name;
+        // register the name
+        __eventNameMap[name] = true; 
+        this.publisher = publisher;
         this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
             this._defaultErrorCallback = defaultErrorCallback;
@@ -978,13 +990,14 @@ define('event',["coreFns"], function (core) {
     errorCallback([e])
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
     **/
-    Event.prototype.publish = function (data, publishAsync, errorCallback) {
+    Event.prototype.publish = function(data, publishAsync, errorCallback) {
+
         function publishCore() {
             // subscribers from outer scope.
-            subscribers.forEach(function (s) {
+            subscribers.forEach(function(s) {
                 try {
                     s.callback(data);
-                } catch (e) {
+                } catch(e) {
                     e.context = "unable to publish on topic: " + this.name;
                     if (errorCallback) {
                         errorCallback(e);
@@ -997,7 +1010,7 @@ define('event',["coreFns"], function (core) {
             });
         }
 
-
+        if (!Event._isEnabled(this.name, this.publisher)) return false;
         var subscribers = this._subscribers;
         if (!subscribers) return false;
         if (publishAsync === true) {
@@ -1008,24 +1021,26 @@ define('event',["coreFns"], function (core) {
         return true;
     };
     
-     /**
-    Publish data for this event asynchronously.
-    @example
-        // Assume 'salaryEvent' is previously constructed Event
-        salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
-    And we can add a handler in case the subscriber 'mishandles' the event.
-    @example
-        salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
-            // do something with the 'error' object
-        });
-    @method publishAsync
-    @param data {Object} Data to publish
-    @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
-    errors will be eaten.
+    
 
-    errorCallback([e])
-    @param [errorCallback.e] {Error} Any error encountered during publication execution.
-    **/
+    /**
+   Publish data for this event asynchronously.
+   @example
+       // Assume 'salaryEvent' is previously constructed Event
+       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
+   And we can add a handler in case the subscriber 'mishandles' the event.
+   @example
+       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
+           // do something with the 'error' object
+       });
+   @method publishAsync
+   @param data {Object} Data to publish
+   @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+   errors will be eaten.
+
+   errorCallback([e])
+   @param [errorCallback.e] {Error} Any error encountered during publication execution.
+   **/
     Event.prototype.publishAsync = function(data, errorCallback) {
         this.publish(data, true, errorCallback);
     };
@@ -1054,7 +1069,7 @@ define('event',["coreFns"], function (core) {
         @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
     @return {Number} This is a key for 'unsubscription'.  It can be passed to the 'unsubscribe' method.
     **/
-    Event.prototype.subscribe = function (callback) {
+    Event.prototype.subscribe = function(callback) {
         if (!this._subscribers) {
             this._subscribers = [];
         }
@@ -1079,10 +1094,10 @@ define('event',["coreFns"], function (core) {
     @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
     cannot be found.
     **/
-    Event.prototype.unsubscribe = function (unsubKey) {
+    Event.prototype.unsubscribe = function(unsubKey) {
         if (!this._subscribers) return false;
         var subs = this._subscribers;
-        var ix = core.arrayIndexOf(subs, function (s) {
+        var ix = core.arrayIndexOf(subs, function(s) {
             return s.unsubKey === unsubKey;
         });
         if (ix !== -1) {
@@ -1095,11 +1110,107 @@ define('event',["coreFns"], function (core) {
             return false;
         }
     };
+    
+    // event bubbling - document later.
+    Event.bubbleEvent = function (target, getParentFn) {
+        target._getEventParent = getParentFn;
+    };
 
+    /**
+    Enables or disables the named event for an object and all of its children. 
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, false) 
+    will disable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, true) 
+    will enable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
+    will disable EntityAspect.propertyChanged events for a specific entity.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
+    will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
+    made either previously or in the future, will control notification.
+    @example
+        Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
+           return em.customTag === “blue”;
+        })                 
+    will either enable or disable myEntityManager based on the current value of a ‘customTag’ property on myEntityManager. 
+    Note that this is dynamic, changing the customTag value will cause events to be enabled or disabled immediately.
+    @method enable
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object at which enabling or disabling will occur.  All event notifications that occur to this object or 
+    children of this object will be enabled or disabled. 
+    @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
+    **/
+    Event.enable = function (eventName, obj, isEnabled) {
+        eventName = getFullEventName(eventName);
+        if (!obj._$eventMap) {
+            obj._$eventMap = {};
+        }
+        obj._$eventMap[eventName] = isEnabled;
+    };
+
+    /**
+    Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
+    @example
+        Event.isEnabled(“propertyChanged”, myEntityManager) 
+    
+    @method isEnabled
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object for which we want to know if notifications are enabled. 
+    @returns {Boolean?null} A null is returned if this value has not been set.
+    **/
+    Event.isEnabled = function(eventName, obj) {
+        if (!obj._getEventParent) {
+            throw new Error("This object does not support event enabling/disabling");
+        }
+        return Event._isEnabled(obj, getFullEventName(eventName));
+    };
+
+    Event._isEnabled = function(eventName, obj) {
+        var isEnabled = null;
+        var eventMap = obj._$eventMap;
+        if (eventMap) {
+            isEnabled = eventMap[eventName];
+        }
+        if (isEnabled != null) {
+            if (typeof isEnabled === 'function') {
+                return isEnabled(obj);
+            } else {
+                return !!isEnabled;
+            }
+        } else {
+            var parent = obj._getEventParent && obj._getEventParent();
+            if (parent) {
+                return Event._isEnabled(eventName, parent);
+            } else {
+                // default if not explicitly disabled.
+                return true;
+            }
+        }
+    };
+
+    function getFullEventName(eventName) {
+        if (__eventNameMap[eventName]) return eventName;
+        // find the closest event name that matches
+        var fullEventName = core.arrayFirst(Object.keys(__eventNameMap), function (name) {
+            return name.indexOf(eventName) === 0;
+        });
+        if (!fullEventName) {
+            throw new Error("Unable to find any registered event that matches: " + eventName);
+        }
+        return fullEventName;
+    }
+    
     function fallbackErrorHandler(e) {
         // TODO: maybe log this 
         // for now do nothing;
     }
+
+
 
     return Event;
 });
@@ -2464,7 +2575,7 @@ function (core, Event, m_validate) {
     var EntityAspect = function () {
         /**
         An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
-
+        
         The EntityAspect itself provides properties to determine and modify the EntityState of the entity and has methods 
         that provide a variety of services including validation and change tracking.
 
@@ -2500,8 +2611,8 @@ function (core, Event, m_validate) {
             this.isBeingSaved = false;
             this.originalValues = {};
             this._validationErrors = {};
-            this.validationErrorsChanged = new Event("validationErrorsChanged");
-            this.propertyChanged = new Event("propertyChanged");
+            this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
+            this.propertyChanged = new Event("propertyChanged_entityAspect", this);
             var entityType = entity.entityType;
             if (!entityType) {
                 var typeName = entity.prototype._$typeName;
@@ -2523,6 +2634,10 @@ function (core, Event, m_validate) {
             }
             
         };
+
+        Event.bubbleEvent(ctor.prototype, function() {
+            return this.entityManager;
+        });
 
         /**
         The Entity that this aspect is associated with.
@@ -2634,9 +2749,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.acceptChanges = function () {
             this.setUnchanged();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
         };
 
         /**
@@ -2658,9 +2771,7 @@ function (core, Event, m_validate) {
                 this.entityManager.detachEntity(entity);
             } else {
                 this.setUnchanged();
-                if (this.entityManager.entityChangeNotificationEnabled) {
-                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
-                }
+                this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
 
@@ -2676,9 +2787,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
         };
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -2700,9 +2809,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
         };
 
         /**
@@ -2720,9 +2827,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                if (this.entityManager.entityChangeNotificationEnabled) {
-                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-                }
+                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
             }
             // TODO: think about cascade deletes
         };
@@ -3336,12 +3441,10 @@ function (core, m_entityAspect) {
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is also fired in the entityManager mergeEntity method.
-                if (entityManager.propertyChangeNotificationEnabled && !entityManager.isLoading) {
+                if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
                 }
-                if (entityManager.entityChangeNotificationEnabled) {
-                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
-                }
+                entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
             } else {
                 aspect.propertyChanged.publish(propChangedArgs);
             }
@@ -3547,6 +3650,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
+    
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
 
     // TODO: still need to handle inheritence here.
 
@@ -5918,13 +6029,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!Array.isArray(entities)) {
                 entities = Array.prototype.slice.call(arguments);
             }
-
-            var q = new EntityQuery(entities[0].entityType.defaultResourceName);
+            var firstEntity = entities[0];
+            var q = new EntityQuery(firstEntity.entityType.defaultResourceName);
             var preds = entities.map(function (entity) {
                 return buildPredicate(entity);
             });
             var pred = Predicate.or(preds);
             q = q.where(pred);
+            var em = firstEntity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 
@@ -5974,6 +6089,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             var q = new EntityQuery(navProperty.entityType.defaultResourceName);
             var pred = buildNavigationPredicate(entity, navProperty);
             q = q.where(pred);
+            var em = entity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 
@@ -7398,6 +7517,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
+    
     // TODO: think about dif between find and get.
 
     var EntityManager = (function () {
@@ -7486,13 +7613,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.serviceName.substr(-1) !== "/") {
                 this.serviceName = this.serviceName + '/';
             }
-            this.entityChanged = new Event("entityChanged");
-            this.propertyChangeNotificationEnabled = true;
-            this.entityChangeNotificationEnabled = true;
+            this.entityChanged = new Event("entityChanged_entityManager", this);
+            
             this.clear();
+            
         };
         ctor.prototype._$typeName = "EntityManager";
 
+        Event.bubbleEvent(ctor.prototype, null);
+        
         /**
         The service name associated with this EntityManager.
 
@@ -7541,21 +7670,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         __readOnly__
         @property remoteAccessImplementation {implementation instance of remoteAccessImplementation interface}
         **/
-        
-        /**
-        Whether the entityAspect.propertyChanged event will be fired on property change events. Default is true;
-
-        __readOnly__
-        @property propertyChangeNotificationEnabled {Boolean}
-        **/
-        
-        /**
-        Whether the EntityManager.entityChanged event will be fired on entity change events. Default is true;
-
-        __readOnly__
-        @property entityChangeNotificationEnabled {Boolean}
-        **/
-        
+       
         // events
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
@@ -7632,7 +7747,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
         @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
-        @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **/
         ctor.prototype.exportEntities = function (entities) {
@@ -7717,7 +7831,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Clears this EntityManager's cache but keeps all other settings.
+        Clears this EntityManager's cache but keeps all other settings. Note that this 
+        method is not as fast as creating a new EntityManager via 'new EntityManager'.
+        This is because clear actually detaches all of the entities from the EntityManager.
         @example
             // assume em1 is an EntityManager containing a number of existing entities.
             em1.clear();
@@ -7725,14 +7841,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method clear
         **/
         ctor.prototype.clear = function () {
-            // key is entityTypeName, value is entityGroup
+            core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
+                // remove en
+                entityGroup._clear();
+            });
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Clear });
-            }
-
+            this.entityChanged.publish({ entityAction: EntityAction.Clear });
         };
 
         /**
@@ -7743,7 +7859,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
              // where we want to change some of its settings.
              em1.setProperties( {
                 serviceName: "api/foo",
-                propertyChangeNotificationEnabled: true
                 });
         @method setProperties
         @param config {Object}
@@ -7753,10 +7868,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.validationOptions] {ValidationOptions}
             @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
-            @param [config.propertyChangeNotificationEnabled] {Boolean}
-            @param [config.entityChangeNotificationEnabled] {Boolean}
-            
-            
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
@@ -7766,8 +7877,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
                 .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
-                .whereParam("propertyChangeNotificationEnabled").isBoolean().isOptional()
-                .whereParam("entityChangeNotificationEnabled").isBoolean().isOptional()
                 .applyAll(this);
         };
 
@@ -7830,6 +7939,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
+            if (entity.entityType.metadataStore != this.metadataStore) {
+                throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+            }
             var aspect = new EntityAspect(entity);
             var manager = aspect.entityManager;
             if (manager) {
@@ -7839,6 +7951,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error("This entity already belongs to another EntityManager");
                 }
             }
+            
             var that = this;
             core.using(this, "isLoading", true, function () {
                 checkEntityKey(that, entity);
@@ -7848,9 +7961,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
             }
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
+
             return entity;
         };
         
@@ -7885,9 +7997,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             group.detachEntity(entity);
             aspect._removeFromRelations();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
             return true;
         };
 
@@ -7991,6 +8101,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.query] The query that caused the error.
+
 
         @return Promise
         **/
@@ -8524,7 +8636,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return dpNames.indexOf(kp.name);
             });
             var lastIx = dpNames.length;
-            var entityChanged = entityGroup.entityManager.entityChangeNotificationEnabled ? entityGroup.entityManager.entityChanged : null;
+            var entityChanged = entityGroup.entityManager.entityChanged;
             jsonGroup.entities.forEach(function (rawEntity) {
                 var newAspect = rawEntity[lastIx];
                 var keyValues = keyIxs.map(function (ix) { return rawEntity[ix]; });
@@ -8548,9 +8660,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
-                        if (entityChanged) {
-                            entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                        }
+                        entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     } else {
                         targetEntity = null;
                     }
@@ -8823,9 +8933,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         return { results: entities, query: query };
                     });
                     deferred.resolve( result);
-                }, deferred.reject);
+                }, function (e) {
+                    if (e) {
+                        e.query = query;
+                    }
+                    deferred.reject(e);
+                });
                 return promise;
             } catch (e) {
+                if (e) {
+                    e.query = query;
+                }
                 return Q.reject(e);
             }
         }
@@ -8867,14 +8985,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity.entityAspect.wasLoaded = true;
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
-                    if (em.propertyChangeNotificationEnabled) {
-                        // all properties changed
-                        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
-                    }
-                    if (em.entityChangeNotificationEnabled) {
-                        var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                        em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                    }
+                    targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
+                    var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
+                    em.entityChanged.publish({ entityAction: action, entity: targetEntity });
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
@@ -8889,9 +9002,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 updateEntity(targetEntity, rawEntity, queryContext);
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
-                if (em.entityChangeNotificationEnabled) {
-                    em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
-                }
+                em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
             }
             return targetEntity;
         }
@@ -9285,6 +9396,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
+        };
+        
+        // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
+        // just for the entityManager clear method - the entityGroup will be in an inconsistent state
+        // after this op, which is ok because it will be thrown away.
+        ctor.prototype._clear = function() {
+            this._entities.forEach(function(entity) {
+                var aspect = entity.entityAspect;
+                aspect.entityState = EntityState.Detached;
+                aspect.entityGroup = null;
+                aspect.entityManager = null;
+            });
         };
 
         ctor.prototype._fixupKey = function (tempValue, realValue) {
@@ -9996,6 +10119,7 @@ function (core, m_entityAspect, m_entityQuery) {
 
     var Event = core.Event;
 
+
     relationArrayMixin.push = function () {
         if (this._inProgress) {
             return -1;
@@ -10051,6 +10175,10 @@ function (core, m_entityAspect, m_entityQuery) {
         var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
         var em = parent.entityAspect.entityManager;
         return em.executeQuery(query, callback, errorCallback);
+    };
+
+    relationArrayMixin._getEventParent = function() {
+        return this.parentEntity.entityAspect;
     };
 
     relationArrayMixin._getPendingPubs = function() {
@@ -10109,7 +10237,8 @@ function (core, m_entityAspect, m_entityQuery) {
                 addsInProcess.splice(startIx, adds.length);
             };
         }
-
+        
+        // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { added: adds });
     }
     
@@ -10154,7 +10283,7 @@ function (core, m_entityAspect, m_entityQuery) {
                 childEntity.setProperty(inp.name, null);
             });
         }
-        
+        // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { removed: removes });
     }
 
@@ -10162,7 +10291,7 @@ function (core, m_entityAspect, m_entityQuery) {
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
         arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event("arrayChanged");
+        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         return core.extend(arr, relationArrayMixin);
