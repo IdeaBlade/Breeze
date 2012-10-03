@@ -7,6 +7,9 @@
                     <span data-bind="text: Type"></span>
                 </li>
             </ul>
+            <span data-bind="visible: forms().length == 0">
+                No additional forms can be added.
+            </span>
         </div>
     </div>
 </div>

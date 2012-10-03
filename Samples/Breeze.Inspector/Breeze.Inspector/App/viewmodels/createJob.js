@@ -14,8 +14,7 @@
     ctor.prototype.addInspection = function() {
         var that = this;
 
-        //TODO: filter inspection list based on existing inspections
-        addInspectionDialog.show().then(function(selection) {
+        addInspectionDialog.show(this.job()).then(function(selection) {
             var inspection = data.createInspection(selection);
             that.job().Inspections.push(inspection);
         });

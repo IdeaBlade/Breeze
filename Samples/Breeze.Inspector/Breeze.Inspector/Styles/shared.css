@@ -327,3 +327,8 @@ button.add span {
 .canceledText {
     color: red;
 }
+
+.inspection-list-item {
+    font-size: 1.2em;
+    margin: 0 0 1em 2em;
+}

@@ -1,29 +1,30 @@
-﻿<div class="form">
-    <div class="field textbox">
-        <span class="label">Street</span>
-        <input type="text" data-bind="value: job().Location().Street1, valueUpdate: 'afterkeyup'" />
-        <span class="validation-message" data-bind="visible:validation.Street1Valid() == false, text: validation.Street1Error()"></span>
-    </div>
+﻿<div>
+    <div class="form">
+        <div class="field textbox">
+            <span class="label">Street</span>
+            <input type="text" data-bind="value: job().Location().Street1, valueUpdate: 'afterkeyup'" />
+            <span class="validation-message" data-bind="visible:validation.Street1Valid() == false, text: validation.Street1Error()"></span>
+        </div>
     
-    <div class="field textbox">
-        <span class="label">City</span>
-        <input type="text" data-bind="value: job().Location().City, valueUpdate: 'afterkeyup'"/>
-        <span class="validation-message" data-bind="visible:validation.CityValid() == false, text: validation.CityError()"></span>
-    </div>
+        <div class="field textbox">
+            <span class="label">City</span>
+            <input type="text" data-bind="value: job().Location().City, valueUpdate: 'afterkeyup'"/>
+            <span class="validation-message" data-bind="visible:validation.CityValid() == false, text: validation.CityError()"></span>
+        </div>
     
-    <div class="field dropdown">
-        <span class="label">State</span>
-        <select data-bind="options: states, optionsText: 'abbreviation', optionsValue:'abbreviation', value: job().Location().State" />
-        <span class="validation-message" data-bind="visible:validation.StateValid() == false, text: validation.StateError()"></span>
-    </div>
+        <div class="field dropdown">
+            <span class="label">State</span>
+            <select data-bind="options: states, optionsText: 'abbreviation', optionsValue:'abbreviation', value: job().Location().State" />
+            <span class="validation-message" data-bind="visible:validation.StateValid() == false, text: validation.StateError()"></span>
+        </div>
     
-    <div class="field textbox">
-        <span class="label">Zip</span>
-        <input type="text"  data-bind="value: job().Location().Zip, valueUpdate: 'afterkeyup'"/>
-        <span class="validation-message" data-bind="visible:validation.ZipValid() == false, text: validation.ZipError()"></span>
+        <div class="field textbox">
+            <span class="label">Zip</span>
+            <input type="text"  data-bind="value: job().Location().Zip, valueUpdate: 'afterkeyup'"/>
+            <span class="validation-message" data-bind="visible:validation.ZipValid() == false, text: validation.ZipError()"></span>
+        </div>
     </div>
-    
-    <div>
+        <div>
         <button class="add" data-bind="click: addInspection">
             <img src="/Images/Plus.png"/>
             <span>Add Inspection</span>
@@ -31,7 +32,7 @@
     </div>
     <div>
         <ul data-bind="foreach: job().Inspections">
-            <li>
+            <li class="inspection-list-item">
                 <span class="small-icon" data-bind="css:{ inProgress:Status() == 'In Progress', canceled:Status() == 'Canceled', done:Status() == 'Done' }"></span>
                 <span data-bind="text: Form().Type"></span>
             </li>
