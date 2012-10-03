@@ -1435,9 +1435,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         return { results: entities, query: query };
                     });
                     deferred.resolve( result);
-                }, deferred.reject);
+                }, function (e) {
+                    if (e) {
+                        e.query = query;
+                    }
+                    deferred.reject(e);
+                });
                 return promise;
             } catch (e) {
+                if (e) {
+                    e.query = query;
+                }
                 return Q.reject(e);
             }
         }
