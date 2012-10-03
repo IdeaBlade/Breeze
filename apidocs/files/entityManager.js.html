@@ -614,6 +614,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, &quot;entityState&quot;).isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
+            if (entity.entityType.metadataStore != this.metadataStore) {
+                throw new Error(&quot;Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager&#x27;s MetadataStore.&quot;);
+            }
             var aspect = new EntityAspect(entity);
             var manager = aspect.entityManager;
             if (manager) {
@@ -623,6 +626,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error(&quot;This entity already belongs to another EntityManager&quot;);
                 }
             }
+            
             var that = this;
             core.using(this, &quot;isLoading&quot;, true, function () {
                 checkEntityKey(that, entity);
@@ -772,6 +776,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.query] The query that caused the error.
+
 
         @return Promise
         **&#x2F;
@@ -1602,9 +1608,17 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         return { results: entities, query: query };
                     });
                     deferred.resolve( result);
-                }, deferred.reject);
+                }, function (e) {
+                    if (e) {
+                        e.query = query;
+                    }
+                    deferred.reject(e);
+                });
                 return promise;
             } catch (e) {
+                if (e) {
+                    e.query = query;
+                }
                 return Q.reject(e);
             }
         }

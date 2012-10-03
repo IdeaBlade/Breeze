@@ -605,6 +605,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.query] The query that caused the error.
+
 
         @return Promise
         **/
