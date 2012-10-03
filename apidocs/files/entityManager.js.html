@@ -192,6 +192,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
+    var Q = window.Q;
+    if ((!Q) &amp;&amp; require) {
+        Q = require(&quot;Q&quot;);
+    }
+    if (!Q) {
+        throw new Error(&quot;Unable to initialize Q - see https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
+    }
+    
     &#x2F;&#x2F; TODO: think about dif between find and get.
 
     var EntityManager = (function () {
@@ -280,13 +288,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
                 this.serviceName = this.serviceName + &#x27;&#x2F;&#x27;;
             }
-            this.entityChanged = new Event(&quot;entityChanged&quot;);
-            this.propertyChangeNotificationEnabled = true;
-            this.entityChangeNotificationEnabled = true;
+            this.entityChanged = new Event(&quot;entityChanged_entityManager&quot;, this);
+            
             this.clear();
+            
         };
         ctor.prototype._$typeName = &quot;EntityManager&quot;;
 
+        Event.bubbleEvent(ctor.prototype, null);
+        
         &#x2F;**
         The service name associated with this EntityManager.
 
@@ -335,21 +345,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         __readOnly__
         @property remoteAccessImplementation {implementation instance of remoteAccessImplementation interface}
         **&#x2F;
-        
-        &#x2F;**
-        Whether the entityAspect.propertyChanged event will be fired on property change events. Default is true;
-
-        __readOnly__
-        @property propertyChangeNotificationEnabled {Boolean}
-        **&#x2F;
-        
-        &#x2F;**
-        Whether the EntityManager.entityChanged event will be fired on entity change events. Default is true;
-
-        __readOnly__
-        @property entityChangeNotificationEnabled {Boolean}
-        **&#x2F;
-        
+       
         &#x2F;&#x2F; events
         &#x2F;**
         An {{#crossLink &quot;Event&quot;}}{{&#x2F;crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
@@ -426,7 +422,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
         @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
-        @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **&#x2F;
         ctor.prototype.exportEntities = function (entities) {
@@ -478,8 +473,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         ctor.prototype.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
-                .whereParam(&quot;mergeStrategy&quot;).isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
-                .applyAll(this);
+                .whereParam(&quot;mergeStrategy&quot;).isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+                .applyAll(config);
             var that = this;
             
             var json = JSON.parse(exportedString);
@@ -495,19 +490,25 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
             });
             config.tempKeyMap = tempKeyMap;
-
-            core.objectForEach(json.entityGroupMap, function (entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
-                var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
-
+            core.wrapExecution(function() {
+                that._pendingPubs = [];
+            }, function(state) {
+                that._pendingPubs.forEach(function(fn) { fn(); });
+                that._pendingPubs = null;
+            }, function() {
+                core.objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
+                    var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                    var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
+                    importEntityGroup(targetEntityGroup, jsonGroup, config);
+                });
             });
-
             return this;
         };
 
         &#x2F;**
-        Clears this EntityManager&#x27;s cache but keeps all other settings.
+        Clears this EntityManager&#x27;s cache but keeps all other settings. Note that this 
+        method is not as fast as creating a new EntityManager via &#x27;new EntityManager&#x27;.
+        This is because clear actually detaches all of the entities from the EntityManager.
         @example
             &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
             em1.clear();
@@ -515,14 +516,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method clear
         **&#x2F;
         ctor.prototype.clear = function () {
-            &#x2F;&#x2F; key is entityTypeName, value is entityGroup
+            core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
+                &#x2F;&#x2F; remove en
+                entityGroup._clear();
+            });
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Clear });
-            }
-
+            this.entityChanged.publish({ entityAction: EntityAction.Clear });
         };
 
         &#x2F;**
@@ -533,7 +534,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
              &#x2F;&#x2F; where we want to change some of its settings.
              em1.setProperties( {
                 serviceName: &quot;api&#x2F;foo&quot;,
-                propertyChangeNotificationEnabled: true
                 });
         @method setProperties
         @param config {Object}
@@ -543,10 +543,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.validationOptions] {ValidationOptions}
             @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
-            @param [config.propertyChangeNotificationEnabled] {Boolean}
-            @param [config.entityChangeNotificationEnabled] {Boolean}
-            
-            
         **&#x2F;
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
@@ -556,8 +552,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam(&quot;validationOptions&quot;).isInstanceOf(ValidationOptions).isOptional()
                 .whereParam(&quot;remoteAccessImplementation&quot;)
                 .whereParam(&quot;keyGeneratorCtor&quot;)
-                .whereParam(&quot;propertyChangeNotificationEnabled&quot;).isBoolean().isOptional()
-                .whereParam(&quot;entityChangeNotificationEnabled&quot;).isBoolean().isOptional()
                 .applyAll(this);
         };
 
@@ -638,9 +632,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
             }
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
+
             return entity;
         };
         
@@ -675,9 +668,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             group.detachEntity(entity);
             aspect._removeFromRelations();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
             return true;
         };
 
@@ -1307,14 +1298,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var tempKeyMap = config.tempKeyMap;
 
             var entityType = entityGroup.entityType;
-            var shouldOverwrite = config.MergeStrategy ? config.MergeStategy === MergeStrategy.OverwriteChanges : true;
+            var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
             var keyIxs = entityType.keyProperties.map(function (kp) {
                 return dpNames.indexOf(kp.name);
             });
             var lastIx = dpNames.length;
-            var entityChanged = entityGroup.entityManager.entityChangeNotificationEnabled ? entityGroup.entityManager.entityChanged : null;
+            var entityChanged = entityGroup.entityManager.entityChanged;
             jsonGroup.entities.forEach(function (rawEntity) {
                 var newAspect = rawEntity[lastIx];
                 var keyValues = keyIxs.map(function (ix) { return rawEntity[ix]; });
@@ -1338,9 +1329,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
-                        if (entityChanged) {
-                            entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                        }
+                        entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     } else {
                         targetEntity = null;
                     }
@@ -1583,8 +1572,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
+                
                 em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
-                    var result = core.using(em, &quot;isLoading&quot;, true, function() {
+                    var result = core.wrapExecution(function () {
+                        var state = { isLoading: em.isLoading };
+                        em.isLoading = true;
+                        em._pendingPubs = [];
+                        return state;
+                    }, function (state) {
+                        em.isLoading = state.isLoading;
+                        em._pendingPubs.forEach(function(fn) { fn(); });
+                        em._pendingPubs = null;
+                    }, function() {
                         var entities = rawEntities.map(function(rawEntity) {
                             &#x2F;&#x2F; at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             &#x2F;&#x2F; mergeEntity can return deferred functions.
@@ -1626,9 +1625,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             &#x2F;&#x2F; TODO: may be able to make this more efficient by caching of the previous value.
             var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
             
-            var entityType = em.metadataStore.getEntityType(entityTypeName, true);
+            var entityType = entityTypeName &amp;&amp; em.metadataStore.getEntityType(entityTypeName, true);
             &#x2F;&#x2F; all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
-            if (entityType == null &amp;&amp; isSelectQuery(queryContext.query) &amp;&amp; !isNestedInAnon) {
+            &#x2F;&#x2F; if (entityType == null &amp;&amp; isSelectQuery(queryContext.query) &amp;&amp; !isNestedInAnon) {
+            if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
 
@@ -1646,14 +1646,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity.entityAspect.wasLoaded = true;
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
-                    if (em.propertyChangeNotificationEnabled) {
-                        &#x2F;&#x2F; all properties changed
-                        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
-                    }
-                    if (em.entityChangeNotificationEnabled) {
-                        var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                        em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                    }
+                    targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
+                    var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
+                    em.entityChanged.publish({ entityAction: action, entity: targetEntity });
                 } else {
                     &#x2F;&#x2F; also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
@@ -1668,9 +1663,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 updateEntity(targetEntity, rawEntity, queryContext);
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
-                if (em.entityChangeNotificationEnabled) {
-                    em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
-                }
+                em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
             }
             return targetEntity;
         }
@@ -1688,6 +1681,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
+            if (typeof rawEntity !== &#x27;object&#x27;) {
+                return rawEntity;
+            }
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
                 if (key == &quot;__metadata&quot;) {
@@ -1737,7 +1733,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var entityType = targetEntity.entityType;
             var metadataStore = entityType.metadataStore;
             entityType.dataProperties.forEach(function (dp) {
-                if (dp.isUnmappedProperty) return;
+                if (dp.isUnmapped) return;
                 var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime &amp;&amp; val) {
                     if (!core.isDate(val)) {
@@ -2061,6 +2057,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
+        };
+        
+        &#x2F;&#x2F; do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
+        &#x2F;&#x2F; just for the entityManager clear method - the entityGroup will be in an inconsistent state
+        &#x2F;&#x2F; after this op, which is ok because it will be thrown away.
+        ctor.prototype._clear = function() {
+            this._entities.forEach(function(entity) {
+                var aspect = entity.entityAspect;
+                aspect.entityState = EntityState.Detached;
+                aspect.entityGroup = null;
+                aspect.entityManager = null;
+            });
         };
 
         ctor.prototype._fixupKey = function (tempValue, realValue) {
