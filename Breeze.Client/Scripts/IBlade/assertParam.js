@@ -25,6 +25,17 @@ define(["coreFns"], function (core) {
         return this.isTypeOf('string');
     };
 
+    Param.prototype.isNonEmptyString = function() {
+        var result = function(that, v) {
+            if (v == null) return false;
+            return (typeof(v) === 'string') && v.length > 0;
+        };
+        result.getMessage = function() {
+            return core.formatString(" must be a nonEmpty string");
+        };
+        return this.compose(result);
+    };
+
     Param.prototype.isNumber = function () {
         return this.isTypeOf('number');
     };
@@ -114,7 +125,7 @@ define(["coreFns"], function (core) {
         } else {
             setFn(this, makeArray(null, mustBeNonEmpty));
             this._pending.push(function (that, fn) {
-                return makeArray(fn, mustBeNonEmpty)
+                return makeArray(fn, mustBeNonEmpty);
             });
         }
         return this;

@@ -1242,6 +1242,17 @@ define('assertParam',["coreFns"], function (core) {
         return this.isTypeOf('string');
     };
 
+    Param.prototype.isNonEmptyString = function() {
+        var result = function(that, v) {
+            if (v == null) return false;
+            return (typeof(v) === 'string') && v.length > 0;
+        };
+        result.getMessage = function() {
+            return core.formatString(" must be a nonEmpty string");
+        };
+        return this.compose(result);
+    };
+
     Param.prototype.isNumber = function () {
         return this.isTypeOf('number');
     };
@@ -1331,7 +1342,7 @@ define('assertParam',["coreFns"], function (core) {
         } else {
             setFn(this, makeArray(null, mustBeNonEmpty));
             this._pending.push(function (that, fn) {
-                return makeArray(fn, mustBeNonEmpty)
+                return makeArray(fn, mustBeNonEmpty);
             });
         }
         return this;
@@ -4182,8 +4193,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
-                        var entityType = convertFromODataEntityType(et, schema, that);
-                        entityType.serviceName = serviceName;
+                        var entityType = convertFromODataEntityType(et, schema, that, serviceName);
+
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
                         var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
                         if (entityCtor) {
@@ -4211,11 +4222,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return result;
         }
 
-        function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
+        function convertFromODataEntityType(odataEntityType, schema, metadataStore, serviceName) {
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
-            var entityType = new EntityType(metadataStore, shortName, namespace);
-            
+            var entityType = new EntityType({
+                metadataStore: metadataStore,
+                shortName: shortName,
+                namespace: namespace,
+                serviceName: serviceName
+            });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
                 convertFromOdataDataProperty(entityType, prop, keyNamesOnServer);
@@ -4380,14 +4395,36 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         var __nextAnonIx = 0;
         
-        var ctor = function (metadataStore, shortName, namespace) {
-            this.metadataStore = metadataStore;
-            this.shortName = shortName || "Anon_" + ++__nextAnonIx;
-            this.namespace = namespace || "";
+        var ctor = function (config) {
+            if (arguments.length > 1) {
+                throw new Error("The EntityType ctor has a single argument that is either a 'MetadataStore' or a configuration object.");
+            }
+            if  (config._$typeName === "MetadataStore") {
+                this.metadataStore = config;
+                this.shortName = "Anon_" + ++__nextAnonIx;
+                this.namespace = "";
+                this.serviceName = null;
+            } else {
+                assertConfig(config)
+                    .whereParam("metadataStore").isInstanceOf(MetadataStore)
+                    .whereParam("shortName").isNonEmptyString()
+                    .whereParam("namespace").isString().isOptional().withDefault("")
+                    .whereParam("serviceName").isString()
+                    .whereParam("defaultResourceName").isNonEmptyString().isOptional().withDefault(null)
+                    .applyAll(this);
+                if (this.serviceName.substr(-1) !== "/") {
+                    this.serviceName = this.serviceName + '/';
+                }
+
+            }
+
             this.name = this.shortName + ":#" + this.namespace;
-            this.defaultResourceName = null; // will be set up either via metadata lookup or first query or via registerEntityTypeResourceName;
+            
+            // the defaultResourceName may also be set up either via metadata lookup or first query or via the 'setProperties' method
+
+            var metadataStore = this.metadataStore;
             // don't register anon types
-            if (shortName) {
+            if (this.serviceName) {
                 metadataStore._registerEntityType(this);
             }
             var incompleteMap = metadataStore._incompleteTypeMap[this.name];
@@ -4395,7 +4432,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (incompleteMap) {
                 core.objectForEach(incompleteMap, function (key, value) {
                     value.entityType = that;
-                    // I think this is allowed per the spec.
+                    // I think this is allowed per the spec. i.e. within an outer loop
                     delete incompleteMap[key];
                 });
                 if (core.isEmpty(incompleteMap)) {
@@ -4411,104 +4448,104 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this.autoGeneratedKeyType = AutoGeneratedKeyType.None;
             this.validators = [];
             
-            /**
-           The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
-
-           __readOnly__
-           @property metadataStore {MetadataStore}
-           **/
-            
-            /**
-            The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this EntityType.
-
-            __readOnly__
-            @property dataProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The NavigationProperties  (see {{#crossLink "NavigationProperty"}}{{/crossLink}}) associated with this EntityType.
-
-            __readOnly__
-            @property navigationProperties {Array of NavigationProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that make up it's {{#crossLink "EntityKey"}}{{/crossLink}}.
-
-            __readOnly__
-            @property keyProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that are foreign key properties.
-
-            __readOnly__
-            @property foreignKeyProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that are concurrency properties.
-
-            __readOnly__
-            @property concurrencyProperties {Array of DataProperty} 
-            **/
-
-            /**
-            The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing
-            properties.
-
-            __readOnly__
-            @property unmappedProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one 
-            is used as the default when no resource name is provided.  This will occur when calling {{#crossLink "EntityAspect/loadNavigationProperty"}}{{/crossLink}}
-            or when executing any {{#crossLink "EntityQuery"}}{{/crossLink}} that was created via an {{#crossLink "EntityKey"}}{{/crossLink}}.
-
-            __readOnly__
-            @property defaultResourceName {String} 
-            **/
-
-            /**
-            The fully qualifed name of this EntityType.
-
-            __readOnly__
-            @property name {String} 
-            **/
-
-            /**
-            The short, unqualified, name for this EntityType.
-
-            __readOnly__
-            @property shortName {String} 
-            **/
-
-            /**
-            The namespace for this EntityType.
-
-            __readOnly__
-            @property namespace {String} 
-            **/
-
-            /**
-            The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
-            
-            __readOnly__
-            @property autoGeneratedKeyType {AutoGeneratedKeyType} 
-            @default AutoGeneratedKeyType.None
-            **/
-
-            /**
-            The entity level validators associated with this EntityType. Validators can be added and
-            removed from this collection.
-
-            __readOnly__
-            @property validators {Array of Validator} 
-            **/
-            
-            
         };
+        
+        /**
+        The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
+
+        __readOnly__
+        @property metadataStore {MetadataStore}
+        **/
+            
+        /**
+        The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this EntityType.
+
+        __readOnly__
+        @property dataProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The NavigationProperties  (see {{#crossLink "NavigationProperty"}}{{/crossLink}}) associated with this EntityType.
+
+        __readOnly__
+        @property navigationProperties {Array of NavigationProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that make up it's {{#crossLink "EntityKey"}}{{/crossLink}}.
+
+        __readOnly__
+        @property keyProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that are foreign key properties.
+
+        __readOnly__
+        @property foreignKeyProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that are concurrency properties.
+
+        __readOnly__
+        @property concurrencyProperties {Array of DataProperty} 
+        **/
+
+        /**
+        The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing
+        properties.
+
+        __readOnly__
+        @property unmappedProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one 
+        is used as the default when no resource name is provided.  This will occur when calling {{#crossLink "EntityAspect/loadNavigationProperty"}}{{/crossLink}}
+        or when executing any {{#crossLink "EntityQuery"}}{{/crossLink}} that was created via an {{#crossLink "EntityKey"}}{{/crossLink}}.
+
+        __readOnly__
+        @property defaultResourceName {String} 
+        **/
+
+        /**
+        The fully qualifed name of this EntityType.
+
+        __readOnly__
+        @property name {String} 
+        **/
+
+        /**
+        The short, unqualified, name for this EntityType.
+
+        __readOnly__
+        @property shortName {String} 
+        **/
+
+        /**
+        The namespace for this EntityType.
+
+        __readOnly__
+        @property namespace {String} 
+        **/
+
+        /**
+        The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
+        
+        __readOnly__
+        @property autoGeneratedKeyType {AutoGeneratedKeyType} 
+        @default AutoGeneratedKeyType.None
+        **/
+
+        /**
+        The entity level validators associated with this EntityType. Validators can be added and
+        removed from this collection.
+
+        __readOnly__
+        @property validators {Array of Validator} 
+        **/
+            
 
         ctor.prototype._$typeName = "EntityType";
 
@@ -4758,6 +4795,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 name: this.name,
                 shortName: this.shortName,
                 namespace: this.namespace,
+                serviceName: this.serviceName,
                 defaultResourceName: this.defaultResourceName,
                 dataProperties: this.dataProperties,
                 navigationProperties: this.navigationProperties,
@@ -4770,7 +4808,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.fromJSON = function (json, metadataStore) {
             var et = metadataStore.getEntityType(json.name, true);
             if (et) return et;
-            et = new EntityType(metadataStore, json.shortName, json.namespace);
+            et = new EntityType({
+                metadataStore: metadataStore,
+                shortName: json.shortName,
+                namespace: json.namespace,
+                serviceName: json.serviceName
+            });
+                
             json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
             json.validators = json.validators.map(function (v) {
                 return Validator.fromJSON(v);
@@ -5987,6 +6031,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             
         failureFunction([error])
           @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+          @param [errorCallback.error.query] The query that caused the error.
           @return Promise
         **/
         
@@ -10662,7 +10707,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.61",
+        version: "0.62",
         core: core,
         entityModel: entityModel
     };
