@@ -3,6 +3,8 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var root = testFns.root;
     var core = root.core;
+    var Event = core.Event;
+    
     var entityModel = root.entityModel;
     var EntityQuery = entityModel.EntityQuery;
     var MetadataStore = entityModel.MetadataStore;
@@ -50,6 +52,35 @@ define(["testFns"], function (testFns) {
             orders.push(newOrder);
             ok(arrayChangedCount === 2, "should have incremented by 1");
             ok(adds && adds.length === 1, "should have only a single entity added here");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query results notification suppressed", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", alfredsID)
+            .using(em);
+        stop();
+        var arrayChangedCount = 0;
+        var orders;
+
+        query.execute().then(function (data) {
+            var customer = data.results[0];
+            orders = customer.getProperty("orders");
+            orders.arrayChanged.subscribe(function (args) {
+                arrayChangedCount++;
+            });
+//             Event.enable("arrayChanged", customer.entityAspect, false);
+            Event.enable("arrayChanged", em, false);
+            return query.expand("orders").execute();
+        }).then(function (data2) {
+            ok(arrayChangedCount == 0, "should be no arrayChanged events fired");
+            var orderType = em.metadataStore.getEntityType("Order");
+            var newOrder = orderType.createEntity();
+            orders.push(newOrder);
+            ok(arrayChangedCount == 0, "should be no arrayChanged events fired");
+            
         }).fail(testFns.handleFail).fin(start);
     });
     

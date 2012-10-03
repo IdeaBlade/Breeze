@@ -6,6 +6,7 @@ define(["testFns"], function (testFns) {
     var entityModel = root.entityModel;
 
     var Enum = core.Enum;
+    var Event = core.Event;
 
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
@@ -134,6 +135,26 @@ define(["testFns"], function (testFns) {
         ok(lastNotification.added, "last notification should have been 'added'");
         ok(lastNotification.added[0].property.name === "companyName");
         ok(notificationCount === 3, "should have been 3 notifications");
+    });
+    
+    test("validationErrorsChanged event suppressed", function () {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var cust1 = custType.createEntity();
+        em.attachEntity(cust1);
+        var lastNotification;
+        var notificationCount = 0;
+        Event.enable("validationErrorsChanged", em, false);
+        cust1.entityAspect.validationErrorsChanged.subscribe(function (args) {
+            lastNotification = args;
+            notificationCount++;
+        });
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        cust1.setProperty("companyName", s);
+        cust1.setProperty("companyName", "much shorter");
+        cust1.setProperty("companyName", "");
+        ok(notificationCount === 0, "should have been no notifications");
     });
 
     test("get validationError for a property", function () {

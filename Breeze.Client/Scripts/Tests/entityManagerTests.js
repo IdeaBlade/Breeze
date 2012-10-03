@@ -6,6 +6,7 @@ define(["testFns"], function (testFns) {
     var entityModel = root.entityModel;
 
     var Enum = core.Enum;
+    var Event = core.Event;
 
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
@@ -152,6 +153,8 @@ define(["testFns"], function (testFns) {
         ok(lastAction === EntityAction.Clear, "lastAction should have been 'Clear'");
         ok(lastEntity === undefined, "last entity should be undefined");
     });
+    
+    
 
     test("entityChanged event - 2", function() {
         var em = newEm();
@@ -195,6 +198,55 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+    
+    test("entityChanged event suppressed", function () {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
+
+        var changedArgs = [];
+        Event.enable("entityChanged", em, false);
+        em.entityChanged.subscribe(function (args) {
+            changedArgs.push(args);
+        });
+        var order = orderType.createEntity();
+        em.addEntity(order);
+        var emp = empType.createEntity();
+        em.attachEntity(emp);
+        emp.setProperty("lastName", "Smith");
+        emp.entityAspect.rejectChanges();
+        emp.setProperty("lastName", "Jones");
+        emp.entityAspect.acceptChanges();
+        em.clear();
+        ok(changedArgs.length === 0, "no change events should have fired");
+    });
+
+    test("entityChanged event suppressed by function", function () {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var empType = em.metadataStore.getEntityType("Employee");
+        var custType = em.metadataStore.getEntityType("Customer");
+        em.tag = "foo";
+        var changedArgs = [];
+        Event.enable("entityChanged", em, function (em) {
+            return em.tag === "enabled";
+        });
+        em.entityChanged.subscribe(function (args) {
+            changedArgs.push(args);
+        });
+        var order = orderType.createEntity();
+        em.addEntity(order);
+        var emp = empType.createEntity();
+        em.attachEntity(emp);
+        emp.setProperty("lastName", "Smith");
+        emp.entityAspect.rejectChanges();
+        emp.setProperty("lastName", "Jones");
+        emp.entityAspect.acceptChanges();
+        em.clear();
+        ok(changedArgs.length === 0, "no change events should have fired");
+    });
+
 
     test("wasLoaded", function () {
         var em = newEm();

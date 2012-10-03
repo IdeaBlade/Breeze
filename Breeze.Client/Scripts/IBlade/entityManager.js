@@ -109,13 +109,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.serviceName.substr(-1) !== "/") {
                 this.serviceName = this.serviceName + '/';
             }
-            this.entityChanged = new Event("entityChanged");
-            this.propertyChangeNotificationEnabled = true;
-            this.entityChangeNotificationEnabled = true;
+            this.entityChanged = new Event("entityChanged_entityManager", this);
+            
             this.clear();
+            
         };
         ctor.prototype._$typeName = "EntityManager";
 
+        Event.bubbleEvent(ctor.prototype, null);
+        
         /**
         The service name associated with this EntityManager.
 
@@ -164,21 +166,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         __readOnly__
         @property remoteAccessImplementation {implementation instance of remoteAccessImplementation interface}
         **/
-        
-        /**
-        Whether the entityAspect.propertyChanged event will be fired on property change events. Default is true;
-
-        __readOnly__
-        @property propertyChangeNotificationEnabled {Boolean}
-        **/
-        
-        /**
-        Whether the EntityManager.entityChanged event will be fired on entity change events. Default is true;
-
-        __readOnly__
-        @property entityChangeNotificationEnabled {Boolean}
-        **/
-        
+       
         // events
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
@@ -352,9 +340,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Clear });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Clear });
 
         };
 
@@ -366,7 +352,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
              // where we want to change some of its settings.
              em1.setProperties( {
                 serviceName: "api/foo",
-                propertyChangeNotificationEnabled: true
                 });
         @method setProperties
         @param config {Object}
@@ -376,10 +361,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.validationOptions] {ValidationOptions}
             @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
-            @param [config.propertyChangeNotificationEnabled] {Boolean}
-            @param [config.entityChangeNotificationEnabled] {Boolean}
-            
-            
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
@@ -389,8 +370,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
                 .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
-                .whereParam("propertyChangeNotificationEnabled").isBoolean().isOptional()
-                .whereParam("entityChangeNotificationEnabled").isBoolean().isOptional()
                 .applyAll(this);
         };
 
@@ -471,9 +450,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
             }
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
+
             return entity;
         };
         
@@ -508,9 +486,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             }
             group.detachEntity(entity);
             aspect._removeFromRelations();
-            if (this.entityChangeNotificationEnabled) {
-                this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
-            }
+            this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
             return true;
         };
 
@@ -1147,7 +1123,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return dpNames.indexOf(kp.name);
             });
             var lastIx = dpNames.length;
-            var entityChanged = entityGroup.entityManager.entityChangeNotificationEnabled ? entityGroup.entityManager.entityChanged : null;
+            var entityChanged = entityGroup.entityManager.entityChanged;
             jsonGroup.entities.forEach(function (rawEntity) {
                 var newAspect = rawEntity[lastIx];
                 var keyValues = keyIxs.map(function (ix) { return rawEntity[ix]; });
@@ -1171,9 +1147,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
-                        if (entityChanged) {
-                            entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                        }
+                        entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     } else {
                         targetEntity = null;
                     }
@@ -1490,14 +1464,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity.entityAspect.wasLoaded = true;
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
-                    if (em.propertyChangeNotificationEnabled) {
-                        // all properties changed
-                        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
-                    }
-                    if (em.entityChangeNotificationEnabled) {
-                        var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                        em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                    }
+                    targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
+                    var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
+                    em.entityChanged.publish({ entityAction: action, entity: targetEntity });
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
@@ -1512,9 +1481,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 updateEntity(targetEntity, rawEntity, queryContext);
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
-                if (em.entityChangeNotificationEnabled) {
-                    em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
-                }
+                em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
             }
             return targetEntity;
         }

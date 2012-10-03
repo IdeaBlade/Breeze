@@ -281,7 +281,7 @@ function (core, Event, m_validate) {
     var EntityAspect = function () {
         /**
         An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
-
+        
         The EntityAspect itself provides properties to determine and modify the EntityState of the entity and has methods 
         that provide a variety of services including validation and change tracking.
 
@@ -317,8 +317,8 @@ function (core, Event, m_validate) {
             this.isBeingSaved = false;
             this.originalValues = {};
             this._validationErrors = {};
-            this.validationErrorsChanged = new Event("validationErrorsChanged");
-            this.propertyChanged = new Event("propertyChanged");
+            this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
+            this.propertyChanged = new Event("propertyChanged_entityAspect", this);
             var entityType = entity.entityType;
             if (!entityType) {
                 var typeName = entity.prototype._$typeName;
@@ -340,6 +340,10 @@ function (core, Event, m_validate) {
             }
             
         };
+
+        Event.bubbleEvent(ctor.prototype, function() {
+            return this.entityManager;
+        });
 
         /**
         The Entity that this aspect is associated with.
@@ -451,9 +455,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.acceptChanges = function () {
             this.setUnchanged();
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
         };
 
         /**
@@ -475,9 +477,7 @@ function (core, Event, m_validate) {
                 this.entityManager.detachEntity(entity);
             } else {
                 this.setUnchanged();
-                if (this.entityManager.entityChangeNotificationEnabled) {
-                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
-                }
+                this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
 
@@ -493,9 +493,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
         };
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -517,9 +515,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            if (this.entityManager.entityChangeNotificationEnabled) {
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-            }
+            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
         };
 
         /**
@@ -537,9 +533,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                if (this.entityManager.entityChangeNotificationEnabled) {
-                    this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
-                }
+                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
             }
             // TODO: think about cascade deletes
         };

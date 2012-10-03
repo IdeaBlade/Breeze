@@ -9,6 +9,7 @@ function (core, m_entityAspect, m_entityQuery) {
 
     var Event = core.Event;
 
+
     relationArrayMixin.push = function () {
         if (this._inProgress) {
             return -1;
@@ -64,6 +65,10 @@ function (core, m_entityAspect, m_entityQuery) {
         var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
         var em = parent.entityAspect.entityManager;
         return em.executeQuery(query, callback, errorCallback);
+    };
+
+    relationArrayMixin._getEventParent = function() {
+        return this.parentEntity.entityAspect;
     };
 
     relationArrayMixin._getPendingPubs = function() {
@@ -122,7 +127,8 @@ function (core, m_entityAspect, m_entityQuery) {
                 addsInProcess.splice(startIx, adds.length);
             };
         }
-
+        
+        // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { added: adds });
     }
     
@@ -167,7 +173,7 @@ function (core, m_entityAspect, m_entityQuery) {
                 childEntity.setProperty(inp.name, null);
             });
         }
-        
+        // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { removed: removes });
     }
 
@@ -175,7 +181,7 @@ function (core, m_entityAspect, m_entityQuery) {
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
         arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event("arrayChanged");
+        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         return core.extend(arr, relationArrayMixin);

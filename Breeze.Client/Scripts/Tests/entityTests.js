@@ -5,6 +5,7 @@ define(["testFns"], function (testFns) {
     var core = root.core;
     var entityModel = root.entityModel;
     var Enum = core.Enum;
+    var Event = core.Event;
 
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
@@ -277,6 +278,27 @@ define(["testFns"], function (testFns) {
         em.executeQuery(q, function(data) {
             ok(changes.length === 1, "query merges should only fire a single property change");
             ok(changes[0].propertyName === null, "propertyName should be null on a query merge");
+            start();
+        }).fail(testFns.handleFail);
+    });
+    
+    test("propertyChanged suppressed on query", function () {
+        var em = newEm();
+        var empType = em.metadataStore.getEntityType("Employee");
+        ok(empType);
+        var emp = empType.createEntity();
+        emp.setProperty("employeeID", 1);
+        var changes = [];
+        emp.entityAspect.propertyChanged.subscribe(function (args) {
+            changes.push(args);
+        });
+        Event.enable("propertyChanged", em, false);
+        em.attachEntity(emp);
+        // now fetch
+        var q = EntityQuery.fromEntities(emp);
+        stop();
+        em.executeQuery(q, function (data) {
+            ok(changes.length === 0, "query merges should not fire");
             start();
         }).fail(testFns.handleFail);
     });

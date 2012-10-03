@@ -119,14 +119,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Breeze.Client\Scripts\breeze.debug.js">
-      <Link>Scripts\IBlade\breeze.debug.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\breeze.js">
-      <Link>Scripts\IBlade\breeze.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\assertParam.js">
       <Link>Scripts\IBlade\assertParam.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

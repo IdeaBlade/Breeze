@@ -4,34 +4,6 @@ define(function () {
 
     var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-    // transform an object's values
-    function objectMapValue(obj, kvProjection) {
-        var value, newMap = {};
-        for (var key in obj) {
-            if (hasOwnProperty.call(obj, key)) {
-                value = kvProjection(key, obj[key]);
-                if (value !== undefined) {
-                    newMap[key] = value;
-                }
-            }
-        }
-        return newMap;
-    }
-
-    // shrink an object's surface
-    function objectFilter(obj, kvPredicate) {
-        var result = {};
-        for (var key in obj) {
-            if (hasOwnProperty.call(obj, key)) {
-                var value = obj[key];
-                if (kvPredicate(key, value)) {
-                    result[key] = value;
-                }
-            }
-        }
-        return result;
-    };
-
     // iterate over object
     function objectForEach(obj, kvFn) {
         for (var key in obj) {
@@ -53,6 +25,39 @@ define(function () {
         }
         return results;
     }
+    
+    // Not yet needed 
+
+    //// transform an object's values
+    //function objectMapValue(obj, kvProjection) {
+    //    var value, newMap = {};
+    //    for (var key in obj) {
+    //        if (hasOwnProperty.call(obj, key)) {
+    //            value = kvProjection(key, obj[key]);
+    //            if (value !== undefined) {
+    //                newMap[key] = value;
+    //            }
+    //        }
+    //    }
+    //    return newMap;
+    //}
+
+
+    //// shrink an object's surface
+    //function objectFilter(obj, kvPredicate) {
+    //    var result = {};
+    //    for (var key in obj) {
+    //        if (hasOwnProperty.call(obj, key)) {
+    //            var value = obj[key];
+    //            if (kvPredicate(key, value)) {
+    //                result[key] = value;
+    //            }
+    //        }
+    //    }
+    //    return result;
+    //};
+    
+   
 
     // Functional extensions 
 
@@ -323,9 +328,9 @@ define(function () {
     return {
         getOwnPropertyValues: getOwnPropertyValues,
         objectForEach: objectForEach,
-        objectMapValue: objectMapValue,
         objectMapToArray: objectMapToArray,
-        objectFilter: objectFilter,
+        //objectMapValue: objectMapValue,
+        //objectFilter: objectFilter,
 
         extend: extend,
         propEq: propEq,

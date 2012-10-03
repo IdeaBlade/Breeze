@@ -493,6 +493,16 @@ define('coreFns',[],function () {
             obj[property] = originalValue;
         }
     }
+    
+    function wrapExecution(startFn, endFn, fn) {
+        var state;
+        try {
+            state = startFn();
+            return fn();
+        } finally {
+            endFn(state);
+        }
+    }
 
     function memoize(fn) {
         return function () {
@@ -630,6 +640,7 @@ define('coreFns',[],function () {
         arrayZip: arrayZip,
 
         using: using,
+        wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
         dateFromIsoString: dateFromIsoString,
@@ -7673,8 +7684,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         ctor.prototype.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
-                .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(MergeStrategy.PreserveChanges)
-                .applyAll(this);
+                .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+                .applyAll(config);
             var that = this;
             
             var json = JSON.parse(exportedString);
@@ -7690,14 +7701,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
             });
             config.tempKeyMap = tempKeyMap;
-
-            core.objectForEach(json.entityGroupMap, function (entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
-                var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
-
+            core.wrapExecution(function() {
+                that._pendingPubs = [];
+            }, function(state) {
+                that._pendingPubs.forEach(function(fn) { fn(); });
+                that._pendingPubs = null;
+            }, function() {
+                core.objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
+                    var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                    var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
+                    importEntityGroup(targetEntityGroup, jsonGroup, config);
+                });
             });
-
             return this;
         };
 
@@ -8502,7 +8517,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var tempKeyMap = config.tempKeyMap;
 
             var entityType = entityGroup.entityType;
-            var shouldOverwrite = config.MergeStrategy ? config.MergeStategy === MergeStrategy.OverwriteChanges : true;
+            var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
             var keyIxs = entityType.keyProperties.map(function (kp) {
@@ -8778,8 +8793,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var deferred = Q.defer();
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
+                
                 em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
-                    var result = core.using(em, "isLoading", true, function() {
+                    var result = core.wrapExecution(function () {
+                        var state = { isLoading: em.isLoading };
+                        em.isLoading = true;
+                        em._pendingPubs = [];
+                        return state;
+                    }, function (state) {
+                        em.isLoading = state.isLoading;
+                        em._pendingPubs.forEach(function(fn) { fn(); });
+                        em._pendingPubs = null;
+                    }, function() {
                         var entities = rawEntities.map(function(rawEntity) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
@@ -10028,6 +10053,11 @@ function (core, m_entityAspect, m_entityQuery) {
         return em.executeQuery(query, callback, errorCallback);
     };
 
+    relationArrayMixin._getPendingPubs = function() {
+        var em = this.parentEntity.entityAspect.entityManager;
+        return em && em._pendingPubs;
+    };
+
     function getGoodAdds(relationArray, adds) {
         var goodAdds = checkForDups(relationArray, adds);
         if (!goodAdds.length) {
@@ -10035,7 +10065,7 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         var parentEntity = relationArray.parentEntity;
         var entityManager = parentEntity.entityAspect.entityManager;
-        // we do not want to add an entity during loading
+        // we do not want to attach an entity during loading
         // because these will all be 'attached' at a later step.
         if (entityManager && !entityManager.isLoading) {
             goodAdds.forEach(function (add) {
@@ -10079,7 +10109,42 @@ function (core, m_entityAspect, m_entityQuery) {
                 addsInProcess.splice(startIx, adds.length);
             };
         }
-        relationArray.arrayChanged.publish({ added: adds });
+
+        publish(relationArray, "arrayChanged", { added: adds });
+    }
+    
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function () {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+    
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (hasOwnProperty.call(target, key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
     }
 
     function processRemoves(relationArray, removes) {
@@ -10089,7 +10154,8 @@ function (core, m_entityAspect, m_entityQuery) {
                 childEntity.setProperty(inp.name, null);
             });
         }
-        relationArray.arrayChanged.publish({ removed: removes });
+        
+        publish(relationArray, "arrayChanged", { removed: removes });
     }
 
 
@@ -10372,6 +10438,19 @@ function (core, makeRelationArray) {
                     } else {
                         val = makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+                        // new code to suppress extra breeze notification when 
+                        // ko's array methods are called.
+                        koObj.subscribe(function (b) {
+                            koObj._suppressBreeze = true;
+                        }, null, "beforeChange");
+                        // code to insure that any been changes notify ko
+                        val.arrayChanged.subscribe(function (args) {
+                            if (koObj._suppressBreeze) {
+                                koObj._suppressBreeze = false;
+                            } else {
+                                koObj.valueHasMutated();
+                            }
+                        });
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
