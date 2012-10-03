@@ -115,11 +115,11 @@ define(function () {
         return -1;
     }
 
-    function arrayRemoveItem(array, callbackOrItem) {
-        var callback = isFunction(callbackOrItem) ? callbackOrItem : undefined;
+    function arrayRemoveItem(array, predicateOrItem) {
+        var predicate = isFunction(predicateOrItem) ? predicateOrItem : undefined;
         var l = array.length;
         for (var index = 0; index < l; index++) {
-            if (callback ? callback(array[index]) : (array[index] === callbackOrItem)) {
+            if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
                 array.splice(index, 1);
                 return index;
             }
@@ -148,18 +148,19 @@ define(function () {
         return result;
     }
 
-    // much faster but only works on array items with a toString method that
-    // returns distinct string for distinct objects.  So this is safe for arrays with primitive
-    // types but not for arrays with object types, unless toString() has been implemented.
-    function arrayDistinctUnsafe(array) {
-        var o = {}, i, l = array.length, r = [];
-        for (i = 0; i < l; i += 1) {
-            var v = array[i];
-            o[v] = v;
-        }
-        for (i in o) r.push(o[i]);
-        return r;
-    }
+    // Not yet needed
+    //// much faster but only works on array items with a toString method that
+    //// returns distinct string for distinct objects.  So this is safe for arrays with primitive
+    //// types but not for arrays with object types, unless toString() has been implemented.
+    //function arrayDistinctUnsafe(array) {
+    //    var o = {}, i, l = array.length, r = [];
+    //    for (i = 0; i < l; i += 1) {
+    //        var v = array[i];
+    //        o[v] = v;
+    //    }
+    //    for (i in o) r.push(o[i]);
+    //    return r;
+    //}
 
     function arrayEquals(a1, a2, equalsFn) {
         //Check if the arrays are undefined/null
@@ -337,7 +338,7 @@ define(function () {
         pluck: pluck,
 
         arrayDistinct: arrayDistinct,
-        arrayDistinctUnsafe: arrayDistinctUnsafe,
+        // arrayDistinctUnsafe: arrayDistinctUnsafe,
         arrayEquals: arrayEquals,
         arrayFirst: arrayFirst,
         arrayIndexOf: arrayIndexOf,

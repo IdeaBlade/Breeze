@@ -12,6 +12,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
+    
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
 
     // TODO: still need to handle inheritence here.
 

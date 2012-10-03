@@ -44,6 +44,38 @@ define(["testFns"], function (testFns) {
             ok(customer.getProperty("orders") == origOrders);
         }
     });
+
+    test("can attach a detached entity to a different manager via attach/detach", 2, function () {
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        em.attachEntity(customer);
+        var orders = customer.getProperty("orders");
+        ok(orders.length === 0);
+        orders.push(order);
+        var em2 = newEm();
+        em.detachEntity(customer);
+        em2.attachEntity(customer);
+        ok(customer.entityAspect.entityManager === em2);
+    });
+    
+    test("can attach a detached entity to a different manager via clear", 1, function () {
+        var em1 = newEm();
+        var cust = em1.metadataStore.getEntityType("Customer").createEntity();
+        cust.setProperty("customerID", core.getUuid());
+        em1.attachEntity(cust);
+
+        em1.clear(); // should detach cust
+        ok(cust.entityAspect.entityState.isDetached,
+            "cust should be detached");
+
+        // therefore this should be ok
+        var em2 = newEm();
+        em2.attachEntity(cust); // D#2206 throws exception
+    });
+
     
     test("setting child's parent entity null removes it from old parent", 2, function () {
         // D2183

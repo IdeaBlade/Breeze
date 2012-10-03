@@ -415,11 +415,11 @@ define('coreFns',[],function () {
         return -1;
     }
 
-    function arrayRemoveItem(array, callbackOrItem) {
-        var callback = isFunction(callbackOrItem) ? callbackOrItem : undefined;
+    function arrayRemoveItem(array, predicateOrItem) {
+        var predicate = isFunction(predicateOrItem) ? predicateOrItem : undefined;
         var l = array.length;
         for (var index = 0; index < l; index++) {
-            if (callback ? callback(array[index]) : (array[index] === callbackOrItem)) {
+            if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
                 array.splice(index, 1);
                 return index;
             }
@@ -448,18 +448,19 @@ define('coreFns',[],function () {
         return result;
     }
 
-    // much faster but only works on array items with a toString method that
-    // returns distinct string for distinct objects.  So this is safe for arrays with primitive
-    // types but not for arrays with object types, unless toString() has been implemented.
-    function arrayDistinctUnsafe(array) {
-        var o = {}, i, l = array.length, r = [];
-        for (i = 0; i < l; i += 1) {
-            var v = array[i];
-            o[v] = v;
-        }
-        for (i in o) r.push(o[i]);
-        return r;
-    }
+    // Not yet needed
+    //// much faster but only works on array items with a toString method that
+    //// returns distinct string for distinct objects.  So this is safe for arrays with primitive
+    //// types but not for arrays with object types, unless toString() has been implemented.
+    //function arrayDistinctUnsafe(array) {
+    //    var o = {}, i, l = array.length, r = [];
+    //    for (i = 0; i < l; i += 1) {
+    //        var v = array[i];
+    //        o[v] = v;
+    //    }
+    //    for (i in o) r.push(o[i]);
+    //    return r;
+    //}
 
     function arrayEquals(a1, a2, equalsFn) {
         //Check if the arrays are undefined/null
@@ -637,7 +638,7 @@ define('coreFns',[],function () {
         pluck: pluck,
 
         arrayDistinct: arrayDistinct,
-        arrayDistinctUnsafe: arrayDistinctUnsafe,
+        // arrayDistinctUnsafe: arrayDistinctUnsafe,
         arrayEquals: arrayEquals,
         arrayFirst: arrayFirst,
         arrayIndexOf: arrayIndexOf,
@@ -1110,25 +1111,38 @@ define('event',["coreFns"], function(core) {
         }
     };
     
-    // event bubbling
-    /**
-    Defines a function that is used in propogating events up the object hierarchy from the specified target to the
-    next object in the hierarchy.  The target is usually a prototype object. 
-  
-    @param target {Object} Usually a prototype on which you will be declaring the function used to navigate up the hierarchy to the parent instances
-    of this prototype's instances. 
-    @param getParentFn {Function} A function that will be applied directly to the target and will be used to navigate up thru the hierarchy.
-    **/
+    // event bubbling - document later.
     Event.bubbleEvent = function (target, getParentFn) {
         target._getEventParent = getParentFn;
     };
 
     /**
-    Enables or disables the named event at a specific level of the event hierarchy. 
-  
-    @param target {Object} Usually a prototype on which you will be declaring the function used to navigate up the hierarchy to the parent instances
-    of this prototype's instances. 
-    @param getParentFn {Function} A function that will be applied directly to the target and will be used to navigate up thru the hierarchy.
+    Enables or disables the named event for an object and all of its children. 
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, false) 
+    will disable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, true) 
+    will enable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
+    will disable EntityAspect.propertyChanged events for a specific entity.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
+    will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
+    made either previously or in the future, will control notification.
+    @example
+        Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
+           return em.customTag === “blue”;
+        })                 
+    will either enable or disable myEntityManager based on the current value of a ‘customTag’ property on myEntityManager. 
+    Note that this is dynamic, changing the customTag value will cause events to be enabled or disabled immediately.
+    @method enable
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object at which enabling or disabling will occur.  All event notifications that occur to this object or 
+    children of this object will be enabled or disabled. 
+    @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
         eventName = getFullEventName(eventName);
@@ -1138,6 +1152,17 @@ define('event',["coreFns"], function(core) {
         obj._$eventMap[eventName] = isEnabled;
     };
 
+    /**
+    Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
+    @example
+        Event.isEnabled(“propertyChanged”, myEntityManager) 
+    
+    @method isEnabled
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object for which we want to know if notifications are enabled. 
+    @returns {Boolean?null} A null is returned if this value has not been set.
+    **/
     Event.isEnabled = function(eventName, obj) {
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
@@ -3625,6 +3650,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
+    
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
 
     // TODO: still need to handle inheritence here.
 
@@ -7476,6 +7509,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
+    
     // TODO: think about dif between find and get.
 
     var EntityManager = (function () {
@@ -7698,7 +7739,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
         @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
-        @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **/
         ctor.prototype.exportEntities = function (entities) {
@@ -7783,7 +7823,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Clears this EntityManager's cache but keeps all other settings.
+        Clears this EntityManager's cache but keeps all other settings. Note that this 
+        method is not as fast as creating a new EntityManager via 'new EntityManager'.
+        This is because clear actually detaches all of the entities from the EntityManager.
         @example
             // assume em1 is an EntityManager containing a number of existing entities.
             em1.clear();
@@ -7791,12 +7833,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method clear
         **/
         ctor.prototype.clear = function () {
-            // key is entityTypeName, value is entityGroup
+            core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
+                // remove en
+                entityGroup._clear();
+            });
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
-
         };
 
         /**
@@ -9330,6 +9374,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
+        };
+        
+        // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
+        // just for the entityManager clear method - the entityGroup will be in an inconsistent state
+        // after this op, which is ok because it will be thrown away.
+        ctor.prototype._clear = function() {
+            this._entities.forEach(function(entity) {
+                var aspect = entity.entityAspect;
+                aspect.entityState = EntityState.Detached;
+                aspect.entityGroup = null;
+                aspect.entityManager = null;
+            });
         };
 
         ctor.prototype._fixupKey = function (tempValue, realValue) {

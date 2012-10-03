@@ -21,6 +21,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
+    var Q = window.Q;
+    if ((!Q) && require) {
+        Q = require("Q");
+    }
+    if (!Q) {
+        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
+    }
+    
     // TODO: think about dif between find and get.
 
     var EntityManager = (function () {
@@ -243,7 +251,6 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
         @method exportEntities
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
-        @param [config] {Object} A configuration object.
         @return {String} A serialized version of the exported data.
         **/
         ctor.prototype.exportEntities = function (entities) {
@@ -328,7 +335,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         /**
-        Clears this EntityManager's cache but keeps all other settings.
+        Clears this EntityManager's cache but keeps all other settings. Note that this 
+        method is not as fast as creating a new EntityManager via 'new EntityManager'.
+        This is because clear actually detaches all of the entities from the EntityManager.
         @example
             // assume em1 is an EntityManager containing a number of existing entities.
             em1.clear();
@@ -336,12 +345,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method clear
         **/
         ctor.prototype.clear = function () {
-            // key is entityTypeName, value is entityGroup
+            core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
+                // remove en
+                entityGroup._clear();
+            });
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
-
         };
 
         /**
@@ -1875,6 +1886,18 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
+        };
+        
+        // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
+        // just for the entityManager clear method - the entityGroup will be in an inconsistent state
+        // after this op, which is ok because it will be thrown away.
+        ctor.prototype._clear = function() {
+            this._entities.forEach(function(entity) {
+                var aspect = entity.entityAspect;
+                aspect.entityState = EntityState.Detached;
+                aspect.entityGroup = null;
+                aspect.entityManager = null;
+            });
         };
 
         ctor.prototype._fixupKey = function (tempValue, realValue) {

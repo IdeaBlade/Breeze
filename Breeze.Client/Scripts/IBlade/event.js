@@ -177,25 +177,38 @@
         }
     };
     
-    // event bubbling
-    /**
-    Defines a function that is used in propogating events up the object hierarchy from the specified target to the
-    next object in the hierarchy.  The target is usually a prototype object. 
-  
-    @param target {Object} Usually a prototype on which you will be declaring the function used to navigate up the hierarchy to the parent instances
-    of this prototype's instances. 
-    @param getParentFn {Function} A function that will be applied directly to the target and will be used to navigate up thru the hierarchy.
-    **/
+    // event bubbling - document later.
     Event.bubbleEvent = function (target, getParentFn) {
         target._getEventParent = getParentFn;
     };
 
     /**
-    Enables or disables the named event at a specific level of the event hierarchy. 
-  
-    @param target {Object} Usually a prototype on which you will be declaring the function used to navigate up the hierarchy to the parent instances
-    of this prototype's instances. 
-    @param getParentFn {Function} A function that will be applied directly to the target and will be used to navigate up thru the hierarchy.
+    Enables or disables the named event for an object and all of its children. 
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, false) 
+    will disable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, true) 
+    will enable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
+    will disable EntityAspect.propertyChanged events for a specific entity.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
+    will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
+    made either previously or in the future, will control notification.
+    @example
+        Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
+           return em.customTag === “blue”;
+        })                 
+    will either enable or disable myEntityManager based on the current value of a ‘customTag’ property on myEntityManager. 
+    Note that this is dynamic, changing the customTag value will cause events to be enabled or disabled immediately.
+    @method enable
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object at which enabling or disabling will occur.  All event notifications that occur to this object or 
+    children of this object will be enabled or disabled. 
+    @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
         eventName = getFullEventName(eventName);
@@ -205,6 +218,17 @@
         obj._$eventMap[eventName] = isEnabled;
     };
 
+    /**
+    Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
+    @example
+        Event.isEnabled(“propertyChanged”, myEntityManager) 
+    
+    @method isEnabled
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object for which we want to know if notifications are enabled. 
+    @returns {Boolean?null} A null is returned if this value has not been set.
+    **/
     Event.isEnabled = function(eventName, obj) {
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
