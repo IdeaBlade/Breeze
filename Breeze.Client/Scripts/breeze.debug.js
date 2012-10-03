@@ -932,289 +932,6 @@ define('enum',["coreFns"], function (core) {
     return Enum;
 
 });
-define('event',["coreFns"], function(core) {
-    
-
-    /**
-    @module core
-    **/
-
-    var __eventNameMap = { };
-
-    /**
-    Class to support basic event publication and subscription semantics.
-    @class Event
-    **/
-
-    /**
-    Constructor for an Event
-    @example
-        salaryEvent = new Event("salaryEvent", person);
-    @method <ctor> Event
-    @param name {String}
-    @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
-
-    errorCallback([e])
-    @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
-    **/
-    var Event = function (name, publisher, defaultErrorCallback) {
-        this.name = name;
-        // register the name
-        __eventNameMap[name] = true; 
-        this.publisher = publisher;
-        this._nextUnsubKey = 1;
-        if (defaultErrorCallback) {
-            this._defaultErrorCallback = defaultErrorCallback;
-        }
-    };
-
-    /**
-    Publish data for this event.
-    @example
-        // Assume 'salaryEvent' is previously constructed Event
-        salaryEvent.publish( { eventType: "payRaise", amount: 100 });
-    This event can also be published asychonously
-    @example
-        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
-    And we can add a handler in case the subscriber 'mishandles' the event.
-    @example
-        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {
-            // do something with the 'error' object
-        });
-    @method publish
-    @param data {Object} Data to publish
-    @param [publishAsync=false] Whether to publish asynchonously or not.
-    @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
-    errors will be eaten.
-
-    errorCallback([e])
-    @param [errorCallback.e] {Error} Any error encountered during publication execution.
-    **/
-    Event.prototype.publish = function(data, publishAsync, errorCallback) {
-
-        function publishCore() {
-            // subscribers from outer scope.
-            subscribers.forEach(function(s) {
-                try {
-                    s.callback(data);
-                } catch(e) {
-                    e.context = "unable to publish on topic: " + this.name;
-                    if (errorCallback) {
-                        errorCallback(e);
-                    } else if (this._defaultErrorCallback) {
-                        this._defaultErrorCallback(e);
-                    } else {
-                        fallbackErrorHandler(e);
-                    }
-                }
-            });
-        }
-
-        if (!Event._isEnabled(this.name, this.publisher)) return false;
-        var subscribers = this._subscribers;
-        if (!subscribers) return false;
-        if (publishAsync === true) {
-            setTimeout(publishCore, 0);
-        } else {
-            publishCore();
-        }
-        return true;
-    };
-    
-    
-
-    /**
-   Publish data for this event asynchronously.
-   @example
-       // Assume 'salaryEvent' is previously constructed Event
-       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
-   And we can add a handler in case the subscriber 'mishandles' the event.
-   @example
-       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
-           // do something with the 'error' object
-       });
-   @method publishAsync
-   @param data {Object} Data to publish
-   @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
-   errors will be eaten.
-
-   errorCallback([e])
-   @param [errorCallback.e] {Error} Any error encountered during publication execution.
-   **/
-    Event.prototype.publishAsync = function(data, errorCallback) {
-        this.publish(data, true, errorCallback);
-    };
-
-    /**
-    Subscribe to this event.
-    @example
-        // Assume 'salaryEvent' is previously constructed Event
-        salaryEvent.subscribe(function (eventArgs) {
-            if (eventArgs.eventType === "payRaise") {
-               // do something
-            }
-        });
-    There are several built in Breeze events, such as EntityAspect.propertyChanged, EntityAspect.validationErrorsChanged as well.
-    @example
-         // Assume order is a preexisting 'order' entity
-         order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
-             if ( pcEvent.propertyName === "OrderDate") {
-                 // do something
-             }
-         });
-    @method subscribe
-    @param [callback] {callback function} Will be called whenever 'data' is published for this event. 
-
-        callback([data])
-        @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
-    @return {Number} This is a key for 'unsubscription'.  It can be passed to the 'unsubscribe' method.
-    **/
-    Event.prototype.subscribe = function(callback) {
-        if (!this._subscribers) {
-            this._subscribers = [];
-        }
-
-        var unsubKey = this._nextUnsubKey;
-        this._subscribers.push({ unsubKey: unsubKey, callback: callback });
-        ++this._nextUnsubKey;
-        return unsubKey;
-    };
-
-    /**
-    Unsubscribe from this event. 
-    @example
-        // Assume order is a preexisting 'order' entity
-        var token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
-                // do something
-        });
-        // sometime later
-        order.entityAspect.propertyChanged.unsubscribe(token);
-    @method unsubscribe
-    @param unsubKey {Number} The value returned from the 'subscribe' method may be used to unsubscribe here.
-    @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
-    cannot be found.
-    **/
-    Event.prototype.unsubscribe = function(unsubKey) {
-        if (!this._subscribers) return false;
-        var subs = this._subscribers;
-        var ix = core.arrayIndexOf(subs, function(s) {
-            return s.unsubKey === unsubKey;
-        });
-        if (ix !== -1) {
-            subs.splice(ix, 1);
-            if (subs.length === 0) {
-                delete this._subscribers;
-            }
-            return true;
-        } else {
-            return false;
-        }
-    };
-    
-    // event bubbling - document later.
-    Event.bubbleEvent = function (target, getParentFn) {
-        target._getEventParent = getParentFn;
-    };
-
-    /**
-    Enables or disables the named event for an object and all of its children. 
-    @example
-        Event.enable(“propertyChanged”, myEntityManager, false) 
-    will disable all EntityAspect.propertyChanged events within a EntityManager.
-    @example
-        Event.enable(“propertyChanged”, myEntityManager, true) 
-    will enable all EntityAspect.propertyChanged events within a EntityManager.
-    @example
-        Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
-    will disable EntityAspect.propertyChanged events for a specific entity.
-    @example
-        Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
-    will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
-    made either previously or in the future, will control notification.
-    @example
-        Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
-           return em.customTag === “blue”;
-        })                 
-    will either enable or disable myEntityManager based on the current value of a ‘customTag’ property on myEntityManager. 
-    Note that this is dynamic, changing the customTag value will cause events to be enabled or disabled immediately.
-    @method enable
-    @static
-    @param eventName {String} The name of the event. 
-    @param target {Object} The object at which enabling or disabling will occur.  All event notifications that occur to this object or 
-    children of this object will be enabled or disabled. 
-    @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
-    **/
-    Event.enable = function (eventName, obj, isEnabled) {
-        eventName = getFullEventName(eventName);
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
-        }
-        obj._$eventMap[eventName] = isEnabled;
-    };
-
-    /**
-    Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
-    @example
-        Event.isEnabled(“propertyChanged”, myEntityManager) 
-    
-    @method isEnabled
-    @static
-    @param eventName {String} The name of the event. 
-    @param target {Object} The object for which we want to know if notifications are enabled. 
-    @returns {Boolean?null} A null is returned if this value has not been set.
-    **/
-    Event.isEnabled = function(eventName, obj) {
-        if (!obj._getEventParent) {
-            throw new Error("This object does not support event enabling/disabling");
-        }
-        return Event._isEnabled(obj, getFullEventName(eventName));
-    };
-
-    Event._isEnabled = function(eventName, obj) {
-        var isEnabled = null;
-        var eventMap = obj._$eventMap;
-        if (eventMap) {
-            isEnabled = eventMap[eventName];
-        }
-        if (isEnabled != null) {
-            if (typeof isEnabled === 'function') {
-                return isEnabled(obj);
-            } else {
-                return !!isEnabled;
-            }
-        } else {
-            var parent = obj._getEventParent && obj._getEventParent();
-            if (parent) {
-                return Event._isEnabled(eventName, parent);
-            } else {
-                // default if not explicitly disabled.
-                return true;
-            }
-        }
-    };
-
-    function getFullEventName(eventName) {
-        if (__eventNameMap[eventName]) return eventName;
-        // find the closest event name that matches
-        var fullEventName = core.arrayFirst(Object.keys(__eventNameMap), function (name) {
-            return name.indexOf(eventName) === 0;
-        });
-        if (!fullEventName) {
-            throw new Error("Unable to find any registered event that matches: " + eventName);
-        }
-        return fullEventName;
-    }
-    
-    function fallbackErrorHandler(e) {
-        // TODO: maybe log this 
-        // for now do nothing;
-    }
-
-
-
-    return Event;
-});
-
 
 define('assertParam',["coreFns"], function (core) {
 
@@ -1232,6 +949,10 @@ define('assertParam',["coreFns"], function (core) {
         this.name = name;
         this._fns = [null];
         this._pending = [];
+    };
+
+    Param.prototype.isObject = function() {
+        return this.isTypeOf("object");
     };
 
     Param.prototype.isBoolean = function () {
@@ -1528,6 +1249,301 @@ define('assertParam',["coreFns"], function (core) {
 
 
 });
+define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
+    
+    var assertParam = m_assertParam.assertParam;
+    var assertConfig = m_assertParam.assertConfig;
+    
+    
+
+    /**
+    @module core
+    **/
+
+    var __eventNameMap = { };
+
+    /**
+    Class to support basic event publication and subscription semantics.
+    @class Event
+    **/
+
+    /**
+    Constructor for an Event
+    @example
+        salaryEvent = new Event("salaryEvent", person);
+    @method <ctor> Event
+    @param name {String}
+    @param publisher {Object} The object that will be doing the publication. i.e. the object to which this event is attached. 
+    @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
+
+    errorCallback([e])
+    @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
+    **/
+    var Event = function (name, publisher, defaultErrorCallback) {
+        assertParam(name, "eventName").isNonEmptyString();
+        assertParam(publisher, "publisher").isObject();
+        this.name = name;
+        // register the name
+        __eventNameMap[name] = true; 
+        this.publisher = publisher;
+        this._nextUnsubKey = 1;
+        if (defaultErrorCallback) {
+            this._defaultErrorCallback = defaultErrorCallback;
+        }
+    };
+
+    /**
+    Publish data for this event.
+    @example
+        // Assume 'salaryEvent' is previously constructed Event
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 });
+    This event can also be published asychonously
+    @example
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
+    And we can add a handler in case the subscriber 'mishandles' the event.
+    @example
+        salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {
+            // do something with the 'error' object
+        });
+    @method publish
+    @param data {Object} Data to publish
+    @param [publishAsync=false] Whether to publish asynchonously or not.
+    @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+    errors will be eaten.
+
+    errorCallback([e])
+    @param [errorCallback.e] {Error} Any error encountered during publication execution.
+    **/
+    Event.prototype.publish = function(data, publishAsync, errorCallback) {
+
+        function publishCore() {
+            // subscribers from outer scope.
+            subscribers.forEach(function(s) {
+                try {
+                    s.callback(data);
+                } catch(e) {
+                    e.context = "unable to publish on topic: " + this.name;
+                    if (errorCallback) {
+                        errorCallback(e);
+                    } else if (this._defaultErrorCallback) {
+                        this._defaultErrorCallback(e);
+                    } else {
+                        fallbackErrorHandler(e);
+                    }
+                }
+            });
+        }
+
+        if (!Event._isEnabled(this.name, this.publisher)) return false;
+        var subscribers = this._subscribers;
+        if (!subscribers) return false;
+        if (publishAsync === true) {
+            setTimeout(publishCore, 0);
+        } else {
+            publishCore();
+        }
+        return true;
+    };
+    
+    
+
+    /**
+   Publish data for this event asynchronously.
+   @example
+       // Assume 'salaryEvent' is previously constructed Event
+       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
+   And we can add a handler in case the subscriber 'mishandles' the event.
+   @example
+       salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
+           // do something with the 'error' object
+       });
+   @method publishAsync
+   @param data {Object} Data to publish
+   @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+   errors will be eaten.
+
+   errorCallback([e])
+   @param [errorCallback.e] {Error} Any error encountered during publication execution.
+   **/
+    Event.prototype.publishAsync = function(data, errorCallback) {
+        this.publish(data, true, errorCallback);
+    };
+
+    /**
+    Subscribe to this event.
+    @example
+        // Assume 'salaryEvent' is previously constructed Event
+        salaryEvent.subscribe(function (eventArgs) {
+            if (eventArgs.eventType === "payRaise") {
+               // do something
+            }
+        });
+    There are several built in Breeze events, such as EntityAspect.propertyChanged, EntityAspect.validationErrorsChanged as well.
+    @example
+         // Assume order is a preexisting 'order' entity
+         order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
+             if ( pcEvent.propertyName === "OrderDate") {
+                 // do something
+             }
+         });
+    @method subscribe
+    @param [callback] {callback function} Will be called whenever 'data' is published for this event. 
+
+        callback([data])
+        @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
+    @return {Number} This is a key for 'unsubscription'.  It can be passed to the 'unsubscribe' method.
+    **/
+    Event.prototype.subscribe = function(callback) {
+        if (!this._subscribers) {
+            this._subscribers = [];
+        }
+
+        var unsubKey = this._nextUnsubKey;
+        this._subscribers.push({ unsubKey: unsubKey, callback: callback });
+        ++this._nextUnsubKey;
+        return unsubKey;
+    };
+
+    /**
+    Unsubscribe from this event. 
+    @example
+        // Assume order is a preexisting 'order' entity
+        var token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
+                // do something
+        });
+        // sometime later
+        order.entityAspect.propertyChanged.unsubscribe(token);
+    @method unsubscribe
+    @param unsubKey {Number} The value returned from the 'subscribe' method may be used to unsubscribe here.
+    @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
+    cannot be found.
+    **/
+    Event.prototype.unsubscribe = function(unsubKey) {
+        if (!this._subscribers) return false;
+        var subs = this._subscribers;
+        var ix = core.arrayIndexOf(subs, function(s) {
+            return s.unsubKey === unsubKey;
+        });
+        if (ix !== -1) {
+            subs.splice(ix, 1);
+            if (subs.length === 0) {
+                delete this._subscribers;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    };
+    
+    // event bubbling - document later.
+    Event.bubbleEvent = function (target, getParentFn) {
+        target._getEventParent = getParentFn;
+    };
+
+    /**
+    Enables or disables the named event for an object and all of its children. 
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, false) 
+    will disable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntityManager, true) 
+    will enable all EntityAspect.propertyChanged events within a EntityManager.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
+    will disable EntityAspect.propertyChanged events for a specific entity.
+    @example
+        Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
+    will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
+    made either previously or in the future, will control notification.
+    @example
+        Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
+           return em.customTag === “blue”;
+        })                 
+    will either enable or disable myEntityManager based on the current value of a ‘customTag’ property on myEntityManager. 
+    Note that this is dynamic, changing the customTag value will cause events to be enabled or disabled immediately.
+    @method enable
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object at which enabling or disabling will occur.  All event notifications that occur to this object or 
+    children of this object will be enabled or disabled. 
+    @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
+    **/
+    Event.enable = function (eventName, obj, isEnabled) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
+        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction();
+        eventName = getFullEventName(eventName);
+        if (!obj._$eventMap) {
+            obj._$eventMap = {};
+        }
+        obj._$eventMap[eventName] = isEnabled;
+    };
+
+    /**
+    Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
+    @example
+        Event.isEnabled(“propertyChanged”, myEntityManager) 
+    
+    @method isEnabled
+    @static
+    @param eventName {String} The name of the event. 
+    @param target {Object} The object for which we want to know if notifications are enabled. 
+    @returns {Boolean?null} A null is returned if this value has not been set.
+    **/
+    Event.isEnabled = function (eventName, obj) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
+        if (!obj._getEventParent) {
+            throw new Error("This object does not support event enabling/disabling");
+        }
+        return Event._isEnabled(obj, getFullEventName(eventName));
+    };
+
+    Event._isEnabled = function(eventName, obj) {
+        var isEnabled = null;
+        var eventMap = obj._$eventMap;
+        if (eventMap) {
+            isEnabled = eventMap[eventName];
+        }
+        if (isEnabled != null) {
+            if (typeof isEnabled === 'function') {
+                return isEnabled(obj);
+            } else {
+                return !!isEnabled;
+            }
+        } else {
+            var parent = obj._getEventParent && obj._getEventParent();
+            if (parent) {
+                return Event._isEnabled(eventName, parent);
+            } else {
+                // default if not explicitly disabled.
+                return true;
+            }
+        }
+    };
+
+    function getFullEventName(eventName) {
+        if (__eventNameMap[eventName]) return eventName;
+        // find the closest event name that matches
+        var fullEventName = core.arrayFirst(Object.keys(__eventNameMap), function (name) {
+            return name.indexOf(eventName) === 0;
+        });
+        if (!fullEventName) {
+            throw new Error("Unable to find any registered event that matches: " + eventName);
+        }
+        return fullEventName;
+    }
+    
+    function fallbackErrorHandler(e) {
+        // TODO: maybe log this 
+        // for now do nothing;
+    }
+
+
+
+    return Event;
+});
+
 define('core',["coreFns", "enum", "event", "assertParam"],
 function (core, Enum, Event, m_assertParam) {
     
@@ -3373,7 +3389,7 @@ function (core, m_entityAspect) {
             } else {
               
                 // updating a dataProperty
-                if (property.isKeyProperty && entityManager && !entityManager.isLoading) {
+                if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
                     
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
@@ -3419,7 +3435,7 @@ function (core, m_entityAspect) {
                     }
                 }
 
-                if (property.isKeyProperty) {
+                if (property.isPartOfKey) {
                     // propogate pk change to all related entities;
                     if (oldValue && !aspect.entityState.isDetached()) {
                         aspect.primaryKeyWasChanged = true;
@@ -4248,19 +4264,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+            var isPartOfKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;
             if (entityType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
                 if (isIdentityProperty(odataProperty)) {
                     entityType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
                 }
             }
+            var maxLength = odataProperty.maxLength;
+            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 dataType: dataType,
                 isNullable: isNullable,
-                isKeyProperty: isKey,
-                maxLength: odataProperty.maxLength,
+                isPartOfKey: isPartOfKey,
+                maxLength: maxLength,
                 fixedLength: fixedLength,
                 concurrencyMode: odataProperty.concurrencyMode
             });
@@ -4278,8 +4296,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 dataProperty.validators.push(Validator.required());
             }
             if (dataProperty.dataType === DataType.String) {
-                if (dataProperty.maxLength && dataProperty.maxLength != "Max") {
-                    var validatorArgs = { maxLength: parseInt(dataProperty.maxLength) };
+                if (dataProperty.maxLength) {
+                    var validatorArgs = { maxLength: dataProperty.maxLength };
                     typeValidator = Validator.maxLength(validatorArgs);
                 } else {
                     typeValidator = Validator.string();
@@ -4390,11 +4408,29 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var EntityType = (function () {
         /**
         Container for all of the metadata about a specific type of Entity.
-        Constructor is for internal use only.
         @class EntityType
         **/
         var __nextAnonIx = 0;
         
+
+        /** 
+        @example                    
+            var entityManager = new EntityType( {
+                metadataStore: myMetadataStore,
+                serviceName: "api/NorthwindIBModel",
+                name: "person",
+                namespace: "myAppNamespace"
+             });
+        @method <ctor> EntityType
+        @param config {Object|MetadataStore} Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore
+        then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for
+        client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.
+        @param config.metadataStore  {MetadataStore} The MetadataStore that will contain this EntityType.
+        @param config.serviceName {String} 
+        @param config.shortName {String}
+        @param [config.namespace=""] {String}
+        @param [config.defaultResourceName] {String}
+        **/
         var ctor = function (config) {
             if (arguments.length > 1) {
                 throw new Error("The EntityType ctor has a single argument that is either a 'MetadataStore' or a configuration object.");
@@ -4415,7 +4451,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 if (this.serviceName.substr(-1) !== "/") {
                     this.serviceName = this.serviceName + '/';
                 }
-
             }
 
             this.name = this.shortName + ":#" + this.namespace;
@@ -4573,6 +4608,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         };
 
+        /**
+        Adds a  {{#crossLink "DataProperty"}}{{/crossLink}} or a {{#crossLink "NavigationProperty"}}{{/crossLink}} to this EntityType.
+        @example
+            // assume myEntityType is a newly constructed EntityType. 
+            myEntityType.addProperty(dataProperty1);
+            myEntityType.addProperty(dataProperty2);
+            myEntityType.addProperty(navigationProperty1);
+        @method addProperty
+        @param property {DataProperty|NavigationProperty}
+        **/
         ctor.prototype.addProperty = function (property) {
             assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
             if (this._$initialized && !property.isUnmapped) {
@@ -4926,9 +4971,35 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         A DataProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that contains simple data. 
 
-        Instances of the DataProperty class are constructed automatically during Metadata retrieval.  It should almost never
-        be necessary to create one directly.        
+        Instances of the DataProperty class are constructed automatically during Metadata retrieval. However it is also possible to construct them
+        directly via the constructor.
         @class DataProperty
+        **/
+        
+        /** 
+        @example                    
+            var lastNameProp = new DataProperty( {
+                name: "lastName",
+                dataType: DataType.String,
+                isNullable: true,
+                maxLength: 20
+            });
+            // assuming personEntityType is a newly constructed EntityType
+            personEntityType.addProperty(lastNameProperty);
+        @method <ctor> DataProperty
+        @param config {configuration Object} 
+        @param [config.name] {String}  The name of this property. 
+        @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
+        Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param [config.dataType=DataType.String] {DataType}
+        @param [config.isNullable=false] {Boolean}
+        @param [config.isPartOfKey=false] {Boolean}
+        @param [config.isUnmapped=false] {Boolean}
+        @param [config.concurrencyMode] {String}
+        @param [config.maxLength] {Integer} Only meaningfull for DataType.String
+        @param [config.fixedLength] {Boolean} Only meaningfull for DataType.String
+        @param [config.validators] {Array of Validator}
         **/
         var ctor = function(config) {
             assertConfig(config)
@@ -4937,10 +5008,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("dataType").isEnumOf(DataType).isOptional().withDefault(DataType.String)
                 .whereParam("isNullable").isBoolean().isOptional().withDefault(false)
                 .whereParam("defaultValue").isOptional()
-                .whereParam("isKeyProperty").isBoolean().isOptional()
+                .whereParam("isPartOfKey").isBoolean().isOptional()
                 .whereParam("isUnmapped").isBoolean().isOptional()
                 .whereParam("concurrencyMode").isString().isOptional()
-                .whereParam("maxLength").isString().isOptional()
+                .whereParam("maxLength").isNumber().isOptional()
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
@@ -4968,7 +5039,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             parentEntityType.dataProperties.push(this);
             
-            if (this.isKeyProperty) {
+            if (this.isPartOfKey) {
                 parentEntityType.keyProperties.push(this);
             };
             
@@ -5021,7 +5092,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Whether this property is a 'key' property. 
 
         __readOnly__
-        @property isKeyProperty {Boolean}
+        @property isPartOfKey {Boolean}
         **/
 
         /**
@@ -5088,7 +5159,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 fixedLength: this.fixedLength,
                 defaultValue: this.defaultValue,
                 validators: this.validators,
-                isKeyProperty: this.isKeyProperty
+                isPartOfKey: this.isPartOfKey
             };
         };
 
@@ -5111,9 +5182,44 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         A NavigationProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that return instances of other EntityTypes. 
     
-        Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.  It should almost never
-        be necessary to create one directly.
+        Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them
+        directly via the constructor.
         @class NavigationProperty
+        **/
+        
+        /** 
+        @example                    
+            var homeAddressProp = new NavigationProperty( {
+                name: "homeAddress",
+                entityTypeName: "Address:#myNamespace",
+                isScalar: true,
+                associationName: "address_person",
+                foreignKeyNames: ["homeAddressId"]
+            });
+            var homeAddressIdProp = new DataProperty( {
+                name: "homeAddressId"
+                dataType: DataType.Integer,
+            });
+            // assuming personEntityType is a newly constructed EntityType
+            personEntityType.addProperty(homeAddressProp);
+            personEntityType.addProperty(homeAddressIdProp);
+        @method <ctor> NavigationProperty
+        @param config {configuration Object} 
+        @param [config.name] {String}  The name of this property.
+        @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
+        Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
+        need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
+        The entityType name is constructed as: {shortName} + ":#" + {namespace}
+        @param [config.isScalar] {Boolean}
+        @param [config.associationName] {String} A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.
+        @param [config.foreignKeyNames] {Array of String} An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
+        Most of the time this will be a single foreignKeyName in an array.
+        @param [config.foreignKeyNamesOnServer] {Array of String} Same as above but the names are those defined on the server. Either this or 'foreignKeyNames' must
+        be specified, if there are foreignKeys. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param [config.validators] {Array of Validator}
         **/
         var ctor = function(config) {
             assertConfig(config)

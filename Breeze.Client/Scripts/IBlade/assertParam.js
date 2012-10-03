@@ -17,6 +17,10 @@ define(["coreFns"], function (core) {
         this._pending = [];
     };
 
+    Param.prototype.isObject = function() {
+        return this.isTypeOf("object");
+    };
+
     Param.prototype.isBoolean = function () {
         return this.isTypeOf('boolean');
     };

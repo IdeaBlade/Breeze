@@ -134,7 +134,7 @@ function (core, m_entityAspect) {
             } else {
               
                 // updating a dataProperty
-                if (property.isKeyProperty && entityManager && !entityManager.isLoading) {
+                if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
                     
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
@@ -180,7 +180,7 @@ function (core, m_entityAspect) {
                     }
                 }
 
-                if (property.isKeyProperty) {
+                if (property.isPartOfKey) {
                     // propogate pk change to all related entities;
                     if (oldValue && !aspect.entityState.isDetached()) {
                         aspect.primaryKeyWasChanged = true;

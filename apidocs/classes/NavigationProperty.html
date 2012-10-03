@@ -173,7 +173,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1429"><code>entityMetadata.js:1429</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1517"><code>entityMetadata.js:1517</code></a>
         </div>
     
 
@@ -191,8 +191,8 @@
 <div class="box intro">
     <p>A NavigationProperty describes the metadata for a single property of an  <a href="..\classes\EntityType.html" class="crosslink">EntityType</a> that return instances of other EntityTypes. </p>
 
-<p>Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.  It should almost never
-be necessary to create one directly.</p>
+<p>Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them
+directly via the constructor.</p>
 </div>
 
 
@@ -201,6 +201,8 @@ be necessary to create one directly.</p>
     <ul class="api-class-tabs">
         <li class="api-class-tab index"><a href="#index">Index</a></li>
 
+        
+            <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
         
         
             <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
@@ -213,6 +215,21 @@ be necessary to create one directly.</p>
         <div id="index" class="api-class-tabpanel index">
             <h2 class="off-left">Item Index</h2>
 
+            
+                <div class="index-section methods">
+                    <h3>Methods</h3>
+
+                    <ul class="index-list methods">
+                        
+                            <li class="index-item method">
+                                <a href="#method_&lt;ctor&gt; NavigationProperty">&lt;ctor&gt; NavigationProperty</a>
+
+                                
+                                
+                            </li>
+                        
+                    </ul>
+                </div>
             
 
             
@@ -308,6 +325,243 @@ be necessary to create one directly.</p>
         </div>
 
         
+            <div id="methods" class="api-class-tabpanel">
+                <h2 class="off-left">Methods</h2>
+
+                
+                    <div id="method_&lt;ctor&gt; NavigationProperty" class="method item">
+    <h3 class="name"><code>&lt;ctor&gt; NavigationProperty</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>config</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1525"><code>entityMetadata.js:1525</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">config</code>
+                        <span class="type">Configuration Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[name]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The name of this property.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[nameOnServer]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Same as above but the name is that defined on the server.
+Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
+the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">entityTypeName</code>
+                                    <span class="type">String</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The fully qualified name of the type of entity that this property will return.  This type
+need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
+The entityType name is constructed as: {shortName} + ":#" + {namespace}</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[isScalar]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[associationName]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[foreignKeyNames]</code>
+                                    <span class="type">Array of String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
+Most of the time this will be a single foreignKeyName in an array.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[foreignKeyNamesOnServer]</code>
+                                    <span class="type">Array of String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Same as above but the names are those defined on the server. Either this or 'foreignKeyNames' must
+be specified, if there are foreignKeys. Whichever one is specified the other will be computed using
+the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validators]</code>
+                                    <span class="type">Array of Validator</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var homeAddressProp = new NavigationProperty( {
+    name: "homeAddress",
+    entityTypeName: "Address:#myNamespace",
+    isScalar: true,
+    associationName: "address_person",
+    foreignKeyNames: ["homeAddressId"]
+});
+var homeAddressIdProp = new DataProperty( {
+    name: "homeAddressId"
+    dataType: DataType.Integer,
+});
+// assuming personEntityType is a newly constructed EntityType
+personEntityType.addProperty(homeAddressProp);
+personEntityType.addProperty(homeAddressIdProp);
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+            </div>
+        
 
         
             <div id="properties" class="api-class-tabpanel">
@@ -337,7 +591,7 @@ be necessary to create one directly.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1482"><code>entityMetadata.js:1482</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1605"><code>entityMetadata.js:1605</code></a>
         
         </p>
 
@@ -384,7 +638,7 @@ properties 'inverse'.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1468"><code>entityMetadata.js:1468</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1591"><code>entityMetadata.js:1591</code></a>
         
         </p>
 
@@ -430,7 +684,7 @@ properties 'inverse'.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1490"><code>entityMetadata.js:1490</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1613"><code>entityMetadata.js:1613</code></a>
         
         </p>
 
@@ -477,7 +731,7 @@ with a Navigation property except in the case of entities with multipart keys.</
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1506"><code>entityMetadata.js:1506</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1629"><code>entityMetadata.js:1629</code></a>
         
         </p>
 
@@ -524,7 +778,7 @@ to this NavigationProperty.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1522"><code>entityMetadata.js:1522</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1645"><code>entityMetadata.js:1645</code></a>
         
         </p>
 
@@ -571,7 +825,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1530"><code>entityMetadata.js:1530</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1653"><code>entityMetadata.js:1653</code></a>
         
         </p>
 
@@ -618,7 +872,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1475"><code>entityMetadata.js:1475</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1598"><code>entityMetadata.js:1598</code></a>
         
         </p>
 
@@ -664,7 +918,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1461"><code>entityMetadata.js:1461</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1584"><code>entityMetadata.js:1584</code></a>
         
         </p>
 
@@ -710,7 +964,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1455"><code>entityMetadata.js:1455</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1578"><code>entityMetadata.js:1578</code></a>
         
         </p>
 
@@ -755,7 +1009,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1498"><code>entityMetadata.js:1498</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1621"><code>entityMetadata.js:1621</code></a>
         
         </p>
 
@@ -802,7 +1056,7 @@ with a Navigation property except in the case of entities with multipart keys.</
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1514"><code>entityMetadata.js:1514</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1637"><code>entityMetadata.js:1637</code></a>
         
         </p>
 

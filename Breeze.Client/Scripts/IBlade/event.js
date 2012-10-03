@@ -1,4 +1,8 @@
-﻿define(["coreFns"], function(core) {
+﻿define(["coreFns", "assertParam"], function (core, m_assertParam) {
+    
+    var assertParam = m_assertParam.assertParam;
+    var assertConfig = m_assertParam.assertConfig;
+    
     "use strict";
 
     /**
@@ -18,12 +22,15 @@
         salaryEvent = new Event("salaryEvent", person);
     @method <ctor> Event
     @param name {String}
+    @param publisher {Object} The object that will be doing the publication. i.e. the object to which this event is attached. 
     @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
 
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
     var Event = function (name, publisher, defaultErrorCallback) {
+        assertParam(name, "eventName").isNonEmptyString();
+        assertParam(publisher, "publisher").isObject();
         this.name = name;
         // register the name
         __eventNameMap[name] = true; 
@@ -211,6 +218,9 @@
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
+        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction();
         eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
@@ -229,7 +239,9 @@
     @param target {Object} The object for which we want to know if notifications are enabled. 
     @returns {Boolean?null} A null is returned if this value has not been set.
     **/
-    Event.isEnabled = function(eventName, obj) {
+    Event.isEnabled = function (eventName, obj) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
