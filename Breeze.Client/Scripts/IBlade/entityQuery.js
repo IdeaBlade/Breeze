@@ -564,13 +564,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!Array.isArray(entities)) {
                 entities = Array.prototype.slice.call(arguments);
             }
-
-            var q = new EntityQuery(entities[0].entityType.defaultResourceName);
+            var firstEntity = entities[0];
+            var q = new EntityQuery(firstEntity.entityType.defaultResourceName);
             var preds = entities.map(function (entity) {
                 return buildPredicate(entity);
             });
             var pred = Predicate.or(preds);
             q = q.where(pred);
+            var em = firstEntity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 
@@ -620,6 +624,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             var q = new EntityQuery(navProperty.entityType.defaultResourceName);
             var pred = buildNavigationPredicate(entity, navProperty);
             q = q.where(pred);
+            var em = entity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 

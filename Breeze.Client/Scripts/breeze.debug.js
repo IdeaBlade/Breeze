@@ -6029,13 +6029,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!Array.isArray(entities)) {
                 entities = Array.prototype.slice.call(arguments);
             }
-
-            var q = new EntityQuery(entities[0].entityType.defaultResourceName);
+            var firstEntity = entities[0];
+            var q = new EntityQuery(firstEntity.entityType.defaultResourceName);
             var preds = entities.map(function (entity) {
                 return buildPredicate(entity);
             });
             var pred = Predicate.or(preds);
             q = q.where(pred);
+            var em = firstEntity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 
@@ -6085,6 +6089,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             var q = new EntityQuery(navProperty.entityType.defaultResourceName);
             var pred = buildNavigationPredicate(entity, navProperty);
             q = q.where(pred);
+            var em = entity.entityAspect.entityManager;
+            if (em) {
+                q = q.using(em);
+            }
             return q;
         };
 
@@ -7931,6 +7939,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
+            if (entity.entityType.metadataStore != this.metadataStore) {
+                throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+            }
             var aspect = new EntityAspect(entity);
             var manager = aspect.entityManager;
             if (manager) {
@@ -7940,6 +7951,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error("This entity already belongs to another EntityManager");
                 }
             }
+            
             var that = this;
             core.using(this, "isLoading", true, function () {
                 checkEntityKey(that, entity);

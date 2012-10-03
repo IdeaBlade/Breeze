@@ -443,6 +443,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
+            if (entity.entityType.metadataStore != this.metadataStore) {
+                throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+            }
             var aspect = new EntityAspect(entity);
             var manager = aspect.entityManager;
             if (manager) {
@@ -452,6 +455,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     throw new Error("This entity already belongs to another EntityManager");
                 }
             }
+            
             var that = this;
             core.using(this, "isLoading", true, function () {
                 checkEntityKey(that, entity);

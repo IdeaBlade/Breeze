@@ -676,7 +676,7 @@ define(["testFns"], function (testFns) {
             var orders = data.results;
             ok(orders.length == 2, "data.results length should be 2");
             var q2 = EntityQuery.fromEntities(orders);
-            return em.executeQuery(q2);
+            return q2.execute();
         }).then(function (data2) {
             ok(data2.results.length == 2, "data.results length should be 2");
         }).fail(testFns.handleFail).fin(start);

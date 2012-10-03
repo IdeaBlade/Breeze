@@ -44,6 +44,21 @@ define(["testFns"], function (testFns) {
             ok(customer.getProperty("orders") == origOrders);
         }
     });
+    
+    test("cannot attach an entity created by a different metadataStore", 1, function () {
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        var newMs = MetadataStore.importMetadata(em.metadataStore.exportMetadata());
+        var em2 = newEm(newMs);
+        try {
+            em2.attachEntity(customer);
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message.indexOf("MetadataStore"));
+        }
+        
+    });
 
     test("can attach a detached entity to a different manager via attach/detach", 2, function () {
         var em = newEm();
