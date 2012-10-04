@@ -1,92 +1,99 @@
 ﻿.loading {
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 header {
-    height: 2em;
+    height: 6em;
 }
 
 header h1 {
-    font-size: 1em;
-    padding-top: .5em;
+    font-size: 2em;
+    padding-top: .125em;
+    padding-bottom: .1em;
+    line-height: .1.1em;
+}
+
+header h2 {
+    display: none;
+}
+
+h3 {
+    font-size: 2em;
 }
 
 header button {
-    top: .2em;
+    top: .125em;
 }
 
-button {
-    font-size: .75em;
-	padding: .4em .75em;
+header button.back {
+    left: 0em;
+    top: 2.25em;
+    transform: scale(.5,.5);
+    -ms-transform: scale(.5,.5);
+    -webkit-transform: scale(.5,.5);
+    -o-transform: scale(.5,.5);
+    -moz-transform: scale(.5,.5);
+}
+
+div.status {
+    right: 0em;
+    top: 2.25em;
+    transform: scale(.5,.5);
+    -ms-transform: scale(.5,.5);
+    -webkit-transform: scale(.5,.5);
+    -o-transform: scale(.5,.5);
+    -moz-transform: scale(.5,.5);
 }
 
 section {
-    top: 2em;
+    top: 6em;
+    bottom: 0;
 }
 
-footer {
-    height: 1.5em;    
+.commands {
+    top: 4.9em;
 }
 
-footer h3 {
-    font-size: .75em;
-    line-height: 2em;
-    margin-left: .25em;
-}
-
-footer button {
-    margin-top: 1px;
-}
-
-.login {
-    padding-bottom: 8em;
-}
-
-.login .label {
-    font-size: 1em;
-}
-
-.login input {
-    font-size: 1em;
-    margin-bottom: 1em;
-}
-
-.login .message {
-    font-size: 1em;
-    height: 1em;
-}
-
-.job-list ul {
-    margin: 1em;
+.commands a {
+    font-size: 12px;
+    margin-right: 10px;
 }
 
 .job-list ul li {
-    padding: .25em;
-    font-size: .75em;
+    font-size: 1em;
 }
 
-.inspection-form {
-    margin: 1em;
+.small-icon  {
+    position: relative;
+    top: 6px;
+    transform: scale(.75,.75);
+    -ms-transform: scale(.75,.75);
+    -webkit-transform: scale(.75,.75);
+    -o-transform: scale(.75,.75);
+    -moz-transform: scale(.75,.75);
 }
 
-.inspection-form .field {
-    margin-bottom: 1em;
+.form {
+    border-spacing: 0px 10px;
+    border-collapse: separate;
 }
 
-.inspection-form ul {
-    margin-top: .5em;
-}
-
-.inspection-form select {
+.validation-message {
+    position: relative;
+    top: 4px;
+    left: 4px;
     display: block;
-    margin-top: .5em;
+    margin-right: 12px;
 }
 
-.inspection-form input[type=text] {
-    display: block;
-    margin-top: .5em;
+.modal .header {
+    font-size: 1em;
 }
 
-.inspection-form textarea {
-    margin-top: .5em;
+.form-type {
+    font-size: 1em;
+}
+
+#simplemodal-container {
+    width:250px; 
 }

@@ -58,16 +58,17 @@ section {
     overflow-y: auto;
 }
 
+.commands {
+    top: 4.5em;   
+    position: absolute; 
+}
+
 .commands.left {
-    position: absolute;
     left: 1em;
-    top: 4.5em;
 }
 
 .commands.right {
-    position: absolute;
     right: 1em;
-    top: 4.5em;
 }
 
 .commands a {
@@ -153,7 +154,7 @@ ul.inspections li{
 }
 
 .form {
-    margin: 2em;
+    margin: 1em;
     display: table;
     border-collapse: collapse;
 }
@@ -214,39 +215,6 @@ button.add span {
     font-size: 1.5em;
     top: -14px;
     left: 4px;
-}
-
-.modal {
-    
-    
-}
-
-/* Overlay */
-#simplemodal-overlay {
-    background-color:#000; 
-    cursor:wait;
-}
-
-/* Container */
-#simplemodal-container {
-    width:400px; 
-    color:#bbb; 
-    background-color:#333; 
-    border:4px solid #444;
-    height: auto;
-}
-
-#simplemodal-container a.modalCloseImg {
-    background:url("/Images/x.png") no-repeat; 
-    width:25px; 
-    height:29px; 
-    display:inline; 
-    z-index:3200; 
-    position:absolute; 
-    top:-15px; 
-    right:-16px; 
-    cursor:pointer;
-    color:#ddd;
 }
 
 .form-type {
@@ -331,4 +299,32 @@ button.add span {
 .inspection-list-item {
     font-size: 1.2em;
     margin: 0 0 1em 2em;
+}
+
+/* Overlay */
+#simplemodal-overlay {
+    background-color:#000; 
+    cursor:wait;
+}
+
+/* Container */
+#simplemodal-container {
+    width:400px; 
+    color:#bbb; 
+    background-color:#333; 
+    border:4px solid #444;
+    height: auto;
+}
+
+#simplemodal-container a.modalCloseImg {
+    background:url("/Images/x.png") no-repeat; 
+    width:25px; 
+    height:29px; 
+    display:inline; 
+    z-index:3200; 
+    position:absolute; 
+    top:-15px; 
+    right:-16px; 
+    cursor:pointer;
+    color:#ddd;
 }

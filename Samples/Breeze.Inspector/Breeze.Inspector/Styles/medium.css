@@ -1,39 +1,26 @@
 ﻿.loading {
-    font-size: 4em;
+    font-size: 3em;
 }
 
 header {
-    height: 3em;
+    height: 6em;
 }
 
 header h1 {
-    font-size: 2em;
-    padding-top: .25em;
+    font-size: 3em;
+    padding-top: .125em;
+    padding-bottom: .1em;
 }
 
 header button {
-    top: .25em;
-}
-
-button {
-    font-size: 1em;
-	padding: .5em 1em;
+    top: .125em;
 }
 
 section {
-    top: 3em;
+    top: 6em;
+    bottom: 0;
 }
 
-footer {
-    height: 2em;    
-}
-
-footer h3 {
-    font-size: 1em;
-    line-height: 2em;
-    margin-left: .25em;
-}
-
-footer button {
-    margin-top: 2px;
+.commands a {
+    font-size: 12px;
 }

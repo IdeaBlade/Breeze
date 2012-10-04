@@ -20,17 +20,3 @@ section {
     top: 6em;
     bottom: 0;
 }
-
-footer {
-    height: 2.5em;    
-}
-
-footer h3 {
-    font-size: 1.5em;
-    line-height: 1.75em;
-    margin-left: .5em;
-}
-
-footer button {
-    margin-top: 2px;
-}
