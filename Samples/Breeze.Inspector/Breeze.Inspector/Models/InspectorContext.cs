@@ -119,7 +119,7 @@
 
                 form.Questions.Add(new Question {
                     Type = QuestionType.RadioGroup,
-                    Text = "Does the toilet run for mor than a minute?",
+                    Text = "Does the toilet run for more than a minute?",
                     Options = "Yes|No"
                 });
 

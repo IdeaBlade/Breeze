@@ -4,7 +4,7 @@
         var allProps = [];
 
         for (var prop in entity) {
-            this[prop + "Valid"] = ko.observable(true);
+            this[prop + "Invalid"] = ko.observable(false);
             this[prop + "Error"] = ko.observable(null);
             allProps.push(prop);
         }
@@ -29,7 +29,7 @@
                     current = errors[i];
                     var propertyName = current.property.name;
 
-                    that[propertyName + "Valid"](current.errorMessage == null);
+                    that[propertyName + "Invalid"](current.errorMessage != null);
                     that[propertyName + "Error"](current.errorMessage);
 
                     allProps.push(propertyName);
@@ -41,7 +41,7 @@
                     if (allProps.indexOf(current) == -1) {
                         allProps.push(current);
 
-                        that[current + "Valid"](true);
+                        that[current + "Invalid"](false);
                         that[current + "Error"](null);
                     }
                 }

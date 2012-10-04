@@ -932,7 +932,328 @@ define('enum',["coreFns"], function (core) {
     return Enum;
 
 });
-define('event',["coreFns"], function(core) {
+
+define('assertParam',["coreFns"], function (core) {
+
+    // The %1 parameter 
+    // is required
+    // must be a %2
+    // must be an instance of %2
+    // must be an instance of the %2 enumeration
+    // must have a %2 property
+    // must be an array where each element  
+    // is optional or 
+
+    var Param = function (v, name) {
+        this.v = v;
+        this.name = name;
+        this._fns = [null];
+        this._pending = [];
+    };
+
+    Param.prototype.isObject = function() {
+        return this.isTypeOf("object");
+    };
+
+    Param.prototype.isBoolean = function () {
+        return this.isTypeOf('boolean');
+    };
+
+    Param.prototype.isString = function () {
+        return this.isTypeOf('string');
+    };
+
+    Param.prototype.isNonEmptyString = function() {
+        var result = function(that, v) {
+            if (v == null) return false;
+            return (typeof(v) === 'string') && v.length > 0;
+        };
+        result.getMessage = function() {
+            return core.formatString(" must be a nonEmpty string");
+        };
+        return this.compose(result);
+    };
+
+    Param.prototype.isNumber = function () {
+        return this.isTypeOf('number');
+    };
+
+    Param.prototype.isFunction = function () {
+        return this.isTypeOf('function');
+    };
+
+    Param.prototype.isTypeOf = function (typeName) {
+        var result = function (that, v) {
+            if (v == null) return false;
+            if (typeof (v) === typeName) return true;
+            return false;
+        };
+        result.getMessage = function () {
+            return core.formatString(" must be a '%1'", typeName);
+        };
+        return this.compose(result);
+    };
+
+    Param.prototype.isInstanceOf = function (type, typeName) {
+        var result = function (that, v) {
+            if (v == null) return false;
+            return (v instanceof type);
+        };
+        typeName = typeName || type.prototype._$typeName;
+        result.getMessage = function () {
+            return core.formatString(" must be an instance of '%1'", typeName);
+        };
+        return this.compose(result);
+    };
+
+    Param.prototype.hasProperty = function (propertyName) {
+        var result = function (that, v) {
+            if (v == null) return false;
+            return (v[propertyName] !== undefined);
+        };
+        result.getMessage = function () {
+            return core.formatString(" must have a '%1' property ", propertyName);
+        };
+        return this.compose(result);
+    };
+
+    Param.prototype.isEnumOf = function (enumType) {
+        var result = function (that, v) {
+            if (v == null) false;
+            return enumType.contains(v);
+        };
+        result.getMessage = function () {
+            return core.formatString(" must be an instance of the '%1' enumeration", enumType.name);
+        };
+        return this.compose(result);
+    };
+
+    Param.prototype.isRequired = function () {
+        if (this.fn && !this._or) {
+            return this;
+        } else {
+            var result = function (that, v) {
+                return v != null;
+            };
+            result.getMessage = function () {
+                return " is required";
+            };
+            return this;
+        }
+    };
+
+    Param.prototype.isOptional = function () {
+        if (this._fn) {
+            setFn(this, makeOptional(this._fn));
+        } else {
+            this._pending.push(function (that, fn) {
+                return makeOptional(fn);
+            });
+        }
+        return this;
+    };
+
+    Param.prototype.isNonEmptyArray = function () {
+        return this.isArray(true);
+    };
+
+    Param.prototype.isArray = function (mustBeNonEmpty) {
+        if (this._fn) {
+            setFn(this, makeArray(this._fn, mustBeNonEmpty));
+        } else {
+            setFn(this, makeArray(null, mustBeNonEmpty));
+            this._pending.push(function (that, fn) {
+                return makeArray(fn, mustBeNonEmpty);
+            });
+        }
+        return this;
+    };
+
+    Param.prototype.or = function () {
+        this._fns.push(null);
+        this._fn = null;
+        return this;
+    };
+
+    Param.prototype.getMessage = function () {
+        var msg = this._fns.map(function (fn) {
+            return fn.getMessage();
+        }).join(", or it");
+        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
+    };
+
+    Param.prototype.check = function (defaultValue) {
+        var fn = compile(this);
+        if (!fn) return;
+        if (!fn(this, this.v)) {
+            throw new Error(this.getMessage());
+        }
+        if (this.v !== undefined) {
+            return this.v;
+        } else {
+            return defaultValue;
+        }
+    };
+
+    Param.prototype.checkMsg = function () {
+        var fn = compile(this);
+        if (!fn) return;
+        if (!fn(this, this.v)) {
+            return this.getMessage();
+        }
+    };
+
+    Param.prototype.withDefault = function(defaultValue) {
+        this.defaultValue = defaultValue;
+        return this;
+    };
+    
+    Param.prototype.whereParam = function(propName) {
+        return this.parent.whereParam(propName);
+    };
+
+    Param.prototype.applyAll = function(instance, throwIfUnknownProperty) {
+        throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
+        var clone = core.extend({ }, this.parent.config);
+        this.parent.params.forEach(function(p) {
+            if (throwIfUnknownProperty) delete clone[p.name];
+            p._applyOne(instance, p.defaultValue);
+        });
+        // should be no properties left in the clone
+        if (throwIfUnknownProperty) {
+            for (var key in clone) {
+                throw new Error("Invalid property in config: " + key);
+            }
+        }
+    };
+
+    Param.prototype._applyOne = function (instance, defaultValue) {
+        this.check();
+        if (this.v !== undefined) {
+            instance[this.name] = this.v;
+        } else {
+            if (defaultValue !== undefined) {
+                instance[this.name] = defaultValue;
+            }
+        }
+    };
+
+    Param.prototype.compose = function (fn) {
+
+        if (this._pending.length > 0) {
+            while (this._pending.length > 0) {
+                var pending = this._pending.pop();
+                fn = pending(this, fn);
+            }
+            setFn(this, fn);
+        } else {
+            if (this._fn) {
+                throw new Error("Illegal construction - use 'or' to combine checks");
+            }
+            setFn(this, fn);
+        }
+        return this;
+    };
+
+    Param.prototype.MESSAGE_PREFIX = "The '%1' parameter ";
+
+    var assertParam = function (v, name) {
+        return new Param(v, name);
+    };
+
+    var CompositeParam = function(config) {
+        if (typeof (config) !== "object") {
+            throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
+        }
+        this.config = config;
+        this.params = [];
+    };
+
+    CompositeParam.prototype.whereParam = function(propName) {
+        var param = new Param(this.config[propName], propName);
+        param.parent = this;
+        this.params.push(param);
+        return param;
+    };
+
+    var assertConfig = function(config) {
+        return new CompositeParam(config);
+    };
+
+    // private functions
+
+    function makeOptional(fn) {
+        var result = function (that, v) {
+            if (v == null) return true;
+            return fn(that, v);
+        };
+
+        result.getMessage = function () {
+            return " is optional, or it" + fn.getMessage();
+        };
+        return result;
+    }
+
+    function makeArray(fn, mustNotBeEmpty) {
+        var result = function (that, v) {
+            if (!Array.isArray(v)) {
+                return false;
+            }
+            if (mustNotBeEmpty) {
+                if (v.length === 0) return false;
+            }
+            // allow standalone is array call.
+            if (!fn) return true;
+
+            return v.every(function (v1) {
+                return fn(that, v1);
+            });
+        };
+        result.getMessage = function () {
+            var arrayDescr = mustNotBeEmpty ? "a nonEmpty array" : "an array";
+            var element = fn ? " where each element" + fn.getMessage() : "";
+            return " must be " + arrayDescr + element;
+        };
+        return result;
+    }
+
+
+
+    function setFn(that, fn) {
+        that._fns[that._fns.length - 1] = fn;
+        that._fn = fn;
+    }
+
+    function compile(self) {
+        if (!self._compiledFn) {
+            // clear off last one if null 
+            if (self._fns[self._fns.length - 1] == null) {
+                self._fns.pop();
+            }
+            if (self._fns.length === 0) {
+                return undefined;
+            }
+            self._compiledFn = function (that, v) {
+                return that._fns.some(function (fn) {
+                    return fn(that, v);
+                });
+            };
+        };
+        return self._compiledFn;
+    }
+
+
+    // Param is exposed so that additional 'is' methods can be added to the prototype.
+    return { Param: Param, assertParam: assertParam, assertConfig: assertConfig };
+
+
+
+});
+define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
+    
+    var assertParam = m_assertParam.assertParam;
+    var assertConfig = m_assertParam.assertConfig;
+    
     
 
     /**
@@ -952,12 +1273,15 @@ define('event',["coreFns"], function(core) {
         salaryEvent = new Event("salaryEvent", person);
     @method <ctor> Event
     @param name {String}
+    @param publisher {Object} The object that will be doing the publication. i.e. the object to which this event is attached. 
     @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
 
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
     var Event = function (name, publisher, defaultErrorCallback) {
+        assertParam(name, "eventName").isNonEmptyString();
+        assertParam(publisher, "publisher").isObject();
         this.name = name;
         // register the name
         __eventNameMap[name] = true; 
@@ -1145,6 +1469,9 @@ define('event',["coreFns"], function(core) {
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
+        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction();
         eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
@@ -1163,7 +1490,9 @@ define('event',["coreFns"], function(core) {
     @param target {Object} The object for which we want to know if notifications are enabled. 
     @returns {Boolean?null} A null is returned if this value has not been set.
     **/
-    Event.isEnabled = function(eventName, obj) {
+    Event.isEnabled = function (eventName, obj) {
+        assertParam(eventName, "eventName").isNonEmptyString();
+        assertParam(obj, "obj").isObject();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
@@ -1215,308 +1544,6 @@ define('event',["coreFns"], function(core) {
     return Event;
 });
 
-
-define('assertParam',["coreFns"], function (core) {
-
-    // The %1 parameter 
-    // is required
-    // must be a %2
-    // must be an instance of %2
-    // must be an instance of the %2 enumeration
-    // must have a %2 property
-    // must be an array where each element  
-    // is optional or 
-
-    var Param = function (v, name) {
-        this.v = v;
-        this.name = name;
-        this._fns = [null];
-        this._pending = [];
-    };
-
-    Param.prototype.isBoolean = function () {
-        return this.isTypeOf('boolean');
-    };
-
-    Param.prototype.isString = function () {
-        return this.isTypeOf('string');
-    };
-
-    Param.prototype.isNumber = function () {
-        return this.isTypeOf('number');
-    };
-
-    Param.prototype.isFunction = function () {
-        return this.isTypeOf('function');
-    };
-
-    Param.prototype.isTypeOf = function (typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            if (typeof (v) === typeName) return true;
-            return false;
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be a '%1'", typeName);
-        };
-        return this.compose(result);
-    };
-
-    Param.prototype.isInstanceOf = function (type, typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v instanceof type);
-        };
-        typeName = typeName || type.prototype._$typeName;
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of '%1'", typeName);
-        };
-        return this.compose(result);
-    };
-
-    Param.prototype.hasProperty = function (propertyName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v[propertyName] !== undefined);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must have a '%1' property ", propertyName);
-        };
-        return this.compose(result);
-    };
-
-    Param.prototype.isEnumOf = function (enumType) {
-        var result = function (that, v) {
-            if (v == null) false;
-            return enumType.contains(v);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of the '%1' enumeration", enumType.name);
-        };
-        return this.compose(result);
-    };
-
-    Param.prototype.isRequired = function () {
-        if (this.fn && !this._or) {
-            return this;
-        } else {
-            var result = function (that, v) {
-                return v != null;
-            };
-            result.getMessage = function () {
-                return " is required";
-            };
-            return this;
-        }
-    };
-
-    Param.prototype.isOptional = function () {
-        if (this._fn) {
-            setFn(this, makeOptional(this._fn));
-        } else {
-            this._pending.push(function (that, fn) {
-                return makeOptional(fn);
-            });
-        }
-        return this;
-    };
-
-    Param.prototype.isNonEmptyArray = function () {
-        return this.isArray(true);
-    };
-
-    Param.prototype.isArray = function (mustBeNonEmpty) {
-        if (this._fn) {
-            setFn(this, makeArray(this._fn, mustBeNonEmpty));
-        } else {
-            setFn(this, makeArray(null, mustBeNonEmpty));
-            this._pending.push(function (that, fn) {
-                return makeArray(fn, mustBeNonEmpty)
-            });
-        }
-        return this;
-    };
-
-    Param.prototype.or = function () {
-        this._fns.push(null);
-        this._fn = null;
-        return this;
-    };
-
-    Param.prototype.getMessage = function () {
-        var msg = this._fns.map(function (fn) {
-            return fn.getMessage();
-        }).join(", or it");
-        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
-    };
-
-    Param.prototype.check = function (defaultValue) {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
-            throw new Error(this.getMessage());
-        }
-        if (this.v !== undefined) {
-            return this.v;
-        } else {
-            return defaultValue;
-        }
-    };
-
-    Param.prototype.checkMsg = function () {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
-            return this.getMessage();
-        }
-    };
-
-    Param.prototype.withDefault = function(defaultValue) {
-        this.defaultValue = defaultValue;
-        return this;
-    };
-    
-    Param.prototype.whereParam = function(propName) {
-        return this.parent.whereParam(propName);
-    };
-
-    Param.prototype.applyAll = function(instance, throwIfUnknownProperty) {
-        throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
-        var clone = core.extend({ }, this.parent.config);
-        this.parent.params.forEach(function(p) {
-            if (throwIfUnknownProperty) delete clone[p.name];
-            p._applyOne(instance, p.defaultValue);
-        });
-        // should be no properties left in the clone
-        if (throwIfUnknownProperty) {
-            for (var key in clone) {
-                throw new Error("Invalid property in config: " + key);
-            }
-        }
-    };
-
-    Param.prototype._applyOne = function (instance, defaultValue) {
-        this.check();
-        if (this.v !== undefined) {
-            instance[this.name] = this.v;
-        } else {
-            if (defaultValue !== undefined) {
-                instance[this.name] = defaultValue;
-            }
-        }
-    };
-
-    Param.prototype.compose = function (fn) {
-
-        if (this._pending.length > 0) {
-            while (this._pending.length > 0) {
-                var pending = this._pending.pop();
-                fn = pending(this, fn);
-            }
-            setFn(this, fn);
-        } else {
-            if (this._fn) {
-                throw new Error("Illegal construction - use 'or' to combine checks");
-            }
-            setFn(this, fn);
-        }
-        return this;
-    };
-
-    Param.prototype.MESSAGE_PREFIX = "The '%1' parameter ";
-
-    var assertParam = function (v, name) {
-        return new Param(v, name);
-    };
-
-    var CompositeParam = function(config) {
-        if (typeof (config) !== "object") {
-            throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
-        }
-        this.config = config;
-        this.params = [];
-    };
-
-    CompositeParam.prototype.whereParam = function(propName) {
-        var param = new Param(this.config[propName], propName);
-        param.parent = this;
-        this.params.push(param);
-        return param;
-    };
-
-    var assertConfig = function(config) {
-        return new CompositeParam(config);
-    };
-
-    // private functions
-
-    function makeOptional(fn) {
-        var result = function (that, v) {
-            if (v == null) return true;
-            return fn(that, v);
-        };
-
-        result.getMessage = function () {
-            return " is optional, or it" + fn.getMessage();
-        };
-        return result;
-    }
-
-    function makeArray(fn, mustNotBeEmpty) {
-        var result = function (that, v) {
-            if (!Array.isArray(v)) {
-                return false;
-            }
-            if (mustNotBeEmpty) {
-                if (v.length === 0) return false;
-            }
-            // allow standalone is array call.
-            if (!fn) return true;
-
-            return v.every(function (v1) {
-                return fn(that, v1);
-            });
-        };
-        result.getMessage = function () {
-            var arrayDescr = mustNotBeEmpty ? "a nonEmpty array" : "an array";
-            var element = fn ? " where each element" + fn.getMessage() : "";
-            return " must be " + arrayDescr + element;
-        };
-        return result;
-    }
-
-
-
-    function setFn(that, fn) {
-        that._fns[that._fns.length - 1] = fn;
-        that._fn = fn;
-    }
-
-    function compile(self) {
-        if (!self._compiledFn) {
-            // clear off last one if null 
-            if (self._fns[self._fns.length - 1] == null) {
-                self._fns.pop();
-            }
-            if (self._fns.length === 0) {
-                return undefined;
-            }
-            self._compiledFn = function (that, v) {
-                return that._fns.some(function (fn) {
-                    return fn(that, v);
-                });
-            };
-        };
-        return self._compiledFn;
-    }
-
-
-    // Param is exposed so that additional 'is' methods can be added to the prototype.
-    return { Param: Param, assertParam: assertParam, assertConfig: assertConfig };
-
-
-
-});
 define('core',["coreFns", "enum", "event", "assertParam"],
 function (core, Enum, Event, m_assertParam) {
     
@@ -3362,7 +3389,7 @@ function (core, m_entityAspect) {
             } else {
               
                 // updating a dataProperty
-                if (property.isKeyProperty && entityManager && !entityManager.isLoading) {
+                if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
                     
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
@@ -3408,7 +3435,7 @@ function (core, m_entityAspect) {
                     }
                 }
 
-                if (property.isKeyProperty) {
+                if (property.isPartOfKey) {
                     // propogate pk change to all related entities;
                     if (oldValue && !aspect.entityState.isDetached()) {
                         aspect.primaryKeyWasChanged = true;
@@ -4182,8 +4209,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
-                        var entityType = convertFromODataEntityType(et, schema, that);
-                        entityType.serviceName = serviceName;
+                        var entityType = convertFromODataEntityType(et, schema, that, serviceName);
+
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
                         var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
                         if (entityCtor) {
@@ -4211,11 +4238,15 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return result;
         }
 
-        function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
+        function convertFromODataEntityType(odataEntityType, schema, metadataStore, serviceName) {
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
-            var entityType = new EntityType(metadataStore, shortName, namespace);
-            
+            var entityType = new EntityType({
+                metadataStore: metadataStore,
+                shortName: shortName,
+                namespace: namespace,
+                serviceName: serviceName
+            });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
                 convertFromOdataDataProperty(entityType, prop, keyNamesOnServer);
@@ -4233,19 +4264,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var dataType = DataType.toDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+            var isPartOfKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;
             if (entityType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
                 if (isIdentityProperty(odataProperty)) {
                     entityType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
                 }
             }
+            var maxLength = odataProperty.maxLength;
+            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 dataType: dataType,
                 isNullable: isNullable,
-                isKeyProperty: isKey,
-                maxLength: odataProperty.maxLength,
+                isPartOfKey: isPartOfKey,
+                maxLength: maxLength,
                 fixedLength: fixedLength,
                 concurrencyMode: odataProperty.concurrencyMode
             });
@@ -4263,8 +4296,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 dataProperty.validators.push(Validator.required());
             }
             if (dataProperty.dataType === DataType.String) {
-                if (dataProperty.maxLength && dataProperty.maxLength != "Max") {
-                    var validatorArgs = { maxLength: parseInt(dataProperty.maxLength) };
+                if (dataProperty.maxLength) {
+                    var validatorArgs = { maxLength: dataProperty.maxLength };
                     typeValidator = Validator.maxLength(validatorArgs);
                 } else {
                     typeValidator = Validator.string();
@@ -4375,19 +4408,58 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var EntityType = (function () {
         /**
         Container for all of the metadata about a specific type of Entity.
-        Constructor is for internal use only.
         @class EntityType
         **/
         var __nextAnonIx = 0;
         
-        var ctor = function (metadataStore, shortName, namespace) {
-            this.metadataStore = metadataStore;
-            this.shortName = shortName || "Anon_" + ++__nextAnonIx;
-            this.namespace = namespace || "";
+
+        /** 
+        @example                    
+            var entityManager = new EntityType( {
+                metadataStore: myMetadataStore,
+                serviceName: "api/NorthwindIBModel",
+                name: "person",
+                namespace: "myAppNamespace"
+             });
+        @method <ctor> EntityType
+        @param config {Object|MetadataStore} Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore
+        then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for
+        client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.
+        @param config.metadataStore  {MetadataStore} The MetadataStore that will contain this EntityType.
+        @param config.serviceName {String} 
+        @param config.shortName {String}
+        @param [config.namespace=""] {String}
+        @param [config.defaultResourceName] {String}
+        **/
+        var ctor = function (config) {
+            if (arguments.length > 1) {
+                throw new Error("The EntityType ctor has a single argument that is either a 'MetadataStore' or a configuration object.");
+            }
+            if  (config._$typeName === "MetadataStore") {
+                this.metadataStore = config;
+                this.shortName = "Anon_" + ++__nextAnonIx;
+                this.namespace = "";
+                this.serviceName = null;
+            } else {
+                assertConfig(config)
+                    .whereParam("metadataStore").isInstanceOf(MetadataStore)
+                    .whereParam("shortName").isNonEmptyString()
+                    .whereParam("namespace").isString().isOptional().withDefault("")
+                    .whereParam("serviceName").isString()
+                    .whereParam("defaultResourceName").isNonEmptyString().isOptional().withDefault(null)
+                    .applyAll(this);
+                if (this.serviceName.substr(-1) !== "/") {
+                    this.serviceName = this.serviceName + '/';
+                }
+            }
+
             this.name = this.shortName + ":#" + this.namespace;
-            this.defaultResourceName = null; // will be set up either via metadata lookup or first query or via registerEntityTypeResourceName;
+            
+            // the defaultResourceName may also be set up either via metadata lookup or first query or via the 'setProperties' method
+
+            var metadataStore = this.metadataStore;
             // don't register anon types
-            if (shortName) {
+            if (this.serviceName) {
                 metadataStore._registerEntityType(this);
             }
             var incompleteMap = metadataStore._incompleteTypeMap[this.name];
@@ -4395,7 +4467,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (incompleteMap) {
                 core.objectForEach(incompleteMap, function (key, value) {
                     value.entityType = that;
-                    // I think this is allowed per the spec.
+                    // I think this is allowed per the spec. i.e. within an outer loop
                     delete incompleteMap[key];
                 });
                 if (core.isEmpty(incompleteMap)) {
@@ -4411,104 +4483,104 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this.autoGeneratedKeyType = AutoGeneratedKeyType.None;
             this.validators = [];
             
-            /**
-           The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
-
-           __readOnly__
-           @property metadataStore {MetadataStore}
-           **/
-            
-            /**
-            The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this EntityType.
-
-            __readOnly__
-            @property dataProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The NavigationProperties  (see {{#crossLink "NavigationProperty"}}{{/crossLink}}) associated with this EntityType.
-
-            __readOnly__
-            @property navigationProperties {Array of NavigationProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that make up it's {{#crossLink "EntityKey"}}{{/crossLink}}.
-
-            __readOnly__
-            @property keyProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that are foreign key properties.
-
-            __readOnly__
-            @property foreignKeyProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The DataProperties associated with this EntityType that are concurrency properties.
-
-            __readOnly__
-            @property concurrencyProperties {Array of DataProperty} 
-            **/
-
-            /**
-            The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing
-            properties.
-
-            __readOnly__
-            @property unmappedProperties {Array of DataProperty} 
-            **/
-            
-            /**
-            The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one 
-            is used as the default when no resource name is provided.  This will occur when calling {{#crossLink "EntityAspect/loadNavigationProperty"}}{{/crossLink}}
-            or when executing any {{#crossLink "EntityQuery"}}{{/crossLink}} that was created via an {{#crossLink "EntityKey"}}{{/crossLink}}.
-
-            __readOnly__
-            @property defaultResourceName {String} 
-            **/
-
-            /**
-            The fully qualifed name of this EntityType.
-
-            __readOnly__
-            @property name {String} 
-            **/
-
-            /**
-            The short, unqualified, name for this EntityType.
-
-            __readOnly__
-            @property shortName {String} 
-            **/
-
-            /**
-            The namespace for this EntityType.
-
-            __readOnly__
-            @property namespace {String} 
-            **/
-
-            /**
-            The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
-            
-            __readOnly__
-            @property autoGeneratedKeyType {AutoGeneratedKeyType} 
-            @default AutoGeneratedKeyType.None
-            **/
-
-            /**
-            The entity level validators associated with this EntityType. Validators can be added and
-            removed from this collection.
-
-            __readOnly__
-            @property validators {Array of Validator} 
-            **/
-            
-            
         };
+        
+        /**
+        The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
+
+        __readOnly__
+        @property metadataStore {MetadataStore}
+        **/
+            
+        /**
+        The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this EntityType.
+
+        __readOnly__
+        @property dataProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The NavigationProperties  (see {{#crossLink "NavigationProperty"}}{{/crossLink}}) associated with this EntityType.
+
+        __readOnly__
+        @property navigationProperties {Array of NavigationProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that make up it's {{#crossLink "EntityKey"}}{{/crossLink}}.
+
+        __readOnly__
+        @property keyProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that are foreign key properties.
+
+        __readOnly__
+        @property foreignKeyProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The DataProperties associated with this EntityType that are concurrency properties.
+
+        __readOnly__
+        @property concurrencyProperties {Array of DataProperty} 
+        **/
+
+        /**
+        The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing
+        properties.
+
+        __readOnly__
+        @property unmappedProperties {Array of DataProperty} 
+        **/
+            
+        /**
+        The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one 
+        is used as the default when no resource name is provided.  This will occur when calling {{#crossLink "EntityAspect/loadNavigationProperty"}}{{/crossLink}}
+        or when executing any {{#crossLink "EntityQuery"}}{{/crossLink}} that was created via an {{#crossLink "EntityKey"}}{{/crossLink}}.
+
+        __readOnly__
+        @property defaultResourceName {String} 
+        **/
+
+        /**
+        The fully qualifed name of this EntityType.
+
+        __readOnly__
+        @property name {String} 
+        **/
+
+        /**
+        The short, unqualified, name for this EntityType.
+
+        __readOnly__
+        @property shortName {String} 
+        **/
+
+        /**
+        The namespace for this EntityType.
+
+        __readOnly__
+        @property namespace {String} 
+        **/
+
+        /**
+        The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
+        
+        __readOnly__
+        @property autoGeneratedKeyType {AutoGeneratedKeyType} 
+        @default AutoGeneratedKeyType.None
+        **/
+
+        /**
+        The entity level validators associated with this EntityType. Validators can be added and
+        removed from this collection.
+
+        __readOnly__
+        @property validators {Array of Validator} 
+        **/
+            
 
         ctor.prototype._$typeName = "EntityType";
 
@@ -4536,6 +4608,16 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
         };
 
+        /**
+        Adds a  {{#crossLink "DataProperty"}}{{/crossLink}} or a {{#crossLink "NavigationProperty"}}{{/crossLink}} to this EntityType.
+        @example
+            // assume myEntityType is a newly constructed EntityType. 
+            myEntityType.addProperty(dataProperty1);
+            myEntityType.addProperty(dataProperty2);
+            myEntityType.addProperty(navigationProperty1);
+        @method addProperty
+        @param property {DataProperty|NavigationProperty}
+        **/
         ctor.prototype.addProperty = function (property) {
             assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
             if (this._$initialized && !property.isUnmapped) {
@@ -4758,6 +4840,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 name: this.name,
                 shortName: this.shortName,
                 namespace: this.namespace,
+                serviceName: this.serviceName,
                 defaultResourceName: this.defaultResourceName,
                 dataProperties: this.dataProperties,
                 navigationProperties: this.navigationProperties,
@@ -4770,7 +4853,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.fromJSON = function (json, metadataStore) {
             var et = metadataStore.getEntityType(json.name, true);
             if (et) return et;
-            et = new EntityType(metadataStore, json.shortName, json.namespace);
+            et = new EntityType({
+                metadataStore: metadataStore,
+                shortName: json.shortName,
+                namespace: json.namespace,
+                serviceName: json.serviceName
+            });
+                
             json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
             json.validators = json.validators.map(function (v) {
                 return Validator.fromJSON(v);
@@ -4882,9 +4971,35 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         A DataProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that contains simple data. 
 
-        Instances of the DataProperty class are constructed automatically during Metadata retrieval.  It should almost never
-        be necessary to create one directly.        
+        Instances of the DataProperty class are constructed automatically during Metadata retrieval. However it is also possible to construct them
+        directly via the constructor.
         @class DataProperty
+        **/
+        
+        /** 
+        @example                    
+            var lastNameProp = new DataProperty( {
+                name: "lastName",
+                dataType: DataType.String,
+                isNullable: true,
+                maxLength: 20
+            });
+            // assuming personEntityType is a newly constructed EntityType
+            personEntityType.addProperty(lastNameProperty);
+        @method <ctor> DataProperty
+        @param config {configuration Object} 
+        @param [config.name] {String}  The name of this property. 
+        @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
+        Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param [config.dataType=DataType.String] {DataType}
+        @param [config.isNullable=false] {Boolean}
+        @param [config.isPartOfKey=false] {Boolean}
+        @param [config.isUnmapped=false] {Boolean}
+        @param [config.concurrencyMode] {String}
+        @param [config.maxLength] {Integer} Only meaningfull for DataType.String
+        @param [config.fixedLength] {Boolean} Only meaningfull for DataType.String
+        @param [config.validators] {Array of Validator}
         **/
         var ctor = function(config) {
             assertConfig(config)
@@ -4893,10 +5008,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("dataType").isEnumOf(DataType).isOptional().withDefault(DataType.String)
                 .whereParam("isNullable").isBoolean().isOptional().withDefault(false)
                 .whereParam("defaultValue").isOptional()
-                .whereParam("isKeyProperty").isBoolean().isOptional()
+                .whereParam("isPartOfKey").isBoolean().isOptional()
                 .whereParam("isUnmapped").isBoolean().isOptional()
                 .whereParam("concurrencyMode").isString().isOptional()
-                .whereParam("maxLength").isString().isOptional()
+                .whereParam("maxLength").isNumber().isOptional()
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
@@ -4924,7 +5039,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             parentEntityType.dataProperties.push(this);
             
-            if (this.isKeyProperty) {
+            if (this.isPartOfKey) {
                 parentEntityType.keyProperties.push(this);
             };
             
@@ -4977,7 +5092,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         Whether this property is a 'key' property. 
 
         __readOnly__
-        @property isKeyProperty {Boolean}
+        @property isPartOfKey {Boolean}
         **/
 
         /**
@@ -5044,7 +5159,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 fixedLength: this.fixedLength,
                 defaultValue: this.defaultValue,
                 validators: this.validators,
-                isKeyProperty: this.isKeyProperty
+                isPartOfKey: this.isPartOfKey
             };
         };
 
@@ -5067,9 +5182,44 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         A NavigationProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that return instances of other EntityTypes. 
     
-        Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.  It should almost never
-        be necessary to create one directly.
+        Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them
+        directly via the constructor.
         @class NavigationProperty
+        **/
+        
+        /** 
+        @example                    
+            var homeAddressProp = new NavigationProperty( {
+                name: "homeAddress",
+                entityTypeName: "Address:#myNamespace",
+                isScalar: true,
+                associationName: "address_person",
+                foreignKeyNames: ["homeAddressId"]
+            });
+            var homeAddressIdProp = new DataProperty( {
+                name: "homeAddressId"
+                dataType: DataType.Integer,
+            });
+            // assuming personEntityType is a newly constructed EntityType
+            personEntityType.addProperty(homeAddressProp);
+            personEntityType.addProperty(homeAddressIdProp);
+        @method <ctor> NavigationProperty
+        @param config {configuration Object} 
+        @param [config.name] {String}  The name of this property.
+        @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
+        Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
+        need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
+        The entityType name is constructed as: {shortName} + ":#" + {namespace}
+        @param [config.isScalar] {Boolean}
+        @param [config.associationName] {String} A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.
+        @param [config.foreignKeyNames] {Array of String} An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
+        Most of the time this will be a single foreignKeyName in an array.
+        @param [config.foreignKeyNamesOnServer] {Array of String} Same as above but the names are those defined on the server. Either this or 'foreignKeyNames' must
+        be specified, if there are foreignKeys. Whichever one is specified the other will be computed using
+        the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+        @param [config.validators] {Array of Validator}
         **/
         var ctor = function(config) {
             assertConfig(config)
@@ -5987,6 +6137,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             
         failureFunction([error])
           @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+          @param [errorCallback.error.query] The query that caused the error.
           @return Promise
         **/
         
@@ -10119,7 +10270,12 @@ function (core, m_entityAspect, m_entityQuery) {
 
     var Event = core.Event;
 
-
+    /**
+    Relation arrays are not actually classes, they are objects that mimic arrays.  The 'arrays' contain collections of entities all associated
+    with a navigation property on a single entity. The basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class [relation Array]
+    **/
     relationArrayMixin.push = function () {
         if (this._inProgress) {
             return -1;
@@ -10134,6 +10290,7 @@ function (core, m_entityAspect, m_entityQuery) {
         return result;
     };
 
+    
     relationArrayMixin.unshift = function () {
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
         if (!goodAdds.length) {
@@ -10170,6 +10327,17 @@ function (core, m_entityAspect, m_entityQuery) {
         return result;
     };
 
+    /**
+    Performs an asynchronous load of all other the entities associated with this relationArray.
+    @example
+        // assume orders is an empty, as yet unpopulated, relation array of orders
+        // associated with a specific customer.
+        orders.load().then(...)
+    @method load
+    @param [callback] {Function} 
+    @param [errorCallback] {Function}
+    @return {Promise} 
+    **/
     relationArrayMixin.load = function (callback, errorCallback) {
         var parent = this.parentEntity;
         var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
@@ -10662,7 +10830,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.61",
+        version: "0.62",
         core: core,
         entityModel: entityModel
     };
