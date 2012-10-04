@@ -1,0 +1,100 @@
+﻿(function (root) {
+    var app = root.app;
+    var logger = app.logger;
+
+    // define Breeze namespaces
+    var core = breeze.core,
+        entityModel = breeze.entityModel;
+
+    // configure Breeze for Knockout and Web API 
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
+
+    // service name is route to our Web API controller
+    var serviceName = 'api/breezydevices';
+
+    // manager is the service gateway and cache holder
+    var manager = new entityModel.EntityManager(serviceName);
+
+    // add members to the dataservice
+    var dataservice = {
+        getAllPersons: getAllPersons,
+        saveChanges: saveChanges,
+        loadDevices: loadDevicesIfNecessary,
+        reset: reset
+    };
+
+    // extend the app with this dataservice
+    app.dataservice = dataservice;
+
+    /* Private functions */
+
+    // gets all Persons asynchronously
+    // returning a promise you can wait for     
+    function getAllPersons(peopleArray) {
+        var query = new entityModel.EntityQuery()
+                .from("People")
+                //.expand("Devices")
+                .orderBy("FirstName, LastName");
+
+        logger.info("querying for all persons");
+        return manager
+            .executeQuery(query)
+            .then(function (data) {
+                processResults(data, peopleArray);
+            })
+            .fail(queryFailed);
+    };
+
+    // clears observable array and loads the person results 
+    function processResults(data, peopleArray) {
+        var persons = data.results;
+        logger.success("queried all persons");
+        peopleArray.removeAll();
+        persons.forEach(function (person) {
+            peopleArray.push(person);
+        });
+    }
+
+    function saveChanges() {
+        manager.saveChanges();
+        logger.success("changes saved");
+    }
+
+    // load the devices for this person 
+    // if haven't already done so
+    // 'areDevicesLoaded' is not in person; we just added it.
+    function loadDevicesIfNecessary(person) {
+        if (!person || person.areDevicesLoaded) { return; }
+        person.entityAspect.loadNavigationProperty("Devices")
+            .then(function () {
+                logger.success("loaded devices for " + person.FirstName());
+                person.areDevicesLoaded = true;
+            })
+            .fail(loadDevicesFailed);
+    }
+
+    function queryFailed(error) {
+        logger.error("Query failed: " + error.message);
+    }
+
+    function loadDevicesFailed(error) {
+        logger.error("Load Devices failed: " + error.message);
+    }
+
+
+    // reset the database to original state
+    // in case we polluted the data while playing around.
+    // Shows we can call the Web API directly 
+    // without going through Breeze.
+    function reset(callback) {
+        manager.clear();
+        $.post(serviceName + '/reset', function () {
+            logger.success("database reset.");
+            if (callback) callback();
+        });
+    }
+
+}(window));
