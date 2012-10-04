@@ -1,4 +1,5 @@
 ﻿namespace Breeze.Learn {
+    using System;
     using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
@@ -11,6 +12,10 @@
 
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+
+        protected void Session_Start(Object sender, EventArgs e) {
+            Session["init"] = 0; //need to access session in order to get a consistent session id
         }
     }
 }
