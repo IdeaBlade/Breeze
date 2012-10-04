@@ -28,10 +28,12 @@
     };
 
     learn.run = function() {
-        //create iframe
-        //write body and script
-        //write html
-        //add iframe to page
+        var frame = document.getElementById("output");
+
+        var html = "<html><body><h1>Hello World</h1></body></html>"; //assembly the html and js here
+        var encodedHtml = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+
+        frame.src = encodedHtml;
     };
 
     learn.selectTutorial = function() {
