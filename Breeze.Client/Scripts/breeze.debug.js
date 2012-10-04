@@ -10270,7 +10270,12 @@ function (core, m_entityAspect, m_entityQuery) {
 
     var Event = core.Event;
 
-
+    /**
+    Relation arrays are not actually classes, they are objects that mimic arrays.  The 'arrays' contain collections of entities all associated
+    with a navigation property on a single entity. The basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class [relation Array]
+    **/
     relationArrayMixin.push = function () {
         if (this._inProgress) {
             return -1;
@@ -10285,6 +10290,7 @@ function (core, m_entityAspect, m_entityQuery) {
         return result;
     };
 
+    
     relationArrayMixin.unshift = function () {
         var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
         if (!goodAdds.length) {
@@ -10321,6 +10327,17 @@ function (core, m_entityAspect, m_entityQuery) {
         return result;
     };
 
+    /**
+    Performs an asynchronous load of all other the entities associated with this relationArray.
+    @example
+        // assume orders is an empty, as yet unpopulated, relation array of orders
+        // associated with a specific customer.
+        orders.load().then(...)
+    @method load
+    @param [callback] {Function} 
+    @param [errorCallback] {Function}
+    @return {Promise} 
+    **/
     relationArrayMixin.load = function (callback, errorCallback) {
         var parent = this.parentEntity;
         var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);

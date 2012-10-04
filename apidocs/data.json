@@ -131,6 +131,15 @@
             "fors": {},
             "namespaces": {}
         },
+        "relationArray.js": {
+            "name": "relationArray.js",
+            "modules": {},
+            "classes": {
+                "[relation Array]": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
         "validate.js": {
             "name": "validate.js",
             "modules": {},
@@ -186,6 +195,7 @@
                 "Predicate": 1,
                 "~entityTracking-interface": 1,
                 "~keyGenerator-interface": 1,
+                "[relation Array]": 1,
                 "Validator": 1,
                 "ValidationError": 1
             },
@@ -570,6 +580,20 @@
             "file": "keyGeneratorInterface.js",
             "line": 5,
             "description": "This is an interface description. Any class that implements the methods and properties defined here is considered a valid\nimplementation of this interface.\n\nEach EntityManager can have a single KeyGenerator implementation that it will use to manage the generation of all 'temporary' keys.\n\nA KeyGenerator implementation is assigned to an EntityManager via the {{#crossLink \"EntityManager/setProperties\"}}{{/crossLink}} \nmethod with a config parameter of 'keyGeneratorCtor'. \n\n    MyKeyGenerator = function() { \n        // your code here\n    }\n    MyKeyGenerator.prototype.generateTempKeyValue = function(entityType) {\n        // your implementation here.\n    }\n    em.setProperties( {keyGeneratorCtor: MyKeyGenerator });\nThe assigned KeyGenerator is then called whenever the \nEntityManager.generateTempKeyValue method is called.  The EntityManager internally keeps track of all of the generated keys\nand handles all of the mapping of these temporary keys to real keys after any save.  \n\nThe KeyGenerator implementation only needs to do one thing.  Return a unique key value of the correct datatype for each \ncall to the generateTempKeyValue method.  Note, that KeyGeneration is NOT supported for multipart keys.  \n\nIf no KeyGenerator is supplied, a default KeyGenerator will be automatically provided."
+        },
+        "[relation Array]": {
+            "name": "[relation Array]",
+            "shortname": "[relation Array]",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "entityModel",
+            "namespace": "",
+            "file": "relationArray.js",
+            "line": 12,
+            "description": "Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of \nentities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.\nThis collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'\nare all provided as well as several special purpose methods."
         },
         "Validator": {
             "name": "Validator",
@@ -5368,6 +5392,61 @@
                 }
             ],
             "class": "~keyGenerator-interface",
+            "module": "entityModel"
+        },
+        {
+            "file": "relationArray.js",
+            "line": 20,
+            "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event\nis fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.\nAdds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual\ncollections are collected into a single notification event for each relation array.",
+            "example": [
+                "\n    // assume order is an order entity attached to an EntityManager.\n    orders.arrayChanged.subscribe(\n        function (arrayChangedArgs) {\n            var addedEntities = arrayChangedArgs.added;\n            var removedEntities = arrayChanged.removed;\n        });"
+            ],
+            "itemtype": "event",
+            "name": "arrayChanged",
+            "params": [
+                {
+                    "name": "added",
+                    "description": "An array of all of the entities added to this collection.",
+                    "type": "Array of Entity"
+                },
+                {
+                    "name": "removed",
+                    "description": "An array of all of the removed from this collection.",
+                    "type": "Array of Entity"
+                }
+            ],
+            "readonly": "",
+            "class": "[relation Array]",
+            "module": "entityModel"
+        },
+        {
+            "file": "relationArray.js",
+            "line": 89,
+            "description": "Performs an asynchronous load of all other the entities associated with this relationArray.",
+            "example": [
+                "\n    // assume orders is an empty, as yet unpopulated, relation array of orders\n    // associated with a specific customer.\n    orders.load().then(...)"
+            ],
+            "itemtype": "method",
+            "name": "load",
+            "params": [
+                {
+                    "name": "callback",
+                    "description": "",
+                    "type": "Function",
+                    "optional": true
+                },
+                {
+                    "name": "errorCallback",
+                    "description": "",
+                    "type": "Function",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "class": "[relation Array]",
             "module": "entityModel"
         },
         {

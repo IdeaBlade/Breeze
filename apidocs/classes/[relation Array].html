@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>QueryOptions - The Breeze API</title>
+    <title>[relation Array] - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -167,7 +167,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>QueryOptions Class</h1>
+                        <h1>[relation Array] Class</h1>
 <div class="box meta">
     
 
@@ -175,7 +175,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l2018"><code>entityManager.js:2018</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;relationArray.js.html#l12"><code>relationArray.js:12</code></a>
         </div>
     
 
@@ -191,7 +191,10 @@
 
 
 <div class="box intro">
-    <p>A QueryOptions instance is used to specify the 'options' under which a query will occur.</p>
+    <p>Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
+entities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.
+This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+are all provided as well as several special purpose methods.</p>
 </div>
 
 
@@ -204,9 +207,9 @@
             <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
         
         
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
         
         
+            <li class="api-class-tab events"><a href="#events">Events</a></li>
         
     </ul>
 
@@ -221,54 +224,7 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
-                                <a href="#method_&lt;ctor&gt; QueryOptions">&lt;ctor&gt; QueryOptions</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
-                                <a href="#method_setAsDefault">setAsDefault</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
-                                <a href="#method_using">using</a>
-
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
-
-            
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_defaultInstance">defaultInstance</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_fetchStrategy">fetchStrategy</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_mergeStrategy">mergeStrategy</a>
+                                <a href="#method_load">load</a>
 
                                 
                                 
@@ -280,6 +236,23 @@
 
             
 
+            
+
+            
+                <div class="index-section events">
+                    <h3>Events</h3>
+
+                    <ul class="index-list events">
+                        
+                            <li class="index-item event">
+                                <a href="#event_arrayChanged">arrayChanged</a>
+
+                                
+                                
+                            </li>
+                        
+                    </ul>
+                </div>
             
         </div>
 
@@ -288,8 +261,8 @@
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_&lt;ctor&gt; QueryOptions" class="method item">
-    <h3 class="name"><code>&lt;ctor&gt; QueryOptions</code></h3>
+                    <div id="method_load" class="method item">
+    <h3 class="name"><code>load</code></h3>
 
     
         <div class="args">
@@ -297,204 +270,13 @@
             
                 <li class="arg">
                     
-                        <code class="optional">[config]</code>
+                        <code class="optional">[callback]</code>
                     
                 </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2024"><code>entityManager.js:2024</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>QueryOptions constructor</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[config]</code>
-                        <span class="type">Object</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                         
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[fetchStrategy=FetchStrategy.FromServer]</code>
-                                    <span class="type"><a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[mergeStrategy=MergeStrategy.PreserveChanges]</code>
-                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-// assume em1 is a preexisting EntityManager
-em1.setProperties( { queryOptions: newQo });
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_setAsDefault" class="method item">
-    <h3 class="name"><code>setAsDefault</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2090"><code>entityManager.js:2090</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Makes this instance the default instance.</p>
-    </div>
-
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-newQo.setAsDefault();
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_using" class="method item">
-    <h3 class="name"><code>using</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
             
                 <li class="arg">
                     
-                        <code>config</code>
+                        <code class="optional">[errorCallback]</code>
                     
                 </li>
             
@@ -504,7 +286,7 @@ newQo.setAsDefault();
 
     
         <span class="returns-inline">
-            <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>
+            <span class="type">Promise</span>
         </span>
     
 
@@ -517,8 +299,6 @@ newQo.setAsDefault();
     
 
     
-        <span class="flag chainable">chainable</span>
-    
 
     
 
@@ -533,7 +313,7 @@ newQo.setAsDefault();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2064"><code>entityManager.js:2064</code></a>
+        <a href="..&#x2F;files&#x2F;relationArray.js.html#l89"><code>relationArray.js:89</code></a>
         
         </p>
 
@@ -544,8 +324,7 @@ newQo.setAsDefault();
     </div>
 
     <div class="description">
-        <p>Returns a copy of this QueryOptions with the specified <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> 
-or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> applied.</p>
+        <p>Performs an asynchronous load of all other the entities associated with this relationArray.</p>
     </div>
 
     
@@ -556,14 +335,31 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             
                 <li class="param">
                     
-                        <code class="param-name">config</code>
-                        <span class="type">Configuration Object | <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> | <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
+                        <code class="param-name optional">[callback]</code>
+                        <span class="type">Function</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>The object to apply to create a new QueryOptions.</p>
+                         
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[errorCallback]</code>
+                        <span class="type">Function</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
                     </div>
 
                     
@@ -580,7 +376,7 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             <div class="returns-description">
                 
                     
-                        <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>:
+                        <span class="type">Promise</span>:
                     
                 
             </div>
@@ -592,13 +388,9 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);
-</code></pre>
-
-<p>or</p><pre class="code"><code class="prettyprint">var queryOptions = em1.defaultQueryOptions.using(FetchStrategy.FromLocalCache);
-</code></pre>
-
-<p>or</p><pre class="code"><code class="prettyprint">var queryOptions = em1.defaultQueryOptions.using( { mergeStrategy: OverwriteChanges });
+                <pre class="code"><code class="prettyprint">// assume orders is an empty, as yet unpopulated, relation array of orders
+// associated with a specific customer.
+orders.load().then(...)
 </code></pre>
             </div>
         </div>
@@ -610,59 +402,17 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
         
 
         
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
+
+        
+
+        
+            <div id="events" class="api-class-tabpanel">
+                <h2 class="off-left">Events</h2>
 
                 
-                    <div id="property_defaultInstance" class="property item">
-    <h3 class="name"><code>defaultInstance</code></h3>
-    <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2057"><code>entityManager.js:2057</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The default value whenever QueryOptions are not specified.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_fetchStrategy" class="property item">
-    <h3 class="name"><code>fetchStrategy</code></h3>
-    <span class="type"><a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
+                    <div id="event_arrayChanged" class="events item">
+    <h3 class="name"><code>arrayChanged</code></h3>
+    <span class="type"></span>
 
     
 
@@ -683,7 +433,7 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2043"><code>entityManager.js:2043</code></a>
+        <a href="..&#x2F;files&#x2F;relationArray.js.html#l20"><code>relationArray.js:20</code></a>
         
         </p>
 
@@ -693,68 +443,72 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
     </div>
 
     <div class="description">
-        <p>A <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a>
-<strong>readOnly</strong></p>
+        <p>An <a href="..\classes\Event.html" class="crosslink">Event</a> that fires whenever the contents of this array changed.  This event
+is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+collections are collected into a single notification event for each relation array.</p>
     </div>
 
     
+        <div class="params">
+            <h4>Event Payload:</h4>
 
-    
-
-    
-</div>
-
-                
-                    <div id="property_mergeStrategy" class="property item">
-    <h3 class="name"><code>mergeStrategy</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
+            <ul class="params-list">
             
-                
-                <p>
-                
-                Defined in
-                
+                <li class="param">
+                    
+                        <code class="param-name">added</code>
+                        <span class="type">Array of Entity</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array of all of the entities added to this collection.</p>
+                    </div>
+
+                    
+                </li>
             
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2049"><code>entityManager.js:2049</code></a>
-        
-        </p>
+                <li class="param">
+                    
+                        <code class="param-name">removed</code>
+                        <span class="type">Array of Entity</span>
+                    
 
-        
+                    
 
-        
-    </div>
+                    <div class="param-description">
+                        <p>An array of all of the removed from this collection.</p>
+                    </div>
 
-    <div class="description">
-        <p>A <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a>
-<strong>readOnly</strong></p>
-    </div>
-
+                    
+                </li>
+            
+            </ul>
+        </div>
     
 
-    
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+orders.arrayChanged.subscribe(
+    function (arrayChangedArgs) {
+        var addedEntities = arrayChangedArgs.added;
+        var removedEntities = arrayChanged.removed;
+    });
+</code></pre>
+            </div>
+        </div>
     
 </div>
 
                 
             </div>
-        
-
-        
-
         
     </div>
 </div>
