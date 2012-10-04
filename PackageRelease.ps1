@@ -49,9 +49,9 @@ checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 # erases all files in any bin,obj and resharper folders below $srcDir and any .suo files
-get-childItem $srcDir\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
-get-childItem $srcDir\ -include *_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
-get-childItem $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname -Force }
+gci $srcDir\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+gci $srcDir\ -include *_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname -Force }
 
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
@@ -70,8 +70,13 @@ sz a -tzip "$zipFile" "$destDir\*"
 #create basic plus... release folder structure and zip it
 copy-item $srcDir\DocCode $destDir\DocCode -recurse
 gci $destDir\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
+
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
 gci $destDir\Samples\Todo -include *.sdf -recurse -force | remove-Item -recurse -force
+
+copy-item $srcDir\Samples\BreezyDevices $destDir\Samples\BreezyDevices -recurse
+gci $destDir\Samples\BreezyDevices -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
+
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = $srcDir+"\breeze-runtime-plus-$versionNum.zip"
 if (test-path $zipFile) {
