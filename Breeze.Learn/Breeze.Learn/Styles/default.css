@@ -273,3 +273,11 @@
 .step-status {
     text-align: center;
 }
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
