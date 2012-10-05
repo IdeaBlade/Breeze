@@ -161,7 +161,7 @@
     <Content Include="Scripts\lib\knockout-2.1.0.debug.js" />
     <Content Include="Scripts\lib\knockout-2.1.0.js" />
     <Content Include="Scripts\lib\modernizr-2.6.2.js" />
-    <Content Include="Scripts\peopleVm.js" />
+    <Content Include="Scripts\peopleViewModel.js" />
     <Content Include="Scripts\lib\q.js" />
     <Content Include="Scripts\lib\require.debug.js" />
     <Content Include="Scripts\lib\require.js" />
