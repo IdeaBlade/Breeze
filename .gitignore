@@ -23,3 +23,12 @@ _Internal/Sample_WebApi/Scripts/
 _Internal/Sample_OData/Scripts/
 /Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
 GetFtpCredential.ps1
+Breeze*.nupkg
+Nuget.builds/BreezeForMVC4/content/Scripts/breeze.debug.js
+Nuget.builds/BreezeForMVC4/content/Scripts/breeze.js
+Nuget.builds/BreezeForMVC4/content/Scripts/q.js
+Nuget.builds/BreezeForMVC4/content/Scripts/q.min.js
+Nuget.builds/BreezeForMVC4/lib/Breeze.WebApi.dll
+Nuget.builds/BreezeForMVC4/lib/Irony.dll
+
+
