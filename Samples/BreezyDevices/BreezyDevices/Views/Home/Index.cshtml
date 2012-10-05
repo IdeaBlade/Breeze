@@ -16,39 +16,40 @@
 </head>
 <body>
     <div id="applicationHost">
-      <header>
-        <h1>Breezy Devices</h1> 
-           
-      </header>
-    <section id="content" class="view">     
-    <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
+        <header>
+            <h1>Breezy Devices</h1>           
+        </header>
+ 
+        <!-- Section with client-generated content and bindings -->            
+        <section id="content" class="view">
+            <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
       
-         <ul data-bind="foreach: people">
-          <li class="person" >
+            <ul data-bind="foreach: people">
+                <li class="person" >
                  
-              <form>
-                  <label for="fn">First: </label>
-                  <input id="fn" type="text" data-bind="value: FirstName" placeholder="first"/>
-                  <label for="ln">Last: </label>
-                  <input id="ln" type="text" data-bind="value: LastName" placeholder="last"/>
+                    <form>
+                        <label for="fn">First: </label>
+                        <input id="fn" type="text" data-bind="value: FirstName" placeholder="first"/>
+                        <label for="ln">Last: </label>
+                        <input id="ln" type="text" data-bind="value: LastName" placeholder="last"/>
               
-                  <br/><label>Devices: </label>
-                  <img src="/Images/device.png" data-bind="click: $parent.loadDevices" title="load devices" /> 
-                  <ul class="device" data-bind="foreach: Devices">
-                      <li>
-                          <input type="text" data-bind="value: DeviceName" placeholder="device"/>
-                      </li>
-                  </ul>         
-              </form>
+                        <br/><label>Devices: </label>
+                        <img src="/Images/device.png" data-bind="click: $parent.loadDevices" title="load devices" /> 
+                        <ul class="device" data-bind="foreach: Devices">
+                            <li>
+                                <input type="text" data-bind="value: DeviceName" placeholder="device"/>
+                            </li>
+                        </ul>         
+                    </form>
 
-          </li>
-        </ul>
+                </li>
+            </ul>
               
-        <div class="controlLinks">
-          <a href="#" data-bind="click: reset">Reset database</a>
-        </div>
+            <div class="controlLinks">
+                <a href="#" data-bind="click: reset">Reset database</a>
+            </div>
              
-      </section>
+        </section>
 
         <footer>
             <div id="logmessages"></div>
