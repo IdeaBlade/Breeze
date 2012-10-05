@@ -92,7 +92,7 @@
     function reset(callback) {
         manager.clear();
         $.post(serviceName + '/reset', function () {
-            logger.success("database reset.");
+            logger.success("database reset to original values");
             if (callback) callback();
         });
     }
