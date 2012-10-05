@@ -20,10 +20,10 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
     }        
 }
 
-function getBreezeVersion($srcDir ) {
+function getBreezeVersion($srcDir) {
     $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\root.js"
     $text = get-content $versionFile
-    $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
+    $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
     return $versionNum
 }
 
@@ -34,6 +34,9 @@ function packageNuget($srcDir, $folderName, $versionNum) {
   if (!(test-path $nuspecFile)) {
     pauseAndThrow "Unable to locate $nuspecFile"
   }
+  
+  # remove old nupkg files
+  gci $destDir *.nupkg -force | foreach ($_) {  remove-item $_.fullname -Force }
   
   copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\content\Scripts 
   copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.js $destDir\content\Scripts 
@@ -63,6 +66,8 @@ checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
+
+
 
 packageNuget $srcDir 'BreezeForMVC4' $versionNum
 

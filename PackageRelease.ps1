@@ -20,6 +20,14 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
     }        
 }
 
+function getBreezeVersion($srcDir) {
+    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\root.js"
+    $text = get-content $versionFile
+    $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
+    return $versionNum
+}
+
+
 # make sure 7-Zip is available
 if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
     set-alias sz "$env:ProgramFiles (x86)\7-Zip\7z.exe" 
@@ -32,11 +40,9 @@ if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
 
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
-$destDir = $srcDir+"\_temp"
+$destDir = "$srcDir\_temp"
 
-$versionFile = $srcDir+"\Breeze.Client\Scripts\IBlade\root.js"
-$text = get-content $versionFile
-$versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d)"' $versionFile).Matches[0].Groups[1].Value
+$versionNum = getBreezeVersion $srcDir
 
 # erase the destDir if it exists
 if (test-path $destDir) {
@@ -78,7 +84,7 @@ copy-item $srcDir\Samples\BreezyDevices $destDir\Samples\BreezyDevices -recurse
 gci $destDir\Samples\BreezyDevices -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
 
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
-$zipFile = $srcDir+"\breeze-runtime-plus-$versionNum.zip"
+$zipFile = "$srcDir\breeze-runtime-plus-$versionNum.zip"
 if (test-path $zipFile) {
     remove-item $zipFile
 }

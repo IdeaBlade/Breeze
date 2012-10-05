@@ -16,13 +16,13 @@ obj
 Unused
 *.suo
 packages
+
+GetFtpCredential.ps1
+
 Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
-Samples/Todo/Todo/App_Data/Todos.sdf
-DocCode/BreezeDocCode/App_Data/Todos.sdf
 _Internal/Sample_WebApi/Scripts/
 _Internal/Sample_OData/Scripts/
-/Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
-GetFtpCredential.ps1
+
 Breeze*.nupkg
 Nuget.builds/BreezeForMVC4/content/Scripts/breeze.debug.js
 Nuget.builds/BreezeForMVC4/content/Scripts/breeze.js
@@ -30,5 +30,19 @@ Nuget.builds/BreezeForMVC4/content/Scripts/q.js
 Nuget.builds/BreezeForMVC4/content/Scripts/q.min.js
 Nuget.builds/BreezeForMVC4/lib/Breeze.WebApi.dll
 Nuget.builds/BreezeForMVC4/lib/Irony.dll
+
+DocCode/BreezeDocCode/App_Data/Todos.sdf
+DocCode/BreezeDocCode/Scripts/lib/breeze.debug.js
+DocCode/BreezeDocCode/ThirdParty/Breeze.WebApi.dll
+
+Samples/Todo/Todo/App_Data/Todos.sdf
+Samples/Todo/Todo/Scripts/lib/breeze.debug.js
+Samples/Todo/Todo/ThirdParty/Breeze.WebApi.dll
+
+Samples/BreezyDevices/BreezyDevices/Scripts/lib/breeze.debug.js
+Samples/BreezyDevices/BreezyDevices/ThirdParty/Breeze.WebApi.dll
+
+Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
+
 
 
