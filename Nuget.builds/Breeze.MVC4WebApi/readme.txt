@@ -3,42 +3,10 @@ Breeze MVC4 Web API Nuget Package ReadMe
 
 This readme covers
 
-- What to do next
 - How to try this Breeze Web API sample
 - The inventory of items added by this nuget package
 
 See documentation at http://www.breezejs.com to learn more.
-
-------------------------------------------
-NEXT STEPS
-
-We leave 2 manual steps to you rather than modify your existing project files:
-
-
-1. Add this Breeze route to the top of the Register method in App_Start/WebApiConfig.cs
-
-   config.Routes.MapHttpRoute(
-   name: "BreezeApi",
-   routeTemplate: "api/{controller}/{action}"
-   );
-
-   
-2. Add the following lines to the bottom of the Application_Start() method in Global.asax
-
-   BreezeConfig.RegisterBreeze();
-
-   // DEVELOPMENT ONLY: initialize the database
-   System.Data.Entity.Database.SetInitializer(
-      new Models.BreezeSampleDatabaseInitializer());
-
-
-Please also confirm that you have the following assembly redirect in the <runtime> section of your web.config:
-
-      <dependentAssembly>
-        <assemblyIdentity name="EntityFramework" publicKeyToken="b77a5c561934e089" culture="neutral"/>
-        <bindingRedirect oldVersion="0.0.0.0-5.0.0.0" newVersion="5.0.0.0"/>
-      </dependentAssembly>
-
 
 ------------------------------------------
 TRY IT
@@ -72,7 +40,7 @@ TRY IT
 ------------------------------------------
 WHAT WAS ADDED
 
-The nuget package added material to the $rootname$ project.
+The nuget package added the following files to this project.
 
 -- always needed --
 
@@ -88,7 +56,10 @@ Four scripts
 	Scripts/q.js
 	Scripts/q.min.js
 
+One configuration file
 
+	BreezeConfig.cs 
+	
 -- sample only --
 
 Sample EF Code First model, DbContext, and initializer

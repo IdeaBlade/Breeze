@@ -14,6 +14,9 @@
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <tags>javascript MVC4 EntityFramework Breeze</tags>
+		<dependencies>
+			<dependency id="WebActivator" version="1.5.1" />
+		</dependencies>
     </metadata>
     <files>
         <file src="content\App_Start\BreezeConfig.cs.pp" target="content\App_Start\BreezeConfig.cs.pp" />
