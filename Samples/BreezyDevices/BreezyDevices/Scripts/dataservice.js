@@ -34,12 +34,14 @@
     // gets all Persons asynchronously
     // returning a promise you can wait for     
     function getAllPersons(peopleArray) {
+        
+        logger.info("querying for all persons");
+        
         var query = new entityModel.EntityQuery()
                 .from("People")
                 //.expand("Devices")
                 .orderBy("FirstName, LastName");
-
-        logger.info("querying for all persons");
+        
         return manager
             .executeQuery(query)
             .then(function (data) {
@@ -50,17 +52,18 @@
 
     // clears observable array and loads the person results 
     function processResults(data, peopleArray) {
-        var persons = data.results;
         logger.success("queried all persons");
         peopleArray.removeAll();
+        var persons = data.results;
         persons.forEach(function (person) {
             peopleArray.push(person);
         });
     }
 
     function saveChanges() {
-        manager.saveChanges();
-        logger.success("changes saved");
+        return manager.saveChanges()
+            .then(function () { logger.success("changes saved"); })
+            .fail(saveFailed);       
     }
 
     // load the devices for this person 
@@ -79,11 +82,14 @@
     function queryFailed(error) {
         logger.error("Query failed: " + error.message);
     }
-
+    
+    function saveFailed(error) {
+        logger.error("Save failed: " + error.message);
+    }
+    
     function loadDevicesFailed(error) {
         logger.error("Load Devices failed: " + error.message);
     }
-
 
     // reset the database to original state
     // in case we polluted the data while playing around.
