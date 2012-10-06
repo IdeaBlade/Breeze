@@ -55,7 +55,8 @@ function packageNuget($srcDir, $folderName, $versionNum) {
     Foreach-Object {$_ -replace $regex2, $replace2 }
   $output | Set-Content $outputFile
   cd "$destDir"
-  $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
+  # $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
+  $expr = "..\..\..\nuget.exe pack $folderName.nuspec"
   invoke-expression $expr
 }
 
