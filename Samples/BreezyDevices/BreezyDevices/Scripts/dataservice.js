@@ -40,6 +40,7 @@
         
         var query = new entityModel.EntityQuery()
                 .from("People")
+                //.where("LastName", "startsWith", "Lerman")
                 //.expand("Devices")
                 .orderBy("FirstName, LastName");
         
