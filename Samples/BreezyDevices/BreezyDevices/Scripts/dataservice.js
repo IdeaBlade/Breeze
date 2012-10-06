@@ -1,4 +1,5 @@
 ﻿(function (root) {
+    var breeze = root.breeze;
     var app = root.app;
     var logger = app.logger;
 
