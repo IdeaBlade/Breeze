@@ -69,7 +69,7 @@ $versionNum = getBreezeVersion $srcDir
 
 
 
-packageNuget $srcDir 'BreezeForMVC4' $versionNum
+packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

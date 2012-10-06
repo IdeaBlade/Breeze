@@ -1,20 +1,17 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Web.Http;
-using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 
-using MvcApplication1.Models;
+using Breeze.WebApi;
+
+using $rootnamespace$.Models;
 namespace $rootnamespace$.Controllers {
   
     public class BreezeSampleController : ApiController {
 
         readonly EFContextProvider<BreezeSampleContext> _contextProvider =
             new EFContextProvider<BreezeSampleContext>();
-
-        public BreezeSampleController()  {
-
-        }
 
         [AcceptVerbs("GET")]
         public string Metadata() {
