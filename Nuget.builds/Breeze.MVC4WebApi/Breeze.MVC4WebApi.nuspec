@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>BreezeForMVC4</id>
-        <version>0.62.2</version>
+        <id>Breeze.MVC4WebApi</id>
+        <version>0.63</version>
         <title>Breeze for MVC4 WebApi projects</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Includes all of the Breeze related files that a MVC4 App needs.</description>
+        <description>Includes all of the Breeze related files that a MVC4 WebApi App needs.</description>
         <summary>Breeze MVC4 Helper package</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
