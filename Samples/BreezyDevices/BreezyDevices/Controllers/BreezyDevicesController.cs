@@ -8,7 +8,6 @@ namespace BreezyDevices.Controllers
 {
 public class BreezyDevicescontroller : ApiController
     {
-
         readonly EFContextProvider<BreezyDevicesContext> _contextProvider =
             new EFContextProvider<BreezyDevicesContext>();
 
@@ -26,7 +25,6 @@ public class BreezyDevicescontroller : ApiController
           return _contextProvider.SaveChanges(saveBundle);
         }
 
-
         // ~/api/breezydevices/people
         // ~/api/breezydevices/people?$filter=LastName%20startswith%20L&$orderby=LastName 
         [AcceptVerbs("GET")]
@@ -41,8 +39,6 @@ public class BreezyDevicescontroller : ApiController
         {
             return _contextProvider.Context.Devices;
         }
-
-
         // ~/api/breezydevices/reset
         [AcceptVerbs("POST")]
         public string Reset()
