@@ -19,11 +19,6 @@ namespace BreezyDevices
       FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
       RouteConfig.RegisterRoutes(RouteTable.Routes);
       BundleConfig.RegisterBundles(BundleTable.Bundles);
-      BreezeConfig.RegisterBreeze();
-
-      // DEMO: Initialize the Breezy Devices sample database
-      System.Data.Entity.Database.SetInitializer(
-          new Models.BreezyDevicesDatabaseInitializer());
     }
   }
 }

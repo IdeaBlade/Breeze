@@ -2,70 +2,62 @@
 <html>
 <head>
     <meta charset="utf-8" />
-
-    <!-- Mobile viewport optimized: h5bp.com/viewport -->
     <meta name="viewport" content="width=device-width">
     <title>Breezy Devices</title>
     <link rel="stylesheet" href="@Url.Content("~/Content/reset.css")"/>
     <link rel="stylesheet" href="@Url.Content("~/Content/breezydevices.css")"/>
-
-    <!-- All JavaScript at the bottom, except this Modernizr build.
-       Modernizr enables HTML5 elements & feature detects for optimal performance.
-       Create your own custom Modernizr build: www.modernizr.com/download/ -->
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <div id="applicationHost">
-        <header>
-            <h1>Breezy Devices</h1>           
-        </header>
+    <header>
+        <h1>Breezy Devices</h1>           
+    </header>
  
-        <!-- Section with client-generated content and bindings -->            
-        <section id="content" class="view">
-            <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
+    <!-- Section with client-generated content and bindings -->            
+    <section id="content" class="view">
+        <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
       
-            <ul data-bind="foreach: people">
-                <li class="person" >
+        <ul data-bind="foreach: people">
+            <li class="person" >
                  
-                    <form>
-                        <label for="fn">First: </label>
-                        <input id="fn" type="text" data-bind="value: FirstName" placeholder="first"/>
-                        <label for="ln">Last: </label>
-                        <input id="ln" type="text" data-bind="value: LastName" placeholder="last"/>
+                <form>
+                    <label for="fn">First: </label>
+                    <input id="fn" type="text" data-bind="value: FirstName" placeholder="first"/>
+                    <label for="ln">Last: </label>
+                    <input id="ln" type="text" data-bind="value: LastName" placeholder="last"/>
               
-                        <br/><label>Devices: </label>
-                        <img src="/Images/device.png" data-bind="click: $parent.loadDevices" title="load devices" /> 
-                        <ul class="device" data-bind="foreach: Devices">
-                            <li>
-                                <input type="text" data-bind="value: DeviceName" placeholder="device"/>
-                            </li>
-                        </ul>         
-                    </form>
+                    <br/><label>Devices: </label>
+                    <img src="/Images/device.png" data-bind="click: $parent.loadDevices" title="load devices" /> 
+                    <ul class="device" data-bind="foreach: Devices">
+                        <li>
+                            <input type="text" data-bind="value: DeviceName" placeholder="device"/>
+                        </li>
+                    </ul>         
+                </form>
 
-                </li>
-            </ul>
+            </li>
+        </ul>
               
-            <div class="controlLinks">
-                <a href="#" data-bind="click: reset">Reset database</a>
-            </div>
+        <div class="controlLinks">
+            <a href="#" data-bind="click: reset">Reset database</a>
+        </div>
              
-        </section>
+    </section>
 
-        <footer>
-            <div id="logmessages"></div>
-        </footer>
-    </div>
+    <footer>
+        <div id="logmessages"></div>
+    </footer>
     
     <!--3rd party library scripts -->
-    <script src="@Url.Content("~/Scripts/lib/jquery-1.8.2.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/lib/knockout-2.1.0.js")"></script>
-    <script src="@Url.Content("~/Scripts/lib/q.js")"></script>
-    <script src="@Url.Content("~/Scripts/lib/breeze.debug.js")"></script>
+    @Scripts.Render("~/bundles/jquery")
+    <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")"></script>
+    <script src="@Url.Content("~/Scripts/q.js")"></script>
+    <script src="@Url.Content("~/Scripts/breeze.debug.js")"></script>
 
     <!-- Application scripts -->
-    <script src="@Url.Content("~/Scripts/logger.js")"></script>
-    <script src="@Url.Content("~/Scripts/dataservice.js")"></script>
-    <script src="@Url.Content("~/Scripts/peopleViewModel.js")"></script>
-    <script src="@Url.Content("~/Scripts/main.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/logger.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/dataservice.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/peopleViewModel.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/main.js")"></script>
 </body>
 </html>
