@@ -44,11 +44,10 @@ Samples/BreezyDevices/BreezyDevices/ThirdParty/Breeze.WebApi.dll
 
 Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
 
-
-
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.debug.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.min.js
 Nuget.builds/Breeze.MVC4WebApi/lib/Breeze.WebApi.dll
 Nuget.builds/Breeze.MVC4WebApi/lib/Irony.dll
+Nuget.builds/Breeze.MVC4WebApi/Breeze.MVC4WebApi.nuspec

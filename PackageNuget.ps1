@@ -30,11 +30,11 @@ function getBreezeVersion($srcDir) {
 function packageNuget($srcDir, $folderName, $versionNum) {
   
   $destDir = "$srcDir\Nuget.builds\$folderName"
-  $nuspecFile = "$destDir\$folderName.nuspec"
+  $nuspecFile = "$destDir\Default.nuspec"
   if (!(test-path $nuspecFile)) {
     pauseAndThrow "Unable to locate $nuspecFile"
   }
-  
+  $outputFile = "$destDir\$folderName.nuspec"
   # remove old nupkg files
   gci $destDir *.nupkg -force | foreach ($_) {  remove-item $_.fullname -Force }
   
@@ -46,12 +46,17 @@ function packageNuget($srcDir, $folderName, $versionNum) {
   copy-item $srcDir\ThirdParty\Irony.dll $destDir\lib
   
   $input = get-content $nuspecFile  
-  [regex]$regex = "<version>.+"
-  $replace = '<version>' + $versionNum + '</version>'
-  $output = $input | Foreach-Object {$_ -replace $regex, $replace }
-  $output | Set-Content $nuspecFile
+  [regex]$regex1 = "<version>.+"
+  $replace1 = '<version>' + $versionNum + '</version>'
+  [regex]$regex2 = "<id>.+"
+  $replace2 = '<id>' + $folderName + '</id>'
+  $output = $input | 
+    Foreach-Object {$_ -replace $regex1, $replace1 } |
+    Foreach-Object {$_ -replace $regex2, $replace2 }
+  $output | Set-Content $outputFile
   cd "$destDir"
-  $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
+  # $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
+  $expr = "..\..\..\nuget.exe pack $folderName.nuspec"
   invoke-expression $expr
 }
 
