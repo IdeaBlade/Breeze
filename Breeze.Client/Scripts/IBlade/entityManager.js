@@ -1465,12 +1465,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return targetEntity;
             }
 
-            // TODO: may be able to make this more efficient by caching of the previous value.
-            var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
             
-            var entityType = entityTypeName && em.metadataStore.getEntityType(entityTypeName, true);
-            // all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
-            // if (entityType == null && isSelectQuery(queryContext.query) && !isNestedInAnon) {
+            var entityType =em.remoteAccessImplementation.getEntityType(rawEntity, em.metadataStore);
+
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
