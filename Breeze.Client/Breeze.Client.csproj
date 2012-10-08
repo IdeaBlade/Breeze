@@ -39,12 +39,17 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Scripts\ThirdParty\backbone.js" />
+    <Content Include="Scripts\ThirdParty\backbone.min.js" />
     <Content Include="Scripts\IBlade\assertParam.js" />
+    <Content Include="Scripts\ThirdParty\underscore.js" />
+    <Content Include="Scripts\ThirdParty\underscore.min.js" />
     <None Include="packages.config" />
     <None Include="Scripts\IBlade\buildend.frag" />
     <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\yuidoc.json" />
     <Content Include="Scripts\IBlade\buildx.js" />
+    <Content Include="Scripts\IBlade\entityTracking_backbone.js" />
     <Content Include="Scripts\IBlade\remoteAccessInterface.js" />
     <Content Include="Scripts\IBlade\entityTrackingInterface.js" />
     <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
@@ -68,6 +73,9 @@
     <Content Include="Scripts\IBlade\root.js" />
     <Content Include="Scripts\IBlade\testFns.js" />
     <Content Include="Scripts\IBlade\validate.js" />
+    <Content Include="Scripts\jquery-1.7.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.7.2.js" />
+    <Content Include="Scripts\jquery-1.7.2.min.js" />
     <Content Include="Scripts\Tests\attachTests.js" />
     <Content Include="Scripts\Tests\classRewriteTests.js" />
     <Content Include="Scripts\Tests\rawOdataQueryTests.js" />

@@ -114,6 +114,10 @@
       <Link>Scripts\IBlade\entityQuery.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backbone.js">
+      <Link>Scripts\IBlade\entityTracking_backbone.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backingStore.js">
       <Link>Scripts\IBlade\entityTracking_backingStore.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -230,6 +234,14 @@
       <Link>Scripts\ThirdParty\almond.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\backbone.js">
+      <Link>Scripts\ThirdParty\backbone.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\backbone.min.js">
+      <Link>Scripts\ThirdParty\backbone.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\datajs-1.0.2.js">
       <Link>Scripts\ThirdParty\datajs-1.0.2.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -280,6 +292,14 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\require.min.js">
       <Link>Scripts\ThirdParty\require.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\underscore.js">
+      <Link>Scripts\ThirdParty\underscore.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\underscore.min.js">
+      <Link>Scripts\ThirdParty\underscore.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Default.aspx" />

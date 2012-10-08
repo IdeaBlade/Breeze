@@ -8,10 +8,11 @@
   <script type="text/javascript" src="Scripts/ThirdParty/datajs-1.0.2.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/q.min.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/knockout-2.1.0.debug.js"></script>
+  <script type="text/javascript" src="Scripts/ThirdParty/underscore.js"></script>
+  <script type="text/javascript" src="Scripts/ThirdParty/backbone.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/require.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
   <script type="text/javascript">
-      DEBUG_KO = false;
       DEBUG_WEBAPI = false;
   </script>
   <script type="text/javascript" src="Scripts/Tests/testRunner.js"></script>

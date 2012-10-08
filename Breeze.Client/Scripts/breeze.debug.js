@@ -3306,6 +3306,7 @@ function (core, m_entityAspect) {
                 }
 
                 var inverseProp = property.inverse;
+                var oldSiblings;
                 if (newValue) {
                     if (entityManager) {
                         if (newValue.entityAspect.entityState.isDetached()) {
@@ -3330,7 +3331,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
@@ -3352,7 +3353,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
@@ -4656,7 +4657,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                entityCtor = function () { };
+                var createCtor = core.config.trackingImplementation.createCtor;
+                if (createCtor) {
+                    entityCtor = createCtor(this);
+                } else {
+                    entityCtor = function() {
+                    };
+                }
             }
             this._setEntityCtor(entityCtor);
             return entityCtor;
@@ -4938,29 +4945,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
         };
-
+        
         function calcUnmappedProperties(entityType, instance) {
-            var currentPropertyNames = entityType.getPropertyNames();
-            var isUnmapped = function(inst, propName) {
-                if (Object.keys(inst).indexOf(propName) === -1) return false;
-                if (core.isFunction(inst[propName])) return false;
-                if (core.stringStartsWith(propName, "_$")) return false;
-                if (propName === "entityType") return false;
-                if (currentPropertyNames.indexOf(propName) >= 0) return false;
-                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
-            };
-
-            for (var propertyName in instance) {
-                if (isUnmapped(instance, propertyName)) {
+            var metadataPropNames = entityType.getPropertyNames();
+            var trackablePropNames = core.config.trackingImplementation.getTrackablePropertyNames(instance);
+            trackablePropNames.forEach(function(pn) {
+                if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
-                        name: propertyName,
+                        name: pn,
                         dataType: DataType.Undefined,
                         isNullable: true,
                         isUnmapped: true
                     });
                     entityType.addProperty(newProp);
                 }
-            };
+            });
         }
 
         return ctor;
@@ -10503,6 +10502,17 @@ function (core, makeRelationArray) {
     };
 
     trackingImpl.name = "Backing store entity tracking impl";
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            var val = entity[p];
+            if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function (proto) {
 
@@ -10588,12 +10598,7 @@ function (core, makeRelationArray) {
         });
     };
 
-    trackingImpl.isTrackableProperty = function (entity, propertyName) {
-        if (propertyName === '_backingStore') return false;
-        if (propertyName === "_pendingSets") return false;
-        return true;
-    };
-
+   
     // private methods
 
     function movePropDefsToProto(proto) {
@@ -10711,6 +10716,19 @@ function (core, makeRelationArray) {
         };
 
     };
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            var val = entity[p];
+            if (ko.isObservable(val)) {
+                names.push(p);
+            } else if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
@@ -10795,21 +10813,195 @@ function (core, makeRelationArray) {
 
     };
 
-    trackingImpl.isTrackableProperty = function(entity, propertyName) {
-        var propValue = entity[propertyName];
-        if (ko.isObservable(propValue)) return true;
-        if (core.isFunction(propValue)) return false;
-        return true;
+    return trackingImpl;
+
+})
+;
+
+define('entityTracking_backbone',["core", "relationArray"],
+function (core, makeRelationArray) {
+    
+
+    var Backbone;
+    var _;
+    var trackingImpl = {};
+    var bbSet, bbGet;
+    
+    trackingImpl.name = "Backbone entity tracking impl";
+    
+    trackingImpl.initialize = function () {
+        Backbone = window.Backbone;
+        if ((!Backbone) && require) {
+            Backbone = require("Backbone");
+        }
+        if (!Backbone) {
+            throw new Error("Unable to initialize Backbone.");
+        }
+        _ = window._;
+        if ((!_) && require) {
+            _ = require("underscore");
+        }
+        bbSet = Backbone.Model.prototype.set;
+        bbGet = Backbone.Model.prototype.get;
     };
+      
+    trackingImpl.createCtor = function (entityType) {
+        var defaults = {};
+        entityType.dataProperties.forEach(function (dp) {
+            defaults[dp.name] = dp.defaultValue;
+        });
+        var ctor = Backbone.Model.extend({
+            defaults: defaults,
+            initialize: function () {
+                var that = this;
+                entityType.navigationProperties.forEach(function (np) {
+                    if (!np.isScalar) {
+                        var val = makeRelationArray([], that, np);
+                        Backbone.Model.prototype.set.call(that, np.name, val);
+                    }
+                });
+            }
+        });
+        return ctor;
+        
+    };
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity.attributes) {
+            names.push(p);
+        }
+        return names;
+    };
+
+    trackingImpl.initializeEntityPrototype = function (proto) {
+
+        proto.getProperty = function (propertyName) {
+            return this.get(propertyName);
+        };
+
+        proto.setProperty = function (propertyName, value) {
+            this.set(propertyName, value);
+            // allow setProperty chaining.
+            return this;
+        };
+
+        // override Backbone's set method.
+        proto.set = function (key, value, options) {
+            // call Backbone validate first - we need this because if it fails we don't want to call the Breeze interceptor.
+            // if valid then call Breeze interceptor which will call Backbone's internal set
+            if (!this.entityAspect) {
+                return bbSet.call(this, key, value, options);
+            }
+            var attrs, prop, propName;
+            var that = this;
+            // Handle both `"key", value` and `{key: value}` -style arguments.
+            if (_.isObject(key) || key == null) {
+                attrs = key;
+                options = value;
+                if (!this._validate(attrs, options)) return false;
+                // TODO: suppress validate here
+                for (propName in attrs) {
+                    if (hasOwnProperty.call(attrs, propName)) {
+                        prop = this.entityType.getProperty(propName);
+                        this._$interceptor(prop, attrs[propName], function (pvalue) {
+                            if (arguments.length === 0) {
+                                return bbGet.call(that, propName);
+                            } else {
+                                return bbSet.call(that, propName, pvalue, options);
+                            }
+                        });
+                    }
+                }
+            } else {
+                attrs = {};
+                attrs[key] = value;
+                options || (options = {});
+                if (!this._validate(attrs, options)) return false;
+                // TODO: suppress validate here
+                prop = this.entityType.getProperty(key);
+                propName = key;
+                this._$interceptor(prop, value, function (pvalue) {
+                    if (arguments.length === 0) {
+                        return bbGet.call(that, propName);
+                    } else {
+                        return bbSet.call(that, propName, pvalue, options);
+                    }
+                });
+            }
+            return this;
+            
+        };
+        
+        //// called after any create during a query;
+        //proto.initializeFrom = function (rawEntity) {
+        //};
+
+    };
+    
+    // called when the entityAspect is first created for an entity
+    trackingImpl.startTracking = function (entity, proto) {
+        if (!(entity instanceof Backbone.Model)) {
+            throw Error("This entity is not an Backbone.Model instance");
+        }
+        var entityType = entity.entityType;
+        var attributes = entity.attributes;
+        // Update so that every data and navigation property has a value. 
+        entityType.dataProperties.forEach(function (dp) {
+            if (dp.name in attributes) {
+                if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
+                    bbSet.call(entity, dp.name, dp.defaultValue);
+                }
+            } else {
+                bbSet.call(entity, dp.name, dp.defaultValue);
+            }
+        });
+        entityType.navigationProperties.forEach(function (np) {
+            var msg;
+            if (np.name in attributes) {
+                var val = bbGet.call(entity, np.name);
+                if (np.isScalar) {
+                    if (val && !val.entityType) {
+                        msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
+                            np.name, entity.entityType.name);
+                        throw new Error(msg);
+                    }
+                } else {
+                    if (val) {
+                        if (!val.parentEntity) {
+                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+                                np.name, entity.entityType.name);
+                            throw new Error(msg);
+                        }
+                    } else {
+                        val = makeRelationArray([], entity, np);
+                        bbSet.call(entity, np.name, val);
+                    }
+                }
+            } else {
+                if (np.isScalar) {
+                    bbSet.call(entity, np.name, null);
+                } else {
+                    val = makeRelationArray([], entity, np);
+                    bbSet.call(entity, np.name, val);
+                }
+            }
+        });
+    };
+    
+    
+    // private methods
 
     return trackingImpl;
 
 })
 ;
 define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
-        "remoteAccess_webApi", "remoteAccess_odata", "entityTracking_backingStore", "entityTracking_ko"],
+        "remoteAccess_webApi", "remoteAccess_odata",
+        "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
-          m_remoteAccess_webApi, m_remoteAccess_odata, m_entityTracking_backingStore, m_entityTracking_ko) {
+          m_remoteAccess_webApi, m_remoteAccess_odata,
+          m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
     
     
 
@@ -10825,6 +11017,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 
     entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
     entityModel.entityTracking_ko = m_entityTracking_ko;
+    entityModel.entityTracking_backbone = m_entityTracking_backbone;
 
     entityModel.remoteAccess_odata = m_remoteAccess_odata;
     entityModel.remoteAccess_webApi = m_remoteAccess_webApi;

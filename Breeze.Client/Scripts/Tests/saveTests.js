@@ -55,10 +55,7 @@ define(["testFns"], function (testFns) {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm();
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
-
+        var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
         var q = new EntityQuery("Customers")

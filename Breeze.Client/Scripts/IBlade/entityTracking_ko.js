@@ -41,6 +41,19 @@ function (core, makeRelationArray) {
         };
 
     };
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            var val = entity[p];
+            if (ko.isObservable(val)) {
+                names.push(p);
+            } else if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
@@ -123,13 +136,6 @@ function (core, makeRelationArray) {
 
         });
 
-    };
-
-    trackingImpl.isTrackableProperty = function(entity, propertyName) {
-        var propValue = entity[propertyName];
-        if (ko.isObservable(propValue)) return true;
-        if (core.isFunction(propValue)) return false;
-        return true;
     };
 
     return trackingImpl;

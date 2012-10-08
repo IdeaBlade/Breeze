@@ -16,21 +16,115 @@ define(["root"], function (root) {
     var testFns = {};
     testFns.message = "";
 
+    testFns.configure = function () {
+        var trackingOption = window.localStorage.getItem("trackingOption");
+
+        var oldNext = !!window.localStorage.getItem("qunit.next");
+        var curNext = !!QUnit.config.next;
+        if (curNext) {
+            window.localStorage.setItem("qunit.next", true);
+        } else {
+            window.localStorage.removeItem("qunit.next");
+        }
+        var doNext = oldNext != curNext;
+        
+        if (doNext) {
+            if (trackingOption == null || trackingOption === "ko") {
+                trackingOption = "backbone";
+            } else if (trackingOption === "backbone") {
+                trackingOption = "backingStore";
+            } else {
+                trackingOption = "ko";
+            }
+        }
+        
+        window.localStorage.setItem("trackingOption", trackingOption);
+        if (trackingOption === "ko") {
+            testFns.entityTracking = entityModel.entityTracking_ko;
+            testFns.message += "entityTracking: ko,  ";
+        } else if (trackingOption === "backbone") {
+            testFns.entityTracking = entityModel.entityTracking_backbone;
+            testFns.message += "entityTracking: backbone,  ";
+        } else {
+            testFns.entityTracking = entityModel.entityTracking_backingStore;
+            testFns.message += "entityTracking: backingStore, ";
+        }
+
+        testFns.trackingOption = trackingOption;
+        core.config.setProperties({
+            trackingImplementation: testFns.entityTracking
+        });
+    };
+
+    var models = {};
+    testFns.models = models;
+
+    models.Customer = function() {
+        if (testFns.trackingOption == "ko") {
+            return function() {
+                this.companyName = ko.observable(null);
+            };
+        } else if (testFns.trackingOption == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    companyName: null
+                }
+            });
+        } else {
+            return function() {
+                this.companyName = null;
+            };
+        }
+    };
+    
+    models.CustomerWithMiscData = function () {
+        if (testFns.trackingOption == "ko") {
+            return function() {
+                this.miscData = ko.observable("asdf");
+            };
+        } else if (testFns.trackingOption == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    miscData: "asdf"
+                }
+            });
+        } else {
+            return function() {
+                this.miscData = "asdf";
+            };
+        }
+    };
+
+
+    models.Product = function() {
+        var init = function(entity) {
+            ok(entity.entityType.shortName === "Product", "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        };
+        if (testFns.trackingOption == "ko") {
+            return function() {
+                this.isObsolete = ko.observable(false);
+                this.init = init;
+            };
+        } else if (testFns.trackingOption == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    isObsolete: false,
+                },
+                init: init
+            });
+        } else {
+            return function() {
+                this.isObsolete = false;
+                this.init = init;
+            };
+        }
+    };
+    
+
     testFns.setFlag = function (name, value) {
         testFns[name] = value;
-
-        if (name === "DEBUG_KO") {
-            if (testFns.DEBUG_KO) {
-                testFns.entityTracking = entityModel.entityTracking_ko;
-                testFns.message += "entityTracking: ko,  ";
-            } else {
-                testFns.entityTracking = entityModel.entityTracking_backingStore;
-                testFns.message += "entityTracking: backingStore, ";
-            }
-            core.config.setProperties({
-                trackingImplementation: testFns.entityTracking
-            });
-        }
 
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
@@ -197,7 +291,7 @@ define(["root"], function (root) {
 
     testFns.root = root;
     testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
-    testFns.setFlag("DEBUG_KO", DEBUG_KO);
+
 
     return testFns;
 });

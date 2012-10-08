@@ -10,6 +10,17 @@ function (core, makeRelationArray) {
     };
 
     trackingImpl.name = "Backing store entity tracking impl";
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            var val = entity[p];
+            if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function (proto) {
 
@@ -95,12 +106,7 @@ function (core, makeRelationArray) {
         });
     };
 
-    trackingImpl.isTrackableProperty = function (entity, propertyName) {
-        if (propertyName === '_backingStore') return false;
-        if (propertyName === "_pendingSets") return false;
-        return true;
-    };
-
+   
     // private methods
 
     function movePropDefsToProto(proto) {

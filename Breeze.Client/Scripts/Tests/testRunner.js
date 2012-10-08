@@ -1,28 +1,46 @@
 
 
 QUnit.config.autostart = false;
+QUnit.config.urlConfig.push({
+    id: "canStart",
+    label: "Start the tests",
+    tooltip: "Allows a user to set options before tests start."
+});
+
+QUnit.config.urlConfig.push({
+    id: "next",
+    label: "Next tracking lib.",
+    tooltip: "Next tracking lib."
+});
+
+
 require.config({ baseUrl: "Scripts/Tests" });
 require([
-      "paramTests",
-       "miscTests",
-      "koSpecificTests",
-      "attachTests",
-      "classRewriteTests",
-      "metadataTests",
-      "entityManagerTests",
-      "entityQueryCtorTests",
-      "entityTests",
+      //"paramTests",
+      // "miscTests",
+      //"koSpecificTests",
+      //"attachTests",
+      //"classRewriteTests",
+      //"metadataTests",
+      //"entityManagerTests",
+      //"entityQueryCtorTests",
+      //"entityTests",
       "queryTests",
-      "queryDatatypeTests",
-      "namedQueryTests",
-      "rawOdataQueryTests",
-      "validateTests",
-      "validateEntityTests",
-       "saveTests"
+      //"queryDatatypeTests",
+      //"namedQueryTests",
+      //"rawOdataQueryTests",
+      //"validateTests",
+      //"validateEntityTests",
+      // "saveTests"
 
 ], function (testFns) {
+    
+    testFns.configure();
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
-    QUnit.start(); //Tests loaded, run tests
+    if (QUnit.config.canStart) {
+
+        QUnit.start(); //Tests loaded, run tests
+    }
 
 });
 

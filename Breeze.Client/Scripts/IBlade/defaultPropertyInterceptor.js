@@ -51,6 +51,7 @@ function (core, m_entityAspect) {
                 }
 
                 var inverseProp = property.inverse;
+                var oldSiblings;
                 if (newValue) {
                     if (entityManager) {
                         if (newValue.entityAspect.entityState.isDetached()) {
@@ -75,7 +76,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
@@ -97,7 +98,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
