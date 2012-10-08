@@ -17,7 +17,7 @@ QUnit.config.urlConfig.push({
 require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
-       "miscTests",
+      "miscTests",
       "koSpecificTests",
       "attachTests",
       "classRewriteTests",
@@ -35,7 +35,6 @@ require([
 
 ], function (testFns) {
     
-    testFns.configure();
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
     if (QUnit.config.canStart) {
 

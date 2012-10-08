@@ -291,7 +291,7 @@ define(["root"], function (root) {
 
     testFns.root = root;
     testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
-
+    testFns.configure();
 
     return testFns;
 });

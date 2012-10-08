@@ -33,8 +33,8 @@ define(["testFns"], function (testFns) {
     });
     
     if (!testFns.DEBUG_WEBAPI) {
-        test("OData saves not yet supported", function() {
-            ok(true, "Breeze OData does not yet support Saves");
+        test("OData saves not yet supported", function () {
+            ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
         });
         return testFns;
     };

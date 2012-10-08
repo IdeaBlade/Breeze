@@ -24,9 +24,9 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    if (!testFns.trackingOption !== "ko") {
+    if (testFns.trackingOption !== "ko") {
         test("Skipping KO specific tests", function () {
-            ok(true);
+            ok(false, "Skipped tests - ok to fail");
         });
         return testFns;
     };
