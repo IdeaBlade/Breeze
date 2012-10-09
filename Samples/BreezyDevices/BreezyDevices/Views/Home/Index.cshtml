@@ -14,7 +14,7 @@
     </header>
  
     <!-- Section with client-generated content and bindings -->            
-    <section id="content" class="view">
+    <section id="content" data-bind="css: { hide: hide }" class="hide">
         <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
       
         <ul data-bind="foreach: people">
@@ -37,7 +37,7 @@
 
             </li>
         </ul>
-              
+           
         <div class="controlLinks">
             <a href="#" data-bind="click: reset">Reset database</a>
         </div>

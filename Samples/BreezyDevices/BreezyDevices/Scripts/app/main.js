@@ -3,7 +3,6 @@
 
     app.logger.info('Breeze Devices is booting');
 
-    ko.applyBindings(app.peopleViewModel, $("content").get(0));
+    ko.applyBindings(app.peopleViewModel);
 
-    $(".view").css({ display: 'block' });
 }(window));

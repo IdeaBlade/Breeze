@@ -6,14 +6,18 @@
         people: ko.observableArray([]),
         save: dataservice.saveChanges,
         loadDevices: dataservice.loadDevices,
-        reset: reset
+        reset: reset,
+        hide: ko.observable(true)
     };
 
-    getAllPersons();
+    getAllPersons()
+        // reveal view when query succeeds
+        .then(function () { vm.hide(false); });
+    
     app.peopleViewModel = vm;
   
     function getAllPersons() {
-        dataservice.getAllPersons(vm.people);
+        return dataservice.getAllPersons(vm.people);
     }
     
     function reset() {
