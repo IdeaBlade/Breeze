@@ -48,6 +48,11 @@
                         <div class="panel-header">
                             <div class="step-navigation">
                                 <div>Output</div>
+                                <button class="run" data-bind="click: run">
+                                    <div>
+                                        <strong>Run</strong>
+                                    </div>
+                                </button>
                             </div>
                         </div>
                         <div class="panel-content">
@@ -66,7 +71,7 @@
                             </div>
                         </div>
                         <div class="panel-content">
-                            <textarea data-bind="htmlEditor: currentHtml()"></textarea>
+                            <textarea data-bind="htmlEditor: currentHtml"></textarea>
                         </div>
                     </div>
                 </div>
@@ -79,7 +84,7 @@
                             </div>
                         </div>
                         <div class="panel-content">
-                            <textarea data-bind="jsEditor: currentJavascript()"></textarea>
+                            <textarea data-bind="jsEditor: currentJavascript"></textarea>
                         </div>
                     </div>
                 </div>
@@ -119,8 +124,7 @@
         </script>
         
         <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
-        <script type="text/javascript">            window.jQuery || document.write('<script src="Scripts/jquery-1.7.2.min.js"><\/script>')</script>
+        <script src="@Url.Content("~/Scripts/jquery-1.7.2.min.js")" type="text/javascript"></script>
         <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")" type="text/javascript"></script>
         <script src="@Url.Content("~/Scripts/editor/codemirror.js")" type="text/javascript" charset="utf-8"></script>
         <script src="@Url.Content("~/Scripts/editor/xml.js")" type="text/javascript" charset="utf-8"></script>
@@ -129,5 +133,7 @@
         <script src="@Url.Content("~/Scripts/editor/htmlmixed.js")" type="text/javascript" charset="utf-8"></script>
         <script src="@Url.Content("~/Scripts/jquery.simplemodal.js")" type="text/javascript" charset="utf-8"></script>
         <script src="@Url.Content("~/Scripts/learn.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/q.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/breeze.debug.js")" type="text/javascript"></script>
     </body>
 </html>

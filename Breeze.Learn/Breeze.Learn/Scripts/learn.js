@@ -27,10 +27,34 @@
         learn.activeStep(learn.activeTutorial().Steps[learn.activeStepNumber() - 2]);
     };
 
+    function getBaseURL() {
+        var url = location.href;  // entire url including querystring - also: window.location.href;
+        var baseURL = url.substring(0, url.indexOf('/', 14));
+
+
+        if (baseURL.indexOf('http://localhost') != -1) {
+            // Base Url for localhost
+            var url = location.href;  // window.location.href;
+            var pathname = location.pathname;  // window.location.pathname;
+            var index1 = url.indexOf(pathname);
+            var index2 = url.indexOf("/", index1 + 1);
+            var baseLocalUrl = url.substr(0, index2);
+
+            return baseLocalUrl + "/";
+        }
+        else {
+            // Root Url for domain name
+            return baseURL + "/";
+        }
+
+    }
+
     learn.run = function() {
         var frame = document.getElementById("output");
 
-        var html = "<html><body><h1>Hello World</h1></body></html>"; //assembly the html and js here
+        var htmlStart = "<!DOCTYPE html><html><head><base href='" + getBaseURL() + "' target='_blank'><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
+        var htmlEnd = "</body></html>";
+        var html = htmlStart + "<scr" + "ipt type='text/javascript'>" + this.currentJavascript() + "</scr" + "ipt>" + htmlEnd;
         var encodedHtml = "data:text/html;charset=utf-8," + encodeURIComponent(html);
 
         frame.src = encodedHtml;
@@ -64,27 +88,62 @@
 
     ko.bindingHandlers.jsEditor = {
         init: function(element, valueAccessor) {
-            this.editor = CodeMirror.fromTextArea(element, {
+            var that = this;
+            this.firstUpdate = true;
+            var editor = this.editor = CodeMirror.fromTextArea(element, {
                 matchBrackets: true,
-                tabMode: "indent"
+                tabMode: "indent",
+                mode: "text/javascript",
+                onUpdate: function() {
+                    if (editor && !that.updating) {
+                        that.updating = true;
+                        var newValue = editor.getValue();
+                        valueAccessor()(newValue);
+                        that.updating = false;
+                    }
+                }
             });
         },
         update: function(element, valueAccessor) {
+            if (this.updating || !this.firstUpdate) {
+                return;
+            }
+
+            this.firstUpdate = false;
+            this.updating = true;
             var value = ko.utils.unwrapObservable(valueAccessor());
             this.editor.setValue(value);
+            this.updating = false;
         }
     };
 
-    ko.bindingHandlers.htmlEditor = {
+    ko.bindingHandlers.htmlEditor = ko.bindingHandlers.jsEditor = {
         init: function(element, valueAccessor) {
-            this.editor = CodeMirror.fromTextArea(element, {
+            var that = this;
+            this.firstUpdate = true;
+            var editor = this.editor = CodeMirror.fromTextArea(element, {
                 mode: "text/html",
-                tabMode: "indent"
+                tabMode: "indent",
+                onUpdate: function() {
+                    if (editor && !that.updating) {
+                        that.updating = true;
+                        var newValue = editor.getValue();
+                        valueAccessor()(newValue);
+                        that.updating = false;
+                    }
+                }
             });
         },
         update: function(element, valueAccessor) {
+            if (this.updating || !this.firstUpdate) {
+                return;
+            }
+
+            this.firstUpdate = false;
+            this.updating = true;
             var value = ko.utils.unwrapObservable(valueAccessor());
             this.editor.setValue(value);
+            this.updating = false;
         }
     };
 

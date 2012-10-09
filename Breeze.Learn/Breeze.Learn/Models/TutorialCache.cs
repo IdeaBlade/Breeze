@@ -16,6 +16,10 @@
             var serializer = new XmlSerializer(typeof(Tutorial));
 
             foreach(var filePath in GetTutorialFiles()) {
+                if(Path.GetExtension(filePath) != ".xml") {
+                    continue;
+                }
+
                 using(var stream = File.OpenRead(filePath)) {
                     yield return (Tutorial)serializer.Deserialize(stream);
                 }  

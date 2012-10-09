@@ -1,34 +1,43 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Tutorial>
+﻿<Tutorial>
   <Order>1</Order>
   <Title>Tutorial 1</Title>
-  <Description>Description 1</Description>
-  <StartingHtml>
-    <![CDATA[<div>
-  <div></div>
-</div>
-]]>
-  </StartingHtml>
+  <Description>A sample of how this stuff works...</Description>
+  <StartingHtml></StartingHtml>
   <StartingJavascript>
-    <![CDATA[function Func1(a,b) {
-  if (a < b && a < 0) {
-    return 1;
-  }
-  else   {
-    return 0;
-  }
-}
+    <![CDATA[
+    var core = breeze.core,
+        entityModel = breeze.entityModel;
+    
+    core.config.setProperties({
+        trackingImplementation: entityModel.entityTracking_ko,
+        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    });
+    
+    var manager = new entityModel.EntityManager('api/todos');
+
+    manager.fetchMetadata()
+        .then(function () {
+            var query = new entityModel.EntityQuery()
+                .from("Todos")
+                .orderBy("CreatedAt");
+
+            manager.executeQuery(query).then(function(data){
+                data.results.forEach(function (item) {
+                  document.write(item.Description());
+              });
+            });
+        });
 ]]>
   </StartingJavascript>
   <Steps>
     <TutorialStep>
-      <Instructions>instructions 1</Instructions>
+      <Instructions>Press run...</Instructions>
     </TutorialStep>
     <TutorialStep>
-      <Instructions>instructions 2</Instructions>
+      <Instructions>Press run...</Instructions>
     </TutorialStep>
     <TutorialStep>
-      <Instructions>instructions 3</Instructions>
+      <Instructions>Press run...</Instructions>
     </TutorialStep>
   </Steps>
 </Tutorial>

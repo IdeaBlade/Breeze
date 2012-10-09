@@ -37,9 +37,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Breeze.WebApi">
+      <HintPath>..\..\Breeze.WebApi\Breeze.WebApi.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Irony">
+      <HintPath>ThirdParty\Irony.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -106,12 +116,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\BreezeConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\SampleDataController.cs" />
+    <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\JsonHelpers.cs" />
+    <Compile Include="Models\TodoDatabaseInitializer.cs" />
+    <Compile Include="Models\TodoItem.cs" />
+    <Compile Include="Models\TodosContext.cs" />
     <Compile Include="Models\Tutorial.cs" />
     <Compile Include="Models\TutorialCache.cs" />
     <Compile Include="Models\TutorialStep.cs" />
@@ -123,11 +137,14 @@
     <Content Include="App_Data\Tutorial4.xml" />
     <Content Include="App_Data\Tutorial3.xml" />
     <Content Include="App_Data\Tutorial2.xml" />
-    <Content Include="App_Data\Tutorial1.xml" />
+    <Content Include="App_Data\Tutorial1.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Global.asax" />
     <Content Include="Images\arrowdown.png" />
     <Content Include="Images\arrows.png" />
     <Content Include="Images\x.png" />
+    <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\editor\codemirror.js" />
     <Content Include="Scripts\editor\css.js" />
     <Content Include="Scripts\editor\htmlmixed.js" />
@@ -137,6 +154,7 @@
     <Content Include="Scripts\jquery.simplemodal.js" />
     <Content Include="Scripts\knockout-2.1.0.js" />
     <Content Include="Scripts\learn.js" />
+    <Content Include="Scripts\q.js" />
     <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\default.css" />
     <Content Include="Web.config" />
