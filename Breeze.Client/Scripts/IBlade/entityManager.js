@@ -1169,7 +1169,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         targetEntity = null;
                     }
                 } else {
-                    targetEntity = entityType.createEntity();
+                    targetEntity = entityType._createEntity(true);
                     dpNames.forEach(function (dpName, ix) {
                         targetEntity.setProperty(dpName, rawEntity[ix]);
                     });
@@ -1189,6 +1189,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                             });
                         }
                     }
+                    targetEntity.entityAspect._postInitialize();
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -1495,12 +1496,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
             } else {
-                targetEntity = entityType.createEntity();
+                targetEntity = entityType._createEntity(true);
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by entityTracking impl.
                     targetEntity.initializeFrom(rawEntity);
                 }
                 updateEntity(targetEntity, rawEntity, queryContext);
+                targetEntity.entityAspect._postInitialize();
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
                 em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });

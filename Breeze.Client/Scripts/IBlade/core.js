@@ -12,6 +12,7 @@ function (core, Enum, Event, m_assertParam) {
     core.config = { };
     core.config.functionRegistry = { };
     core.config.typeRegistry = { };
+    core.config.objectRegistry = { };
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -84,14 +85,21 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-       // this is needed for reflection purposes when deserializing an object that needs a ctor.
+    // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
+    // used to register validators.
     core.config.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         core.config.functionRegistry[fnName] = fn;
     };
-    
+
+    core.config.registerObject = function(obj, objName) {
+        core.assertParam(obj, "obj").isObject().check();
+        core.assertParam(objName, "objName").isString().check();
+
+        core.config.objectRegistry[objName] = obj;
+    };
   
     core.config.registerType = function (ctor, typeName) {
         core.assertParam(ctor, "ctor").isFunction().check();

@@ -294,7 +294,7 @@ function (core, Event, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity) {
+        var ctor = function (entity, deferInitialization) {
             if (!entity) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
             }
@@ -303,7 +303,7 @@ function (core, Event, m_validate) {
             }
             // if called without new
             if (!(this instanceof EntityAspect)) {
-                return new EntityAspect(entity);
+                return new EntityAspect(entity, deferInitialization);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -330,6 +330,15 @@ function (core, Event, m_validate) {
             }
             var entityCtor = entityType.getEntityCtor();
             core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            if (!deferInitialization) {
+                this._postInitialize();
+            }
+
+        };
+
+        ctor.prototype._postInitialize = function () {
+            var entity = this.entity;
+            var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
@@ -338,7 +347,6 @@ function (core, Event, m_validate) {
                     entityCtor._$initializationFn(entity);
                 }
             }
-            
         };
 
         Event.bubbleEvent(ctor.prototype, function() {

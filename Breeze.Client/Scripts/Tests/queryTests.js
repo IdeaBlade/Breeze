@@ -160,11 +160,37 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(query).then(function(data) {
             var products = data.results;
-            products.forEach(function(p) {
+            products.forEach(function (p) {
+                ok(p.getProperty("productName") !== undefined, "productName should be defined");
                 ok(p.getProperty("isObsolete") === true,"isObsolete should be true");
             });
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("post create init using materialized data", 2,function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.Customer();
+        
+        var customerInitializer = function (customer) {
+            // should be called after materialization ... but is not.
+            var companyName = customer.getProperty("companyName");
+            ok(companyName, "company name should not be null");
+            customer.foo = "Foo " + companyName;
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer, customerInitializer);
+        
+        var query = EntityQuery.from("Customers").top(1);
+
+        stop(); // going async
+        em.executeQuery(query).then(function (data) {
+            var cust = data.results[0];
+            equal(cust.foo, "Foo " + cust.getProperty("companyName"),
+                "'foo' property, created in initializer, performed as expected");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
     
     test("date property is a DateTime", function () {
 

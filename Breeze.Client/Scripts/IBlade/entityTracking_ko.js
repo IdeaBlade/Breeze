@@ -45,6 +45,7 @@ function (core, makeRelationArray) {
     trackingImpl.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "entityType") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);

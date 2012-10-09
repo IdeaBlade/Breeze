@@ -234,6 +234,9 @@ function (core) {
         ctor.fromJSON = function (json) {
             var validatorName = "Validator." + json.validatorName;
             var fn = core.config.functionRegistry[validatorName];
+            if (!fn) {
+                throw new Error("Unable to locate a validator named:" + json.validatorName);
+            }
             return fn(json);
         };
 

@@ -1558,6 +1558,7 @@ function (core, Enum, Event, m_assertParam) {
     core.config = { };
     core.config.functionRegistry = { };
     core.config.typeRegistry = { };
+    core.config.objectRegistry = { };
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -1630,14 +1631,21 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-       // this is needed for reflection purposes when deserializing an object that needs a ctor.
+    // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
+    // used to register validators.
     core.config.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         core.config.functionRegistry[fnName] = fn;
     };
-    
+
+    core.config.registerObject = function(obj, objName) {
+        core.assertParam(obj, "obj").isObject().check();
+        core.assertParam(objName, "objName").isString().check();
+
+        core.config.objectRegistry[objName] = obj;
+    };
   
     core.config.registerType = function (ctor, typeName) {
         core.assertParam(ctor, "ctor").isFunction().check();
@@ -1887,6 +1895,9 @@ function (core) {
         ctor.fromJSON = function (json) {
             var validatorName = "Validator." + json.validatorName;
             var fn = core.config.functionRegistry[validatorName];
+            if (!fn) {
+                throw new Error("Unable to locate a validator named:" + json.validatorName);
+            }
             return fn(json);
         };
 
@@ -2615,7 +2626,7 @@ function (core, Event, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity) {
+        var ctor = function (entity, deferInitialization) {
             if (!entity) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
             }
@@ -2624,7 +2635,7 @@ function (core, Event, m_validate) {
             }
             // if called without new
             if (!(this instanceof EntityAspect)) {
-                return new EntityAspect(entity);
+                return new EntityAspect(entity, deferInitialization);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -2651,6 +2662,15 @@ function (core, Event, m_validate) {
             }
             var entityCtor = entityType.getEntityCtor();
             core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            if (!deferInitialization) {
+                this._postInitialize();
+            }
+
+        };
+
+        ctor.prototype._postInitialize = function () {
+            var entity = this.entity;
+            var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
@@ -2659,7 +2679,6 @@ function (core, Event, m_validate) {
                     entityCtor._$initializationFn(entity);
                 }
             }
-            
         };
 
         Event.bubbleEvent(ctor.prototype, function() {
@@ -3721,9 +3740,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var NamingConvention = (function() {
         var ctor = function(config) {
             assertConfig(config || {})
+                .whereParam("name").isOptional().isString()
                 .whereParam("serverPropertyNameToClient").isFunction()
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, "NamingConvention:" + this.name);
         };
         
         /**
@@ -3750,6 +3774,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @static
         **/
         ctor.defaultInstance = new ctor({
+            name: "noChange",
             serverPropertyNameToClient: function(serverPropertyName) {
                 return serverPropertyName;
             },
@@ -3853,7 +3878,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "namingConvention") {
-                    return undefined;
+                    return value.name;
                 }
                 return value;
             }, core.config.stringifyPad);
@@ -3877,6 +3902,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
+            var ncName = json.namingConvention;
+            delete json.namingConvention;
+            if (this.isEmpty()) {
+                var nc = core.config.objectRegistry["NamingConvention:" + ncName];
+                if (!nc) {
+                    throw new Error("Unable to locate a naming convention named: " + ncName);
+                }
+                this.namingConvention = nc;
+            } else {
+                if (this.namingConvention.name !== ncName) {
+                    throw new Error("Cannot import metadata with a different naming convention from the current MetadataStore");
+                }
+            }
             var entityTypeMap = {};
             var that = this;
             core.objectForEach(json._entityTypeMap, function (key, value) {
@@ -3887,6 +3925,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             core.extend(this, json);
             return this;
         };
+        
+        
 
         /**
         Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -4645,9 +4685,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @return {Entity} The new entity.
         **/
         ctor.prototype.createEntity = function () {
+            return this._createEntity(false);
+        };
+
+        ctor.prototype._createEntity = function(deferInitialization) {
             var entityCtor = this.getEntityCtor();
             var instance = new entityCtor();
-            new EntityAspect(instance);
+            new EntityAspect(instance, deferInitialization);
             return instance;
         };
 
@@ -4953,7 +4997,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
             var trackablePropNames = core.config.trackingImplementation.getTrackablePropertyNames(instance);
-            trackablePropNames.forEach(function(pn) {
+            trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
                         name: pn,
@@ -5154,6 +5198,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.toJSON = function () {
             return {
                 name: this.name,
+                nameOnServer: this.nameOnServer,
                 dataType: this.dataType.name,
                 isNullable: this.isNullable,
                 isUnmapped: this.isUnmapped,
@@ -5332,10 +5377,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.toJSON = function () {
             return {
                 name: this.name,
+                nameOnServer: this.nameOnServer,
                 entityTypeName: this.entityTypeName,
                 isScalar: this.isScalar,
                 associationName: this.associationName,
                 foreignKeyNames: this.foreignKeyNames,
+                foreignKeyNamesOnServer: this.foreignKeyNamesOnServer,
                 validators: this.validators
             };
         };
@@ -8819,7 +8866,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         targetEntity = null;
                     }
                 } else {
-                    targetEntity = entityType.createEntity();
+                    targetEntity = entityType._createEntity(true);
                     dpNames.forEach(function (dpName, ix) {
                         targetEntity.setProperty(dpName, rawEntity[ix]);
                     });
@@ -8839,6 +8886,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                             });
                         }
                     }
+                    targetEntity.entityAspect._postInitialize();
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -9145,12 +9193,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
             } else {
-                targetEntity = entityType.createEntity();
+                targetEntity = entityType._createEntity(true);
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by entityTracking impl.
                     targetEntity.initializeFrom(rawEntity);
                 }
                 updateEntity(targetEntity, rawEntity, queryContext);
+                targetEntity.entityAspect._postInitialize();
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
                 em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
@@ -10734,6 +10783,7 @@ function (core, makeRelationArray) {
     trackingImpl.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "entityType") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
@@ -11057,7 +11107,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.63.3",
+        version: "0.63.4",
         core: core,
         entityModel: entityModel
     };
