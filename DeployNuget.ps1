@@ -27,6 +27,7 @@ $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 
 deployNuget $srcDir 'Breeze.MVC4WebApi'
+deployNuget $srcDir 'Breeze.MVC4WebApiClientSample'
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

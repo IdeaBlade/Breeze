@@ -1,0 +1,44 @@
+﻿<header>
+    <div class="content-wrapper">
+        <div class="float-left">
+            <p class="site-title">
+                <a href="~/">Breeze Sample</a></p>
+        </div>
+    </div>
+</header>
+<style>
+    /* Belongs in css */
+    .hide { display: none; }
+    ul { list-style: none; }
+    section .done { text-decoration: line-through;}
+</style>
+<div id="body">
+    <section id="content" class="content-wrapper main-content clear-fix">
+        
+        <div data-bind="css: { hide: hide }" class="hide">
+            <a href="#" data-bind="click: save">Save</a>&nbsp;
+            <input type="checkbox" data-bind="checked: includeDone" /> include done 
+  
+            <ul data-bind="foreach: items">
+                <li >                
+                    <form>
+                        <input type="checkbox" data-bind="checked: IsDone" />
+                        <input type="text" data-bind="value: Description, css: { done: IsDone }"/>
+                    </form>
+                </li>
+            </ul>
+        </div>
+
+        <div id="logmessages"></div>
+    </section>
+</div>
+@section scripts {
+    <!--3rd party library scripts -->
+    <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")"></script>
+    <script src="@Url.Content("~/Scripts/q.js")"></script>
+    <script src="@Url.Content("~/Scripts/breeze.debug.js")"></script>
+
+    <!-- Application scripts -->
+    <script src="@Url.Content("~/Scripts/app/logger.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/sampleViewModel.js")"></script>
+}
