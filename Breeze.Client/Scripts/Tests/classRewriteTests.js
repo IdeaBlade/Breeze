@@ -8,6 +8,7 @@ define(["testFns"], function (testFns) {
     var EntityAspect = entityModel.EntityAspect;
 
     var MetadataStore = entityModel.MetadataStore;
+    
     module("classRewrite", {
         setup: function () {
             this.interceptor = function (propName, newValue, accessorFn) {
@@ -23,6 +24,7 @@ define(["testFns"], function (testFns) {
                 accessorFn(newValue);
             };
 
+
         },
         teardown: function () {
 
@@ -33,8 +35,80 @@ define(["testFns"], function (testFns) {
 
     }
 
-    test("class watcher - inherited", function () {
+    test("class watcher - inherited - backbone", function() {
+        if (testFns.trackingOption !== 'backbone') {
+            ok(false, "Skipped tests - ok to fail - Backbone specific");
+            return;
+        }
+        var metadataStore = new MetadataStore();
+        var Entity = Backbone.Model.extend({ });
 
+        var Person = Entity.extend({
+            defaults: {
+                firstName: null,
+                lastName: null
+            }
+        });
+
+        metadataStore.trackUnmappedType(Person, this.interceptor);
+
+        var per1 = new Person({
+            firstName: "Jane",
+            lastName: "Doe"
+        });
+        var per2 = new Person({
+            firstName: "a",
+            lastName: "b"
+        });
+
+        var Employee = Person.extend({
+            defaults: {
+                job: null
+            }
+        });
+
+        metadataStore.trackUnmappedType(Employee, this.interceptor);
+
+        var emp1 = new Employee({
+            firstName: "John",
+            lastName: "Smith",
+            job: "CTO"
+        });
+        var aspect = new EntityAspect(emp1);
+        var emp2 = new Employee({
+            firstName: "Fred",
+            lastName: "Jones",
+            job: "Eng"
+        });
+        new EntityAspect(emp2)
+        emp2.setProperty("firstName", "Bill");
+        ok(emp2.getProperty("firstName") === "Bill", "firstName should be Bill");
+        ok(emp2.getProperty("lastName") === "Jones", "lastName should be Jones");
+        ok(emp2.prevValues.length === 1, "prevValues should have length of 1");
+
+        equal(emp1.getProperty("firstName"), "John", "first name should be John");
+        equal(emp1.getProperty("lastName"), "Smith", "lastName should be Smith");
+        equal(emp1.getProperty("job"), "CTO", "job should be CTO");
+
+        emp1.setProperty("firstName", "John L.");
+        emp1.setProperty("lastName", "Smythe");
+        ok(emp1.getProperty("firstName") === "John L.", "firstName should be 'John L'");
+        ok(emp1.getProperty("lastName") === "Smythe", "lastName should be Smythe");
+
+        ok(emp1.prevValues.length === 2);
+        // next line is needed for chrome.
+        new EntityAspect(per1);
+        per1.setProperty("firstName", "Jen");
+        ok(per1.getProperty("firstName") === "Jen");
+        ok(per1.prevValues.length === 1, "getPrevValues() length should be 1");
+
+    });
+
+    test("class watcher - inherited - not backbone", function () {
+        if (testFns.trackingOption === 'backbone') {
+            ok(false, "Skipped tests - ok to fail - Not for Backbone");
+            return;
+        }
         var metadataStore = new MetadataStore();
         var Entity = function () {
 
@@ -88,9 +162,7 @@ define(["testFns"], function (testFns) {
 
     test("class watcher - 2", function () {
 
-        var Customer = function () {
-            this.companyName = null;
-        };
+        var Customer = testFns.models.Customer();
 
         var metadataStore = new MetadataStore();
         metadataStore.trackUnmappedType(Customer, this.interceptor);
@@ -108,9 +180,7 @@ define(["testFns"], function (testFns) {
 
     test("class watcher - 3", function () {
 
-        var Customer = function () {
-            this.companyName = null;
-        };
+        var Customer = testFns.models.Customer();
 
         var metadataStore = new MetadataStore();
         metadataStore.trackUnmappedType(Customer, this.interceptor);

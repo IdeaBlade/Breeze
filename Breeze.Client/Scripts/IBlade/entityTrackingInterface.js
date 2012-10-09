@@ -35,9 +35,3 @@ Called after and object has been created, queried or imported so that it can be 
 @param proto {Object} A prototype
 **/
     
-/**
-Returns whether the specified property is 'trackable'.
-@method isTrackableProperty
-@param entity {Entity} The entity to start tracking.
-@param propertyName {String} A property name
-**/

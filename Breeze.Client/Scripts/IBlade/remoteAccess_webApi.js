@@ -5,12 +5,12 @@ function (core, m_entityMetadata) {
 
     var EntityType = m_entityMetadata.EntityType;
 
-    var remoteAccess_webApi = {};
+    var impl = {};
 
     // -------------------------------------------
     var jQuery;
     
-    remoteAccess_webApi.initialize = function() {
+    impl.initialize = function() {
         jQuery = window.jQuery;
         if ((!jQuery) && require) {
             jQuery = require("jQuery");
@@ -21,7 +21,7 @@ function (core, m_entityMetadata) {
         
     };
 
-    remoteAccess_webApi.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
@@ -50,7 +50,7 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
         jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
@@ -66,7 +66,7 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
         jQuery.ajax(url, {
             type: "POST",
@@ -87,16 +87,23 @@ function (core, m_entityMetadata) {
 
     };
 
-    remoteAccess_webApi.getEntityTypeName = function (rawEntity) {
-        return EntityType._getNormalizedTypeName(rawEntity["$type"]);
+    // will return null if anon
+    impl.getEntityType = function (rawEntity, metadataStore) {
+        // TODO: may be able to make this more efficient by caching of the previous value.
+        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
+        return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
     };
 
-    remoteAccess_webApi.getDeferredValue = function (rawEntity) {
+    //impl.getEntityTypeName = function (rawEntity) {
+    //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
+    //};
+
+    impl.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
         return false;
     };
 
-    remoteAccess_webApi.resolveRefEntity = function (rawEntity, queryContext) {
+    impl.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
             var entity = queryContext.refMap[id];
@@ -151,7 +158,7 @@ function (core, m_entityMetadata) {
         return err;
     }
 
-    return remoteAccess_webApi;
+    return impl;
 
 
 });

@@ -33,8 +33,8 @@ define(["testFns"], function (testFns) {
     });
     
     if (!testFns.DEBUG_WEBAPI) {
-        test("OData saves not yet supported", function() {
-            ok(true, "Breeze OData does not yet support Saves");
+        test("OData saves not yet supported", function () {
+            ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
         });
         return testFns;
     };
@@ -55,10 +55,7 @@ define(["testFns"], function (testFns) {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm();
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
-
+        var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
         var q = new EntityQuery("Customers")

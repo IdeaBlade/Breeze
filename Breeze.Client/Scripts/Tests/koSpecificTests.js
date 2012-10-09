@@ -24,12 +24,34 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    if (!testFns.DEBUG_KO) {
+    if (testFns.trackingOption !== "ko") {
         test("Skipping KO specific tests", function () {
-            ok(true);
+            ok(false, "Skipped tests - ok to fail");
         });
         return testFns;
     };
+    
+    test("disallow setting collection navigation properties", function () {
+        // ko specific
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        em.attachEntity(customer);
+        var origOrders = customer.getProperty("orders");
+        ok(origOrders.length === 0);
+
+        customer.orders.push(order);
+        ok(origOrders.length === 1);
+        try {
+            customer.setProperty("orders", ["foo", "bar"]);
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message.indexOf("navigation") >= 0, "Exception should relate to navigation:" + e);
+            ok(customer.getProperty("orders") == origOrders);
+        }
+    });
     
     test("query results notification", function () {
         var em = newEm();

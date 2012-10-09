@@ -152,14 +152,7 @@ define(["testFns"], function (testFns) {
 
     test("post create init after materialization", function () {
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-        var Product = function () {
-            this.isObsolete = false;
-        };
-        Product.prototype.init = function (entity) {
-            ok(entity.entityType === productType, "entity's productType should be 'Product'");
-            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
-            entity.setProperty("isObsolete", true);
-        };
+        var Product = testFns.models.Product();
        
         var productType = em.metadataStore.getEntityType("Product");
         em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
@@ -510,7 +503,7 @@ define(["testFns"], function (testFns) {
             var customers = data.results;
             testFns.assertIsSorted(customers, "companyName");
             customers.forEach(function (c) {
-                ok(c.companyName, 'should have a companyName property');
+                ok(c.getProperty("companyName"), 'should have a companyName property');
                 var key = c.entityAspect.getKey();
                 ok(key, "missing key");
                 var c2 = em.findEntityByKey(key);

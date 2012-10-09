@@ -1,10 +1,23 @@
 
 
 QUnit.config.autostart = false;
+QUnit.config.urlConfig.push({
+    id: "canStart",
+    label: "Start the tests",
+    tooltip: "Allows a user to set options before tests start."
+});
+
+QUnit.config.urlConfig.push({
+    id: "next",
+    label: "Next tracking lib.",
+    tooltip: "Next tracking lib."
+});
+
+
 require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
-       "miscTests",
+      "miscTests",
       "koSpecificTests",
       "attachTests",
       "classRewriteTests",
@@ -21,8 +34,12 @@ require([
        "saveTests"
 
 ], function (testFns) {
+    
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
-    QUnit.start(); //Tests loaded, run tests
+    if (QUnit.config.canStart) {
+
+        QUnit.start(); //Tests loaded, run tests
+    }
 
 });
 

@@ -163,6 +163,10 @@
       <Link>Scripts\IBlade\entityQuery.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backbone.js">
+      <Link>Scripts\IBlade\entityTracking_backbone.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backingStore.js">
       <Link>Scripts\IBlade\entityTracking_backingStore.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -279,6 +283,14 @@
       <Link>Scripts\ThirdParty\almond.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\backbone.js">
+      <Link>Scripts\ThirdParty\backbone.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\backbone.min.js">
+      <Link>Scripts\ThirdParty\backbone.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\datajs-1.0.2.js">
       <Link>Scripts\ThirdParty\datajs-1.0.2.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -327,6 +339,14 @@
       <Link>Scripts\ThirdParty\require.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\underscore.js">
+      <Link>Scripts\ThirdParty\underscore.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\underscore.min.js">
+      <Link>Scripts\ThirdParty\underscore.min.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -357,6 +377,15 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="breezeBasic.html" />
+    <None Include="Scripts\ThirdParty\jquery-1.7.2.intellisense.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="Scripts\ThirdParty\jquery-1.7.2.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Scripts\ThirdParty\jquery-1.7.2.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

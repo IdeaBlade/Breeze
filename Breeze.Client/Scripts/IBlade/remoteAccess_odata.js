@@ -4,12 +4,12 @@ function (core, m_entityMetadata) {
  
     var EntityType = m_entityMetadata.EntityType;
 
-    var remoteAccess_odata = {};
+    var impl = {};
     // -------------------------------------------
 
     var OData;
 
-    remoteAccess_odata.initialize = function() {
+    impl.initialize = function() {
         OData = window.OData;
         if (!OData) {
             throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
@@ -17,12 +17,18 @@ function (core, m_entityMetadata) {
         OData.jsonHandler.recognizeDates = true;
         
     };
-
-    remoteAccess_odata.getEntityTypeName = function (rawEntity) {
-        return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+    
+    // will return null if anon
+    impl.getEntityType = function (rawEntity, metadataStore) {
+        // TODO: may be able to make this more efficient by caching of the previous value.
+        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+        var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
+        var isFullEntity = entityType && entityType._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
+        return isFullEntity ? entityType : null;
     };
 
-    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+
+    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
@@ -34,11 +40,11 @@ function (core, m_entityMetadata) {
     };
     
  
-    remoteAccess_odata.getDeferredValue = function (rawEntity) {
+    impl.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };
 
-    remoteAccess_odata.resolveRefEntity = function (rawEntity, queryContext) {
+    impl.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['__deferred'];
         if (id) {
             return null;
@@ -47,7 +53,7 @@ function (core, m_entityMetadata) {
         }
     };
 
-    remoteAccess_odata.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -75,7 +81,7 @@ function (core, m_entityMetadata) {
 
     };
 
-    remoteAccess_odata.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+    impl.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
 
@@ -114,6 +120,6 @@ function (core, m_entityMetadata) {
     }
 
 
-    return remoteAccess_odata;
+    return impl;
 
 });

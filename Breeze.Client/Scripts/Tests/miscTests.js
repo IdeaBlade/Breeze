@@ -26,7 +26,13 @@ define(["testFns"], function (testFns) {
         expect(1);
         ok(true);
     });
-    
+
+    test("backbone", function() {
+        var Person = Backbone.Model.extend({});
+        var aPerson = new Person();
+        ok(aPerson instanceof Person);
+
+    });
 
     test("regex function matching", function() {
         var entity = new TestEntity();

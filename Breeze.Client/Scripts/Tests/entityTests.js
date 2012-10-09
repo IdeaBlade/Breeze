@@ -26,10 +26,8 @@ define(["testFns"], function (testFns) {
 
     test("custom Customer type with createEntity", function() {
         var em = newEm(newMs());
-        
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
+
+        var Customer = testFns.models.CustomerWithMiscData();
         Customer.prototype.getNameLength = function() {
             return (this.getProperty("companyName") || "").length;
         };
@@ -52,11 +50,9 @@ define(["testFns"], function (testFns) {
     });
     
     test("custom Customer type with new", function() {
-        var em = newEm(newMs()); 
-        
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
+        var em = newEm(newMs());
+
+        var Customer = testFns.models.CustomerWithMiscData();
         Customer.prototype.getNameLength = function() {
             return (this.getProperty("companyName") || "").length;
         };
@@ -81,10 +77,8 @@ define(["testFns"], function (testFns) {
 
     test("custom Customer type with new - v2", function() {
         var em = newEm(newMs());
-        
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
+
+        var Customer = testFns.models.CustomerWithMiscData();
         Customer.prototype.getNameLength = function() {
             return (this.getProperty("companyName") || "").length;
         };
@@ -138,10 +132,7 @@ define(["testFns"], function (testFns) {
     test("entityCtor materialization with js class", function () {
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm(newMs());
-        var Customer = function () {
-            this.miscData = "asdf";
-        };
-
+        var Customer = testFns.models.CustomerWithMiscData();
 
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
@@ -157,10 +148,7 @@ define(["testFns"], function (testFns) {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm(newMs());
-        var Customer = function() {
-            this.miscData = "asdf";
-        };
-
+        var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
         em1.fetchMetadata().then(function() {
@@ -494,13 +482,16 @@ define(["testFns"], function (testFns) {
             var v = entity.getProperty(p.name);
             if (p.isDataProperty) {
                 if (p.isNullable) {
-                    ok(v === null, "value should be null for: " + entityType.name + " -> " + p.name);
+                    ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
+                        entityType.name, p.name, v));
                 } else {
-                    ok(v === p.defaultValue, "incorrect default value for:" + entityType.name + " -> " + p.name);
+                    ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
+                        entityType.name, p.name, v, p.defaultValue));
                 }
             } else {
                 if (p.isScalar) {
-                    ok(v === null, "value should be null for: " + entityType.name + " -> " + p.name);
+                    ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
+                        entityType.name, p.name, v));
                 } else {
                     ok(v.arrayChanged, "value should be a relation array");
                 }
