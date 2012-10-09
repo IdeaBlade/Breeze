@@ -24,6 +24,7 @@ require(["testFns" // always first
     , "queryTests"
     , "navigationTests"
     , "entityTests"
+    , "entityExtensionTests"
     , "validationTests"
     , "metadataTests"
     , "saveTodoTests"

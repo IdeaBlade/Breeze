@@ -149,6 +149,7 @@
     <Content Include="App_Data\readme.txt" />
     <Content Include="Scripts\tests\basicTodoTests.js" />
     <Content Include="Scripts\tests\apiDirectTests.js" />
+    <Content Include="Scripts\tests\entityExtensionTests.js" />
     <Content Include="Scripts\tests\testNorthwindData.js" />
     <Content Include="Scripts\tests\exportImportTests.js" />
     <Content Include="Scripts\tests\navigationTests.js" />
