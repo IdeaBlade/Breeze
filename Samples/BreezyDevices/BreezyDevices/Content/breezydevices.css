@@ -30,8 +30,8 @@ header h1 {
     margin-bottom: .5em;
 }
 
-.view {
-  display: none;   
+.hide {
+     display: none;
 }
 
 section {
