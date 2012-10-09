@@ -7,8 +7,6 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
     var entityModel = testFns.breeze.entityModel;
-
-    var handleFail = testFns.handleFail;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
@@ -20,7 +18,7 @@ define(["testFns"], function (testFns) {
     test("add customer", 1, function () {
 
         var em = newEm();
-        var customerType = getCustomerType(em);
+        var customerType = em.metadataStore.getEntityType("Customer");
         var newCust = customerType.createEntity();
         em.addEntity(newCust);
 
@@ -59,7 +57,7 @@ define(["testFns"], function (testFns) {
     * can find deleted entity in cache with getEntities()
     *********************************************************/
 
-    test("find deleted entity in cache with getEntities()", 3, function () {
+    test("find deleted entity in cache with getEntities()", 1, function () {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
@@ -76,12 +74,12 @@ define(["testFns"], function (testFns) {
     * can find deleted entity in cache by key
     *********************************************************/
 
-    test("find deleted entity in cache by key", 3, function () {
+    test("find deleted entity in cache by key", 1, function () {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
 
-        var customerType = getCustomerType(em);
+        var customerType = em.metadataStore.getEntityType("Customer");
         var key = new entityModel.EntityKey(customerType, customer.CustomerID());
 
         var foundcustomer = em.findEntityByKey(key);
@@ -94,7 +92,7 @@ define(["testFns"], function (testFns) {
     * does not return deleted entity in cache when queryLocally
     *********************************************************/
 
-    test("does not return deleted entity in cache when queryLocally", 3, function () {
+    test("does not return deleted entity in cache when queryLocally", 1, function () {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
@@ -106,9 +104,10 @@ define(["testFns"], function (testFns) {
             ok(true, "query for deleted customer in cache returned none");
         } else {
             var queriedcustomer = queryResults[0];
-            ok(false, "query unexpectedly returned customer '" +
-                queriedcustomer.CompanyName() + "' in state=" +
-            queriedcustomer.entityAspect.entityState);
+            ok(false,
+                "query unexpectedly returned customer '{0}' in state={1}"
+                    .format(queriedcustomer.CompanyName(), 
+                        queriedcustomer.entityAspect.entityState));
         }
 
     });
@@ -119,7 +118,7 @@ define(["testFns"], function (testFns) {
     test("original values are tracked AFTER entity is attached", 3, function () {
 
         var em = newEm(); // new empty EntityManager
-        var empType = getEmployeeType(em);
+        var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
         employee.LastName("Smith"); // initial value before attached
@@ -154,70 +153,30 @@ define(["testFns"], function (testFns) {
     * TEST HELPERS
     *********************************************************/
 
-    function getCustomerType(em) {
-        return em.metadataStore.getEntityType("Customer");
-    }
-
-    function getFakeDeletedcustomer(em, name) {
-        var customer = getFakeExistingcustomer(em, name);
-
-        customer.entityAspect.setDeleted();
-        ok(customer.entityAspect.entityState.isDeleted(),
-        "'" + customer.CompanyName() + "' is in 'deleted' state after setDelete()");
-
+    // new but not added to em
+    function createCustomer(em, name) {
+        name = name || "New customer";
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        customer.CompanyName(name);
         return customer;
     }
 
     function getFakeExistingcustomer(em, name) {
         name = name || "Just Kidding";
         var customer = createCustomer(em, name);
-
         // pretend already exists
-        em.attachEntity(customer);
-        ok(customer.entityAspect.entityState.isUnchanged(),
-        "faked existing customer '" + customer.CompanyName() + "' is in 'Unchanged' state");
-
+        return em.attachEntity(customer);
+    }
+    
+    function getFakeDeletedcustomer(em, name) {
+        var customer = getFakeExistingcustomer(em, name);
+        customer.entityAspect.setDeleted();
         return customer;
-    }
-
-    // new but not added to em
-    function createCustomer(em, name) {
-        name = name || "New customer";
-        var customerType = getCustomerType(em);
-        var customer = customerType.createEntity();
-        customer.CompanyName(name);
-        return customer;
-    }
-
-    function getEmployeeType(em) {
-        return em.metadataStore.getEntityType("Employee");
-    }
-
-    // new but not added to em
-    function createEmployee(em, lastName) {
-        lastName = lastName || "NewGuy";
-        var empType = getEmployeeType(em);
-        var emp = empType.createEntity();
-        emp.LastName(lastName);
-        return order;
-    }
-
-    function getOrderType(em) {
-        return em.metadataStore.getEntityType("Order");
-    }
-
-    // new but not added to em
-    function createOrder(em, shipName) {
-        shipName = shipName || "New Order";
-        var orderType = getOrderType(em);
-        var order = orderType.createEntity();
-        order.ShipName(shipName);
-        return order;
     }
 
     /*  Suggested Test subjects
     *----------------------
-    * Navigation properties
     * Id Generation 
     *  Guid Ids of a new customer are store generated
     *  Int Ids of a new Order are store generated
@@ -225,7 +184,6 @@ define(["testFns"], function (testFns) {
     *
     * EntityAspect
     *    acceptChanges/rejectChanges
-    *    add/get/remove ValidationErrors
     *    propertyChanged
     *    validationErrorsChanged
     *    isBeingSaved (in combination with EM.entityChanged)
@@ -235,13 +193,7 @@ define(["testFns"], function (testFns) {
     *   Remove entity from cache with em.detach(); changes its entity state to detached
     *   Clearing cache detaches all entities
     *   4 flavors of GetEntities
-    *   Import/export (between EMs and to localStorage)
     *   EM.setProperties
     *   EM.entityChanged and EntityAction(query, save, add, attach)
-    *
-    * Validation (sigh ... lots to do)
-
-    *
-
     */
 });

@@ -157,6 +157,7 @@
     <Content Include="Scripts\tests\entityTests.js" />
     <Content Include="Scripts\tests\queryTests.js" />
     <Content Include="Scripts\tests\saveTodoTests.js" />
+    <Content Include="Scripts\_references.js" />
     <Content Include="Tests.html" />
     <Content Include="Global.asax" />
     <Content Include="Content\qunit.css" />
