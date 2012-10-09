@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>{id will go here}</id>
+        <version>{version will go here}</version>
+        <title>Breeze for MVC4 WebApi Client Sample</title>
+        <authors>Jay Traband</authors>
+        <owners>IdeaBlade</owners>
+        <licenseUrl>http://www.breezejs.com/license</licenseUrl>
+        <projectUrl>http://www.breezejs.com</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Provides a very simple Breeze sample app</description>
+        <summary>Breeze MVC4 Web Api Client sample application</summary>
+        <copyright>Copyright IdeaBlade 2012</copyright>
+        <language>en-US</language>
+        <tags>javascript MVC4 EntityFramework Breeze</tags>
+		<dependencies>
+			<dependency id="WebActivator" version="1.5.1" />
+			<dependency id="Breeze.MVC4WebApi" version="0.62.2" />
+		</dependencies>
+    </metadata>
+    <files>
+        <file src="content\Controllers\BreezeSampleShellController.cs.pp" target="content\Controllers\BreezeSampleShellController.cs.pp" />
+        <file src="content\Views\BreezeSampleShell\index.cshtml" target="content\Views\BreezeSampleShell\index.cshtml" />
+        <file src="content\Scripts\app\logger.js" target="content\Scripts\app\logger.js" />
+		<file src="content\Scripts\app\sampleViewModel.js" target="content\Scripts\app\sampleViewModel.js" />
+        <file src="readme.txt" target="readme.txt" />
+    </files>
+</package>

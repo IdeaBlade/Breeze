@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity;
 
 namespace $rootnamespace$.Models
@@ -14,11 +15,20 @@ namespace $rootnamespace$.Models
     {
         protected override void Seed(BreezeSampleContext context)
         {
-            context.SampleItems.Add(
-                new BreezeSampleItem { Id = 1, Name = "Value 1" });
-            context.SampleItems.Add(
-                new BreezeSampleItem { Id = 2, Name = "Value 2" });
-            context.SaveChanges();
+            var samples = new []
+                {
+                    // Description IsDone
+                    new BreezeSampleItem{Description = "Wake up"},
+                    new BreezeSampleItem{Description = "Do dishes", IsDone = true},
+                    new BreezeSampleItem{Description = "Mow lawn", IsDone = true},
+                    new BreezeSampleItem{Description = "Try Breeze"},
+                    new BreezeSampleItem{Description = "Tell the world"},
+                    new BreezeSampleItem{Description = "Go home early"},
+                };
+
+            Array.ForEach(samples, t => context.Samples.Add(t));
+
+            context.SaveChanges(); // Save 'em
         }
     }
 }
