@@ -25,7 +25,7 @@
 
 
         // ~/api/todos/Metadata 
-        [AcceptVerbs("OPTIONS", "GET")]
+        [AcceptVerbs("GET")]
         public string Metadata() {
             return _contextProvider.Metadata();
         }

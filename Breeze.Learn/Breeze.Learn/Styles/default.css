@@ -285,5 +285,6 @@ iframe {
 .run {
     float: right;
     position: relative;
-    top: -30px;
+    top: -32px;
+    line-height: 20px;
 }

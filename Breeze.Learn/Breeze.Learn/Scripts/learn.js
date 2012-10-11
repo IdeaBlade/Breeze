@@ -50,14 +50,21 @@
     }
 
     learn.run = function() {
-        var frame = document.getElementById("output");
+        var container = document.getElementById("output-container");
+        var frame = document.createElement("iframe");
 
-        var htmlStart = "<!DOCTYPE html><html><head><base href='" + getBaseURL() + "' target='_blank'><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
+        $(container).empty().append(frame);
+
+        var htmlStart = "<!DOCTYPE html><html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
         var htmlEnd = "</body></html>";
-        var html = htmlStart + "<scr" + "ipt type='text/javascript'>" + this.currentJavascript() + "</scr" + "ipt>" + htmlEnd;
-        var encodedHtml = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+        var html = htmlStart + this.currentHtml() + "<scr" + "ipt type='text/javascript'>" + this.currentJavascript() + "</scr" + "ipt>" + htmlEnd;
 
-        frame.src = encodedHtml;
+        var win = frame.contentWindow || frame.documentWindow;
+        var doc = win.document;
+
+        doc.open();
+        doc.write(html);
+        //doc.close();
     };
 
     learn.selectTutorial = function() {
