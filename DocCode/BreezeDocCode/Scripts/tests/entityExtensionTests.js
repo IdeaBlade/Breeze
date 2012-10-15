@@ -6,8 +6,8 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-
-    var entityModel = testFns.breeze.entityModel;
+    var breeze = testFns.breeze;
+    var entityModel = breeze.entityModel;
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
     var EntityQuery = entityModel.EntityQuery;
@@ -258,6 +258,90 @@ define(["testFns"], function (testFns) {
                 .fail(handleFail)
                 .fin(start);
     });
+
+    /*********************************************************
+    * can define custom temporary key generator
+    * must conform to the keygenerator-interface
+    * http://www.breezejs.com/sites/all/apidocs/classes/~keyGenerator-interface.html
+    *********************************************************/
+    test("can define custom temporary key generator", 5,
+        function () {
+            var em = newEm();
+
+            // add statics for testing the key generator
+            var tempIds = testKeyGenerator.tempIds = [];
+
+            em.setProperties({ keyGeneratorCtor: testKeyGenerator });
+            em.clear(); // TODO: Remove this workaround for Breeze bug in v.0.63.4
+
+            // Order has an integer key
+            var orderEntityType = em.metadataStore.getEntityType("Order");
+            var o1 = orderEntityType.createEntity();
+            var o2 = orderEntityType.createEntity();
+
+            // temporary keys are assigned when added to an EntityManager
+            em.addEntity(o1);
+            em.addEntity(o2);
+
+            // Customer has a Guid key
+            var customerEntityType = em.metadataStore.getEntityType("Customer");
+            var c1 = customerEntityType.createEntity();
+            var c2 = customerEntityType.createEntity();
+            em.addEntity(c1);
+            em.addEntity(c2);
+
+            equal(tempIds.length, 4, "should have 4 tempIds");
+            equal(o1.OrderID(), tempIds[0], "o1 should have temp key " + tempIds[0]);
+            equal(o2.OrderID(), tempIds[1], "o2 should have temp key " + tempIds[1]);
+            equal(c1.CustomerID(), tempIds[2], "c1 should have temp key " + tempIds[2]);
+            equal(c2.CustomerID(), tempIds[3], "c2 should have temp key " + tempIds[3]);
+        });
+
+    function testKeyGenerator() {
+        var self = this;
+        this.nextNumber = -1000;
+
+        this.generateTempKeyValue = function (entityType) {
+            var keyProps = entityType.keyProperties;
+            if (keyProps.length > 1) {
+                throw new Error("Cannot autogenerate multi-part keys");
+            }
+            var keyProp = keyProps[0];
+            var nextId = GetNextId(keyProp.dataType);
+            testKeyGenerator.tempIds.push(nextId);
+            return nextId;
+        };
+
+        function GetNextId(dataType) {
+            if (dataType.isNumeric) {
+                return self.nextNumber -= 1;
+            }
+
+            if (dataType === entityModel.DataType.Guid) {
+                return breeze.core.getUuid();
+            }
+
+            throw new Error("Cannot generate key for a property of datatype: " +
+                dataType.toString());
+        }
+    }
+    
+    /*********************************************************
+    * An assigned key is always replaced by key generation
+    * if it is a store-generated key
+    * Perhaps this rule was deliberately NOT copied from DevForce to Breeze
+    *********************************************************/
+    //test("store-gen keys are always re-set by key generator upon add to manager", 1,
+    //    function () {
+    //        var em = newEm();
+    //        var orderEntityType = em.metadataStore.getEntityType("Order");
+    //        var o1 = orderEntityType.createEntity();
+    //        o1.OrderID(42); // waste of time to set id; it will be replaced.
+    //        ok(o1.OrderID() !== 42,
+    //            "o1's original key, 42, should have been replaced w/ new temp key.");
+    //        em.addEntity(o1);
+    //    });
+
     /*********************************************************
     * helpers
     *********************************************************/
