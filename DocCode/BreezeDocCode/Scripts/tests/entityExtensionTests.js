@@ -242,6 +242,38 @@ define(["testFns"], function (testFns) {
             "'fullName' KO computed should return , '{0}'."
                 .format(expected));
     });
+
+   /*********************************************************
+   * knockout computed property w/ re-defined mapped dependent properties
+   *********************************************************/
+    test("add knockout computed property w/ re-defined mapped dependent properties", 2,
+        function () {
+            var store = cloneModuleMetadataStore();
+
+            var Employee = function () {
+                this.FirstName = ko.observable("John");
+                this.LastName = ko.observable("Doe");
+                this.fullName = ko.computed(
+                        function () {
+                            return this.FirstName() + " " + this.LastName();
+                        }, this);
+            };
+
+            store.registerEntityTypeCtor("Employee", Employee);
+
+            var employeeType = store.getEntityType("Employee");
+            var emp = employeeType.createEntity();
+            emp.FirstName("John");
+            emp.LastName("Doe");
+
+            ok(emp["fullName"],
+                "should have 'fullName' member via constructor");
+
+            var expected = "John Doe";
+            equal(emp.fullName(), expected,
+                "'fullName' KO computed should return , '{0}'."
+                    .format(expected));
+    });
     /*********************************************************
     * add subscription in post-construction initializer
     *********************************************************/
