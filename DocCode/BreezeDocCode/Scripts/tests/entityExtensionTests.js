@@ -246,13 +246,13 @@ define(["testFns"], function (testFns) {
    /*********************************************************
    * knockout computed property w/ re-defined mapped dependent properties
    *********************************************************/
-    test("add knockout computed property w/ re-defined mapped dependent properties", 2,
+    test("add knockout computed property w/ re-defined mapped dependent properties", 3,
         function () {
             var store = cloneModuleMetadataStore();
 
             var Employee = function () {
-                this.FirstName = ko.observable("John");
-                this.LastName = ko.observable("Doe");
+                this.FirstName = ko.observable(""); // default FirstName
+                this.LastName = ko.observable("");  // default LastName
                 this.fullName = ko.computed(
                         function () {
                             return this.FirstName() + " " + this.LastName();
@@ -271,8 +271,24 @@ define(["testFns"], function (testFns) {
 
             var expected = "John Doe";
             equal(emp.fullName(), expected,
-                "'fullName' KO computed should return , '{0}'."
+                "created 'emp.fullName' KO computed should return , '{0}'."
                     .format(expected));
+
+            // Now show it works for materialized query entity
+            var query = entityModel.EntityQuery.from("Employees").top(1);
+            var em = newEm(store);
+
+            stop(); // going async
+            em.executeQuery(query)
+            .then(function (data) {
+                var emp2 = data.results[0];
+                var expected2 = emp2.FirstName() + " " + emp2.LastName();
+                equal(emp2.fullName(), expected2,
+                    "materialized 'emp2.fullName' KO computed should return , '{0}'."
+                        .format(expected2));
+            })
+            .fail(handleFail)
+            .fin(start);
     });
     /*********************************************************
     * add subscription in post-construction initializer
