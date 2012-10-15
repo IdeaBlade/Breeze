@@ -156,6 +156,7 @@
     <Content Include="Images\device.png" />
     <Content Include="Images\save.png" />
     <Content Include="Scripts\breeze.debug.js" />
+    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.js" />
     <Content Include="Scripts\app\dataservice.js" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
