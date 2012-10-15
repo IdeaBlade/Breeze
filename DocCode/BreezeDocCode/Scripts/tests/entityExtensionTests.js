@@ -258,7 +258,53 @@ define(["testFns"], function (testFns) {
                 .fail(handleFail)
                 .fin(start);
     });
+    /*********************************************************
+    * unmapped property (and only unmapped property) preserved
+    * after export/import
+    *********************************************************/
+    test("unmapped propery preserved after export/import", 3,
+        function () {
+            var store = cloneModuleMetadataStore();
 
+            var customerCtor = function () {
+                this.unmappedProperty = "";
+            };
+
+            var customerInitializer = function (customer) {
+                customer.initializerProperty =
+                    customer.foo || "new initializerProperty";
+            };
+
+            store.registerEntityTypeCtor("Customer", customerCtor, customerInitializer);
+
+            // create EntityManager with extended metadataStore
+            var em1 = newEm(store);
+            
+            customerType = store.getEntityType("Customer");
+            var cust1 = customerType.createEntity();
+            em1.addEntity(cust1);
+
+            // Now set all the 'properties' we added
+            cust1.unmappedProperty("Hi, I'm unmapped");
+            cust1.initializerProperty = "Hi, I'm the initializerProperty";
+            cust1.adHocProperty = 42; // can always add another property; it's JavaScript
+
+            var exportData = em1.exportEntities();
+
+            var em2 = newEm(store);
+            em2.importEntities(exportData);
+            var cust2 = em2.getEntities()[0];
+
+            // Only cust2.unmappedProperty should be preserved
+            equal(cust2.unmappedProperty(), "Hi, I'm unmapped",
+                "cust2.unmappedProperty's value should be restored after import");
+            equal(cust2.initializerProperty, "new initializerProperty",
+                "cust2.initializerProperty's value should NOT be restored after import; it is '{0}' "
+                .format(cust2.initializerProperty));
+            ok(typeof cust2.adHocProperty === "undefined",
+                "cust2.adHocProperty should be undefined");
+
+        });
     /*********************************************************
     * can define custom temporary key generator
     * must conform to the keygenerator-interface
