@@ -42,10 +42,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.63\lib\Breeze.WebApi.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.3\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.63\lib\Irony.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.3\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -134,6 +136,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\BreezeSampleController.cs" />
     <Compile Include="Controllers\BreezyDevicesController.cs" />
     <Compile Include="Controllers\HomeController.cs">
       <SubType>Code</SubType>
@@ -141,6 +144,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\BreezeSampleContext.cs" />
+    <Compile Include="Models\BreezeSampleDatabaseInitializer.cs" />
+    <Compile Include="Models\BreezeSampleItem.cs" />
     <Compile Include="Models\BreezyDevicesContext.cs" />
     <Compile Include="Models\Device.cs">
       <SubType>Code</SubType>
@@ -155,11 +161,11 @@
     <Content Include="Global.asax" />
     <Content Include="Images\device.png" />
     <Content Include="Images\save.png" />
-    <Content Include="Scripts\breeze.debug.js" />
     <None Include="Scripts\breeze.intellisense.js" />
-    <Content Include="Scripts\breeze.js" />
     <Content Include="Scripts\app\dataservice.js" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
+    <Content Include="Scripts\breeze.debug.js" />
+    <Content Include="Scripts\breeze.js" />
     <Content Include="Scripts\jquery-1.7.1.js" />
     <Content Include="Scripts\jquery-1.7.1.min.js" />
     <Content Include="Scripts\knockout-2.1.0.debug.js" />
