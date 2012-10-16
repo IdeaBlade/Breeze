@@ -50,14 +50,27 @@
     }
 
     learn.run = function() {
-        var frame = document.getElementById("output");
+        var container = document.getElementById("output-container");
+        var frame = document.createElement("iframe");
 
-        var htmlStart = "<!DOCTYPE html><html><head><base href='" + getBaseURL() + "' target='_blank'><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
+        $(container).empty().append(frame);
+
+        var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
         var htmlEnd = "</body></html>";
-        var html = htmlStart + "<scr" + "ipt type='text/javascript'>" + this.currentJavascript() + "</scr" + "ipt>" + htmlEnd;
-        var encodedHtml = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+        var html = htmlStart + this.currentHtml() + "<scr" + "ipt type='text/javascript'>window.onload = function(){" + this.currentJavascript() + "};</scr" + "ipt>" + htmlEnd;
 
-        frame.src = encodedHtml;
+        var doc = null;
+        if (frame.contentDocument) {
+            doc = frame.contentDocument;
+        } else if (frame.contentWindow) {
+            doc = frame.contentWindow.document;
+        } else if (frame.document) {
+            doc = frame.document;
+        }
+
+        doc.open();
+        doc.write(html);
+        doc.close();
     };
 
     learn.selectTutorial = function() {
@@ -69,8 +82,8 @@
     learn.finishSelection = function(tutorial) {
         learn.activeTutorial(tutorial);
         learn.activeStep(tutorial.Steps[0]);
-        learn.currentHtml(learn.activeTutorial().StartingHtml);
-        learn.currentJavascript(learn.activeTutorial().StartingJavascript);
+        learn.currentHtml(tutorial.StartingHtml);
+        learn.currentJavascript(tutorial.StartingJavascript);
     };
 
     learn.openHelp = function() {
@@ -105,7 +118,7 @@
             });
         },
         update: function(element, valueAccessor) {
-            if (this.updating || !this.firstUpdate) {
+            if (this.updating && !this.firstUpdate) {
                 return;
             }
 
@@ -135,7 +148,7 @@
             });
         },
         update: function(element, valueAccessor) {
-            if (this.updating || !this.firstUpdate) {
+            if (this.updating && !this.firstUpdate) {
                 return;
             }
 

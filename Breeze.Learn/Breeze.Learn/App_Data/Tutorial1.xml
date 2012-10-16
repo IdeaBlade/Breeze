@@ -2,7 +2,13 @@
   <Order>1</Order>
   <Title>Tutorial 1</Title>
   <Description>A sample of how this stuff works...</Description>
-  <StartingHtml></StartingHtml>
+  <StartingHtml>
+    <![CDATA[
+    <ul data-bind="foreach: results">
+      <li data-bind="text:Description"></li>
+    </ul>
+    ]]>
+  </StartingHtml>
   <StartingJavascript>
     <![CDATA[
     var core = breeze.core,
@@ -22,9 +28,7 @@
                 .orderBy("CreatedAt");
 
             manager.executeQuery(query).then(function(data){
-                data.results.forEach(function (item) {
-                  document.write(item.Description());
-              });
+                ko.applyBindings(data);
             });
         });
 ]]>
