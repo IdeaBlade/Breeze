@@ -28,7 +28,7 @@ function getBreezeVersion($srcDir) {
 }
 
 function packageNuget($srcDir, $folderName, $versionNum) {
-  
+  Write-Host "Packaging nuget - $folderName ..."
   $destDir = "$srcDir\Nuget.builds\$folderName"
   $nuspecFile = "$destDir\Default.nuspec"
   if (!(test-path $nuspecFile)) {
@@ -62,6 +62,7 @@ function packageNuget($srcDir, $folderName, $versionNum) {
 
 #----------------------------------------------------------------------
 
+
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
@@ -71,7 +72,6 @@ checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
-
 
 
 packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum

@@ -87,15 +87,6 @@
             "fors": {},
             "namespaces": {}
         },
-        "entityTrackingInterface.js": {
-            "name": "entityTrackingInterface.js",
-            "modules": {},
-            "classes": {
-                "~entityTracking-interface": 1
-            },
-            "fors": {},
-            "namespaces": {}
-        },
         "enum.js": {
             "name": "enum.js",
             "modules": {},
@@ -126,7 +117,16 @@
             "name": "keyGeneratorInterface.js",
             "modules": {},
             "classes": {
-                "~keyGenerator-interface": 1
+                "ↈ_keyGenerator_interface": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "promise.js": {
+            "name": "promise.js",
+            "modules": {},
+            "classes": {
+                "Promise": 1
             },
             "fors": {},
             "namespaces": {}
@@ -135,7 +135,7 @@
             "name": "relationArray.js",
             "modules": {},
             "classes": {
-                "[relation Array]": 1
+                "ↈ_relationArray_": 1
             },
             "fors": {},
             "namespaces": {}
@@ -193,9 +193,9 @@
                 "EntityQuery": 1,
                 "FilterQueryOp": 1,
                 "Predicate": 1,
-                "~entityTracking-interface": 1,
-                "~keyGenerator-interface": 1,
-                "[relation Array]": 1,
+                "ↈ_keyGenerator_interface": 1,
+                "Promise": 1,
+                "ↈ_relationArray_": 1,
                 "Validator": 1,
                 "ValidationError": 1
             },
@@ -203,7 +203,7 @@
             "namespaces": {},
             "tag": "main",
             "file": "validate.js",
-            "line": 606,
+            "line": 609,
             "description": "The entityModel namespace.",
             "itemtype": "main"
         }
@@ -220,8 +220,8 @@
             "module": "core",
             "namespace": "",
             "file": "core.js",
-            "line": 19,
-            "description": "A singleton object that is the repository of all entityModel specific configuration options.\n   \n    core.config.setProperties( {\n        trackingImplemenation: entityModel.entityTracking_ko,\n        remoteAccessImplementation: entityModel.remoteAccess_webApi\n    });"
+            "line": 20,
+            "description": "A singleton object that is the repository of all entityModel specific configuration options.\n\n    core.config.setProperties( {\n        trackingImplemenation: entityModel.entityTracking_ko,\n        remoteAccessImplementation: entityModel.remoteAccess_webApi\n    });"
         },
         "DataType": {
             "name": "DataType",
@@ -293,7 +293,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityAspect.js",
-            "line": 798,
+            "line": 806,
             "description": "An EntityKey is an object that represents the unique identity of an entity.  EntityKey's are immutable."
         },
         "EntityManager": {
@@ -321,7 +321,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 1964,
+            "line": 1962,
             "description": "MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.",
             "static": 1
         },
@@ -336,7 +336,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 1993,
+            "line": 1991,
             "description": "FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.",
             "static": 1
         },
@@ -351,7 +351,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2018,
+            "line": 2016,
             "description": "A QueryOptions instance is used to specify the 'options' under which a query will occur."
         },
         "SaveOptions": {
@@ -365,7 +365,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2131,
+            "line": 2129,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
         },
         "ValidationOptions": {
@@ -379,7 +379,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2179,
+            "line": 2177,
             "description": "A ValidationOptions instance is used to specify the conditions under which validation will be executed."
         },
         "NamingConvention": {
@@ -407,7 +407,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityMetadata.js",
-            "line": 120,
+            "line": 126,
             "description": "An instance of the MetadataStore contains all of the metadata about a collection of {{#crossLink \"EntityType\"}}{{/crossLink}}'s.\nMetadataStores may be shared across {{#crossLink \"EntityManager\"}}{{/crossLink}}'s.  If an EntityManager is created without an\nexplicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance property will be used."
         },
         "EntityType": {
@@ -421,7 +421,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityMetadata.js",
-            "line": 744,
+            "line": 769,
             "description": "Container for all of the metadata about a specific type of Entity."
         },
         "DataProperty": {
@@ -435,7 +435,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityMetadata.js",
-            "line": 1306,
+            "line": 1337,
             "description": "A DataProperty describes the metadata for a single property of an  {{#crossLink \"EntityType\"}}{{/crossLink}} that contains simple data. \n\nInstances of the DataProperty class are constructed automatically during Metadata retrieval. However it is also possible to construct them\ndirectly via the constructor."
         },
         "NavigationProperty": {
@@ -449,7 +449,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityMetadata.js",
-            "line": 1517,
+            "line": 1549,
             "description": "A NavigationProperty describes the metadata for a single property of an  {{#crossLink \"EntityType\"}}{{/crossLink}} that return instances of other EntityTypes. \n    \nInstances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them\ndirectly via the constructor."
         },
         "AutoGeneratedKeyType": {
@@ -463,7 +463,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityMetadata.js",
-            "line": 1817,
+            "line": 1851,
             "description": "AutoGeneratedKeyType is an 'Enum' containing all of the valid states for an automatically generated key.",
             "static": 1,
             "final": 1
@@ -493,7 +493,7 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1002,
+            "line": 1003,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -508,22 +508,8 @@
             "module": "entityModel",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1127,
+            "line": 1128,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
-        },
-        "~entityTracking-interface": {
-            "name": "~entityTracking-interface",
-            "shortname": "~entityTracking-interface",
-            "classitems": [],
-            "plugins": [],
-            "extensions": [],
-            "plugin_for": [],
-            "extension_for": [],
-            "module": "entityModel",
-            "namespace": "",
-            "file": "entityTrackingInterface.js",
-            "line": 5,
-            "description": "This is an interface description. Any class that implements the methods and properties defined here is considered a valid\nimplementation of this interface.\n\nAn implementation of this interface is need to support the \"observability\" of Entities.  Every entity\nthat is created, imported or queried goes thru this interface to insure its observability."
         },
         "Enum": {
             "name": "Enum",
@@ -567,9 +553,9 @@
             "line": 14,
             "description": "Class to support basic event publication and subscription semantics."
         },
-        "~keyGenerator-interface": {
-            "name": "~keyGenerator-interface",
-            "shortname": "~keyGenerator-interface",
+        "ↈ_keyGenerator_interface": {
+            "name": "ↈ_keyGenerator_interface",
+            "shortname": "ↈ_keyGenerator_interface",
             "classitems": [],
             "plugins": [],
             "extensions": [],
@@ -581,9 +567,23 @@
             "line": 5,
             "description": "This is an interface description. Any class that implements the methods and properties defined here is considered a valid\nimplementation of this interface.\n\nEach EntityManager can have a single KeyGenerator implementation that it will use to manage the generation of all 'temporary' keys.\n\nA KeyGenerator implementation is assigned to an EntityManager via the {{#crossLink \"EntityManager/setProperties\"}}{{/crossLink}} \nmethod with a config parameter of 'keyGeneratorCtor'. \n\n    MyKeyGenerator = function() { \n        // your code here\n    }\n    MyKeyGenerator.prototype.generateTempKeyValue = function(entityType) {\n        // your implementation here.\n    }\n    em.setProperties( {keyGeneratorCtor: MyKeyGenerator });\nThe assigned KeyGenerator is then called whenever the \nEntityManager.generateTempKeyValue method is called.  The EntityManager internally keeps track of all of the generated keys\nand handles all of the mapping of these temporary keys to real keys after any save.  \n\nThe KeyGenerator implementation only needs to do one thing.  Return a unique key value of the correct datatype for each \ncall to the generateTempKeyValue method.  Note, that KeyGeneration is NOT supported for multipart keys.  \n\nIf no KeyGenerator is supplied, a default KeyGenerator will be automatically provided."
         },
-        "[relation Array]": {
-            "name": "[relation Array]",
-            "shortname": "[relation Array]",
+        "Promise": {
+            "name": "Promise",
+            "shortname": "Promise",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "entityModel",
+            "namespace": "",
+            "file": "promise.js",
+            "line": 5,
+            "description": "This is an simply api documentation for the CommonJS A Promises specification as it is used within Breeze."
+        },
+        "ↈ_relationArray_": {
+            "name": "ↈ_relationArray_",
+            "shortname": "ↈ_relationArray_",
             "classitems": [],
             "plugins": [],
             "extensions": [],
@@ -620,14 +620,14 @@
             "module": "entityModel",
             "namespace": "",
             "file": "validate.js",
-            "line": 606,
+            "line": 609,
             "description": "A ValidatationError is used to describe a failed validation."
         }
     },
     "classitems": [
         {
             "file": "core.js",
-            "line": 30,
+            "line": 31,
             "description": "The implementation currently in use for tracking entities",
             "example": [
                 "\n    var name = entityModel.trackingImplementation.name;\nThere are currently two implementations of this interface.",
@@ -642,7 +642,7 @@
         },
         {
             "file": "core.js",
-            "line": 50,
+            "line": 51,
             "description": "The implementation currently in use for communicating with a remote server and service.",
             "example": [
                 "\n    var name = entityModel.remoteAccessImplementation.name;\nThere are currently two implementations of this interface.\nEither an implementation of the remoteAccess interface that supports ASP.NET Web Api services.",
@@ -657,7 +657,7 @@
         },
         {
             "file": "core.js",
-            "line": 68,
+            "line": 69,
             "itemtype": "method",
             "name": "setProperties",
             "params": [
@@ -709,7 +709,7 @@
             "line": 33,
             "itemtype": "property",
             "name": "String",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -720,7 +720,7 @@
             "line": 39,
             "itemtype": "property",
             "name": "Int64",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -731,7 +731,7 @@
             "line": 45,
             "itemtype": "property",
             "name": "Int32",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -742,7 +742,7 @@
             "line": 51,
             "itemtype": "property",
             "name": "Int16",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -753,7 +753,7 @@
             "line": 57,
             "itemtype": "property",
             "name": "Decimal",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -764,7 +764,7 @@
             "line": 63,
             "itemtype": "property",
             "name": "Double",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -775,7 +775,7 @@
             "line": 69,
             "itemtype": "property",
             "name": "Single",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -786,7 +786,7 @@
             "line": 75,
             "itemtype": "property",
             "name": "DateTime",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -797,7 +797,7 @@
             "line": 81,
             "itemtype": "property",
             "name": "Boolean",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -808,7 +808,7 @@
             "line": 87,
             "itemtype": "property",
             "name": "Guid",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -819,7 +819,7 @@
             "line": 93,
             "itemtype": "property",
             "name": "Byte",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -830,7 +830,7 @@
             "line": 99,
             "itemtype": "property",
             "name": "Binary",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -841,7 +841,7 @@
             "line": 105,
             "itemtype": "property",
             "name": "Undefined",
-            "type": "Symbol",
+            "type": "DataType",
             "final": 1,
             "static": 1,
             "class": "DataType",
@@ -862,7 +862,8 @@
                 }
             ],
             "return": {
-                "description": "A DataType enum value."
+                "description": "A DataType.",
+                "type": "DataType"
             },
             "class": "DataType",
             "module": "entityModel"
@@ -877,7 +878,8 @@
             "itemtype": "method",
             "name": "isUnchanged",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Unchanged."
+                "description": "Whether an entityState instance is EntityState.Unchanged.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -892,7 +894,8 @@
             "itemtype": "method",
             "name": "isAdded",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Added."
+                "description": "Whether an entityState instance is EntityState.Added.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -907,7 +910,8 @@
             "itemtype": "method",
             "name": "isModified",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Modified."
+                "description": "Whether an entityState instance is EntityState.Modified.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -922,7 +926,8 @@
             "itemtype": "method",
             "name": "isDeleted",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Deleted."
+                "description": "Whether an entityState instance is EntityState.Deleted.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -937,7 +942,8 @@
             "itemtype": "method",
             "name": "isDetached",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Detached."
+                "description": "Whether an entityState instance is EntityState.Detached.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -952,7 +958,8 @@
             "itemtype": "method",
             "name": "isUnchangedOrModified",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Unchanged or EntityState.Modified."
+                "description": "Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -967,7 +974,8 @@
             "itemtype": "method",
             "name": "isAddedModifiedOrDeleted",
             "return": {
-                "description": "Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted."
+                "description": "Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.",
+                "type": "Boolean"
             },
             "class": "EntityState",
             "module": "entityModel"
@@ -978,7 +986,7 @@
             "description": "The 'Unchanged' state.",
             "itemtype": "property",
             "name": "Unchanged",
-            "type": "Symbol",
+            "type": "EntityState",
             "final": 1,
             "static": 1,
             "class": "EntityState",
@@ -990,7 +998,7 @@
             "description": "The 'Added' state.",
             "itemtype": "property",
             "name": "Added",
-            "type": "Symbol",
+            "type": "EntityState",
             "final": 1,
             "static": 1,
             "class": "EntityState",
@@ -1002,7 +1010,7 @@
             "description": "The 'Modified' state.",
             "itemtype": "property",
             "name": "Modified",
-            "type": "Symbol",
+            "type": "EntityState",
             "final": 1,
             "static": 1,
             "class": "EntityState",
@@ -1014,7 +1022,7 @@
             "description": "The 'Deleted' state.",
             "itemtype": "property",
             "name": "Deleted",
-            "type": "Symbol",
+            "type": "EntityState",
             "final": 1,
             "static": 1,
             "class": "EntityState",
@@ -1026,7 +1034,7 @@
             "description": "The 'Detached' state.",
             "itemtype": "property",
             "name": "Detached",
-            "type": "Symbol",
+            "type": "EntityState",
             "final": 1,
             "static": 1,
             "class": "EntityState",
@@ -1038,7 +1046,7 @@
             "description": "Attach - Entity was attached via an AttachEntity call.",
             "itemtype": "property",
             "name": "Attach",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1050,7 +1058,7 @@
             "description": "AttachOnQuery - Entity was attached as a result of a query.",
             "itemtype": "property",
             "name": "AttachOnQuery",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1062,7 +1070,7 @@
             "description": "AttachOnImport - Entity was attached as a result of an import.",
             "itemtype": "property",
             "name": "AttachOnImport",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1074,7 +1082,7 @@
             "description": "AttachOnQuery - Entity was detached.",
             "itemtype": "property",
             "name": "Detach",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1086,7 +1094,7 @@
             "description": "MergeOnQuery - Properties on the entity were merged as a result of a query.",
             "itemtype": "property",
             "name": "MergeOnQuery",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1098,7 +1106,7 @@
             "description": "MergeOnImport - Properties on the entity were merged as a result of an import.",
             "itemtype": "property",
             "name": "MergeOnImport",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1110,7 +1118,7 @@
             "description": "MergeOnImport - Properties on the entity were merged as a result of a save",
             "itemtype": "property",
             "name": "MergeOnImport",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1122,7 +1130,7 @@
             "description": "PropertyChange - A property on the entity was changed.",
             "itemtype": "property",
             "name": "PropertyChange",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1134,7 +1142,7 @@
             "description": "EntityStateChange - The EntityState of the entity was changed.",
             "itemtype": "property",
             "name": "EntityStateChange",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1146,7 +1154,7 @@
             "description": "AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.",
             "itemtype": "property",
             "name": "AcceptChanges",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1158,7 +1166,7 @@
             "description": "RejectChanges - RejectChanges was called on the entity.",
             "itemtype": "property",
             "name": "RejectChanges",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1170,7 +1178,7 @@
             "description": "Clear - The EntityManager was cleared.  All entities detached.",
             "itemtype": "property",
             "name": "Clear",
-            "type": "Symbol",
+            "type": "EntityAction",
             "final": 1,
             "static": 1,
             "class": "EntityAction",
@@ -1178,7 +1186,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 348,
+            "line": 356,
             "description": "The Entity that this aspect is associated with.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entity",
@@ -1188,7 +1196,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 355,
+            "line": 363,
             "description": "The {{#crossLink \"EntityManager\"}}{{/crossLink}} that contains this entity.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityManager",
@@ -1198,7 +1206,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 362,
+            "line": 370,
             "description": "The {{#crossLink \"EntityState\"}}{{/crossLink}} of this entity.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityState",
@@ -1208,7 +1216,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 369,
+            "line": 377,
             "description": "Whether this entity is in the process of being saved.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isBeingSaved",
@@ -1218,7 +1226,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 376,
+            "line": 384,
             "description": "The 'original values' of this entity where they are different from the 'current values'. \nThis is a map where the key is a property name and the value is the 'original value' of the property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "originalValues",
@@ -1228,7 +1236,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 384,
+            "line": 392,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever a value of one of this entity's properties change.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.propertyChanged.subscribe(\n        function (propertyChangedArgs) {\n            // this code will be executed anytime a property value changes on the 'order' entity.\n            var entity = propertyChangedArgs.entity; // Note: entity === order\n            var propertyNameChanged = propertyChangedArgs.propertyName;\n            var oldValue = propertyChangedArgs.oldValue;\n            var newValue = propertyChangedArgs.newValue;\n        });"
@@ -1263,7 +1271,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 405,
+            "line": 413,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever any of the validation errors on this entity change. \nNote that this might be the removal of an error when some data on the entity is fixed.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.validationErrorsChanged.subscribe(\n        function (validationChangeArgs) {\n            // this code will be executed anytime a property value changes on the 'order' entity.\n            var entity == validationChangeArgs.entity; // Note: entity === order\n            var errorsAdded = validationChangeArgs.added;\n            var errorsCleared = validationChangeArgs.removed;\n        });"
@@ -1293,7 +1301,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 425,
+            "line": 433,
             "description": "Returns the {{#crossLink \"EntityKey\"}}{{/crossLink}} for this Entity.",
             "example": [
                 "\n     // assume order is an order entity attached to an EntityManager.\n    var entityKey = order.entityAspect.getKey();"
@@ -1302,9 +1310,11 @@
             "name": "getKey",
             "params": [
                 {
-                    "name": "[forceRefresh",
-                    "description": "= false]  Forces the recalculation of the key.  This should normally be unnecessary.",
-                    "type": "Boolean"
+                    "name": "forceRefresh",
+                    "description": "Forces the recalculation of the key.  This should normally be unnecessary.",
+                    "type": "Boolean",
+                    "optional": true,
+                    "optdefault": "false"
                 }
             ],
             "return": {
@@ -1316,7 +1326,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 447,
+            "line": 455,
             "description": "Returns the entity to an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried \nhad 'acceptChanges' called on it.",
             "example": [
                 "\n     // assume order is an order entity attached to an EntityManager.\n     order.entityAspect.acceptChanges();\n     // The 'order' entity will now be in an 'Unchanged' state with any changes committed."
@@ -1328,7 +1338,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 461,
+            "line": 469,
             "description": "Returns the entity to an EntityState of 'Unchanged' by rejecting all changes made to it since the entity was last queried \nhad 'rejectChanges' called on it.",
             "example": [
                 "\n     // assume order is an order entity attached to an EntityManager.\n     order.entityAspect.rejectChanges();\n     // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. "
@@ -1340,7 +1350,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 484,
+            "line": 492,
             "description": "Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink \"EntityAspect/acceptChanges\"}}{{/crossLink}}",
             "example": [
                 "\n     // assume order is an order entity attached to an EntityManager.\n     order.entityAspect.setUnchanged();\n     // The 'order' entity will now be in an 'Unchanged' state with any changes committed."
@@ -1352,7 +1362,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 508,
+            "line": 516,
             "description": "Sets the entity to an EntityState of 'Modified'.  This can also be achieved by changing the value of any property on an 'Unchanged' entity.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.setModified();\n    // The 'order' entity will now be in a 'Modified' state. "
@@ -1364,7 +1374,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 521,
+            "line": 529,
             "description": "Sets the entity to an EntityState of 'Deleted'.  This both marks the entity as being scheduled for deletion during the next 'Save' call\nbut also removes the entity from all of its related entities.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.setDeleted();\n    // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. "
@@ -1376,7 +1386,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 541,
+            "line": 549,
             "description": "Performs validation on the entity, any errors encountered during the validation are available via the \n{{#crossLink \"EntityAspect.getValidationErrors\"}}{{/crossLink}} method. Validating an entity means executing\nall of the validators on both the entity itself as well as those on each of its properties.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    var isOk = order.entityAspect.validateEntity();\n    // isOk will be 'true' if there are no errors on the entity.\n    if (!isOk) {\n        var errors = order.entityAspect.getValidationErrors();\n    }"
@@ -1392,7 +1402,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 575,
+            "line": 583,
             "description": "Performs validation on a specific property of this entity, any errors encountered during the validation are available via the \n{{#crossLink \"EntityAspect.getValidationErrors\"}}{{/crossLink}} method. Validating a property means executing\nall of the validators on the specified property.  This call is also made automatically anytime a property\nof an entity is changed.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    var isOk = order.entityAspect.validateProperty(\"Order\"); \nor",
@@ -1422,7 +1432,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 603,
+            "line": 611,
             "description": "Returns the validation errors associated with either the entire entity or any specified property.",
             "example": [
                 "\nThis method can return all of the errors for an Entity",
@@ -1449,7 +1459,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 636,
+            "line": 644,
             "description": "Adds a validation error for a specified property.",
             "itemtype": "method",
             "name": "addValidationError",
@@ -1465,7 +1475,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 648,
+            "line": 656,
             "description": "Removes a validation error for a specified property.",
             "itemtype": "method",
             "name": "removeValidationError",
@@ -1487,7 +1497,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 662,
+            "line": 670,
             "description": "Performs a query for the value of a specified {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n       emp.entityAspect.loadNavigationProperty(\"Orders\")\n        .then(function (data) {\n            var orders = data.results;\n        }).fail(function (exception) {\n            // handle exception here;\n        });"
@@ -1523,7 +1533,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 804,
+            "line": 812,
             "description": "Constructs a new EntityKey.  Each entity within an EntityManager will have a unique EntityKey.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var empType = em1.metadataStore.getEntityType(\"Employee\");\n    var entityKey = new EntityKey(empType, 1);\nEntityKey's may also be found by calling EntityAspect.getKey()",
@@ -1549,7 +1559,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 851,
+            "line": 859,
             "description": "Used to compare EntityKeys are determine if they refer to the same Entity.\nThere is also an static version of 'equals' with the same functionality.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var empType = em1.metadataStore.getEntityType(\"Employee\");\n    var empKey1 = new EntityKey(empType, 1);\n    // assume employee1 is an existing Employee entity\n    var empKey2 = employee1.entityAspect.getKey();\n    if (empKey1.equals(empKey2)) {\n       // do something  ...\n    }"
@@ -1568,7 +1578,7 @@
         },
         {
             "file": "entityAspect.js",
-            "line": 880,
+            "line": 888,
             "description": "Used to compare EntityKeys are determine if they refer to the same Entity. \nThere is also an instance version of 'equals' with the same functionality.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var empType = em1.metadataStore.getEntityType(\"Employee\");\n    var empKey1 = new EntityKey(empType, 1);\n    // assume employee1 is an existing Employee entity\n    var empKey2 = employee1.entityAspect.getKey();\n    if (EntityKey.equals(empKey1, empKey2)) {\n       // do something  ...\n    }"
@@ -2037,7 +2047,7 @@
                 {
                     "name": "callback",
                     "description": "Function called on success.\n\n    successFunction([schema])",
-                    "type": "SuccessFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2051,7 +2061,7 @@
                 {
                     "name": "errorCallback",
                     "description": "Function called on failure.\n    \n    failureFunction([error])",
-                    "type": "FailureFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2064,7 +2074,8 @@
                 }
             ],
             "return": {
-                "description": "Promise"
+                "description": "Promise",
+                "type": "Promise"
             },
             "class": "EntityManager",
             "module": "entityModel"
@@ -2091,7 +2102,7 @@
                 {
                     "name": "callback",
                     "description": "Function called on success.\n\n    successFunction([data])",
-                    "type": "SuccessFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2116,7 +2127,7 @@
                 {
                     "name": "errorCallback",
                     "description": "Function called on failure.\n    \n    failureFunction([error])",
-                    "type": "FailureFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2136,14 +2147,15 @@
                 }
             ],
             "return": {
-                "description": "Promise"
+                "description": "Promise",
+                "type": "Promise"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 632,
+            "line": 631,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -2160,14 +2172,15 @@
                 }
             ],
             "return": {
-                "description": "Array of Entities"
+                "description": "Array of Entities",
+                "type": "Array of Entity"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 693,
+            "line": 692,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",
@@ -2182,7 +2195,7 @@
                 {
                     "name": "entities",
                     "description": "The list of entities to save.  All entities with changes \nwithin this EntityManager will be saved if this parameter is omitted, null or empty.",
-                    "type": "Array of Entities",
+                    "type": "Array of Entity",
                     "optional": true
                 },
                 {
@@ -2194,7 +2207,7 @@
                 {
                     "name": "callback",
                     "description": "Function called on success.\n\n    successFunction([saveResult])",
-                    "type": "SuccessFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2222,7 +2235,7 @@
                 {
                     "name": "errorCallback",
                     "description": "Function called on failure.\n    \n    failureFunction([error])",
-                    "type": "FailureFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -2235,14 +2248,15 @@
                 }
             ],
             "return": {
-                "description": "Promise"
+                "description": "Promise",
+                "type": "Promise"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 828,
+            "line": 827,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -2257,14 +2271,15 @@
                 }
             ],
             "return": {
-                "description": "An Entity or null;"
+                "description": "An Entity or null;",
+                "type": "Entity"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 849,
+            "line": 848,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -2279,14 +2294,15 @@
                 }
             ],
             "return": {
-                "description": "The new key value"
+                "description": "The new key value",
+                "type": "Object"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 890,
+            "line": 889,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -2313,7 +2329,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 928,
+            "line": 927,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -2332,14 +2348,15 @@
                 }
             ],
             "return": {
-                "description": "Array of Entities"
+                "description": "Array of Entities",
+                "type": "Array of Entity"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 958,
+            "line": 957,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -2348,14 +2365,14 @@
             "name": "rejectChanges",
             "return": {
                 "description": "The entities whose changes were rejected. These entities will all have EntityStates of \neither 'Unchanged' or 'Detached'",
-                "type": "Array of Entities"
+                "type": "Array of Entity"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 977,
+            "line": 976,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",
@@ -2381,18 +2398,19 @@
                 }
             ],
             "return": {
-                "description": "Array of Entities"
+                "description": "Array of Entities",
+                "type": "Array of Entity"
             },
             "class": "EntityManager",
             "module": "entityModel"
         },
         {
             "file": "entityManager.js",
-            "line": 1971,
+            "line": 1969,
             "description": "PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is not replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "PreserveChanges",
-            "type": "Symbol",
+            "type": "MergeStrategy",
             "final": 1,
             "static": 1,
             "class": "MergeStrategy",
@@ -2400,11 +2418,11 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1981,
+            "line": 1979,
             "description": "OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "OverwriteChanges",
-            "type": "Symbol",
+            "type": "MergeStrategy",
             "final": 1,
             "static": 1,
             "class": "MergeStrategy",
@@ -2412,11 +2430,11 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2000,
+            "line": 1998,
             "description": "FromServer is used to tell the query to execute the query against a remote data source on the server.",
             "itemtype": "property",
             "name": "FromServer",
-            "type": "Symbol",
+            "type": "MergeStrategy",
             "final": 1,
             "static": 1,
             "class": "FetchStrategy",
@@ -2424,11 +2442,11 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2007,
+            "line": 2005,
             "description": "FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.",
             "itemtype": "property",
             "name": "FromLocalCache",
-            "type": "Symbol",
+            "type": "MergeStrategy",
             "final": 1,
             "static": 1,
             "class": "FetchStrategy",
@@ -2436,7 +2454,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2024,
+            "line": 2022,
             "description": "QueryOptions constructor",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { queryOptions: newQo });"
@@ -2472,7 +2490,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2043,
+            "line": 2041,
             "description": "A {{#crossLink \"FetchStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "fetchStrategy",
@@ -2482,7 +2500,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2049,
+            "line": 2047,
             "description": "A {{#crossLink \"MergeStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "mergeStrategy",
@@ -2492,7 +2510,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2057,
+            "line": 2055,
             "description": "The default value whenever QueryOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2503,7 +2521,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2064,
+            "line": 2062,
             "description": "Returns a copy of this QueryOptions with the specified {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n    var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);\nor",
@@ -2529,7 +2547,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2090,
+            "line": 2088,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2542,7 +2560,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2137,
+            "line": 2135,
             "itemtype": "method",
             "name": "<ctor> SaveOptions",
             "params": [
@@ -2565,7 +2583,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2151,
+            "line": 2149,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2575,7 +2593,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2161,
+            "line": 2159,
             "description": "Whether another save can be occuring at the same time as this one - default is false.\n\n__readOnly__",
             "itemtype": "property",
             "name": "allowConcurrentSaves",
@@ -2585,7 +2603,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2168,
+            "line": 2166,
             "description": "The default value whenever SaveOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2596,7 +2614,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2185,
+            "line": 2183,
             "description": "ValidationOptions constructor",
             "example": [
                 "\n    var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { validationOptions: newVo });"
@@ -2646,7 +2664,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2206,
+            "line": 2204,
             "description": "Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnAttach",
@@ -2656,7 +2674,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2213,
+            "line": 2211,
             "description": "Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnSave",
@@ -2666,7 +2684,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2220,
+            "line": 2218,
             "description": "Whether entity and property level validation should occur after entities are queried from a remote server.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnQuery",
@@ -2676,7 +2694,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2227,
+            "line": 2225,
             "description": "Whether property level validation should occur after entities are modified.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnPropertyChange",
@@ -2686,7 +2704,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2236,
+            "line": 2234,
             "description": "Returns a copy of this ValidationOptions with changes to the specified config properties.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions();\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );"
@@ -2736,7 +2754,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2256,
+            "line": 2254,
             "description": "Makes this instance the default instance.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
@@ -2749,7 +2767,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2270,
+            "line": 2268,
             "description": "The default value whenever ValidationOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2791,7 +2809,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 63,
+            "line": 68,
             "description": "The function used to convert server side property names to client side property names.",
             "itemtype": "method",
             "name": "serverPropertyNameToClient",
@@ -2817,7 +2835,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 72,
+            "line": 77,
             "description": "The function used to convert client side property names to server side property names.",
             "itemtype": "method",
             "name": "clientPropertyNameToServer",
@@ -2843,7 +2861,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 81,
+            "line": 86,
             "description": "The default value whenever NamingConventions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2854,7 +2872,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 95,
+            "line": 101,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2867,7 +2885,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 129,
+            "line": 135,
             "description": "Constructs a new MetadataStore.",
             "example": [
                 "\n    var ms = new MetadataStore();\nThe store can then be associated with an EntityManager",
@@ -2898,7 +2916,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 166,
+            "line": 172,
             "description": "The  {{#crossLink \"NamingConvention\"}}{{/crossLink}} associated with this MetadataStore.\n\n__readOnly__",
             "itemtype": "property",
             "name": "namingConvention",
@@ -2908,7 +2926,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 173,
+            "line": 179,
             "description": "Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called \ninternally when exporting an EntityManager.",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session imported\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
@@ -2924,7 +2942,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 197,
+            "line": 203,
             "description": "Imports a previously exported serialized MetadataStore into this MetadataStore.",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
@@ -2948,7 +2966,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 225,
+            "line": 246,
             "description": "Creates a new MetadataStore from a previously exported serialized MetadataStore",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);"
@@ -2972,7 +2990,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 246,
+            "line": 267,
             "description": "Returns whether Metadata has been retrieved for a specified service name.",
             "example": [
                 "\n    // Assume em1 is an existing EntityManager.\n    if (!em1.metadataStore.hasMetadataFor(\"api/NorthwindIBModel\"))) {\n        // do something interesting\n    }"
@@ -2995,7 +3013,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 265,
+            "line": 286,
             "description": "Fetches the metadata for a specified 'service'. This method is automatically called \ninternally by an EntityManager before its first query against a new service.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -3019,7 +3037,7 @@
                 {
                     "name": "callback",
                     "description": "Function called on success.\n\n    successFunction([data])",
-                    "type": "SuccessFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -3032,8 +3050,8 @@
                 },
                 {
                     "name": "errorCallback",
-                    "description": "Function called on failure.\n    failureFunction([error])",
-                    "type": "FailureFunction",
+                    "description": "Function called on failure.\n\n    failureFunction([error])",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -3046,14 +3064,15 @@
                 }
             ],
             "return": {
-                "description": "Promise"
+                "description": "Promise",
+                "type": "Promise"
             },
             "class": "MetadataStore",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 327,
+            "line": 349,
             "description": "Used to register a constructor for an EntityType that is not known via standard Metadata discovery; \ni.e. an unmapped type.",
             "itemtype": "method",
             "name": "trackUnmappedType",
@@ -3075,7 +3094,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 343,
+            "line": 365,
             "description": "Provides a mechanism to register a 'custom' constructor to be used when creating new instances\nof the specified entity type.  If this call is not made, a default constructor is created for\nthe entity as needed.\nThis call may be made before or after the corresponding EntityType has been discovered via\nMetadata discovery.",
             "example": [
                 "\n    var Customer = function () {\n        this.miscData = \"asdf\";\n    };\n    Customer.prototype.doFoo() {\n        ...\n    }\n    // assume em1 is a preexisting EntityManager;\n    em1.metadataStore.registerEntityTypeCtor(\"Customer\", Customer);\n    // any queries or EntityType.create calls from this point on will call the Customer constructor\n    // registered above."
@@ -3096,7 +3115,7 @@
                 {
                     "name": "initializationFn",
                     "description": "A function or the name of a function on the entity that is to be executed immediately after the entity has been created.\n    \ninitializationFn(entity)",
-                    "type": "InitializationFunction",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -3112,19 +3131,23 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 391,
+            "line": 413,
             "description": "Returns whether this MetadataStore contains any metadata yet.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager;\n    if (em1.metadataStore.isEmpty()) {\n        // do something interesting\n    }"
             ],
             "itemtype": "method",
             "name": "isEmpty",
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
             "class": "MetadataStore",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 405,
+            "line": 428,
             "description": "Returns an  {{#crossLink \"EntityType\"}}{{/crossLink}} given its name.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager\n    var odType = em1.metadataStore.getEntityType(\"OrderDetail\");\nor to throw an error if the type is not found",
@@ -3146,24 +3169,32 @@
                     "optdefault": "false"
                 }
             ],
+            "return": {
+                "description": "The EntityType or 'undefined' if not not found.",
+                "type": "EntityType"
+            },
             "class": "MetadataStore",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 435,
+            "line": 459,
             "description": "Returns an array containing all of the  {{#crossLink \"EntityType\"}}{{/crossLink}}s in this MetadataStore.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager\n    var allTypes = em1.metadataStore.getEntityTypes();"
             ],
             "itemtype": "method",
             "name": "getEntityTypes",
+            "return": {
+                "description": "",
+                "type": "Array of EntityType"
+            },
             "class": "MetadataStore",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 751,
+            "line": 776,
             "example": [
                 "                    \n    var entityManager = new EntityType( {\n        metadataStore: myMetadataStore,\n        serviceName: \"api/NorthwindIBModel\",\n        name: \"person\",\n        namespace: \"myAppNamespace\"\n     });"
             ],
@@ -3211,7 +3242,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 823,
+            "line": 849,
             "description": "The {{#crossLink \"MetadataStore\"}}{{/crossLink}} that contains this EntityType\n\n__readOnly__",
             "itemtype": "property",
             "name": "metadataStore",
@@ -3221,7 +3252,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 830,
+            "line": 856,
             "description": "The DataProperties (see {{#crossLink \"DataProperty\"}}{{/crossLink}}) associated with this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataProperties",
@@ -3231,7 +3262,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 837,
+            "line": 863,
             "description": "The NavigationProperties  (see {{#crossLink \"NavigationProperty\"}}{{/crossLink}}) associated with this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "navigationProperties",
@@ -3241,7 +3272,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 844,
+            "line": 870,
             "description": "The DataProperties associated with this EntityType that make up it's {{#crossLink \"EntityKey\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "keyProperties",
@@ -3251,7 +3282,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 851,
+            "line": 877,
             "description": "The DataProperties associated with this EntityType that are foreign key properties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "foreignKeyProperties",
@@ -3261,7 +3292,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 858,
+            "line": 884,
             "description": "The DataProperties associated with this EntityType that are concurrency properties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "concurrencyProperties",
@@ -3271,7 +3302,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 865,
+            "line": 891,
             "description": "The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing\nproperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "unmappedProperties",
@@ -3281,7 +3312,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 873,
+            "line": 899,
             "description": "The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one \nis used as the default when no resource name is provided.  This will occur when calling {{#crossLink \"EntityAspect/loadNavigationProperty\"}}{{/crossLink}}\nor when executing any {{#crossLink \"EntityQuery\"}}{{/crossLink}} that was created via an {{#crossLink \"EntityKey\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "defaultResourceName",
@@ -3291,7 +3322,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 882,
+            "line": 908,
             "description": "The fully qualifed name of this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -3301,7 +3332,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 889,
+            "line": 915,
             "description": "The short, unqualified, name for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "shortName",
@@ -3311,7 +3342,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 896,
+            "line": 922,
             "description": "The namespace for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "namespace",
@@ -3321,7 +3352,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 903,
+            "line": 929,
             "description": "The {{#crossLink \"AutoGeneratedKeyType\"}}{{/crossLink}} for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "autoGeneratedKeyType",
@@ -3332,7 +3363,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 911,
+            "line": 937,
             "description": "The entity level validators associated with this EntityType. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -3342,7 +3373,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 922,
+            "line": 948,
             "description": "General purpose property set method",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    custType.setProperties( {\n        autoGeneratedKeyType: AutoGeneratedKeyType.Identity;\n        defaultResourceName: \"CustomersAndIncludedOrders\"\n    )};"
@@ -3374,7 +3405,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 946,
+            "line": 972,
             "description": "Adds a  {{#crossLink \"DataProperty\"}}{{/crossLink}} or a {{#crossLink \"NavigationProperty\"}}{{/crossLink}} to this EntityType.",
             "example": [
                 "\n    // assume myEntityType is a newly constructed EntityType. \n    myEntityType.addProperty(dataProperty1);\n    myEntityType.addProperty(dataProperty2);\n    myEntityType.addProperty(navigationProperty1);"
@@ -3393,7 +3424,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 967,
+            "line": 996,
             "description": "Create a new entity of this type.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);"
@@ -3409,7 +3440,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 984,
+            "line": 1017,
             "description": "Returns the constructor for this EntityType.",
             "itemtype": "method",
             "name": "getEntityCtor",
@@ -3422,7 +3453,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1021,
+            "line": 1060,
             "description": "Adds either an entity or property level validator to this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var countryProp = custType.getProperty(\"Country\");\n    var valFn = function (v) {\n        if (v == null) return true;\n        return (core.stringStartsWith(v, \"US\"));\n    };\n    var countryValidator = new Validator(\"countryIsUS\", valFn, \n        { displayName: \"Country\", messageTemplate: \"'%displayName%' must start with 'US'\" });\n    custType.addValidator(countryValidator, countryProp);\nThis is the same as adding an entity level validator via the 'validators' property of DataProperty or NavigationProperty",
@@ -3449,7 +3480,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1061,
+            "line": 1100,
             "description": "Returns all of the properties ( dataProperties and navigationProperties) for this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var arrayOfProps = custType.getProperties();"
@@ -3457,14 +3488,15 @@
             "itemtype": "method",
             "name": "getProperties",
             "return": {
-                "description": "Array of DataProperty|NavigationProperty"
+                "description": "Array of Data and Navigation properties.",
+                "type": "Array of DataProperty|NavigationProperty"
             },
             "class": "EntityType",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 1074,
+            "line": 1113,
             "description": "Returns all of the property names ( for both dataProperties and navigationProperties) for this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var arrayOfPropNames = custType.getPropertyNames();"
@@ -3480,7 +3512,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1087,
+            "line": 1126,
             "description": "Returns a data property with the specified name or null.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerNameDataProp = custType.getDataProperty(\"CustomerName\");"
@@ -3495,15 +3527,15 @@
                 }
             ],
             "return": {
-                "description": "",
-                "type": "DataProperty|null"
+                "description": "Will be null if not found.",
+                "type": "DataProperty"
             },
             "class": "EntityType",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 1102,
+            "line": 1141,
             "description": "Returns a navigation property with the specified name or null.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerOrdersNavProp = custType.getDataProperty(\"Orders\");"
@@ -3518,15 +3550,15 @@
                 }
             ],
             "return": {
-                "description": "",
-                "type": "NavigationProperty|null"
+                "description": "Will be null if not found.",
+                "type": "NavigationProperty"
             },
             "class": "EntityType",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 1117,
+            "line": 1156,
             "description": "Returns either a DataProperty or a NavigationProperty with the specified name or null.  \n\nThis method also accepts a '.' delimited property path and will return the 'property' at the \nend of the path.",
             "example": [
                 "\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var companyNameProp = custType.getProperty(\"CompanyName\");\nThis method can also walk a property path to return a property",
@@ -3549,15 +3581,15 @@
                 }
             ],
             "return": {
-                "description": "",
-                "type": "DataProperty|NavigationProperty|null"
+                "description": "Will be null if not found.",
+                "type": "DataProperty|NavigationProperty"
             },
             "class": "EntityType",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 1164,
+            "line": 1203,
             "description": "Returns a string representation of this EntityType.",
             "itemtype": "method",
             "name": "toString",
@@ -3570,7 +3602,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1314,
+            "line": 1345,
             "example": [
                 "                    \n    var lastNameProp = new DataProperty( {\n        name: \"lastName\",\n        dataType: DataType.String,\n        isNullable: true,\n        maxLength: 20\n    });\n    // assuming personEntityType is a newly constructed EntityType\n    personEntityType.addProperty(lastNameProperty);"
             ],
@@ -3654,7 +3686,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1398,
+            "line": 1429,
             "description": "The name of this property\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -3664,7 +3696,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1405,
+            "line": 1436,
             "description": "The {{#crossLink \"EntityType\"}}{{/crossLink}} that this property belongs to.\n\n__readOnly__",
             "itemtype": "property",
             "name": "parentEntityType",
@@ -3674,7 +3706,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1412,
+            "line": 1443,
             "description": "The {{#crossLink \"DataType\"}}{{/crossLink}} of this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataType",
@@ -3684,7 +3716,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1419,
+            "line": 1450,
             "description": "Whether this property is nullable. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isNullable",
@@ -3694,7 +3726,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1426,
+            "line": 1457,
             "description": "Whether this property is a 'key' property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isPartOfKey",
@@ -3704,7 +3736,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1433,
+            "line": 1464,
             "description": "Whether this property is an 'unmapped' property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isUnmapped",
@@ -3714,7 +3746,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1440,
+            "line": 1471,
             "description": "__Describe this__\n\n__readOnly__",
             "itemtype": "property",
             "name": "concurrencyMode",
@@ -3724,7 +3756,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1447,
+            "line": 1478,
             "description": "The maximum length for the value of this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "maxLength",
@@ -3734,7 +3766,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1454,
+            "line": 1485,
             "description": "Whether this property is of 'fixed' length or not.\n\n__readOnly__",
             "itemtype": "property",
             "name": "fixedLength",
@@ -3744,17 +3776,17 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1461,
+            "line": 1492,
             "description": "The {{#crossLink \"Validator\"}}{{/crossLink}}s that are associated with this property. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
-            "type": "Validator|Array of Validator",
+            "type": "Array of Validator",
             "class": "DataProperty",
             "module": "entityModel"
         },
         {
             "file": "entityMetadata.js",
-            "line": 1469,
+            "line": 1500,
             "description": "The default value for this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "defaultValue",
@@ -3764,7 +3796,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1476,
+            "line": 1507,
             "description": "The navigation property related to this property.  Will only be set if this is a foreign key property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "relatedNavigationProperty",
@@ -3774,7 +3806,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1525,
+            "line": 1557,
             "example": [
                 "                    \n    var homeAddressProp = new NavigationProperty( {\n        name: \"homeAddress\",\n        entityTypeName: \"Address:#myNamespace\",\n        isScalar: true,\n        associationName: \"address_person\",\n        foreignKeyNames: [\"homeAddressId\"]\n    });\n    var homeAddressIdProp = new DataProperty( {\n        name: \"homeAddressId\"\n        dataType: DataType.Integer,\n    });\n    // assuming personEntityType is a newly constructed EntityType\n    personEntityType.addProperty(homeAddressProp);\n    personEntityType.addProperty(homeAddressIdProp);"
             ],
@@ -3841,7 +3873,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1578,
+            "line": 1610,
             "description": "The {{#crossLink \"EntityType\"}}{{/crossLink}} that this property belongs to.\n__readOnly__",
             "itemtype": "property",
             "name": "parentEntityType",
@@ -3851,7 +3883,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1584,
+            "line": 1616,
             "description": "The name of this property\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -3861,7 +3893,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1591,
+            "line": 1623,
             "description": "The {{#crossLink \"EntityType\"}}{{/crossLink}} returned by this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityType",
@@ -3871,7 +3903,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1598,
+            "line": 1630,
             "description": "Whether this property returns a single entity or an array of entities.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isScalar",
@@ -3881,7 +3913,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1605,
+            "line": 1637,
             "description": "The name of the association to which that this property belongs.  This associationName will be shared with this \nproperties 'inverse'.\n\n__readOnly__",
             "itemtype": "property",
             "name": "associationName",
@@ -3891,7 +3923,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1613,
+            "line": 1645,
             "description": "The names of the foreign key DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated \nwith a Navigation property except in the case of entities with multipart keys.\n\n__readOnly__",
             "itemtype": "property",
             "name": "foreignKeyNames",
@@ -3901,7 +3933,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1621,
+            "line": 1653,
             "description": "The 'foreign key' DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated \nwith a Navigation property except in the case of entities with multipart keys.\n\n__readOnly__",
             "itemtype": "property",
             "name": "relatedDataProperties",
@@ -3911,7 +3943,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1629,
+            "line": 1661,
             "description": "The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction\nto this NavigationProperty.\n\n__readOnly__",
             "itemtype": "property",
             "name": "inverse",
@@ -3921,7 +3953,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1637,
+            "line": 1669,
             "description": "The {{#crossLink \"Validator\"}}{{/crossLink}}s that are associated with this property. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -3931,7 +3963,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1645,
+            "line": 1677,
             "description": "Is this a DataProperty? - always false here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isDataProperty",
@@ -3941,7 +3973,7 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1653,
+            "line": 1685,
             "description": "Is this a NavigationProperty? - always true here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isNavigationProperty",
@@ -3951,11 +3983,11 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1824,
+            "line": 1858,
             "description": "This entity does not have an autogenerated key. \nThe client must set the key before adding the entity to the EntityManager",
             "itemtype": "property",
             "name": "None",
-            "type": "Symbol",
+            "type": "AutoGeneratedKeyType",
             "final": 1,
             "static": 1,
             "class": "AutoGeneratedKeyType",
@@ -3963,11 +3995,11 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1832,
+            "line": 1866,
             "description": "This entity's key is an Identity column and is set by the backend database. \nKeys for new entities will be temporary until the entities are saved at which point the keys will\nbe converted to their 'real' versions.",
             "itemtype": "property",
             "name": "Identity",
-            "type": "Symbol",
+            "type": "AutoGeneratedKeyType",
             "final": 1,
             "static": 1,
             "class": "AutoGeneratedKeyType",
@@ -3975,11 +4007,11 @@
         },
         {
             "file": "entityMetadata.js",
-            "line": 1841,
+            "line": 1875,
             "description": "This entity's key is generated by a KeyGenerator and is set by the backend database. \nKeys for new entities will be temporary until the entities are saved at which point the keys will\nbe converted to their 'real' versions.",
             "itemtype": "property",
             "name": "KeyGenerator",
-            "type": "Symbol",
+            "type": "AutoGeneratedKeyType",
             "final": 1,
             "static": 1,
             "class": "AutoGeneratedKeyType",
@@ -4381,8 +4413,8 @@
             "params": [
                 {
                     "name": "callback",
-                    "description": "Function called on success.\n\n   successFunction([data])",
-                    "type": "SuccessFunction",
+                    "description": "Function called on success.\n\n    successFunction([data])",
+                    "type": "Function",
                     "props": [
                         {
                             "name": "data",
@@ -4406,8 +4438,8 @@
                 },
                 {
                     "name": "errorCallback",
-                    "description": "Function called on failure.\n    \nfailureFunction([error])",
-                    "type": "FailureFunction",
+                    "description": "Function called on failure.\n    \n    failureFunction([error])",
+                    "type": "Function",
                     "props": [
                         {
                             "name": "error",
@@ -4426,14 +4458,15 @@
                 }
             ],
             "return": {
-                "description": "Promise"
+                "description": "",
+                "type": "Promise"
             },
             "class": "EntityQuery",
             "module": "entityModel"
         },
         {
             "file": "entityQuery.js",
-            "line": 529,
+            "line": 530,
             "description": "Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\n    // assume em is an entityManager already filled with order entities;\n    var query = new EntityQuery(\"Orders\").using(em);\n    var orders = query.executeLocally();\n\nNote that calling this method is the same as calling {{#crossLink \"EntityManager/executeQueryLocally\"}}{{/crossLink}}."
@@ -4445,7 +4478,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 541,
+            "line": 542,
             "description": "Static method tht creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful\nto force a requery of selected entities, or to restrict an existing collection of entities according to some filter.",
             "example": [
                 "\n    // assuming 'customers' is an array of 'Customer' entities retrieved earlier.\n    var customersQuery = EntityQuery.fromEntities(customers);\nThe resulting query can, of course, be extended",
@@ -4472,7 +4505,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 582,
+            "line": 583,
             "description": "Creates an EntityQuery for the specified {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    var empType = metadataStore.getEntityType(\"Employee\");\n    var entityKey = new EntityKey(empType, 1);\n    var query = EntityQuery.fromEntityKey(entityKey);\nor",
@@ -4498,7 +4531,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 607,
+            "line": 608,
             "description": "Creates an EntityQuery for the specified entity and {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n    // 'employee' is a previously queried employee\n    var ordersNavProp = employee.entityType.getProperty(\"Orders\");\n    var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);\nwill return a query for the \"Orders\" of the specified 'employee'."
@@ -4528,11 +4561,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1010,
+            "line": 1011,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4540,11 +4573,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1017,
+            "line": 1018,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4552,11 +4585,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1024,
+            "line": 1025,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4564,11 +4597,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1031,
+            "line": 1032,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4576,11 +4609,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1038,
+            "line": 1039,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4588,11 +4621,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1045,
+            "line": 1046,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4600,11 +4633,11 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1052,
+            "line": 1053,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4612,10 +4645,10 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1060,
+            "line": 1061,
             "itemtype": "property",
             "name": "StartsWith",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4623,10 +4656,10 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1066,
+            "line": 1067,
             "itemtype": "property",
             "name": "EndsWith",
-            "type": "Symbol",
+            "type": "FilterQueryOp",
             "final": 1,
             "static": 1,
             "class": "FilterQueryOp",
@@ -4634,7 +4667,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1133,
+            "line": 1134,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -4664,7 +4697,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1155,
+            "line": 1156,
             "description": "Returns whether an object is a Predicate",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    if (Predicate.isPredicate(p1)) {\n        // do something\n    }"
@@ -4684,7 +4717,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1170,
+            "line": 1171,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -4716,7 +4749,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1195,
+            "line": 1196,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -4738,7 +4771,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1220,
+            "line": 1221,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -4760,7 +4793,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1245,
+            "line": 1246,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -4782,7 +4815,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1264,
+            "line": 1265,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -4804,7 +4837,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1289,
+            "line": 1290,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -4826,7 +4859,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1314,
+            "line": 1315,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -4840,7 +4873,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1334,
+            "line": 1335,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -4853,7 +4886,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1340,
+            "line": 1341,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -4866,7 +4899,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1346,
+            "line": 1347,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",
@@ -4878,82 +4911,6 @@
                 }
             ],
             "class": "Predicate",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityTrackingInterface.js",
-            "line": 15,
-            "description": "Name of this implementation",
-            "itemtype": "property",
-            "name": "name",
-            "class": "~entityTracking-interface",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityTrackingInterface.js",
-            "line": 20,
-            "description": "Method that is called once when the implementation is first used.  This method is called before any other method.",
-            "itemtype": "method",
-            "name": "initialize",
-            "class": "~entityTracking-interface",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityTrackingInterface.js",
-            "line": 25,
-            "description": "Provides access to initialize the prototype before any instances of this type are created.",
-            "itemtype": "method",
-            "name": "initializeEntityPrototype",
-            "params": [
-                {
-                    "name": "proto",
-                    "description": "A prototype",
-                    "type": "Object"
-                }
-            ],
-            "class": "~entityTracking-interface",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityTrackingInterface.js",
-            "line": 31,
-            "description": "Called after and object has been created, queried or imported so that it can be tracked.",
-            "itemtype": "method",
-            "name": "startTracking",
-            "params": [
-                {
-                    "name": "entity",
-                    "description": "The entity to start tracking.",
-                    "type": "Entity"
-                },
-                {
-                    "name": "proto",
-                    "description": "A prototype",
-                    "type": "Object"
-                }
-            ],
-            "class": "~entityTracking-interface",
-            "module": "entityModel"
-        },
-        {
-            "file": "entityTrackingInterface.js",
-            "line": 38,
-            "description": "Returns whether the specified property is 'trackable'.",
-            "itemtype": "method",
-            "name": "isTrackableProperty",
-            "params": [
-                {
-                    "name": "entity",
-                    "description": "The entity to start tracking.",
-                    "type": "Entity"
-                },
-                {
-                    "name": "propertyName",
-                    "description": "A property name",
-                    "type": "String"
-                }
-            ],
-            "class": "~entityTracking-interface",
             "module": "entityModel"
         },
         {
@@ -5015,8 +4972,8 @@
                 }
             ],
             "return": {
-                "description": "The symbol that matches the name.",
-                "type": "EnumSymbol|undefined"
+                "description": "The symbol that matches the name or 'undefined' if not found.",
+                "type": "EnumSymbol"
             },
             "class": "Enum",
             "module": "core"
@@ -5169,7 +5126,7 @@
                 {
                     "name": "defaultErrorCallback",
                     "description": "If omitted then subscriber notification failures will be ignored.\n\nerrorCallback([e])",
-                    "type": "ErrorCallback function",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -5210,7 +5167,7 @@
                 {
                     "name": "errorCallback",
                     "description": "Will be called for any errors that occur during publication. If omitted, \nerrors will be eaten.\n\nerrorCallback([e])",
-                    "type": "ErrorCallback function",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -5244,7 +5201,7 @@
                 {
                     "name": "errorCallback",
                     "description": "Will be called for any errors that occur during publication. If omitted, \nerrors will be eaten.\n\nerrorCallback([e])",
-                    "type": "ErrorCallback function",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -5273,7 +5230,7 @@
                 {
                     "name": "callback",
                     "description": "Will be called whenever 'data' is published for this event. \n\n    callback([data])",
-                    "type": "Callback function",
+                    "type": "Function",
                     "optional": true,
                     "props": [
                         {
@@ -5373,7 +5330,7 @@
             ],
             "return": {
                 "description": "A null is returned if this value has not been set.",
-                "type": "Boolean?null"
+                "type": "Boolean|null"
             },
             "class": "Event",
             "module": "core"
@@ -5391,7 +5348,55 @@
                     "type": "EntityType"
                 }
             ],
-            "class": "~keyGenerator-interface",
+            "class": "ↈ_keyGenerator_interface",
+            "module": "entityModel"
+        },
+        {
+            "file": "promise.js",
+            "line": 10,
+            "description": "Used to handle the sucessfull return of data from a promise",
+            "itemtype": "method",
+            "name": "then",
+            "params": [
+                {
+                    "name": "callback",
+                    "description": "",
+                    "type": "Function"
+                }
+            ],
+            "class": "Promise",
+            "module": "entityModel"
+        },
+        {
+            "file": "promise.js",
+            "line": 17,
+            "description": "Used to handle any errors encountered wheh processing the promise.",
+            "itemtype": "method",
+            "name": "fail",
+            "params": [
+                {
+                    "name": "errorCallback",
+                    "description": "",
+                    "type": "Function"
+                }
+            ],
+            "class": "Promise",
+            "module": "entityModel"
+        },
+        {
+            "file": "promise.js",
+            "line": 24,
+            "description": "A callback that is called regardless of the success or failure of the promise.",
+            "itemtype": "method",
+            "name": "fin",
+            "params": [
+                {
+                    "name": "finallyCallback",
+                    "description": "",
+                    "type": "Function"
+                }
+            ],
+            "class": "Promise",
             "module": "entityModel"
         },
         {
@@ -5416,7 +5421,7 @@
                 }
             ],
             "readonly": "",
-            "class": "[relation Array]",
+            "class": "ↈ_relationArray_",
             "module": "entityModel"
         },
         {
@@ -5446,7 +5451,7 @@
                 "description": "",
                 "type": "Promise"
             },
-            "class": "[relation Array]",
+            "class": "ↈ_relationArray_",
             "module": "entityModel"
         },
         {
@@ -5468,9 +5473,9 @@
                     "type": "String"
                 },
                 {
-                    "name": "valFn",
-                    "description": "A function to perform validation.\n    \nvalidatorFunction(value, context)",
-                    "type": "ValidatorFunction",
+                    "name": "validatorFn",
+                    "description": "A function to perform validation.\n    \nvalidatorFn(value, context)",
+                    "type": "Function",
                     "props": [
                         {
                             "name": "value",
@@ -5568,7 +5573,7 @@
         },
         {
             "file": "validate.js",
-            "line": 240,
+            "line": 243,
             "description": "Map of standard error message templates keyed by validator name.\nYou can add to or modify this object to customize the template used for any validation error message.",
             "example": [
                 "\n    // v is this function is the value to be validated, in this case a \"country\" string.\n    var valFn = function (v) {\n        if (v == null) return true;\n        return (core.stringStartsWith(v, \"US\"));\n    };\n    var countryValidator = new Validator(\"countryIsUS\", valFn, { displayName: \"Country\" }); \n    Validator.messageTemplates[\"countryIsUS\", \"'%displayName%' must start with 'US'\");\nThis will have a similar effect to this\n     var countryValidator = new Validator(\"countryIsUS\", valFn, { \n        displayName: \"Country\", \n        messageTemplate: \"'%displayName%' must start with 'US'\" \n    });"
@@ -5582,7 +5587,7 @@
         },
         {
             "file": "validate.js",
-            "line": 272,
+            "line": 275,
             "description": "Returns a standard 'required value' Validator",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Makes \"Region\" on Customer a required property.\n    regionProperty.validators.push(Validator.required());"
@@ -5591,14 +5596,15 @@
             "name": "required",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 296,
+            "line": 299,
             "description": "Returns a standard maximum string length Validator; the maximum length must be specified",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer will be less than or equal to 5 characters.\n    regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));"
@@ -5621,14 +5627,15 @@
                 }
             ],
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 319,
+            "line": 322,
             "description": "Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer will be \n    // between 2 and 5 characters\n    regionProperty.validators.push(Validator.stringLength( {minLength: 2, maxLength: 5});"
@@ -5656,14 +5663,15 @@
                 }
             ],
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 346,
+            "line": 349,
             "description": "Returns a standard string dataType Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer is a string.\n    regionProperty.validators.push(Validator.string());"
@@ -5672,14 +5680,15 @@
             "name": "string",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 366,
+            "line": 369,
             "description": "Returns a standard string data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerIdProperty - custType.getProperty(\"CustomerID\");\n    // Validates that the value of the CustomerID property on Customer is a Guid.\n    customerIdProperty.validators.push(Validator.guid());"
@@ -5688,14 +5697,15 @@
             "name": "guid",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 386,
+            "line": 389,
             "description": "Returns a standard numeric data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is a number.\n    freightProperty.validators.push(Validator.number());"
@@ -5704,14 +5714,15 @@
             "name": "number",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 411,
+            "line": 414,
             "description": "Returns a standard large integer data type - 64 bit - Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.\n    freightProperty.validators.push(Validator.int64());"
@@ -5720,14 +5731,15 @@
             "name": "int64",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 434,
+            "line": 437,
             "description": "Returns a standard 32 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    freightProperty.validators.push(Validator.int32());"
@@ -5736,14 +5748,15 @@
             "name": "int32",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 449,
+            "line": 452,
             "description": "Returns a standard 16 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    freightProperty.validators.push(Validator.int16());"
@@ -5752,14 +5765,15 @@
             "name": "int16",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 465,
+            "line": 468,
             "description": "Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    // Probably not a very good validation to place on the Freight property.\n    regionProperty.validators.push(Validator.byte());"
@@ -5768,14 +5782,15 @@
             "name": "byte",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 482,
+            "line": 485,
             "description": "Returns a standard boolean data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var productType = em1.metadataStore.getEntityType(\"Product\");\n    var discontinuedProperty - productType.getProperty(\"Discontinued\");\n    // Validates that the value of the Discontinued property on Product is a boolean\n    discontinuedProperty.validators.push(Validator.bool());"
@@ -5784,14 +5799,15 @@
             "name": "bool",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 509,
+            "line": 512,
             "description": "Returns a standard date data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var orderDateProperty - orderType.getProperty(\"OrderDate\");\n    // Validates that the value of the OrderDate property on Order is a date\n    // Probably not a very good validation to place on the Freight property.\n    orderDateProperty.validators.push(Validator.date());"
@@ -5800,14 +5816,15 @@
             "name": "date",
             "static": 1,
             "return": {
-                "description": "A new Validator"
+                "description": "A new Validator",
+                "type": "Validator"
             },
             "class": "Validator",
             "module": "entityModel"
         },
         {
             "file": "validate.js",
-            "line": 612,
+            "line": 615,
             "itemtype": "method",
             "name": "<ctor> ValidationError",
             "params": [
@@ -5832,7 +5849,7 @@
         },
         {
             "file": "validate.js",
-            "line": 628,
+            "line": 631,
             "description": "The Validator associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validator",
@@ -5842,7 +5859,7 @@
         },
         {
             "file": "validate.js",
-            "line": 635,
+            "line": 638,
             "description": "A 'context' object associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "context",
@@ -5852,7 +5869,7 @@
         },
         {
             "file": "validate.js",
-            "line": 642,
+            "line": 645,
             "description": "The DataProperty or NavigationProperty associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "property",
@@ -5862,7 +5879,7 @@
         },
         {
             "file": "validate.js",
-            "line": 649,
+            "line": 652,
             "description": "The error message associated with the ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "errorMessage",

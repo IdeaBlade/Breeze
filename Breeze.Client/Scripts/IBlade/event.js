@@ -23,7 +23,7 @@
     @method <ctor> Event
     @param name {String}
     @param publisher {Object} The object that will be doing the publication. i.e. the object to which this event is attached. 
-    @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
+    @param [defaultErrorCallback] {Function} If omitted then subscriber notification failures will be ignored.
 
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
@@ -57,7 +57,7 @@
     @method publish
     @param data {Object} Data to publish
     @param [publishAsync=false] Whether to publish asynchonously or not.
-    @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+    @param [errorCallback] {Function} Will be called for any errors that occur during publication. If omitted, 
     errors will be eaten.
 
     errorCallback([e])
@@ -108,7 +108,7 @@
        });
    @method publishAsync
    @param data {Object} Data to publish
-   @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+   @param [errorCallback] {Function} Will be called for any errors that occur during publication. If omitted, 
    errors will be eaten.
 
    errorCallback([e])
@@ -136,7 +136,7 @@
              }
          });
     @method subscribe
-    @param [callback] {callback function} Will be called whenever 'data' is published for this event. 
+    @param [callback] {Function} Will be called whenever 'data' is published for this event. 
 
         callback([data])
         @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
@@ -237,7 +237,7 @@
     @static
     @param eventName {String} The name of the event. 
     @param target {Object} The object for which we want to know if notifications are enabled. 
-    @returns {Boolean?null} A null is returned if this value has not been set.
+    @return {Boolean|null} A null is returned if this value has not been set.
     **/
     Event.isEnabled = function (eventName, obj) {
         assertParam(eventName, "eventName").isNonEmptyString();

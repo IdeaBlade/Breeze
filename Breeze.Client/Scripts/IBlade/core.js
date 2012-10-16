@@ -19,7 +19,7 @@ function (core, Enum, Event, m_assertParam) {
       
     /**
     A singleton object that is the repository of all entityModel specific configuration options.
-       
+
         core.config.setProperties( {
             trackingImplemenation: entityModel.entityTracking_ko,
             remoteAccessImplementation: entityModel.remoteAccess_webApi

@@ -39,6 +39,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Scripts\IBlade\promise.js" />
     <Content Include="Scripts\ThirdParty\backbone.js" />
     <Content Include="Scripts\ThirdParty\backbone.min.js" />
     <Content Include="Scripts\IBlade\assertParam.js" />
@@ -50,8 +51,6 @@
     <None Include="Scripts\IBlade\yuidoc.json" />
     <Content Include="Scripts\IBlade\buildx.js" />
     <Content Include="Scripts\IBlade\entityTracking_backbone.js" />
-    <Content Include="Scripts\IBlade\remoteAccessInterface.js" />
-    <Content Include="Scripts\IBlade\entityTrackingInterface.js" />
     <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\core.js" />
     <Content Include="Scripts\IBlade\coreFns.js" />

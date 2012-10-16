@@ -31,79 +31,79 @@ function (core, m_validate) {
 
     var DataType = new Enum("DataType", dataTypeMethods);
     /**
-    @property String {symbol}
+    @property String {DataType}
     @final
     @static
     **/
     DataType.String = DataType.addSymbol({ defaultValue: "" });
     /**
-    @property Int64 {symbol}
+    @property Int64 {DataType}
     @final
     @static
     **/
     DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Int32 {symbol}
+    @property Int32 {DataType}
     @final
     @static
     **/
     DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Int16 {symbol}
+    @property Int16 {DataType}
     @final
     @static
     **/
     DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Decimal {symbol}
+    @property Decimal {DataType}
     @final
     @static
     **/
     DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Double {symbol}
+    @property Double {DataType}
     @final
     @static
     **/
     DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Single {symbol}
+    @property Single {DataType}
     @final
     @static
     **/
     DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property DateTime {symbol}
+    @property DateTime {DataType}
     @final
     @static
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
     /**
-    @property Boolean {symbol}
+    @property Boolean {DataType}
     @final
     @static
     **/
     DataType.Boolean = DataType.addSymbol({ defaultValue: false });
     /**
-    @property Guid {symbol}
+    @property Guid {DataType}
     @final
     @static
     **/
     DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
     /**
-    @property Byte {symbol}
+    @property Byte {DataType}
     @final
     @static
     **/
     DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
     /**
-    @property Binary {symbol}
+    @property Binary {DataType}
     @final
     @static
     **/
     DataType.Binary = DataType.addSymbol({ defaultValue: null });
     /**
-    @property Undefined {symbol}
+    @property Undefined {DataType}
     @final
     @static
     **/
@@ -118,7 +118,7 @@ function (core, m_validate) {
     @method toDataType
     @static
     @param typeName {String}
-    @return A DataType enum value.
+    @return {DataType} A DataType.
     **/
     DataType.toDataType = function (typeName) {
         // if OData style
