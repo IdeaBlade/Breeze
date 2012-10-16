@@ -524,16 +524,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 };
         @method fetchMetadata
         @async
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([schema])
             @param [callback.schema] {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager after this method's Promise or callback completes.
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @return Promise 
+        @return {Promise} Promise 
         **/
         ctor.prototype.fetchMetadata = function (callback, errorCallback) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -594,21 +594,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method executeQuery
         @async
         @param query {EntityQuery|String}  The {{#crossLink "EntityQuery"}}{{/crossLink}} or OData query string to execute.
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([data])
             @param callback.data {Object} 
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
 
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
 
-
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
@@ -652,7 +651,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
              });
         @method executeQueryLocally
         @param query {EntityQuery}  The {{#crossLink "EntityQuery"}}{{/crossLink}} to execute.
-        @return Array of Entities
+        @return  {Array of Entity}  Array of Entities
         **/
         ctor.prototype.executeQueryLocally = function (query) {
             core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
@@ -727,11 +726,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             );
         @method saveChanges
         @async
-        @param [entities] {Array of Entities} The list of entities to save.  All entities with changes 
+        @param [entities] {Array of Entity} The list of entities to save.  All entities with changes 
         within this EntityManager will be saved if this parameter is omitted, null or empty.
         @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
         {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([saveResult])
             @param [callback.saveResult] {Object} 
@@ -740,11 +739,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             save.
             @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
 
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
             core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
@@ -835,7 +834,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // employee will either be an entity or null.
         @method findEntityByKey
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
-        @return An Entity or null;
+        @return {Entity} An Entity or null;
         **/
         ctor.prototype.findEntityByKey = function (entityKey) {
             core.assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
@@ -874,7 +873,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         @method generateTempKeyValue
         @param entity {Entity} The Entity to generate a key for.
-        @return The new key value
+        @return {Object} The new key value
         **/
         ctor.prototype.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
@@ -947,7 +946,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method getChanges
         @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
         If this parameter is omitted, all EntityTypes are searched.
-        @return Array of Entities
+        @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getChanges = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
@@ -962,7 +961,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var entities = em1.rejectChanges();
         
         @method rejectChanges
-        @return {Array of Entities} The entities whose changes were rejected. These entities will all have EntityStates of 
+        @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
         ctor.prototype.rejectChanges = function() {
@@ -1003,7 +1002,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @param [entityState] {EntityState|Array of EntityState} The {{#crossLink "EntityState"}}{{/crossLink}}s for which entities will be found.
         If this parameter is omitted, entities of all EntityStates are returned.
-        @return Array of Entities
+        @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getEntities = function (entityTypes, entityStates) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
@@ -1972,7 +1971,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
     EntityManager is not replaced by the 'merging' entity.
 
-    @property PreserveChanges {symbol}
+    @property PreserveChanges {MergeStrategy}
     @final
     @static
     **/
@@ -1982,7 +1981,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
     EntityManager is replaced by the 'merging' entity.
 
-    @property OverwriteChanges {symbol}
+    @property OverwriteChanges {MergeStrategy}
     @final
     @static
     **/
@@ -1998,14 +1997,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     var FetchStrategy = new Enum("FetchStrategy");
     /**
     FromServer is used to tell the query to execute the query against a remote data source on the server.
-    @property FromServer {symbol}
+    @property FromServer {MergeStrategy}
     @final
     @static
     **/
     FetchStrategy.FromServer = FetchStrategy.addSymbol();
     /**
     FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-    @property FromLocalCache {symbol}
+    @property FromLocalCache {MergeStrategy}
     @final
     @static
     **/

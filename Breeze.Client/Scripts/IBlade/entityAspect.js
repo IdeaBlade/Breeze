@@ -27,7 +27,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Unchanged;
             @method isUnchanged
-            @return Whether an entityState instance is EntityState.Unchanged.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged.
             **/
             isUnchanged: function () { return this === EntityState.Unchanged; },
             /**
@@ -38,7 +38,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Added;
             @method isAdded
-            @return Whether an entityState instance is EntityState.Added.
+            @return {Boolean} Whether an entityState instance is EntityState.Added.
             **/
             isAdded: function () { return this === EntityState.Added; },
             /**
@@ -49,7 +49,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Modified;
             @method isModified
-            @return Whether an entityState instance is EntityState.Modified.
+            @return {Boolean} Whether an entityState instance is EntityState.Modified.
             **/
             isModified: function () { return this === EntityState.Modified; },
             /**
@@ -60,7 +60,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Deleted;
             @method isDeleted
-            @return Whether an entityState instance is EntityState.Deleted.
+            @return  {Boolean} Whether an entityState instance is EntityState.Deleted.
             **/
             isDeleted: function () { return this === EntityState.Deleted; },
             /**
@@ -71,7 +71,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Detached;
             @method isDetached
-            @return Whether an entityState instance is EntityState.Detached.
+            @return  {Boolean} Whether an entityState instance is EntityState.Detached.
             **/
             isDetached: function () { return this === EntityState.Detached; },
             /**
@@ -82,7 +82,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Unchanged || es === EntityState.Modified
             @method isUnchangedOrModified
-            @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
             **/
             isUnchangedOrModified: function () {
                 return this === EntityState.Unchanged || this === EntityState.Modified;
@@ -95,7 +95,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
             @method isAddedModifiedOrDeleted
-            @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
             **/
             isAddedModifiedOrDeleted: function () {
                 return this === EntityState.Added ||
@@ -108,7 +108,7 @@ function (core, Event, m_validate) {
         /**
         The 'Unchanged' state.
 
-        @property Unchanged {symbol}
+        @property Unchanged {EntityState}
         @final
         @static
         **/
@@ -116,7 +116,7 @@ function (core, Event, m_validate) {
         /**
         The 'Added' state.
 
-        @property Added {symbol}
+        @property Added {EntityState}
         @final
         @static
         **/
@@ -124,7 +124,7 @@ function (core, Event, m_validate) {
         /**
         The 'Modified' state.
 
-        @property Modified {symbol}
+        @property Modified {EntityState}
         @final
         @static
         **/
@@ -132,7 +132,7 @@ function (core, Event, m_validate) {
         /**
         The 'Deleted' state.
 
-        @property Deleted {symbol}
+        @property Deleted {EntityState}
         @final
         @static
         **/
@@ -140,7 +140,7 @@ function (core, Event, m_validate) {
         /**
         The 'Detached' state.
 
-        @property Detached {symbol}
+        @property Detached {EntityState}
         @final
         @static
         **/
@@ -167,7 +167,7 @@ function (core, Event, m_validate) {
         /**
         Attach - Entity was attached via an AttachEntity call.
 
-        @property Attach {symbol}
+        @property Attach {EntityAction}
         @final
         @static
         **/
@@ -176,7 +176,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnQuery - Entity was attached as a result of a query.
 
-        @property AttachOnQuery {symbol}
+        @property AttachOnQuery {EntityAction}
         @final
         @static
         **/
@@ -185,7 +185,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnImport - Entity was attached as a result of an import.
 
-        @property AttachOnImport {symbol}
+        @property AttachOnImport {EntityAction}
         @final
         @static
         **/
@@ -195,7 +195,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnQuery - Entity was detached.
 
-        @property Detach {symbol}
+        @property Detach {EntityAction}
         @final
         @static
         **/
@@ -204,7 +204,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnQuery - Properties on the entity were merged as a result of a query.
 
-        @property MergeOnQuery {symbol}
+        @property MergeOnQuery {EntityAction}
         @final
         @static
         **/
@@ -213,7 +213,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnImport - Properties on the entity were merged as a result of an import.
 
-        @property MergeOnImport {symbol}
+        @property MergeOnImport {EntityAction}
         @final
         @static
         **/
@@ -222,7 +222,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnImport - Properties on the entity were merged as a result of a save
 
-        @property MergeOnImport {symbol}
+        @property MergeOnImport {EntityAction}
         @final
         @static
         **/
@@ -231,7 +231,7 @@ function (core, Event, m_validate) {
         /**
         PropertyChange - A property on the entity was changed.
 
-        @property PropertyChange {symbol}
+        @property PropertyChange {EntityAction}
         @final
         @static
         **/
@@ -240,7 +240,7 @@ function (core, Event, m_validate) {
         /**
         EntityStateChange - The EntityState of the entity was changed.
 
-        @property EntityStateChange {symbol}
+        @property EntityStateChange {EntityAction}
         @final
         @static
         **/
@@ -250,7 +250,7 @@ function (core, Event, m_validate) {
         /**
         AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
 
-        @property AcceptChanges {symbol}
+        @property AcceptChanges {EntityAction}
         @final
         @static
         **/
@@ -259,7 +259,7 @@ function (core, Event, m_validate) {
         /**
         RejectChanges - RejectChanges was called on the entity.
 
-        @property RejectChanges {symbol}
+        @property RejectChanges {EntityAction}
         @final
         @static
         **/
@@ -268,7 +268,7 @@ function (core, Event, m_validate) {
         /**
         Clear - The EntityManager was cleared.  All entities detached.
 
-        @property Clear {symbol}
+        @property Clear {EntityAction}
         @final
         @static
         **/
@@ -436,7 +436,7 @@ function (core, Event, m_validate) {
              // assume order is an order entity attached to an EntityManager.
             var entityKey = order.entityAspect.getKey();
         @method getKey
-        @param [forceRefresh = false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
+        @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
         ctor.prototype.getKey = function (forceRefresh) {

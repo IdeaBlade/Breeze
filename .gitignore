@@ -19,6 +19,10 @@ packages
 
 GetFtpCredential.ps1
 
+Breeze.intellisense/iisNode/
+Breeze.intellisense/node_modules
+Breeze.intellisense/*.js.debug/
+
 Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
 _Internal/Sample_WebApi/Scripts/
 _Internal/Sample_OData/Scripts/

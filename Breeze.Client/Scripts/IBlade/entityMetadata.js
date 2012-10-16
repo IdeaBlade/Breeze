@@ -306,16 +306,17 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param serviceName {String}  The service name to fetch metadata for.
         @param [remoteAccessImplementation] {instance of this RemoteAccessImplementation interface} 
         - will default to core.config.remoteAccessImplementation
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([data])
             @param [callback.data] {rawMetadata} 
   
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
+
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
 
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
@@ -381,7 +382,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
-        @param [initializationFn] {InitializationFunction} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
@@ -417,6 +418,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 // do something interesting
             }
         @method isEmpty
+        @return {Boolean}
         **/
         ctor.prototype.isEmpty = function () {
             return this.serviceNames.length === 0;
@@ -436,6 +438,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param entityTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. 
         @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
+        @return {EntityType} The EntityType or 'undefined' if not not found.
         **/
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
@@ -459,6 +462,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // assume em1 is a preexisting EntityManager
             var allTypes = em1.metadataStore.getEntityTypes();
         @method getEntityTypes
+        @return {Array of EntityType}
         **/
         ctor.prototype.getEntityTypes = function () {
             var entityTypes = [];
@@ -1100,7 +1104,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var custType = em1.metadataStore.getEntityType("Customer");
             var arrayOfProps = custType.getProperties();
         @method getProperties
-        @return Array of DataProperty|NavigationProperty
+        @return {Array of DataProperty|NavigationProperty} Array of Data and Navigation properties.
         **/
         ctor.prototype.getProperties = function () {
             return this.dataProperties.concat(this.navigationProperties);
@@ -1127,7 +1131,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var customerNameDataProp = custType.getDataProperty("CustomerName");
         @method getDataProperty
         @param propertyName {String}
-        @return {DataProperty|null}
+        @return {DataProperty} Will be null if not found.
         **/
         ctor.prototype.getDataProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
@@ -1142,7 +1146,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var customerOrdersNavProp = custType.getDataProperty("Orders");
         @method getNavigationProperty
         @param propertyName {String}
-        @return {NavigationProperty|null}
+        @return {NavigationProperty} Will be null if not found.
         **/
         ctor.prototype.getNavigationProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
@@ -1165,7 +1169,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method getProperty
         @param propertyPath {String}
         @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
-        @return {DataProperty|NavigationProperty|null}
+        @return {DataProperty|NavigationProperty} Will be null if not found.
         **/
         ctor.prototype.getProperty = function (propertyPath, throwIfNotFound) {
             throwIfNotFound = throwIfNotFound || false;
@@ -1490,7 +1494,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         removed from this collection.
 
         __readOnly__
-        @property validators {Validator|Array of Validator}
+        @property validators {Array of Validator}
         **/
 
         /**
@@ -1854,7 +1858,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         This entity does not have an autogenerated key. 
         The client must set the key before adding the entity to the EntityManager
-        @property None {symbol}
+        @property None {AutoGeneratedKeyType}
         @final
         @static
         **/
@@ -1863,7 +1867,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         This entity's key is an Identity column and is set by the backend database. 
         Keys for new entities will be temporary until the entities are saved at which point the keys will
         be converted to their 'real' versions.
-        @property Identity {symbol}
+        @property Identity {AutoGeneratedKeyType}
         @final
         @static
         **/
@@ -1872,7 +1876,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         This entity's key is generated by a KeyGenerator and is set by the backend database. 
         Keys for new entities will be temporary until the entities are saved at which point the keys will
         be converted to their 'real' versions.
-        @property KeyGenerator {symbol}
+        @property KeyGenerator {AutoGeneratedKeyType}
         @final
         @static
         **/

@@ -1,4 +1,6 @@
-﻿(function (root) {
+﻿/// <reference path="..\breeze.debug.js" />
+
+(function (root) {
     var breeze = root.breeze;
 
     // define Breeze namespaces

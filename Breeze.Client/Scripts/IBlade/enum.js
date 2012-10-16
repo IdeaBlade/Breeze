@@ -100,7 +100,7 @@ define(["coreFns"], function (core) {
          // nowdayOfWeek === DayOfWeek.Thursday            
     @method fromName
     @param name {String} Name for which an enum symbol should be returned.
-    @return {EnumSymbol|undefined} The symbol that matches the name.
+    @return {EnumSymbol} The symbol that matches the name or 'undefined' if not found.
     **/
     Enum.prototype.fromName = function (name) {
         return this[name];

@@ -109,7 +109,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @param metadataStore {MetadataStore} The {{#crossLink "MetadataStore"}}{{/crossLink}} in which to locate the 
         {{#crossLink "EntityType"}}{{/crossLink}} returned by this query. 
         @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
-        @return {EntityType|null} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
+        @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
         */
         ctor.prototype._getEntityType = function (metadataStore, throwErrorIfNotFound) {
             assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
@@ -511,19 +511,20 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method execute
         @async
         
-        @param callback {successFunction} Function called on success.
+        @param callback {Function} Function called on success.
         
-           successFunction([data])
-           @param [callback.data] {Object} 
-           @param callback.data.results {Array of Entity}
-           @param callback.data.query {EntityQuery} The original query
+            successFunction([data])
+            @param [callback.data] {Object} 
+            @param callback.data.results {Array of Entity}
+            @param callback.data.query {EntityQuery} The original query
 
-        @param errorCallback {failureFunction} Function called on failure.
+        @param errorCallback {Function} Function called on failure.
             
-        failureFunction([error])
-          @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-          @param [errorCallback.error.query] The query that caused the error.
-          @return Promise
+            failureFunction([error])
+            @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.query] The query that caused the error.
+
+        @return {Promise}
         **/
         
         /**
@@ -1009,42 +1010,42 @@ function (core, m_entityMetadata, m_entityAspect) {
         var aEnum = new Enum("FilterQueryOp");
         /**
         Aliases: "eq", "=="
-        @property Equals {symbol}
+        @property Equals {FilterQueryOp}
         @final
         @static
         **/
         aEnum.Equals = aEnum.addSymbol({ operator: "eq", aliases: ["=="] });
         /**
         Aliases: "ne", "!="
-        @property NotEquals {symbol}
+        @property NotEquals {FilterQueryOp}
         @final
         @static
         **/
         aEnum.NotEquals = aEnum.addSymbol({ operator: "ne", aliases: ["!="] });
         /**
         Aliases: "gt", ">"
-        @property GreaterThan {symbol}
+        @property GreaterThan {FilterQueryOp}
         @final
         @static
         **/
         aEnum.GreaterThan = aEnum.addSymbol({ operator: "gt", aliases: [">"] });
         /**
         Aliases: "lt", "<"
-        @property LessThan {symbol}
+        @property LessThan {FilterQueryOp}
         @final
         @static
         **/
         aEnum.LessThan = aEnum.addSymbol({ operator: "lt", aliases: ["<"] });
         /**
         Aliases: "ge", ">="
-        @property GreaterThanOrEqual {symbol}
+        @property GreaterThanOrEqual {FilterQueryOp}
         @final
         @static
         **/
         aEnum.GreaterThanOrEqual = aEnum.addSymbol({ operator: "ge", aliases: [">="] });
         /**
         Aliases: "le", "<="
-        @property LessThanOrEqual {symbol}
+        @property LessThanOrEqual {FilterQueryOp}
         @final
         @static
         **/
@@ -1052,19 +1053,19 @@ function (core, m_entityMetadata, m_entityAspect) {
         /**
         String operation: Is a string a substring of another string.
         Aliases: "substringof"
-        @property Contains {symbol}
+        @property Contains {FilterQueryOp}
         @final
         @static
         **/
         aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true });
         /**
-        @property StartsWith {symbol}
+        @property StartsWith {FilterQueryOp}
         @final
         @static
         **/
         aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true });
         /**
-        @property EndsWith {symbol}
+        @property EndsWith {FilterQueryOp}
         @final
         @static
         **/

@@ -1,0 +1,3 @@
+Static files in the "public" folder will be served directly. This folder is a good place to put static files (CSS, JS, etc)
+
+For example, this text file can be reached at /example.txt

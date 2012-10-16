@@ -120,20 +120,20 @@ function (core) {
 
         @method <ctor> Validator
         @param name {String} The name of this validator.
-        @param valFn {validatorFunction} A function to perform validation.
+        @param validatorFn {Function} A function to perform validation.
             
-        validatorFunction(value, context)
-        @param valFn.value {Object} Value to be validated
-        @param valFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
+        validatorFn(value, context)
+        @param validatorFn.value {Object} Value to be validated
+        @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
         otherwise specified.
-        @param valFn.context.value {Object} The value being validated.
-        @param valFn.context.validatorName {String} The name of the validator being executed.
-        @param valFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
+        @param validatorFn.context.value {Object} The value being validated.
+        @param validatorFn.context.validatorName {String} The name of the validator being executed.
+        @param validatorFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
         the value of its 'name' property or the string 'Value'
-        @param valFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
+        @param validatorFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
         is an object that is keyed by validator name and that can be added to in order to 'register' your own message for a given validator. 
         The following property can also be specified for any validator to force a specific errorMessage string
-        @param [valFn.context.message] {String} If this property is set it will be used instead of the 'messageTemplate' property when an
+        @param [validatorFn.context.message] {String} If this property is set it will be used instead of the 'messageTemplate' property when an
         error message is generated. 
                     
         @param [context] {Object} A free form object whose properties will made available during the validation and error message creation process.
@@ -282,7 +282,7 @@ function (core) {
             regionProperty.validators.push(Validator.required());
         @method required
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.required = function () {
             var valFn = function (v, ctx) {
@@ -308,7 +308,7 @@ function (core) {
         @static
         @param context {Object} 
         @param context.maxLength {Integer}
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.maxLength = function (context) {
             var valFn = function (v, ctx) {
@@ -333,7 +333,7 @@ function (core) {
         @param context {Object} 
         @param context.maxLength {Integer}
         @param context.minLength {Integer}
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.stringLength = function (context) {
             var valFn = function (v, ctx) {
@@ -356,7 +356,7 @@ function (core) {
             regionProperty.validators.push(Validator.string());
         @method string
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.string = function () {
             var valFn = function (v) {
@@ -376,7 +376,7 @@ function (core) {
             customerIdProperty.validators.push(Validator.guid());
         @method guid
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.guid = function () {
             var valFn = function (v) {
@@ -396,7 +396,7 @@ function (core) {
             freightProperty.validators.push(Validator.number());
         @method number 
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
 
         // TODO: may need to have seperate logic for single.
@@ -421,7 +421,7 @@ function (core) {
             freightProperty.validators.push(Validator.int64());
         @method int64
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.integer = ctor.int64 = function (context) {
             var valFn = function (v, ctx) {
@@ -443,7 +443,7 @@ function (core) {
             freightProperty.validators.push(Validator.int32());
         @method int32
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.int32 = function(context) {
             return intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX, context)();
@@ -459,7 +459,7 @@ function (core) {
             freightProperty.validators.push(Validator.int16());
         @method int16
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.int16 = function (context) {
             return intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX, context)();
@@ -476,7 +476,7 @@ function (core) {
             regionProperty.validators.push(Validator.byte());
         @method byte
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.byte = function (context) {
             return intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX, context)();
@@ -492,7 +492,7 @@ function (core) {
             discontinuedProperty.validators.push(Validator.bool());
         @method bool
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.bool = function () {
             var valFn = function (v) {
@@ -520,7 +520,7 @@ function (core) {
             orderDateProperty.validators.push(Validator.date());
         @method date
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.date = function () {
             var valFn = function (v) {

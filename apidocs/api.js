@@ -21,15 +21,15 @@ YUI.add("yuidoc-meta", function(Y) {
         "NamingConvention",
         "NavigationProperty",
         "Predicate",
+        "Promise",
         "QueryOptions",
         "SaveOptions",
         "ValidationError",
         "ValidationOptions",
         "Validator",
-        "[relation Array]",
         "config",
-        "~entityTracking-interface",
-        "~keyGenerator-interface"
+        "ↈ_keyGenerator_interface",
+        "ↈ_relationArray_"
     ],
     "modules": [
         "core",

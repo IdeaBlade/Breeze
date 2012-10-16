@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.MVC4WebApiClientSample</id>
-        <version>0.63.3</version>
+        <version>0.63.5</version>
         <title>Breeze for MVC4 WebApi Client Sample</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
