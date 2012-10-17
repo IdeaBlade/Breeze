@@ -150,6 +150,7 @@
     <Content Include="Content\toastr.css" />
     <Content Include="Content\todo.css" />
     <Content Include="Scripts\lib\breeze.debug.js" />
+    <None Include="Scripts\lib\breeze.intellisense.js" />
     <Content Include="Scripts\lib\jquery-1.8.0.min.js" />
     <Content Include="Scripts\lib\knockout-2.1.0.js" />
     <Content Include="Scripts\lib\q.js" />
@@ -229,6 +230,7 @@ GOTO chkWebApiLib
 :breezeExists
 echo Copying breeze.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\lib
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts\lib" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts\lib" /Y
 
 :chkWebApiLib
 IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\Breeze.WebApi.dll" GOTO webApiLibExists

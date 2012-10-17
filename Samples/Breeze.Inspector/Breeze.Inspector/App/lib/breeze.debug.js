@@ -767,7 +767,7 @@ define('enum',["coreFns"], function (core) {
          // nowdayOfWeek === DayOfWeek.Thursday            
     @method fromName
     @param name {String} Name for which an enum symbol should be returned.
-    @return {EnumSymbol|undefined} The symbol that matches the name.
+    @return {EnumSymbol} The symbol that matches the name or 'undefined' if not found.
     **/
     Enum.prototype.fromName = function (name) {
         return this[name];
@@ -1274,7 +1274,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @method <ctor> Event
     @param name {String}
     @param publisher {Object} The object that will be doing the publication. i.e. the object to which this event is attached. 
-    @param [defaultErrorCallback] {errorCallback function} If omitted then subscriber notification failures will be ignored.
+    @param [defaultErrorCallback] {Function} If omitted then subscriber notification failures will be ignored.
 
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
@@ -1308,7 +1308,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @method publish
     @param data {Object} Data to publish
     @param [publishAsync=false] Whether to publish asynchonously or not.
-    @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+    @param [errorCallback] {Function} Will be called for any errors that occur during publication. If omitted, 
     errors will be eaten.
 
     errorCallback([e])
@@ -1359,7 +1359,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
        });
    @method publishAsync
    @param data {Object} Data to publish
-   @param [errorCallback] {errorCallback function} Will be called for any errors that occur during publication. If omitted, 
+   @param [errorCallback] {Function} Will be called for any errors that occur during publication. If omitted, 
    errors will be eaten.
 
    errorCallback([e])
@@ -1387,7 +1387,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
              }
          });
     @method subscribe
-    @param [callback] {callback function} Will be called whenever 'data' is published for this event. 
+    @param [callback] {Function} Will be called whenever 'data' is published for this event. 
 
         callback([data])
         @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
@@ -1488,7 +1488,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @static
     @param eventName {String} The name of the event. 
     @param target {Object} The object for which we want to know if notifications are enabled. 
-    @returns {Boolean?null} A null is returned if this value has not been set.
+    @return {Boolean|null} A null is returned if this value has not been set.
     **/
     Event.isEnabled = function (eventName, obj) {
         assertParam(eventName, "eventName").isNonEmptyString();
@@ -1558,13 +1558,14 @@ function (core, Enum, Event, m_assertParam) {
     core.config = { };
     core.config.functionRegistry = { };
     core.config.typeRegistry = { };
+    core.config.objectRegistry = { };
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
       
     /**
     A singleton object that is the repository of all entityModel specific configuration options.
-       
+
         core.config.setProperties( {
             trackingImplemenation: entityModel.entityTracking_ko,
             remoteAccessImplementation: entityModel.remoteAccess_webApi
@@ -1630,14 +1631,21 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-       // this is needed for reflection purposes when deserializing an object that needs a ctor.
+    // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
+    // used to register validators.
     core.config.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         core.config.functionRegistry[fnName] = fn;
     };
-    
+
+    core.config.registerObject = function(obj, objName) {
+        core.assertParam(obj, "obj").isObject().check();
+        core.assertParam(objName, "objName").isString().check();
+
+        core.config.objectRegistry[objName] = obj;
+    };
   
     core.config.registerType = function (ctor, typeName) {
         core.assertParam(ctor, "ctor").isFunction().check();
@@ -1773,20 +1781,20 @@ function (core) {
 
         @method <ctor> Validator
         @param name {String} The name of this validator.
-        @param valFn {validatorFunction} A function to perform validation.
+        @param validatorFn {Function} A function to perform validation.
             
-        validatorFunction(value, context)
-        @param valFn.value {Object} Value to be validated
-        @param valFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
+        validatorFn(value, context)
+        @param validatorFn.value {Object} Value to be validated
+        @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
         otherwise specified.
-        @param valFn.context.value {Object} The value being validated.
-        @param valFn.context.validatorName {String} The name of the validator being executed.
-        @param valFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
+        @param validatorFn.context.value {Object} The value being validated.
+        @param validatorFn.context.validatorName {String} The name of the validator being executed.
+        @param validatorFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
         the value of its 'name' property or the string 'Value'
-        @param valFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
+        @param validatorFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
         is an object that is keyed by validator name and that can be added to in order to 'register' your own message for a given validator. 
         The following property can also be specified for any validator to force a specific errorMessage string
-        @param [valFn.context.message] {String} If this property is set it will be used instead of the 'messageTemplate' property when an
+        @param [validatorFn.context.message] {String} If this property is set it will be used instead of the 'messageTemplate' property when an
         error message is generated. 
                     
         @param [context] {Object} A free form object whose properties will made available during the validation and error message creation process.
@@ -1887,6 +1895,9 @@ function (core) {
         ctor.fromJSON = function (json) {
             var validatorName = "Validator." + json.validatorName;
             var fn = core.config.functionRegistry[validatorName];
+            if (!fn) {
+                throw new Error("Unable to locate a validator named:" + json.validatorName);
+            }
             return fn(json);
         };
 
@@ -1932,7 +1943,7 @@ function (core) {
             regionProperty.validators.push(Validator.required());
         @method required
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.required = function () {
             var valFn = function (v, ctx) {
@@ -1958,7 +1969,7 @@ function (core) {
         @static
         @param context {Object} 
         @param context.maxLength {Integer}
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.maxLength = function (context) {
             var valFn = function (v, ctx) {
@@ -1983,7 +1994,7 @@ function (core) {
         @param context {Object} 
         @param context.maxLength {Integer}
         @param context.minLength {Integer}
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.stringLength = function (context) {
             var valFn = function (v, ctx) {
@@ -2006,7 +2017,7 @@ function (core) {
             regionProperty.validators.push(Validator.string());
         @method string
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.string = function () {
             var valFn = function (v) {
@@ -2026,7 +2037,7 @@ function (core) {
             customerIdProperty.validators.push(Validator.guid());
         @method guid
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.guid = function () {
             var valFn = function (v) {
@@ -2046,7 +2057,7 @@ function (core) {
             freightProperty.validators.push(Validator.number());
         @method number 
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
 
         // TODO: may need to have seperate logic for single.
@@ -2071,7 +2082,7 @@ function (core) {
             freightProperty.validators.push(Validator.int64());
         @method int64
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.integer = ctor.int64 = function (context) {
             var valFn = function (v, ctx) {
@@ -2093,7 +2104,7 @@ function (core) {
             freightProperty.validators.push(Validator.int32());
         @method int32
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.int32 = function(context) {
             return intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX, context)();
@@ -2109,7 +2120,7 @@ function (core) {
             freightProperty.validators.push(Validator.int16());
         @method int16
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.int16 = function (context) {
             return intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX, context)();
@@ -2126,7 +2137,7 @@ function (core) {
             regionProperty.validators.push(Validator.byte());
         @method byte
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.byte = function (context) {
             return intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX, context)();
@@ -2142,7 +2153,7 @@ function (core) {
             discontinuedProperty.validators.push(Validator.bool());
         @method bool
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.bool = function () {
             var valFn = function (v) {
@@ -2170,7 +2181,7 @@ function (core) {
             orderDateProperty.validators.push(Validator.date());
         @method date
         @static
-        @return A new Validator
+        @return {Validator} A new Validator
         **/
         ctor.date = function () {
             var valFn = function (v) {
@@ -2348,7 +2359,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Unchanged;
             @method isUnchanged
-            @return Whether an entityState instance is EntityState.Unchanged.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged.
             **/
             isUnchanged: function () { return this === EntityState.Unchanged; },
             /**
@@ -2359,7 +2370,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Added;
             @method isAdded
-            @return Whether an entityState instance is EntityState.Added.
+            @return {Boolean} Whether an entityState instance is EntityState.Added.
             **/
             isAdded: function () { return this === EntityState.Added; },
             /**
@@ -2370,7 +2381,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Modified;
             @method isModified
-            @return Whether an entityState instance is EntityState.Modified.
+            @return {Boolean} Whether an entityState instance is EntityState.Modified.
             **/
             isModified: function () { return this === EntityState.Modified; },
             /**
@@ -2381,7 +2392,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Deleted;
             @method isDeleted
-            @return Whether an entityState instance is EntityState.Deleted.
+            @return  {Boolean} Whether an entityState instance is EntityState.Deleted.
             **/
             isDeleted: function () { return this === EntityState.Deleted; },
             /**
@@ -2392,7 +2403,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Detached;
             @method isDetached
-            @return Whether an entityState instance is EntityState.Detached.
+            @return  {Boolean} Whether an entityState instance is EntityState.Detached.
             **/
             isDetached: function () { return this === EntityState.Detached; },
             /**
@@ -2403,7 +2414,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Unchanged || es === EntityState.Modified
             @method isUnchangedOrModified
-            @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
             **/
             isUnchangedOrModified: function () {
                 return this === EntityState.Unchanged || this === EntityState.Modified;
@@ -2416,7 +2427,7 @@ function (core, Event, m_validate) {
             @example
                 return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
             @method isAddedModifiedOrDeleted
-            @return Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
+            @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
             **/
             isAddedModifiedOrDeleted: function () {
                 return this === EntityState.Added ||
@@ -2429,7 +2440,7 @@ function (core, Event, m_validate) {
         /**
         The 'Unchanged' state.
 
-        @property Unchanged {symbol}
+        @property Unchanged {EntityState}
         @final
         @static
         **/
@@ -2437,7 +2448,7 @@ function (core, Event, m_validate) {
         /**
         The 'Added' state.
 
-        @property Added {symbol}
+        @property Added {EntityState}
         @final
         @static
         **/
@@ -2445,7 +2456,7 @@ function (core, Event, m_validate) {
         /**
         The 'Modified' state.
 
-        @property Modified {symbol}
+        @property Modified {EntityState}
         @final
         @static
         **/
@@ -2453,7 +2464,7 @@ function (core, Event, m_validate) {
         /**
         The 'Deleted' state.
 
-        @property Deleted {symbol}
+        @property Deleted {EntityState}
         @final
         @static
         **/
@@ -2461,7 +2472,7 @@ function (core, Event, m_validate) {
         /**
         The 'Detached' state.
 
-        @property Detached {symbol}
+        @property Detached {EntityState}
         @final
         @static
         **/
@@ -2488,7 +2499,7 @@ function (core, Event, m_validate) {
         /**
         Attach - Entity was attached via an AttachEntity call.
 
-        @property Attach {symbol}
+        @property Attach {EntityAction}
         @final
         @static
         **/
@@ -2497,7 +2508,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnQuery - Entity was attached as a result of a query.
 
-        @property AttachOnQuery {symbol}
+        @property AttachOnQuery {EntityAction}
         @final
         @static
         **/
@@ -2506,7 +2517,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnImport - Entity was attached as a result of an import.
 
-        @property AttachOnImport {symbol}
+        @property AttachOnImport {EntityAction}
         @final
         @static
         **/
@@ -2516,7 +2527,7 @@ function (core, Event, m_validate) {
         /**
         AttachOnQuery - Entity was detached.
 
-        @property Detach {symbol}
+        @property Detach {EntityAction}
         @final
         @static
         **/
@@ -2525,7 +2536,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnQuery - Properties on the entity were merged as a result of a query.
 
-        @property MergeOnQuery {symbol}
+        @property MergeOnQuery {EntityAction}
         @final
         @static
         **/
@@ -2534,7 +2545,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnImport - Properties on the entity were merged as a result of an import.
 
-        @property MergeOnImport {symbol}
+        @property MergeOnImport {EntityAction}
         @final
         @static
         **/
@@ -2543,7 +2554,7 @@ function (core, Event, m_validate) {
         /**
         MergeOnImport - Properties on the entity were merged as a result of a save
 
-        @property MergeOnImport {symbol}
+        @property MergeOnImport {EntityAction}
         @final
         @static
         **/
@@ -2552,7 +2563,7 @@ function (core, Event, m_validate) {
         /**
         PropertyChange - A property on the entity was changed.
 
-        @property PropertyChange {symbol}
+        @property PropertyChange {EntityAction}
         @final
         @static
         **/
@@ -2561,7 +2572,7 @@ function (core, Event, m_validate) {
         /**
         EntityStateChange - The EntityState of the entity was changed.
 
-        @property EntityStateChange {symbol}
+        @property EntityStateChange {EntityAction}
         @final
         @static
         **/
@@ -2571,7 +2582,7 @@ function (core, Event, m_validate) {
         /**
         AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
 
-        @property AcceptChanges {symbol}
+        @property AcceptChanges {EntityAction}
         @final
         @static
         **/
@@ -2580,7 +2591,7 @@ function (core, Event, m_validate) {
         /**
         RejectChanges - RejectChanges was called on the entity.
 
-        @property RejectChanges {symbol}
+        @property RejectChanges {EntityAction}
         @final
         @static
         **/
@@ -2589,7 +2600,7 @@ function (core, Event, m_validate) {
         /**
         Clear - The EntityManager was cleared.  All entities detached.
 
-        @property Clear {symbol}
+        @property Clear {EntityAction}
         @final
         @static
         **/
@@ -2615,7 +2626,7 @@ function (core, Event, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity) {
+        var ctor = function (entity, deferInitialization) {
             if (!entity) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
             }
@@ -2624,7 +2635,7 @@ function (core, Event, m_validate) {
             }
             // if called without new
             if (!(this instanceof EntityAspect)) {
-                return new EntityAspect(entity);
+                return new EntityAspect(entity, deferInitialization);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -2651,6 +2662,15 @@ function (core, Event, m_validate) {
             }
             var entityCtor = entityType.getEntityCtor();
             core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            if (!deferInitialization) {
+                this._postInitialize();
+            }
+
+        };
+
+        ctor.prototype._postInitialize = function () {
+            var entity = this.entity;
+            var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
@@ -2659,7 +2679,6 @@ function (core, Event, m_validate) {
                     entityCtor._$initializationFn(entity);
                 }
             }
-            
         };
 
         Event.bubbleEvent(ctor.prototype, function() {
@@ -2749,7 +2768,7 @@ function (core, Event, m_validate) {
              // assume order is an order entity attached to an EntityManager.
             var entityKey = order.entityAspect.getKey();
         @method getKey
-        @param [forceRefresh = false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
+        @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
         ctor.prototype.getKey = function (forceRefresh) {
@@ -3306,6 +3325,7 @@ function (core, m_entityAspect) {
                 }
 
                 var inverseProp = property.inverse;
+                var oldSiblings;
                 if (newValue) {
                     if (entityManager) {
                         if (newValue.entityAspect.entityState.isDetached()) {
@@ -3330,7 +3350,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
@@ -3352,7 +3372,7 @@ function (core, m_entityAspect) {
                         } else {
                             // navigation property change - undo old relation
                             if (oldValue) {
-                                var oldSiblings = oldValue.getProperty(inverseProp.name);
+                                oldSiblings = oldValue.getProperty(inverseProp.name);
                                 var ix = oldSiblings.indexOf(this);
                                 if (ix !== -1) {
                                     oldSiblings.splice(ix, 1);
@@ -3517,79 +3537,79 @@ function (core, m_validate) {
 
     var DataType = new Enum("DataType", dataTypeMethods);
     /**
-    @property String {symbol}
+    @property String {DataType}
     @final
     @static
     **/
     DataType.String = DataType.addSymbol({ defaultValue: "" });
     /**
-    @property Int64 {symbol}
+    @property Int64 {DataType}
     @final
     @static
     **/
     DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Int32 {symbol}
+    @property Int32 {DataType}
     @final
     @static
     **/
     DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Int16 {symbol}
+    @property Int16 {DataType}
     @final
     @static
     **/
     DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Decimal {symbol}
+    @property Decimal {DataType}
     @final
     @static
     **/
     DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Double {symbol}
+    @property Double {DataType}
     @final
     @static
     **/
     DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property Single {symbol}
+    @property Single {DataType}
     @final
     @static
     **/
     DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
     /**
-    @property DateTime {symbol}
+    @property DateTime {DataType}
     @final
     @static
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
     /**
-    @property Boolean {symbol}
+    @property Boolean {DataType}
     @final
     @static
     **/
     DataType.Boolean = DataType.addSymbol({ defaultValue: false });
     /**
-    @property Guid {symbol}
+    @property Guid {DataType}
     @final
     @static
     **/
     DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
     /**
-    @property Byte {symbol}
+    @property Byte {DataType}
     @final
     @static
     **/
     DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
     /**
-    @property Binary {symbol}
+    @property Binary {DataType}
     @final
     @static
     **/
     DataType.Binary = DataType.addSymbol({ defaultValue: null });
     /**
-    @property Undefined {symbol}
+    @property Undefined {DataType}
     @final
     @static
     **/
@@ -3604,7 +3624,7 @@ function (core, m_validate) {
     @method toDataType
     @static
     @param typeName {String}
-    @return A DataType enum value.
+    @return {DataType} A DataType.
     **/
     DataType.toDataType = function (typeName) {
         // if OData style
@@ -3720,9 +3740,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var NamingConvention = (function() {
         var ctor = function(config) {
             assertConfig(config || {})
+                .whereParam("name").isOptional().isString()
                 .whereParam("serverPropertyNameToClient").isFunction()
                 .whereParam("clientPropertyNameToServer").isFunction()
                 .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, "NamingConvention:" + this.name);
         };
         
         /**
@@ -3749,6 +3774,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @static
         **/
         ctor.defaultInstance = new ctor({
+            name: "noChange",
             serverPropertyNameToClient: function(serverPropertyName) {
                 return serverPropertyName;
             },
@@ -3852,7 +3878,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "namingConvention") {
-                    return undefined;
+                    return value.name;
                 }
                 return value;
             }, core.config.stringifyPad);
@@ -3876,6 +3902,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
+            var ncName = json.namingConvention;
+            delete json.namingConvention;
+            if (this.isEmpty()) {
+                var nc = core.config.objectRegistry["NamingConvention:" + ncName];
+                if (!nc) {
+                    throw new Error("Unable to locate a naming convention named: " + ncName);
+                }
+                this.namingConvention = nc;
+            } else {
+                if (this.namingConvention.name !== ncName) {
+                    throw new Error("Cannot import metadata with a different naming convention from the current MetadataStore");
+                }
+            }
             var entityTypeMap = {};
             var that = this;
             core.objectForEach(json._entityTypeMap, function (key, value) {
@@ -3886,6 +3925,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             core.extend(this, json);
             return this;
         };
+        
+        
 
         /**
         Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -3950,16 +3991,17 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param serviceName {String}  The service name to fetch metadata for.
         @param [remoteAccessImplementation] {instance of this RemoteAccessImplementation interface} 
         - will default to core.config.remoteAccessImplementation
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([data])
             @param [callback.data] {rawMetadata} 
   
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
+
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
 
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
@@ -4025,7 +4067,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
-        @param [initializationFn] {InitializationFunction} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
@@ -4061,6 +4103,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 // do something interesting
             }
         @method isEmpty
+        @return {Boolean}
         **/
         ctor.prototype.isEmpty = function () {
             return this.serviceNames.length === 0;
@@ -4080,6 +4123,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param entityTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. 
         @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
+        @return {EntityType} The EntityType or 'undefined' if not not found.
         **/
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
@@ -4103,6 +4147,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             // assume em1 is a preexisting EntityManager
             var allTypes = em1.metadataStore.getEntityTypes();
         @method getEntityTypes
+        @return {Array of EntityType}
         **/
         ctor.prototype.getEntityTypes = function () {
             var entityTypes = [];
@@ -4482,6 +4527,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this.unmappedProperties = []; // will be updated later.
             this.autoGeneratedKeyType = AutoGeneratedKeyType.None;
             this.validators = [];
+            this._mappedPropertiesCount = 0;
             
         };
         
@@ -4624,6 +4670,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 throw new Error("This EntityType has been 'completed' and is no longer open for additional properties");
             }
             property._completeInitialization(this);
+            if (!property.isUnmapped) {
+                this._mappedPropertiesCount++;
+            }
             return this;
         };
         
@@ -4640,9 +4689,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @return {Entity} The new entity.
         **/
         ctor.prototype.createEntity = function () {
+            return this._createEntity(false);
+        };
+
+        ctor.prototype._createEntity = function(deferInitialization) {
             var entityCtor = this.getEntityCtor();
             var instance = new entityCtor();
-            new EntityAspect(instance);
+            new EntityAspect(instance, deferInitialization);
             return instance;
         };
 
@@ -4656,7 +4709,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                entityCtor = function () { };
+                var createCtor = core.config.trackingImplementation.createCtor;
+                if (createCtor) {
+                    entityCtor = createCtor(this);
+                } else {
+                    entityCtor = function() {
+                    };
+                }
             }
             this._setEntityCtor(entityCtor);
             return entityCtor;
@@ -4730,7 +4789,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var custType = em1.metadataStore.getEntityType("Customer");
             var arrayOfProps = custType.getProperties();
         @method getProperties
-        @return Array of DataProperty|NavigationProperty
+        @return {Array of DataProperty|NavigationProperty} Array of Data and Navigation properties.
         **/
         ctor.prototype.getProperties = function () {
             return this.dataProperties.concat(this.navigationProperties);
@@ -4757,7 +4816,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var customerNameDataProp = custType.getDataProperty("CustomerName");
         @method getDataProperty
         @param propertyName {String}
-        @return {DataProperty|null}
+        @return {DataProperty} Will be null if not found.
         **/
         ctor.prototype.getDataProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
@@ -4772,7 +4831,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var customerOrdersNavProp = custType.getDataProperty("Orders");
         @method getNavigationProperty
         @param propertyName {String}
-        @return {NavigationProperty|null}
+        @return {NavigationProperty} Will be null if not found.
         **/
         ctor.prototype.getNavigationProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
@@ -4795,7 +4854,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method getProperty
         @param propertyPath {String}
         @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
-        @return {DataProperty|NavigationProperty|null}
+        @return {DataProperty|NavigationProperty} Will be null if not found.
         **/
         ctor.prototype.getProperty = function (propertyPath, throwIfNotFound) {
             throwIfNotFound = throwIfNotFound || false;
@@ -4938,29 +4997,21 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
             throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
         };
-
+        
         function calcUnmappedProperties(entityType, instance) {
-            var currentPropertyNames = entityType.getPropertyNames();
-            var isUnmapped = function(inst, propName) {
-                if (Object.keys(inst).indexOf(propName) === -1) return false;
-                if (core.isFunction(inst[propName])) return false;
-                if (core.stringStartsWith(propName, "_$")) return false;
-                if (propName === "entityType") return false;
-                if (currentPropertyNames.indexOf(propName) >= 0) return false;
-                return core.config.trackingImplementation.isTrackableProperty(inst, propName);
-            };
-
-            for (var propertyName in instance) {
-                if (isUnmapped(instance, propertyName)) {
+            var metadataPropNames = entityType.getPropertyNames();
+            var trackablePropNames = core.config.trackingImplementation.getTrackablePropertyNames(instance);
+            trackablePropNames.forEach(function (pn) {
+                if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
-                        name: propertyName,
+                        name: pn,
                         dataType: DataType.Undefined,
                         isNullable: true,
                         isUnmapped: true
                     });
                     entityType.addProperty(newProp);
                 }
-            };
+            });
         }
 
         return ctor;
@@ -5128,7 +5179,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         removed from this collection.
 
         __readOnly__
-        @property validators {Validator|Array of Validator}
+        @property validators {Array of Validator}
         **/
 
         /**
@@ -5151,6 +5202,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.toJSON = function () {
             return {
                 name: this.name,
+                nameOnServer: this.nameOnServer,
                 dataType: this.dataType.name,
                 isNullable: this.isNullable,
                 isUnmapped: this.isUnmapped,
@@ -5329,10 +5381,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.toJSON = function () {
             return {
                 name: this.name,
+                nameOnServer: this.nameOnServer,
                 entityTypeName: this.entityTypeName,
                 isScalar: this.isScalar,
                 associationName: this.associationName,
                 foreignKeyNames: this.foreignKeyNames,
+                foreignKeyNamesOnServer: this.foreignKeyNamesOnServer,
                 validators: this.validators
             };
         };
@@ -5489,7 +5543,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         /**
         This entity does not have an autogenerated key. 
         The client must set the key before adding the entity to the EntityManager
-        @property None {symbol}
+        @property None {AutoGeneratedKeyType}
         @final
         @static
         **/
@@ -5498,7 +5552,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         This entity's key is an Identity column and is set by the backend database. 
         Keys for new entities will be temporary until the entities are saved at which point the keys will
         be converted to their 'real' versions.
-        @property Identity {symbol}
+        @property Identity {AutoGeneratedKeyType}
         @final
         @static
         **/
@@ -5507,7 +5561,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         This entity's key is generated by a KeyGenerator and is set by the backend database. 
         Keys for new entities will be temporary until the entities are saved at which point the keys will
         be converted to their 'real' versions.
-        @property KeyGenerator {symbol}
+        @property KeyGenerator {AutoGeneratedKeyType}
         @final
         @static
         **/
@@ -5724,7 +5778,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @param metadataStore {MetadataStore} The {{#crossLink "MetadataStore"}}{{/crossLink}} in which to locate the 
         {{#crossLink "EntityType"}}{{/crossLink}} returned by this query. 
         @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
-        @return {EntityType|null} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
+        @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
         */
         ctor.prototype._getEntityType = function (metadataStore, throwErrorIfNotFound) {
             assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
@@ -6126,19 +6180,20 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method execute
         @async
         
-        @param callback {successFunction} Function called on success.
+        @param callback {Function} Function called on success.
         
-           successFunction([data])
-           @param [callback.data] {Object} 
-           @param callback.data.results {Array of Entity}
-           @param callback.data.query {EntityQuery} The original query
+            successFunction([data])
+            @param [callback.data] {Object} 
+            @param callback.data.results {Array of Entity}
+            @param callback.data.query {EntityQuery} The original query
 
-        @param errorCallback {failureFunction} Function called on failure.
+        @param errorCallback {Function} Function called on failure.
             
-        failureFunction([error])
-          @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-          @param [errorCallback.error.query] The query that caused the error.
-          @return Promise
+            failureFunction([error])
+            @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.query] The query that caused the error.
+
+        @return {Promise}
         **/
         
         /**
@@ -6624,42 +6679,42 @@ function (core, m_entityMetadata, m_entityAspect) {
         var aEnum = new Enum("FilterQueryOp");
         /**
         Aliases: "eq", "=="
-        @property Equals {symbol}
+        @property Equals {FilterQueryOp}
         @final
         @static
         **/
         aEnum.Equals = aEnum.addSymbol({ operator: "eq", aliases: ["=="] });
         /**
         Aliases: "ne", "!="
-        @property NotEquals {symbol}
+        @property NotEquals {FilterQueryOp}
         @final
         @static
         **/
         aEnum.NotEquals = aEnum.addSymbol({ operator: "ne", aliases: ["!="] });
         /**
         Aliases: "gt", ">"
-        @property GreaterThan {symbol}
+        @property GreaterThan {FilterQueryOp}
         @final
         @static
         **/
         aEnum.GreaterThan = aEnum.addSymbol({ operator: "gt", aliases: [">"] });
         /**
         Aliases: "lt", "<"
-        @property LessThan {symbol}
+        @property LessThan {FilterQueryOp}
         @final
         @static
         **/
         aEnum.LessThan = aEnum.addSymbol({ operator: "lt", aliases: ["<"] });
         /**
         Aliases: "ge", ">="
-        @property GreaterThanOrEqual {symbol}
+        @property GreaterThanOrEqual {FilterQueryOp}
         @final
         @static
         **/
         aEnum.GreaterThanOrEqual = aEnum.addSymbol({ operator: "ge", aliases: [">="] });
         /**
         Aliases: "le", "<="
-        @property LessThanOrEqual {symbol}
+        @property LessThanOrEqual {FilterQueryOp}
         @final
         @static
         **/
@@ -6667,19 +6722,19 @@ function (core, m_entityMetadata, m_entityAspect) {
         /**
         String operation: Is a string a substring of another string.
         Aliases: "substringof"
-        @property Contains {symbol}
+        @property Contains {FilterQueryOp}
         @final
         @static
         **/
         aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true });
         /**
-        @property StartsWith {symbol}
+        @property StartsWith {FilterQueryOp}
         @final
         @static
         **/
         aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true });
         /**
-        @property EndsWith {symbol}
+        @property EndsWith {FilterQueryOp}
         @final
         @static
         **/
@@ -7757,7 +7812,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
-                .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
+                .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
+                //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
                 .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.remoteAccessImplementation)
                 .applyAll(this);
 
@@ -8029,6 +8085,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
                 .applyAll(this);
+            if (config.keyGeneratorCtor) {
+                this.keyGenerator = new this.keyGeneratorCtor();
+            }
         };
 
         /**
@@ -8171,16 +8230,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 };
         @method fetchMetadata
         @async
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([schema])
             @param [callback.schema] {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager after this method's Promise or callback completes.
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @return Promise 
+        @return {Promise} Promise 
         **/
         ctor.prototype.fetchMetadata = function (callback, errorCallback) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -8241,21 +8300,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method executeQuery
         @async
         @param query {EntityQuery|String}  The {{#crossLink "EntityQuery"}}{{/crossLink}} or OData query string to execute.
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([data])
             @param callback.data {Object} 
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
 
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
 
-
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
@@ -8299,7 +8357,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
              });
         @method executeQueryLocally
         @param query {EntityQuery}  The {{#crossLink "EntityQuery"}}{{/crossLink}} to execute.
-        @return Array of Entities
+        @return  {Array of Entity}  Array of Entities
         **/
         ctor.prototype.executeQueryLocally = function (query) {
             core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
@@ -8374,11 +8432,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             );
         @method saveChanges
         @async
-        @param [entities] {Array of Entities} The list of entities to save.  All entities with changes 
+        @param [entities] {Array of Entity} The list of entities to save.  All entities with changes 
         within this EntityManager will be saved if this parameter is omitted, null or empty.
         @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
         {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
-        @param [callback] {successFunction} Function called on success.
+        @param [callback] {Function} Function called on success.
         
             successFunction([saveResult])
             @param [callback.saveResult] {Object} 
@@ -8387,11 +8445,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             save.
             @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
 
-        @param [errorCallback] {failureFunction} Function called on failure.
+        @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @return Promise
+        @return {Promise} Promise
         **/
         ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
             core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
@@ -8482,7 +8540,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // employee will either be an entity or null.
         @method findEntityByKey
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
-        @return An Entity or null;
+        @return {Entity} An Entity or null;
         **/
         ctor.prototype.findEntityByKey = function (entityKey) {
             core.assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
@@ -8521,7 +8579,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         @method generateTempKeyValue
         @param entity {Entity} The Entity to generate a key for.
-        @return The new key value
+        @return {Object} The new key value
         **/
         ctor.prototype.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
@@ -8594,7 +8652,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @method getChanges
         @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
         If this parameter is omitted, all EntityTypes are searched.
-        @return Array of Entities
+        @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getChanges = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
@@ -8609,7 +8667,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var entities = em1.rejectChanges();
         
         @method rejectChanges
-        @return {Array of Entities} The entities whose changes were rejected. These entities will all have EntityStates of 
+        @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
         ctor.prototype.rejectChanges = function() {
@@ -8650,7 +8708,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @param [entityState] {EntityState|Array of EntityState} The {{#crossLink "EntityState"}}{{/crossLink}}s for which entities will be found.
         If this parameter is omitted, entities of all EntityStates are returned.
-        @return Array of Entities
+        @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getEntities = function (entityTypes, entityStates) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
@@ -8816,7 +8874,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         targetEntity = null;
                     }
                 } else {
-                    targetEntity = entityType.createEntity();
+                    targetEntity = entityType._createEntity(true);
                     dpNames.forEach(function (dpName, ix) {
                         targetEntity.setProperty(dpName, rawEntity[ix]);
                     });
@@ -8836,6 +8894,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                             });
                         }
                     }
+                    targetEntity.entityAspect._postInitialize();
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -9112,12 +9171,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 return targetEntity;
             }
 
-            // TODO: may be able to make this more efficient by caching of the previous value.
-            var entityTypeName = em.remoteAccessImplementation.getEntityTypeName(rawEntity);
             
-            var entityType = entityTypeName && em.metadataStore.getEntityType(entityTypeName, true);
-            // all three checks are necessary because of diffs between what properties are loaded with anon projection is EDMX vs CF models
-            // if (entityType == null && isSelectQuery(queryContext.query) && !isNestedInAnon) {
+            var entityType =em.remoteAccessImplementation.getEntityType(rawEntity, em.metadataStore);
+
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
@@ -9145,12 +9201,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
             } else {
-                targetEntity = entityType.createEntity();
+                targetEntity = entityType._createEntity(true);
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by entityTracking impl.
                     targetEntity.initializeFrom(rawEntity);
                 }
                 updateEntity(targetEntity, rawEntity, queryContext);
+                targetEntity.entityAspect._postInitialize();
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
                 em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
@@ -9620,7 +9677,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
     EntityManager is not replaced by the 'merging' entity.
 
-    @property PreserveChanges {symbol}
+    @property PreserveChanges {MergeStrategy}
     @final
     @static
     **/
@@ -9630,7 +9687,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
     EntityManager is replaced by the 'merging' entity.
 
-    @property OverwriteChanges {symbol}
+    @property OverwriteChanges {MergeStrategy}
     @final
     @static
     **/
@@ -9646,14 +9703,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     var FetchStrategy = new Enum("FetchStrategy");
     /**
     FromServer is used to tell the query to execute the query against a remote data source on the server.
-    @property FromServer {symbol}
+    @property FromServer {MergeStrategy}
     @final
     @static
     **/
     FetchStrategy.FromServer = FetchStrategy.addSymbol();
     /**
     FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-    @property FromLocalCache {symbol}
+    @property FromLocalCache {MergeStrategy}
     @final
     @static
     **/
@@ -9988,12 +10045,12 @@ function (core, m_entityMetadata) {
 
     var EntityType = m_entityMetadata.EntityType;
 
-    var remoteAccess_webApi = {};
+    var impl = {};
 
     // -------------------------------------------
     var jQuery;
     
-    remoteAccess_webApi.initialize = function() {
+    impl.initialize = function() {
         jQuery = window.jQuery;
         if ((!jQuery) && require) {
             jQuery = require("jQuery");
@@ -10004,7 +10061,7 @@ function (core, m_entityMetadata) {
         
     };
 
-    remoteAccess_webApi.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
@@ -10033,7 +10090,7 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
         jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
@@ -10049,7 +10106,7 @@ function (core, m_entityMetadata) {
         });
     };
 
-    remoteAccess_webApi.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
         jQuery.ajax(url, {
             type: "POST",
@@ -10070,16 +10127,23 @@ function (core, m_entityMetadata) {
 
     };
 
-    remoteAccess_webApi.getEntityTypeName = function (rawEntity) {
-        return EntityType._getNormalizedTypeName(rawEntity["$type"]);
+    // will return null if anon
+    impl.getEntityType = function (rawEntity, metadataStore) {
+        // TODO: may be able to make this more efficient by caching of the previous value.
+        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
+        return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
     };
 
-    remoteAccess_webApi.getDeferredValue = function (rawEntity) {
+    //impl.getEntityTypeName = function (rawEntity) {
+    //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
+    //};
+
+    impl.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
         return false;
     };
 
-    remoteAccess_webApi.resolveRefEntity = function (rawEntity, queryContext) {
+    impl.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
             var entity = queryContext.refMap[id];
@@ -10134,7 +10198,7 @@ function (core, m_entityMetadata) {
         return err;
     }
 
-    return remoteAccess_webApi;
+    return impl;
 
 
 });
@@ -10145,12 +10209,12 @@ function (core, m_entityMetadata) {
  
     var EntityType = m_entityMetadata.EntityType;
 
-    var remoteAccess_odata = {};
+    var impl = {};
     // -------------------------------------------
 
     var OData;
 
-    remoteAccess_odata.initialize = function() {
+    impl.initialize = function() {
         OData = window.OData;
         if (!OData) {
             throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
@@ -10158,12 +10222,18 @@ function (core, m_entityMetadata) {
         OData.jsonHandler.recognizeDates = true;
         
     };
-
-    remoteAccess_odata.getEntityTypeName = function (rawEntity) {
-        return EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+    
+    // will return null if anon
+    impl.getEntityType = function (rawEntity, metadataStore) {
+        // TODO: may be able to make this more efficient by caching of the previous value.
+        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+        var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
+        var isFullEntity = entityType && entityType._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
+        return isFullEntity ? entityType : null;
     };
 
-    remoteAccess_odata.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+
+    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
@@ -10175,11 +10245,11 @@ function (core, m_entityMetadata) {
     };
     
  
-    remoteAccess_odata.getDeferredValue = function (rawEntity) {
+    impl.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };
 
-    remoteAccess_odata.resolveRefEntity = function (rawEntity, queryContext) {
+    impl.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['__deferred'];
         if (id) {
             return null;
@@ -10188,7 +10258,7 @@ function (core, m_entityMetadata) {
         }
     };
 
-    remoteAccess_odata.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -10216,7 +10286,7 @@ function (core, m_entityMetadata) {
 
     };
 
-    remoteAccess_odata.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+    impl.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
 
@@ -10255,7 +10325,7 @@ function (core, m_entityMetadata) {
     }
 
 
-    return remoteAccess_odata;
+    return impl;
 
 });
 
@@ -10269,13 +10339,33 @@ function (core, m_entityAspect, m_entityQuery) {
     var EntityQuery = m_entityQuery.EntityQuery;
 
     var Event = core.Event;
-
+    
     /**
-    Relation arrays are not actually classes, they are objects that mimic arrays.  The 'arrays' contain collections of entities all associated
-    with a navigation property on a single entity. The basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
+    entities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.
+    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
     are all provided as well as several special purpose methods. 
-    @class [relation Array]
+    @class ↈ_relationArray_
     **/
+    
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
+    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+    collections are collected into a single notification event for each relation array.
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        orders.arrayChanged.subscribe(
+            function (arrayChangedArgs) {
+                var addedEntities = arrayChangedArgs.added;
+                var removedEntities = arrayChanged.removed;
+            });
+     @event arrayChanged 
+     @param added {Array of Entity} An array of all of the entities added to this collection.
+     @param removed {Array of Entity} An array of all of the removed from this collection.
+     @readOnly
+     **/
+    
     relationArrayMixin.push = function () {
         if (this._inProgress) {
             return -1;
@@ -10483,6 +10573,17 @@ function (core, makeRelationArray) {
     };
 
     trackingImpl.name = "Backing store entity tracking impl";
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            var val = entity[p];
+            if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function (proto) {
 
@@ -10568,12 +10669,7 @@ function (core, makeRelationArray) {
         });
     };
 
-    trackingImpl.isTrackableProperty = function (entity, propertyName) {
-        if (propertyName === '_backingStore') return false;
-        if (propertyName === "_pendingSets") return false;
-        return true;
-    };
-
+   
     // private methods
 
     function movePropDefsToProto(proto) {
@@ -10691,6 +10787,20 @@ function (core, makeRelationArray) {
         };
 
     };
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity) {
+            if (p === "entityType") continue;
+            var val = entity[p];
+            if (ko.isObservable(val)) {
+                names.push(p);
+            } else if (!core.isFunction(val)) {
+                names.push(p);
+            }
+        }
+        return names;
+    };
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
@@ -10775,21 +10885,195 @@ function (core, makeRelationArray) {
 
     };
 
-    trackingImpl.isTrackableProperty = function(entity, propertyName) {
-        var propValue = entity[propertyName];
-        if (ko.isObservable(propValue)) return true;
-        if (core.isFunction(propValue)) return false;
-        return true;
+    return trackingImpl;
+
+})
+;
+
+define('entityTracking_backbone',["core", "relationArray"],
+function (core, makeRelationArray) {
+    
+
+    var Backbone;
+    var _;
+    var trackingImpl = {};
+    var bbSet, bbGet;
+    
+    trackingImpl.name = "Backbone entity tracking impl";
+    
+    trackingImpl.initialize = function () {
+        Backbone = window.Backbone;
+        if ((!Backbone) && require) {
+            Backbone = require("Backbone");
+        }
+        if (!Backbone) {
+            throw new Error("Unable to initialize Backbone.");
+        }
+        _ = window._;
+        if ((!_) && require) {
+            _ = require("underscore");
+        }
+        bbSet = Backbone.Model.prototype.set;
+        bbGet = Backbone.Model.prototype.get;
     };
+      
+    trackingImpl.createCtor = function (entityType) {
+        var defaults = {};
+        entityType.dataProperties.forEach(function (dp) {
+            defaults[dp.name] = dp.defaultValue;
+        });
+        var ctor = Backbone.Model.extend({
+            defaults: defaults,
+            initialize: function () {
+                var that = this;
+                entityType.navigationProperties.forEach(function (np) {
+                    if (!np.isScalar) {
+                        var val = makeRelationArray([], that, np);
+                        Backbone.Model.prototype.set.call(that, np.name, val);
+                    }
+                });
+            }
+        });
+        return ctor;
+        
+    };
+    
+    trackingImpl.getTrackablePropertyNames = function (entity) {
+        var names = [];
+        for (var p in entity.attributes) {
+            names.push(p);
+        }
+        return names;
+    };
+
+    trackingImpl.initializeEntityPrototype = function (proto) {
+
+        proto.getProperty = function (propertyName) {
+            return this.get(propertyName);
+        };
+
+        proto.setProperty = function (propertyName, value) {
+            this.set(propertyName, value);
+            // allow setProperty chaining.
+            return this;
+        };
+
+        // override Backbone's set method.
+        proto.set = function (key, value, options) {
+            // call Backbone validate first - we need this because if it fails we don't want to call the Breeze interceptor.
+            // if valid then call Breeze interceptor which will call Backbone's internal set
+            if (!this.entityAspect) {
+                return bbSet.call(this, key, value, options);
+            }
+            var attrs, prop, propName;
+            var that = this;
+            // Handle both `"key", value` and `{key: value}` -style arguments.
+            if (_.isObject(key) || key == null) {
+                attrs = key;
+                options = value;
+                if (!this._validate(attrs, options)) return false;
+                // TODO: suppress validate here
+                for (propName in attrs) {
+                    if (hasOwnProperty.call(attrs, propName)) {
+                        prop = this.entityType.getProperty(propName);
+                        this._$interceptor(prop, attrs[propName], function (pvalue) {
+                            if (arguments.length === 0) {
+                                return bbGet.call(that, propName);
+                            } else {
+                                return bbSet.call(that, propName, pvalue, options);
+                            }
+                        });
+                    }
+                }
+            } else {
+                attrs = {};
+                attrs[key] = value;
+                options || (options = {});
+                if (!this._validate(attrs, options)) return false;
+                // TODO: suppress validate here
+                prop = this.entityType.getProperty(key);
+                propName = key;
+                this._$interceptor(prop, value, function (pvalue) {
+                    if (arguments.length === 0) {
+                        return bbGet.call(that, propName);
+                    } else {
+                        return bbSet.call(that, propName, pvalue, options);
+                    }
+                });
+            }
+            return this;
+            
+        };
+        
+        //// called after any create during a query;
+        //proto.initializeFrom = function (rawEntity) {
+        //};
+
+    };
+    
+    // called when the entityAspect is first created for an entity
+    trackingImpl.startTracking = function (entity, proto) {
+        if (!(entity instanceof Backbone.Model)) {
+            throw Error("This entity is not an Backbone.Model instance");
+        }
+        var entityType = entity.entityType;
+        var attributes = entity.attributes;
+        // Update so that every data and navigation property has a value. 
+        entityType.dataProperties.forEach(function (dp) {
+            if (dp.name in attributes) {
+                if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
+                    bbSet.call(entity, dp.name, dp.defaultValue);
+                }
+            } else {
+                bbSet.call(entity, dp.name, dp.defaultValue);
+            }
+        });
+        entityType.navigationProperties.forEach(function (np) {
+            var msg;
+            if (np.name in attributes) {
+                var val = bbGet.call(entity, np.name);
+                if (np.isScalar) {
+                    if (val && !val.entityType) {
+                        msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
+                            np.name, entity.entityType.name);
+                        throw new Error(msg);
+                    }
+                } else {
+                    if (val) {
+                        if (!val.parentEntity) {
+                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+                                np.name, entity.entityType.name);
+                            throw new Error(msg);
+                        }
+                    } else {
+                        val = makeRelationArray([], entity, np);
+                        bbSet.call(entity, np.name, val);
+                    }
+                }
+            } else {
+                if (np.isScalar) {
+                    bbSet.call(entity, np.name, null);
+                } else {
+                    val = makeRelationArray([], entity, np);
+                    bbSet.call(entity, np.name, val);
+                }
+            }
+        });
+    };
+    
+    
+    // private methods
 
     return trackingImpl;
 
 })
 ;
 define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
-        "remoteAccess_webApi", "remoteAccess_odata", "entityTracking_backingStore", "entityTracking_ko"],
+        "remoteAccess_webApi", "remoteAccess_odata",
+        "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
-          m_remoteAccess_webApi, m_remoteAccess_odata, m_entityTracking_backingStore, m_entityTracking_ko) {
+          m_remoteAccess_webApi, m_remoteAccess_odata,
+          m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
     
     
 
@@ -10805,6 +11089,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 
     entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
     entityModel.entityTracking_ko = m_entityTracking_ko;
+    entityModel.entityTracking_backbone = m_entityTracking_backbone;
 
     entityModel.remoteAccess_odata = m_remoteAccess_odata;
     entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
@@ -10830,7 +11115,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.62",
+        version: "0.64.2",
         core: core,
         entityModel: entityModel
     };

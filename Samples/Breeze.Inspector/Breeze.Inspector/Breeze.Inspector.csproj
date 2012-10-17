@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App\lib\breeze.debug.js" />
+    <None Include="App\lib\breeze.intellisense.js" />
     <Content Include="App\lib\jquery-1.7.2.min.js" />
     <Content Include="App\lib\jquery.simplemodal.js" />
     <Content Include="App\lib\knockout-2.1.0.js" />
@@ -281,6 +282,7 @@ GOTO chkWebApiLib
 :breezeExists
 echo Copying breeze.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to App\lib
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)App\lib" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)App\lib" /Y
 
 :chkWebApiLib
 IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\Breeze.WebApi.dll" GOTO webApiLibExists
