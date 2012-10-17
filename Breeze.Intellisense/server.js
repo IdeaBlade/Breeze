@@ -2,23 +2,47 @@
 var http = require('http');
 var fs = require('fs');
 var HandleBars = require('handlebars');
+var moduleMap = {};
+
+process.argv.forEach(function (val, index, array) {
+  log("arguments - " +  index + ": '" + val + "'");
+});
 
 console.time("Execution time");
 
-http.createServer(function (req, res) {
+// argv returns just "node" when run from the desktop;
+var shouldRunInWebPage = false; // process.argv[0] !== "node";
 
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    inprocess = false;
-    if (!inprocess) {
-        inprocess = true;
-        readWrite(function (output) {
-            res.end("done");
-            console.timeEnd("Execution time");
-            // res.end(output);
-        });
-    }
+if (shouldRunInWebPage) {
+    log("running in web page");
+    runInServer();
+} else {
+    log("running on desktop");
+    runOnDesktop();
+}
 
-}).listen(process.env.PORT || 8080);
+function runOnDesktop() {
+    readWrite(function (output) {
+        console.timeEnd("Execution time");
+    });
+}
+
+function runInServer() {
+    http.createServer(function (req, res) {
+
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        inprocess = false;
+        if (!inprocess) {
+            inprocess = true;
+            readWrite(function (output) {
+                res.end("done");
+                console.timeEnd("Execution time");
+                // res.end(output);
+            });
+        }
+
+    }).listen(process.env.PORT || 8080);
+}
 
 
 function readWrite(callback) {
@@ -42,7 +66,7 @@ function readWrite(callback) {
     
 }
 
-var moduleMap = {};
+
 
 function processRawApi(rawApi) {
     var api = {};
@@ -52,7 +76,7 @@ function processRawApi(rawApi) {
     api.generatedAt = new Date();
     modules.undefinedModules = [];
     modules.undefinedClasses = [];
-    core.objectForEach(rawApi.classes, function (k, v) {
+    objectForEach(rawApi.classes, function (k, v) {
         var moduleName = v.module;
         var module = moduleMap[moduleName];
         if (!module) {
@@ -85,7 +109,7 @@ function processRawApi(rawApi) {
        
 
     });
-    core.objectForEach(rawApi.classitems, function (k, v) {
+    objectForEach(rawApi.classitems, function (k, v) {
         var module = moduleMap[v.module];
         if (!module) {
             modules.undefinedmodules.push(v);
@@ -248,10 +272,8 @@ function log(msg) {
     console.log(msg);
 }
 
-var core = {};
-
 // iterate over object
-core.objectForEach = function(obj, kvFn) {
+function objectForEach(obj, kvFn) {
     for (var key in obj) {
         if (hasOwnProperty.call(obj, key)) {
             kvFn(key, obj[key]);
