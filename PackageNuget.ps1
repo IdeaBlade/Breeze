@@ -46,13 +46,13 @@ function packageNuget($srcDir, $folderName, $versionNum) {
   copy-item $srcDir\ThirdParty\Irony.dll $destDir\lib
   
   $input = get-content $nuspecFile  
-  [regex]$regex1 = "<version>.+"
-  $replace1 = '<version>' + $versionNum + '</version>'
-  [regex]$regex2 = "<id>.+"
-  $replace2 = '<id>' + $folderName + '</id>'
+  $search1 = '{{version}}'
+  $replace1 = $versionNum 
+  $search2 = '{{id}}'
+  $replace2 = $folderName
   $output = $input | 
-    Foreach-Object {$_ -replace $regex1, $replace1 } |
-    Foreach-Object {$_ -replace $regex2, $replace2 }
+    Foreach-Object {$_ -replace $search1, $replace1 } |
+    Foreach-Object {$_ -replace $search2, $replace2 }
   $output | Set-Content $outputFile
   cd "$destDir"
   # $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
