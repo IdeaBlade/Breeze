@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>{id will go here}</id>
-        <version>{version will go here}</version>
+        <id>{{id}}</id>
+        <version>{{version}}</version>
         <title>Breeze for MVC4 WebApi projects</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
