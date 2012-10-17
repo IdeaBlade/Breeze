@@ -23,6 +23,7 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
 
     test("custom Customer type with createEntity", function() {
         var em = newEm(newMs());

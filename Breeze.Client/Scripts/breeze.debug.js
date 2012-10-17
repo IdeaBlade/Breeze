@@ -7812,7 +7812,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
-                .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
+                .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
+                //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
                 .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.remoteAccessImplementation)
                 .applyAll(this);
 
@@ -8084,6 +8085,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
                 .applyAll(this);
+            if (config.keyGeneratorCtor) {
+                this.keyGenerator = new this.keyGeneratorCtor();
+            }
         };
 
         /**

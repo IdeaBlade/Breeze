@@ -41,6 +41,64 @@ define(["testFns"], function (testFns) {
         ok(em);
     });
     
+    test("store-gen keys are always set by key generator on add to manager if they have default values", function () {
+        var em = newEm();
+        var orderEntityType = em.metadataStore.getEntityType("Order");
+        var o1 = orderEntityType.createEntity();
+        var orderId = o1.getProperty("orderID");
+        ok(orderId == 0);
+
+        em.addEntity(o1);
+        orderId = o1.getProperty("orderID");
+        ok(orderId == -1);
+        stop();
+        em.saveChanges().then(function (saveResult) {
+            orderId = o1.getProperty("orderID");
+            ok(orderId !== -1);
+            var keyMappings = saveResult.keyMappings;
+            ok(keyMappings.length === 1);
+            var mapping = keyMappings[0];
+            ok(mapping.TempValue === -1);
+            ok(mapping.RealValue === orderId);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("store-gen keys are not re-set by key generator upon add to manager", function() {
+        var em = newEm();
+        var orderEntityType = em.metadataStore.getEntityType("Order");
+        var o1 = orderEntityType.createEntity();
+        o1.setProperty("orderID", 42); // waste of time to set id; it will be replaced.
+        var orderId = o1.getProperty("orderID");
+        ok(orderId == 42);
+        //ok(o1.OrderID() !== 42,
+        //    "o1's original key, 42, should have been replaced w/ new temp key.");
+
+        em.addEntity(o1);
+        orderId = o1.getProperty("orderID");
+        ok(orderId == 42);
+        stop();
+        em.saveChanges().then(function(saveResult) {
+            orderId = o1.getProperty("orderID");
+            ok(orderId !== 42);
+            var keyMappings = saveResult.keyMappings;
+            ok(keyMappings.length === 1);
+            var mapping = keyMappings[0];
+            ok(mapping.TempValue === 42);
+            ok(mapping.RealValue === orderId);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("key generator reset", function () {
+        var em = newEm();
+        var dummyKeyGenerator = function () {
+            this.dummy = true;
+        };
+        em.setProperties({ keyGeneratorCtor: dummyKeyGenerator });
+        ok(em.keyGenerator.dummy === true);
+
+
+    });
+    
     test("import results notification", function () {
         var em = newEm();
         var em2 = newEm();
