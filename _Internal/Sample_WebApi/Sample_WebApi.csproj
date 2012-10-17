@@ -335,10 +335,6 @@
       <Link>Scripts\ThirdParty\require.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\require.min.js">
-      <Link>Scripts\ThirdParty\require.min.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\underscore.js">
       <Link>Scripts\ThirdParty\underscore.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
