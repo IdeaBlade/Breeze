@@ -1,7 +1,7 @@
 ApiDocs
     Open Command Prompt from Breeze.Client\Scripts\IBlade 
     Run
-        yuidoc -t "C:\Subversion\Breeze\apidoc-theme\breeze" .
+        yuidoc -t "C:\GitLocal\Breeze\apidoc-theme\breeze" .
 
 Powershell
     Start with an 'admin' security command prompt
