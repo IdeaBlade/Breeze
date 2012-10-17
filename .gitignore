@@ -29,6 +29,7 @@ _Internal/Sample_OData/Scripts/
 
 Breeze*.nupkg
 Nuget.builds/BreezeForMVC4/content/Scripts/breeze.debug.js
+Nuget.builds/BreezeForMVC4/content/Scripts/breeze.intellisense.js
 Nuget.builds/BreezeForMVC4/content/Scripts/breeze.js
 Nuget.builds/BreezeForMVC4/content/Scripts/q.js
 Nuget.builds/BreezeForMVC4/content/Scripts/q.min.js
@@ -37,18 +38,25 @@ Nuget.builds/BreezeForMVC4/lib/Irony.dll
 
 DocCode/BreezeDocCode/App_Data/Todos.sdf
 DocCode/BreezeDocCode/Scripts/lib/breeze.debug.js
+DocCode/BreezeDocCode/Scripts/lib/breeze.intellisense.js
 DocCode/BreezeDocCode/ThirdParty/Breeze.WebApi.dll
 
 Samples/Todo/Todo/App_Data/Todos.sdf
 Samples/Todo/Todo/Scripts/lib/breeze.debug.js
+Samples/Todo/Todo/Scripts/lib/breeze.intellisense.js
 Samples/Todo/Todo/ThirdParty/Breeze.WebApi.dll
 
 Samples/BreezyDevices/BreezyDevices/Scripts/lib/breeze.debug.js
+Samples/BreezyDevices/BreezyDevices/Scripts/lib/breeze.intellisense.js
 Samples/BreezyDevices/BreezyDevices/ThirdParty/Breeze.WebApi.dll
 
 Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
+Samples/Breeze.Inspector/Breeze.Inspector/App/lib/breeze.debug.js
+Samples/Breeze.Inspector/Breeze.Inspector/App/lib/breeze.intellisense.js
+Samples/Breeze.Inspector/Breeze.Inspector/ThirdParty/Breeze.WebApi.dll
 
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.debug.js
+Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.intellisense.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.min.js

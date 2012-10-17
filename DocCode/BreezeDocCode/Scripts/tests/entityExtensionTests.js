@@ -374,7 +374,7 @@ define(["testFns"], function (testFns) {
     * unmapped property (and only unmapped property) preserved
     * after export/import
     *********************************************************/
-    test("unmapped propery preserved after export/import", 3,
+    test("unmapped property preserved after export/import", 3,
         function () {
             var store = cloneModuleMetadataStore();
 
@@ -391,8 +391,8 @@ define(["testFns"], function (testFns) {
 
             // create EntityManager with extended metadataStore
             var em1 = newEm(store);
-            
-            customerType = store.getEntityType("Customer");
+
+            var customerType = store.getEntityType("Customer");
             var cust1 = customerType.createEntity();
             em1.addEntity(cust1);
 
@@ -430,7 +430,6 @@ define(["testFns"], function (testFns) {
             var tempIds = testKeyGenerator.tempIds = [];
 
             em.setProperties({ keyGeneratorCtor: testKeyGenerator });
-            em.clear(); // TODO: Remove this workaround for Breeze bug in v.0.63.4
 
             // Order has an integer key
             var orderEntityType = em.metadataStore.getEntityType("Order");
@@ -485,20 +484,26 @@ define(["testFns"], function (testFns) {
     }
     
     /*********************************************************
-    * An assigned key is always replaced by key generation
-    * if it is a store-generated key
-    * Perhaps this rule was deliberately NOT copied from DevForce to Breeze
+    * If a store-generated key and the key value is the default value
+    * the default value is replaced by client-side temporary key generator
     *********************************************************/
-    //test("store-gen keys are always re-set by key generator upon add to manager", 1,
-    //    function () {
-    //        var em = newEm();
-    //        var orderEntityType = em.metadataStore.getEntityType("Order");
-    //        var o1 = orderEntityType.createEntity();
-    //        o1.OrderID(42); // waste of time to set id; it will be replaced.
-    //        ok(o1.OrderID() !== 42,
-    //            "o1's original key, 42, should have been replaced w/ new temp key.");
-    //        em.addEntity(o1);
-    //    });
+    test("store-gen keys w/ default values are re-set by key generator upon add to manager", 2,
+        function () {
+            var em = newEm();
+            var orderEntityType = em.metadataStore.getEntityType("Order");
+
+            var o1 = orderEntityType.createEntity();
+            em.addEntity(o1);
+            var o1Id = o1.OrderID();
+            ok(o1Id !== 0,
+                "o1's default key should be replaced w/ new temp key; it is " + o1Id);
+
+            var o2 = orderEntityType.createEntity();
+            em.addEntity(o2);
+            o2.OrderID(42); // set to other than default value (0 for ints)
+            equal(o2.OrderID(), 42,
+                "o2's key, 42, should not be replaced w/ new temp key.");
+        });
 
     /*********************************************************
     * helpers

@@ -147,6 +147,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Content Include="App_Data\readme.txt" />
+    <None Include="Scripts\lib\breeze.intellisense.js" />
     <Content Include="Scripts\tests\basicTodoTests.js" />
     <Content Include="Scripts\tests\apiDirectTests.js" />
     <Content Include="Scripts\tests\entityExtensionTests.js" />
@@ -257,6 +258,7 @@ GOTO chkWebApiLib
 :breezeExists
 echo Copying breeze.js from '$(ProjectDir)..\..\Breeze.Client\Scripts\' to Scripts\lib
 COPY "$(ProjectDir)..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts\lib" /Y
+COPY "$(ProjectDir)..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts\lib" /Y
 
 :chkWebApiLib
 IF EXIST "$(ProjectDir)..\..\Breeze.WebApi\Breeze.WebApi.dll" GOTO webApiLibExists
