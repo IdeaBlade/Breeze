@@ -1,15 +1,11 @@
-﻿
+﻿// Generated on: Mon Oct 15 2012 18:57:41 GMT-0700 (Pacific Daylight Time)
+
 intellisense.annotate(breeze.core, {
 
   'config': function() {
     /// <signature>
     ///   <summary>
     ///   A singleton object that is the repository of all entityModel specific configuration options.
-    ///      
-    ///       core.config.setProperties( {
-    ///           trackingImplemenation: entityModel.entityTracking_ko,
-    ///           remoteAccessImplementation: entityModel.remoteAccess_webApi
-    ///       });
     ///   </summary>
     /// </signature>
   },

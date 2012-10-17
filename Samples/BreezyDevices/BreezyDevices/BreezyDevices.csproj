@@ -41,13 +41,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.3\lib\Breeze.WebApi.dll</HintPath>
+    <Reference Include="Breeze.WebApi">
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.5\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
-    <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.3\lib\Irony.dll</HintPath>
+    <Reference Include="Irony">
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.63.5\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -161,10 +159,10 @@
     <Content Include="Global.asax" />
     <Content Include="Images\device.png" />
     <Content Include="Images\save.png" />
-    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\app\dataservice.js" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
     <Content Include="Scripts\breeze.debug.js" />
+    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.js" />
     <Content Include="Scripts\jquery-1.7.1.js" />
     <Content Include="Scripts\jquery-1.7.1.min.js" />
@@ -234,4 +232,7 @@
   </Target>
   <Target Name="AfterBuild">
   </Target> -->
+    <Target Name="BeforeBuild">
+        <Exec Command="&quot;$(SolutionDir).nuget\NuGet&quot; update &quot;$(ProjectDir)packages.config&quot; -Id Breeze.MVC4WebApi" />
+    </Target>
 </Project>
