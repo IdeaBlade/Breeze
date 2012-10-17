@@ -258,7 +258,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam(&quot;queryOptions&quot;).isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam(&quot;saveOptions&quot;).isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam(&quot;validationOptions&quot;).isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
-                .whereParam(&quot;keyGeneratorCtor&quot;).isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
+                .whereParam(&quot;keyGeneratorCtor&quot;).isFunction().isOptional().withDefault(KeyGenerator)
+                &#x2F;&#x2F;.whereParam(&quot;keyGeneratorCtor&quot;).isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
                 .whereParam(&quot;remoteAccessImplementation&quot;).withDefault(core.parent.core.config.remoteAccessImplementation)
                 .applyAll(this);
 
@@ -530,6 +531,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam(&quot;remoteAccessImplementation&quot;)
                 .whereParam(&quot;keyGeneratorCtor&quot;)
                 .applyAll(this);
+            if (config.keyGeneratorCtor) {
+                this.keyGenerator = new this.keyGeneratorCtor();
+            }
         };
 
         &#x2F;**

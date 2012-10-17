@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.MVC4WebApiClientSample</id>
-        <version>0.63.5</version>
+        <version>0.64.2</version>
         <title>Breeze for MVC4 WebApi Client Sample</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
@@ -16,7 +16,7 @@
         <tags>javascript MVC4 EntityFramework Breeze</tags>
 		<dependencies>
 			<dependency id="WebActivator" version="1.5.1" />
-			<dependency id="Breeze.MVC4WebApi" version="0.62.2" />
+			<dependency id="Breeze.MVC4WebApi" version="0.64.2" />
 		</dependencies>
     </metadata>
     <files>
