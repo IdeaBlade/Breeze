@@ -7,6 +7,7 @@
     learn.maxStepNumber = ko.computed(function() {
         return learn.activeTutorial().Steps.length;
     });
+    
     learn.activeStepNumber = ko.computed(function() {
         var steps = learn.activeTutorial().Steps;
         var currentStep = learn.activeStep();
@@ -16,6 +17,7 @@
     learn.canMoveNext = ko.computed(function() {
         return learn.activeStepNumber() < learn.maxStepNumber();
     });
+    
     learn.moveNext = function() {
         learn.activeStep(learn.activeTutorial().Steps[learn.activeStepNumber()]);
     };
@@ -23,6 +25,7 @@
     learn.canMovePrevious = ko.computed(function() {
         return learn.activeStepNumber() > 1;
     });
+    
     learn.movePrevious = function() {
         learn.activeStep(learn.activeTutorial().Steps[learn.activeStepNumber() - 2]);
     };
@@ -94,71 +97,79 @@
 
     learn.selectHelp = function(answer) {
         if (answer == "Yes") {
-            learn.currentHtml(learn.activeTutorial().EndingHtml);
-            learn.currentJavascript(learn.activeTutorial().EndingJavascript);
+            learn.currentHtml(learn.activeStep().EndingHtml);
+            learn.currentJavascript(learn.activeStep().EndingJavascript);
         }
     };
 
-    ko.bindingHandlers.jsEditor = {
-        init: function(element, valueAccessor) {
-            var that = this;
-            this.firstUpdate = true;
-            var editor = this.editor = CodeMirror.fromTextArea(element, {
-                matchBrackets: true,
-                tabMode: "indent",
-                mode: "text/javascript",
-                onUpdate: function() {
-                    if (editor && !that.updating) {
-                        that.updating = true;
-                        var newValue = editor.getValue();
-                        valueAccessor()(newValue);
-                        that.updating = false;
+    //ko.bindingHandlers.jsEditor = {
+    //    init: function(element, valueAccessor) {
+    //        var that = this;
+    //        this.firstUpdate = true;
+    //        var editor = this.editor = CodeMirror.fromTextArea(element, {
+    //            matchBrackets: true,
+    //            tabMode: "indent",
+    //            mode: "text/javascript",
+    //            onUpdate: function() {
+    //                if (editor && !that.updating) {
+    //                    that.updating = true;
+    //                    var newValue = editor.getValue();
+    //                    valueAccessor()(newValue);
+    //                    that.updating = false;
+    //                }
+    //            }
+    //        });
+    //    },
+    //    update: function(element, valueAccessor) {
+    //        if (this.updating && !this.firstUpdate) {
+    //            return;
+    //        }
+
+    //        this.firstUpdate = false;
+    //        this.updating = true;
+    //        var value = ko.utils.unwrapObservable(valueAccessor());
+    //        this.editor.setValue(value);
+    //        this.updating = false;
+    //    }
+    //};
+
+    ko.bindingHandlers.jsEditor = createBindingHandler("jsEditor", "text/javascript");
+
+    ko.bindingHandlers.htmlEditor = createBindingHandler("htmlEditor", "text/html");
+        
+    
+    function createBindingHandler(editorName, mode) {
+
+        return {
+            init: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
+                var that = this;
+                this.firstUpdate = true;
+                var editor = viewModel[editorName] = CodeMirror.fromTextArea(element, {
+                    mode: mode,
+                    tabMode: "indent",
+                    onUpdate: function() {
+                        if (editor && !that.updating) {
+                            that.updating = true;
+                            var newValue = editor.getValue();
+                            valueAccessor()(newValue);
+                            that.updating = false;
+                        }
                     }
+                });
+            },
+            update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
+                if (this.updating && !this.firstUpdate) {
+                    return;
                 }
-            });
-        },
-        update: function(element, valueAccessor) {
-            if (this.updating && !this.firstUpdate) {
-                return;
+
+                this.firstUpdate = false;
+                this.updating = true;
+                var value = ko.utils.unwrapObservable(valueAccessor());
+                viewModel[editorName].setValue(value);
+                this.updating = false;
             }
-
-            this.firstUpdate = false;
-            this.updating = true;
-            var value = ko.utils.unwrapObservable(valueAccessor());
-            this.editor.setValue(value);
-            this.updating = false;
-        }
-    };
-
-    ko.bindingHandlers.htmlEditor = ko.bindingHandlers.jsEditor = {
-        init: function(element, valueAccessor) {
-            var that = this;
-            this.firstUpdate = true;
-            var editor = this.editor = CodeMirror.fromTextArea(element, {
-                mode: "text/html",
-                tabMode: "indent",
-                onUpdate: function() {
-                    if (editor && !that.updating) {
-                        that.updating = true;
-                        var newValue = editor.getValue();
-                        valueAccessor()(newValue);
-                        that.updating = false;
-                    }
-                }
-            });
-        },
-        update: function(element, valueAccessor) {
-            if (this.updating && !this.firstUpdate) {
-                return;
-            }
-
-            this.firstUpdate = false;
-            this.updating = true;
-            var value = ko.utils.unwrapObservable(valueAccessor());
-            this.editor.setValue(value);
-            this.updating = false;
-        }
-    };
+        };
+    }
 
     ko.applyBindings(learn);
 

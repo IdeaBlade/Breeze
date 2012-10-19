@@ -18,6 +18,10 @@
     <UseIISExpress>false</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -136,7 +140,9 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Content Include="App_Data\Tutorial4.xml" />
     <Content Include="App_Data\Tutorial3.xml" />
-    <Content Include="App_Data\Tutorial2.xml" />
+    <Content Include="App_Data\Tutorial2.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="App_Data\Tutorial1.xml">
       <SubType>Designer</SubType>
     </Content>

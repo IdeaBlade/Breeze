@@ -13,12 +13,19 @@
         <div class="header row">
             <div class="page-links"></div>
             <div class="page-title">learn.breeze.com</div>
-            <div class="container-center">
-                <div class="tutorial-select button" data-bind="click: selectTutorial">
-                    <span class="arrow-down"></span>
-                    Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
-                </div>
+          <div class="container-center">
+            <div class="tutorial-select button" data-bind="click: openHelp">
+              <span class="arrow-down"></span>
+              Help!&nbsp;It&nbsp;didn't&nbsp;work
             </div>
+            <div class="tutorial-select button >
+              &nbsp;&nbsp;&nbsp;
+            </div>
+            <div class="tutorial-select button" data-bind="click: selectTutorial">
+              <span class="arrow-down"></span>
+              Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
+            </div>
+          </div>
         </div>
 
         <div class="body row">
@@ -89,8 +96,8 @@
             </div>
         </div>
         
-        <script id="select-tutorial-source" type="text/html">
-            <div id="select-tutorial">
+      <script id="select-tutorial-source" type="text/html">
+        <div id="select-tutorial">
                 <ul class="tutorial-list" data-bind="foreach: tutorials">
                     <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.finishSelection($data) }, css: { selected: $data == $parent.activeTutorial() }">
                         <div class="title" data-bind="text: Title"></div>
@@ -103,7 +110,7 @@
         <script id="ask-help-source" type="text/html">
             <div id="ask-help">
                 <span>Do you want to go straigh to the final code?</span>
-                <ul class="tutorial-list" data-bind="foreach: tutorials">
+                <ul class="tutorial-list" data-bind="with: activeTutorial()">
                     <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.selectHelp('Yes') }">
                         <div class="title">Yes! Show me the final html and javascript.</div>
                     </li>
