@@ -46,8 +46,9 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="panel-content" data-bind="html: activeStep().Instructions"></div>
+                        <div class="panel-content">
+                            <textarea data-bind="instructionsEditor: currentInstructions"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="bottom row panel-container">

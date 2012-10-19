@@ -1,9 +1,10 @@
 ﻿var Learn = (function(learn, $) {
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStep = ko.observable(learn.tutorials[0].Steps[0]);
+    learn.currentInstructions = ko.observable(learn.activeStep().Instructions);
     learn.currentHtml = ko.observable(learn.tutorials[0].StartingHtml);
     learn.currentJavascript = ko.observable(learn.tutorials[0].StartingJavascript);
-
+    
     learn.maxStepNumber = ko.computed(function() {
         return learn.activeTutorial().Steps.length;
     });
@@ -85,6 +86,7 @@
     learn.finishSelection = function(tutorial) {
         learn.activeTutorial(tutorial);
         learn.activeStep(tutorial.Steps[0]);
+        learn.currentInstructions(activeStep().Instructions);
         learn.currentHtml(tutorial.StartingHtml);
         learn.currentJavascript(tutorial.StartingJavascript);
     };
@@ -102,50 +104,28 @@
         }
     };
 
-    //ko.bindingHandlers.jsEditor = {
-    //    init: function(element, valueAccessor) {
-    //        var that = this;
-    //        this.firstUpdate = true;
-    //        var editor = this.editor = CodeMirror.fromTextArea(element, {
-    //            matchBrackets: true,
-    //            tabMode: "indent",
-    //            mode: "text/javascript",
-    //            onUpdate: function() {
-    //                if (editor && !that.updating) {
-    //                    that.updating = true;
-    //                    var newValue = editor.getValue();
-    //                    valueAccessor()(newValue);
-    //                    that.updating = false;
-    //                }
-    //            }
-    //        });
-    //    },
-    //    update: function(element, valueAccessor) {
-    //        if (this.updating && !this.firstUpdate) {
-    //            return;
-    //        }
-
-    //        this.firstUpdate = false;
-    //        this.updating = true;
-    //        var value = ko.utils.unwrapObservable(valueAccessor());
-    //        this.editor.setValue(value);
-    //        this.updating = false;
-    //    }
-    //};
-
-    ko.bindingHandlers.jsEditor = createBindingHandler("jsEditor", "text/javascript");
-
-    ko.bindingHandlers.htmlEditor = createBindingHandler("htmlEditor", "text/html");
-        
     
-    function createBindingHandler(editorName, mode) {
+    ko.bindingHandlers.jsEditor = createBindingHandler("jsEditor", {
+        mode: "text/javascript"
+    });
+
+    ko.bindingHandlers.htmlEditor = createBindingHandler("htmlEditor", {
+         mode: "text/html"
+    });
+
+    ko.bindingHandlers.instructionsEditor = createBindingHandler("instructionsEditor", {
+        mode: "text/html",
+        readOnly: true
+    });
+
+    
+    function createBindingHandler(editorName, config) {
 
         return {
             init: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
                 var that = this;
                 this.firstUpdate = true;
-                var editor = viewModel[editorName] = CodeMirror.fromTextArea(element, {
-                    mode: mode,
+                var baseConfig = {
                     tabMode: "indent",
                     onUpdate: function() {
                         if (editor && !that.updating) {
@@ -155,7 +135,10 @@
                             that.updating = false;
                         }
                     }
-                });
+                };
+                config = extendConfig(baseConfig, config);
+                var editor = viewModel[editorName] = CodeMirror.fromTextArea(element, config);
+                    
             },
             update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
                 if (this.updating && !this.firstUpdate) {
@@ -169,9 +152,22 @@
                 this.updating = false;
             }
         };
+        
+
     }
 
     ko.applyBindings(learn);
+    
+    function extendConfig(config, extConfig) {
+        if (extConfig) {
+            for (var key in extConfig) {
+                if (extConfig.hasOwnProperty(key)) {
+                    config[key] = extConfig[key];
+                }
+            }
+        }
+        return config;
+    }
 
     return learn;
 })(Learn || {}, $);
