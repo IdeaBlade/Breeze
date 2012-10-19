@@ -118,16 +118,18 @@
         readOnly: true
     });
 
+
+    ko.applyBindings(learn);
     
     function createBindingHandler(editorName, config) {
 
         return {
-            init: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
+            init: function (element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
                 var that = this;
                 this.firstUpdate = true;
                 var baseConfig = {
-                    tabMode: "indent",
-                    onUpdate: function() {
+                    //extraKeys: {"Enter": false},
+                    onUpdate: function () {
                         if (editor && !that.updating) {
                             that.updating = true;
                             var newValue = editor.getValue();
@@ -138,9 +140,9 @@
                 };
                 config = extendConfig(baseConfig, config);
                 var editor = viewModel[editorName] = CodeMirror.fromTextArea(element, config);
-                    
+
             },
-            update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
+            update: function (element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
                 if (this.updating && !this.firstUpdate) {
                     return;
                 }
@@ -152,11 +154,9 @@
                 this.updating = false;
             }
         };
-        
+
 
     }
-
-    ko.applyBindings(learn);
     
     function extendConfig(config, extConfig) {
         if (extConfig) {
