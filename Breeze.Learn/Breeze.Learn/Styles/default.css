@@ -17,6 +17,12 @@
      bottom: 0;
 }
 
+div.scroll {
+    height: 90%;
+    width: 100%;
+    overflow: auto;
+}
+
 .scroll-x {
      overflow-x: auto;
 }
