@@ -2,26 +2,18 @@
   <Order>2</Order>
   <Title>Tutorial 2</Title>
   <Description>Description 2</Description>
-  <StartingHtml>
-    <![CDATA[<div>
-  <div></div>
-</div>
-]]>
-  </StartingHtml>
-  <StartingJavascript>
-    <![CDATA[function Func2(a,b) {
-  if (a < b && a < 0) {
-    return 1;
-  }
-  else   {
-    return 0;
-  }
-}
-]]>
-  </StartingJavascript>
+  
   <Steps>
     <TutorialStep>
       <Instructions>instructions 1</Instructions>
+      <StartingHtml>
+<![CDATA[
+]]>
+      </StartingHtml>
+      <StartingJavascript>
+<![CDATA[
+]]>
+      </StartingJavascript>
     </TutorialStep>
     <TutorialStep>
       <Instructions>instructions 2</Instructions>

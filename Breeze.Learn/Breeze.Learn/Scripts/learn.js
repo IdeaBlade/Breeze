@@ -2,19 +2,18 @@
     
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStepNumber = ko.observable(1);
-    learn.currentInstructions = ko.observable(learn.tutorials[0].Steps[0].Instructions);
-    learn.currentHtml = ko.observable(learn.tutorials[0].StartingHtml);
-    learn.currentJavascript = ko.observable(learn.tutorials[0].StartingJavascript);
+    learn.currentInstructions = ko.observable();
+    learn.currentHtml = ko.observable();
+    learn.currentJavascript = ko.observable();
+    showStep(0);
     
     learn.maxStepNumber = ko.computed(function() {
-        return learn.activeTutorial().Steps.length;
+        return learn.activeTutorial().Steps.length - 1;
     });
     
     learn.activeStep = ko.computed(function() {
         return learn.activeTutorial().Steps[learn.activeStepNumber()-1];
     });
-    
-
 
     learn.canMoveNext = ko.computed(function() {
         return learn.activeStepNumber() < learn.maxStepNumber();
@@ -22,49 +21,34 @@
     
     learn.moveNext = function () {
         learn.activeStepNumber(learn.activeStepNumber() + 1);
-        learn.showStep();
+        showStep();
     };
 
     learn.canMovePrevious = ko.computed(function() {
         return learn.activeStepNumber() > 1;
     });
     
-    learn.movePrevious = function() {
+    learn.movePrevious = function () {
         learn.activeStepNumber(learn.activeStepNumber() - 1);
-        learn.showStep();
+        showStep();
     };
 
-    function getBaseURL() {
-        var url = location.href;  // entire url including querystring - also: window.location.href;
-        var baseURL = url.substring(0, url.indexOf('/', 14));
-
-
-        if (baseURL.indexOf('http://localhost') != -1) {
-            // Base Url for localhost
-            var url = location.href;  // window.location.href;
-            var pathname = location.pathname;  // window.location.pathname;
-            var index1 = url.indexOf(pathname);
-            var index2 = url.indexOf("/", index1 + 1);
-            var baseLocalUrl = url.substr(0, index2);
-
-            return baseLocalUrl + "/";
-        }
-        else {
-            // Root Url for domain name
-            return baseURL + "/";
-        }
-
-    }
-
+    
     learn.run = function() {
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
 
         $(container).empty().append(frame);
 
-        var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr" + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr" + "ipt></head><body>";
+        var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr"
+            + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr"
+            + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr"
+            + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr"
+            + "ipt></head><body>";
         var htmlEnd = "</body></html>";
-        var html = htmlStart + this.currentHtml() + "<scr" + "ipt type='text/javascript'>window.onload = function(){" + this.currentJavascript() + "};</scr" + "ipt>" + htmlEnd;
+        var html = htmlStart + this.currentHtml() + "<scr"
+            + "ipt type='text/javascript'>window.onload = function(){" + this.currentJavascript() + "};</scr"
+            + "ipt>" + htmlEnd;
 
         var doc = null;
         if (frame.contentDocument) {
@@ -88,10 +72,8 @@
 
     learn.finishSelection = function(tutorial) {
         learn.activeTutorial(tutorial);
-        learn.activeStep(tutorial.Steps[0]);
-        learn.currentInstructions(activeStep().Instructions);
-        learn.currentHtml(tutorial.StartingHtml);
-        learn.currentJavascript(tutorial.StartingJavascript);
+        learn.activeStepNumber(1);
+        showStep(0); 
     };
 
     learn.openHelp = function() {
@@ -102,22 +84,9 @@
 
     learn.selectHelp = function(answer) {
         if (answer == "Yes") {
-            learn.currentHtml(learn.activeStep().EndingHtml);
-            learn.currentJavascript(learn.activeStep().EndingJavascript);
-        }
-    };
-
-    learn.showStep = function() {
-        var stepNumber = learn.activeStepNumber();
-        learn.currentInstructions(learn.activeStep().Instructions);
-        if (stepNumber == 1) {
-            var activeTutorial = learn.activeTutorial();
-            learn.currentHtml(activeTutorial.StartingHtml);
-            learn.currentJavascript(activeTutorial.StartingJavascript);
-        } else {
-            var prevStep = learn.activeTutorial().Steps[stepNumber - 2];
-            learn.currentHtml(prevStep.EndingHtml);
-            learn.currentJavascript(prevStep.EndingJavascript);
+            var nextStepIx = learn.activeStepNumber();
+            showJavascript(nextStepIx);
+            showHtml(nextStepIx);
         }
     };
     
@@ -126,9 +95,9 @@
     });
 
     ko.bindingHandlers.htmlEditor = createBindingHandler("htmlEditor", {
-         mode: "text/html"
+        mode: "text/html"
     });
-    
+
     ko.bindingHandlers.markdown = {
         update: function (element, valueAccessor) {
             var markdownValue = ko.utils.unwrapObservable(valueAccessor());
@@ -137,14 +106,66 @@
         }
     };
 
-    //ko.bindingHandlers.instructionsEditor = createBindingHandler("instructionsEditor", {
-    //    mode: "html",
-    //    readOnly: true
-    //});
-
-
     ko.applyBindings(learn);
     
+    function showStep(stepIx) {
+        if (stepIx === undefined) {
+            stepIx = learn.activeStepNumber()-1;
+        }
+        showInstructions(stepIx);
+        showJavascript(stepIx);
+        showHtml(stepIx);
+    }
+   
+    function showInstructions(stepIx) {
+        var step = learn.activeTutorial().Steps[stepIx];
+        learn.currentInstructions(step.Instructions);
+    }
+    
+    function showJavascript(stepIx) {
+        var step = learn.activeTutorial().Steps[stepIx];
+        if (step.StartingJavascript) {
+            learn.currentJavascript(step.StartingJavascript);
+        } else if (stepIx > 0) {
+            showJavascript(stepIx - 1);
+        } else {
+            learn.currentJavascript("");
+        }
+    }
+    
+    function showHtml(stepIx) {
+        var step = learn.activeTutorial().Steps[stepIx];
+        if (step.StartingHtml) {
+            learn.currentHtml(step.StartingHtml);
+        } else if (stepIx > 0) {
+            showHtml(stepIx - 1);
+        } else {
+            learn.currentHtml("");
+        }
+    }
+    
+    function getBaseURL() {
+        var url = location.href;  // entire url including querystring - also: window.location.href;
+        var baseURL = url.substring(0, url.indexOf('/', 14));
+
+
+        if (baseURL.indexOf('http://localhost') != -1) {
+            // Base Url for localhost
+            var url = location.href;  // window.location.href;
+            var pathname = location.pathname;  // window.location.pathname;
+            var index1 = url.indexOf(pathname);
+            var index2 = url.indexOf("/", index1 + 1);
+            var baseLocalUrl = url.substr(0, index2);
+
+            return baseLocalUrl + "/";
+        }
+        else {
+            // Root Url for domain name
+            return baseURL + "/";
+        }
+
+    }
+  
     function createBindingHandler(editorName, config) {
 
         return {
