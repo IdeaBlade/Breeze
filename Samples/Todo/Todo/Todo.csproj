@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -150,15 +150,15 @@
     <Content Include="Content\toastr.css" />
     <Content Include="Content\todo.css" />
     <Content Include="Global.asax" />
-    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
-    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\main.js" />
     <Content Include="Scripts\app\shell.html" />
     <Content Include="Scripts\app\shellViewModel.js" />
     <Content Include="Scripts\breeze.debug.js" />
+    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.js" />
+    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
     <Content Include="Scripts\knockout-2.1.0.debug.js" />
@@ -226,7 +226,7 @@
   </Target>
   <Target Name="AfterBuild">
   </Target> -->
-      <Target Name="BeforeBuild">
-          <Exec Command="&quot;$(SolutionDir).nuget\NuGet&quot; update &quot;$(ProjectDir)packages.config&quot; -Id Breeze.MVC4WebApi" />
-    </Target>
+  <Target Name="BeforeBuild">
+    <Exec Command="&quot;$(SolutionDir).nuget\NuGet&quot; update &quot;$(ProjectDir)packages.config&quot; -Id Breeze.MVC4WebApi" />
+  </Target>
 </Project>
