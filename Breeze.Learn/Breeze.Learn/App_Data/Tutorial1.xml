@@ -5,7 +5,10 @@
   <StartingHtml>
     <![CDATA[
 <ul data-bind="foreach: results">
-  <li data-bind="text:Description"></li>
+  <li>
+    <span data-bind="text:FirstName></span>
+    <span data-bind="text:LastName></span>
+  </li>
 </ul>
     ]]>
   </StartingHtml>
@@ -18,13 +21,12 @@ core.config.setProperties({
     trackingImplementation: entityModel.entityTracking_ko,
     remoteAccessImplementation: entityModel.remoteAccess_webApi
 });
-    
-var manager = new entityModel.EntityManager('api/todos');
+
+var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
-    .from("Todos")
-    .orderBy("CreatedAt");
-
+    .from("Employees");
+    
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
 });

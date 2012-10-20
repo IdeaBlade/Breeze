@@ -55,6 +55,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -122,11 +123,16 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\NorthwindController.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\JsonHelpers.cs" />
+    <Compile Include="Models\NorthwindContext.cs" />
+    <Compile Include="Models\NorthwindModel.cs" />
     <Compile Include="Models\TodoDatabaseInitializer.cs" />
     <Compile Include="Models\TodoItem.cs" />
     <Compile Include="Models\TodosContext.cs" />
