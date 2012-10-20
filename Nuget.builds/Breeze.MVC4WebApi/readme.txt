@@ -67,10 +67,11 @@ Two referenced assemblies
 	Breeze.WebApi
 	Irony
 
-Four scripts
+Five scripts
 
 	Scripts/breeze.min.js
 	Scripts/breeze.debug.js
+    Scripts/breeze.intellisense.js
 	Scripts/q.js
 	Scripts/q.min.js
 

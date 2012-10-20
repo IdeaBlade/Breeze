@@ -17,9 +17,14 @@
 		<dependencies>
 			<dependency id="WebActivator" version="1.5.1" />
 			<dependency id="Breeze.MVC4WebApi" version="{{version}}" />
+            <!-- Force version #s to align with the MVC 4 Web API template -->
+            <dependency id="knockoutjs" version="[2.1.0]" />
+            <dependency id="Modernizr" version="[2.5.3]" />
 		</dependencies>
     </metadata>
     <files>
+        <file src="content\App_Start\BreezeConfig_ClientSample.cs.pp" target="content\App_Start\BreezeConfig_ClientSample.cs.pp" />
+        <file src="content\Content\breezesample.css" target="content\Content\breezesample.css" />
         <file src="content\Controllers\BreezeSampleShellController.cs.pp" target="content\Controllers\BreezeSampleShellController.cs.pp" />
         <file src="content\Views\BreezeSampleShell\index.cshtml" target="content\Views\BreezeSampleShell\index.cshtml" />
         <file src="content\Scripts\app\logger.js" target="content\Scripts\app\logger.js" />

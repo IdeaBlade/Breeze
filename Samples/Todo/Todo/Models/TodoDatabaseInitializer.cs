@@ -3,8 +3,10 @@ using System.Data.Entity;
 
 namespace Todo.Models
 {
+    // DEMONSTRATION/DEVELOPMENT ONLY
     public class TodoDatabaseInitializer:
-        DropCreateDatabaseIfModelChanges<TodosContext> 
+        DropCreateDatabaseAlways<TodosContext> // re-creates every time the server starts
+        //DropCreateDatabaseIfModelChanges<TodosContext> 
     {
         protected override void Seed(TodosContext context)
         {
@@ -13,70 +15,37 @@ namespace Todo.Models
 
         public static void SeedDatabase(TodosContext context)
         {
-            TodoItem todo;
-            var baseCreatedAtDate = new DateTime(2012, 8, 22, 9, 0, 0);
+            _baseCreatedAtDate = new DateTime(2012, 8, 22, 9, 0, 0);
 
-            // Archived
-            todo = new TodoItem
-                {
-                    CreatedAt = baseCreatedAtDate,
-                    Description = "Food",
-                    IsDone = true,
-                    IsArchived = true
-                };
-            context.Todos.Add(todo);
+            var todos = new[] {
+                // Description, IsDone, IsArchived
+                CreateTodo("Food", true, true),
+                CreateTodo("Water", true, true),
+                CreateTodo("Shelter", true, true),
+                CreateTodo("Bread", false, false),
+                CreateTodo("Cheese", true, false),
+                CreateTodo("Wine", false, false)
+           };
 
-            todo = new TodoItem
-            {
-                CreatedAt = baseCreatedAtDate.AddMinutes(1),
-                Description = "Water",
-                IsDone = true,
-                IsArchived = true
-            };
-            context.Todos.Add(todo);
-
-            todo = new TodoItem
-            {
-                CreatedAt = baseCreatedAtDate.AddMinutes(2),
-                Description = "Shelter",
-                IsDone = true,
-                IsArchived = true
-            };
-            context.Todos.Add(todo);
-
-            // Active
-            var activeCreatedAtDate = baseCreatedAtDate.AddDays(1);
-
-            todo = new TodoItem
-            {
-                CreatedAt = activeCreatedAtDate,
-                Description = "Bread",
-                IsDone = false,
-                IsArchived = false
-            };
-            context.Todos.Add(todo);
-
-            todo = new TodoItem
-            {
-                CreatedAt = activeCreatedAtDate.AddMinutes(1),
-                Description = "Cheese",
-                IsDone = true,
-                IsArchived = false
-            };
-            context.Todos.Add(todo);
-
-            todo = new TodoItem
-            {
-                CreatedAt = activeCreatedAtDate.AddMinutes(2),
-                Description = "Wine",
-                IsDone = false,
-                IsArchived = false
-            };
-            context.Todos.Add(todo);
+            Array.ForEach(todos, t => context.Todos.Add(t));
 
             context.SaveChanges(); // Save 'em
-
         }
+
+        private static TodoItem CreateTodo(
+            string description, bool isDone, bool isArchived)
+        {
+            _baseCreatedAtDate = _baseCreatedAtDate.AddMinutes(1);
+            return new TodoItem
+            {
+                CreatedAt = _baseCreatedAtDate,
+                Description = description,
+                IsDone = isDone,
+                IsArchived = isArchived
+            };
+        }
+
+        private static DateTime _baseCreatedAtDate;
 
         public static void PurgeDatabase(TodosContext context)
         {
@@ -88,6 +57,7 @@ namespace Todo.Models
 
             context.SaveChanges();
         }
+
     }
 
 

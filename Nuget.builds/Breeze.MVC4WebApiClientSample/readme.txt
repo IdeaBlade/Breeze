@@ -38,6 +38,13 @@ It automatically includes the Breeze MVC4 Web API Nuget Package if it is not alr
 
 This nuget package added the following files to this project.
 
+One configuration file
+
+	App_Start/BreezeConfig_ClientSample.cs
+
+One CSS content file
+
+	Content/breezesample.css
 
 One MVC 4 Controller
 

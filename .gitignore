@@ -42,9 +42,6 @@ DocCode/BreezeDocCode/Scripts/lib/breeze.intellisense.js
 DocCode/BreezeDocCode/ThirdParty/Breeze.WebApi.dll
 
 Samples/Todo/Todo/App_Data/Todos.sdf
-Samples/Todo/Todo/Scripts/lib/breeze.debug.js
-Samples/Todo/Todo/Scripts/lib/breeze.intellisense.js
-Samples/Todo/Todo/ThirdParty/Breeze.WebApi.dll
 
 Samples/BreezyDevices/BreezyDevices/Scripts/lib/breeze.debug.js
 Samples/BreezyDevices/BreezyDevices/Scripts/lib/breeze.intellisense.js
