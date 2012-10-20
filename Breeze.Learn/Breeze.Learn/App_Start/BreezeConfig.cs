@@ -1,7 +1,8 @@
-namespace Breeze.Learn.App_Start {
-    using System.Web.Http;
-    using WebApi;
+using System.Web.Http;
+using Breeze.WebApi;
 
+namespace Breeze.Learn {
+    
     public class BreezeConfig {
         public static void RegisterBreeze() {
             // Use breeze configuration of Json.Net JsonFormatter instead of the default

@@ -17,6 +17,12 @@
      bottom: 0;
 }
 
+div.scroll {
+    height: 90%;
+    width: 100%;
+    overflow: auto;
+}
+
 .scroll-x {
      overflow-x: auto;
 }
@@ -30,10 +36,6 @@
      top: 0;
 }
 
-.body.row {
-     top: 75px; 
-}
-
 .left.col {
      width: 50%;
 }
@@ -43,13 +45,8 @@
      right: 0;
 }
 
-.header.row {
-     height: 75px; 
-     line-height: 75px;
-}
-
 .body.row {
-     top: 75px; 
+     top: 75px;
      bottom: 0px;
 }
 
@@ -85,10 +82,27 @@
     left: 50%;
 }
 
+.help-select {
+    float: left;
+    position: relative;
+    left: -70%;
+    
+    height: 2em;
+    margin-top: 1.2em;
+    line-height: 2em;
+    font-weight: normal;
+    font-size: 100%;
+    color: black;
+    padding: 0 3em 0 1em;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+
 .tutorial-select {
     float: left;
     position: relative;
-    left: -50%;
+    left: -30%;
     
     height: 2em;
     margin-top: 1.2em;

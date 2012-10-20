@@ -18,6 +18,10 @@
     <UseIISExpress>false</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,6 +55,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -118,11 +123,16 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\NorthwindController.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\JsonHelpers.cs" />
+    <Compile Include="Models\NorthwindContext.cs" />
+    <Compile Include="Models\NorthwindModel.cs" />
     <Compile Include="Models\TodoDatabaseInitializer.cs" />
     <Compile Include="Models\TodoItem.cs" />
     <Compile Include="Models\TodosContext.cs" />
@@ -134,10 +144,12 @@
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="App_Data\Tutorial1.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="App_Data\Tutorial4.xml" />
     <Content Include="App_Data\Tutorial3.xml" />
-    <Content Include="App_Data\Tutorial2.xml" />
-    <Content Include="App_Data\Tutorial1.xml">
+    <Content Include="App_Data\Tutorial2.xml">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Global.asax" />
@@ -155,7 +167,9 @@
     <Content Include="Scripts\knockout-2.1.0.js" />
     <Content Include="Scripts\learn.js" />
     <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\showdown.js" />
     <Content Include="Styles\codemirror.css" />
+    <Content Include="Styles\alt.codemirror.css" />
     <Content Include="Styles\default.css" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">

@@ -1,44 +1,106 @@
 ﻿<Tutorial>
   <Order>1</Order>
   <Title>Tutorial 1</Title>
-  <Description>A sample of how this stuff works...</Description>
+  <Description>A simple query</Description>
   <StartingHtml>
     <![CDATA[
-    <ul data-bind="foreach: results">
-      <li data-bind="text:Description"></li>
-    </ul>
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:FirstName></span>
+    <span data-bind="text:LastName></span>
+  </li>
+</ul>
     ]]>
   </StartingHtml>
   <StartingJavascript>
-    <![CDATA[
-    var core = breeze.core,
-        entityModel = breeze.entityModel;
+<![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
     
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_ko,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Employees");
     
-    var manager = new entityModel.EntityManager('api/todos');
-
-    manager.fetchMetadata()
-        .then(function () {
-            var query = new entityModel.EntityQuery()
-                .from("Todos")
-                .orderBy("CreatedAt");
-
-            manager.executeQuery(query).then(function(data){
-                ko.applyBindings(data);
-            });
-        });
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
 ]]>
   </StartingJavascript>
   <Steps>
     <TutorialStep>
-      <Instructions>Press run...</Instructions>
+      <Instructions>
+# This example shows how to initialize breeze and create and run a very simple query.  
+
+## In the box below, you should click "Run".
+      </Instructions>
+      <EndingJavascript>
+<![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+]]>
+      </EndingJavascript>
+      <EndingHtml>
+<![CDATA[
+  <li data-bind="text:Foo"></li>
+  <li data-bind="text:Description"></li>
+]]>
+      </EndingHtml>
     </TutorialStep>
     <TutorialStep>
-      <Instructions>Press run...</Instructions>
+      <Instructions>
+So let's make the query a bit more complicated by adding an "orderBy" clause.
+
+Simply replace this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
+
+Simply replace this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
+
+
+Simply replace this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
+
+      </Instructions>
+      <EndingJavascript>
+        <![CDATA[
+    var jt = just testing step ;
+        ]]>
+      </EndingJavascript>
+      <EndingHtml>
+        <![CDATA[
+      <li data-bind="text:justTesting"></li>
+        ]]>
+      </EndingHtml>
     </TutorialStep>
     <TutorialStep>
       <Instructions>Press run...</Instructions>

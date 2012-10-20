@@ -4,24 +4,86 @@
     <meta charset="utf-8">
     <title>The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
-    <link rel="stylesheet" href=".&#x2F;assets/vendor/prettify/prettify-min.css">
+<!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
+-->    
+	<link rel="stylesheet" href=".&#x2F;assets/vendor/prettify/prettify-min.css">
     <link rel="stylesheet" href=".&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href=".&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
 </head>
 <body class="yui3-skin-sam">
+<script type="text/javascript">
+  var uvOptions = {};
+  (function() {
+    var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+    uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/GHug452CgVREu58xjoDg.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+  })();
+</script>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<script type="text/javascript">
+    var _elqQ = _elqQ || [];
+    _elqQ.push(['elqSetSiteId', '1020']);
+    _elqQ.push(['elqTrackPageView']);
+    
+    (function () {
+        function async_load() {
+            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
+            s.src = '//img.en25.com/i/elqCfg.min.js';
+            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+        }
+        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
+        else if (window.attachEvent) window.attachEvent('onload', async_load); 
+    })();
+</script>
+
+
+
+
+
+
+<div id="wrap">
 
 <div id="doc">
-    <div id="hd" class="yui3-g header">
-        <div class="yui3-u-3-4">
-            
-                <h1><img src="http:&#x2F;&#x2F;www.ideablade.com&#x2F;images&#x2F;IdeaBladeBanner&#x2F;IdeaBlade_logo_tm.png" title="The Breeze API"></h1>
-            
-        </div>
-        <div class="yui3-u-1-4 version">
-            <em>API Docs for: 0.60</em>
-        </div>
-    </div>
+<div class="header">
+<div class="logo">
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	</div>
+
+    <div class="primary-nav">
+<ul>
+		<li>
+			<a href="/home">Home</a></li>
+		<li>
+			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+		<li>
+			<a href="/samples">Samples</a></li>
+		<li>
+			<a href="/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+		<li>
+			<a href="/contact">Contact</a></li>
+	</ul>
+</div>
+</div>
     <div id="bd" class="yui3-g">
 
         <div class="yui3-u-1-4">
@@ -142,24 +204,30 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                            <div class="apidocs">
-        <div id="docs-main" class="content">
+                            <div class="index-head">
+        
+		<h1>
+		Breeze API
+		</h1>
+	</div>	
+		
+	<div class="index-body">	
             <p>
-            Browse to a module or class using the sidebar to view its API documentation.
-            </p>
+			Welcome to the Breeze API documentation. If this is your first time browsing the API, you might want to start with the <a href="http://www.breezejs.com/sites/all/apidocs/classes/EntityManager.html">EntityManager</a> as this is the core class in Breeze.
+			</p>
+			<p>
+			<a href="http://www.breezejs.com/samples">Sample applications</a>, <a href="http://www.youtube.com/playlist?list=PL88C2B43249433416&feature=plcp"videos target="_blank">videos</a>, and <a href="http://www.breezejs.com/documentation/introduction">additional documentation</a> 
+			are also available.
+			</p>
+			
 
-            <h2>Keyboard Shortcuts</h2>
-
-            <ul>
-                <li><p>Press <kbd>s</kbd> to focus the API search box.</p></li>
-
-                <li><p>Use <kbd>Up</kbd> and <kbd>Down</kbd> to select classes, modules, and search results.</p></li>
-
-                <li class="mac-only"><p>With the API search box or sidebar focused, use <kbd><span class="cmd">&#x2318;</span>-Left</kbd> or <kbd><span class="cmd">&#x2318;</span>-Right</kbd> to switch sidebar tabs.</p></li>
-
-                <li class="pc-only"><p>With the API search box or sidebar focused, use <kbd>Ctrl+Left</kbd> and <kbd>Ctrl+Right</kbd> to switch sidebar tabs.</p></li>
-            </ul>
-        </div>
+		<h2>
+		Support
+		</h2>
+        <p>
+		Ask questions in our <a href="http://www.ideablade.com/forum/" target="_blank">community forum</a> and get answers from support engineers, MVPs, and 
+		developers just like you. If you prefer to use email, please contact us at <a href="mailto:breeze@ideablade.com">breeze@ideablade.com</a>.
+		</p>
     </div>
 
 
@@ -169,6 +237,26 @@
             </div>
         </div>
     </div>
+</div>
+<div class="primary-nav-foot">
+	<ul>
+		<li>
+			<a href="/home">Home</a></li>
+		<li>
+			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+		<li>
+			<a href="/samples">Samples</a></li>
+		<li>
+			<a href="/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+		<li>
+			<a href="/contact">Contact</a></li>
+	</ul>
+</div>
+</div>
 </div>
 <script src=".&#x2F;assets/vendor/prettify/prettify-min.js"></script>
 <script>prettyPrint();</script>

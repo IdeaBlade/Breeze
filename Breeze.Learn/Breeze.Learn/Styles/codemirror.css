@@ -1,30 +1,55 @@
 .CodeMirror {
+    line-height: 1em;
+    font-family: monospace;
+    font-size: 12px;
+    /* Necessary so the scrollbar can be absolutely positioned within the wrapper on Lion. */
+    position: relative;
+    /* This prevents unwanted scrollbars from showing up on the body and wrapper in IE. */
+    overflow: hidden;
+    height: 90%;
+}
+/*.CodeMirror {
   line-height: 1em;
   font-family: monospace;
-
-  /* Necessary so the scrollbar can be absolutely positioned within the wrapper on Lion. */
   position: relative;
-  /* This prevents unwanted scrollbars from showing up on the body and wrapper in IE. */
   overflow: hidden;
-}
+}*/
 
 .CodeMirror-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* This is needed to prevent an IE[67] bug where the scrolled content
+is visible outside of the scrolling box. */
+    position: relative;
+    outline: none;
+    height: 100%;
+}
+/**.CodeMirror-scroll {
   overflow: auto;
   height: 300px;
-  /* This is needed to prevent an IE[67] bug where the scrolled content
-     is visible outside of the scrolling box. */
+
   position: relative;
   outline: none;
-}
+}*/
 
 /* Vertical scrollbar */
 .CodeMirror-scrollbar {
+    float: right;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    /* This corrects for the 1px gap introduced to the left of the scrollbar
+by the rule for .CodeMirror-scrollbar-inner. */
+    margin-left: -1px;
+}
+/* Vertical scrollbar */
+/*.CodeMirror-scrollbar {
   position: absolute;
   right: 0; top: 0;
   overflow-x: hidden;
   overflow-y: scroll;
   z-index: 5;
-}
+}*/
+
 .CodeMirror-scrollbar-inner {
   /* This needs to have a nonzero width in order for the scrollbar to appear
      in Firefox and IE9. */
@@ -80,6 +105,7 @@
   word-wrap: normal;
   line-height: inherit;
   color: inherit;
+  overflow: visible;
 }
 
 .CodeMirror-wrap pre {
