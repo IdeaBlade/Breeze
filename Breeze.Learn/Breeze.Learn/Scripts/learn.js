@@ -1,7 +1,8 @@
 ﻿var Learn = (function(learn, $) {
+    
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
-    learn.activeStep = ko.observable(learn.tutorials[0].Steps[0]);
-    learn.currentInstructions = ko.observable(learn.activeStep().Instructions);
+    learn.activeStepNumber = ko.observable(1);
+    learn.currentInstructions = ko.observable(learn.tutorials[0].Steps[0].Instructions);
     learn.currentHtml = ko.observable(learn.tutorials[0].StartingHtml);
     learn.currentJavascript = ko.observable(learn.tutorials[0].StartingJavascript);
     
@@ -9,18 +10,19 @@
         return learn.activeTutorial().Steps.length;
     });
     
-    learn.activeStepNumber = ko.computed(function() {
-        var steps = learn.activeTutorial().Steps;
-        var currentStep = learn.activeStep();
-        return steps.indexOf(currentStep) + 1;
+    learn.activeStep = ko.computed(function() {
+        return learn.activeTutorial().Steps[learn.activeStepNumber()-1];
     });
+    
+
 
     learn.canMoveNext = ko.computed(function() {
         return learn.activeStepNumber() < learn.maxStepNumber();
     });
     
-    learn.moveNext = function() {
-        learn.activeStep(learn.activeTutorial().Steps[learn.activeStepNumber()]);
+    learn.moveNext = function () {
+        learn.activeStepNumber(learn.activeStepNumber() + 1);
+        learn.showStep();
     };
 
     learn.canMovePrevious = ko.computed(function() {
@@ -28,7 +30,8 @@
     });
     
     learn.movePrevious = function() {
-        learn.activeStep(learn.activeTutorial().Steps[learn.activeStepNumber() - 2]);
+        learn.activeStepNumber(learn.activeStepNumber() - 1);
+        learn.showStep();
     };
 
     function getBaseURL() {
@@ -104,6 +107,19 @@
         }
     };
 
+    learn.showStep = function() {
+        var stepNumber = learn.activeStepNumber();
+        learn.currentInstructions(learn.activeStep().Instructions);
+        if (stepNumber == 1) {
+            var activeTutorial = learn.activeTutorial();
+            learn.currentHtml(activeTutorial.StartingHtml);
+            learn.currentJavascript(activeTutorial.StartingJavascript);
+        } else {
+            var prevStep = learn.activeTutorial().Steps[stepNumber - 2];
+            learn.currentHtml(prevStep.EndingHtml);
+            learn.currentJavascript(prevStep.EndingJavascript);
+        }
+    };
     
     ko.bindingHandlers.jsEditor = createBindingHandler("jsEditor", {
         mode: "text/javascript"
@@ -112,11 +128,19 @@
     ko.bindingHandlers.htmlEditor = createBindingHandler("htmlEditor", {
          mode: "text/html"
     });
+    
+    ko.bindingHandlers.markdown = {
+        update: function (element, valueAccessor) {
+            var markdownValue = ko.utils.unwrapObservable(valueAccessor());
+            var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
+            $(element).html(htmlValue || "");
+        }
+    };
 
-    ko.bindingHandlers.instructionsEditor = createBindingHandler("instructionsEditor", {
-        mode: "text/html",
-        readOnly: true
-    });
+    //ko.bindingHandlers.instructionsEditor = createBindingHandler("instructionsEditor", {
+    //    mode: "html",
+    //    readOnly: true
+    //});
 
 
     ko.applyBindings(learn);

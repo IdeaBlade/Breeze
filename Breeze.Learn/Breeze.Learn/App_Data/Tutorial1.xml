@@ -32,50 +32,62 @@ manager.executeQuery(query).then(function(data){
   </StartingJavascript>
   <Steps>
     <TutorialStep>
-      <Instructions>This example shows how to initialize breeze and create and run a very simple query.  Just press run...</Instructions>
+      <Instructions>
+# This example shows how to initialize breeze and create and run a very simple query.  
+
+## In the box below, you should click "Run".
+      </Instructions>
       <EndingJavascript>
-        <![CDATA[
-        var core = breeze.core,
-        entityModel = breeze.entityModel;
-        ]]>
+<![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+]]>
       </EndingJavascript>
       <EndingHtml>
-        <![CDATA[
-      <li data-bind="text:Foo"></li>
-      <li data-bind="text:Description"></li>
-    ]]>
+<![CDATA[
+  <li data-bind="text:Foo"></li>
+  <li data-bind="text:Description"></li>
+]]>
       </EndingHtml>
     </TutorialStep>
     <TutorialStep>
       <Instructions>
-        <![CDATA[
-        <div>
-        <p>So let's make the query a bit more complicated by adding an "orderBy" clause.</p>
+So let's make the query a bit more complicated by adding an "orderBy" clause.
 
-        <p>Simply replace this query</p>
+Simply replace this query
 
-          var query = new entityModel.EntityQuery()
-          .from("Todos")
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
 
-          with this query
+with this query
 
-          var query = new entityModel.EntityQuery()
-          .from("Todos")
-          .orderBy("CreatedAt");
-        
-        <p>To run your updated application, click <em>Run</em> in the bottom-left pane, or press Ctrl+Enter. The result? Your UI should display the person's name. 
-OK, this is just <em>Hello World</em> - we'll move on to more exciting things shortly. </p>
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
 
-<p>If everything is working fine, click <em>Continue</em> below.</p>
+Simply replace this query
 
-<p><strong>Having trouble?</strong>
-If at any time you find it unclear how to proceed, and your code isn't behaving as the tutorial describes, you can always click the <em>"Help, it's not working!"</em> button
-(below). This will replace your code with a working copy.</p>
-                    <a style="" class="wideButton top" data-bind="click: fixCode, visible: canFixCode">Help – it's not working!</a>
-                    <a style="" class="wideButton bottom" data-bind="click: moveNext, visible: canMoveNext, css: { top: !canFixCode() }"><span class="moveRight"></span>Continue</a>
-                    <a style="display: none;" class="wideButton bottom" data-bind="click: chooseTutorial, visible: !canMoveNext(), css: { top: !canFixCode() }"><span class="moveRight"></span>Choose another tutorial</a>
-                </div>
-        ]]>
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
+
+
+Simply replace this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>                .from("Todos")
+>                .orderBy("CreatedAt");
+
       </Instructions>
       <EndingJavascript>
         <![CDATA[

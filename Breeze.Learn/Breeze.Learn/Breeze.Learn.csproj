@@ -138,12 +138,12 @@
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="App_Data\Tutorial1.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="App_Data\Tutorial4.xml" />
     <Content Include="App_Data\Tutorial3.xml" />
     <Content Include="App_Data\Tutorial2.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="App_Data\Tutorial1.xml">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Global.asax" />
@@ -161,6 +161,7 @@
     <Content Include="Scripts\knockout-2.1.0.js" />
     <Content Include="Scripts\learn.js" />
     <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\showdown.js" />
     <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\alt.codemirror.css" />
     <Content Include="Styles\default.css" />
