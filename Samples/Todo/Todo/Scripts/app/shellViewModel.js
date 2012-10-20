@@ -1,6 +1,6 @@
 ﻿define(function (require) {
-    var dataservice = require('services/dataservice');
-    var logger = require("logger");
+    var dataservice = require('dataservice');
+    var logger = require('logger');
 
     var suspendItemSave;
 

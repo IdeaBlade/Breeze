@@ -1,3 +1,6 @@
+@{
+    Layout = null;
+}
 <!DOCTYPE html>
 <html>
     <head>
@@ -12,10 +15,10 @@
     <body>
         <div id="applicationHost"></div>
 
-        <script src="@Url.Content("~/Scripts/lib/jquery-1.8.0.min.js")"></script>
-        <script src="@Url.Content("~/Scripts/lib/knockout-2.1.0.js")"></script>
-        <script src="@Url.Content("~/Scripts/lib/q.js")"></script>
-        <script src="@Url.Content("~/Scripts/lib/toastr.js")"></script>
-        <script data-main="Scripts/main" src="@Url.Content("~/Scripts/lib/require.js")"></script>
+        <script src="@Url.Content("~/Scripts/jquery-1.8.2.min.js")"></script>
+        <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")"></script>
+        <script src="@Url.Content("~/Scripts/q.js")"></script>
+        <script src="@Url.Content("~/Scripts/toastr.js")"></script>
+        <script data-main="Scripts/app/main" src="@Url.Content("~/Scripts/require.js")"></script>
     </body>
 </html>
