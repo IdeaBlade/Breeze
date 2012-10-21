@@ -1,12 +1,13 @@
-﻿<!DOCTYPE html>
+﻿@{Layout = null;}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width">
     <title>Breezy Devices</title>
-    <link rel="stylesheet" href="@Url.Content("~/Content/reset.css")"/>
-    <link rel="stylesheet" href="@Url.Content("~/Content/breezydevices.css")"/>
-    @Scripts.Render("~/bundles/modernizr")
+    <link rel="stylesheet" href="/Content/reset.css"/>
+    <link rel="stylesheet" href="/Content/breezydevices.css"/>
+    <script src="/Scripts/modernizr-2.5.3.js"></script>
 </head>
 <body>
     <header>
@@ -15,7 +16,7 @@
  
     <!-- Section with client-generated content and bindings -->            
     <section id="content" data-bind="css: { hide: hide }" class="hide">
-        <img src="@Url.Content("~/Images/save.png")" data-bind="click: save" title="Save Changes" /> 
+        <img src="/Images/save.png" data-bind="click: save" title="Save Changes" /> 
       
         <ul data-bind="foreach: people">
             <li class="person" >
@@ -49,15 +50,15 @@
     </footer>
     
     <!--3rd party library scripts -->
-    @Scripts.Render("~/bundles/jquery")
-    <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")"></script>
-    <script src="@Url.Content("~/Scripts/q.js")"></script>
-    <script src="@Url.Content("~/Scripts/breeze.debug.js")"></script>
+    <script src="/Scripts/jquery-1.7.1.min.js"></script>
+    <script src="/Scripts/knockout-2.1.0.js"></script>
+    <script src="/Scripts/q.js"></script>
+    <script src="/Scripts/breeze.debug.js"></script>
 
     <!-- Application scripts -->
-    <script src="@Url.Content("~/Scripts/app/logger.js")"></script>
-    <script src="@Url.Content("~/Scripts/app/dataservice.js")"></script>
-    <script src="@Url.Content("~/Scripts/app/peopleViewModel.js")"></script>
-    <script src="@Url.Content("~/Scripts/app/main.js")"></script>
+    <script src="/Scripts/app/logger.js"></script>
+    <script src="/Scripts/app/dataservice.js"></script>
+    <script src="/Scripts/app/peopleViewModel.js"></script>
+    <script src="/Scripts/app/main.js"></script>
 </body>
 </html>
