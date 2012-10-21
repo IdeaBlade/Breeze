@@ -2,7 +2,6 @@
   <Order>1</Order>
   <Title>Tutorial 1</Title>
   <Description>A simple query</Description>
-
   <Steps>
     <TutorialStep>
       <Instructions>
@@ -179,10 +178,24 @@ manager.executeQuery(query).then(function(data){
       </StartingJavascript>
       <StartingHtml></StartingHtml>
     </TutorialStep>
-    <TuturialStep>
+    <TutorialStep>
       <Instructions>
 <![CDATA[
-Now let's see if we can take just a subset of all of the customers.
+Now let's try to make this list a bit smaller.  We could add a filter using a
+'where' clause like we did earlier, but an even simpler approach would be to specify
+that we only want the first few customers instead of all of them.
+
+To accomplish this we can add to the query by changing
+
+>     .from("Customers");
+
+to
+
+>     .from("Customers").take(5);
+
+and then press "Run".
+
+We should now only see the first 5 customer names appear.
 ]]>
       </Instructions>
       <StartingJavascript>
@@ -214,8 +227,8 @@ manager.executeQuery(query).then(function(data){
 </ul>
 ]]>
       </StartingHtml>
-    </TuturialStep>
-    <TuturialStep>
+    </TutorialStep>
+    <TutorialStep>
       <Instructions>
 <![CDATA[
 ]]>
@@ -233,8 +246,7 @@ core.config.setProperties({
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
-    .from("Customers")
-    .take(5);
+    .from("Customers").take(5);
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
@@ -250,6 +262,6 @@ manager.executeQuery(query).then(function(data){
 </ul>
 ]]>
       </StartingHtml>
-    </TuturialStep>
+    </TutorialStep>
   </Steps>
 </Tutorial>

@@ -21,5 +21,11 @@
     <TutorialStep>
       <Instructions>instructions 3</Instructions>
     </TutorialStep>
+    <TutorialStep>
+      <Instructions>instructions 4</Instructions>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions>instructions 5</Instructions>
+    </TutorialStep>
   </Steps>
 </Tutorial>
