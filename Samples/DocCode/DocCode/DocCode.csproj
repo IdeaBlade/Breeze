@@ -148,7 +148,6 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Content Include="App_Data\NorthwindIB.sdf" />
     <Content Include="App_Data\readme.txt" />
-    <Content Include="App_Data\Todos.sdf" />
     <Content Include="Content\qunit.css" />
     <Content Include="Global.asax" />
     <None Include="Scripts\breeze.intellisense.js" />
