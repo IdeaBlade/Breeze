@@ -27,14 +27,6 @@ Breeze.Client/Scripts/IBlade/Old/pubsub.old.js
 _Internal/Sample_WebApi/Scripts/
 _Internal/Sample_OData/Scripts/
 
-Breeze*.nupkg
-Nuget.builds/BreezeForMVC4/content/Scripts/breeze.debug.js
-Nuget.builds/BreezeForMVC4/content/Scripts/breeze.intellisense.js
-Nuget.builds/BreezeForMVC4/content/Scripts/breeze.js
-Nuget.builds/BreezeForMVC4/content/Scripts/q.js
-Nuget.builds/BreezeForMVC4/content/Scripts/q.min.js
-Nuget.builds/BreezeForMVC4/lib/Breeze.WebApi.dll
-Nuget.builds/BreezeForMVC4/lib/Irony.dll
 
 Samples/DocCode/DocCode/App_Data/Todos.sdf
 Samples/DocCode/DocCode/Scripts/breeze.debug.js
@@ -65,12 +57,18 @@ Samples/Breeze.Inspector/Breeze.Inspector/Scripts/breeze.intellisense.js
 Samples/Breeze.Inspector/Breeze.Inspector/Scripts/breeze.js
 
 
+Breeze*.nupkg
+
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.debug.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.intellisense.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/breeze.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.js
 Nuget.builds/Breeze.MVC4WebApi/content/Scripts/q.min.js
-Nuget.builds/Breeze.MVC4WebApi/lib/Breeze.WebApi.dll
-Nuget.builds/Breeze.MVC4WebApi/lib/Irony.dll
 Nuget.builds/Breeze.MVC4WebApi/Breeze.MVC4WebApi.nuspec
-/Nuget.builds/Breeze.MVC4WebApiClientSample/Breeze.MVC4WebApiClientSample.nuspec
+
+Nuget.builds/Breeze.MVC4WebApiClientSample/content/Scripts/breeze.debug.js
+Nuget.builds/Breeze.MVC4WebApiClientSample/content/Scripts/breeze.intellisense.js
+Nuget.builds/Breeze.MVC4WebApiClientSample/content/Scripts/breeze.js
+Nuget.builds/Breeze.MVC4WebApiClientSample/content/Scripts/q.js
+Nuget.builds/Breeze.MVC4WebApiClientSample/content/Scripts/q.min.js
+Nuget.builds/Breeze.MVC4WebApiClientSample/Breeze.MVC4WebApiClientSample.nuspec
