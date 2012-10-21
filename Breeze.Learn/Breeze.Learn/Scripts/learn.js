@@ -165,43 +165,36 @@
         }
 
     }
-  
+    
+    
     function createBindingHandler(editorName, config) {
-
+        
         return {
             init: function (element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
-                var that = this;
-                this.firstUpdate = true;
+                var editor;
                 var baseConfig = {
                     //extraKeys: {"Enter": false},
                     onUpdate: function () {
-                        if (editor && !that.updating) {
-                            that.updating = true;
+                        if (editor) {
                             var newValue = editor.getValue();
                             valueAccessor()(newValue);
-                            that.updating = false;
-                        }
+                        } 
                     }
                 };
                 config = extendConfig(baseConfig, config);
-                var editor = viewModel[editorName] = CodeMirror.fromTextArea(element, config);
-
+                editor = viewModel[editorName] = CodeMirror.fromTextArea(element, config);
             },
             update: function (element, valueAccessor, allBindingAccessor, viewModel, bindingContext) {
-                if (this.updating && !this.firstUpdate) {
-                    return;
+                var editor = viewModel[editorName];
+                var newValue = valueAccessor()();
+                var oldValue = editor.getValue();
+                if (oldValue !== newValue) {
+                    editor.setValue(newValue);
                 }
-
-                this.firstUpdate = false;
-                this.updating = true;
-                var value = ko.utils.unwrapObservable(valueAccessor());
-                viewModel[editorName].setValue(value);
-                this.updating = false;
             }
         };
-
-
     }
+  
     
     function extendConfig(config, extConfig) {
         if (extConfig) {
