@@ -18,8 +18,9 @@
 			<dependency id="WebActivator" version="1.5.1" />
 			<dependency id="Breeze.MVC4WebApi" version="{{version}}" />
             <!-- Force version #s to align with the MVC 4 Web API template -->
-            <dependency id="knockoutjs" version="[2.1.0]" />
-            <dependency id="Modernizr" version="[2.5.3]" />
+            <dependency id="jQuery" version="[1.7.1, 1.7.2)" />
+            <dependency id="knockoutjs" version="[2.1.0, 2.1.1)" />
+            <dependency id="Modernizr" version="[2.5.3, 2.5.4)" />
 		</dependencies>
     </metadata>
     <files>

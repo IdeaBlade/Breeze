@@ -11,8 +11,7 @@ See documentation at http://www.breezejs.com to learn more.
 -------------------------------------------------------
 TRY IT
 
-1. Run with debug (F5) of without debug (ctrl-F5)
-2. Append "/breezesampleshell" to the browser address bar, e.g., http://localhost:32998/breezesampleshell
+* Run with debug (F5) of without debug (ctrl-F5)
 
 * After a pause to build the database, you should see a browser page displaying a list of sample items.
 
@@ -35,8 +34,12 @@ to display, edit, and save changes.
 
 It automatically includes the Breeze MVC4 Web API Nuget Package if it is not already installed.
 
+It also depends upon 3 other NuGet packages and will install them if not present:
+- jQuery v.1.7.1 
+- Knockout v.2.1.0
+- Modernizr v.2.5.3
 
-This nuget package added the following files to this project.
+This specific nuget package added the following files to this project.
 
 One configuration file
 

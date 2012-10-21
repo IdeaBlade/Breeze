@@ -17,8 +17,6 @@
 		<dependencies>
             <dependency id="WebActivator" version="1.5.1" />
             <dependency id="EntityFramework" version="5.0.0" />
-            <!-- Force version # to align with the MVC 4 Web API template -->
-            <dependency id="jQuery" version="[1.7.1]" />
 		</dependencies>
     </metadata>
     <files>
