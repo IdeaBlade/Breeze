@@ -7,7 +7,7 @@
     <title>Breezy Devices</title>
     <link rel="stylesheet" href="/Content/reset.css"/>
     <link rel="stylesheet" href="/Content/breezydevices.css"/>
-    <script src="/Scripts/modernizr-2.5.3.js"></script>
+    <script src="/Scripts/modernizr-2.6.2.js"></script>
 </head>
 <body>
     <header>
@@ -16,7 +16,7 @@
  
     <!-- Section with client-generated content and bindings -->            
     <section id="content" data-bind="css: { hide: hide }" class="hide">
-        <img src="/Images/save.png" data-bind="click: save" title="Save Changes" /> 
+        <img src="/Images/save.png" data-bind="click: save" title="Save Changes" alt="Save Changes" /> 
       
         <ul data-bind="foreach: people">
             <li class="person" >
@@ -27,8 +27,11 @@
                     <label for="ln">Last: </label>
                     <input id="ln" type="text" data-bind="value: LastName" placeholder="last"/>
               
-                    <br/><label>Devices: </label>
-                    <img src="/Images/device.png" data-bind="click: $parent.loadDevices" title="load devices" /> 
+                    <br/>
+                    <span data-bind="click: $parent.loadDevices" >
+                        <label>Devices: </label>
+                        <img src="/Images/device.png" title="load devices" alt="load devices" /> 
+                    </span>
                     <ul class="device" data-bind="foreach: Devices">
                         <li>
                             <input type="text" data-bind="value: DeviceName" placeholder="device"/>
@@ -50,7 +53,7 @@
     </footer>
     
     <!--3rd party library scripts -->
-    <script src="/Scripts/jquery-1.7.1.min.js"></script>
+    <script src="/Scripts/jquery-1.8.2.min.js"></script>
     <script src="/Scripts/knockout-2.1.0.js"></script>
     <script src="/Scripts/q.js"></script>
     <script src="/Scripts/breeze.debug.js"></script>
