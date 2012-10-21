@@ -8,137 +8,138 @@
     <title>Learn Breeze</title>
     <link rel="stylesheet" href="@Url.Content("~/Styles/default.css")"/>
     <link rel="stylesheet" href="@Url.Content("~/Styles/codemirror.css")"/>
+    <link rel="stylesheet" href="http://yandex.st/highlightjs/7.3/styles/default.min.css">
+    <script src="http://yandex.st/highlightjs/7.3/highlight.min.js"></script>
 </head>
-    <body>
-        <div class="header row">
-            <div class="page-links"></div>
-            <div class="page-title">learn.breeze.com</div>
-          <div class="container-center">
+<body>
+    <div class="header row">
+        <div class="page-links"></div>
+        <div class="page-title">learn.breeze.com</div>
+        <div class="container-center">
             <div class="help-select button" data-bind="click: openHelp">
-              <span class="arrow-down"></span>
-              Help!&nbsp;It&nbsp;didn't&nbsp;work
+                <span class="arrow-down"></span>
+                Help!&nbsp;It&nbsp;didn't&nbsp;work
             </div>
 
             <div class="tutorial-select button" data-bind="click: selectTutorial">
-              <span class="arrow-down"></span>
-              Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
+                <span class="arrow-down"></span>
+                Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
             </div>
-          </div>
+        </div>
+    </div>
+
+    <div class="body row">
+        <div class="left col">
+            <div class="top row panel-container">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
+                                <div class="arrow-right"></div>
+                            </button>
+                            <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
+                                <div class="arrow-left"></div>
+                            </button>
+                            <div class="step-status">
+                                Step <span data-bind="text: activeStepNumber"></span>
+                                of <span data-bind="text: maxStepNumber"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="scroll" data-bind="markdown: currentInstructions"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom row panel-container">
+                <div class="panel">
+                  <div class="panel-header">
+                    <div class="step-navigation">
+                      <div>Output</div>
+                      <button class="run" data-bind="click: run">
+                        <strong>Run</strong>
+                      </button>
+                    </div>
+                  </div>
+                    <div id="output-container" class="panel-content"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="body row">
-            <div class="left col">
-                <div class="top row panel-container">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
-                                    <div class="arrow-right"></div>
-                                </button>
-                                <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
-                                    <div class="arrow-left"></div>
-                                </button>
-                                <div class="step-status">
-                                    Step <span data-bind="text: activeStepNumber"></span> 
-                                    of <span data-bind="text: maxStepNumber"></span>                    
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-content">
-                          <div class="scroll" data-bind="markdown: currentInstructions"></div>
+
+        <div class="right col">
+            <div class="top row panel-container">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <div>Javascript</div>
                         </div>
                     </div>
-                </div>
-                <div class="bottom row panel-container">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Output</div>
-                                <button class="run" data-bind="click: run">
-                                    <div>
-                                        <strong>Run</strong>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="output-container" class="panel-content"></div>
+                    <div class="panel-content">
+                        <textarea data-bind="jsEditor: currentJavascript"></textarea>
                     </div>
                 </div>
             </div>
-            
-            <div class="right col">
-                <div class="top row panel-container">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Html</div>
-                            </div>
-                        </div>
-                        <div class="panel-content">
-                            <textarea data-bind="htmlEditor: currentHtml"></textarea>
+
+            <div class="bottom row panel-container">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <div>Html</div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="bottom row panel-container">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Javascript</div>
-                            </div>
-                        </div>
-                        <div class="panel-content">
-                            <textarea data-bind="jsEditor: currentJavascript"></textarea>
-                        </div>
+                    <div class="panel-content">
+                        <textarea data-bind="htmlEditor: currentHtml"></textarea>
                     </div>
                 </div>
             </div>
         </div>
-        
-      <script id="select-tutorial-source" type="text/html">
+    </div>
+
+    <script id="select-tutorial-source" type="text/html">
         <div id="select-tutorial">
-                <ul class="tutorial-list" data-bind="foreach: tutorials">
-                    <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.finishSelection($data) }, css: { selected: $data == $parent.activeTutorial() }">
-                        <div class="title" data-bind="text: Title"></div>
-                        <div class="description" data-bind="text: Description"></div>
-                    </li>
-                </ul>
-            </div>
-        </script>
-        
-        <script id="ask-help-source" type="text/html">
-            <div id="ask-help">
-                <span>Do you want to go straigh to the final code?</span>
-                <ul class="tutorial-list" data-bind="with: activeTutorial()">
-                    <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.selectHelp('Yes') }">
-                        <div class="title">Yes! Show me the final html and javascript.</div>
-                    </li>
-                    <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.selectHelp('No') }">
-                        <div class="title">No! I can figure it out on my own.</div>
-                    </li>
-                </ul>
-            </div>
-        </script>
+            <ul class="tutorial-list" data-bind="foreach: tutorials">
+                <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.finishSelection($data) }, css: { selected: $data == $parent.activeTutorial() }">
+                    <div class="title" data-bind="text: Title"></div>
+                    <div class="description" data-bind="text: Description"></div>
+                </li>
+            </ul>
+        </div>
+    </script>
 
-        <script type="text/javascript">
-            var Learn = (function(learn) {
-                learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
-                return learn;
-            })(Learn || { });
-        </script>
-        
-        <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-        <script src="@Url.Content("~/Scripts/jquery-1.7.2.min.js")" type="text/javascript"></script>
-        <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")" type="text/javascript"></script>
-        <script src="@Url.Content("~/Scripts/editor/codemirror.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/showdown.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/editor/xml.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/editor/javascript.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/editor/css.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/editor/htmlmixed.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/jquery.simplemodal.js")" type="text/javascript" charset="utf-8"></script>
-        <script src="@Url.Content("~/Scripts/learn.js")" type="text/javascript"></script>
-        <script src="@Url.Content("~/Scripts/q.js")" type="text/javascript"></script>
-        <script src="@Url.Content("~/Scripts/breeze.debug.js")" type="text/javascript"></script>
-    </body>
+    <script id="ask-help-source" type="text/html">
+        <div id="ask-help">
+            <span>Do you want to go straigh to the final code?</span>
+            <ul class="tutorial-list" data-bind="with: activeTutorial()">
+                <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.selectHelp('Yes') }">
+                    <div class="title">Yes! Show me the final html and javascript.</div>
+                </li>
+                <li class="tutorial-item simplemodal-close" data-bind="click: function() { $parent.selectHelp('No') }">
+                    <div class="title">No! I can figure it out on my own.</div>
+                </li>
+            </ul>
+        </div>
+    </script>
+
+    <script type="text/javascript">
+        var Learn = (function(learn) {
+            learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
+            return learn;
+        })(Learn || { });
+    </script>
+
+    <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+    <script src="@Url.Content("~/Scripts/jquery-1.7.2.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/knockout-2.1.0.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/editor/codemirror.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/showdown.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/editor/xml.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/editor/javascript.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/editor/css.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/editor/htmlmixed.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/jquery.simplemodal.js")" type="text/javascript" charset="utf-8"></script>
+    <script src="@Url.Content("~/Scripts/learn.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/q.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/breeze.debug.js")" type="text/javascript"></script>
+</body>
 </html>

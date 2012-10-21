@@ -7,7 +7,9 @@
     learn.currentJavascript = ko.observable();
     showStep(0);
     
-    learn.maxStepNumber = ko.computed(function() {
+    learn.maxStepNumber = ko.computed(function () {
+        // the last step is not actually a real step; it is just where the 
+        // final javascript and html are stored.
         return learn.activeTutorial().Steps.length - 1;
     });
     
@@ -37,7 +39,8 @@
     learn.run = function() {
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
-
+        frame.frameBorder = 0;
+        // frame.scrolling = "no";
         $(container).empty().append(frame);
 
         var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr"
@@ -102,9 +105,12 @@
 
     ko.bindingHandlers.markdown = {
         update: function (element, valueAccessor) {
-            var markdownValue = ko.utils.unwrapObservable(valueAccessor());
+            var markdownValue = valueAccessor()();
             var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
             $(element).html(htmlValue || "");
+            $('pre code', element).each(function () {
+                hljs.highlightBlock(this, '    ' /* tab = four spaces */)
+            });
         }
     };
 
