@@ -105,9 +105,12 @@
 
     ko.bindingHandlers.markdown = {
         update: function (element, valueAccessor) {
-            var markdownValue = ko.utils.unwrapObservable(valueAccessor());
+            var markdownValue = valueAccessor()();
             var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
             $(element).html(htmlValue || "");
+            $('pre code', element).each(function () {
+                hljs.highlightBlock(this, '    ' /* tab = four spaces */)
+            });
         }
     };
 
