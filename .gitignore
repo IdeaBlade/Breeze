@@ -36,10 +36,7 @@ Nuget.builds/BreezeForMVC4/content/Scripts/q.min.js
 Nuget.builds/BreezeForMVC4/lib/Breeze.WebApi.dll
 Nuget.builds/BreezeForMVC4/lib/Irony.dll
 
-DocCode/BreezeDocCode/App_Data/Todos.sdf
-DocCode/BreezeDocCode/Scripts/lib/breeze.debug.js
-DocCode/BreezeDocCode/Scripts/lib/breeze.intellisense.js
-DocCode/BreezeDocCode/ThirdParty/Breeze.WebApi.dll
+Samples/DocCode/DocCode/App_Data/Todos.sdf
 
 Samples/Todo/Todo/App_Data/Todos.sdf
 
