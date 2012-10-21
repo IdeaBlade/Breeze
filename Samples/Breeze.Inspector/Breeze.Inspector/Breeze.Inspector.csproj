@@ -212,6 +212,9 @@
     <Content Include="Images\Warn_Small.png" />
     <Content Include="Images\x.png" />
     <Content Include="Images\X_Large.png" />
+    <Content Include="Scripts\breeze.debug.js" />
+    <None Include="Scripts\breeze.intellisense.js" />
+    <Content Include="Scripts\breeze.js" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
     <Content Include="Styles\qunit.css" />
@@ -238,6 +241,7 @@
   <ItemGroup>
     <Content Include="Views\Test\Index.cshtml" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -277,31 +281,12 @@
   <PropertyGroup>
     <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
 echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
-GOTO chkWebApiLib
-
+GOTO :done
 :breezeExists
-echo Copying breeze.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to App\lib
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)App\lib" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)App\lib" /Y
-
-:chkWebApiLib
-IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\Breeze.WebApi.dll" GOTO webApiLibExists
-echo Breeze.WebApi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi' and was not copied
-GOTO chkIronyLib
-
-:webApiLibExists
-echo Copying BreezeWebApi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi' to ThirdParty
-COPY "$(ProjectDir)..\..\..\Breeze.WebApi\Breeze.WebApi.dll" "$(ProjectDir)ThirdParty" /Y
-
-:chkIronyLib
-IF EXIST "$(ProjectDir)..\..\..\ThirdParty\Irony.dll" GOTO ironyLibExists
-echo Irony.dll was not found in '$(ProjectDir)..\..\..\ThirdParty' and was not copied
-GOTO done
-
-:ironyLibExists
-echo Copying Irony.dll from '$(ProjectDir)..\..\..\ThirdParty' to ThirdParty
-COPY "$(ProjectDir)..\..\..\ThirdParty\Irony.dll" "$(ProjectDir)ThirdParty" /Y
-
+echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
 :done</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
