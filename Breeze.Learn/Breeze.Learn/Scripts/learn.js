@@ -37,7 +37,8 @@
     learn.run = function() {
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
-
+        frame.frameBorder = 0;
+        // frame.scrolling = "no";
         $(container).empty().append(frame);
 
         var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr"
