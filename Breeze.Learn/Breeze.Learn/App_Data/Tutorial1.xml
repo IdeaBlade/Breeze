@@ -6,18 +6,30 @@
   <Steps>
     <TutorialStep>
       <Instructions>
-This example shows how to initialize breeze and create and run a very simple query.  
+<![CDATA[        
+###Getting started
 
-To start with, in the title bar of the box below, you should click "Run".
+This is a introductory tutorial on using *Breeze* to create and run a simple query.
 
-If at any time during this tutorial you find it unclear how to proceed, or your code isn't behaving as the tutorial describes, 
-you can always click the *"Help, it's not working!"* button (above). This will replace your code with a working copy.
+The javascript code needed to execute each step of this tutorial is shown in the panel to the right labeled "Javascript".  The Html needed to display the data
+returned by the Javascript code appears just below that in the panel labeled "Html".  Finally, the panel just below this one labeled "Output"
+is both where you start the execution of the Javascript code and where any results will appear.
+
+Each tutorial consists of a set of steps.  You can move between steps by clicking on the arrow keys at the top of this panel. You should try to
+perform all of the instructions listed in this panel before moving on the next step.
+
+If at any time during this tutorial you find it unclear how to proceed, or your code isn't behaving as the tutorial describes,
+you can always click the *"Help, it didn't work!"* button (above). This will replace your code with a working copy.
+
+We have already prepared the starting point for this tutorial and filled the "Javascript" and "Html" panels.
+
+So let's get started by having you click the "Run" button in the box below.
 
 You should have seen a list of employee names appear in the box below.
 
-Now let's try and make the query a bit more complicated by adding an "orderBy" clause.
+Now let's try and make the query a bit more complicated by ordering the results.  In *Breeze* we do this by adding an "orderBy" clause to a query.
 
-Simply replace this query
+So simply replace this query in the "Javascript" panel.
 
 >     var query = new entityModel.EntityQuery()
 >        .from("Employees");
@@ -28,7 +40,10 @@ with this query
 >         .from("Employees")
 >         .orderBy("LastName");
 
-and then press 'Run'     
+and then press 'Run'.
+
+At this point you should see the same "Employees" as before, except that now they should all be sorted by "LastName".
+]]>
       </Instructions>
       <StartingJavascript>
 <![CDATA[
@@ -51,19 +66,40 @@ manager.executeQuery(query).then(function(data){
 ]]>
       </StartingJavascript>
       <StartingHtml>
-    <![CDATA[
+<![CDATA[
 <ul data-bind="foreach: results">
   <li>
     <span data-bind="text:FirstName"></span>
     <span data-bind="text:LastName"></span>
   </li>
 </ul>
-    ]]>
-  </StartingHtml>
+]]>
+      </StartingHtml>
     </TutorialStep>
     <TutorialStep>
       <Instructions>
-Now let's try filtering the query.        
+<![CDATA[        
+Now let's try filtering the query.
+
+So simply replace this query in the "Javascript" panel.
+
+>     var query = new entityModel.EntityQuery()
+>         .from("Employees")
+>         .orderBy("LastName");
+
+with this query
+
+>     var query = new entityModel.EntityQuery()
+>       .from("Employees")
+>       .orderBy("LastName")
+>       .where("LastName", "startsWith", "P");
+
+and then press 'Run'.
+
+At this point, you should only see two "Employee" both of whose last names begin with the letter "P".
+
+The "where" clause above consists of three parts, ...
+]]>
       </Instructions>
       <StartingJavascript>
 <![CDATA[
@@ -85,12 +121,39 @@ manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
 });
 ]]>
-  </StartingJavascript>
-      <StartingHtml/>
+      </StartingJavascript>
+      <StartingHtml></StartingHtml>
     </TutorialStep>
-      <TutorialStep>
+    <TutorialStep>
       <Instructions>
-Now let's try filtering the query.        
+<![CDATA[
+Ok, now let's try to query a different collection on the server.
+
+Let's change the query in the the "Javascript" panel from using "Employees"
+
+>      .from("Employees")
+>      .orderBy("LastName")
+>      .where("LastName", "startsWith", "P");
+
+to "Customers"
+
+>      .from("Customers");
+
+Now we also need to change the "Html" to show *Customer* information instead of *Employee* information.
+
+This involves editing the Html and changing.
+
+>     <span data-bind="text:FirstName"></span>
+>     <span data-bind="text:LastName"></span>
+
+to this
+
+>     <span data-bind="text:CompanyName"></span>
+
+and press 'Run'.
+
+You should now see a rather long list of company names, long enough that you need to scroll in order to see them all.
+]]>
       </Instructions>
       <StartingJavascript>
 <![CDATA[
@@ -114,7 +177,79 @@ manager.executeQuery(query).then(function(data){
 });
 ]]>
       </StartingJavascript>
-      <StartingHtml/>
+      <StartingHtml></StartingHtml>
     </TutorialStep>
+    <TuturialStep>
+      <Instructions>
+<![CDATA[
+Now let's see if we can take just a subset of all of the customers.
+]]>
+      </Instructions>
+      <StartingJavascript>
+<![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers");
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+<![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
+    </TuturialStep>
+    <TuturialStep>
+      <Instructions>
+<![CDATA[
+]]>
+      </Instructions>
+      <StartingJavascript>
+<![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers")
+    .take(5);
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+<![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
+    </TuturialStep>
   </Steps>
 </Tutorial>

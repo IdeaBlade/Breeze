@@ -7,7 +7,9 @@
     learn.currentJavascript = ko.observable();
     showStep(0);
     
-    learn.maxStepNumber = ko.computed(function() {
+    learn.maxStepNumber = ko.computed(function () {
+        // the last step is not actually a real step; it is just where the 
+        // final javascript and html are stored.
         return learn.activeTutorial().Steps.length - 1;
     });
     
