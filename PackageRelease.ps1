@@ -74,9 +74,9 @@ if (test-path $zipFile) {
 sz a -tzip "$zipFile" "$destDir\*"    
 
 #create basic plus... release folder structure and zip it
-gci $srcDir\DocCode\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
-copy-item $srcDir\DocCode $destDir\DocCode -recurse
-gci $destDir\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
+gci $srcDir\Samples\DocCode\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+copy-item $srcDir\Samples\DocCode $destDir\Samples\DocCode -recurse
+gci $destDir\Samples\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
 
 gci $srcDir\Samples\ToDo\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
