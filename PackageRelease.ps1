@@ -27,6 +27,12 @@ function getBreezeVersion($srcDir) {
     return $versionNum
 }
 
+function eraseExtraFiles($dir) {
+    # erases all files in any bin,obj and resharper folders below $dir and any .suo files
+    # '@' in the next line insures that the result is an array ( even if no files found).
+	$files = @(gci $dir\ -include  bin,obj,packages,*_Resharper*,*.suo -recurse)  
+	$files | foreach ($_) { remove-item $_.fullname -recurse }
+}
 
 # make sure 7-Zip is available
 if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
@@ -54,10 +60,8 @@ $minutes = 5
 checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
-# erases all files in any bin,obj and resharper folders below $srcDir and any .suo files
-
-gci $srcDir\ -include *_Resharper*,*.suo -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
-gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname -Force }
+eraseExtraFiles $srcDir
+gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname }
 
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
@@ -74,15 +78,15 @@ if (test-path $zipFile) {
 sz a -tzip "$zipFile" "$destDir\*"    
 
 #create basic plus... release folder structure and zip it
-gci $srcDir\Samples\DocCode\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+eraseExtraFiles "$srcDir\Samples\DocCode\"
 copy-item $srcDir\Samples\DocCode $destDir\Samples\DocCode -recurse
 gci $destDir\Samples\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
 
-gci $srcDir\Samples\ToDo\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+eraseExtraFiles "$srcDir\Samples\ToDo\" 
 copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
 gci $destDir\Samples\Todo -include *.sdf -recurse -force | remove-Item -recurse -force
 
-gci $srcDir\Samples\BreezyDevices\ -include bin,obj,packages -recurse -force | foreach ($_) { remove-item $_.fullname -Force -Recurse }
+eraseExtraFiles "$srcDir\Samples\BreezyDevices\"
 copy-item $srcDir\Samples\BreezyDevices $destDir\Samples\BreezyDevices -recurse
 gci $destDir\Samples\BreezyDevices -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
 
