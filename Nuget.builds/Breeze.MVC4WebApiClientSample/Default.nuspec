@@ -9,7 +9,7 @@
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Provides a very simple Breeze sample app</description>
+        <description>Provides a very simple Breeze sample app.  We recommend installing this package shortly after creating a project with the "MVC 4 Empty" template or the "MVC 4 Web Api" template. It builds on the dependent "Breeze for MVC4 WebApi projects" package which will be installed automatically.</description>
         <summary>Breeze MVC4 Web Api Client sample application</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>

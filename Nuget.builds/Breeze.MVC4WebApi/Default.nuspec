@@ -9,7 +9,7 @@
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Includes all of the Breeze related files that a MVC4 WebApi App needs.</description>
+        <description>Includes all of the Breeze related files that a MVC4 WebApi App needs plus a sample Breeze model and controller.  We recommend installing this package shortly after creating a project with the "MVC 4 Empty" template or the "MVC 4 Web Api" template.  Consider the "Breeze for MVC4 WebApi Client Sample" if you want to see an example client companion to the example model.</description>
         <summary>Breeze MVC4 Helper package</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
