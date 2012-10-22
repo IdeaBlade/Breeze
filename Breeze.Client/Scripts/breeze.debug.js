@@ -6186,12 +6186,14 @@ function (core, m_entityMetadata, m_entityAspect) {
             @param [callback.data] {Object} 
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
+            @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @param errorCallback {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
+            @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @return {Promise}
         **/
