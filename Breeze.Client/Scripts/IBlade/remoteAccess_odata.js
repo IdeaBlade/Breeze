@@ -60,7 +60,7 @@ function (core, m_entityMetadata) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
-                    var error = new Error("No schema found for: " + metadataSvcUrl);
+                    var error = new Error("Metadata query failed for: " + metadataSvcUrl);
                     if (onError) {
                         onError(error);
                     } else {
@@ -74,7 +74,9 @@ function (core, m_entityMetadata) {
                 }
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                var err = createError(error);
+                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                if (errorCallback) errorCallback(err);
             },
             OData.metadataHandler
         );

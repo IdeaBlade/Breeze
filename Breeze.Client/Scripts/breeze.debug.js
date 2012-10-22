@@ -8306,12 +8306,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param callback.data {Object} 
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
+            @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
+            @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @return {Promise} Promise
         **/
@@ -8444,11 +8446,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
             save.
             @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+            @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @return {Promise} Promise
         **/
         ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
@@ -8506,7 +8510,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
                 // but KeyMapping properties are still ucase. ugh...
-                var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings };
+                var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
                 fixupKeys(that, saveResult.keyMappings);
                 var queryContext = { query: null, entityManager: that, mergeStrategy: MergeStrategy.OverwriteChanges, refMap: {} };
                 var savedEntities = saveResult.entities.map(function (rawEntity) {
@@ -9140,7 +9144,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                                 fn();
                             });
                         }
-                        return { results: entities, query: query };
+                        return { results: entities, query: query, XHR: rawEntities.XHR };
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -10066,7 +10070,7 @@ function (core, m_entityMetadata) {
         jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
             if (!metadata) {
-                if (errorCallback) errorCallback(new Error("No schema found for: " + metadataSvcUrl));
+                if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                 return;
             }
             // setProperties metadataStore    
@@ -10076,7 +10080,7 @@ function (core, m_entityMetadata) {
                 // if from DbContext 
                 schema = metadata.conceptualModels.schema;
                 if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Unable to locate 'schema' member in metadata"));
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
                 }
             }
@@ -10086,6 +10090,7 @@ function (core, m_entityMetadata) {
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             var err = createError(jqXHR);
+            err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
             if (errorCallback) errorCallback(err);
         });
     };
@@ -10096,10 +10101,13 @@ function (core, m_entityMetadata) {
         jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
             try {
+                data.XHR = jqXHR;
                 collectionCallback(data);
             } catch (e) {
+                var error = createError(jqXHR);
+                error.internalError = e;
                 // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                if (errorCallback) errorCallback(e);
+                if (errorCallback) errorCallback(error);
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
@@ -10119,6 +10127,7 @@ function (core, m_entityMetadata) {
                 err.message = data.Error;
                 errorCallback(err);
             } else {
+                data.XHR = jqXHR;
                 callback(data);
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -10174,6 +10183,7 @@ function (core, m_entityMetadata) {
 
     function createError(jqXHR) {
         var err = new Error();
+        err.XHR = jqXHR;
         err.message = jqXHR.statusText;
         err.responseText = jqXHR.responseText;
         err.status = jqXHR.status;
@@ -10265,7 +10275,7 @@ function (core, m_entityMetadata) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
-                    var error = new Error("No schema found for: " + metadataSvcUrl);
+                    var error = new Error("Metadata query failed for: " + metadataSvcUrl);
                     if (onError) {
                         onError(error);
                     } else {
@@ -10279,7 +10289,9 @@ function (core, m_entityMetadata) {
                 }
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                var err = createError(error);
+                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                if (errorCallback) errorCallback(err);
             },
             OData.metadataHandler
         );
@@ -11115,7 +11127,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.64.2",
+        version: "0.64.3",
         core: core,
         entityModel: entityModel
     };

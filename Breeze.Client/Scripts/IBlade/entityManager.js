@@ -604,12 +604,14 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param callback.data {Object} 
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
+            @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
+            @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @return {Promise} Promise
         **/
@@ -742,11 +744,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
             save.
             @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+            @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @param [errorCallback] {Function} Function called on failure.
             
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
+            @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @return {Promise} Promise
         **/
         ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
@@ -804,7 +808,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
                 // but KeyMapping properties are still ucase. ugh...
-                var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings };
+                var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
                 fixupKeys(that, saveResult.keyMappings);
                 var queryContext = { query: null, entityManager: that, mergeStrategy: MergeStrategy.OverwriteChanges, refMap: {} };
                 var savedEntities = saveResult.entities.map(function (rawEntity) {
@@ -1438,7 +1442,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                                 fn();
                             });
                         }
-                        return { results: entities, query: query };
+                        return { results: entities, query: query, XHR: rawEntities.XHR };
                     });
                     deferred.resolve( result);
                 }, function (e) {

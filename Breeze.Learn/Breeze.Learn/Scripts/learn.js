@@ -108,6 +108,7 @@
             var markdownValue = valueAccessor()();
             var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
             $(element).html(htmlValue || "");
+            // colorize code
             $('pre code', element).each(function () {
                 hljs.highlightBlock(this, '    ' /* tab = four spaces */)
             });

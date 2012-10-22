@@ -26,7 +26,7 @@ function (core, m_entityMetadata) {
         jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
             var metadata = JSON.parse(data);
             if (!metadata) {
-                if (errorCallback) errorCallback(new Error("No schema found for: " + metadataSvcUrl));
+                if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                 return;
             }
             // setProperties metadataStore    
@@ -36,7 +36,7 @@ function (core, m_entityMetadata) {
                 // if from DbContext 
                 schema = metadata.conceptualModels.schema;
                 if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Unable to locate 'schema' member in metadata"));
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
                 }
             }
@@ -46,6 +46,7 @@ function (core, m_entityMetadata) {
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             var err = createError(jqXHR);
+            err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
             if (errorCallback) errorCallback(err);
         });
     };
@@ -56,10 +57,13 @@ function (core, m_entityMetadata) {
         jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
             // TODO: check response object here for possible errors.
             try {
+                data.XHR = jqXHR;
                 collectionCallback(data);
             } catch (e) {
+                var error = createError(jqXHR);
+                error.internalError = e;
                 // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                if (errorCallback) errorCallback(e);
+                if (errorCallback) errorCallback(error);
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
             if (errorCallback) errorCallback(createError(jqXHR));
@@ -79,6 +83,7 @@ function (core, m_entityMetadata) {
                 err.message = data.Error;
                 errorCallback(err);
             } else {
+                data.XHR = jqXHR;
                 callback(data);
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -134,6 +139,7 @@ function (core, m_entityMetadata) {
 
     function createError(jqXHR) {
         var err = new Error();
+        err.XHR = jqXHR;
         err.message = jqXHR.statusText;
         err.responseText = jqXHR.responseText;
         err.status = jqXHR.status;

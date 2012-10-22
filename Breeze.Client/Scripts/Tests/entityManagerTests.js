@@ -41,6 +41,17 @@ define(["testFns"], function (testFns) {
         ok(em);
     });
     
+    test("initialization error on first query", function () {
+        var em = new EntityManager("foo");
+        stop();
+        em.executeQuery("xxx").then(function(x) {
+            ok(false, "shouldn't get here");
+        }).fail(function(e) {
+            ok(e.message.indexOf("foo") >= 0, "error message should mention 'foo'");
+        }).fin(start);
+        
+    });
+    
     test("store-gen keys are always set by key generator on add to manager if they have default values", function () {
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
