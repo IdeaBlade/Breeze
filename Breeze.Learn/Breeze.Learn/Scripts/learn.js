@@ -107,10 +107,13 @@
         update: function (element, valueAccessor) {
             var markdownValue = valueAccessor()();
             var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
+            if (Learn.canMoveNext()) {
+                htmlValue = htmlValue + '<button class="button" onclick=Learn.moveNext()><strong>Continue to next step</strong></button><br><br>';
+            }
             $(element).html(htmlValue || "");
             // colorize code
             $('pre code', element).each(function () {
-                hljs.highlightBlock(this, '    ' /* tab = four spaces */)
+                hljs.highlightBlock(this, '    ' /* tab = four spaces */);
             });
         }
     };
@@ -129,6 +132,7 @@
     function showInstructions(stepIx) {
         var step = learn.activeTutorial().Steps[stepIx];
         learn.currentInstructions(step.Instructions);
+        $('#instructions').scrollTop(0);
     }
     
     function showJavascript(stepIx) {
