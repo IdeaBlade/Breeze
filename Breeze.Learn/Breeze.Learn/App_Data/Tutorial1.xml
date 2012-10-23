@@ -10,18 +10,20 @@
 
 This is a introductory tutorial on using *Breeze* to create and run a simple query.
 
-The javascript code needed to execute each step of this tutorial is shown in the panel to the right labeled "Javascript".  The Html needed to display the data
-returned by the Javascript code appears just below that in the panel labeled "Html".  Finally, the panel just below this one labeled "Output"
+### What are all these panes for?
+The javascript code needed to execute each step of this tutorial is shown in the panel to the right labeled *Javascript*.  The Html needed to display the data
+returned by the Javascript code appears just below that in the panel labeled *Html*.  Finally, the panel just below this one labeled *Output*
 is both where you start the execution of the Javascript code and where any results will appear.
 
 Each tutorial consists of a set of steps.  You can move between steps by clicking on the arrow keys at the top of this panel. You should try to
 perform all of the instructions listed in this panel before moving on the next step.
 
 If at any time during this tutorial you find it unclear how to proceed, or your code isn't behaving as the tutorial describes,
-you can always click the *"Help, it didn't work!"* button (above). This will replace your code with a working copy.
+you can always click the **"Help, it didn't work!"** button (above). This will replace your code with a working copy.
 
-We have already prepared the starting point for this tutorial and filled the "Javascript" and "Html" panels.
+We have already prepared the starting point for this tutorial and filled the *Javascript* and *Html* panels.
 
+### Ok, now what?
 So let's get started by having you click the "Run" button in the box below.
 
 You should have seen a list of employee names appear in the box below.
