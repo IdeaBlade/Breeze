@@ -1,6 +1,6 @@
 namespace $rootnamespace$.Models
 {
-    public class BreezeSampleItem
+    public class BreezeSampleTodoItem
     {
         public int Id { get; set; }             // 42
         public string Description { get; set; } // "Try Breeze"

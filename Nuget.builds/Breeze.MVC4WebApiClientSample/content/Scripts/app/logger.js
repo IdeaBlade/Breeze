@@ -1,5 +1,5 @@
-﻿(function (root) {
-    var app = root.app = root.app || {};
+﻿(function (exports) {
+    var app = exports.app = exports.app || {};
     var logCounter = 1;
     var logger = {
         error: error,
@@ -33,11 +33,5 @@
     }
 
     app.logger = logger;
-    
-    //app.logger.success("went great");
-    //app.logger.info("know this");
-    //app.logger.warning("watchout!");
-    //app.logger.validationError("incorrect value");
-    //app.logger.error("you blew it");
-    
+
 }(window));

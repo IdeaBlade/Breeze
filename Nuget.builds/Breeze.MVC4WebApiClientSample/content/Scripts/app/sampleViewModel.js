@@ -1,7 +1,9 @@
 ﻿/// <reference path="..\breeze.debug.js" />
 
-(function (root) {
-    var breeze = root.breeze;
+(function (exports) {
+    var breeze = exports.breeze,
+        ko = exports.ko,
+        logger = exports.app.logger;
 
     // define Breeze namespaces
     var core = breeze.core,
@@ -19,35 +21,32 @@
     // manager is the service gateway and cache holder
     var manager = new entityModel.EntityManager(serviceName);
 
-    // get the logger
-    var logger = root.app.logger;
-
     // define the viewmodel
     var vm = {
-        items: ko.observableArray([]),
+        todos: ko.observableArray(),
         includeDone: ko.observable(false),
         save: saveChanges,
-        hide: ko.observable(true)
+        show: ko.observable(false)
     };
 
-    // start fetching items
-    getSampleItems();
+    // start fetching Todos
+    getTodos();
 
     // re-query when "includeDone" checkbox changes
-    vm.includeDone.subscribe(getSampleItems);
+    vm.includeDone.subscribe(getTodos);
 
     // bind view to the viewmodel
     ko.applyBindings(vm);
 
     /* Private functions */
 
-    // get sample items asynchronously
+    // get Todos asynchronously
     // returning a promise to wait for     
-    function getSampleItems() {
+    function getTodos() {
 
-        logger.info("querying sample items");
+        logger.info("querying Todos");
 
-        var query = entityModel.EntityQuery.from("Samples");
+        var query = entityModel.EntityQuery.from("Todos");
 
         if (!vm.includeDone()) {
             query = query.where("IsDone", "==", false);
@@ -61,13 +60,13 @@
 
     // clear observable array and load the results 
     function processResults(data) {
-        logger.success("queried sample items");
-        vm.items.removeAll();
-        var items = data.results;
-        items.forEach(function (item) {
-            vm.items.push(item);
+        logger.success("queried Todos");
+        vm.todos.removeAll();
+        var todos = data.results;
+        todos.forEach(function (todo) {
+            vm.todos.push(todo);
         });
-        vm.hide(false); // unhide the view
+        vm.show(true); // show the view
     }
 
     function saveChanges() {

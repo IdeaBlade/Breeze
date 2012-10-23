@@ -3,42 +3,42 @@ Breeze MVC4 Web API Nuget Package ReadMe
 
 This readme covers
 
-- How to try this Breeze Web API sample
+- How to try this "Breeze Web Api" sample
 - The inventory of items added by this nuget package
 
-See documentation at http://www.breezejs.com to learn more.
+Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 
 ------------------------------------------
 TRY IT
 
 1. Run with debug (F5) of without debug (ctrl-F5)
 2. Append "/api/BreezeSample/metadata" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/metadata
-3. Append "/api/BreezeSample/samples" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/samples
+3. Append "/api/BreezeSample/todos" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/todos
 
 *** VIEWING IS EASIER IN NON-IE BROWSERS, IF USING IE, SEE NOTE BELOW.  ***
 
 #2 should produce metadata as JSON such as
 
 <string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
-{"conceptualModels":{"schema":{"namespace":"$rootname$.Models","alias":"Self","d4p1:UseStrongSpatialTypes":"false","xmlns:d4p1":"http://schemas.microsoft.com/ado/2009/02/edm/annotation","xmlns":"http://schemas.microsoft.com/ado/2009/11/edm","entityType":{"name":"BreezeSampleItem","key":{"propertyRef":{"name":"Id"}},"property":[{"name":"Id","type":"Edm.Int32","nullable":"false","d4p1:StoreGeneratedPattern":"Identity"},{"name":"Description","type":"Edm.String","fixedLength":"false","maxLength":"Max","unicode":"true","nullable":"true"},{"name":"IsDone","type":"Edm.Boolean","nullable":"false"}]},"entityContainer":{"name":"BreezeSampleContext","entitySet":{"name":"Samples","entityType":"Self.BreezeSampleItem"}}}}}
+{"conceptualModels":{"schema":{"namespace":"%rootname%.Models","alias":"Self","d4p1:UseStrongSpatialTypes":"false","xmlns:d4p1":"http://schemas.microsoft.com/ado/2009/02/edm/annotation","xmlns":"http://schemas.microsoft.com/ado/2009/11/edm","entityType":{"name":"BreezeSampleTodoItem","key":{"propertyRef":{"name":"Id"}},"property":[{"name":"Id","type":"Edm.Int32","nullable":"false","d4p1:StoreGeneratedPattern":"Identity"},{"name":"Description","type":"Edm.String","fixedLength":"false","maxLength":"Max","unicode":"true","nullable":"true"},{"name":"IsDone","type":"Edm.Boolean","nullable":"false"}]},"entityContainer":{"name":"BreezeSampleContext","entitySet":{"name":"Todos","entityType":"Self.BreezeSampleTodoItem"}}}}}
 </string>
 
 
 #3 should trigger database creation and initialization, returning JSON 
 
-<ArrayOfBreezeSampleItem xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.datacontract.org/2004/07/$rootname$.Models">
-<BreezeSampleItem>
+<ArrayOfBreezeSampleTodoItem xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.datacontract.org/2004/07/$rootname$.Models">
+<BreezeSampleTodoItem>
     <Description>Wake up</Description>
     <Id>1</Id>
     <IsDone>false</IsDone>
-</BreezeSampleItem>
-<BreezeSampleItem>
+</BreezeSampleTodoItem>
+<BreezeSampleTodoItem>
     <Description>Do dishes</Description>
     <Id>2</Id>
     <IsDone>true</IsDone>
-</BreezeSampleItem>
+</BreezeSampleTodoItem>
 ...
-</ArrayOfBreezeSampleItem>
+</ArrayOfBreezeSampleTodoItem>
 
 ------------------------------------------
 VIEWING JSON RESULTS IN IE
@@ -83,7 +83,7 @@ One configuration file
 
 Sample EF Code First model, DbContext, and initializer
 
-	Models/BreezeSampleItem.cs
+	Models/BreezeSampleTodoItem.cs
 	Models/BreezeSampleContext.cs
 	Models/BreezeSampleDatabaseInitializer.cs
 

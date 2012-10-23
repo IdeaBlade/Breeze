@@ -21,12 +21,12 @@
     <div id="body">
         <section id="content" class="content-wrapper main-content">
 
-            <div data-bind="css: { hide: hide }" class="hide">
+            <div data-bind="visible: show" style="display: none">
                 <a href="#" data-bind="click: save">Save</a>&nbsp;
                     <input type="checkbox" data-bind="checked: includeDone" />
                 include done 
   
-                    <ul data-bind="foreach: items">
+                    <ul data-bind="foreach: todos">
                         <li>
                             <form>
                                 <input type="checkbox" data-bind="checked: IsDone" />
