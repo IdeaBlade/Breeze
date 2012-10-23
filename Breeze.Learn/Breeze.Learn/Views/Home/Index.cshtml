@@ -31,7 +31,7 @@
     <div class="body row">
         <div class="left col">
             <div class="top row panel-container">
-                <div class="panel">
+
                     <div class="panel-header">
                         <div class="step-navigation">
                             <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
@@ -47,12 +47,12 @@
                         </div>
                     </div>
                     <div class="panel-content">
-                        <div id="instructions" style="height: 90%;" class="scroll-y" data-bind="markdown: currentInstructions"></div>
+                        <div id="instructions" style="height: 90%;" class="scroll" data-bind="markdown: currentInstructions"></div>
                     </div>
-                </div>
+
             </div>
             <div class="bottom row panel-container">
-                <div class="panel">
+
                   <div class="panel-header">
                     <div class="step-navigation">
                       <div>Output</div>
@@ -62,14 +62,14 @@
                     </div>
                   </div>
                     <div id="output-container" class="panel-content"></div>
-                </div>
+
             </div>
         </div>
 
 
         <div class="right col">
             <div class="top row panel-container">
-                <div class="panel">
+
                     <div class="panel-header">
                         <div class="step-navigation">
                             <div>Javascript</div>
@@ -78,11 +78,11 @@
                     <div class="panel-content">
                         <textarea data-bind="jsEditor: currentJavascript"></textarea>
                     </div>
-                </div>
+                
             </div>
 
             <div class="bottom row panel-container">
-                <div class="panel">
+
                     <div class="panel-header">
                         <div class="step-navigation">
                             <div>Html</div>
@@ -91,7 +91,7 @@
                     <div class="panel-content">
                         <textarea data-bind="htmlEditor: currentHtml"></textarea>
                     </div>
-                </div>
+                
             </div>
         </div>
     </div>

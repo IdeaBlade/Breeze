@@ -83,20 +83,12 @@
     left: 50%;
 }
 
-.panel-container  {
+.panel-container {
     padding: 4px;
     height: 100%;
-    box-sizing: border-box;
-}
+    /* box-sizing: border-box; */
 
-.panel-content  {
-    margin-left: 10px;
-    height: 100%;
-}
-
-.panel {
-    height: 100%;
-    border: 1px solid gray;
+    border: 2px solid gray; 
     background-color: white;
     -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .6);
     -moz-box-shadow: 0 0 8px rgba(0,0,0,.6);
@@ -112,6 +104,12 @@
     font-size: .9em;
     font-weight: bold;
 }
+
+.panel-content  {
+    margin-left: 10px;
+    height: 100%;
+}
+
 
 .help-select {
     float: left;
