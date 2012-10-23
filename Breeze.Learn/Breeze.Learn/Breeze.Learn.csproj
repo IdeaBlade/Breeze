@@ -168,6 +168,7 @@
     <Content Include="Scripts\learn.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\showdown.js" />
+    <Content Include="Scripts\splitter.js" />
     <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\default.css" />
     <Content Include="Web.config" />

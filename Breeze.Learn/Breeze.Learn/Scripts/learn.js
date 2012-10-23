@@ -1,4 +1,6 @@
 ﻿var Learn = (function(learn, $) {
+
+    // $("#Vsplitter").splitter({ resizeToWidth: true });
     
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStepNumber = ko.observable(1);
@@ -6,6 +8,7 @@
     learn.currentHtml = ko.observable();
     learn.currentJavascript = ko.observable();
     showStep(0);
+    
     
     learn.maxStepNumber = ko.computed(function () {
         // the last step is not actually a real step; it is just where the 
@@ -119,6 +122,9 @@
     };
 
     ko.applyBindings(learn);
+    // $("#Vsplitter").css("height", "100%").css("width", "100%").splitter();
+    // $("#Vsplitter").splitter({ anchorToWindow: true, resizeOnWindow: true });
+    // $("#Vsplitter").trigger("resize");
     
     function showStep(stepIx) {
         if (stepIx === undefined) {
