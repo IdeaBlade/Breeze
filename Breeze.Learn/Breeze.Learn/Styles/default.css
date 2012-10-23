@@ -18,8 +18,6 @@
 }
 
 .scroll {
-    height: inherit;
-    width: inherit;
     overflow: auto;
 
 }
@@ -106,7 +104,7 @@
 }
 
 .panel-content  {
-    margin-left: 10px;
+    margin-left: 5px;
     height: 100%;
 }
 
