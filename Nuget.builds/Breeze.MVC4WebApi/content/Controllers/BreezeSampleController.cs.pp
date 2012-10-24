@@ -24,8 +24,8 @@ namespace $rootnamespace$.Controllers {
         }
         
         [AcceptVerbs("GET")]
-        public IQueryable<BreezeSampleItem> Samples() {
-            return _contextProvider.Context.Samples;
+        public IQueryable<BreezeSampleTodoItem> Todos() {
+            return _contextProvider.Context.Todos;
         }
 
     }

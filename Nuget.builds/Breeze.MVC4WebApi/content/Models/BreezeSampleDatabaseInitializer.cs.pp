@@ -15,18 +15,17 @@ namespace $rootnamespace$.Models
     {
         protected override void Seed(BreezeSampleContext context)
         {
-            var samples = new []
+            var todos = new []
                 {
-                    // Description IsDone
-                    new BreezeSampleItem{Description = "Wake up"},
-                    new BreezeSampleItem{Description = "Do dishes", IsDone = true},
-                    new BreezeSampleItem{Description = "Mow lawn", IsDone = true},
-                    new BreezeSampleItem{Description = "Try Breeze"},
-                    new BreezeSampleItem{Description = "Tell the world"},
-                    new BreezeSampleItem{Description = "Go home early"},
+                    new BreezeSampleTodoItem{Description = "Wake up"},
+                    new BreezeSampleTodoItem{Description = "Do dishes", IsDone = true},
+                    new BreezeSampleTodoItem{Description = "Mow lawn", IsDone = true},
+                    new BreezeSampleTodoItem{Description = "Try Breeze"},
+                    new BreezeSampleTodoItem{Description = "Tell the world"},
+                    new BreezeSampleTodoItem{Description = "Go home early"},
                 };
 
-            Array.ForEach(samples, t => context.Samples.Add(t));
+            Array.ForEach(todos, t => context.Todos.Add(t));
 
             context.SaveChanges(); // Save 'em
         }

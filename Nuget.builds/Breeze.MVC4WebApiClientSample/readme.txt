@@ -3,10 +3,10 @@ Breeze MVC4 Web API Client Sample Nuget Package ReadMe
 
 This readme covers
 
-- How to try this Breeze Web API Client sample
+- How to try this "Breeze Web Api" Client sample
 - The inventory of items added by this nuget package
 
-See documentation at http://www.breezejs.com to learn more.
+Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 
 -------------------------------------------------------
 TRY IT
@@ -27,12 +27,11 @@ TRY IT
 -------------------------------------------------------
 WHAT THIS PACKAGE ADDED
 
-
-This package depends upon and extends the Breeze MVC4 Web API Nuget Package
+This package depends upon and extends the "Breeze MVC4 Web Api" NuGet Package
 by adding a simple HTML/JavaScript client that uses Breeze to
 to display, edit, and save changes.
 
-It automatically includes the Breeze MVC4 Web API Nuget Package if it is not already installed.
+It automatically includes the "Breeze MVC4 Web Api" NuGet Package if it is not already installed.
 
 It also depends upon 3 other NuGet packages and will install them if not present:
 - jQuery v.1.7.1 
@@ -62,4 +61,8 @@ Two application scripts
 
 	Scripts/app/logger.js
 	Scripts/app/sampleViewModel.js
-	
+
+-------------------------------------------------------	
+Artifacts added by the "Breeze MVC4 Web Api" NuGet package
+are described in the readme file for that package and on the web at
+http://www.breezejs.com/documentation/start-nuget
