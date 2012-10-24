@@ -32,66 +32,64 @@
         <div class="left col">
             <div class="top row panel-container">
 
-                    <div class="panel-header">
-                        <div class="step-navigation">
-                            <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
-                                <div class="arrow-right"></div>
-                            </button>
-                            <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
-                                <div class="arrow-left"></div>
-                            </button>
-                            <div class="step-status">
-                                Step <span data-bind="text: activeStepNumber"></span>
-                                of <span data-bind="text: maxStepNumber"></span>
-                            </div>
+                <div class="panel-header">
+                    <div class="step-navigation">
+                        <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
+                            <div class="arrow-right"></div>
+                        </button>
+                        <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
+                            <div class="arrow-left"></div>
+                        </button>
+                        <div class="step-status">
+                            Step <span data-bind="text: activeStepNumber"></span>
+                            of <span data-bind="text: maxStepNumber"></span>
                         </div>
                     </div>
-                    <div class="panel-content">
-                        <div id="instructions" class="scroll" style="height: 90%;" data-bind="markdown: currentInstructions"></div>
-                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="instructions" class="scroll" data-bind="markdown: currentInstructions"></div>
+                </div>
 
             </div>
             <div class="bottom row panel-container">
 
-                  <div class="panel-header">
+                <div class="panel-header">
                     <div class="step-navigation">
-                      <div>Output</div>
-                      <button class="run" data-bind="click: run">
-                        <strong>Run</strong>
-                      </button>
+                        <div>Output</div>
+                        <button class="run" data-bind="click: run">
+                            <strong>Run</strong>
+                        </button>
                     </div>
-                  </div>
-                    <div id="output-container" class="panel-content"></div>
-
+                </div>
+                <div class="panel-content">
+                    <div style="height: 100%" id="output-container" ></div>
+                </div>
             </div>
         </div>
 
 
         <div class="right col">
             <div class="top row panel-container">
-
-                    <div class="panel-header">
-                        <div class="step-navigation">
-                            <div>Javascript</div>
-                        </div>
+                <div class="panel-header">
+                    <div class="step-navigation">
+                        <div>Javascript</div>
                     </div>
-                    <div class="panel-content">
-                        <textarea data-bind="jsEditor: currentJavascript"></textarea>
-                    </div>
-                
+                </div>
+                <div class="panel-content2">
+                    <textarea data-bind="jsEditor: currentJavascript"></textarea>
+                </div>
             </div>
 
             <div class="bottom row panel-container">
+                <div class="panel-header">
+                    <div class="step-navigation">
+                        <div>Html</div>
+                    </div>
+                </div>
+                <div class="panel-content2">
+                    <textarea data-bind="htmlEditor: currentHtml"></textarea>
+                </div>
 
-                    <div class="panel-header">
-                        <div class="step-navigation">
-                            <div>Html</div>
-                        </div>
-                    </div>
-                    <div class="panel-content">
-                        <textarea data-bind="htmlEditor: currentHtml"></textarea>
-                    </div>
-                
             </div>
         </div>
     </div>

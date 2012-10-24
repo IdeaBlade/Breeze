@@ -1,6 +1,8 @@
-﻿body {
-     margin: 0
+﻿
+body {
+    margin: 0;
 }
+
 
 .row, .col {
      overflow: hidden; 
@@ -18,35 +20,38 @@
 }
 
 .scroll {
+    top: 0;
+    height: 100%;
     overflow: auto;
-
 }
 
 .scroll-x {
-     overflow-x: auto;
+    overflow-x: auto;
 }
 
 .scroll-y {
-     overflow-y: auto;
+    overflow-y: auto;
 }
 
 .header.row {
-     height: 75px; 
-     top: 0;
+    top: 0;
+    height: 75px; 
+
 }
 
 .left.col {
-     width: 50%;
+    left: 0;
+    width: 50%;
 }
 
 .right.col {
-     left: 50%; 
-     right: 0;
+    left: 50%; 
+    right: 0;
 }
 
 .body.row {
-     top: 75px;
-     bottom: 0px;
+    top: 75px;
+    bottom: 0px;
 }
 
 .row.top {
@@ -88,26 +93,44 @@
 
     border: 2px solid gray; 
     background-color: white;
-    -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .6);
-    -moz-box-shadow: 0 0 8px rgba(0,0,0,.6);
-    box-shadow: 0 0 8px rgba(0, 0, 0, .6);
+    overflow: hidden;
+    /*-webkit-box-shadow: 0 0 0px rgba(0, 0, 0, .6);
+    -moz-box-shadow: 0 0 0px rgba(0,0,0,.6);
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, .6);*/
 }
 
 .panel-header {
-    background-color: #E5CDC1;
-    padding: 0 .25em;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
     height: 33px;
+    overflow: hidden;
     line-height: 34px;
+    background-color: #E5CDC1;
     color: #A71500;
     font-size: .9em;
     font-weight: bold;
 }
 
 .panel-content  {
+    position: absolute;
+    top: 34px;
+    bottom: 10px; 
+    left: 0;
+    right: 0;
+    overflow: hidden;
     margin-left: 5px;
-    height: 100%;
+    margin-bottom: 5px;
 }
 
+.panel-content2  {
+    position: absolute;
+    top: 34px;
+    bottom: -20px; 
+    left: 0;
+    right: 0;
+}
 
 .help-select {
     float: left;
@@ -238,14 +261,12 @@
     background-image: -moz-linear-gradient(center bottom,#1B2F530%,#2F436720%,#43577B100%);
 }
 
-
-
 .step-navigation {
     line-height: 34px;
+    margin: 0px 5px;
 }
 
 .step-next {
-    margin: 0 .1em;
     cursor: pointer;
     height: 26px;
     padding: 0;
@@ -259,7 +280,6 @@
 }
 
 .step-previous {
-    margin: 0 .1em;
     cursor: pointer;
     height: 26px;
     padding: 0;
@@ -302,6 +322,7 @@ iframe {
 
 .run {
     float: right;
+    margin-right: 5px;
     position: relative;
     top: -32px;
     line-height: 20px;
