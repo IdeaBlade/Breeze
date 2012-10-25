@@ -147,7 +147,46 @@ define(["testFns"], function (testFns) {
             "After rejectChanges, employee LastName is " + currentLastName);
 
     }); 
-    
+  
+    /*********************************************************
+    * manager.rejectChanges undoes a navigation property change 
+    *********************************************************/
+    test("manager.rejectChanges undoes a navigation property change", 4, function () {
+        var em = newEm();
+
+        var employeeType = em.metadataStore.getEntityType("Employee");
+        var employee1 = employeeType.createEntity();
+        employee1.EmployeeID(1);
+        em.attachEntity(employee1);
+        
+        var employee2 = employeeType.createEntity();
+        employee2.EmployeeID(2);
+        em.attachEntity(employee2);
+        
+        var orderType = em.metadataStore.getEntityType("Order");     
+        var order = orderType.createEntity();
+        order.EmployeeID(42);
+        order.Employee(employee1);
+        order.entityAspect.setUnchanged();
+
+        order.Employee(employee2);
+        var entityState = order.entityAspect.entityState;
+        ok(entityState.isModified(),
+            "order should be in Modified state; is " + entityState);
+
+        em.rejectChanges();
+
+        ok(!em.hasChanges(), "manager should not have changes");
+        
+        entityState = order.entityAspect.entityState;
+        ok(entityState.isUnchanged(),
+            "order should be Unchanged after rejectChanges; is " + entityState);
+        ok(order.Employee() === employee1,
+            "order.Employee should be employee1 after rejectChanges; is " + 
+                order.Employee().EmployeeID()
+        );
+
+    });
 
     /*********************************************************
     * TEST HELPERS
