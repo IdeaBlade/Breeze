@@ -3394,8 +3394,8 @@ function (core, m_entityAspect) {
                 }
                 // update fk data property
                 if (property.relatedDataProperties) {
-                    if (inverseProp && !aspect.entityState.isDeleted()) {
-                        var inverseKeyProps = inverseProp.parentEntityType.keyProperties;
+                    if (!aspect.entityState.isDeleted()) {
+                        var inverseKeyProps = property.entityType.keyProperties;
                         if (inverseKeyProps.length !== 1 && !newValue) {
                             throw new Error("Only single property foreign keys are currently supported.");
                         }
@@ -11129,7 +11129,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.64.3",
+        version: "0.64.4",
         core: core,
         entityModel: entityModel
     };

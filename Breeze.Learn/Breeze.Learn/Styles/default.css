@@ -1,6 +1,7 @@
 ﻿
 body {
     margin: 0;
+	
 }
 
 p, h3 {
@@ -190,7 +191,7 @@ p, h3 {
     font-size: 100%;
     color: white;
     padding: 0 3em 0 1em;
-    font-weight: normal;
+    font-weight: bold;
     cursor: pointer;
 }
 

@@ -1,7 +1,4 @@
 ﻿var Learn = (function(learn, $) {
-
-    // $("#Vsplitter").splitter({ resizeToWidth: true });
-    
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStepNumber = ko.observable(1);
     learn.currentInstructions = ko.observable();
@@ -48,6 +45,7 @@
         var scriptTag = "<scr" + "ipt ";
         var scriptEndTag = "</scr" + "ipt>";
         var htmlStart = "<html><head>"
+            + "<link rel='stylesheet' href='/Styles/output.css'/>"
             + scriptTag + "src='/Scripts/jquery-1.8.2.js' type='text/javascript'>" + scriptEndTag
             + scriptTag + "src='/Scripts/knockout-2.1.0.js' type='text/javascript'>" + scriptEndTag
             + scriptTag + "src='/Scripts/q.js' type='text/javascript'>" + scriptEndTag
@@ -72,8 +70,6 @@
         doc.close();
     };
 
-    var $selectSource;
-
     learn.selectTutorial = function() {
         $('#dialog-select-tutorial').dialog({
             resizable: false
@@ -87,27 +83,26 @@
         showStep(0); 
     };
 
-    
-    learn.notWorking = function () {
+
+    learn.notWorking = function() {
         $("#dialog-notworking").dialog({
             resizable: false,
-            //height: 200,
             width: 500,
             modal: true,
             buttons: {
-                "Yes! Fix my javascript and html" : function () {
+                "Yes! Fix my javascript and html": function() {
                     var nextStepIx = learn.activeStepNumber();
                     showJavascript(nextStepIx);
                     showHtml(nextStepIx);
                     learn.run();
                     $(this).dialog("close");
                 },
-                Cancel: function () {
+                Cancel: function() {
                     $(this).dialog("close");
                 }
             }
         });
-    }
+    };
 
     learn.selectHelp = function(answer) {
         if (answer == "Yes") {
@@ -142,9 +137,9 @@
     };
 
     ko.applyBindings(learn);
-    // $("#Vsplitter").css("height", "100%").css("width", "100%").splitter();
+
     // $("#Vsplitter").splitter({ anchorToWindow: true, resizeOnWindow: true });
-    // $("#Vsplitter").trigger("resize");
+
     
     function showStep(stepIx) {
         if (stepIx === undefined) {
@@ -223,27 +218,28 @@
         return config;
     }
     
-    function getBaseURL() {
-        var url = location.href;  // entire url including querystring - also: window.location.href;
-        var baseURL = url.substring(0, url.indexOf('/', 14));
+    // Not currently used.
+    //function getBaseURL() {
+    //    var url = location.href;  // entire url including querystring - also: window.location.href;
+    //    var baseURL = url.substring(0, url.indexOf('/', 14));
 
 
-        if (baseURL.indexOf('http://localhost') != -1) {
-            // Base Url for localhost
-            var url = location.href;  // window.location.href;
-            var pathname = location.pathname;  // window.location.pathname;
-            var index1 = url.indexOf(pathname);
-            var index2 = url.indexOf("/", index1 + 1);
-            var baseLocalUrl = url.substr(0, index2);
+    //    if (baseURL.indexOf('http://localhost') != -1) {
+    //        // Base Url for localhost
+    //        var url = location.href;  // window.location.href;
+    //        var pathname = location.pathname;  // window.location.pathname;
+    //        var index1 = url.indexOf(pathname);
+    //        var index2 = url.indexOf("/", index1 + 1);
+    //        var baseLocalUrl = url.substr(0, index2);
 
-            return baseLocalUrl + "/";
-        }
-        else {
-            // Root Url for domain name
-            return baseURL + "/";
-        }
+    //        return baseLocalUrl + "/";
+    //    }
+    //    else {
+    //        // Root Url for domain name
+    //        return baseURL + "/";
+    //    }
 
-    }
+    //}
 
     return learn;
 })(Learn || {}, $);

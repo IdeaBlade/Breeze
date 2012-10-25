@@ -120,8 +120,8 @@ function (core, m_entityAspect) {
                 }
                 // update fk data property
                 if (property.relatedDataProperties) {
-                    if (inverseProp && !aspect.entityState.isDeleted()) {
-                        var inverseKeyProps = inverseProp.parentEntityType.keyProperties;
+                    if (!aspect.entityState.isDeleted()) {
+                        var inverseKeyProps = property.entityType.keyProperties;
                         if (inverseKeyProps.length !== 1 && !newValue) {
                             throw new Error("Only single property foreign keys are currently supported.");
                         }
