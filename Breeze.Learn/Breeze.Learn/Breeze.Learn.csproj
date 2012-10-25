@@ -170,6 +170,7 @@
     <Content Include="Scripts\showdown.js" />
     <Content Include="Scripts\splitter.js" />
     <Content Include="Styles\codemirror.css" />
+    <Content Include="Styles\output.css" />
     <Content Include="Styles\default.css" />
     <Content Include="Styles\default.orig.css" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_flat_0_aaaaaa_40x100.png" />
