@@ -18,7 +18,7 @@ namespace Sample_WebApi {
       GlobalConfiguration.Configuration.Formatters.Insert(0, Breeze.WebApi.JsonFormatter.Create());
 
       // Translate incoming query string into EF queries
-      GlobalConfiguration.Configuration.Filters.Add(new Breeze.WebApi.EFActionFilter());
+      GlobalConfiguration.Configuration.Filters.Add(new Breeze.WebApi.ODataActionFilter());
 
     }
 

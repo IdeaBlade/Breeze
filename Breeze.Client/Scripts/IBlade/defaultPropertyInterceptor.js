@@ -61,7 +61,14 @@ function (core, m_entityAspect) {
                                 throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
                             }
                         }
+                    } else {
+                        if (newValue.entityAspect && newValue.entityAspect.entityManager) {
+                            entityManager = newValue.entityAspect.entityManager;
+                            var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
+                            entityManager.attachEntity(aspect.entity, newState);
+                        }
                     }
+                    
                     // process related updates ( the inverse relationship) first so that collection dups check works properly.
                     // update inverse relationship
 

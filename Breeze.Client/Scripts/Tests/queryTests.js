@@ -96,7 +96,7 @@ define(["testFns"], function (testFns) {
         
     });
     
-    test("getQueryLocally for related entities after query", function () {
+    test("executeQueryLocally for related entities after query", function () {
         var em = newEm();
         var query = entityModel.EntityQuery.from("Orders").take(10);
         var r;
@@ -109,7 +109,7 @@ define(["testFns"], function (testFns) {
             return em.executeQuery(q2);
         }).then(function (data2) {
             var r2 = data2.results;
-            ok(r2.length === 0);
+            ok(r2.length > 0);
         }).fail(testFns.handleFail).fin(start);
 
     });
