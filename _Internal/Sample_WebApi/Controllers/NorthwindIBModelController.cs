@@ -99,6 +99,11 @@ namespace Sample_WebApi.Controllers {
     public IQueryable<Territory> Territories() {
       return ContextProvider.Context.Territories;
     }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Category> Categories() {
+      return ContextProvider.Context.Categories;
+    }
     #endregion
 
     #region named queries

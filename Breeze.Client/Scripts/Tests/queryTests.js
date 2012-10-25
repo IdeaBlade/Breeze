@@ -83,6 +83,36 @@ define(["testFns"], function (testFns) {
             
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("getEntities after query", function() {
+        var em = newEm();
+        var query = entityModel.EntityQuery.from("Categories");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length > 0); //this returns 45 results
+            var ents = em.getEntities();
+            ok(ents.length > 0); // this returns 0 results. WHY????
+        }).fail(testFns.handleFail).fin(start);
+        
+    });
+    
+    test("getQueryLocally for related entities after query", function () {
+        var em = newEm();
+        var query = entityModel.EntityQuery.from("Orders").take(10);
+        var r;
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0);
+            var q2 = EntityQuery.from("Orders").where("customer.companyName", "startsWith", "A");
+            r = em.executeQueryLocally(q2);
+            ok(r.length === 0);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var r2 = data2.results;
+            ok(r2.length === 0);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
     test("navigation results notification", function () {
         var em = newEm();

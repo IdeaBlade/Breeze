@@ -162,8 +162,8 @@
     <Content Include="Scripts\editor\htmlmixed.js" />
     <Content Include="Scripts\editor\javascript.js" />
     <Content Include="Scripts\editor\xml.js" />
-    <Content Include="Scripts\jquery-1.7.2.min.js" />
-    <Content Include="Scripts\jquery.simplemodal.js" />
+    <Content Include="Scripts\jquery-1.8.2.js" />
+    <Content Include="Scripts\jquery-ui-1.9.0.custom.min.js" />
     <Content Include="Scripts\knockout-2.1.0.js" />
     <Content Include="Scripts\learn.js" />
     <Content Include="Scripts\q.js" />
@@ -171,6 +171,22 @@
     <Content Include="Scripts\splitter.js" />
     <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\default.css" />
+    <Content Include="Styles\default.orig.css" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-icons_222222_256x240.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-icons_454545_256x240.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-icons_888888_256x240.png" />
+    <Content Include="Styles\jq-smoothness\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Styles\jq-smoothness\jquery-ui-1.9.0.custom.css" />
+    <Content Include="Styles\jq-smoothness\jquery-ui-1.9.0.custom.min.css" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

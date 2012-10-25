@@ -7,6 +7,7 @@
     learn.currentInstructions = ko.observable();
     learn.currentHtml = ko.observable();
     learn.currentJavascript = ko.observable();
+    
     showStep(0);
     
     
@@ -43,18 +44,18 @@
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
         frame.frameBorder = 0;
-        // frame.scrolling = "no";
         $(container).empty().append(frame);
-
-        var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.7.2.min.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr"
-            + "ipt></head><body>";
-        var htmlEnd = "</body></html>";
-        var html = htmlStart + this.currentHtml() + "<scr"
-            + "ipt type='text/javascript'>window.onload = function(){ try { " + this.currentJavascript() + "} catch (e) { alert('Not working: ' + e) }}</scr"
-            + "ipt>" + htmlEnd;
+        var scriptTag = "<scr" + "ipt ";
+        var scriptEndTag = "</scr" + "ipt>";
+        var htmlStart = "<html><head>"
+            + scriptTag + "src='/Scripts/jquery-1.8.2.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/knockout-2.1.0.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/q.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/breeze.debug.js' type='text/javascript'>" + scriptEndTag
+            + "</head><body>";
+        var html = htmlStart + this.currentHtml() 
+            + scriptTag + "type='text/javascript'>window.onload = function(){ try { " + this.currentJavascript() + "} catch (e) { alert('Not working: ' + e) }}" + scriptEndTag
+            + "</body></html>";
 
         var doc = null;
         if (frame.contentDocument) {
@@ -71,23 +72,42 @@
         doc.close();
     };
 
+    var $selectSource;
+
     learn.selectTutorial = function() {
-        var $selectSource = $($('#select-tutorial-source').html());
-        ko.applyBindings(learn, $selectSource.get(0));
-        $selectSource.modal();
+        $('#dialog-select-tutorial').dialog({
+            resizable: false
+        });
     };
 
-    learn.finishSelection = function(tutorial) {
+    learn.finishSelection = function (tutorial) {
+        $('#dialog-select-tutorial').dialog('close');       
         learn.activeTutorial(tutorial);
         learn.activeStepNumber(1);
         showStep(0); 
     };
 
-    learn.openHelp = function() {
-        var $selectSource = $($('#ask-help-source').html());
-        ko.applyBindings(learn, $selectSource.get(0));
-        $selectSource.modal();
-    };
+    
+    learn.notWorking = function () {
+        $("#dialog-notworking").dialog({
+            resizable: false,
+            //height: 200,
+            width: 500,
+            modal: true,
+            buttons: {
+                "Yes! Fix my javascript and html" : function () {
+                    var nextStepIx = learn.activeStepNumber();
+                    showJavascript(nextStepIx);
+                    showHtml(nextStepIx);
+                    learn.run();
+                    $(this).dialog("close");
+                },
+                Cancel: function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    }
 
     learn.selectHelp = function(answer) {
         if (answer == "Yes") {
