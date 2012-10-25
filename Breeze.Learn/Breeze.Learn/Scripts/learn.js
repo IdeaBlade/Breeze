@@ -44,18 +44,18 @@
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
         frame.frameBorder = 0;
-        // frame.scrolling = "no";
         $(container).empty().append(frame);
-
-        var htmlStart = "<html><head><scr" + "ipt src='/Scripts/jquery-1.8.2.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/knockout-2.1.0.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/q.js' type='text/javascript'></scr"
-            + "ipt><scr" + "ipt src='/Scripts/breeze.debug.js' type='text/javascript'></scr"
-            + "ipt></head><body>";
-        var htmlEnd = "</body></html>";
-        var html = htmlStart + this.currentHtml() + "<scr"
-            + "ipt type='text/javascript'>window.onload = function(){ try { " + this.currentJavascript() + "} catch (e) { alert('Not working: ' + e) }}</scr"
-            + "ipt>" + htmlEnd;
+        var scriptTag = "<scr" + "ipt ";
+        var scriptEndTag = "</scr" + "ipt>";
+        var htmlStart = "<html><head>"
+            + scriptTag + "src='/Scripts/jquery-1.8.2.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/knockout-2.1.0.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/q.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/breeze.debug.js' type='text/javascript'>" + scriptEndTag
+            + "</head><body>";
+        var html = htmlStart + this.currentHtml() 
+            + scriptTag + "type='text/javascript'>window.onload = function(){ try { " + this.currentJavascript() + "} catch (e) { alert('Not working: ' + e) }}" + scriptEndTag
+            + "</body></html>";
 
         var doc = null;
         if (frame.contentDocument) {
