@@ -149,45 +149,95 @@ define(["testFns"], function (testFns) {
     }); 
   
     /*********************************************************
-    * manager.rejectChanges undoes a navigation property change 
+    * manager.rejectChanges undoes a bi-directional navigation property change 
+    * Considers an association in which navigation properties exist 
+    * in both directions (order -> employee, employee -> orders
     *********************************************************/
-    test("manager.rejectChanges undoes a navigation property change", 4, function () {
-        var em = newEm();
+    test("manager.rejectChanges undoes a bi-directional navigation property change", 4,
+        function () {
+            var em = newEm();
 
-        var employeeType = em.metadataStore.getEntityType("Employee");
-        var employee1 = employeeType.createEntity();
-        employee1.EmployeeID(1);
-        em.attachEntity(employee1);
+            var employeeType = em.metadataStore.getEntityType("Employee");
+            var employee1 = employeeType.createEntity();
+            employee1.EmployeeID(1);
+            em.attachEntity(employee1);
         
-        var employee2 = employeeType.createEntity();
-        employee2.EmployeeID(2);
-        em.attachEntity(employee2);
+            var employee2 = employeeType.createEntity();
+            employee2.EmployeeID(2);
+            em.attachEntity(employee2);
         
-        var orderType = em.metadataStore.getEntityType("Order");     
-        var order = orderType.createEntity();
-        order.EmployeeID(42);
-        order.Employee(employee1);
-        order.entityAspect.setUnchanged();
+            var orderType = em.metadataStore.getEntityType("Order");     
+            var order = orderType.createEntity();
+            order.EmployeeID(42);
+            order.Employee(employee1);// pulls order into Employee's manager
+            order.entityAspect.setUnchanged();
 
-        order.Employee(employee2);
-        var entityState = order.entityAspect.entityState;
-        ok(entityState.isModified(),
-            "order should be in Modified state; is " + entityState);
+            order.Employee(employee2);
+            var entityState = order.entityAspect.entityState;
+            ok(entityState.isModified(),
+                "order should be in Modified state; is " + entityState);
 
-        em.rejectChanges();
+            em.rejectChanges();
 
-        ok(!em.hasChanges(), "manager should not have changes");
+            ok(!em.hasChanges(), "manager should not have changes");
         
-        entityState = order.entityAspect.entityState;
-        ok(entityState.isUnchanged(),
-            "order should be Unchanged after rejectChanges; is " + entityState);
-        ok(order.Employee() === employee1,
-            "order.Employee should be employee1 after rejectChanges; is " + 
-                order.Employee().EmployeeID()
-        );
-
+            entityState = order.entityAspect.entityState;
+            ok(entityState.isUnchanged(),
+                "order should be Unchanged after rejectChanges; is " + entityState);
+            ok(order.Employee() === employee1,
+                "order.Employee should be employee1 after rejectChanges; is " + 
+                    order.Employee().EmployeeID()
+            );
     });
+    /*********************************************************
+    * manager.rejectChanges undoes a uni-directional navigation property change 
+    * Considers an association in which only the dependent (scalar) navigation property exists 
+    * (orderDetail -> product but no use for product -> orderDetails
+    * Check the Product type in NorthwindModel to confirm that Product.OrderDetails doesn't exist
+    * If you need that information, use a query.
+    *********************************************************/
+    test("manager.rejectChanges undoes a uni-directional navigation property change", 5,
+        function () {
+            var em = newEm();
 
+            var productType = em.metadataStore.getEntityType("Product");
+            
+            var odProperty = productType.getProperty("OrderDetails");
+            ok(odProperty === null,
+                "Product should not have an OrderDetails navigation property");
+
+            var product1 = productType.createEntity();
+            product1.ProductID(1);
+            em.attachEntity(product1);
+
+            var product2 = productType.createEntity();
+            product2.ProductID(2);
+            em.attachEntity(product2);
+
+            var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
+            var orderDetail = orderDetailType.createEntity();
+            orderDetail.OrderID(42);
+            orderDetail.Product(product1); // pulls orderDetail into Product's manager
+            
+            orderDetail.entityAspect.setUnchanged();
+
+            orderDetail.Product(product2);
+            var entityState = orderDetail.entityAspect.entityState;
+            ok(entityState.isModified(),
+                "orderDetail should be in Modified state; is " + entityState);
+
+            em.rejectChanges();
+
+            ok(!em.hasChanges(), "manager should not have changes");
+
+            entityState = orderDetail.entityAspect.entityState;
+            ok(entityState.isUnchanged(),
+                "orderDetail should be Unchanged after rejectChanges; is " + entityState);
+            ok(orderDetail.Product() === product1,
+                "orderDetail.Product should be product1 after rejectChanges; is " +
+                    orderDetail.Product().ProductID()
+            );
+        });
     /*********************************************************
     * TEST HELPERS
     *********************************************************/

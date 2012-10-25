@@ -342,7 +342,8 @@ namespace DocCode.Models
 
     [DataMember]
     [ForeignKey("ProductID")]
-    [InverseProperty("OrderDetails")]
+    // disabled navigation from Product to OrderDetails
+    //[InverseProperty("OrderDetails")] 
     public Product Product {get;set;}
 
   }
@@ -478,9 +479,11 @@ namespace DocCode.Models
     [InverseProperty("Products")]
     public Category Category {get;set;}
 
-    [DataMember]
-    [InverseProperty("Product")]
-    public ICollection<OrderDetail> OrderDetails {get;set;}
+    // Disable the navigation from Product to OrderDetails
+    // Retain navigation from OrderDetails to Product
+    //[DataMember]
+    //[InverseProperty("Product")]
+    //public ICollection<OrderDetail> OrderDetails {get;set;}
 
     [DataMember]
     [ForeignKey("SupplierID")]
