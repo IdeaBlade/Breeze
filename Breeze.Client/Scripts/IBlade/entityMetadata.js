@@ -84,11 +84,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         
         /**
-        The default value whenever NamingConventions are not specified.
-        @property defaultInstance {NamingConvention}
+        A noop naming convention - This is the default unless another is specified.
+        @property none {NamingConvention}
         @static
         **/
-        ctor.defaultInstance = new ctor({
+        ctor.none = new ctor({
             name: "noChange",
             serverPropertyNameToClient: function(serverPropertyName) {
                 return serverPropertyName;
@@ -97,6 +97,29 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 return clientPropertyName;
             }
         });
+        
+        /**
+        The "camelCase" naming convention - This implementation only lowercases the first character of the server property name
+        but leaves the rest of the property name intact.  If a more complicated version is needed then one should be created via the ctor.
+        @property camelCase {NamingConvention}
+        @static
+        **/
+        ctor.camelCase = new ctor({
+            name: "camelCase",
+            serverPropertyNameToClient: function (serverPropertyName) {
+                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            },
+            clientPropertyNameToServer: function (clientPropertyName) {
+                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            }
+        });
+        
+        /**
+       The default value whenever NamingConventions are not specified.
+       @property defaultInstance {NamingConvention}
+       @static
+       **/
+        ctor.defaultInstance = ctor.none;
         
         /**
         Makes this instance the default instance.

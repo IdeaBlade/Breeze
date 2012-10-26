@@ -66,6 +66,7 @@ gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
+copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
 new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
 copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi

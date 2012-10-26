@@ -41,7 +41,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi">
+    <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Breeze.WebApi\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
@@ -170,9 +171,9 @@
     <Content Include="Scripts\showdown.js" />
     <Content Include="Scripts\splitter.js" />
     <Content Include="Styles\codemirror.css" />
+    <Content Include="Styles\Copy of default.css" />
     <Content Include="Styles\output.css" />
     <Content Include="Styles\default.css" />
-    <Content Include="Styles\default.orig.css" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -205,6 +206,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Home\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Home\Copy of Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

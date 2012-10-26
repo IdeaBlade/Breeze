@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Oct 25 2012 13:29:05 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Thu Oct 25 2012 16:52:16 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1185,6 +1185,12 @@ intellisense.annotate(breeze.entityModel.NamingConvention.prototype, {
 });
 intellisense.annotate(breeze.entityModel.NamingConvention, {
   
+  
+  /// <field name="none" type="breeze.entityModel.NamingConvention" >A noop naming convention - This is the default unless another is specified.</field>
+  'none': null,
+  
+  /// <field name="camelCase" type="breeze.entityModel.NamingConvention" >The 'camelCase' naming convention - This implementation only lowercases the first character of the server property name but leaves the rest of the property name intact.  If a more complicated version is needed then one should be created via the ctor.</field>
+  'camelCase': null,
   
   /// <field name="defaultInstance" type="breeze.entityModel.NamingConvention" >The default value whenever NamingConventions are not specified.</field>
   'defaultInstance': null,

@@ -159,7 +159,10 @@ define(["root"], function (root) {
                 }
             }            
         });
-        var ms = new MetadataStore({ namingConvention: namingConv });
+        var altNamingConv = NamingConvention.camelCase;
+        namingConv.setAsDefault();
+        // var ms = new MetadataStore({ namingConvention: namingConv });
+        var ms = new MetadataStore();
         return ms;
     };
     
