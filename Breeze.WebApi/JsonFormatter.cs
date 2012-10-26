@@ -31,7 +31,7 @@ namespace Breeze.WebApi {
 
   /// <summary>
   /// Establish a JsonFormatter configured for Breeze controllers
-  /// </summary>
+  /// </summary> 
   /// <remarks>
   /// The Breeze JsonFormatter is the same Newtonsoft-based JsonFormatter
   /// shipped in the ASP.NET Web Api, 

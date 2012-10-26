@@ -78,15 +78,7 @@ p, h3 {
     padding-right: 1em;
 }
 
-
-.header-container {
-    position: absolute;
-    left: 0;
-    right: 0;
-}
-
 .page-title {
-    position: relative;
     float: left;
     line-height: 75px;
     padding-left: 1em;
@@ -96,34 +88,10 @@ p, h3 {
     font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
-.help-notworking {
-    position: relative;
+.container-center {
     float: left;
-    margin-left: 3em;
-    height: 2em;
-    margin-top: 1.2em;
-    line-height: 2em;
-    font-weight: normal;
-    font-size: 100%;
-    color: white;
-    padding: 0 3em 0 1em;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.tutorial-select {
-    position: relative;
-    float: left;
-    margin-left: 3em;
-    height: 2em;
-    margin-top: 1.2em;
-    line-height: 2em;
-    font-weight: normal;
-    font-size: 100%;
-    color: white;
-    padding: 0 3em 0 1em;
-    font-weight: normal;
-    cursor: pointer;
+    position: absolute;
+    left: 50%;
 }
 
 .panel-container {
@@ -211,7 +179,37 @@ p, h3 {
     background: url("/Images/arrowdown.png") no-repeat right top;
 }
 
+.help-notworking {
+    float: left;
+    position: relative;
+    left: -70%;
+    
+    height: 2em;
+    margin-top: 1.2em;
+    line-height: 2em;
+    font-weight: normal;
+    font-size: 100%;
+    color: white;
+    padding: 0 3em 0 1em;
+    font-weight: bold;
+    cursor: pointer;
+}
 
+.tutorial-select {
+    float: left;
+    position: relative;
+    left: -30%;
+    
+    height: 2em;
+    margin-top: 1.2em;
+    line-height: 2em;
+    font-weight: normal;
+    font-size: 100%;
+    color: white;
+    padding: 0 3em 0 1em;
+    font-weight: normal;
+    cursor: pointer;
+}
 
 .tutorial-title {
     font-weight: bold;
@@ -313,7 +311,6 @@ iframe {
     position: relative;
     top: -32px;
     line-height: 20px;
-    font-weight: bold;
 }
 
 /*jQuery overrides*/

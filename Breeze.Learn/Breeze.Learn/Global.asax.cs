@@ -2,6 +2,7 @@
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Breeze.Learn.App_Start;
 
 namespace Breeze.Learn {
 
@@ -14,7 +15,7 @@ namespace Breeze.Learn {
       FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
       RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-      BreezeConfig.RegisterBreeze();
+      // BreezeConfig.RegisterBreeze();
 
       //// Todo database initializer (development only)
       //Database.SetInitializer(new TodoDatabaseInitializer());
