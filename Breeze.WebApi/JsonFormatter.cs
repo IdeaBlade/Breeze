@@ -5,6 +5,7 @@ using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
+using System.Web.Http.Controllers;
 using Newtonsoft.Json;
 
 namespace Breeze.WebApi {
@@ -27,4 +28,27 @@ namespace Breeze.WebApi {
 
     }
   }
+
+  /// <summary>
+  /// Establish a JsonFormatter configured for Breeze controllers
+  /// </summary>
+  /// <remarks>
+  /// The Breeze JsonFormatter is the same Newtonsoft-based JsonFormatter
+  /// shipped in the ASP.NET Web Api, 
+  /// configured specifically for Breeze controllers.
+  /// </remarks>
+  public class JsonFormatterAttribute : Attribute, IControllerConfiguration {
+    public void Initialize(
+        HttpControllerSettings settings,
+        HttpControllerDescriptor descriptor) {
+      // Remove the existing JSON formatter. 
+      var jsonFormatter = settings.Formatters.JsonFormatter;
+      settings.Formatters.Remove(jsonFormatter);
+
+      // Add the Web API Jsonformatter, configured for .NET 
+      settings.Formatters.Add(JsonFormatter.Create());
+    }
+  }
+
+
 }

@@ -299,7 +299,25 @@ will translate property names between the server and the javascript client. </p>
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
+                                <a href="#property_camelCase">camelCase</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_defaultInstance">defaultInstance</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_none">none</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -744,7 +762,7 @@ var em = new EntityManager( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l101"><code>entityMetadata.js:101</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l124"><code>entityMetadata.js:124</code></a>
         
         </p>
 
@@ -791,8 +809,101 @@ namingConv.setAsDefault();
                 <h2 class="off-left">Properties</h2>
 
                 
+                    <div id="property_camelCase" class="property item">
+    <h3 class="name"><code>camelCase</code></h3>
+    <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l101"><code>entityMetadata.js:101</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The "camelCase" naming convention - This implementation only lowercases the first character of the server property name
+but leaves the rest of the property name intact.  If a more complicated version is needed then one should be created via the ctor.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="property_defaultInstance" class="property item">
     <h3 class="name"><code>defaultInstance</code></h3>
+    <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l117"><code>entityMetadata.js:117</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The default value whenever NamingConventions are not specified.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_none" class="property item">
+    <h3 class="name"><code>none</code></h3>
     <span class="type"><a href="..\classes\NamingConvention.html" class="crosslink">NamingConvention</a></span>
 
     
@@ -826,7 +937,7 @@ namingConv.setAsDefault();
     </div>
 
     <div class="description">
-        <p>The default value whenever NamingConventions are not specified.</p>
+        <p>A noop naming convention - This is the default unless another is specified.</p>
     </div>
 
     

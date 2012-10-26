@@ -16,6 +16,7 @@ define(["testFns"], function (testFns) {
     var EntityType = entityModel.EntityType;
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
+    var NamingConvention = entityModel.NamingConvention;
 
     module("metadata", {
         setup: function () {
@@ -36,7 +37,7 @@ define(["testFns"], function (testFns) {
     
     test("initialization", function () {
 
-        var store = new MetadataStore();
+        var store = new MetadataStore({ namingConvention: NamingConvention.none } );
         stop();
         testFns.remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
 
