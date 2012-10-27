@@ -112,8 +112,8 @@ namespace DocCode.Controllers
         // NB: Not exposed directly as a GET method
         var categories = _contextProvider.Context.Categories;
 
-        var lookupArray = new object[] {regions, territories, categories};
-        return lookupArray.AsQueryable();
+        var lookups = new object[] {regions, territories, categories};
+        return lookups.AsQueryable();
     }
     /// <summary>
     /// Query returing a 1-element array with a lookups object whose 
@@ -136,8 +136,8 @@ namespace DocCode.Controllers
         // NB: Not exposed directly as a GET method
         var categories = _contextProvider.Context.Categories;
 
-        var lookupArray = new object [] {new {regions, territories, categories}};
-        return lookupArray.AsQueryable();
+        var lookups = new object [] {new {regions, territories, categories}};
+        return lookups.AsQueryable();
     }
   }
 
