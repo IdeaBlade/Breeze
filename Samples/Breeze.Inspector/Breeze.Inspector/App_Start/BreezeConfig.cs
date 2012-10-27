@@ -1,19 +1,18 @@
-namespace Breeze.Inspector {
-    using System.Web.Http;
+using System.Web.Http;
+
+[assembly: WebActivator.PreApplicationStartMethod(
+    typeof(Breeze.Inspector.App_Start.BreezeConfig), "RegisterBreezePreStart")]
+namespace Breeze.Inspector.App_Start {
 
     public class BreezeConfig
     {
-        public static void RegisterBreeze()
+        public static void RegisterBreezePreStart()
         {
-            // Use breeze configuration of Json.Net JsonFormatter instead of the default
-            GlobalConfiguration.Configuration.Formatters.Insert(
-                0, Breeze.WebApi.JsonFormatter.Create());
-
-            // Apply query parameters, expressed as OData URI query strings, 
-            // to results of Web API controller methods that return IQueryable<T>
-            GlobalConfiguration.Configuration.Filters.Add(
-                new Breeze.WebApi.ODataActionFilter());
-
+            GlobalConfiguration.Configuration.Routes.MapHttpRoute(
+                name: "Inspector",
+                routeTemplate: "api/inspector/{action}/{filter}",
+                defaults: new { controller = "Inspector", filter = RouteParameter.Optional }
+                );
         }
     }
 }

@@ -6,7 +6,8 @@ using Newtonsoft.Json.Linq;
 
 namespace BreezyDevices.Controllers
 {
-public class BreezyDevicescontroller : ApiController
+    [JsonFormatter, ODataActionFilter]
+    public class BreezyDevicescontroller : ApiController
     {
         readonly EFContextProvider<BreezyDevicesContext> _contextProvider =
             new EFContextProvider<BreezyDevicesContext>();
@@ -22,7 +23,7 @@ public class BreezyDevicescontroller : ApiController
         [AcceptVerbs("POST")]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-          return _contextProvider.SaveChanges(saveBundle);
+            return _contextProvider.SaveChanges(saveBundle);
         }
 
         // ~/api/breezydevices/people
@@ -47,4 +48,5 @@ public class BreezyDevicescontroller : ApiController
                 .ResetDatabase(_contextProvider.Context);
             return "reset";
         }
-    }}
+    }
+}

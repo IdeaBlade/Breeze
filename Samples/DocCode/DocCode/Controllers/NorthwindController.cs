@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DocCode.Controllers
 {
+  [JsonFormatter, ODataActionFilter]
   public class NorthwindController : ApiController {
 
     readonly EFContextProvider<NorthwindContext> ContextProvider =

@@ -6,6 +6,7 @@
     using Models;
     using Newtonsoft.Json.Linq;
 
+    [JsonFormatter, ODataActionFilter]
     public class TodosController : ApiController {
 
         readonly EFContextProvider<TodosContext> _contextProvider = 
