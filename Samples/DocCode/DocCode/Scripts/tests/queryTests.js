@@ -720,9 +720,9 @@ define(["testFns"], function (testFns) {
         ok(true, "Got {0} products: {1}".format(count, out.join(", ")));
     }
 
-    /*** PROJECTION (SELECT) ***/
+    /*** PROJECTION ***/
 
-    module("queryTests (projections with select)", testFns.getModuleOptions(newEm));
+    module("queryTests (projections)", testFns.getModuleOptions(newEm));
 
     /*********************************************************
     * PROJECTION: customer names of Customers starting w/ 'C'
@@ -865,8 +865,62 @@ define(["testFns"], function (testFns) {
             "should have orders in cache; count = " + ordersInCache);
     }
 
+    /*********************************************************
+    * PROJECTION: Lookups - a query returing an array of entity lists
+    *********************************************************/
+    test("query a lookup array of entity lists", 5, function () {
 
+        var em = newEm();
+        stop(); // going async .. 
+        EntityQuery.from('LookupsArray')
+            .using(em).execute()
+            .then(querySucceeded)      
+            .fail(handleFail)
+            .fin(start);
+        
+        function querySucceeded(data) {
+            var lookups = data.results;
+            ok(lookups.length === 3, "should have 3 lookup items");
+            // each one looks like an array but is actually
+            // an object whose properties are '0', '1', '2', etc.
+            // would use for..in to iterate over it.
+            var regions = lookups[0];
+            ok(regions[0], "should have a region");
+            var territories = lookups[1];
+            ok(territories[0], "should have a territory");
+            var categories = lookups[0];
+            ok(categories[0], "should have a category");
+            equal(categories[0].entityAspect.entityState.name,
+                entityModel.EntityState.Unchanged.name,
+                "first category should be unchanged entity in cache");
+        }
+    });
 
+    /*********************************************************
+    * PROJECTION: Lookups - a query returing an anonymous object
+    * whose properties are entity lists
+    *********************************************************/
+    test("query a lookup object w/ entity list properties", 5, function () {
+
+        var em = newEm();
+        stop(); // going async .. 
+        EntityQuery.from('LookupsObject')
+            .using(em).execute()
+            .then(querySucceeded)
+            .fail(handleFail)
+            .fin(start);
+
+        function querySucceeded(data) {
+            ok(data.results.length, "should have query results");
+            var lookups = data.results[0];
+            ok(lookups.regions.length, "should have lookups.regions");
+            ok(lookups.territories.length, "should have lookups.territories");
+            ok(lookups.categories.length, "should have lookups.categories");
+            equal(lookups.categories[0].entityAspect.entityState.name,
+                entityModel.EntityState.Unchanged.name,
+                "first lookups.category should be unchanged entity in cache");
+        }
+    });
     /*** LOCAL QUERY EXECUTION ***/
 
     module("queryTests (local)", testFns.getModuleOptions(newEm));
@@ -964,7 +1018,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var newCustomer = addCustomer(em, "Acme");
 
-        stop();
+        stop();// going async ..
         executeComboQueryWithFetchStrategy(em, query)
         .then(function (data) { // back from server with combined results
 
@@ -990,7 +1044,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var newCustomer = addCustomer(em, "Acme");
 
-        stop();
+        stop(); // going async ..
         executeComboQueryWithExecuteLocally(em, query)
         .then(function (data) { // back from server with combined results
 
