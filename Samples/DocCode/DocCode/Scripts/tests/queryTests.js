@@ -1057,6 +1057,7 @@ define(["testFns"], function (testFns) {
         .fail(handleFail)
         .fin(start);
     });
+    
     /*********************************************************
     * Combined query that pours results into a list 
     * Caller doesn't have to wait for results
@@ -1145,6 +1146,125 @@ define(["testFns"], function (testFns) {
         cust.CompanyName(name || "a-new-company");
         em.addEntity(cust);
         return cust;
+    }
+    
+    /*** Query By Id (cache or remote) ***/
+
+    module("queryTests (by id)", testFns.getModuleOptions(newEm));
+
+    // This module tests the following async getById utility method.
+    // whose successful promise returns the entity if found in cache 
+    // or if found remotely.
+    // Returns null if not found or if found in cache but is marked deleted.
+    // Caller should check for query failure.
+    // 
+    // This fnc may be useful in your application (perhaps w/o the queryResult).
+    // 'queryResult' reports if queried the remote service 
+    // and holds a found entity even if it is marked for deletion.
+    function getByIdCacheOrRemote(manager, typeName, id, queryResult) {
+        // get key for entity of specified type and id
+        var typeInfo = manager.metadataStore.getEntityType(typeName);
+        var key = new entityModel.EntityKey(typeInfo, id);
+
+        // look in cache first
+        var entity = manager.findEntityByKey(key);
+        if (entity) {
+            queryResult.queriedRemotely = false; // found it in cache
+            queryResult.entity = entity;
+            // return entity, wrapped in promise
+            return Q.fcall(function () {
+                return (entity.entityAspect.entityState.isDeleted()) ?
+                    null : entity; // return null if marked for delete!
+            });
+        }
+        // not in cache; try remotely
+        queryResult.queriedRemotely = true; // queried the service
+        return EntityQuery
+            .fromEntityKey(key)
+            .using(manager).execute()
+            .then(function (data) {
+                entity = data.results.length ? data.results[0] : null;
+                return queryResult.entity = entity;
+            });
+    }
+    
+    /*********************************************************
+     * Get unchanced customer by id from cache from server
+     *********************************************************/
+    test("getById of unchanged customer from server", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = testFns.wellKnownData.alfredsID;
+            var queryResult = { };
+
+            stop(); // might go async
+            getByIdCacheOrRemote(em, "Customer", id, queryResult)
+            .then(querySucceeded).fail(handleFail).fin(start);
+
+            function querySucceeded(customer) {
+                var name = customer && customer.CompanyName();
+                var entityState = customer && customer.entityAspect.entityState;
+                ok(entityState.isUnchanged, "should have found unchanged customer, "+name);
+                ok(queryResult.queriedRemotely, "should have queried the service");
+            }
+        });
+    /*********************************************************
+    * Get unchanged customer by id from cache 
+    *********************************************************/
+    test("getById of unchanged customer from cache ", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = testFns.wellKnownData.alfredsID;
+            var queryResult = {};
+            makeAttachedCustomerWithId(em, id);
+
+            stop(); // might go async
+            getByIdCacheOrRemote(em, "Customer", id, queryResult)
+            .then(querySucceeded).fail(handleFail).fin(start);
+
+            function querySucceeded(customer) {
+                var name = customer && customer.CompanyName();
+                var entityState = customer && customer.entityAspect.entityState;
+                ok(entityState.isUnchanged, "should have found unchanged customer, " + name);
+                ok(!queryResult.queriedRemotely, "should have found customer in cache");
+            }
+        });
+    /*********************************************************
+    * getById of deleted customer in cache returns null
+    *********************************************************/
+    test("getById of deleted customer in cache returns null", 3,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = testFns.wellKnownData.alfredsID;
+            var queryResult = {};
+            var cust = makeAttachedCustomerWithId(em, id);
+            cust.entityAspect.setDeleted();
+
+            stop(); // might go async
+            getByIdCacheOrRemote(em, "Customer", id, queryResult)
+            .then(querySucceeded).fail(handleFail).fin(start);
+
+            function querySucceeded(customer) {
+                ok(customer === null,
+                    "query should return null because customer marked for deletion");
+                customer = queryResult.entity; // we remembered it for the test
+                var name = customer && customer.CompanyName();
+                var entityState = customer && customer.entityAspect.entityState;
+                ok(entityState.isDeleted, "should have found deleted customer, " + name);
+                ok(!queryResult.queriedRemotely, "should have found deleted customer in cache");
+            }
+        });
+    
+    // Test helper
+    function makeAttachedCustomerWithId(manager, id) {
+        var typeInfo = manager.metadataStore.getEntityType("Customer");
+        var customer = typeInfo.createEntity();
+        customer.CustomerID(id);
+        customer.CompanyName("Test Customer");
+        return manager.attachEntity(customer);
     }
 
 });
