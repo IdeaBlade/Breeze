@@ -3,6 +3,9 @@ Breeze Web API NuGet Package ReadMe
 The Breeze Web API NuGet Package adds essential Breeze script files 
 and .NET Web Api libraries to your project.
 
+For an example of a Breeze application, add the
+ "Breeze for MVC4 Web Api Client Sample" package to your project.
+
 Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 
 The following files and references were add to this project.
@@ -23,10 +26,3 @@ Five scripts
 One configuration file
 
 	App_Start/BreezeConfig.cs 
-	
--- sample only --
-
-
-Sample Breeze Web API controller
-
-	Controllers/BreezeSampleController
