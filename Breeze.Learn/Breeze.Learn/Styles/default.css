@@ -235,9 +235,9 @@ p, h3 {
 
 .tutorial-item.selected {
     background-color: #0072c6;
-    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#EFEFBD),color-stop(.2,#F4F4CC),color-stop(1,#FFFFD7));
+    background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#56a3dc),color-stop(.2,#0072c6),color-stop(1,#56a3dc));
     background-image: -moz-linear-gradient(center bottom,#EFEFBD0%,#F4F4CC20%,#FFFFD7100%);
-    color:#fff;
+    color: #fff;
 }
 
 .tutorial-item:hover {
