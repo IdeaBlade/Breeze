@@ -1,15 +1,22 @@
-Breeze MVC4 Web API Client Sample Nuget Package ReadMe
+Breeze MVC4 Web API Client Sample NuGet Package ReadMe
 -------------------------------------------------------
+This package installs a simple sample applications that 
+a) helps confirm your breeze project is setup properly
+b) demonstrates elementary Breeze application setup
+
+This package depends upon the Breeze.WebApi package which
+adds essential Breeze script files and .NET Web Api libraries to your project.
 
 This readme covers
 
-- How to try this "Breeze Web Api" Client sample
+- Trying the "Breeze MVC4 Web Api Client Sample" application
+- Trying the Web API calls of that application
 - The inventory of items added by this nuget package
 
 Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 
 -------------------------------------------------------
-TRY IT
+TRY THE SAMPLE APPLICATION
 
 * Run with debug (F5) of without debug (ctrl-F5)
 
@@ -23,15 +30,61 @@ TRY IT
 
 * Toggle the "include done" checkbox to refresh the list with either all items or just the items "not done".
 
+------------------------------------------
+TRY THE BREEZE SAMPLE WEB API CONTROLLER
+
+1. Run with debug (F5) of without debug (ctrl-F5)
+2. Append "/api/BreezeSample/metadata" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/metadata
+3. Append "/api/BreezeSample/todos" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/todos
+
+*** VIEWING IS EASIER IN NON-IE BROWSERS, IF USING IE, SEE NOTE BELOW.  ***
+
+#2 should produce metadata as JSON such as
+
+<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+{"conceptualModels":{"schema":{"namespace":"%rootname%.Models","alias":"Self","d4p1:UseStrongSpatialTypes":"false","xmlns:d4p1":"http://schemas.microsoft.com/ado/2009/02/edm/annotation","xmlns":"http://schemas.microsoft.com/ado/2009/11/edm","entityType":{"name":"BreezeSampleTodoItem","key":{"propertyRef":{"name":"Id"}},"property":[{"name":"Id","type":"Edm.Int32","nullable":"false","d4p1:StoreGeneratedPattern":"Identity"},{"name":"Description","type":"Edm.String","fixedLength":"false","maxLength":"Max","unicode":"true","nullable":"true"},{"name":"IsDone","type":"Edm.Boolean","nullable":"false"}]},"entityContainer":{"name":"BreezeSampleContext","entitySet":{"name":"Todos","entityType":"Self.BreezeSampleTodoItem"}}}}}
+</string>
+
+
+#3 should trigger database creation and initialization, returning JSON 
+
+<ArrayOfBreezeSampleTodoItem xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.datacontract.org/2004/07/$rootname$.Models">
+<BreezeSampleTodoItem>
+    <Description>Wake up</Description>
+    <Id>1</Id>
+    <IsDone>false</IsDone>
+</BreezeSampleTodoItem>
+<BreezeSampleTodoItem>
+    <Description>Do dishes</Description>
+    <Id>2</Id>
+    <IsDone>true</IsDone>
+</BreezeSampleTodoItem>
+...
+</ArrayOfBreezeSampleTodoItem>
+
+------------------------------------------
+VIEWING JSON RESULTS IN IE
+
+IE browser security prevents display of JSON objects within the browser.
+You can still view the JSON response by doing the following:
+
+* A dialog asks "Do you want to open or save ... from localhost"
+  (This dialog is often at the bottom of the browser window).
+
+* Click the "Open" button
+* A dialog offers programs with which to open the data file
+* Pick Notepad or your favorite text editor
+* Click "OK"
+* Another dialog asks you to confirm your choice; click "Open"
 
 -------------------------------------------------------
 WHAT THIS PACKAGE ADDED
 
-This package depends upon and extends the "Breeze MVC4 Web Api" NuGet Package
-by adding a simple HTML/JavaScript client that uses Breeze to
+This package depends upon and extends the "Breeze Web Api" NuGet Package
+by adding a simple HTML/JavaScript application that uses Breeze
 to display, edit, and save changes.
 
-It automatically includes the "Breeze MVC4 Web Api" NuGet Package if it is not already installed.
+It automatically includes the "Breeze Web Api" NuGet Package if it is not already installed.
 
 It also depends upon 3 other NuGet packages and will install them if not present:
 - jQuery v.1.7.1 
@@ -42,20 +95,26 @@ This specific nuget package added the following files to this project.
 
 One configuration file
 
-	App_Start/BreezeConfig_ClientSample.cs
+	App_Start/BreezeClientSampleConfig.cs - to make the sample app the start page
 
 One CSS content file
 
 	Content/breezesample.css
 
-One MVC 4 Controller
+Two MVC 4 Controllers
 
-	Controllers/BreezeSampleShellController.cs
+	Controllers/BreezeSampleController.cs - the app's Web Api controller
+	Controllers/BreezeSampleShellController.cs - the app's MVC controller
+
+Sample EF Code First model, DbContext, and initializer
+
+	Models/BreezeSampleTodoItem.cs
+	Models/BreezeSampleContext.cs
+	Models/BreezeSampleDatabaseInitializer.cs
 
 One MVC 4 Shell View
 
 	Views/BreezeSampleShell/index.cshtml
-
 
 Two application scripts
 
@@ -63,6 +122,6 @@ Two application scripts
 	Scripts/app/sampleViewModel.js
 
 -------------------------------------------------------	
-Artifacts added by the "Breeze MVC4 Web Api" NuGet package
+Artifacts added by the "Breeze Web Api" NuGet package
 are described in the readme file for that package and on the web at
 http://www.breezejs.com/documentation/start-nuget
