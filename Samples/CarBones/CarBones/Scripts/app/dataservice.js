@@ -43,7 +43,7 @@
     // 'areOptionsLoaded' is not in Car; we just added it.
     // returns a promise to deliver the options
     var loadOptionsIfNecessary = function(car) {
-        if (!car || car.areOptionsLoaded) {
+        if (car.areOptionsLoaded) {
             // options already loaded
             return Q.fcall(function() {
                 return car.getProperty("options");
@@ -60,9 +60,10 @@
             .fail(loadOptionsFailed);
     };
 
-    var saveChanges = function() {
+    var saveChanges = function () {
+        var msg = manager.hasChanges() ? "changes saved" : "nothing to save";
         return manager.saveChanges()
-            .then(function() { logger.success("changes saved"); })
+            .then(function() { logger.success(msg); })
             .fail(saveFailed);
     };
     
