@@ -138,7 +138,7 @@
 
     ko.applyBindings(learn);
 
-    // $("#Vsplitter").splitter({ anchorToWindow: true, resizeOnWindow: true });
+    $("#vSplitter").splitter({ anchorToWindow: true, resizeOnWindow: true });
 
     
     function showStep(stepIx) {
