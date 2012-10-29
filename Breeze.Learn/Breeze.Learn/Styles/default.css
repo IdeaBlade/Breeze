@@ -171,9 +171,10 @@ p, h3 {
 .panel-content2  {
     position: absolute;
     top: 34px;
-    bottom: -20px; 
+    bottom: -29px; 
     left: 0;
     right: 0;
+    overflow: hidden;
     margin-left: 10px;
 }
 
