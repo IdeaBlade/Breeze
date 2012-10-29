@@ -39,12 +39,12 @@ p, h3 {
 }
 
 .left.col {
-	width: 50%;
+	width: 49%;
 }
 	
 .right.col {
 	right: 0;
-	width: 50%;
+	width: 49%;
 }
 
 .top.row {
@@ -57,6 +57,24 @@ p, h3 {
 }
 
 /*    end of std */
+
+
+#vSplitter {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
+
+#vSplitter div {
+	/* overflow: hidden */
+}
+
+.vsplitbar {
+	width: 5px;
+	background: #aaa;
+}
 
 .dialog {
     display: none;
@@ -145,7 +163,7 @@ p, h3 {
     top: 0px;
     left: 0px;
     right: 0px;
-    height: 33px;
+    height: 34px;
     overflow: hidden;
     line-height: 34px;
     background-color: #0072c6;
@@ -315,7 +333,7 @@ iframe {
     float: right;
     margin-right: 5px;
     position: relative;
-    top: -32px;
+    top: -31px;
     line-height: 20px;
     font-weight: bold;
 }

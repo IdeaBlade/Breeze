@@ -253,7 +253,6 @@
     <Content Include="Scripts\splitter.js" />
     <Content Include="Styles\codemirror.css" />
     <Content Include="Styles\default.css" />
-    <Content Include="Styles\default.old.css" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Styles\jq-smoothness\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -293,7 +292,6 @@
     <Content Include="Images\orderedList9.png" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Views\Web.config" />
-    <Content Include="Views\Home\Index.old.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
