@@ -6,6 +6,7 @@
     using Models;
     using Newtonsoft.Json.Linq;
 
+    [JsonFormatter, ODataActionFilter]
     public class TodosController : ApiController {
 
         static readonly TimeSpan RefreshRate = TimeSpan.FromMinutes(20);
@@ -20,7 +21,6 @@
         {
             PeriodicReset();
         }
-
 
         // ~/api/todos/Metadata 
         [AcceptVerbs("GET")]

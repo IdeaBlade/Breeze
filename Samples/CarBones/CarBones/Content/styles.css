@@ -1,0 +1,40 @@
+﻿body {
+    font-family: arial;
+    margin: 10px;
+}
+h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+div {
+    padding: .1em 0 ;
+}
+div .car {
+    padding: .7em 0 ;
+    border-bottom: 1px solid rgb(191, 191, 191);
+}
+.short-name{
+    width: 5em;
+}
+.description {
+    font-style: italic;
+    font-size: .8em;
+    margin-left:.5em;
+}
+#name-desc {
+    font-style: italic;
+    font-size: .8em;
+    margin-left: .5em;
+}
+.options-section {
+    margin-left: 2em;
+}
+.hidden {
+    display: none;
+}
+li {
+    padding: .1em 0 .1em 0;
+}
+a {
+    font-size: .8em;
+}

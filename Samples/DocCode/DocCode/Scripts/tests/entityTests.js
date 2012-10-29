@@ -146,8 +146,26 @@ define(["testFns"], function (testFns) {
         equal(currentLastName, origLastName,
             "After rejectChanges, employee LastName is " + currentLastName);
 
-    }); 
-  
+    });
+    
+   /*********************************************************
+   * Setting an entity property value to itself doesn't trigger entityState change
+   *********************************************************/
+    test("Setting an entity property value to itself doesn't trigger entityState change", 1,
+        function () {
+            var em = newEm();
+
+            var employeeType = em.metadataStore.getEntityType("Employee");
+            var employee = employeeType.createEntity();
+            employee.EmployeeID(1);
+            em.attachEntity(employee);
+
+            employee.FirstName(employee.FirstName());
+
+            var entityState = employee.entityAspect.entityState;
+            ok(entityState.isUnchanged(),
+                "employee should be Unchanged; is " + entityState);
+        });
     /*********************************************************
     * manager.rejectChanges undoes a bi-directional navigation property change 
     * Considers an association in which navigation properties exist 

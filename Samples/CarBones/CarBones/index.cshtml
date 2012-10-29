@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Car Bones</title>
+    <link href="/content/styles.css" rel="stylesheet" />
+    <script src="/Scripts/modernizr-2.6.2.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Car Bones</h1>
+    </header>
+
+    <div id="content" />
+
+    <script id="car-template" type="text/x-template">
+        <div class="car">
+            <div> 
+                Make: <input id="make-input" class="short-name">&nbsp;&nbsp;  
+                Model: <input id="model-input">
+                <span class="description">
+                    <span id="make-desc"/> <span id="model-desc"/>
+                </span>
+            </div>
+            <div class="options-section">
+                <a id="options" href="#">Options</a>
+                <ul id="optionsList" class="hidden"/>
+            </div>
+        </div>
+    </script>
+
+    <script id="option-template" type="text/x-template">
+        <li>
+            option: <input id="name-input">
+            <span id="name-desc" class="description"/>
+        </li>
+    </script>​
+
+    <!-- 3rd party libraries -->
+    <script src="/Scripts/jquery-1.8.2.min.js"></script>
+    <script src="/Scripts/underscore.js"></script>    
+    <script src="/Scripts/backbone.js"></script> 
+    <script src="/Scripts/backbone.stickit.js"></script>
+    <script src="/Scripts/q.js"></script>
+    <script src="/Scripts/breeze.debug.js"></script>
+
+    <!-- App libraries -->
+    <script src="/Scripts/app/app.js"></script>
+
+
+</body>
+</html>

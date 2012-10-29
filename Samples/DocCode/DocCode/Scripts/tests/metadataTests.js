@@ -122,12 +122,17 @@ define(["testFns"], function (testFns) {
     var camelCaseMetadataStore;
 
     // Populate the namingConventionMetadataStore with Northwind service metadata
+    // Use the camelCase naming convention shipped in Breeze
+    // N.B.: Typically would set the naming convention one for all application managers
+    //       e.g. entityModel.NamingConvention.camelCase.setAsDefault();
+    //       Not doing so in these tests in order to avoid cross-test pollution
     function namingConventionMetadataStoreSetup() {
         
         if (camelCaseMetadataStore) return; // got it already
 
         camelCaseMetadataStore =
-            new MetadataStore({ namingConvention: camelCaseNamingConvention });
+            // use the camelCase naming convention shipped in Breeze
+            new MetadataStore({ namingConvention: entityModel.NamingConvention.camelCase });
 
         var fetchMetadataPromises =
             [camelCaseMetadataStore.fetchMetadata(northwindService)];
@@ -144,14 +149,13 @@ define(["testFns"], function (testFns) {
         .fin(start);
     }
 
-    // A naming convention that converts the first character of every property name to uppercase on the server
-    // and lowercase on the client.
-    var camelCaseNamingConvention = new entityModel.NamingConvention({
+    // A naming convention that prepends an underscore (_) to every property name.
+    var underscoreNamingConvention = new entityModel.NamingConvention({
         serverPropertyNameToClient: function(serverPropertyName) {
-            return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+            return "_" + serverPropertyName;
         },
         clientPropertyNameToServer: function(clientPropertyName) {
-            return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+            return clientPropertyName.substr(1);
         }            
     });
     /*********************************************************

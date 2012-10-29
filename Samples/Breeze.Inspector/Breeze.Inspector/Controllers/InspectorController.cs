@@ -5,33 +5,34 @@
     using Models;
     using Newtonsoft.Json.Linq;
 
+    [JsonFormatter, ODataActionFilter]
     public class InspectorController : ApiController {
-        readonly EFContextProvider<InspectorContext> contextProvider = 
+        readonly EFContextProvider<InspectorContext> _contextProvider = 
             new EFContextProvider<InspectorContext>();
 
         [AcceptVerbs("GET")]
         public string Metadata() {
-            return contextProvider.Metadata();
+            return _contextProvider.Metadata();
         }
 
         [AcceptVerbs("GET")]
         public IQueryable<Inspector> Inspectors() {
-            return contextProvider.Context.Inspectors;
+            return _contextProvider.Context.Inspectors;
         }
 
         [AcceptVerbs("GET")]
         public IQueryable<InspectionForm> Forms() {
-            return contextProvider.Context.Forms;
+            return _contextProvider.Context.Forms;
         }
 
         [AcceptVerbs("GET")]
         public IQueryable<Job> Jobs() {
-            return contextProvider.Context.Jobs;
+            return _contextProvider.Context.Jobs;
         }
 
         [AcceptVerbs("POST")]
         public SaveResult SaveChanges(JObject saveBundle) {
-            return contextProvider.SaveChanges(saveBundle);
+            return _contextProvider.SaveChanges(saveBundle);
         }
     }
 }

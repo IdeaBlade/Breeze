@@ -4,6 +4,12 @@ namespace BreezyDevices.Models
 {
     public class BreezyDevicesContext : DbContext
     {
+        // DEVELOPMENT ONLY: initialize the database
+        static BreezyDevicesContext()
+        {
+            Database.SetInitializer(new BreezyDevicesDatabaseInitializer());
+        }
+
         public BreezyDevicesContext()
             : base("name=BreezyDevicesContext")
         {
