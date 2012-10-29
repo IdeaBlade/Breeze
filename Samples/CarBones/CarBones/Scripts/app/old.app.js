@@ -1,4 +1,6 @@
-﻿var app = app || {};
+﻿// ReSharper disable InconsistentNaming
+
+var app = app || {};
 
 (function() {
 
@@ -88,17 +90,17 @@
             return this;
         },
         _renderOptions: function() {
-            var host = $("#optionsList", this.$el).empty();
+            var optionsHost = $("#optionsList", this.$el).empty();
             var options = this.model.get("options");
             if (options.length) {
                 options.forEach(
                     function(p) {
                         var pv = new OptionView({ model: p });
-                        host.append(pv.render().el);
+                        optionsHost.append(pv.render().el);
                     });
-                host.removeClass("hidden");
+                optionsHost.removeClass("hidden");
             } else {
-                host.addClass("hidden");
+                optionsHost.addClass("hidden");
             }
         },
         showOptions: function() {
@@ -117,11 +119,11 @@
     var optionCounter = 0;
 
     // Show the cars
-    var host = $("#content").empty();
+    var content = $("#content").empty();
     carCollection.forEach(
         function(vm) {
             var vv = new CarView({ model: vm });
-            host.append(vv.render().el);
+            content.append(vv.render().el);
         }
     );
 

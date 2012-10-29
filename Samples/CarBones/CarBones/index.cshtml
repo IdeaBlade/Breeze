@@ -11,8 +11,11 @@
     <header>
         <h1>Car Bones</h1>
     </header>
+    <img class="save hidden" src="/Images/save.png" title="Save Changes" alt="Save Changes" /> 
 
-    <div id="content" />
+    <div id="content" ></div>
+    <p></p>
+    <div id="logmessages"></div>
 
     <script id="car-template" type="text/x-template">
         <div class="car">
@@ -32,7 +35,7 @@
 
     <script id="option-template" type="text/x-template">
         <li>
-            option: <input id="name-input">
+            <input id="name-input">
             <span id="name-desc" class="description"/>
         </li>
     </script>​
@@ -46,7 +49,10 @@
     <script src="/Scripts/breeze.debug.js"></script>
 
     <!-- App libraries -->
-    <script src="/Scripts/app/app.js"></script>
+    <script>app={} // the application namespace</script>
+    <script src="/Scripts/app/logger.js"></script>
+    <script src="/Scripts/app/dataservice.js"></script>
+    <script src="/Scripts/app/viewcontroller.js"></script>
 
 
 </body>

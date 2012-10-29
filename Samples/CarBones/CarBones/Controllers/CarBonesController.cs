@@ -2,6 +2,7 @@ using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
 using CarBones.Models;
+using Newtonsoft.Json.Linq;
 
 namespace CarBones.Controllers
 {
@@ -11,10 +12,18 @@ namespace CarBones.Controllers
         readonly EFContextProvider<CarBonesContext> _contextProvider =
             new EFContextProvider<CarBonesContext>();
 
+        // ~/api/CarBones/metadata
         [AcceptVerbs("GET")]
         public string Metadata()
         {
             return _contextProvider.Metadata();
+        }
+
+        // ~/api/CarBones/SaveChanges
+        [AcceptVerbs("POST")]
+        public SaveResult SaveChanges(JObject saveBundle)
+        {
+            return _contextProvider.SaveChanges(saveBundle);
         }
 
         [AcceptVerbs("GET")]

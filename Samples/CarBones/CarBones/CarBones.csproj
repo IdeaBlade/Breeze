@@ -145,7 +145,11 @@
     <Content Include="App_Data\readme.txt" />
     <Content Include="Content\styles.css" />
     <Content Include="Global.asax" />
-    <Content Include="Scripts\app\app.js" />
+    <Content Include="Images\save.png" />
+    <Content Include="Scripts\app\dataservice.js" />
+    <Content Include="Scripts\app\viewcontroller.js" />
+    <Content Include="Scripts\app\logger.js" />
+    <Content Include="Scripts\app\old.app.js" />
     <Content Include="Scripts\backbone.stickit.js" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\backbone.js" />

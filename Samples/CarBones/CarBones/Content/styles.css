@@ -38,3 +38,9 @@ li {
 a {
     font-size: .8em;
 }
+
+.log-error { color: red; font-weight: bold; }
+.log-validation-error { color: rgb(243, 162, 13); font-weight: bold;}
+.log-info { color: blue; }
+.log-success { color: green; }
+.log-warning { color: orchid; }
