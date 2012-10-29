@@ -10,8 +10,8 @@ p, h3 {
 }
 
 .row, .col {
-     overflow: hidden; 
      position: absolute;
+	 overflow: hidden;
 }
 
 .row {
@@ -30,13 +30,33 @@ p, h3 {
     overflow: auto;
 }
 
-.scroll-x {
-    overflow-x: auto;
+.scroll-x { 
+	overflow-x: auto; 
 }
 
-.scroll-y {
-    overflow-y: auto;
+.scroll-y { 
+	overflow-y: auto; 
 }
+
+.left.col {
+	width: 50%;
+}
+	
+.right.col {
+	right: 0;
+	width: 50%;
+}
+
+.top.row {
+	height: 50%;
+}
+
+.bottom.row {
+	bottom: 0;
+	height: 50%;
+}
+
+/*    end of std */
 
 .dialog {
     display: none;
@@ -47,29 +67,11 @@ p, h3 {
     height: 75px; 
 }
 
-.left.col {
-    left: 0;
-    width: 50%;
-}
-
-.right.col {
-    left: 50%; 
-    right: 0;
-}
-
 .body.row {
     top: 75px;
     bottom: 0px;
 }
 
-.row.top {
-    height: 50%;
-}
-
-.row.bottom {
-    top: 50%;
-    height: 50%;
-}
 
 .page-links {
     float: right;
@@ -126,16 +128,16 @@ p, h3 {
     cursor: pointer;
 }
 
-.panel-container {
-    padding: 4px;
-    height: 100%;
-    /* box-sizing: border-box; */
-    border: 2px solid #999999;     
-    background-color: white;
-    overflow: hidden;
-    /*-webkit-box-shadow: 0 0 0px rgba(0, 0, 0, .6);
-    -moz-box-shadow: 0 0 0px rgba(0,0,0,.6);
-    box-shadow: 0px 0px 0px rgba(0, 0, 0, .6);*/
+.panel {
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	left: 0;
+	right: 0;
+
+	margin: 4px;
+    border: 1px solid gray;
+
 }
 
 .panel-header {
@@ -146,7 +148,7 @@ p, h3 {
     height: 33px;
     overflow: hidden;
     line-height: 34px;
-    background-color: #0072c6;;
+    background-color: #0072c6;
     color: #fff;
     font-size: .9em;
     font-weight: bold;
@@ -158,12 +160,12 @@ p, h3 {
 .panel-content  {
     position: absolute;
     top: 34px;
-    bottom: 10px; 
+    bottom: 0px; 
     left: 0;
     right: 0;
     overflow: hidden;
-    margin-left: 5px;
-    margin-bottom: 5px;
+    margin-left: 10px;
+
 }
 
 .panel-content2  {
@@ -172,6 +174,7 @@ p, h3 {
     bottom: -20px; 
     left: 0;
     right: 0;
+    margin-left: 10px;
 }
 
 

@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-  <title>Learn Breeze</title>
+    <title>Learn Breeze</title>
     @*used for syntax highlighting in the instructions pane*@
     <link rel="stylesheet" href="http://yandex.st/highlightjs/7.3/styles/default.min.css">
 
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="@Url.Content("~/Styles/default.css")"/>
 
     <script src="http://yandex.st/highlightjs/7.3/highlight.min.js"></script>
-@*    <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+    @*    <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
     <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>*@
 
 </head>
@@ -38,70 +38,74 @@
 
     <div class="body row">
         <div class="left col">
-            <div class="top row panel-container">
-
-                <div class="panel-header">
-                    <div class="step-navigation">
-                        <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
-                            <div class="arrow-right"></div>
-                        </button>
-                        <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
-                            <div class="arrow-left"></div>
-                        </button>
-                        <div class="step-status">
-                            Step <span data-bind="text: activeStepNumber"></span>
-                            of <span data-bind="text: maxStepNumber"></span>
+            <div class="top row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
+                                <div class="arrow-right"></div>
+                            </button>
+                            <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
+                                <div class="arrow-left"></div>
+                            </button>
+                            <div class="step-status">
+                                Step <span data-bind="text: activeStepNumber"></span>
+                                of <span data-bind="text: maxStepNumber"></span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="panel-content">
-                    <div id="instructions" class="scroll" data-bind="markdown: currentInstructions"></div>
-                </div>
-
-            </div>
-            <div class="bottom row panel-container">
-
-                <div class="panel-header">
-                    <div class="step-navigation">
-                        <div>Output</div>
-                        <button class="run" data-bind="click: run">
-                            <strong>Run</strong>
-                        </button>
+                    <div class="panel-content">
+                        <div id="instructions" class="scroll" data-bind="markdown: currentInstructions"></div>
                     </div>
                 </div>
-                <div class="panel-content">
-                    <div style="height: 100%" id="output-container" ></div>
+            </div>
+            <div class="bottom row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <div>Output</div>
+                            <button class="run" data-bind="click: run">
+                                <strong>Run</strong>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div style="height: 100%" id="output-container"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
 
         <div class="right col">
-            <div class="top row panel-container">
-                <div class="panel-header">
-                    <div class="step-navigation">
-                        <div>Javascript</div>
+            <div class="top row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <div>Javascript</div>
+                        </div>
                     </div>
-                </div>
-                <div class="panel-content2">
-                    <textarea data-bind="jsEditor: currentJavascript"></textarea>
+                    <div class="panel-content2">
+                        <textarea data-bind="jsEditor: currentJavascript"></textarea>
+                    </div>
                 </div>
             </div>
 
-            <div class="bottom row panel-container">
-                <div class="panel-header">
-                    <div class="step-navigation">
-                        <div>Html</div>
+            <div class="bottom row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="step-navigation">
+                            <div>Html</div>
+                        </div>
+                    </div>
+                    <div class="panel-content2">
+                        <textarea data-bind="htmlEditor: currentHtml"></textarea>
                     </div>
                 </div>
-                <div class="panel-content2">
-                    <textarea data-bind="htmlEditor: currentHtml"></textarea>
-                </div>
-
             </div>
         </div>
     </div>
-    
+
     <div id="dialog-select-tutorial" class ="dialog" title="Select tutorial">
       <ul class="tutorial-list" data-bind="foreach: tutorials">
         <li class="tutorial-item" data-bind="click: function() { $parent.finishSelection($data); }, css: { selected: $data == $parent.activeTutorial() }">
@@ -121,8 +125,8 @@
   </div>
 
   <script type="text/javascript">
-        var Learn = (function(learn) {
-            learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
+      var Learn = (function(learn) {
+          learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
             return learn;
         })(Learn || { });
     </script>
