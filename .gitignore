@@ -47,6 +47,10 @@ Samples/BreezyDevices/BreezyDevices/Scripts/breeze.debug.js
 Samples/BreezyDevices/BreezyDevices/Scripts/breeze.intellisense.js
 Samples/BreezyDevices/BreezyDevices/Scripts/breeze.js
 
+Samples/CarBones/CarBones/Scripts/breeze.debug.js
+Samples/CarBones/CarBones/Scripts/breeze.intellisense.js
+Samples/CarBones/CarBones/Scripts/breeze.js
+
 Samples/Breeze.Inspector/Breeze.Inspector/App_Data/Inspector.sdf
 Samples/Breeze.Inspector/Breeze.Inspector/App/lib/breeze.debug.js
 Samples/Breeze.Inspector/Breeze.Inspector/App/lib/breeze.intellisense.js

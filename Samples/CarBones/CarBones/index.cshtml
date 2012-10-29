@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Car Bones</title>
+    <link href="/content/styles.css" rel="stylesheet" />
+    <script src="/Scripts/modernizr-2.6.2.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Car Bones</h1>
+    </header>
+
+    <section class="main">
+        <section id="sessions-view" class="view">
+            <section class="view-list" data-bind="foreach: sessions">
+                <article class="article-left-content">
+                    <div class="session-brief" title="Go to session details">
+                        <img data-bind="attr: {src: speaker().imageName}" />
+                        <span data-bind="text:timeSlot().name"></span>at <span data-bind="text:room().name"></span>
+                        <small data-bind="text:level" class="right"></small>
+                        <small data-bind="text:track().name" class="right"></small>
+                        <small data-bind="text:code" class="right"></small>
+                        <h1 data-bind="text: title"></h1>
+                        <address data-bind="text: speaker().fullName"></address>
+                        <small data-bind="text:tagsFormatted"></small>
+                    </div>
+                </article>
+            </section>
+        </section>
+        <section id="speakers-view" class="view">
+            <section class="view-list" data-bind="foreach: speakers">
+                <article class="article-container-full-width">
+                    <div>
+                        <img data-bind="attr: {src: imageName}" />
+                        <address data-bind="text: firstName"></address>
+                        <address data-bind="text: lastName"></address>
+                    </div>
+                </article>
+            </section>
+        </section>
+        <section id="session-view" class="view">
+            <button class="button-back" data-bind="click: goBack"></button>
+            <div class="save-cancel-button-bar">
+                <button class="button-cancel" data-bind="click: cancel, enable: hasChanges">Cancel</button>
+                <button class="button-save" data-bind="click: save, enable: hasChanges">Save</button>
+            </div>
+            <div data-bind="with: session">    
+                <div class="titleblock">
+                    <label for="title">Title</label>
+                    <input id="title" data-bind="value: title" placeholder="Knockout Fundamentals" />
+                </div>
+                <div class="details-left">
+                    <div>
+                        <label>Track</label>
+                        <select data-bind="options: $parent.tracks, optionsText: 'name', value: track">
+                        </select>
+                    </div>
+                    <div>
+                        <label>Time slot</label>
+                        <select data-bind="options: $parent.timeSlots, optionsText: 'name', value: timeSlot">
+                        </select>
+                    </div>
+                    <div>
+                        <label>Room</label>
+                        <select data-bind="options: $parent.rooms, optionsText: 'name', value: room">
+                        </select>
+                    </div>
+                    <div>
+                        <label>Code</label>
+                        <input data-bind="value: code" placeholder="WEB121"/>
+                    </div>
+                    <div>
+                        <label>Level</label>
+                        <input data-bind="value: level" placeholder="300"/>
+                    </div>
+                    <div>
+                        <label>Tags</label>
+                        <input data-bind="value: tagsFormatted" placeholder="CSS, HTML5"/>
+                    </div>
+                    <div>
+                        <img data-bind="attr: {src: speaker().imageName}" />
+                        <address data-bind="text: speaker().fullName"></address>
+                    </div>        
+                </div>
+                <div class="details-right">
+                    <div>
+                        <label>Description</label>
+                        <textarea data-bind="value: description, valueUpdate: 'afterkeydown'" 
+                            placeholder="Session description"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <!-- 3rd party libraries -->
+    <script src="/Scripts/lib/jquery-1.8.2.min.js"></script>
+    <script src="/Scripts/lib/knockout-2.1.0.js"></script>
+    <script src="/Scripts/lib/q.js"></script>
+    <script src="/Scripts/lib/breeze.debug.js"></script>
+    <script src="/Scripts/lib/toastr.js"></script>
+    <script src="/Scripts/lib/sammy.js"></script>
+    <script src="/Scripts/lib/sammy.title.js"></script>
+    <script src="/Scripts/lib/moment.js"></script>
+
+    <!-- App libraries -->
+    <script src="/Scripts/app/app.js"></script>
+
+
+</body>
+</html>
