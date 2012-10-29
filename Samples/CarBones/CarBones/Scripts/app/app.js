@@ -1,7 +1,7 @@
 ﻿var app = app || {};
 
-(function () {
-    
+(function() {
+
     var Car = Backbone.Model.extend({
         // instance properties
         defaults: {
@@ -9,21 +9,20 @@
             model: ""
         },
 
-        initialize: function () {
+        initialize: function() {
             console.log('car created');
             if (!this.has('options')) {
                 this.set('options', new OptionCollection());
             }
         }
     });
-    
+
     // Backbone model classes
     var Option = Backbone.Model.extend({
         // instance properties
         defaults: {
             name: ""
         },
-
     });
 
     var OptionCollection = Backbone.Collection.extend({
@@ -32,25 +31,23 @@
 
     // make some cars
     var carCollection = new Backbone.Collection([
-            new Car({
-                make: "Ford",
-                model: "Mustang"
-            }),
-        
-            new Car({
-                make: "Chevy",
-                model: "Volt",
-                options: new OptionCollection([
-                    new Option({name: "Sunroof"}),
-                    new Option({name: "Whitewalls"}),
-                    new Option({name: "All leather interior"})
-                ])
-            }), 
-            
-            new Car({
-                make: "Aladin",
-                model: "Magic Carpet"
-            })
+        new Car({
+            make: "Ford",
+            model: "Mustang"
+        }),
+        new Car({
+            make: "Chevy",
+            model: "Volt",
+            options: new OptionCollection([
+                new Option({ name: "Sunroof" }),
+                new Option({ name: "Whitewalls" }),
+                new Option({ name: "All leather interior" })
+            ])
+        }),
+        new Car({
+            make: "Tesla",
+            model: "S"
+        })
     ]);
 
     // Get the templates
@@ -82,7 +79,7 @@
             '#model-desc': 'model',
         },
         events: {
-            "click #options" : "showOptions"
+            "click #options": "showOptions"
         },
         render: function() {
             this.$el.html(carTemplateSource);
@@ -95,8 +92,8 @@
             var options = this.model.get("options");
             if (options.length) {
                 options.forEach(
-                    function (p) {
-                        var pv = new OptionView({model: p});
+                    function(p) {
+                        var pv = new OptionView({ model: p });
                         host.append(pv.render().el);
                     });
                 host.removeClass("hidden");
@@ -104,17 +101,17 @@
                 host.addClass("hidden");
             }
         },
-        showOptions: function () {
+        showOptions: function() {
             var self = this;
             // simulate async retrieval of options from server
-            setTimeout(function () {
+            setTimeout(function() {
                 self.model.get("options").add([
-                    {name: "Cup holder "+ (optionCounter += 1)},
-                    {name: "Lottery ticket "+ (optionCounter += 1)}
+                    { name: "Cup holder " + (optionCounter += 1) },
+                    { name: "Lottery ticket " + (optionCounter += 1) }
                 ]);
                 self._renderOptions();
             }, 500);
-        }   
+        }
     });
 
     var optionCounter = 0;
@@ -122,10 +119,10 @@
     // Show the cars
     var host = $("#content").empty();
     carCollection.forEach(
-        function (vm) {
-            var vv = new CarView({model: vm});
+        function(vm) {
+            var vv = new CarView({ model: vm });
             host.append(vv.render().el);
         }
-    );  
+    );
 
-})()
+})();
