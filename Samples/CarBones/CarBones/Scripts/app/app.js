@@ -1,4 +1,6 @@
-﻿(function () {
+﻿var app = app || {};
+
+(function () {
     
     var Car = Backbone.Model.extend({
         // instance properties
@@ -126,4 +128,4 @@
         }
     );  
 
-})(app||{})
+})()

@@ -142,7 +142,6 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\app\app.js" />
     <Content Include="Scripts\backbone.stickit.js" />
-    <Content Include="index.cshtml" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\backbone.js" />
     <Content Include="Scripts\backbone.min.js" />
@@ -164,7 +163,7 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <Content Include="Views\Web.config" />
+    <Content Include="Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
