@@ -137,9 +137,61 @@
     };
 
     ko.applyBindings(learn);
+    
 
-    $("#vSplitter").splitter({ anchorToWindow: true, resizeOnWindow: true });
+    $("#vSplitter").splitter({
+        type: "v",
+        accessKey: "I",
+        minLeft: 200,
+        minRight: 200,
+        anchorToWindow: true,
+        resizeOnWindow: true,
+        outline: true
+    });
+    
+    var h = window.innerHeight;
 
+    $("#hSplitterLeft").splitter({
+        type: "h",
+        anchorToWindow: true,
+        resizeOnWindow: true,
+        sizeTop: h*.6,
+        minTop: 200,
+        minBottom: 200,
+        accessKey: "H"
+    });
+    
+    $("#hSplitterRight").splitter({
+        type: "h",
+        anchorToWindow: true,
+        resizeOnWindow: true,
+        sizeTop: h*.5,
+        minTop: 200,
+        minBottom: 200,
+        accessKey: "H"
+    });
+
+    resizeWhenMoved(".vsplitbar");
+    
+    function resizeWhenMoved(elementName) {
+        var isDragging = false;
+        $(elementName).mousedown(function () {
+            $(elementName).mousemove(function () {
+                isDragging = true;
+                $(elementName).unbind("mousemove");
+            });
+        });
+        $(elementName).mouseup(function () {
+            var wasDragging = isDragging;
+            isDragging = false;
+            $(elementName).unbind("mousemove");
+            if (wasDragging) {
+                setTimeout(function () {
+                    $(window).trigger("resize");
+                });
+            }
+        });
+    }
     
     function showStep(stepIx) {
         if (stepIx === undefined) {

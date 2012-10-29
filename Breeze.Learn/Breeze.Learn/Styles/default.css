@@ -39,12 +39,12 @@ p, h3 {
 }
 
 .left.col {
-	width: 49%;
+	width: 50%;
 }
 	
 .right.col {
 	right: 0;
-	width: 49%;
+	width: 50%;
 }
 
 .top.row {
@@ -68,12 +68,37 @@ p, h3 {
 }
 
 #vSplitter div {
+    /* uncommenting this screws everything up */
 	/* overflow: hidden */
+}
+
+#hSplitterLeft {
+  position: relative;
+ 
+}
+
+#hSplitterLeft div {
+
+}
+
+#hSplitterRight {
+  position: relative;
+ 
+}
+
+#hSplitterRight div {
+
 }
 
 .vsplitbar {
 	width: 5px;
 	background: #aaa;
+}
+
+.hsplitbar {
+    height: 5px;
+    background: #aaa;
+    
 }
 
 .dialog {
@@ -183,17 +208,18 @@ p, h3 {
     right: 0;
     overflow: hidden;
     margin-left: 10px;
-
+    
 }
 
 .panel-content2  {
     position: absolute;
     top: 34px;
-    bottom: -29px; 
+    bottom: -34px; 
     left: 0;
     right: 0;
     overflow: hidden;
     margin-left: 10px;
+    margin-top: 10px;
 }
 
 
