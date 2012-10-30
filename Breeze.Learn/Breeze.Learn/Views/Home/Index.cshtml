@@ -36,71 +36,74 @@
         </div>
     </div>
 
-    <div class="body row">
+    <div id="mainBody" class="body row">
         <div id="vSplitter">
             <div class="left col">
-                <div class="top row">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
-                                    <div class="arrow-right"></div>
-                                </button>
-                                <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
-                                    <div class="arrow-left"></div>
-                                </button>
-                                <div class="step-status">
-                                    Step <span data-bind="text: activeStepNumber"></span>
-                                    of <span data-bind="text: maxStepNumber"></span>
+                <div id="hSplitterLeft">
+                    <div class="top row">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="step-navigation">
+                                    <button class="step-next" data-bind="enable: canMoveNext, click: moveNext">
+                                        <div class="arrow-right"></div>
+                                    </button>
+                                    <button class="step-previous" data-bind="enable: canMovePrevious, click: movePrevious">
+                                        <div class="arrow-left"></div>
+                                    </button>
+                                    <div class="step-status">
+                                        Step <span data-bind="text: activeStepNumber"></span>
+                                        of <span data-bind="text: maxStepNumber"></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="panel-content">
-                            <div id="instructions" class="scroll" data-bind="markdown: currentInstructions"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bottom row">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Output</div>
-                                <button class="run" data-bind="click: run">
-                                    <strong>Run</strong>
-                                </button>
+                            <div class="panel-content">
+                                <div id="instructions" class="scroll" data-bind="markdown: currentInstructions"></div>
                             </div>
                         </div>
-                        <div class="panel-content">
-                            <div style="height: 100%" id="output-container"></div>
+                    </div>
+                    <div class="bottom row">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="step-navigation">
+                                    <div>Output</div>
+                                    <button class="run" data-bind="click: run">
+                                        <strong>Run</strong>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="panel-content" style="margin-top: 10px;" >
+                                <div style="height: 100%;" id="output-container"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="right col">
-                <div class="top row">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Javascript</div>
+                <div id="hSplitterRight">
+                    <div class="top row">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="step-navigation">
+                                    <div>JavaScript</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="panel-content2">
-                            <div class="scroll">
-                                <textarea data-bind="jsEditor: currentJavascript"></textarea>
+                            <div class="panel-content2">
+                                <div class="scroll">
+                                    <textarea data-bind="jsEditor: currentJavascript"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="bottom row">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="step-navigation">
-                                <div>Html</div>
+                    <div class="bottom row">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="step-navigation">
+                                    <div>Html</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="panel-content2">
-                            <textarea data-bind="htmlEditor: currentHtml"></textarea>
+                            <div class="panel-content2">
+                                <textarea data-bind="htmlEditor: currentHtml"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -108,29 +111,29 @@
         </div>
     </div>
 
-    <div id="dialog-select-tutorial" class ="dialog" title="Select tutorial">
-      <ul class="tutorial-list" data-bind="foreach: tutorials">
-        <li class="tutorial-item" data-bind="click: function() { $parent.finishSelection($data); }, css: { selected: $data == $parent.activeTutorial() }">
-          <div class="title" data-bind="text: Title"></div>
-          <div class="description" data-bind="text: Description"></div>
-        </li>
-      </ul>
+    <div id="dialog-select-tutorial" class="dialog" title="Select tutorial">
+        <ul class="tutorial-list" data-bind="foreach: tutorials">
+            <li class="tutorial-item" data-bind="click: function() { $parent.finishSelection($data); }, css: { selected: $data == $parent.activeTutorial() }">
+                <div class="title" data-bind="text: Title"></div>
+                <div class="description" data-bind="text: Description"></div>
+            </li>
+        </ul>
     </div>
 
-    
-  <div id="dialog-notworking" class="dialog" title="Help, it didn't work!">
-    <p>Do you want to have your javascript and html code fixed?</p>
-  </div>   
-    
-  <div id="dialog-showSchema" class="dialog" title="Object model schema">
-    <!-- Think about actually iterating over metadata here with a template engine -->
-  </div>
 
-  <script type="text/javascript">
-      var Learn = (function(learn) {
-          learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
-            return learn;
-        })(Learn || { });
+    <div id="dialog-notworking" class="dialog" title="Help, it didn't work!">
+        <p>Do you want to have your javascript and html code fixed?</p>
+    </div>
+
+    <div id="dialog-showSchema" class="dialog" title="Object model schema">
+        <!-- Think about actually iterating over metadata here with a template engine -->
+    </div>
+
+    <script type="text/javascript">
+        var Learn = (function(learn) {
+            learn.tutorials = @TutorialCache.Tutorials.ToJsonObject();
+          return learn;
+      })(Learn || { });
     </script>
 
     <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
