@@ -43,7 +43,7 @@
             var self = this;
             var optionsHost = $("#optionsList", self.$el);
             if (optionsHost.hasClass("hidden")) {
-                dataservice.loadOptionsIfNecessary(self.model)
+                dataservice.loadOptionsIfNotLoaded(self.model)
                     .then(function () {
                         self.renderOptions();
                     });

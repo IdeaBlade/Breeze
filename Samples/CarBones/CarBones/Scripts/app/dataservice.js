@@ -42,7 +42,7 @@
     // if haven't already done so
     // 'areOptionsLoaded' is not in Car; we just added it.
     // returns a promise to deliver the options
-    var loadOptionsIfNecessary = function(car) {
+    var loadOptionsIfNotLoaded = function(car) {
         if (car.areOptionsLoaded) {
             // options already loaded
             return Q.fcall(function() {
@@ -69,7 +69,7 @@
     
     return {
         getCars: getCars,
-        loadOptionsIfNecessary: loadOptionsIfNecessary,
+        loadOptionsIfNotLoaded: loadOptionsIfNotLoaded,
         saveChanges: saveChanges
     };
     
