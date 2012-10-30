@@ -132,22 +132,14 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\BreezeSampleController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
-    <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\JsonHelpers.cs" />
-    <Compile Include="Models\BreezeSampleContext.cs" />
-    <Compile Include="Models\BreezeSampleDatabaseInitializer.cs" />
-    <Compile Include="Models\BreezeSampleTodoItem.cs" />
     <Compile Include="Models\NorthwindContext.cs" />
     <Compile Include="Models\NorthwindModel.cs" />
-    <Compile Include="Models\TodoDatabaseInitializer.cs" />
-    <Compile Include="Models\TodoItem.cs" />
-    <Compile Include="Models\TodosContext.cs" />
     <Compile Include="Models\Tutorial.cs" />
     <Compile Include="Models\TutorialCache.cs" />
     <Compile Include="Models\TutorialStep.cs" />
