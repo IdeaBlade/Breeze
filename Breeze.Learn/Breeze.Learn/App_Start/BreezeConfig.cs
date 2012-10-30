@@ -28,9 +28,6 @@ namespace Breeze.Learn.App_Start {
       GlobalConfiguration.Configuration.Filters.Add(
           new Breeze.WebApi.ODataActionFilter());
 
-      // DEVELOPMENT ONLY: initialize the database
-      System.Data.Entity.Database.SetInitializer(
-          new Models.BreezeSampleDatabaseInitializer());
 
     }
   }
