@@ -6,8 +6,10 @@ No UI
 
 TRY IT
 ---------------------------------------------
-API calls
-
+API calls to try
+http://localhost:6111/api/breezydevices/metadata
+http://localhost:6111/api/breezydevices/people
+http://localhost:6111/api/breezydevices/devices
 
 HOW TO BUILD IT FROM FILE | NEW | PROJECT
 -------------------------------------------------
