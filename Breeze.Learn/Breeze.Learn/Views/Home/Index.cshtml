@@ -20,21 +20,23 @@
 </head>
 <body>
     <div class="header row">
-        <div class="page-links"></div>
-
+        
         <div class="header-container">
             <div class="page-title">learn.breeze.com</div>
-            <div class="help-notworking button" data-bind="click: notWorking">
-                <span class="arrow-down"></span>
+            <div class="header-button button" data-bind="click: notWorking">
                 Help!&nbsp;It&nbsp;didn't&nbsp;work
             </div>
-
-          <div class="tutorial-select button" data-bind="click: selectTutorial">
+          <div class="header-button button" style="padding-right: 3em;" data-bind="click: selectTutorial">
             <span class="arrow-down"></span>
-            Tutorial:&nbsp;<span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
+            <span class="tutorial-title" data-bind="text: activeTutorial().Title"></span>
           </div>
-            
-          <a href="http://breezejs.com">home</a>
+          <div class="header-button button" data-bind="click: about">
+              About
+          </div>
+          <div class="page-links">
+            <a href="http://breezejs.com">home</a>
+          </div>
+
         </div>
     </div>
 
@@ -126,8 +128,13 @@
     <div id="dialog-notworking" class="dialog" title="Help, it didn't work!">
         <p>Do you want to have your javascript and html code fixed?</p>
     </div>
+    
+    <div id="dialog-about" class="dialog" title="About">
+        The inspiration for this application, along with much of its look and feel, are based heavily on Steve Sanderson's Knockout tutorials. (learn.knockoutjs.com). 
+        <br>Thank you, Steve.
+    </div>
 
-    <div id="dialog-showSchema" class="dialog" title="Object model schema">
+  <div id="dialog-showSchema" class="dialog" title="Object model schema">
         <!-- Think about actually iterating over metadata here with a template engine -->
     </div>
 

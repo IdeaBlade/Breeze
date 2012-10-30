@@ -72,7 +72,8 @@
 
     learn.selectTutorial = function() {
         $('#dialog-select-tutorial').dialog({
-            resizable: false
+            resizable: false,
+            position: { at: "top+35%" }
         });
     };
 
@@ -83,10 +84,18 @@
         showStep(0); 
     };
 
+    learn.about = function() {
+        $('#dialog-about').dialog({
+            resizable: false,
+            position: { at: "top+35%" }
+        });
+    };
+
 
     learn.notWorking = function() {
         $("#dialog-notworking").dialog({
             resizable: false,
+            position: { at: "top+35%" },
             width: 500,
             modal: true,
             buttons: {
