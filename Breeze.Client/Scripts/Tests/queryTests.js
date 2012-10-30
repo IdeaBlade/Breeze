@@ -600,6 +600,24 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+
+    test("predicate with contains", function() {
+        var em = newEm();
+
+        var p1 = Predicate.create("companyName", "startsWith", "S");
+        var p2 = Predicate.create("city", "contains", "er");
+        var whereClause = p1.and(p2);
+
+        var query = new entityModel.EntityQuery()
+            .from("Customers")
+            .where(whereClause);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var customers = data.results;
+            ok(customers.length > 0);
+            start();
+        }).fail(testFns.handleFail);
+    });
     
      asyncTest("predicate 2", function () {
         var em = newEm();

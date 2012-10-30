@@ -308,7 +308,8 @@ namespace Breeze.WebApi {
     }
 
     protected virtual Expression VisitSubstringOf(ParseTreeNode node, Expression targetExpr, Expression searchExpr) {
-      return Expression.Call(targetExpr, ContainsMethod, new[] { searchExpr });
+      // return Expression.Call(targetExpr, ContainsMethod, new[] { searchExpr });
+      return Expression.Call(searchExpr, ContainsMethod, new[] { targetExpr });
     }
 
     protected virtual Expression VisitSubstring1(ParseTreeNode node, Expression targetExpr, Expression startExpr) {
