@@ -127,6 +127,8 @@
             var htmlValue = markdownValue && new Showdown.converter().makeHtml(markdownValue);
             if (Learn.canMoveNext()) {
                 htmlValue = htmlValue + '<button class="button" onclick=Learn.moveNext()><strong>Continue to next step</strong></button><br><br>';
+            } else {
+                htmlValue = htmlValue + '<button class="button" onclick=Learn.selectTutorial()><strong>Next tutorial</strong></button><br><br>';
             }
             $(element).html(htmlValue || "");
             // colorize code
