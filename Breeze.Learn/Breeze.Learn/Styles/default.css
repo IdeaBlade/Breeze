@@ -130,6 +130,9 @@ p, h3 {
     border-bottom-left-radius: .5em;
     border-bottom-right-radius: .5em;*/
     outline-color: invert;
+    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size:90%;
+    margin-left: 1em;
 }
 
 .header-container {

@@ -543,8 +543,22 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
-    
 
+    test("select - anon two props", function () {
+        
+        var em = newEm();
+        var query = EntityQuery
+            .from("Products")
+            .where("category.categoryName", "startswith", "S")
+            .expand("category")
+            .select("productID, productName");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var r = data.results;
+            ok(r.length > 0);
+            start();
+        }).fail(testFns.handleFail);
+    });
 
     test("starts with op", function () {
         var em = newEm();

@@ -11159,7 +11159,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.64.5",
+        version: "0.64.6",
         core: core,
         entityModel: entityModel
     };

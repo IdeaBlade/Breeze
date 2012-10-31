@@ -76,6 +76,11 @@ namespace Breeze.Learn.Controllers {
     }
 
     [AcceptVerbs("GET")]
+    public IQueryable<Category> Categories() {
+      return ContextProvider.Context.Categories;
+    }
+
+    [AcceptVerbs("GET")]
     public IQueryable<Region> Regions() {
       return ContextProvider.Context.Regions;
     }
