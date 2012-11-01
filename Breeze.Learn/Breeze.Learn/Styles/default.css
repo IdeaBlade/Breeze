@@ -4,7 +4,7 @@ body {
 	
 }
 
-p, h3 {
+p, h3, ol, ul {
 	font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
 	font-size:95%;
 }
