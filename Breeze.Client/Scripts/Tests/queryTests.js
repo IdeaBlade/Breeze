@@ -550,7 +550,6 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery
             .from("Products")
             .where("category.categoryName", "startswith", "S")
-            .expand("category")
             .select("productID, productName");
         stop();
         em.executeQuery(query).then(function(data) {
@@ -558,6 +557,25 @@ define(["testFns"], function (testFns) {
             ok(r.length > 0);
             start();
         }).fail(testFns.handleFail);
+    });
+    
+    test("select with expand should fail with good msg", function () {
+
+        var em = newEm();
+        var query = EntityQuery
+            .from("Products")
+            .where("category.categoryName", "startswith", "S")
+            .expand("category")
+            .select("productID, productName");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var r = data.results;
+            ok(r.length > 0);
+            start();
+        }).fail(function(e) {
+            ok(e.message.indexOf("expand")>=0);
+            start();
+        });
     });
 
     test("starts with op", function () {

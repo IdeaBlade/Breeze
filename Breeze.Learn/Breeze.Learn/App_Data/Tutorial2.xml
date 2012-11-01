@@ -1,29 +1,268 @@
 ﻿<Tutorial>
-  <Order>2</Order>
-  <Title>Tutorial 2 - Coming soon</Title>
-  <Description>Coming soon - Feedback appreciated</Description>
-  
+  <Order>1</Order>
+  <Title>Tutorial 2 - More advanced queries</Title>
+  <Description>Shows some of Breeze's more advanced query capabilities</Description>
   <Steps>
     <TutorialStep>
       <Instructions>
-<![CDATA[
-##Coming soon 
+        <![CDATA[        
+###More advanced queries
 
-Nothing to see here yet but ... we have more tutorials coming out soon but you can help us by prioritizing which areas of *Breeze*
-would benefit the most from additional tutorials.  Please vote on the *Breeze* website. 
+This is a 2nd level Breeze tutorial that explains how to use some of *Breeze's* more advanced query capabilities.
+
+### Querying related entities
+
+In the *Javascript* panel on the right side of the screen, you should see a very simple "Products" query.
+
+Go ahead and press **Run** to see the results of this query.
+
+Now imagine that the query we would like to perform involves returning just those products that belong to certain "Categories".  
+
+This is possible because each instance of the "Product" type has a "Category" property, which in turn returns instances of type "Category".
+
+Let's change the query on the right from this: 
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Products");
+
+to this:
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Products")
+>        .where("Category.CategoryName", "startswith", "S");  
+
+The number of "Products" returned should be much smaller now.
+
+Note that the first parameter to the "where" clause is no longer a simple property name like it was in earlier tutorials.  It is now a "property path".  In this case
+the "Product" type has a "Category" property and the "Category" property in turn has a "CategoryName" property. When constructing a property path, simply separate each property 
+name in the path by a ".". Property paths of any length can be specified in *Breeze*.
+
 ]]>
       </Instructions>
-      <StartingHtml>
-<![CDATA[
-]]>
-      </StartingHtml>
       <StartingJavascript>
-<![CDATA[
+        <![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Products");
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
 ]]>
       </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:ProductID"></span>:
+    <span data-bind="text:ProductName"></span> with 
+    <span data-bind="text:UnitsInStock"></span> units in stock
+  </li>
+</ul>
+]]>
+      </StartingHtml>
     </TutorialStep>
     <TutorialStep>
-      <Instructions>instructions 2</Instructions>
+      <Instructions>
+        <![CDATA[        
+The problem now with the query on the right is that we can't really prove that we selected the correct "Products". We really need to display each product
+alongside its corresponding "category".
+
+Let's start by changing the *Html* panel to actually display the "CategoryName", in bold face, corresponding to each "Product":
+
+>     <ul data-bind="foreach: results">
+>       <li>
+>         <span data-bind="text:ProductID"></span>:
+>         <span data-bind="text:ProductName"></span> in Category:
+>         <strong data-bind="text:Category().CategoryName"></strong>
+>       </li>
+>     </ul>        
+
+Note that Knockout requires us to add a "()" when accessing a nested property in a binding. 
+
+Now press *Run*
+
+>  *That didn't do what we expected, did it?*
+
+No "Category" information was returned and only the first Product was returned because of an error in the binding.
+
+### The "expand" clause
+
+The problem is that our query was only for "Products" and we need "Category" information as well.  *Breeze* only brought down the minimum necessary data.
+This is known as "lazy-loading" and is actually a feature.  If *Breeze* were to bring down all of the entities that were related to each "Product" and then all of the
+entities related to those entities, pretty soon the amount of data returned from the server would be enormous.
+
+But sometimes we need this data and we really do not want to execute another query, and another roundtrip to the server, in order to get "related" data.
+
+*Breeze* makes this process pretty simple. Let's start by adding the following clause to the query in the *JavaScript* pane.
+
+>     .expand("Category");
+
+Our query should now look like this:
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Products")
+>        .where("Category.CategoryName", "startswith", "S")
+>        .expand("Category");
+
+What the "expand" clause does here is insure that this query returns both "Products" and their associated "Categories". 
+
+Let's go ahead and **run** it again.
+
+Hopefully, this time we should see "Category" information alongside the "Product" information, and the category names should all
+begin with the letter "S".
+]]>
+      </Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Products")
+    .where("Category.CategoryName", "startswith", "S"); 
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml></StartingHtml>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions>
+<![CDATA[
+### Query projection = The "select" clause
+
+So far each of the queries that we have written has returned complete entities. This is normally exactly what we want, 
+but sometimes we don't actually need complete entities; sometimes all we need are just selected parts of each entity.
+
+*Breeze* provides a "select" clause that lets you project just the parts of an entity that are interesting to you.
+
+The "select" clause is also different because it doesn't actually return "entities". "Entities" are special in *Breeze* because they
+automatically get packaged in a "wrapper" class that is specific to whatever "entity tracking" library that *Breeze* is configured 
+to work with.  *Breeze* has entity tracking libraries to support "knockout" style models or "backbone" style models. Additional libraries are being 
+continually added as well. 
+
+The results of a query with a "select" clause are NOT wrapped by the "entity tracking" library of choice.  Instead, the result of these
+queries is a collection of plain JavaScript objects. 
+
+So let's create a simple projection query by changing our query to the following:
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Products")
+>        .where("Category.CategoryName", "startswith", "S")
+>        .select("ProductId, ProductName");
+
+Next, because, we are no longer returning "Knockout" wrapped results, we will use jQuery in a simple loop to render our output 
+into a simple Html table structure. So let's add change our query execution logic from this:
+
+>     manager.executeQuery(query).then(function(data){
+>         ko.applyBindings(data);
+>     });      
+
+to this:
+
+>     manager.executeQuery(query).then(function(data){
+>         var outputHtml = "";
+>         data.results.forEach(function(product) {
+>            outputHtml += product.ProductID +  " - " + product.ProductName + "<br>"
+>         });
+>         $("#output").html(outputHtml);
+>     });
+
+We will also need to modify the *Html* pane to add the "output" tag referenced in the code above: 
+
+>     <div id="output">In progress...</div>
+
+and press **Run**
+
+]]>
+      </Instructions>
+      <StartingJavascript>
+<![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Products")
+    .where("Category.CategoryName", "startswith", "S")
+    .expand("Category");
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});      
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+<![CDATA[        
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:ProductID"></span>:
+    <span data-bind="text:ProductName"></span> in Category:
+    <span data-bind="text:Category().CategoryName"></span>
+  </li>
+</ul>        
+]]>
+      </StartingHtml>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions><![CDATA[  ]]></Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Products")
+    .where("Category.CategoryName", "startswith", "S")
+    .select("ProductID, ProductName");
+    
+manager.executeQuery(query).then(function(data){
+     var outputHtml = "";
+     data.results.forEach(function(product) {
+        outputHtml += product.ProductID +  " - " + product.ProductName + "<br>"
+     });
+     $("#output").html(outputHtml);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[     
+<div id="output">In progress...</div>
+
+]]>
+      </StartingHtml>
     </TutorialStep>
   </Steps>
 </Tutorial>

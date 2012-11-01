@@ -9,6 +9,10 @@ p, h3 {
 	font-size:95%;
 }
 
+code {
+    font-family: Consolas, Monaco, Andale, Courier New, Courier, Monospace;
+}
+
 .row, .col {
      position: absolute;
 	 overflow: hidden;

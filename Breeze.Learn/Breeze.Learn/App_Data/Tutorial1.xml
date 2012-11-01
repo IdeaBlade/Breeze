@@ -8,14 +8,15 @@
         <![CDATA[        
 ###Getting started
 
-This is an introductory tutorial on using *Breeze* to create and run a simple query.
+This is an introductory tutorial that is intended to walk thru some of *Breeze's* basic query capabilities.
 
 ### What are all these panes for?
 The JavaScript code needed to execute each step of this tutorial is shown in the *JavaScript* panel to the right.  The Html needed to display the data
 returned by the JavaScript code appears just below that in the *Html* panel.  Finally, the *Output* panel just below this one
 is both where you start the execution of the JavaScript code and where any results will appear.
 
-Each tutorial consists of a series of steps.  You can move between steps by clicking on the arrow keys at the top of this panel. You should try to
+Each tutorial consists of a series of steps.  You can move between steps by clicking on the arrow keys at the top of this panel. Each time you change
+steps, the *Javascript* and *Html* panes will be updated to a state consistent with the completion of the previous step.  You should try to
 perform all of the instructions listed in each panel before moving on to the next step.
 
 If at any time during this tutorial you find it unclear how to proceed, or your code isn't behaving as the tutorial describes,
@@ -108,7 +109,7 @@ But for now, let's try adding a filter to this query.
 
 To accomplish this, simply add the following "where" clause to the bottom of the query in the "JavaScript" panel:
 
->         .orderBy("LastName");
+>     .where("LastName", "startsWith", "P");
 
 The query should now look like this:
 
@@ -399,7 +400,7 @@ To see this, replace the query with this new query.
 >     var pageNum = 3;
 >     var query = new entityModel.EntityQuery()
 >         .from("Customers")
->         .orderBy("CompanyName");
+>         .orderBy("CompanyName")
 >         .skip(pageSize*(pageNum-1))
 >         .take(pageSize);
 

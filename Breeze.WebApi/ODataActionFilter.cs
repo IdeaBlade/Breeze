@@ -93,9 +93,12 @@ namespace Breeze.WebApi {
 
       string expandsQueryString = querystringParams["$expand"];
       if (!string.IsNullOrWhiteSpace(expandsQueryString)) {
-          expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand => {
-            dQuery = dQuery.Include(expand.Replace('/','.'));
-          });
+        if (!string.IsNullOrWhiteSpace(selectQueryString)) {
+          throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
+        }
+        expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand => {
+          dQuery = dQuery.Include(expand.Replace('/','.'));
+        });
       }
 
       if (!string.IsNullOrWhiteSpace(selectQueryString)) {

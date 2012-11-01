@@ -52,7 +52,7 @@ $versionNum = getBreezeVersion $srcDir
 
 # erase the destDir if it exists
 if (test-path $destDir) {
-    remove-item $destDir -recurse
+    remove-item $destDir -recurse -force
 }
 
 # Check that all files have been updated within the last 5 minutes
