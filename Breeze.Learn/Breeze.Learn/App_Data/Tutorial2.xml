@@ -181,8 +181,8 @@ to this:
 
 >     manager.executeQuery(query).then(function(data){
 >         var outputHtml = "";
->         data.results.forEach(function(product) {
->            outputHtml += product.ProductID +  " - " + product.ProductName + "<br>"
+>         data.results.forEach(function(item) {
+>            outputHtml += item.ProductID +  " - " + item.ProductName + "<br>"
 >         });
 >         $("#output").html(outputHtml);
 >     });
@@ -230,7 +230,43 @@ manager.executeQuery(query).then(function(data){
       </StartingHtml>
     </TutorialStep>
     <TutorialStep>
-      <Instructions><![CDATA[  ]]></Instructions>
+      <Instructions>
+<![CDATA[
+Projections, or "select" clauses can also bring down properties that are themselves entities or collections of entities.  
+
+For example, let's change the "select" clause in the current query to:
+
+>        .select("ProductId, ProductName, Category");
+
+The query should now look like this:
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Products")
+>        .where("Category.CategoryName", "startswith", "S")
+>        .select("ProductId, ProductName, Category");
+
+and then we need to update our display logic:
+
+>     manager.executeQuery(query).then(function(data){
+>         var outputHtml = "";
+>         data.results.forEach(function(item) {
+>            outputHtml += item.ProductID +  " - " + item.ProductName + " - ";
+>            outputHtml += item.Category.CategoryName() + "<br>";
+>         });
+>         $("#output").html(outputHtml);
+>     });
+
+> * Note: when navigation properties like this appear in a "select" clause. Breeze
+> recognizes that these are in fact *entities* and DOES wrap them, unlike with simple properties.
+> This is why you see the extra "()" in "item.Category.CategoryName()" above.  In this case "item.Category" is returning an
+> entity, which Breeze in turn is wrapping with Knockout.  Knockout objects require a "()" after property names to access 
+> their property values.
+
+Now you can go ahead and press **Run**.
+
+
+]]>
+      </Instructions>
       <StartingJavascript>
         <![CDATA[
 var core = breeze.core,
@@ -250,11 +286,46 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
      var outputHtml = "";
-     data.results.forEach(function(product) {
-        outputHtml += product.ProductID +  " - " + product.ProductName + "<br>"
+     data.results.forEach(function(item) {
+        outputHtml += item.ProductID +  " - " + item.ProductName + "<br>";
      });
      $("#output").html(outputHtml);
 });
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[     
+<div id="output">In progress...</div>
+]]>
+      </StartingHtml>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions><![CDATA[  ]]></Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Products")
+    .where("Category.CategoryName", "startswith", "S")
+    .select("ProductID, ProductName, Category");
+    
+manager.executeQuery(query).then(function(data){
+     var outputHtml = "";
+     data.results.forEach(function(item) {
+        outputHtml += item.ProductID +  " - " + item.ProductName + " - ";
+        outputHtml += item.Category.CategoryName() + "<br>";
+     });
+     $("#output").html(outputHtml);
+});  
 ]]>
       </StartingJavascript>
       <StartingHtml>

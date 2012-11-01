@@ -96,7 +96,7 @@
         $("#dialog-notworking").dialog({
             resizable: false,
             position: { at: "top+35%" },
-            width: 500,
+            width: 375,
             modal: true,
             buttons: {
                 "Yes! Fix my javascript and html": function() {
