@@ -146,10 +146,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\Tutorial3.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="App_Data\Tutorial1.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="App_Data\Tutorial3.xml">
+    <Content Include="App_Data\Tutorial4.xml">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="App_Data\Tutorial2.xml" />

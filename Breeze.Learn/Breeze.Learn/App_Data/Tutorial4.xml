@@ -1,0 +1,29 @@
+﻿<Tutorial>
+  <Order>2</Order>
+  <Title>Tutorial 4 - Coming soon</Title>
+  <Description>Coming soon - Feedback appreciated</Description>
+  
+  <Steps>
+    <TutorialStep>
+      <Instructions>
+<![CDATA[
+##Coming soon 
+
+Nothing to see here yet but ... we have more tutorials coming out soon but you can help us by prioritizing which areas of *Breeze*
+would benefit the most from additional tutorials.  Please vote on the *Breeze* website. 
+]]>
+      </Instructions>
+      <StartingHtml>
+<![CDATA[
+]]>
+      </StartingHtml>
+      <StartingJavascript>
+<![CDATA[
+]]>
+      </StartingJavascript>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions>instructions 2</Instructions>
+    </TutorialStep>
+  </Steps>
+</Tutorial>

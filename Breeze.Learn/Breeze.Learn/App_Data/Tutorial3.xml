@@ -1,29 +1,258 @@
 ﻿<Tutorial>
   <Order>2</Order>
-  <Title>Tutorial 3 - Coming soon</Title>
-  <Description>Coming soon - Feedback appreciated</Description>
-  
+  <Title>Tutorial 3 - Executing queries locally</Title>
+  <Description>Demonstrates how to query the local Javascript client cache</Description>
   <Steps>
     <TutorialStep>
       <Instructions>
 <![CDATA[
-##Coming soon 
+##The local cache
 
-Nothing to see here yet but ... we have more tutorials coming out soon but you can help us by prioritizing which areas of *Breeze*
-would benefit the most from additional tutorials.  Please vote on the *Breeze* website. 
+Prior examples have shown breeze querying a remote service for data.  This tutorial is focused
+on showing how the same query or any other query can be executed against the local Javascript client. 
+
+The reason we are able to do this is that the "Breeze* "EntityManager" class that we have been using in 
+all of our examples to perform queries also provides "entity caching" services.  Basically every *Breeze*
+query that returns a collection of entities, also caches these entities so that they can be looked up later
+without having to go back to the server.
+
+To demonstrate this, let's start by **running** the simple "Customers" query on the right.
+
+This query should have returned a fairly long list of "Customers".
+
+Now let's try executing this same query again a second time, only this time without going to the server, immediately after the first query completes. 
+
+>  *This is obviously not a normal use case.  Normally, we would use this facility to perform a query that returned a subset of what the original query did
+>  and we would perform this "subset" query at some later point within an application session.*
+
+In this case we do not want to render our output until after the 2nd query completes. 
+
+The easist way to accomplish this is replace the "executeQuery" call in the "JavaScript" pane with the following
+
+>     manager.executeQuery(query).then(function(data) {
+>         // we are going to ignore the results of the query - the "data" parameter above
+>         var customers = manager.executeQueryLocally(query);
+>         // put the results in a structure that Knockout recognizes
+>         var localQueryData = { results: customers };
+>         ko.applyBindings(localQueryData);
+>     });
+
+Go ahead and **Run** this.
+
+A couple of things to notice.  
+
+- the results should not have changed.
+- we didn't need to use a "Promise" for the executeQueryLocally call. This method is synchronous.
+- we didn't change the query in any way.
+
 ]]>
       </Instructions>
-      <StartingHtml>
-<![CDATA[
-]]>
-      </StartingHtml>
       <StartingJavascript>
-<![CDATA[
+        <![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers");
+    
+manager.executeQuery(query).then(function(data){
+    ko.applyBindings(data);
+});
 ]]>
       </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+    in
+    <span data-bind="text:City"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
     </TutorialStep>
     <TutorialStep>
-      <Instructions>instructions 2</Instructions>
+      <Instructions>
+        <![CDATA[
+Ok, now let's make this a bit more realistic by changing the local query that we execute.
+
+This time replace the "executeQuery" call in the "JavaScript" pane with the following "subset query";
+
+>     manager.executeQuery(query).then(function(data) {
+>         // we are going to ignore the results of the query - the "data" parameter above
+>         var query2 = query.where("CompanyName", "startsWith", "C");
+>         var customers = manager.executeQueryLocally(query2);
+>         // put the results in a structure that Knockout recognizes
+>         var localQueryData = { results: customers };
+>         ko.applyBindings(localQueryData);
+>     });
+
+and press **Run**.
+
+Only customers with company names beginning with "C" should have been shown this time.
+]]>        
+      </Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers");
+    
+manager.executeQuery(query).then(function(data) {
+    // we are going to ignore the results of the query - the "data" parameter above
+    var customers = manager.executeQueryLocally(query);
+    // put the results in a structure that Knockout recognizes
+    var localQueryData = { results: customers };
+    ko.applyBindings(localQueryData);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+    in
+    <span data-bind="text:City"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
     </TutorialStep>
+    <TutorialStep>
+      <Instructions>
+        <![CDATA[
+### The FetchStrategy        
+There are a couple of other ways to execute a query locally in "Breeze".  They both involve making use of a "FetchStrategy".  The two approaches are:
+
+- change the "FetchStrategy" of an individual query.
+- change the "FetchStrategy" of an entire EntityManager.
+
+A "FetchStrategy" is a *Breeze* enumeration that has two possible values:
+
+- FetchStrategy.FromServer
+- FetchStrategy.FromLocalCache
+
+Up until now we have been using the default; FetchStrategy.FromServer. 
+
+To set the FetchStrategy on a single query, let's change the "executeQuery" method in the "Javascript" pane to this:
+
+>     manager.executeQuery(query).then(function(data) {
+>         // we are going to ignore the results of the query - the "data" parameter above
+>         var query2 = query.where("CompanyName", "startsWith", "C")
+>                     .using(entityModel.FetchStrategy.FromLocalCache);
+>         manager.executeQuery(query2).then(function(dataSubset) {
+>            ko.applyBindings(dataSubset);
+>         });
+>     });
+
+Now press **Run**.
+
+Hopefully, the results haven't changed, only customers with company names beginning with "C" should be shown. 
+
+Note that we are using the "using" method to modify *query2*, so that it will only execute against the local EntityManager cache. Also note that
+we are back to using "Promises".  
+
+This points to one of the basic differences between using the "executeQueryLocally" method vs. changing the "FetchStrategy" of a query.  The "executeQueryLocally" method
+returns its results directly but has a different syntax for executing the query, whereas when changing the "FetchStrategy", the query is executed in the same fashion as a 
+"FromServer" query, but under the covers its behavior changes.  
+
+>  * Queries with FetchStrategy.FromLocalCache are still performed synchronously, but they simulate an "asynchronous" callback in order to keep the api consistent. 
+
+]]>
+      </Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers");
+    
+manager.executeQuery(query).then(function(data) {
+    // we are going to ignore the results of the query - the "data" parameter above
+    var query2 = query.where("CompanyName", "startsWith", "C");
+    var customers = manager.executeQueryLocally(query2);
+    // put the results in a structure that Knockout recognizes
+    var localQueryData = { results: customers };
+    ko.applyBindings(localQueryData);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+    in
+    <span data-bind="text:City"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions></Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+    .from("Customers");
+    
+manager.executeQuery(query).then(function(data) {
+    // we are going to ignore the results of the query - the "data" parameter above
+    var query2 = query.where("CompanyName", "startsWith", "C")
+                .using(entityModel.FetchStrategy.FromLocalCache);
+    manager.executeQuery(query2).then(function(dataSubset) {
+       ko.applyBindings(dataSubset);
+    });
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[
+<ul data-bind="foreach: results">
+  <li>
+    <span data-bind="text:CompanyName"></span>
+    in
+    <span data-bind="text:City"></span>
+  </li>
+</ul>
+]]>
+      </StartingHtml>
+    </TutorialStep>    
   </Steps>
 </Tutorial>

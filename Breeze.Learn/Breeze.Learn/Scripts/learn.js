@@ -73,6 +73,7 @@
     learn.selectTutorial = function() {
         $('#dialog-select-tutorial').dialog({
             resizable: false,
+            width: 600,
             position: { at: "top+35%" }
         });
     };
@@ -99,7 +100,7 @@
             width: 375,
             modal: true,
             buttons: {
-                "Yes! Fix my javascript and html": function() {
+                "Yes! Fix my JavaScript and Html": function() {
                     var nextStepIx = learn.activeStepNumber();
                     showJavascript(nextStepIx);
                     showHtml(nextStepIx);
