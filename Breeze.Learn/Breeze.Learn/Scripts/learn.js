@@ -6,7 +6,7 @@
     learn.currentJavascript = ko.observable();
     
     showStep(0);
-    
+
     
     learn.maxStepNumber = ko.computed(function () {
         // the last step is not actually a real step; it is just where the 
@@ -184,6 +184,15 @@
 
     resizeWhenMoved(".vsplitbar");
     
+    // This is a hack for IE.  The js and html windows don't paint the very first time
+    // without this.
+    setTimeout(function () {
+        learn.currentJavascript("");
+        learn.currentHtml("");
+        showStep(0);
+    });
+    
+   
     function resizeWhenMoved(elementName) {
         var isDragging = false;
         $(elementName).mousedown(function () {

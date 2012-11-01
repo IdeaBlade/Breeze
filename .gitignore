@@ -65,3 +65,4 @@ Breeze*.nupkg
 Nuget.builds/Breeze.MVC4WebApiClientSample/Breeze.MVC4WebApiClientSample.nuspec
 Nuget.builds/Breeze.MVC4WebApiClientSample/lib
 Nuget.builds/Breeze.WebApi/Breeze.WebApi.nuspec
+Breeze.Learn/Breeze.Learn/App_Data/NorthwindIB.sdf

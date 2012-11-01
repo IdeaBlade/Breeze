@@ -214,12 +214,11 @@ code {
 .panel-content2  {
     position: absolute;
     top: 34px;
-    bottom: -34px; 
+    bottom: 0px;
     left: 0;
     right: 0;
-    overflow: hidden;
+    overflow: auto;
     margin-left: 10px;
-    margin-top: 10px;
 }
 
 
