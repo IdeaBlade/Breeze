@@ -54,20 +54,20 @@
 
         return manager
             .executeQuery(query)
-            .then(processResults)
+            .then(querySucceeded)
             .fail(queryFailed);
-    };
 
-    // clear observable array and load the results 
-    function processResults(data) {
-        logger.success("queried Todos");
-        vm.todos.removeAll();
-        var todos = data.results;
-        todos.forEach(function (todo) {
-            vm.todos.push(todo);
-        });
-        vm.show(true); // show the view
-    }
+        // clear observable array and load the results 
+        function querySucceeded(data) {
+            logger.success("queried Todos");
+            vm.todos.removeAll();
+            var todos = data.results;
+            todos.forEach(function (todo) {
+                vm.todos.push(todo);
+            });
+            vm.show(true); // show the view
+        }
+    };
 
     function saveChanges() {
         return manager.saveChanges()
