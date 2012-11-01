@@ -300,7 +300,35 @@ manager.executeQuery(query).then(function(data){
       </StartingHtml>
     </TutorialStep>
     <TutorialStep>
-      <Instructions><![CDATA[  ]]></Instructions>
+      <Instructions>
+<![CDATA[ 
+We can projections on collection navigation properties as well.  
+
+For example let's try this query:
+
+>     var query = new entityModel.EntityQuery()
+>        .from("Categories")
+>        .select("CategoryName, Products");
+
+with this rendering logic.
+
+>     manager.executeQuery(query).then(function(data){
+>         var outputHtml = "";
+>         data.results.forEach(function(item) {
+>            outputHtml += item.CategoryName + "<br>";
+>            item.Products.forEach( function(product) {            
+>                outputHtml += "&nbsp&nbsp&nbsp" + product.ProductID() 
+>                  +  " - " + product.ProductName() + "<br>";
+>            });
+>         });
+>         $("#output").html(outputHtml);
+>     });
+
+and press **Run**
+
+This should produce a list of category names each with its associated products.
+    
+]]></Instructions>
       <StartingJavascript>
         <![CDATA[
 var core = breeze.core,
@@ -332,6 +360,44 @@ manager.executeQuery(query).then(function(data){
         <![CDATA[     
 <div id="output">In progress...</div>
 
+]]>
+      </StartingHtml>
+    </TutorialStep>
+    <TutorialStep>
+      <Instructions><![CDATA[  ]]></Instructions>
+      <StartingJavascript>
+        <![CDATA[
+var core = breeze.core,
+    entityModel = breeze.entityModel;
+    
+core.config.setProperties({
+    trackingImplementation: entityModel.entityTracking_ko,
+    remoteAccessImplementation: entityModel.remoteAccess_webApi
+});
+
+var manager = new entityModel.EntityManager('api/northwind');
+
+var query = new entityModel.EntityQuery()
+   .from("Categories")
+   .select("CategoryName, Products");
+
+    
+manager.executeQuery(query).then(function(data){
+    var outputHtml = "";
+    data.results.forEach(function(item) {
+       outputHtml += item.CategoryName + "<br>";
+       item.Products.forEach( function(product) {            
+           outputHtml += "&nbsp&nbsp&nbsp" + product.ProductID() 
+             +  " - " + product.ProductName() + "<br>";
+       });
+    });
+    $("#output").html(outputHtml);
+});
+]]>
+      </StartingJavascript>
+      <StartingHtml>
+        <![CDATA[     
+<div id="output">In progress...</div>
 ]]>
       </StartingHtml>
     </TutorialStep>
