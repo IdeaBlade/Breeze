@@ -220,7 +220,7 @@ function (core, m_entityAspect) {
             var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
-                // so propertyChanged is also fired in the entityManager mergeEntity method.
+                // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
                 }

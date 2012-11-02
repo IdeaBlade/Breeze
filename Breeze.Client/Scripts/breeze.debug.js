@@ -2814,7 +2814,11 @@ function (core, Event, m_validate) {
                 entity.setProperty(propName, originalValues[propName]);
             }
             if (this.entityState.isAdded()) {
-                this.entityManager.detachEntity(entity);
+                // next line is needed becuase the following line will cause this.entityManager -> null;
+                var entityManager = this.entityManager;
+                entityManager.detachEntity(entity);
+                // need to tell em that an entity that needed to be saved no longer does.
+                entityManager._notifyStateChange(entity, false);
             } else {
                 this.setUnchanged();
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
@@ -2833,7 +2837,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
+            this.entityManager._notifyStateChange(this.entity, false);
         };
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -2855,7 +2859,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            this.entityManager._notifyStateChange(this.entity, true);
         };
 
         /**
@@ -2873,7 +2877,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                this.entityManager._notifyStateChange(this.entity, true);
             }
             // TODO: think about cascade deletes
         };
@@ -3494,7 +3498,7 @@ function (core, m_entityAspect) {
             var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
-                // so propertyChanged is also fired in the entityManager mergeEntity method.
+                // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
                 }
@@ -7853,6 +7857,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 this.serviceName = this.serviceName + '/';
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
+            this.saveNeeded = new Event("saveNeeded_entityManager", this);
             
             this.clear();
             
@@ -8088,6 +8093,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
+            if (this._hasChanges) {
+                this._hasChanges = false;
+                this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
+            }
         };
 
         /**
@@ -8202,6 +8211,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             });
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
+            }
+            if (!entityState.isUnchanged()) {
+                this._notifyStateChange(entity, true);
             }
             this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
 
@@ -8494,7 +8506,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
-
+            var isFullSave = entities == null;
             var entitiesToSave = getEntitiesToSave(this, entities);
             
             if (entitiesToSave.length == 0) {
@@ -8549,6 +8561,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     return mergeEntity(rawEntity, queryContext, true);
                 });
                 markIsBeingSaved(entitiesToSave, false);
+                // update _hasChanges after save.
+                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);
@@ -8658,13 +8672,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @return {Boolean} Whether there were any changed entities.
         **/
-        ctor.prototype.hasChanges = function(entityTypes) {
+        ctor.prototype.hasChanges = function (entityTypes) {
+            if (!this._hasChanges) return false;
+            if (entityTypes === undefined) return this._hasChanges;
+            return this._hasChangesCore(entityTypes);
+        };
+        
+        // backdoor the "really" check for changes.
+        ctor.prototype._hasChangesCore = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             var entityGroups = getEntityGroups(this, entityTypes);
-            return entityGroups.some(function(eg) {
+            return entityGroups.some(function (eg) {
                 return eg.hasChanges();
             });
-        };
+        }
         
         /**
         Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
@@ -8706,12 +8727,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
-        ctor.prototype.rejectChanges = function() {
+        ctor.prototype.rejectChanges = function () {
+            if (!this._hasChanges) return [];
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             var changes = this._getEntitiesCore(null, entityStates);
+            // next line stops individual reject changes from each calling _hasChangesCore
+            this._hasChanges = false;
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
+            this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
             return changes;
         };
         
@@ -8756,6 +8781,26 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         // protected methods
+
+        ctor.prototype._notifyStateChange = function (entity, needsSave) {
+            this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
+
+            if (needsSave) {
+                if (!this._hasChanges) {
+                    this._hasChanges = true;
+                    this.saveNeeded.publish({ entityManager: this, saveNeeded: true });
+                }
+            } else {
+                // called when rejecting a change or merging an unchanged record.
+                if (this._hasChanges) {
+                    // NOTE: this can be slow with lots of entities in the cache.
+                    this._hasChanges = this._hasChangesCore();
+                    if (!this._hasChanges) {
+                        this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
+                    }
+                }
+            }
+        };
 
         ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
@@ -8901,11 +8946,21 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
                 if (targetEntity) {
-                    if (shouldOverwrite || targetEntity.entityAspect.entityState.isUnchanged()) {
+                    var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+                    if (shouldOverwrite || wasUnchanged) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
+                        if (wasUnchanged) {
+                            if (!entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            }
+                        } else {
+                            if (entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            }
+                        }
                     } else {
                         targetEntity = null;
                     }
@@ -8934,6 +8989,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                        if (!entityState.isUnchanged()) {
+                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        }
                     }
                 }
 
@@ -9222,15 +9280,22 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     em.detachEntity(targetEntity);
                     return targetEntity;
                 }
+                var targetEntityState = targetEntity.entityAspect.entityState;
                 if (mergeStrategy === MergeStrategy.OverwriteChanges
-                        || targetEntity.entityAspect.entityState.isUnchanged()) {
+                        || targetEntityState.isUnchanged()) {
                     updateEntity(targetEntity, rawEntity, queryContext);
                     targetEntity.entityAspect.wasLoaded = true;
+                    
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
                     targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
                     var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
                     em.entityChanged.publish({ entityAction: action, entity: targetEntity });
+                    // this is needed to handle an overwrite or a modified entity with an unchanged entity 
+                    // which might in turn cause _hasChanges to change.
+                    if (!targetEntityState.isUnchanged) {
+                        em._notifyStateChange(targetEntity, false);
+                    }
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
