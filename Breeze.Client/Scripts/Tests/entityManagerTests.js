@@ -18,6 +18,7 @@ define(["testFns"], function (testFns) {
     var SaveOptions = entityModel.SaveOptions;
     var ValidationOptions = entityModel.ValidationOptions;
     var MergeStrategy = entityModel.MergeStrategy;
+    var FetchStrategy = entityModel.FetchStrategy;
 
     var newEm = testFns.newEm;
 
@@ -39,6 +40,31 @@ define(["testFns"], function (testFns) {
             validationOptions: new ValidationOptions()
         });
         ok(em);
+    });
+    
+    test("mergeStrategy.overwrite", function () {
+        var queryOptions = new QueryOptions({
+            mergeStrategy: MergeStrategy.OverwriteChanges,
+            fetchStrategy: FetchStrategy.FromServer
+        });
+
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: testFns.metadataStore, queryOptions: queryOptions });
+        var q = EntityQuery.from("Customers").take(2).using(em);
+        stop();
+        q.execute().then(function (data) {
+            var custs = data.results;
+            custs[0].setProperty("companyName", "foo");
+            custs[1].setProperty("city","bar");
+            return q.execute();
+        }).then(function (data2) {
+            var custs2 = data2.results;
+            var companyName = custs2[0].getProperty("companyName");
+            var city = custs2[1].getProperty("city");
+            ok(companyName != "foo");
+            ok(city != "bar");
+        }).fin(start);
+        
+        
     });
 
     test("hasChanges basic", function() {
