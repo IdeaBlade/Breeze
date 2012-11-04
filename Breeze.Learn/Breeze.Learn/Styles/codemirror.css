@@ -1,16 +1,15 @@
 .CodeMirror {
     line-height: 1em;
-    font-family: monospace;
-    font-size: 12px;
+    font-family: Consolas, Monaco, Andale, Courier New, Courier, Monospace;
+    font-size: 14px;
     /* Necessary so the scrollbar can be absolutely positioned within the wrapper on Lion. */
     position: relative;
     /* This prevents unwanted scrollbars from showing up on the body and wrapper in IE. */
     overflow: hidden;
-    top: -5px;
-    bottom: 1%;
-    
-    
+    width: 100%;
+    height: 100%;
 }
+
 /*.CodeMirror {
   line-height: 1em;
   font-family: monospace;
@@ -25,7 +24,7 @@
 is visible outside of the scrolling box. */
     position: relative;
     outline: none;
-    height: 90%;
+    height: 100%;
 }
 /**.CodeMirror-scroll {
   overflow: auto;

@@ -4,9 +4,13 @@ body {
 	
 }
 
-p, h3 {
+p, h3, ol, ul {
 	font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
 	font-size:95%;
+}
+
+code {
+    font-family: Consolas, Monaco, Andale, Courier New, Courier, Monospace;
 }
 
 .row, .col {
@@ -210,12 +214,11 @@ p, h3 {
 .panel-content2  {
     position: absolute;
     top: 34px;
-    bottom: -34px; 
+    bottom: 0px;
     left: 0;
     right: 0;
-    overflow: hidden;
+    overflow: auto;
     margin-left: 10px;
-    margin-top: 10px;
 }
 
 

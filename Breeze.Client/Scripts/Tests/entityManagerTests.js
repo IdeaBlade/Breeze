@@ -18,6 +18,7 @@ define(["testFns"], function (testFns) {
     var SaveOptions = entityModel.SaveOptions;
     var ValidationOptions = entityModel.ValidationOptions;
     var MergeStrategy = entityModel.MergeStrategy;
+    var FetchStrategy = entityModel.FetchStrategy;
 
     var newEm = testFns.newEm;
 
@@ -39,6 +40,110 @@ define(["testFns"], function (testFns) {
             validationOptions: new ValidationOptions()
         });
         ok(em);
+    });
+    
+    test("mergeStrategy.overwrite", function () {
+        var queryOptions = new QueryOptions({
+            mergeStrategy: MergeStrategy.OverwriteChanges,
+            fetchStrategy: FetchStrategy.FromServer
+        });
+
+        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: testFns.metadataStore, queryOptions: queryOptions });
+        var q = EntityQuery.from("Customers").take(2).using(em);
+        stop();
+        q.execute().then(function (data) {
+            var custs = data.results;
+            custs[0].setProperty("companyName", "foo");
+            custs[1].setProperty("city","bar");
+            return q.execute();
+        }).then(function (data2) {
+            var custs2 = data2.results;
+            var companyName = custs2[0].getProperty("companyName");
+            var city = custs2[1].getProperty("city");
+            ok(companyName != "foo");
+            ok(city != "bar");
+        }).fin(start);
+        
+        
+    });
+
+    test("hasChanges basic", function() {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        
+        var saveNeeded = false;
+        var count = 0;
+        em.saveNeeded.subscribe(function (args) {
+            count = count + 1;
+            saveNeeded = args.saveNeeded;
+        });
+        ok(count === 0, "count should be 0");
+        ok(!em.hasChanges(), "should be no changes");
+        var order1 = orderType.createEntity();
+        em.attachEntity(order1);
+        ok(count === 0, "count should be 0");
+        ok(!em.hasChanges(), "should be no changes");
+        var order2 = orderType.createEntity();
+        em.addEntity(order2);
+        ok(count === 1, "count should be 1");
+        ok(em.hasChanges(), "should be changes");
+    });
+    
+    test("hasChanges with rejectChanges", function () {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+
+        var saveNeeded = false;
+        var count = 0;
+        em.saveNeeded.subscribe(function (args) {
+            count = count + 1;
+            saveNeeded = args.saveNeeded;
+        });
+        ok(count === 0, "count should be 0");
+        ok(!em.hasChanges(), "should be no changes");
+        var order1 = orderType.createEntity();
+        em.attachEntity(order1);
+        order1.entityAspect.setModified();
+        ok(count === 1, "count should be 1");
+        ok(em.hasChanges(), "should be no changes");
+        var order2 = orderType.createEntity();
+        em.addEntity(order2);
+        ok(count === 1, "count should be 1");
+        ok(em.hasChanges(), "should be changes");
+        order1.entityAspect.rejectChanges();
+        ok(count === 1, "count should be 1");
+        ok(em.hasChanges(), "should be changes");
+        order2.entityAspect.rejectChanges();
+        ok(count === 2, "count should be 1");
+        ok(!em.hasChanges(), "should not be any changes");
+    });
+    
+    test("hasChanges with query mods", function () {
+        var em = newEm();
+
+        var saveNeeded = false;
+        var count = 0;
+        em.saveNeeded.subscribe(function (args) {
+            count = count + 1;
+            saveNeeded = args.saveNeeded;
+        });
+        ok(count === 0, "count should be 0");
+        ok(!em.hasChanges(), "should be no changes");
+        stop();
+        EntityQuery.from("Customers").take(3).using(em).execute().then(function(data) {
+            var custs = data.results;
+            custs[0].setProperty("companyName", "xxx");
+            custs[1].entityAspect.setDeleted();
+            custs[2].entityAspect.setModified();
+            ok(count === 1, "count should be 1");
+            ok(saveNeeded, "save should be needed");
+            ok(em.hasChanges(), "should be changes");
+            em.rejectChanges();
+            ok(count === 2, "count should be 2");
+            ok(!em.hasChanges(), "should be no changes");
+            ok(!saveNeeded, "save should not be needed");
+        }).fail(testFns.handleFail).fin(start);
+        
     });
     
     test("initialization error on first query", function () {

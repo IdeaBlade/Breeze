@@ -6,7 +6,7 @@
     learn.currentJavascript = ko.observable();
     
     showStep(0);
-    
+
     
     learn.maxStepNumber = ko.computed(function () {
         // the last step is not actually a real step; it is just where the 
@@ -73,6 +73,7 @@
     learn.selectTutorial = function() {
         $('#dialog-select-tutorial').dialog({
             resizable: false,
+            width: 600,
             position: { at: "top+35%" }
         });
     };
@@ -96,10 +97,10 @@
         $("#dialog-notworking").dialog({
             resizable: false,
             position: { at: "top+35%" },
-            width: 500,
+            width: 375,
             modal: true,
             buttons: {
-                "Yes! Fix my javascript and html": function() {
+                "Yes! Fix my JavaScript and Html": function() {
                     var nextStepIx = learn.activeStepNumber();
                     showJavascript(nextStepIx);
                     showHtml(nextStepIx);
@@ -184,6 +185,15 @@
 
     resizeWhenMoved(".vsplitbar");
     
+    // This is a hack for IE.  The js and html windows don't paint the very first time
+    // without this.
+    setTimeout(function () {
+        learn.currentJavascript("");
+        learn.currentHtml("");
+        showStep(0);
+    });
+    
+   
     function resizeWhenMoved(elementName) {
         var isDragging = false;
         $(elementName).mousedown(function () {

@@ -482,7 +482,11 @@ function (core, Event, m_validate) {
                 entity.setProperty(propName, originalValues[propName]);
             }
             if (this.entityState.isAdded()) {
-                this.entityManager.detachEntity(entity);
+                // next line is needed becuase the following line will cause this.entityManager -> null;
+                var entityManager = this.entityManager;
+                entityManager.detachEntity(entity);
+                // need to tell em that an entity that needed to be saved no longer does.
+                entityManager._notifyStateChange(entity, false);
             } else {
                 this.setUnchanged();
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
@@ -501,7 +505,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
+            this.entityManager._notifyStateChange(this.entity, false);
         };
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -523,7 +527,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            this.entityManager._notifyStateChange(this.entity, true);
         };
 
         /**
@@ -541,7 +545,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                this.entityManager._notifyStateChange(this.entity, true);
             }
             // TODO: think about cascade deletes
         };

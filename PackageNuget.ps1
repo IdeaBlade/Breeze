@@ -75,8 +75,7 @@ checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
 
-$basePkg = 'Breeze.WebApi'
-packageNuget $srcDir $basePkg $versionNum
+packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum
 packageNuget $srcDir 'Breeze.MVC4WebApiClientSample' $versionNum
 
 Write-Host "Press any key to continue ..."
