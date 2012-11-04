@@ -73,7 +73,7 @@ define(["testFns"], function (testFns) {
         
         var saveNeeded = false;
         var count = 0;
-        em.saveNeeded.subscribe(function (args) {
+        em.hasChanges.subscribe(function (args) {
             count = count + 1;
             saveNeeded = args.saveNeeded;
         });
@@ -95,7 +95,7 @@ define(["testFns"], function (testFns) {
 
         var saveNeeded = false;
         var count = 0;
-        em.saveNeeded.subscribe(function (args) {
+        em.hasChanges.subscribe(function (args) {
             count = count + 1;
             saveNeeded = args.saveNeeded;
         });
@@ -123,7 +123,7 @@ define(["testFns"], function (testFns) {
 
         var saveNeeded = false;
         var count = 0;
-        em.saveNeeded.subscribe(function (args) {
+        em.hasChanges.subscribe(function (args) {
             count = count + 1;
             saveNeeded = args.saveNeeded;
         });

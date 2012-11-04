@@ -119,7 +119,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 this.serviceName = this.serviceName + '/';
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
-            this.saveNeeded = new Event("saveNeeded_entityManager", this);
+            this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
+                if (!this._hasChanges) return false;
+                if (entityTypes === undefined) return this._hasChanges;
+                return this._hasChangesCore(entityTypes);
+            });
+            
             
             this.clear();
             
@@ -357,7 +362,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
+                this.hasChanges.publish({ entityManager: this, saveNeeded: false });
             }
         };
 
@@ -934,11 +939,11 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @return {Boolean} Whether there were any changed entities.
         **/
-        ctor.prototype.hasChanges = function (entityTypes) {
-            if (!this._hasChanges) return false;
-            if (entityTypes === undefined) return this._hasChanges;
-            return this._hasChangesCore(entityTypes);
-        };
+        //ctor.prototype.hasChanges = function (entityTypes) {
+        //    if (!this._hasChanges) return false;
+        //    if (entityTypes === undefined) return this._hasChanges;
+        //    return this._hasChangesCore(entityTypes);
+        //};
         
         // backdoor the "really" check for changes.
         ctor.prototype._hasChangesCore = function (entityTypes) {
@@ -998,7 +1003,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
+            this.hasChanges.publish({ entityManager: this, saveNeeded: false });
             return changes;
         };
         
@@ -1050,7 +1055,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.saveNeeded.publish({ entityManager: this, saveNeeded: true });
+                    this.hasChanges.publish({ entityManager: this, saveNeeded: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -1058,7 +1063,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.saveNeeded.publish({ entityManager: this, saveNeeded: false });
+                        this.hasChanges.publish({ entityManager: this, saveNeeded: false });
                     }
                 }
             }
