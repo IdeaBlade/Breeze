@@ -1,8 +1,8 @@
 ﻿requirejs.config({
     // well-known paths to selected scripts
     paths:{
-        'breeze':'lib/breeze.debug', // debug version of breeze
-        'text':'lib/text'// html loader plugin; see http://requirejs.org/docs/api.html#text
+        'breeze':'../breeze.debug', // debug version of breeze
+        'text':'../text'// html loader plugin; see http://requirejs.org/docs/api.html#text
     }
 });
 

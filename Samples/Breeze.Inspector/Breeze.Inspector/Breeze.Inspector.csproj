@@ -43,7 +43,7 @@
   <ItemGroup>
     <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.5\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.6\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -51,7 +51,7 @@
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.5\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.6\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -131,8 +131,9 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
-    <Reference Include="WebActivator">
-      <HintPath>..\packages\WebActivator.1.5.1\lib\net40\WebActivator.dll</HintPath>
+    <Reference Include="WebActivator, Version=1.5.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebActivator.1.5.2\lib\net40\WebActivator.dll</HintPath>
     </Reference>
     <Reference Include="WebGrease">
       <Private>True</Private>
@@ -140,7 +141,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Start\BreezeConfig.cs" />
+    <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -164,46 +165,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App\lib\jquery-1.7.2.min.js" />
-    <Content Include="App\lib\jquery.simplemodal.js" />
-    <Content Include="App\lib\knockout-2.1.0.js" />
-    <Content Include="App\lib\qunit.js" />
-    <Content Include="App\lib\require.js" />
-    <Content Include="App\lib\text.js" />
-    <Content Include="App\lib\toastr.js" />
-    <Content Include="App\main.js" />
-    <Content Include="App\services\dataservice.js" />
-    <Content Include="App\behaviors\CheckboxGroup.js" />
-    <Content Include="App\behaviors\Dropdown.js" />
-    <Content Include="App\services\states.js" />
-    <Content Include="App\services\validationHelper.js" />
-    <Content Include="App\testRunner.js" />
-    <Content Include="App\tests\changeNotificationShouldNotHappen.js" />
-    <Content Include="App\tests\jobsShouldNotHaveDuplicates.js" />
-    <Content Include="App\tests\wardsDupTests.js" />
-    <Content Include="App\viewmodels\addInspection.js" />
-    <Content Include="App\viewmodels\createJob.js" />
-    <Content Include="App\viewmodels\field.js" />
-    <Content Include="App\viewmodels\inspection.js" />
-    <Content Include="App\viewmodels\joblist.js" />
-    <Content Include="App\viewmodels\login.js" />
-    <Content Include="App\behaviors\RadioGroup.js" />
-    <Content Include="App\viewmodels\shell.js" />
-    <Content Include="App\behaviors\Checkbox.js" />
-    <Content Include="App\behaviors\Textarea.js" />
-    <Content Include="App\behaviors\Textbox.js" />
-    <Content Include="App\views\addInspection.html" />
-    <Content Include="App\views\CheckboxGroup.html" />
-    <Content Include="App\views\createJob.html" />
-    <Content Include="App\views\Dropdown.html" />
-    <Content Include="App\views\inspection.html" />
-    <Content Include="App\views\joblist.html" />
-    <Content Include="App\views\login.html" />
-    <Content Include="App\views\RadioGroup.html" />
-    <Content Include="App\views\shell.html" />
-    <Content Include="App\views\Checkbox.html" />
-    <Content Include="App\views\Textarea.html" />
-    <Content Include="App\views\Textbox.html" />
     <Content Include="App_Data\readme.txt" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -215,11 +176,55 @@
     <Content Include="Images\Warn_Small.png" />
     <Content Include="Images\x.png" />
     <Content Include="Images\X_Large.png" />
-    <Content Include="App\lib\breeze.debug.js" />
-    <None Include="App\lib\breeze.intellisense.js" />
-    <Content Include="App\lib\breeze.js" />
-    <Content Include="App\lib\q.js" />
-    <Content Include="App\lib\q.min.js" />
+    <Content Include="Scripts\app\behaviors\Checkbox.js" />
+    <Content Include="Scripts\app\behaviors\CheckboxGroup.js" />
+    <Content Include="Scripts\app\behaviors\Dropdown.js" />
+    <Content Include="Scripts\app\behaviors\RadioGroup.js" />
+    <Content Include="Scripts\app\behaviors\Textarea.js" />
+    <Content Include="Scripts\app\behaviors\Textbox.js" />
+    <Content Include="Scripts\app\main.js" />
+    <Content Include="Scripts\app\services\dataservice.js" />
+    <Content Include="Scripts\app\services\states.js" />
+    <Content Include="Scripts\app\services\validationHelper.js" />
+    <Content Include="Scripts\app\testRunner.js" />
+    <Content Include="Scripts\app\tests\changeNotificationShouldNotHappen.js" />
+    <Content Include="Scripts\app\tests\jobsShouldNotHaveDuplicates.js" />
+    <Content Include="Scripts\app\tests\wardsDupTests.js" />
+    <Content Include="Scripts\app\viewmodels\addInspection.js" />
+    <Content Include="Scripts\app\viewmodels\createJob.js" />
+    <Content Include="Scripts\app\viewmodels\field.js" />
+    <Content Include="Scripts\app\viewmodels\inspection.js" />
+    <Content Include="Scripts\app\viewmodels\joblist.js" />
+    <Content Include="Scripts\app\viewmodels\login.js" />
+    <Content Include="Scripts\app\viewmodels\shell.js" />
+    <Content Include="Scripts\app\views\addInspection.html" />
+    <Content Include="Scripts\app\views\Checkbox.html" />
+    <Content Include="Scripts\app\views\CheckboxGroup.html" />
+    <Content Include="Scripts\app\views\createJob.html" />
+    <Content Include="Scripts\app\views\Dropdown.html" />
+    <Content Include="Scripts\app\views\inspection.html" />
+    <Content Include="Scripts\app\views\joblist.html" />
+    <Content Include="Scripts\app\views\login.html" />
+    <Content Include="Scripts\app\views\RadioGroup.html" />
+    <Content Include="Scripts\app\views\shell.html" />
+    <Content Include="Scripts\app\views\Textarea.html" />
+    <Content Include="Scripts\app\views\Textbox.html" />
+    <Content Include="Scripts\breeze.debug.js" />
+    <None Include="Scripts\breeze.intellisense.js" />
+    <Content Include="Scripts\breeze.js" />
+    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.8.2.js" />
+    <Content Include="Scripts\jquery-1.8.2.min.js" />
+    <Content Include="Scripts\jquery.simplemodal.js" />
+    <Content Include="Scripts\knockout-2.1.0.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\q.min.js" />
+    <Content Include="Scripts\qunit.js" />
+    <Content Include="Scripts\require.js" />
+    <Content Include="Scripts\text.js" />
+    <Content Include="Scripts\toastr.js" />
+    <Content Include="Scripts\_references.js" />
     <Content Include="Styles\medium.css" />
     <Content Include="Styles\narrow.css" />
     <Content Include="Styles\qunit.css" />
