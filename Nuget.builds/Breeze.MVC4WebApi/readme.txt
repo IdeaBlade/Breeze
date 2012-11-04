@@ -1,7 +1,9 @@
-Breeze Web API NuGet Package ReadMe
+Breeze MVC4WebApi NuGet Package ReadMe
 ------------------------------------------
-The Breeze Web API NuGet Package adds essential Breeze script files 
+This Breeze NuGet Package adds essential Breeze script files 
 and .NET Web Api libraries to your project.
+
+Although the title says "MVC4WebApi", MVC is not required to use Breeze or this package.
 
 For an example of a Breeze application, add the
  "Breeze for MVC4 Web Api Client Sample" package to your project.

@@ -1,0 +1,6 @@
+﻿<div class="login">
+    <h2>Select an Inspector</h2>
+    <ul data-bind="foreach: inspectors">
+        <li><a data-bind="text: Name, click: function() { $parent.selectInspector($data) }"></a></li>
+    </ul>
+</div>

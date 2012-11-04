@@ -6,7 +6,7 @@
         // DEVELOPMENT ONLY: initialize the database
         static TodosContext()
         {
-            Database.SetInitializer(new Models.TodoDatabaseInitializer());
+            Database.SetInitializer(new TodoDatabaseInitializer());
         }
         public DbSet<TodoItem> Todos { get; set; }
     }
