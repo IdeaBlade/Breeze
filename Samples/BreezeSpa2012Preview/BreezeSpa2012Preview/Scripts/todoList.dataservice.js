@@ -61,8 +61,7 @@
             }
 
             function saveFailed(error) {
-                var stateName = entity.entityAspect.entityState.name.toLowerCase();
-                var message = "Error saving " + stateName + entity.entityType.shortName
+                var message = "Error saving " + entity.entityType.shortName
                 // set ErrorMessage if entity has one
                 if (entity.ErrorMessage) { entity.ErrorMessage(message); }
                 cancelChanges(entity); // undo changes on fail
