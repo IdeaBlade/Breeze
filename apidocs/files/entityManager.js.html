@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>entityManager.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -329,6 +330,12 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 this.serviceName = this.serviceName + &#x27;&#x2F;&#x27;;
             }
             this.entityChanged = new Event(&quot;entityChanged_entityManager&quot;, this);
+            this.hasChanges = new Event(&quot;hasChanges_entityManager&quot;, this, null, function (entityTypes) {
+                if (!this._hasChanges) return false;
+                if (entityTypes === undefined) return this._hasChanges;
+                return this._hasChangesCore(entityTypes);
+            });
+            
             
             this.clear();
             
@@ -564,6 +571,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
+            if (this._hasChanges) {
+                this._hasChanges = false;
+                this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+            }
         };
 
         &#x2F;**
@@ -678,6 +689,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             });
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
+            }
+            if (!entityState.isUnchanged()) {
+                this._notifyStateChange(entity, true);
             }
             this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
 
@@ -970,7 +984,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
-
+            var isFullSave = entities == null;
             var entitiesToSave = getEntitiesToSave(this, entities);
             
             if (entitiesToSave.length == 0) {
@@ -1025,6 +1039,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     return mergeEntity(rawEntity, queryContext, true);
                 });
                 markIsBeingSaved(entitiesToSave, false);
+                &#x2F;&#x2F; update _hasChanges after save.
+                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);
@@ -1134,13 +1150,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @return {Boolean} Whether there were any changed entities.
         **&#x2F;
-        ctor.prototype.hasChanges = function(entityTypes) {
+        &#x2F;&#x2F;ctor.prototype.hasChanges = function (entityTypes) {
+        &#x2F;&#x2F;    if (!this._hasChanges) return false;
+        &#x2F;&#x2F;    if (entityTypes === undefined) return this._hasChanges;
+        &#x2F;&#x2F;    return this._hasChangesCore(entityTypes);
+        &#x2F;&#x2F;};
+        
+        &#x2F;&#x2F; backdoor the &quot;really&quot; check for changes.
+        ctor.prototype._hasChangesCore = function (entityTypes) {
             core.assertParam(entityTypes, &quot;entityTypes&quot;).isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             var entityGroups = getEntityGroups(this, entityTypes);
-            return entityGroups.some(function(eg) {
+            return entityGroups.some(function (eg) {
                 return eg.hasChanges();
             });
-        };
+        }
         
         &#x2F;**
         Returns a array of all changed entities of the specified {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}}s. A &#x27;changed&#x27; Entity has
@@ -1182,12 +1205,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either &#x27;Unchanged&#x27; or &#x27;Detached&#x27;
         **&#x2F;
-        ctor.prototype.rejectChanges = function() {
+        ctor.prototype.rejectChanges = function () {
+            if (!this._hasChanges) return [];
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             var changes = this._getEntitiesCore(null, entityStates);
+            &#x2F;&#x2F; next line stops individual reject changes from each calling _hasChangesCore
+            this._hasChanges = false;
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
+            this.hasChanges.publish({ entityManager: this, saveNeeded: false });
             return changes;
         };
         
@@ -1232,6 +1259,26 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         };
 
         &#x2F;&#x2F; protected methods
+
+        ctor.prototype._notifyStateChange = function (entity, needsSave) {
+            this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
+
+            if (needsSave) {
+                if (!this._hasChanges) {
+                    this._hasChanges = true;
+                    this.hasChanges.publish({ entityManager: this, saveNeeded: true });
+                }
+            } else {
+                &#x2F;&#x2F; called when rejecting a change or merging an unchanged record.
+                if (this._hasChanges) {
+                    &#x2F;&#x2F; NOTE: this can be slow with lots of entities in the cache.
+                    this._hasChanges = this._hasChangesCore();
+                    if (!this._hasChanges) {
+                        this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                    }
+                }
+            }
+        };
 
         ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
@@ -1377,11 +1424,21 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
                 if (targetEntity) {
-                    if (shouldOverwrite || targetEntity.entityAspect.entityState.isUnchanged()) {
+                    var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+                    if (shouldOverwrite || wasUnchanged) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
+                        if (wasUnchanged) {
+                            if (!entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            }
+                        } else {
+                            if (entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            }
+                        }
                     } else {
                         targetEntity = null;
                     }
@@ -1410,6 +1467,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                        if (!entityState.isUnchanged()) {
+                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        }
                     }
                 }
 
@@ -1698,15 +1758,22 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     em.detachEntity(targetEntity);
                     return targetEntity;
                 }
+                var targetEntityState = targetEntity.entityAspect.entityState;
                 if (mergeStrategy === MergeStrategy.OverwriteChanges
-                        || targetEntity.entityAspect.entityState.isUnchanged()) {
+                        || targetEntityState.isUnchanged()) {
                     updateEntity(targetEntity, rawEntity, queryContext);
                     targetEntity.entityAspect.wasLoaded = true;
+                    
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
                     targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
                     var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
                     em.entityChanged.publish({ entityAction: action, entity: targetEntity });
+                    &#x2F;&#x2F; this is needed to handle an overwrite or a modified entity with an unchanged entity 
+                    &#x2F;&#x2F; which might in turn cause _hasChanges to change.
+                    if (!targetEntityState.isUnchanged) {
+                        em._notifyStateChange(targetEntity, false);
+                    }
                 } else {
                     &#x2F;&#x2F; also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);

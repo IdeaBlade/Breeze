@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>entityAspect.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -692,7 +693,11 @@ function (core, Event, m_validate) {
                 entity.setProperty(propName, originalValues[propName]);
             }
             if (this.entityState.isAdded()) {
-                this.entityManager.detachEntity(entity);
+                &#x2F;&#x2F; next line is needed becuase the following line will cause this.entityManager -&gt; null;
+                var entityManager = this.entityManager;
+                entityManager.detachEntity(entity);
+                &#x2F;&#x2F; need to tell em that an entity that needed to be saved no longer does.
+                entityManager._notifyStateChange(entity, false);
             } else {
                 this.setUnchanged();
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
@@ -711,7 +716,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
+            this.entityManager._notifyStateChange(this.entity, false);
         };
 
         &#x2F;&#x2F; Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -733,7 +738,7 @@ function (core, Event, m_validate) {
         **&#x2F;
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            this.entityManager._notifyStateChange(this.entity, true);
         };
 
         &#x2F;**
@@ -751,7 +756,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                this.entityManager._notifyStateChange(this.entity, true);
             }
             &#x2F;&#x2F; TODO: think about cascade deletes
         };

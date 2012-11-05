@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>event.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -238,16 +239,26 @@
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **&#x2F;
-    var Event = function (name, publisher, defaultErrorCallback) {
+    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
         assertParam(name, &quot;eventName&quot;).isNonEmptyString();
         assertParam(publisher, &quot;publisher&quot;).isObject();
-        this.name = name;
+        var that;
+        if (defaultFn) {
+            that = defaultFn;
+        } else {
+            that = this;
+        }
+        that.name = name;
         &#x2F;&#x2F; register the name
-        __eventNameMap[name] = true; 
-        this.publisher = publisher;
-        this._nextUnsubKey = 1;
+        __eventNameMap[name] = true;
+        that.publisher = publisher;
+        that._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            this._defaultErrorCallback = defaultErrorCallback;
+            that._defaultErrorCallback = defaultErrorCallback;
+        }
+        if (defaultFn) {
+            core.extend(defaultFn, Event.prototype);
+            return defaultFn;
         }
     };
 
