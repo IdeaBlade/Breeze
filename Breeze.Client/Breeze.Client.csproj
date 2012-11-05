@@ -40,6 +40,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Scripts\IBlade\promise.js" />
+    <Content Include="Scripts\Tests\querySelectTests.js" />
+    <Content Include="Scripts\Tests\queryLocalTests.js" />
     <Content Include="Scripts\ThirdParty\backbone.js" />
     <Content Include="Scripts\ThirdParty\backbone.min.js" />
     <Content Include="Scripts\IBlade\assertParam.js" />
@@ -75,12 +77,12 @@
     <Content Include="Scripts\IBlade\validate.js" />
     <Content Include="Scripts\Tests\attachTests.js" />
     <Content Include="Scripts\Tests\classRewriteTests.js" />
-    <Content Include="Scripts\Tests\rawOdataQueryTests.js" />
-    <Content Include="Scripts\Tests\namedQueryTests.js" />
+    <Content Include="Scripts\Tests\queryRawOdataTests.js" />
+    <Content Include="Scripts\Tests\queryNamedTests.js" />
     <Content Include="Scripts\Tests\koSpecificTests.js" />
     <Content Include="Scripts\Tests\queryDatatypeTests.js" />
     <Content Include="Scripts\Tests\entityManagerTests.js" />
-    <Content Include="Scripts\Tests\entityQueryCtorTests.js" />
+    <Content Include="Scripts\Tests\queryCtorTests.js" />
     <Content Include="Scripts\Tests\entityTests.js" />
     <Content Include="Scripts\Tests\metadataTests.js" />
     <Content Include="Scripts\Tests\miscTests.js" />

@@ -223,10 +223,6 @@
       <Link>Scripts\Tests\entityManagerTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\entityQueryCtorTests.js">
-      <Link>Scripts\Tests\entityQueryCtorTests.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\entityTests.js">
       <Link>Scripts\Tests\entityTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -243,24 +239,36 @@
       <Link>Scripts\Tests\miscTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\namedQueryTests.js">
-      <Link>Scripts\Tests\namedQueryTests.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\paramTests.js">
       <Link>Scripts\Tests\paramTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryCtorTests.js">
+      <Link>Scripts\Tests\queryCtorTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryDatatypeTests.js">
       <Link>Scripts\Tests\queryDatatypeTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryTests.js">
-      <Link>Scripts\Tests\queryTests.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryLocalTests.js">
+      <Link>Scripts\Tests\queryLocalTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\rawOdataQueryTests.js">
-      <Link>Scripts\Tests\rawOdataQueryTests.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryNamedTests.js">
+      <Link>Scripts\Tests\queryNamedTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryRawOdataTests.js">
+      <Link>Scripts\Tests\queryRawOdataTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\querySelectTests.js">
+      <Link>Scripts\Tests\querySelectTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryTests.js">
+      <Link>Scripts\Tests\queryTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTests.js">

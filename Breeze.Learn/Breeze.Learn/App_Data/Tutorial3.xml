@@ -1,5 +1,5 @@
 ﻿<Tutorial>
-  <Order>2</Order>
+  <Order>3</Order>
   <Title>Tutorial 3 - Executing queries locally</Title>
   <Description>Demonstrates how to query the local Javascript client cache</Description>
   <Steps>
