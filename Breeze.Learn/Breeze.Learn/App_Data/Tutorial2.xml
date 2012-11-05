@@ -168,7 +168,7 @@ So let's create a simple projection query by changing our query to the following
 >     var query = new entityModel.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S")
->        .select("ProductId, ProductName");
+>        .select("ProductID, ProductName");
 
 Next, because, we are no longer returning "Knockout" wrapped results, we will use jQuery in a simple loop to render our output 
 into a simple Html table structure. So let's add change our query execution logic from this:
@@ -236,14 +236,14 @@ Projections, or "select" clauses can also bring down properties that are themsel
 
 For example, let's change the "select" clause in the current query to:
 
->        .select("ProductId, ProductName, Category");
+>        .select("ProductID, ProductName, Category");
 
 The query should now look like this:
 
 >     var query = new entityModel.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S")
->        .select("ProductId, ProductName, Category");
+>        .select("ProductID, ProductName, Category");
 
 and then we need to update our display logic:
 
