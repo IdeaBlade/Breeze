@@ -15,7 +15,7 @@ namespace BreezeSpa2012Preview.App_Start {
     public static void RegisterBreezePreStart() {
       GlobalConfiguration.Configuration.Routes.MapHttpRoute(
           name: "BreezeTodoApi",
-          routeTemplate: "api/BreezeTodo/{action}",
+          routeTemplate: "api/BreezeTodo/{action}", // Restrict to this one controller
           defaults: new { controller = "BreezeTodo" }
       );
     }
