@@ -23,8 +23,8 @@
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
             dataservice
-                .deleteEntity(todoList)
-                .fail(insertTodoList);
+                .deleteTodoList(todoList)
+                .fail(function () { insertTodoList(todoList); });
         },
 
         todoListViewModel = {
@@ -35,7 +35,7 @@
         };
 
     // Load initial state from server
-    dataservice.getTodoLists(todoLists, error)
+    dataservice.getTodoLists(todoLists, error);
 
     // Initiate the Knockout bindings
     ko.applyBindings(todoListViewModel);

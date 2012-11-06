@@ -15,7 +15,10 @@ namespace BreezeSpa2012Preview
                 defaults: new { id = RouteParameter.Optional }
             );
 
-            config.EnableQuerySupport();
+            // Disabled because interferes with Breeze ODataActionFilter
+            // Not needed by the SPA Template sample
+            // Todo: insulate ODataActionFilter so app can enable this feature for other controllers
+            //config.EnableQuerySupport();
         }
     }
 }

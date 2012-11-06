@@ -32,7 +32,7 @@
         [AcceptVerbs("GET")]
         public IQueryable<TodoList> TodoLists() {
             return _context.TodoLists
-                .Include("Todos")// want to do client-side but am blocked for now
+                //.Include("Todos")// do it client-side
                 .OrderByDescending(t => t.TodoListId);
         }
 

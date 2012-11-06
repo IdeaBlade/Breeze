@@ -32,28 +32,29 @@ namespace BreezeSpa2012Preview.Models
             }
         }
 
+        #region Save processing
+
         // Todo: delegate to helper classes when it gets more complicated
+
         public override bool BeforeSaveEntity(EntityInfo entityInfo)
         {
             var entity = entityInfo.Entity;
-            var entityType = entity.GetType();
-            if (IsTypeOf<TodoList>(entityType)) {
+            if (entity is TodoList)
+            {
                 return BeforeSaveTodoList(entity as TodoList, entityInfo);
             }
-            if (IsTypeOf<TodoItem>(entityType)) {
+            if (entity is TodoItem)
+            {
                 return BeforeSaveTodoItem(entity as TodoItem, entityInfo);
             }
             throw new InvalidOperationException("Cannot save entity of unknown type");
         }
 
-        private bool IsTypeOf<T>(Type entity)
-        {
-            return entity.IsAssignableFrom(typeof(T));
-        }
 
         private bool BeforeSaveTodoList(TodoList todoList, EntityInfo info)
         {
-            if (info.EntityState == EntityState.Added) {
+            if (info.EntityState == EntityState.Added)
+            {
                 todoList.UserId = UserId;
                 return true;
             }
@@ -77,6 +78,8 @@ namespace BreezeSpa2012Preview.Models
         {
             throw new InvalidOperationException("Invalid TodoItem");
         }
+
+        #endregion
 
     }
 }

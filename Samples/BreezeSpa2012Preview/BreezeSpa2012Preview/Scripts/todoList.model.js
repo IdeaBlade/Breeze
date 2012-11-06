@@ -31,7 +31,7 @@
         return dataservice.addEntity(todoItem);
     };
     TodoList.prototype.deleteTodo = function () {
-        return dataservice.deleteEntity(this);
+        return dataservice.deleteTodoItem(this);
     };
 
     function subscribeOnModified(entity) {
@@ -39,8 +39,10 @@
     }
     function saveOnModified(args) {
         var entity = args.entity;
-        if (entity.entityAspect.entityState.isModified()) {
+        if (!dataservice.suspendSave &&
+            entity.entityAspect.entityState.isModified()) {
             dataservice.saveEntity(entity);
         };
     }
+    
 })(ko, TodoApp.dataservice);

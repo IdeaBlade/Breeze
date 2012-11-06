@@ -1,4 +1,8 @@
-﻿(function (root, breeze) {
+﻿// ReSharper disable InconsistentNaming
+(function (root, breeze) {
+    
+    /*** CONFIGURATION ***/
+    
     root.TodoApp = root.TodoApp || {};
 
     // define Breeze namespaces
@@ -13,15 +17,22 @@
 
     // service name is route to the Breeze Todo Web API controller
     var serviceName = 'api/BreezeTodo';
+    var saveOptions = new entityModel.SaveOptions({ allowConcurrentSaves: true });
 
     // manager is the service gateway and cache holder
-    var manager = new entityModel.EntityManager(serviceName);
+    var manager = new entityModel.EntityManager({
+        serviceName: serviceName,
+        saveOptions: saveOptions
+    });
+    
     var metadataStore = manager.metadataStore;
+    
+    /*** DATASERVICE ***/
 
     var
         getTodoLists = function (todoListsObservable, errorObservable) {
             return entityModel.EntityQuery
-                .from("TodoLists")// .expand("Todos") want to expand but am blocked for now
+                .from("TodoLists").expand("Todos") 
                 .using(manager).execute()
                 .then(querySucceeded)
                 .fail(queryFailed);
@@ -43,41 +54,56 @@
         addEntity = function (entity) {
             return saveEntity(manager.addEntity(entity));
         },
-        deleteEntity = function (entity) {
-            entity.entityAspect.setDeleted();
-            return saveEntity(entity);
+        deleteTodoItem = function (todoItem) {
+            todoItem.entityAspect.setDeleted();
+            return saveEntity(todoItem);
         },
-        cancelChanges = function (entity) {
-            entity.entityAspect.rejectChanges();
+        deleteTodoList = function (todoList) {
+            dataservice.suspendSave = true;
+            todoList.entityAspect.setDeleted();// ripple effects 
+            dataservice.suspendSave = false;
+            return saveEntity(todoList);
         },
         saveEntity = function (entity) {
             entity.ErrorMessage(null);
-            return manager.saveChanges([entity])
+            return manager.saveChanges([entity]) 
                 .then(saveSucceeded)
                 .fail(saveFailed);
 
-            function saveSucceeded(saveResult) {
-                return entity;
-            }
+            function saveSucceeded(saveResult) { return entity; }
 
             function saveFailed(error) {
-                var message = "Error saving " + entity.entityType.shortName;
-                // set ErrorMessage if entity has one
-                if (entity.ErrorMessage) { entity.ErrorMessage(message); }
-                cancelChanges(entity); // undo changes on fail
-                return entity;
+                var emsg = getSaveErrorMessage();
+                if (entity.ErrorMessage) { entity.ErrorMessage(emsg); }
+                cancelAllChanges(); // undo all changes on fail
+                throw error; // for benefit of caller
+                var err = new Error(emsg);
+                err.entity = entity;
+                throw err;// for benefit of caller 
             }
+            
+            function getSaveErrorMessage() {
+                if (!entity) { return "Error while saving."; }
+                var statename = entity.entityAspect.entityState.name.toLocaleLowerCase();
+                return "Error saving " + statename + " " + entity.entityType.shortName;
+            }
+        },
+        cancelAllChanges = function () {
+            dataservice.suspendSave = true;
+            manager.rejectChanges();
+            dataservice.suspendSave = false;
+        },
+        dataservice = {
+            metadataStore: metadataStore,
+            getTodoLists: getTodoLists,
+            createTodoList: createTodoList,
+            createTodoItem: createTodoItem,
+            addEntity: addEntity,
+            deleteTodoItem: deleteTodoItem,
+            deleteTodoList: deleteTodoList,
+            saveEntity: saveEntity,
+            suspendSave: false
         };
-
-    root.TodoApp.dataservice = {
-        metadataStore: metadataStore,
-        getTodoLists: getTodoLists,
-        createTodoList: createTodoList,
-        createTodoItem: createTodoItem,
-        addEntity: addEntity,
-        deleteEntity: deleteEntity,
-        cancelChanges: cancelChanges,
-        saveEntity: saveEntity
-    };
-
+    
+    root.TodoApp.dataservice = dataservice;
 })(window, breeze);
