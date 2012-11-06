@@ -77,9 +77,6 @@
                 if (entity.ErrorMessage) { entity.ErrorMessage(emsg); }
                 cancelAllChanges(); // undo all changes on fail
                 throw error; // for benefit of caller
-                var err = new Error(emsg);
-                err.entity = entity;
-                throw err;// for benefit of caller 
             }
             
             function getSaveErrorMessage() {
