@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
-    <title>ↈ_keyGenerator_interface - The Breeze API</title>
+    <title>LocalQueryComparisonOptions - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -207,7 +207,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>ↈ_keyGenerator_interface Class</h1>
+                        <h1>LocalQueryComparisonOptions Class</h1>
 <div class="box meta">
     
 
@@ -215,7 +215,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;keyGeneratorInterface.js.html#l5"><code>keyGeneratorInterface.js:5</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l26"><code>entityMetadata.js:26</code></a>
         </div>
     
 
@@ -231,31 +231,12 @@
 
 
 <div class="box intro">
-    <p>This is an interface description. Any class that implements the methods and properties defined here is considered a valid
-implementation of this interface.</p>
+    <p>A LocalQueryComparisonOptions instance is used to specify the "comparison rules" used when performing "local queries" in order 
+to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+manner in which your remote service interprets certain comparison operations.</p>
 
-<p>Each EntityManager can have a single KeyGenerator implementation that it will use to manage the generation of all 'temporary' keys.</p>
-
-<p>A KeyGenerator implementation is assigned to an EntityManager via the <a href="..\classes\EntityManager.html#method_setProperties" class="crosslink">setProperties</a> 
-method with a config parameter of 'keyGeneratorCtor'. </p>
-
-<pre class="code"><code class="prettyprint">MyKeyGenerator = function() { 
-    // your code here
-}
-MyKeyGenerator.prototype.generateTempKeyValue = function(entityType) {
-    // your implementation here.
-}
-em.setProperties( {keyGeneratorCtor: MyKeyGenerator });
-</code></pre>
-
-<p>The assigned KeyGenerator is then called whenever the 
-EntityManager.generateTempKeyValue method is called.  The EntityManager internally keeps track of all of the generated keys
-and handles all of the mapping of these temporary keys to real keys after any save.  </p>
-
-<p>The KeyGenerator implementation only needs to do one thing.  Return a unique key value of the correct datatype for each 
-call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT supported for multipart keys.  </p>
-
-<p>If no KeyGenerator is supplied, a default KeyGenerator will be automatically provided.</p>
+<p>The default LocalQueryComparisonOptions stipulates 'caseInsensitive" queries with ANSI SQL rules regarding comparisons of unequal
+length strings.</p>
 </div>
 
 
@@ -267,6 +248,8 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
         
             <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
         
+        
+            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
         
         
         
@@ -283,7 +266,14 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
-                                <a href="#method_generateTempKeyValue">generateTempKeyValue</a>
+                                <a href="#method_&lt;ctor&gt; LocalQueryComparisonOptions">&lt;ctor&gt; LocalQueryComparisonOptions</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setAsDefault">setAsDefault</a>
 
                                 
                                 
@@ -293,6 +283,32 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
                 </div>
             
 
+            
+                <div class="index-section properties">
+                    <h3>Properties</h3>
+
+                    <ul class="index-list properties">
+                        
+                            <li class="index-item property">
+                                <a href="#property_caseInsensitiveSQL">caseInsensitiveSQL</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_defaultInstance">defaultInstance</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                    </ul>
+                </div>
             
 
             
@@ -305,8 +321,8 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_generateTempKeyValue" class="method item">
-    <h3 class="name"><code>generateTempKeyValue</code></h3>
+                    <div id="method_&lt;ctor&gt; LocalQueryComparisonOptions" class="method item">
+    <h3 class="name"><code>&lt;ctor&gt; LocalQueryComparisonOptions</code></h3>
 
     
         <div class="args">
@@ -314,7 +330,7 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
             
                 <li class="arg">
                     
-                        <code>entityType</code>
+                        <code>config</code>
                     
                 </li>
             
@@ -347,7 +363,7 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
             
         
         
-        <a href="..&#x2F;files&#x2F;keyGeneratorInterface.js.html#l32"><code>keyGeneratorInterface.js:32</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l37"><code>entityMetadata.js:37</code></a>
         
         </p>
 
@@ -358,10 +374,7 @@ call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT suppor
     </div>
 
     <div class="description">
-        <p>Returns a unique 'temporary' key for the specified <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>. 
-Uniqueness is defined for this purpose as being unique within this KeyGenerator. This is sufficient 
-because each EntityManager will have its own instance of a KeyGenerator and any entities imported into
-the EntityManager with temporary keys will have them regenerated and remapped on import.</p>
+        <p>LocalQueryComparisonOptions constructor</p>
     </div>
 
     
@@ -372,8 +385,8 @@ the EntityManager with temporary keys will have them regenerated and remapped on
             
                 <li class="param">
                     
-                        <code class="param-name">entityType</code>
-                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a></span>
+                        <code class="param-name">config</code>
+                        <span class="type">Object</span>
                     
 
                     
@@ -382,6 +395,54 @@ the EntityManager with temporary keys will have them regenerated and remapped on
                          
                     </div>
 
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[name]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[isCaseSensitive]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Whether predicates that involve strings will be interpreted in a "caseSensitive" manner. Default is 'false'</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[usesSql92CompliantStringComparison]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Whether of not to enforce the ANSI SQL standard 
+   of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
+   inequality predicates, and not with operations like 'startsWith', 'endsWith' or 'contains'.  Default is true.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
                     
                 </li>
             
@@ -392,12 +453,198 @@ the EntityManager with temporary keys will have them regenerated and remapped on
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// create a 'caseSensitive - non SQL' instance.
+var lqco = new LocalQueryComparisonOptions({
+    name: "caseSensitive-nonSQL"
+    isCaseSensitive: true;
+    usesSql92CompliantStringComparison: false;
+});
+// either apply it globally
+lqco.setAsDefault();
+// or to a specific MetadataStore
+var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
+var em = new EntityManager( { metadataStore: ms });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setAsDefault" class="method item">
+    <h3 class="name"><code>setAsDefault</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l92"><code>entityMetadata.js:92</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Makes this instance the default instance.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var lqco = new LocalQueryComparisonOptions({
+    isCaseSensitive: false;
+    usesSql92CompliantStringComparison: true;
+});
+lqco.setAsDefault();
+</code></pre>
+            </div>
+        </div>
+    
 </div>
 
                 
             </div>
         
 
+        
+            <div id="properties" class="api-class-tabpanel">
+                <h2 class="off-left">Properties</h2>
+
+                
+                    <div id="property_caseInsensitiveSQL" class="property item">
+    <h3 class="name"><code>caseInsensitiveSQL</code></h3>
+    <span class="type"><a href="..\classes\LocalQueryComparisonOptions.html" class="crosslink">LocalQueryComparisonOptions</a></span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l74"><code>entityMetadata.js:74</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Case insensitive SQL compliant options - this is also the default unless otherwise changed.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_defaultInstance" class="property item">
+    <h3 class="name"><code>defaultInstance</code></h3>
+    <span class="type"><a href="..\classes\LocalQueryComparisonOptions.html" class="crosslink">LocalQueryComparisonOptions</a></span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l85"><code>entityMetadata.js:85</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The default value whenever LocalQueryComparisonOptions are not specified. By default this is 'caseInsensitiveSQL'.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+            </div>
         
 
         

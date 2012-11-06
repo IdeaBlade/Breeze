@@ -945,6 +945,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         //    return this._hasChangesCore(entityTypes);
         //};
         
+        /**
+        An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
+        @example                    
+            var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+            em.hasChanges.subscribe(function(args) {
+                var hasChanges = args.hasChanges;
+                var entityManager = args.entityManager;
+            });
+        });
+      
+        @event hasChanges 
+        @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
+        @param hasChanges {Boolean} Whether or not this EntityManager has changes.
+        @readOnly
+        **/
+        
+        
         // backdoor the "really" check for changes.
         ctor.prototype._hasChangesCore = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();

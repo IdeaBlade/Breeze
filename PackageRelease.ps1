@@ -91,6 +91,10 @@ eraseExtraFiles "$srcDir\Samples\BreezyDevices\"
 copy-item $srcDir\Samples\BreezyDevices $destDir\Samples\BreezyDevices -recurse
 gci $destDir\Samples\BreezyDevices -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
 
+eraseExtraFiles "$srcDir\Samples\CarBones\"
+copy-item $srcDir\Samples\CarBones $destDir\Samples\CarBones -recurse
+gci $destDir\Samples\CarBones -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
+
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = "$srcDir\breeze-runtime-plus-$versionNum.zip"
 if (test-path $zipFile) {

@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Nov 05 2012 11:16:20 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Nov 06 2012 09:44:34 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -326,6 +326,17 @@ intellisense.annotate(breeze.entityModel, {
     /// <signature>
     ///   <summary>
     ///   A ValidationOptions instance is used to specify the conditions under which validation will be executed.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
+  'LocalQueryComparisonOptions': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A LocalQueryComparisonOptions instance is used to specify the 'comparison rules' used when performing 'local queries' in order 
+    ///   to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+    ///   manner in which your remote service interprets certain comparison operations.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     /// </signature>
@@ -1147,6 +1158,29 @@ intellisense.annotate(breeze.entityModel.ValidationOptions, {
   
   
   /// <field name="defaultInstance" type="breeze.entityModel.ValidationOptions" >The default value whenever ValidationOptions are not specified.</field>
+  'defaultInstance': null,
+  
+});
+
+intellisense.annotate(breeze.entityModel.LocalQueryComparisonOptions.prototype, {
+  
+  'setAsDefault': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Makes this instance the default instance.
+    ///   </summary>
+    
+    /// </signature>
+  },
+  
+});
+intellisense.annotate(breeze.entityModel.LocalQueryComparisonOptions, {
+  
+  
+  /// <field name="caseInsensitiveSQL" type="breeze.entityModel.LocalQueryComparisonOptions" >Case insensitive SQL compliant options - this is also the default unless otherwise changed.</field>
+  'caseInsensitiveSQL': null,
+  
+  /// <field name="defaultInstance" type="breeze.entityModel.LocalQueryComparisonOptions" >The default value whenever LocalQueryComparisonOptions are not specified. By default this is 'caseInsensitiveSQL'.</field>
   'defaultInstance': null,
   
 });
