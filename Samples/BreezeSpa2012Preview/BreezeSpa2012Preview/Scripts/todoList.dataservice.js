@@ -70,7 +70,7 @@
                 .then(saveSucceeded)
                 .fail(saveFailed);
 
-            function saveSucceeded(saveResult) { return entity; }
+            function saveSucceeded() {return entity;}
 
             function saveFailed(error) {
                 var emsg = getSaveErrorMessage();

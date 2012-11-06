@@ -12,7 +12,10 @@
             todoList.IsEditingListTitle(true);
             dataservice
                 .addEntity(todoList)
-                .then(insertTodoList);
+                .then(insertTodoList)
+                .fail(function () {
+                    error("Save of new TodoList failed");
+                });
         },
 
         // Insert new TodoList at the front of the array
@@ -22,9 +25,18 @@
 
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
-            dataservice
-                .deleteTodoList(todoList)
-                .fail(function () { insertTodoList(todoList); });
+            var todoItems = todoList.Todos();
+            dataservice.deleteTodoList(todoList)
+                .then(deleteSucceeded)
+                .fail(deleteFailed);
+            
+            function deleteSucceeded() {
+                // remove the dead TodoItems from the cache
+                todoItems.forEach(function(item) { item.entityAspect.setDetached(); });
+            }
+            function deleteFailed() {
+                insertTodoList(todoList); // re-show the list
+            }
         },
 
         todoListViewModel = {
