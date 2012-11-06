@@ -1,5 +1,5 @@
 ﻿/// <reference path="todoList.dataservice.js"/>
-
+// ReSharper disable InconsistentNaming
 (function (ko, dataservice) {
 
     var store = dataservice.metadataStore;
@@ -23,7 +23,7 @@
     function TodoList() { };
     TodoList.prototype.addTodo = function () {
         var self = this;
-        if (!self.NewTodoTitle()) { return; } // need a title to save
+        if (!self.NewTodoTitle()) { return null; } // need a title to save
         var todoItem = dataservice.createTodoItem();
         todoItem.Title(self.NewTodoTitle());
         self.NewTodoTitle("");
@@ -43,5 +43,4 @@
             dataservice.saveEntity(entity);
         };
     }
-
 })(ko, TodoApp.dataservice);

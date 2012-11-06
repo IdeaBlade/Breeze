@@ -45,7 +45,7 @@
         },
         deleteEntity = function (entity) {
             entity.entityAspect.setDeleted();
-            return saveEntity(entity)
+            return saveEntity(entity);
         },
         cancelChanges = function (entity) {
             entity.entityAspect.rejectChanges();
@@ -61,7 +61,7 @@
             }
 
             function saveFailed(error) {
-                var message = "Error saving " + entity.entityType.shortName
+                var message = "Error saving " + entity.entityType.shortName;
                 // set ErrorMessage if entity has one
                 if (entity.ErrorMessage) { entity.ErrorMessage(message); }
                 cancelChanges(entity); // undo changes on fail
