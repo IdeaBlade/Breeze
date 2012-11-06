@@ -362,7 +362,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                this.hasChanges.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -945,6 +945,23 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         //    return this._hasChangesCore(entityTypes);
         //};
         
+        /**
+        An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
+        @example                    
+            var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+            em.hasChanges.subscribe(function(args) {
+                var hasChanges = args.hasChanges;
+                var entityManager = args.entityManager;
+            });
+        });
+      
+        @event hasChanges 
+        @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
+        @param hasChanges {Boolean} Whether or not this EntityManager has changes.
+        @readOnly
+        **/
+        
+        
         // backdoor the "really" check for changes.
         ctor.prototype._hasChangesCore = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
@@ -1003,7 +1020,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+            this.hasChanges.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -1055,7 +1072,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, saveNeeded: true });
+                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -1063,7 +1080,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }

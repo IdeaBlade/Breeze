@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
+            
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
@@ -233,6 +235,92 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     }
 
     &#x2F;&#x2F; TODO: still need to handle inheritence here.
+
+    &#x2F;**
+    A LocalQueryComparisonOptions instance is used to specify the &quot;comparison rules&quot; used when performing &quot;local queries&quot; in order 
+    to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+    manner in which your remote service interprets certain comparison operations.
+
+    The default LocalQueryComparisonOptions stipulates &#x27;caseInsensitive&quot; queries with ANSI SQL rules regarding comparisons of unequal
+    length strings. 
+
+    @class LocalQueryComparisonOptions
+    **&#x2F;
+
+    &#x2F;**
+    LocalQueryComparisonOptions constructor
+    @example
+        &#x2F;&#x2F; create a &#x27;caseSensitive - non SQL&#x27; instance.
+        var lqco = new LocalQueryComparisonOptions({
+            name: &quot;caseSensitive-nonSQL&quot;
+            isCaseSensitive: true;
+            usesSql92CompliantStringComparison: false;
+        });
+        &#x2F;&#x2F; either apply it globally
+        lqco.setAsDefault();
+        &#x2F;&#x2F; or to a specific MetadataStore
+        var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
+        var em = new EntityManager( { metadataStore: ms });
+
+    @method &lt;ctor&gt; LocalQueryComparisonOptions
+    @param config {Object}
+    @param [config.name] {String}
+    @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a &quot;caseSensitive&quot; manner. Default is &#x27;false&#x27;
+    @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
+       of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
+       inequality predicates, and not with operations like &#x27;startsWith&#x27;, &#x27;endsWith&#x27; or &#x27;contains&#x27;.  Default is true.
+    **&#x2F;
+    var LocalQueryComparisonOptions = (function() {
+        var ctor = function (config) {
+            assertConfig(config || {})
+                .whereParam(&quot;name&quot;).isOptional().isString()
+                .whereParam(&quot;isCaseSensitive&quot;).isOptional().isBoolean().withDefault(false)
+                .whereParam(&quot;usesSql92CompliantStringComparison&quot;).isBoolean().withDefault(true)
+                .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, &quot;LocalQueryComparisonOptions:&quot; + this.name);
+        };
+        
+        &#x2F;&#x2F; 
+        &#x2F;**
+        Case insensitive SQL compliant options - this is also the default unless otherwise changed.
+        @property caseInsensitiveSQL {LocalQueryComparisonOptions}
+        @static
+        **&#x2F;
+        ctor.caseInsensitiveSQL = new ctor({
+            name: &quot;caseInsensitiveSQL&quot;,
+            isCaseSensitive: false,
+            usesSql92CompliantStringComparison: true
+        });
+
+        &#x2F;**
+        The default value whenever LocalQueryComparisonOptions are not specified. By default this is &#x27;caseInsensitiveSQL&#x27;.
+        @property defaultInstance {LocalQueryComparisonOptions}
+        @static
+        **&#x2F;
+        ctor.defaultInstance = ctor.caseInsensitiveSQL;
+
+        &#x2F;**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var lqco = new LocalQueryComparisonOptions({
+                isCaseSensitive: false;
+                usesSql92CompliantStringComparison: true;
+            });
+            lqco.setAsDefault();
+        @chainable
+        **&#x2F;
+        ctor.prototype.setAsDefault = function () {
+            ctor.defaultInstance = this;
+            return this;
+        };
+
+
+        return ctor;
+    })();
 
     &#x2F;**
     A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
@@ -384,11 +472,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param [config] {Object} Configuration settings .
         @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
         between client and server. Uses the NamingConvention.defaultInstance if not specified.
+        @param [config.localQueryComparisonOptions=LocalQueryComparisonOptions.defaultInstance] {LocalQueryComparisonOptions} The LocalQueryComparisonOptions to be
+        used when performing &quot;local queries&quot; in order to match the semantics of queries against a remote service. 
         **&#x2F;
         var ctor = function (config) {
             config = config || { };
             assertConfig(config)
                 .whereParam(&quot;namingConvention&quot;).isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .whereParam(&quot;localQueryComparisonOptions&quot;).isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
             this.serviceNames = []; &#x2F;&#x2F; array of serviceNames
             this._resourceEntityTypeMap = {}; &#x2F;&#x2F; key is resource name - value is qualified entityType name
@@ -426,7 +517,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **&#x2F;
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
-                if (key === &quot;namingConvention&quot;) {
+                if (key === &quot;namingConvention&quot; || key === &quot;localQueryComparisonOptions&quot;) {
                     return value.name;
                 }
                 return value;
@@ -452,16 +543,26 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
+            var lqcoName = json.localQueryComparisonOptions;
             delete json.namingConvention;
+            delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
                 var nc = core.config.objectRegistry[&quot;NamingConvention:&quot; + ncName];
                 if (!nc) {
                     throw new Error(&quot;Unable to locate a naming convention named: &quot; + ncName);
                 }
                 this.namingConvention = nc;
+                var lqco = core.config.objectRegistry[&quot;LocalQueryComparisonOptions:&quot; + lqcoName];
+                if (!lqco) {
+                    throw new Error(&quot;Unable to locate a LocalQueryComparisonOptions instance named: &quot; + lqcoName);
+                }
+                this.localQueryComparisonOptions = lqco;
             } else {
                 if (this.namingConvention.name !== ncName) {
-                    throw new Error(&quot;Cannot import metadata with a different naming convention from the current MetadataStore&quot;);
+                    throw new Error(&quot;Cannot import metadata with a different &#x27;namingConvention&#x27; from the current MetadataStore&quot;);
+                }
+                if (this.localQueryComparisonOptions.name !== lqcoName) {
+                    throw new Error(&quot;Cannot import metadata with different &#x27;localQueryComparisonOptions&#x27; from the current MetadataStore&quot;);
                 }
             }
             var entityTypeMap = {};

@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
+            
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
@@ -213,7 +215,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l149"><code>entityMetadata.js:149</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l235"><code>entityMetadata.js:235</code></a>
         </div>
     
 
@@ -412,7 +414,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l158"><code>entityMetadata.js:158</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l244"><code>entityMetadata.js:244</code></a>
         
         </p>
 
@@ -458,6 +460,21 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                                 <div class="param-description">
                                     <p>NamingConvention to be used in mapping property names
 between client and server. Uses the NamingConvention.defaultInstance if not specified.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[localQueryComparisonOptions=LocalQueryComparisonOptions.defaultInstance]</code>
+                                    <span class="type"><a href="..\classes\LocalQueryComparisonOptions.html" class="crosslink">LocalQueryComparisonOptions</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The LocalQueryComparisonOptions to be
+used when performing "local queries" in order to match the semantics of queries against a remote service.</p>
                                 </div>
 
                                 
@@ -532,7 +549,7 @@ em1.setProperties( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l202"><code>entityMetadata.js:202</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l291"><code>entityMetadata.js:291</code></a>
         
         </p>
 
@@ -649,7 +666,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l309"><code>entityMetadata.js:309</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l408"><code>entityMetadata.js:408</code></a>
         
         </p>
 
@@ -871,7 +888,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l451"><code>entityMetadata.js:451</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l550"><code>entityMetadata.js:550</code></a>
         
         </p>
 
@@ -996,7 +1013,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l482"><code>entityMetadata.js:482</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l581"><code>entityMetadata.js:581</code></a>
         
         </p>
 
@@ -1086,7 +1103,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l290"><code>entityMetadata.js:290</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l389"><code>entityMetadata.js:389</code></a>
         
         </p>
 
@@ -1203,7 +1220,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l269"><code>entityMetadata.js:269</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l368"><code>entityMetadata.js:368</code></a>
         
         </p>
 
@@ -1323,7 +1340,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l226"><code>entityMetadata.js:226</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l315"><code>entityMetadata.js:315</code></a>
         
         </p>
 
@@ -1432,7 +1449,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l436"><code>entityMetadata.js:436</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l535"><code>entityMetadata.js:535</code></a>
         
         </p>
 
@@ -1532,7 +1549,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l388"><code>entityMetadata.js:388</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l487"><code>entityMetadata.js:487</code></a>
         
         </p>
 
@@ -1697,7 +1714,7 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l372"><code>entityMetadata.js:372</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l471"><code>entityMetadata.js:471</code></a>
         
         </p>
 
@@ -1790,7 +1807,7 @@ i.e. an unmapped type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l195"><code>entityMetadata.js:195</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l284"><code>entityMetadata.js:284</code></a>
         
         </p>
 

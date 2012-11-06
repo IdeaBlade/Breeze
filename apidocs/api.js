@@ -16,6 +16,7 @@ YUI.add("yuidoc-meta", function(Y) {
         "Event",
         "FetchStrategy",
         "FilterQueryOp",
+        "LocalQueryComparisonOptions",
         "MergeStrategy",
         "MetadataStore",
         "NamingConvention",

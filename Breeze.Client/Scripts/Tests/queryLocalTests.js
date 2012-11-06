@@ -25,8 +25,116 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    test("case sensitivity - startsWith", function() {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "startswith", "c");
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+            ok(r.length === r2.length, "should have returned the same number of entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
+    test("case sensitivity - endsWith", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "endsWith", "OS");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+            ok(r.length === r2.length, "should have returned the same number of entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
+    test("case sensitivity - contains", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "contains", "SP");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+            ok(r.length === r2.length, "should have returned the same number of entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - order by", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", "F")
+            .orderBy("companyName");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            var comps1 = r.map(function(e) { return e.getProperty("companyName"); });
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+            var comps2 = r2.map(function(e) { return e.getProperty("companyName") });
+            ok(r.length === r2.length, "should have returned some entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - string padding", function () {
+        var em = newEm();
+        var origCompName = "Simons bistro";
+        var q1 = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", origCompName);
+        var q2 = EntityQuery.from("Customers")
+               .where("companyName", "==", origCompName);
+        stop();
+        var saved = false;
+        em.executeQuery(q1).then(function (data) {
+            var r = data.results;
+            ok(r.length === 1);
+            var compNm = r[0].getProperty("companyName");
+            var ending = compNm.substr(compNm.length - 2);
+            if (ending !== "  ") {
+                r[0].setProperty("companyName", origCompName + "  ");
+                saved = true;
+            }
+            return em.saveChanges();
+        }).then(function (sr) {
+            if (saved) {
+                ok(sr.entities.length === 1);
+            } 
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var r = data2.results;
+            ok(r.length === 1, "should have returned 1 entity");
+            var r2 = em.executeQueryLocally(q2);
+            ok(r.length === r2.length, "should have returned the same entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - string padding 2", function () {
+        var em = newEm();
+        var origCompName = "Simons bistro";
+        var q = EntityQuery.from("Customers")
+               .where("companyName", "!=", origCompName);
+        stop();
+        var saved = false;
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 1, "should have returned more than 1 entity");
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length === r2.length, "should have returned the same entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+      
     test("executeQueryLocally for related entities after query", function () {
         var em = newEm();
         var query = entityModel.EntityQuery.from("Orders").take(10);

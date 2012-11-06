@@ -876,7 +876,7 @@ function (core, Event, m_validate) {
         @param entityKey {EntityKey}
         **/
         ctor.prototype.equals = function (entityKey) {
-            if (!entityKey instanceof EntityKey) return false;
+            if (!(entityKey instanceof EntityKey)) return false;
             return (this.entityType === entityKey.entityType) &&
                 core.arrayEquals(this.values, entityKey.values);
         };
@@ -907,7 +907,7 @@ function (core, Event, m_validate) {
         @param k2 {EntityKey}
         **/
         ctor.equals = function (k1, k2) {
-            if (!k1 instanceof EntityKey) return false;
+            if (!(k1 instanceof EntityKey)) return false;
             return k1.equals(k2);
         };
 

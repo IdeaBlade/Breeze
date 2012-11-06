@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
+            
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
@@ -1087,7 +1089,7 @@ function (core, Event, m_validate) {
         @param entityKey {EntityKey}
         **&#x2F;
         ctor.prototype.equals = function (entityKey) {
-            if (!entityKey instanceof EntityKey) return false;
+            if (!(entityKey instanceof EntityKey)) return false;
             return (this.entityType === entityKey.entityType) &amp;&amp;
                 core.arrayEquals(this.values, entityKey.values);
         };
@@ -1118,7 +1120,7 @@ function (core, Event, m_validate) {
         @param k2 {EntityKey}
         **&#x2F;
         ctor.equals = function (k1, k2) {
-            if (!k1 instanceof EntityKey) return false;
+            if (!(k1 instanceof EntityKey)) return false;
             return k1.equals(k2);
         };
 

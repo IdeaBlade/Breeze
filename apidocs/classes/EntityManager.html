@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
+            
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
             
                 <li><a href="..&#x2F;classes/MetadataStore.html">MetadataStore</a></li>
@@ -475,6 +477,13 @@
                         
                             <li class="index-item event">
                                 <a href="#event_entityChanged">entityChanged</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item event">
+                                <a href="#event_hasChanges">hasChanges</a>
 
                                 
                                 
@@ -2290,7 +2299,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l957"><code>entityManager.js:957</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l974"><code>entityManager.js:974</code></a>
         
         </p>
 
@@ -2424,7 +2433,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1010"><code>entityManager.js:1010</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1027"><code>entityManager.js:1027</code></a>
         
         </p>
 
@@ -3019,7 +3028,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l987"><code>entityManager.js:987</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1004"><code>entityManager.js:1004</code></a>
         
         </p>
 
@@ -4010,6 +4019,102 @@ em.entityChanged.subscribe(function(changeArgs) {
     var action = changeArgs.entityAction;
     var entity = changeArgs.entity;
     // .. do something to this entity when it is changed.
+});
+</code></pre>
+
+<p>});</p>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="event_hasChanges" class="events item">
+    <h3 class="name"><code>hasChanges</code></h3>
+    <span class="type"></span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l948"><code>entityManager.js:948</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>An <a href="..\classes\Event.html" class="crosslink">Event</a> that fires whenever an EntityManager transitions to or from having changes.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Event Payload:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityManager</code>
+                        <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The EntityManager whose 'hasChanges' status has changed.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">hasChanges</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Whether or not this EntityManager has changes.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+em.hasChanges.subscribe(function(args) {
+    var hasChanges = args.hasChanges;
+    var entityManager = args.entityManager;
 });
 </code></pre>
 
