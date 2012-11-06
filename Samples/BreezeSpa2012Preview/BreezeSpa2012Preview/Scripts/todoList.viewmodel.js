@@ -7,35 +7,27 @@
 
         addTodoList = function () {
             var todoList = dataservice.createTodoList();
-            todoList.Title("My todos");
-            todoList.UserId("to be replaced");
             todoList.IsEditingListTitle(true);
-            dataservice
-                .addEntity(todoList)
-                .then(insertTodoList)
-                .fail(function () {
-                    error("Save of new TodoList failed");
-                });
+            dataservice.addEntity(todoList)
+                .then(showTodoList)
+                .fail(addFailed);
+
+            function addFailed() {
+                error("Save of new TodoList failed");
+            }
         },
 
-        // Insert new TodoList at the front of the array
-        insertTodoList= function(todoList) {
-            todoLists.unshift(todoList); 
+        showTodoList= function(todoList) {
+            todoLists.unshift(todoList); // Insert new TodoList at the front
         },
 
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
-            var todoItems = todoList.Todos();
             dataservice.deleteTodoList(todoList)
-                .then(deleteSucceeded)
                 .fail(deleteFailed);
             
-            function deleteSucceeded() {
-                // remove the dead TodoItems from the cache
-                todoItems.forEach(function(item) { item.entityAspect.setDetached(); });
-            }
             function deleteFailed() {
-                insertTodoList(todoList); // re-show the list
+                showTodoList(todoList); // re-show the restored list
             }
         },
 

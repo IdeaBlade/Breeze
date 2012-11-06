@@ -20,7 +20,10 @@
         subscribeOnModified(self);
     }
 
-    function TodoList() { };
+    function TodoList() {
+        this.Title  = "My todos";       // defaults
+        this.UserId = "to be replaced";
+    };
     TodoList.prototype.addTodo = function () {
         var self = this;
         if (!self.NewTodoTitle()) { return null; } // need a title to save

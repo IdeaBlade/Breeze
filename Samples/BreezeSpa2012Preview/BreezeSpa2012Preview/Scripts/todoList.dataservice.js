@@ -59,10 +59,15 @@
             return saveEntity(todoItem);
         },
         deleteTodoList = function (todoList) {
+            var todoItems = todoList.Todos();
             dataservice.suspendSave = true;
             todoList.entityAspect.setDeleted();// ripple effects 
             dataservice.suspendSave = false;
-            return saveEntity(todoList);
+            return saveEntity(todoList).then(deleteSucceeded);
+            
+            function deleteSucceeded() {
+                purge(todoItems); // remove dead TodoItems from cache
+            }
         },
         saveEntity = function (entity) {
             entity.ErrorMessage(null);
@@ -89,6 +94,9 @@
             dataservice.suspendSave = true;
             manager.rejectChanges();
             dataservice.suspendSave = false;
+        },
+        purge = function (entities) { // remove entities from cache
+            entities.forEach(function (entity) { manager.detach(entity); });
         },
         dataservice = {
             metadataStore: metadataStore,
