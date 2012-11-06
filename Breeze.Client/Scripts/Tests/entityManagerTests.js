@@ -121,11 +121,11 @@ define(["testFns"], function (testFns) {
     test("hasChanges with query mods", function () {
         var em = newEm();
 
-        var saveNeeded = false;
+        var hasChanges = false;
         var count = 0;
         em.hasChanges.subscribe(function (args) {
             count = count + 1;
-            saveNeeded = args.saveNeeded;
+            hasChanges = args.hasChanges;
         });
         ok(count === 0, "count should be 0");
         ok(!em.hasChanges(), "should be no changes");
@@ -136,12 +136,12 @@ define(["testFns"], function (testFns) {
             custs[1].entityAspect.setDeleted();
             custs[2].entityAspect.setModified();
             ok(count === 1, "count should be 1");
-            ok(saveNeeded, "save should be needed");
+            ok(hasChanges, "should have changes");
             ok(em.hasChanges(), "should be changes");
             em.rejectChanges();
             ok(count === 2, "count should be 2");
             ok(!em.hasChanges(), "should be no changes");
-            ok(!saveNeeded, "save should not be needed");
+            ok(!hasChanges, " should not have changes");
         }).fail(testFns.handleFail).fin(start);
         
     });

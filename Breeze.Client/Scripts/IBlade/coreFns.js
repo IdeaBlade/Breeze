@@ -172,11 +172,11 @@ define(function () {
         for (var i = 0; i < a1.length; i++) {
             //if the var is an array, we need to make a recursive check
             //otherwise we'll just compare the values
-            if (typeof a1[i] == 'object') {
+            if (Array.isArray( a1[i])) {
                 if (!arrayEquals(a1[i], a2[i])) return false;
             } else {
                 if (equalsFn) {
-                    if (!equalsFn(a1, a2)) return false;
+                    if (!equalsFn(a1[i], a2[i])) return false;
                 } else {
                     if (a1[i] != a2[i]) return false;
                 }

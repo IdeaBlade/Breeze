@@ -247,15 +247,19 @@ define(["root"], function (root) {
         }
     };
     
-    testFns.assertIsSorted = function (collection, propertyName, isDescending) {
-        isDescending = isDescending || false;
+    testFns.assertIsSorted = function (collection, propertyName, isDescending, isCaseSensitive) {
+        isCaseSensitive = isCaseSensitive == null ? true : isCaseSensitive;
         var fn = function (a, b) {
             // localeCompare has issues in Chrome.
             // var compareResult = a[propertyName].localeCompare(b.propertyName);
             var av = a.getProperty(propertyName);
             var bv = b.getProperty(propertyName);
+            if (typeof av === "string" && !isCaseSensitive) {
+                av = av.toLowerCase();
+                bv = (bv || "").toLowerCase();
+            }
             var compareResult = av < bv ? -1 : (av > bv ? 1 : 0);
-            return isDescending ? compareResult : compareResult * -1;
+            return isDescending ? compareResult*-1 : compareResult;
         };
         var arrayCopy = collection.map(function (o) { return o; });
         arrayCopy.sort(fn);

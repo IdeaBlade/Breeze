@@ -72,29 +72,31 @@ define(["testFns"], function (testFns) {
     test("predicateBuilder simple toFunction()", function () {
         var dt = new Date(88, 9, 12);
         var dateStr = dt.toISOString(dt);
+        var ms = new MetadataStore();
+        var nullEt = new EntityType(ms);
 
         var p1 = Predicate.create("OrderDate", ">", dt);
-        var func1 = p1.toFunction();
+        var func1 = p1.toFunction(nullEt);
         var r1 = this.entities.filter(func1);
         ok(r1.length == 3);
 
         var p2 = Predicate.create("OrderDate", "Gt", dt);
-        var func2 = p2.toFunction();
+        var func2 = p2.toFunction(nullEt);
         var r2 = this.entities.filter(func2);
         ok(core.arrayEquals(r1, r2));
 
         var p3 = Predicate.create("OrderDate", "==", dt);
-        var func3 = p3.toFunction();
+        var func3 = p3.toFunction(nullEt);
         var r3 = this.entities.filter(func3);
         ok(r3.length == 1);
 
         var p4 = Predicate.create("OrderDate", "ne", dt);
-        var func4 = p4.toFunction();
+        var func4 = p4.toFunction(nullEt);
         var r4 = this.entities.filter(func4);
         ok(r4.length == 5);
 
         var p5 = Predicate.create("ShipCity", "stArtsWiTH", "C");
-        var func5 = p5.toFunction();
+        var func5 = p5.toFunction(nullEt);
         var r5 = this.entities.filter(func5);
         ok(r5.length == 2);
     });
@@ -113,26 +115,27 @@ define(["testFns"], function (testFns) {
 
 
     test("predicateBuilder composite - toFunction", function () {
-
+        var ms = new MetadataStore();
+        var nullEt = new EntityType(ms);
 
         var p1 = Predicate.create("ShipCity", "startswith", "F").and("Size", "gt", 2000);
-        var func1 = p1.toFunction();
+        var func1 = p1.toFunction(nullEt);
         var r1 = this.entities.filter(func1);
         ok(r1.length === 1);
 
         var p2 = p1.not();
-        var func2 = p2.toFunction();
+        var func2 = p2.toFunction(nullEt);
         var r2 = this.entities.filter(func2);
         ok(r2.length === 5);
 
         var p3 = Predicate.create("ShipCity", "stArtsWiTH", "F").or("ShipCity", "startswith", "C")
             .and("Size", 'ge', 2000);
-        var func3 = p3.toFunction();
+        var func3 = p3.toFunction(nullEt);
         var r3 = this.entities.filter(func3);
         ok(r3.length === 3);
 
         var p4 = p3.not();
-        var func4 = p4.toFunction();
+        var func4 = p4.toFunction(nullEt);
         var r4 = this.entities.filter(func4);
         ok(r4.length === 3);
     });

@@ -23,6 +23,53 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
 
+
+    var LocalQueryComparisonOptions = (function() {
+        var ctor = function (config) {
+            assertConfig(config || {})
+                .whereParam("name").isOptional().isString()
+                .whereParam("isCaseSensitive").isOptional().isBoolean()
+                .whereParam("usesSql92CompliantStringComparison").isBoolean()
+                .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+        };
+        
+        ctor.sqlServerDefault = new ctor({
+            name: "sqlServerDefault",
+            isCaseSensitive: false,
+            usesSql92CompliantStringComparison: true
+        });
+
+        /**
+        The default value whenever LocalQueryComparisonOptions are not specified.
+        @property defaultInstance {LocalQueryComparisonOptions}
+        @static
+        **/
+        ctor.defaultInstance = ctor.sqlServerDefault;
+
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var lqco = new LocalQueryComparisonOptions({
+                isCaseSensitive: false;
+                usesSql92CompliantStringComparison: true;
+            });
+            lqco.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function () {
+            ctor.defaultInstance = this;
+            return this;
+        };
+
+
+        return ctor;
+    })();
+
     /**
     A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
     will translate property names between the server and the javascript client. 
@@ -178,6 +225,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             config = config || { };
             assertConfig(config)
                 .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
@@ -215,7 +263,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
-                if (key === "namingConvention") {
+                if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
                 return value;
@@ -241,16 +289,26 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
+            var lqcoName = json.localQueryComparisonOptions;
             delete json.namingConvention;
+            delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
                 var nc = core.config.objectRegistry["NamingConvention:" + ncName];
                 if (!nc) {
                     throw new Error("Unable to locate a naming convention named: " + ncName);
                 }
                 this.namingConvention = nc;
+                var lqco = core.config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
+                if (!lqco) {
+                    throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
+                }
+                this.localQueryComparisonOptions = lqco;
             } else {
                 if (this.namingConvention.name !== ncName) {
-                    throw new Error("Cannot import metadata with a different naming convention from the current MetadataStore");
+                    throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
+                }
+                if (this.localQueryComparisonOptions.name !== lqcoName) {
+                    throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
                 }
             }
             var entityTypeMap = {};

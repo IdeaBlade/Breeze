@@ -362,7 +362,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                this.hasChanges.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -1003,7 +1003,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+            this.hasChanges.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -1055,7 +1055,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, saveNeeded: true });
+                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -1063,7 +1063,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }

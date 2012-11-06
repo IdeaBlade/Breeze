@@ -472,11 +472,11 @@ define('coreFns',[],function () {
         for (var i = 0; i < a1.length; i++) {
             //if the var is an array, we need to make a recursive check
             //otherwise we'll just compare the values
-            if (typeof a1[i] == 'object') {
+            if (Array.isArray( a1[i])) {
                 if (!arrayEquals(a1[i], a2[i])) return false;
             } else {
                 if (equalsFn) {
-                    if (!equalsFn(a1, a2)) return false;
+                    if (!equalsFn(a1[i], a2[i])) return false;
                 } else {
                     if (a1[i] != a2[i]) return false;
                 }
@@ -3218,7 +3218,7 @@ function (core, Event, m_validate) {
         @param entityKey {EntityKey}
         **/
         ctor.prototype.equals = function (entityKey) {
-            if (!entityKey instanceof EntityKey) return false;
+            if (!(entityKey instanceof EntityKey)) return false;
             return (this.entityType === entityKey.entityType) &&
                 core.arrayEquals(this.values, entityKey.values);
         };
@@ -3249,7 +3249,7 @@ function (core, Event, m_validate) {
         @param k2 {EntityKey}
         **/
         ctor.equals = function (k1, k2) {
-            if (!k1 instanceof EntityKey) return false;
+            if (!(k1 instanceof EntityKey)) return false;
             return k1.equals(k2);
         };
 
@@ -3729,6 +3729,53 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
     // TODO: still need to handle inheritence here.
 
+
+    var LocalQueryComparisonOptions = (function() {
+        var ctor = function (config) {
+            assertConfig(config || {})
+                .whereParam("name").isOptional().isString()
+                .whereParam("isCaseSensitive").isOptional().isBoolean()
+                .whereParam("usesSql92CompliantStringComparison").isBoolean()
+                .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+        };
+        
+        ctor.sqlServerDefault = new ctor({
+            name: "sqlServerDefault",
+            isCaseSensitive: false,
+            usesSql92CompliantStringComparison: true
+        });
+
+        /**
+        The default value whenever LocalQueryComparisonOptions are not specified.
+        @property defaultInstance {LocalQueryComparisonOptions}
+        @static
+        **/
+        ctor.defaultInstance = ctor.sqlServerDefault;
+
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var lqco = new LocalQueryComparisonOptions({
+                isCaseSensitive: false;
+                usesSql92CompliantStringComparison: true;
+            });
+            lqco.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function () {
+            ctor.defaultInstance = this;
+            return this;
+        };
+
+
+        return ctor;
+    })();
+
     /**
     A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
     will translate property names between the server and the javascript client. 
@@ -3884,6 +3931,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             config = config || { };
             assertConfig(config)
                 .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
@@ -3921,7 +3969,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
-                if (key === "namingConvention") {
+                if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
                 return value;
@@ -3947,16 +3995,26 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
+            var lqcoName = json.localQueryComparisonOptions;
             delete json.namingConvention;
+            delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
                 var nc = core.config.objectRegistry["NamingConvention:" + ncName];
                 if (!nc) {
                     throw new Error("Unable to locate a naming convention named: " + ncName);
                 }
                 this.namingConvention = nc;
+                var lqco = core.config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
+                if (!lqco) {
+                    throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
+                }
+                this.localQueryComparisonOptions = lqco;
             } else {
                 if (this.namingConvention.name !== ncName) {
-                    throw new Error("Cannot import metadata with a different naming convention from the current MetadataStore");
+                    throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
+                }
+                if (this.localQueryComparisonOptions.name !== lqcoName) {
+                    throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
                 }
             }
             var entityTypeMap = {};
@@ -5724,6 +5782,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     var MetadataStore = m_entityMetadata.MetadataStore;
     var NavigationProperty = m_entityMetadata.NavigationProperty;
     var EntityType = m_entityMetadata.EntityType;
+    var DataType = m_entityMetadata.DataType;
     
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
@@ -6466,7 +6525,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!wherePredicate) return null;
             // may throw an exception
             wherePredicate.validate(entityType);
-            return wherePredicate.toFunction();
+            return wherePredicate.toFunction(entityType);
         };
 
         ctor.prototype._toOrderByComparer = function (entityType) {
@@ -6575,25 +6634,25 @@ function (core, m_entityMetadata, m_entityAspect) {
 
     var QueryFuncs = (function() {
         var obj = {
-            toupper: function(source) { return source.toUpperCase(); },
-            tolower: function (source) { return source.toLowerCase(); },
-            substring: function(source, pos, length) { return source.substring(pos, length); },   
-            substringof: function (source, find) { return source.indexOf(find) >= 0; },
-            length:  function(source) { return source.length; },            
-            trim: function(source) { return source.trim(); },
-            concat: function(s1, s2) { return s1.concat(s2); },
-            replace: function (source, find, replace) { return source.replace(find, replace); },
-            startswith: function (source, find) { return core.stringStartsWith(source, find); },
-            endswith: function (source, find) { return core.stringEndsWith(source, find); },
-            indexof: function(source, find) { return source.indexOf(find); },
-            round: function(source) { return Math.round(source); },
-            ceiling: function(source) {return Math.ceil(source); },
-            floor: function (source) { return Math.floor(source); },
-            second: function(source) { return source.second;},
-            minute: function (source) { return source.minute;},
-            day: function(source) { return source.day;},
-            month: function(source) { return source.month; },
-            year: function(source) { return source.year; }            
+            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: "String" },
+            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: "String" },
+            substring:   { fn: function(source, pos, length) { return source.substring(pos, length); }, dataType: "String" },
+            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: "Boolean" },
+            length:      { fn: function(source) { return source.length; }, dataType: "Number" },
+            trim:        { fn: function(source) { return source.trim(); }, dataType: "String" },
+            concat:      { fn: function(s1, s2) { return s1.concat(s2); }, dataType: "String" },
+            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: "String"},
+            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: "Boolean"},
+            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: "Boolean" },
+            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: "Number" },
+            round:       { fn: function (source) { return Math.round(source); }, dataType: "Number" },
+            ceiling:     { fn: function(source) {return Math.ceil(source); }, dataType: "Number" },
+            floor:       { fn: function (source) { return Math.floor(source); }, dataType: "Number" },
+            second:      { fn: function (source) { return source.second; }, dataType: "Number" },
+            minute:      { fn: function (source) { return source.minute; }, dataType: "Number" },
+            day:         { fn: function(source) { return source.day;}, dataType: "Number" },
+            month:       { fn: function(source) { return source.month; }, dataType: "Number" },
+            year:        { fn: function(source) { return source.year; }, dataType: "Number"},
         };
         
         return obj;
@@ -6617,19 +6676,23 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var quoted = firstChar == "'" || firstChar == '"';
                 if (quoted) {
                     var unquoted = value.substr(1, value.length - 2);
-                    this.fn = function(entity) { return unquoted; };
+                    this.fn = function (entity) { return unquoted; };
+                    this.dataType = "String";
                 } else {
                     var isIdentifier = RX_IDENTIFIER.test(value);
                     if (isIdentifier) {
                         this.propertyPath = value;
                         this.fn = createPropFunction(value);
                     } else {
-                        this.fn = function(entity) { return value; };
+                        this.fn = function (entity) { return value; };
+                        this.dataType = typeof value;
                     }
                 } 
             } else {
                 this.fnName = parts[0].trim().toLowerCase();
-                this.localFn = QueryFuncs[this.fnName];
+                var qf = QueryFuncs[this.fnName];
+                this.localFn = qf.fn;
+                this.dataType = qf.dataType;
                 var that = this;
                 this.fn = function(entity) {
                     var resolvedNodes = that.fnNodes.map(function(fnNode) {
@@ -6702,7 +6765,12 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (this._isValidated) return;            
             this._isValidated = true;
             if (this.propertyPath) {
-                entityType.getProperty(this.propertyPath, true);
+                var prop = entityType.getProperty(this.propertyPath, true);
+                if (prop.isDataProperty) {
+                    this.dataType = prop.dataType;
+                } else {
+                    this.dataType = prop.entityType;
+                }
             } else if (this.fnNodes) {
                 this.fnNodes.forEach(function(node) {
                     node.validate(entityType);
@@ -7111,8 +7179,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function () {            
-            var predFn = getPredicateFn(this._filterQueryOp, this._value);
+        ctor.prototype.toFunction = function (entityType) {            
+            var predFn = getPredicateFn(entityType, this._filterQueryOp, this._value);
             var exprFn = this._fnNode.fn;
             return function(entity) {
                 return predFn(makeComparable(exprFn(entity)));
@@ -7127,24 +7195,35 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.validate = function (entityType) {
             // throw if not valid
             this._fnNode.validate(entityType);
+            this.dataType = this._fnNode.dataType;
         };
         
         // internal functions
 
-        // TODO: still need to handle CacheQueryOptions - string casing, trimming and guids.
+        // TODO: still need to handle localQueryComparisonOptions for guids.
         
-        function getPredicateFn(filterQueryOp, value) {
+        function getPredicateFn(entityType, filterQueryOp, value) {
+            var lqco = entityType.metadataStore.localQueryComparisonOptions;
+            
             // Date do not compare properly but Date.getTime()'s do.
             if (value instanceof Date) {
                 value = value.getTime();
-            }
+            } 
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
-                    predFn = function (propValue) { return propValue == value; };
+                    if (typeof value === "string") {
+                        predFn = function (propValue) { return stringEquals(propValue, value, lqco); };
+                    } else {
+                        predFn = function(propValue) { return propValue == value; };
+                    }
                     break;
                 case FilterQueryOp.NotEquals:
-                    predFn = function (propValue) { return propValue != value; };
+                    if (typeof value === "string") {
+                        predFn = function(propValue) { return !stringEquals(propValue, value, lqco); };
+                    } else {
+                        predFn = function(propValue) { return propValue != value; };
+                    }
                     break;
                 case FilterQueryOp.GreaterThan:
                     predFn = function (propValue) { return propValue > value; };
@@ -7159,21 +7238,55 @@ function (core, m_entityMetadata, m_entityAspect) {
                     predFn = function (propValue) { return propValue <= value; };
                     break;
                 case FilterQueryOp.StartsWith:
-                    predFn = function (propValue) { return core.stringStartsWith(propValue, value); };
+                    predFn = function (propValue) { return stringStartsWith(propValue, value, lqco); };
                     break;
                 case FilterQueryOp.EndsWith:
-                    predFn = function (propValue) { return core.stringEndsWith(propValue, value); };
+                    predFn = function (propValue) { return stringEndsWith(propValue, value, lqco); };
                     break;
                 case FilterQueryOp.Contains:
-                    predFn = function (propValue) {
-                        return propValue.indexOf(value) >= 0;
-                    };
+                    predFn = function(propValue) { return stringContains(propValue, value, lqco); };
                     break;
                 default:
                     throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
                     
             }
             return predFn;
+        }
+        
+        function stringEquals(a, b, lqco) {
+            if (lqco.usesSql92CompliantStringComparison) {
+                a = (a || "").trim();
+                b = (b || "").trim();
+            }
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return a == b;
+        }
+        
+        function stringStartsWith(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return core.stringStartsWith(a, b);
+        }
+
+        function stringEndsWith(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return core.stringEndsWith(a, b);
+        }
+        
+        function stringContains(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return a.indexOf(b) >= 0;
         }
 
         function formatValue(val) {
@@ -7228,8 +7341,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function () {
-            return createFunction(this._booleanQueryOp, this._predicates);
+        ctor.prototype.toFunction = function (entityType) {
+            return createFunction(entityType, this._booleanQueryOp, this._predicates);
         };
 
         ctor.prototype.toString = function () {
@@ -7252,16 +7365,16 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._isValidated = true;
         };
 
-        function createFunction(booleanQueryOp, predicates) {
+        function createFunction(entityType, booleanQueryOp, predicates) {
             var func, funcs;
             switch (booleanQueryOp) {
                 case BooleanQueryOp.Not:
-                    func = predicates[0].toFunction();
+                    func = predicates[0].toFunction(entityType);
                     return function (entity) {
                         return !func(entity);
                     };
                 case BooleanQueryOp.And:
-                    funcs = predicates.map(function (p) { return p.toFunction(); });
+                    funcs = predicates.map(function (p) { return p.toFunction(entityType); });
                     return function (entity) {
                         var result = funcs.reduce(function (prev, cur) {
                             return prev && cur(entity);
@@ -7269,7 +7382,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         return result;
                     };
                 case BooleanQueryOp.Or:
-                    funcs = predicates.map(function (p) { return p.toFunction(); });
+                    funcs = predicates.map(function (p) { return p.toFunction(entityType); });
                     return function (entity) {
                         var result = funcs.reduce(function (prev, cur) {
                             return prev || cur(entity);
@@ -7409,7 +7522,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return;
             } // can't validate yet
             // will throw an exception on bad propertyPath
-            entityType.getProperty(this.propertyPath, true);
+            this.lastProperty = entityType.getProperty(this.propertyPath, true);
         };
 
         ctor.prototype.toOdataFragment = function (entityType) {
@@ -7419,9 +7532,19 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.getComparer = function () {
             var properties = this.properties;
             var isDesc = this.isDesc;
+            var that = this;
             return function (entity1, entity2) {
-                var value1 = makeComparable(getPropertyPathValue(entity1, properties));
-                var value2 = makeComparable(getPropertyPathValue(entity2, properties));
+                var value1 = getPropertyPathValue(entity1, properties);
+                var value2 = getPropertyPathValue(entity2, properties);
+                if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
+                    if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
+                        value1 = (value1 || "").toLowerCase();
+                        value2 = (value2 || "").toLowerCase();
+                    }
+                } else {
+                    value1 = makeComparable(value1);
+                    value2 = makeComparable(value2);
+                }
                 if (value1 == value2) {
                     return 0;
                 } else if (value1 > value2) {
@@ -8110,7 +8233,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                this.hasChanges.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -8751,7 +8874,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+            this.hasChanges.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -8803,7 +8926,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, saveNeeded: true });
+                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -8811,7 +8934,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, saveNeeded: false });
+                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }
