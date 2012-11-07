@@ -24,14 +24,14 @@
         createTodoList = function() {
             return metadataStore.getEntityType("TodoList").createEntity();
         },
-        addEntity = function(entity) {
+        addAndSaveEntity = function(entity) {
             return saveEntity(manager.addEntity(entity));
         },
-        deleteTodoItem = function(todoItem) {
+        deleteAndSaveTodoItem = function(todoItem) {
             todoItem.entityAspect.setDeleted();
             return saveEntity(todoItem);
         },
-        deleteTodoList = function(todoList) {
+        deleteAndSaveTodoList = function(todoList) {
             var todoItems = todoList.Todos();
             dataservice.suspendSave = true;
             todoList.entityAspect.setDeleted(); // ripple effects 
@@ -80,9 +80,9 @@
             getTodoLists: getTodoLists,
             createTodoList: createTodoList,
             createTodoItem: createTodoItem,
-            addEntity: addEntity,
-            deleteTodoItem: deleteTodoItem,
-            deleteTodoList: deleteTodoList,
+            addAndSaveEntity: addAndSaveEntity,
+            deleteAndSaveTodoItem: deleteAndSaveTodoItem,
+            deleteAndSaveTodoList: deleteAndSaveTodoList,
             saveEntity: saveEntity,
             suspendSave: false
         };

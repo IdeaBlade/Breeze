@@ -28,10 +28,10 @@
         todoItem.Title(self.NewTodoTitle());
         self.NewTodoTitle("");
         todoItem.TodoList(self);
-        return dataservice.addEntity(todoItem);
+        return dataservice.addAndSaveEntity(todoItem);
     };
     TodoList.prototype.deleteTodo = function () {
-        return dataservice.deleteTodoItem(this);
+        return dataservice.deleteAndSaveTodoItem(this);
     };
     function subscribeOnModified(entity) {
         entity.entityAspect.propertyChanged.subscribe(saveOnModified);

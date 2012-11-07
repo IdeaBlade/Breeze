@@ -7,7 +7,7 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         addTodoList = function () {
             var todoList = dataservice.createTodoList();
             todoList.IsEditingListTitle(true);
-            dataservice.addEntity(todoList)
+            dataservice.addAndSaveEntity(todoList)
                 .then(showTodoList)
                 .fail(addFailed);
 
@@ -20,7 +20,7 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         },
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
-            dataservice.deleteTodoList(todoList)
+            dataservice.deleteAndSaveTodoList(todoList)
                 .fail(deleteFailed);
 
             function deleteFailed() {
