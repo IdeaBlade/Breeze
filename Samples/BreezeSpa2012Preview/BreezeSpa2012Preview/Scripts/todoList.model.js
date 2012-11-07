@@ -7,22 +7,19 @@
     store.registerEntityTypeCtor('TodoList', TodoList, TodoListInitializer);
 
     function TodoItemInitializer(todoItem) {
-        var self = todoItem;
-        self.ErrorMessage = ko.observable();
-        subscribeOnModified(self);
+        todoItem.ErrorMessage = ko.observable();
+        subscribeOnModified(todoItem);
     }
-
     function TodoListInitializer(todoList) {
-        var self = todoList;
-        self.ErrorMessage = ko.observable();
-        self.IsEditingListTitle = ko.observable(false);
-        self.NewTodoTitle = ko.observable();
-        subscribeOnModified(self);
+        todoList.ErrorMessage = ko.observable();
+        todoList.IsEditingListTitle = ko.observable(false);
+        todoList.NewTodoTitle = ko.observable();
+        subscribeOnModified(todoList);
     }
-
     function TodoList() {
-        this.Title  = "My todos";       // defaults
-        this.UserId = "to be replaced";
+        var self = this;
+        self.Title = "My todos";       // defaults
+        self.UserId = "to be replaced";
     };
     TodoList.prototype.addTodo = function () {
         var self = this;
@@ -36,7 +33,6 @@
     TodoList.prototype.deleteTodo = function () {
         return dataservice.deleteTodoItem(this);
     };
-
     function subscribeOnModified(entity) {
         entity.entityAspect.propertyChanged.subscribe(saveOnModified);
     }
