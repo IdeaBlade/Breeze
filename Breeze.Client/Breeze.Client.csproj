@@ -39,6 +39,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Scripts\IBlade\ajax_jQuery.js" />
     <Content Include="Scripts\IBlade\promise.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
     <Content Include="Scripts\Tests\queryLocalTests.js" />

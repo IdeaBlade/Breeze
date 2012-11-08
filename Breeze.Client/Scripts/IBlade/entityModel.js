@@ -1,7 +1,9 @@
 ﻿define(["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
+        "ajax_jQuery",
         "remoteAccess_webApi", "remoteAccess_odata",
         "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
+          m_ajax_jQuery,
           m_remoteAccess_webApi, m_remoteAccess_odata,
           m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
     "use strict";
@@ -16,6 +18,9 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
     core.extend(entityModel, m_validate);
 
     entityModel.KeyGenerator = KeyGenerator;
+
+    entityModel.ajax_jQuery = m_ajax_jQuery;
+    core.config.setProperties({ ajaxImplementation: m_ajax_jQuery });
 
     entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
     entityModel.entityTracking_ko = m_entityTracking_ko;

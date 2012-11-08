@@ -219,7 +219,8 @@ define(["testFns"], function (testFns) {
 
         var em = newEm();
         stop();
-        em.executeQuery(firstOrderQuery).then(function(data) {
+        em.executeQuery(firstOrderQuery).then(function (data) {
+            var ents = em.getEntities();
             var order = data.results[0];
             var orderDate = order.getProperty("orderDate");
 

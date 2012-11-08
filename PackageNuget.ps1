@@ -27,7 +27,7 @@ function getBreezeVersion($srcDir) {
     return $versionNum
 }
 
-function packageNuget($srcDir, $folderName, $versionNum) {
+function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
   Write-Host "Packaging nuget - $folderName ..."
   $destDir = "$srcDir\Nuget.builds\$folderName"
   $nuspecFile = "$destDir\Default.nuspec"
@@ -37,14 +37,13 @@ function packageNuget($srcDir, $folderName, $versionNum) {
   $outputFile = "$destDir\$folderName.nuspec"
   # remove old nupkg files
   gci $destDir *.nupkg -force | foreach ($_) {  remove-item $_.fullname -Force }
-  
-  if ($folderName -eq $basePkg) {
+ 
+  if ($isBase) {
     copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.min.js $destDir\content\Scripts 
-    
     copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\lib\
-    copy-item $srcDir\ThirdParty\Irony.dll $destDir\lib
+    copy-item $srcDir\ThirdParty\Irony.dll $destDir\lib    
   }
 
   $input = get-content $nuspecFile  
@@ -75,8 +74,8 @@ checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
 
-packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum
-packageNuget $srcDir 'Breeze.MVC4WebApiClientSample' $versionNum
+packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum $true
+packageNuget $srcDir 'Breeze.MVC4WebApiClientSample' $versionNum $false
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

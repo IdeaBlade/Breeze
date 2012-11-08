@@ -1621,23 +1621,43 @@ function (core, Enum, Event, m_assertParam) {
         });    
     @property remoteAccessImplementation {~remoteAccess-interface}
     **/
+    
+    /**        
+    The implementation currently in use for all ajax requests
+    @example
+        var name = entityModel.ajaxImplementation.name;
+    You can either extend the current implementation or replace it entirely.
+    
+    @example
+        var myAjaxImplementation = ...
+        core.config.setProperties( {
+            ajaxImplementation: myAjaxImplementation;
+        });
+    
+    @property ajaxImplementation {ajax-interface}
+    **/
 
     /**
     @method setProperties
     @param config {Object}
-        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
-        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
+        @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
+        @param [config.trackingImplementation] { implementation of entityTracking-interface }
+        @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
     core.config.setProperties = function (config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
+            .whereParam("ajaxImplementation").isOptional()
             .applyAll(core.config);
         if (config.remoteAccessImplementation) {
             config.remoteAccessImplementation.initialize();
         }
         if (config.trackingImplementation) {
             config.trackingImplementation.initialize();
+        }
+        if (config.ajaxImplementation) {
+            config.ajaxImplementation.initialize();
         }
     };
     
@@ -10335,12 +10355,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 
 
-// also needs JQuery
+// needs JQuery
 
-define('remoteAccess_webApi',["core", "entityMetadata"],
-function (core, m_entityMetadata) {
-
-    var EntityType = m_entityMetadata.EntityType;
+define('ajax_jQuery',["core"],
+function (core) {
 
     var impl = {};
 
@@ -10353,81 +10371,124 @@ function (core, m_entityMetadata) {
             jQuery = require("jQuery");
         }
         if (!jQuery) {
-            throw new Error("Breeze currently needs jQuery for ajax support with WebApi and was unable to initialize jQuery.");
+            throw new Error("The Breeze 'ajax_jQuery' pluggin needs jQuery and was unable to find it.");
         }
         
     };
 
+    impl.ajax = function(settings) {
+        jQuery.ajax(settings);
+    };
+
+    return impl;
+
+
+});
+
+// also needs JQuery
+
+define('remoteAccess_webApi',["core", "entityMetadata"],
+function (core, m_entityMetadata) {
+
+    var EntityType = m_entityMetadata.EntityType;
+
+    var impl = {};
+
+    // -------------------------------------------
+    var ajax;
+    
+    impl.initialize = function () {
+        var ajaxImpl = core.config.ajaxImplementation;
+        ajax = ajaxImpl.ajax;
+        if (!ajax) {
+            throw new Error("Breeze was unable to find an 'ajaxImplementation'");
+        }
+    };
+
     impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
-            var metadata = JSON.parse(data);
-            if (!metadata) {
-                if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
-                return;
-            }
-            // setProperties metadataStore    
-            // if from Edmx
-            var schema = metadata.schema;
-            if (!schema) {
-                // if from DbContext 
-                schema = metadata.conceptualModels.schema;
-                if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+        ajax({
+            url: metadataSvcUrl,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+                var metadata = JSON.parse(data);
+                if (!metadata) {
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
+                // setProperties metadataStore    
+                // if from Edmx
+                var schema = metadata.schema;
+                if (!schema) {
+                    // if from DbContext 
+                    schema = metadata.conceptualModels.schema;
+                    if (!schema) {
+                        if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+                        return;
+                    }
+                }
+                metadataStore._parseODataMetadata(serviceName, schema);
+                if (callback) {
+                    callback(schema);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                var err = createError(jqXHR);
+                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                if (errorCallback) errorCallback(err);
             }
-            metadataStore._parseODataMetadata(serviceName, schema);
-            if (callback) {
-                callback(schema);
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            var err = createError(jqXHR);
-            err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-            if (errorCallback) errorCallback(err);
         });
     };
 
     impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
-            // TODO: check response object here for possible errors.
-            try {
-                data.XHR = jqXHR;
-                collectionCallback(data);
-            } catch (e) {
-                var error = createError(jqXHR);
-                error.internalError = e;
-                // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                if (errorCallback) errorCallback(error);
+        ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
+                // TODO: check response object here for possible errors.
+                try {
+                    data.XHR = jqXHR;
+                    collectionCallback(data);
+                } catch(e) {
+                    var error = createError(jqXHR);
+                    error.internalError = e;
+                    // needed because it doesn't look like jquery calls .fail if an error occurs within the function
+                    if (errorCallback) errorCallback(error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            if (errorCallback) errorCallback(createError(jqXHR));
         });
     };
 
     impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        jQuery.ajax(url, {
+        ajax({
+            url: url,
             type: "POST",
             contentType: "application/json",
-            data: saveBundleStringified
-        }).done(function (data, textStatus, jqXHR) {
-            if (data.Error) {
-                // anticipatable errors on server - concurrency...
-                var err = createError(jqXHR);
-                err.message = data.Error;
-                errorCallback(err);
-            } else {
-                data.XHR = jqXHR;
-                callback(data);
+            data: saveBundleStringified,
+            success: function(data, textStatus, jqXHR) {
+                if (data.Error) {
+                    // anticipatable errors on server - concurrency...
+                    var err = createError(jqXHR);
+                    err.message = data.Error;
+                    errorCallback(err);
+                } else {
+                    data.XHR = jqXHR;
+                    callback(data);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            errorCallback(createError(jqXHR));
         });
-
-    };
+        };
 
     // will return null if anon
     impl.getEntityType = function (rawEntity, metadataStore) {
@@ -11374,9 +11435,11 @@ function (core, makeRelationArray) {
 })
 ;
 define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
+        "ajax_jQuery",
         "remoteAccess_webApi", "remoteAccess_odata",
         "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
 function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
+          m_ajax_jQuery,
           m_remoteAccess_webApi, m_remoteAccess_odata,
           m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
     
@@ -11391,6 +11454,9 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
     core.extend(entityModel, m_validate);
 
     entityModel.KeyGenerator = KeyGenerator;
+
+    entityModel.ajax_jQuery = m_ajax_jQuery;
+    core.config.setProperties({ ajaxImplementation: m_ajax_jQuery });
 
     entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
     entityModel.entityTracking_ko = m_entityTracking_ko;
@@ -11420,7 +11486,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('root',["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.65.1",
+        version: "0.65.2",
         core: core,
         entityModel: entityModel
     };

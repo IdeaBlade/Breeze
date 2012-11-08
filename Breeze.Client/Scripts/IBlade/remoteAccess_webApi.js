@@ -8,89 +8,100 @@ function (core, m_entityMetadata) {
     var impl = {};
 
     // -------------------------------------------
-    var jQuery;
+    var ajax;
     
-    impl.initialize = function() {
-        jQuery = window.jQuery;
-        if ((!jQuery) && require) {
-            jQuery = require("jQuery");
+    impl.initialize = function () {
+        var ajaxImpl = core.config.ajaxImplementation;
+        ajax = ajaxImpl.ajax;
+        if (!ajax) {
+            throw new Error("Breeze was unable to find an 'ajaxImplementation'");
         }
-        if (!jQuery) {
-            throw new Error("Breeze currently needs jQuery for ajax support with WebApi and was unable to initialize jQuery.");
-        }
-        
     };
 
     impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
-            var metadata = JSON.parse(data);
-            if (!metadata) {
-                if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
-                return;
-            }
-            // setProperties metadataStore    
-            // if from Edmx
-            var schema = metadata.schema;
-            if (!schema) {
-                // if from DbContext 
-                schema = metadata.conceptualModels.schema;
-                if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+        ajax({
+            url: metadataSvcUrl,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+                var metadata = JSON.parse(data);
+                if (!metadata) {
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
+                // setProperties metadataStore    
+                // if from Edmx
+                var schema = metadata.schema;
+                if (!schema) {
+                    // if from DbContext 
+                    schema = metadata.conceptualModels.schema;
+                    if (!schema) {
+                        if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+                        return;
+                    }
+                }
+                metadataStore._parseODataMetadata(serviceName, schema);
+                if (callback) {
+                    callback(schema);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                var err = createError(jqXHR);
+                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                if (errorCallback) errorCallback(err);
             }
-            metadataStore._parseODataMetadata(serviceName, schema);
-            if (callback) {
-                callback(schema);
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            var err = createError(jqXHR);
-            err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-            if (errorCallback) errorCallback(err);
         });
     };
 
     impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
-            // TODO: check response object here for possible errors.
-            try {
-                data.XHR = jqXHR;
-                collectionCallback(data);
-            } catch (e) {
-                var error = createError(jqXHR);
-                error.internalError = e;
-                // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                if (errorCallback) errorCallback(error);
+        ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
+                // TODO: check response object here for possible errors.
+                try {
+                    data.XHR = jqXHR;
+                    collectionCallback(data);
+                } catch(e) {
+                    var error = createError(jqXHR);
+                    error.internalError = e;
+                    // needed because it doesn't look like jquery calls .fail if an error occurs within the function
+                    if (errorCallback) errorCallback(error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            if (errorCallback) errorCallback(createError(jqXHR));
         });
     };
 
     impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        jQuery.ajax(url, {
+        ajax({
+            url: url,
             type: "POST",
             contentType: "application/json",
-            data: saveBundleStringified
-        }).done(function (data, textStatus, jqXHR) {
-            if (data.Error) {
-                // anticipatable errors on server - concurrency...
-                var err = createError(jqXHR);
-                err.message = data.Error;
-                errorCallback(err);
-            } else {
-                data.XHR = jqXHR;
-                callback(data);
+            data: saveBundleStringified,
+            success: function(data, textStatus, jqXHR) {
+                if (data.Error) {
+                    // anticipatable errors on server - concurrency...
+                    var err = createError(jqXHR);
+                    err.message = data.Error;
+                    errorCallback(err);
+                } else {
+                    data.XHR = jqXHR;
+                    callback(data);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            errorCallback(createError(jqXHR));
         });
-
-    };
+        };
 
     // will return null if anon
     impl.getEntityType = function (rawEntity, metadataStore) {

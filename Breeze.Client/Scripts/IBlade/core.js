@@ -65,23 +65,43 @@ function (core, Enum, Event, m_assertParam) {
         });    
     @property remoteAccessImplementation {~remoteAccess-interface}
     **/
+    
+    /**        
+    The implementation currently in use for all ajax requests
+    @example
+        var name = entityModel.ajaxImplementation.name;
+    You can either extend the current implementation or replace it entirely.
+    
+    @example
+        var myAjaxImplementation = ...
+        core.config.setProperties( {
+            ajaxImplementation: myAjaxImplementation;
+        });
+    
+    @property ajaxImplementation {ajax-interface}
+    **/
 
     /**
     @method setProperties
     @param config {Object}
-        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
-        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
+        @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
+        @param [config.trackingImplementation] { implementation of entityTracking-interface }
+        @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
     core.config.setProperties = function (config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
+            .whereParam("ajaxImplementation").isOptional()
             .applyAll(core.config);
         if (config.remoteAccessImplementation) {
             config.remoteAccessImplementation.initialize();
         }
         if (config.trackingImplementation) {
             config.trackingImplementation.initialize();
+        }
+        if (config.ajaxImplementation) {
+            config.ajaxImplementation.initialize();
         }
     };
     
