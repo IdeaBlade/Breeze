@@ -289,9 +289,11 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("customers whose name contains 'market'", 2, function () {
 
-        var query = EntityQuery
-            .from("Customers")
-            .where("indexOf(toLower(CompanyName),'market')", "ne", -1);
+        var query = EntityQuery.from("Customers")
+            .where("CompanyName", FilterQueryOp.Contains, 'market');           
+            //.where("CompanyName", "contains", 'market'); // Alternative to FilterQueryOp
+            //.where("substringof(CompanyName,'market')", "eq", true); // becomes in OData
+            //.where("indexOf(toLower(CompanyName),'market')", "ne", -1); // equivalent to
 
         verifyQuery(newEm, query, "customer query",
             showCustomerResults);

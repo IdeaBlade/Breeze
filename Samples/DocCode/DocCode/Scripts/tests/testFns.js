@@ -360,27 +360,29 @@ define(["breeze"], function (breeze) {
 
     /*********************************************************
     * assert that the collection of entities is sorted properly on one property
-    * 
     *********************************************************/
-    function assertIsSorted(collection, propertyName, isDescending) {
-        isDescending = isDescending || false;
+    function assertIsSorted(collection, propertyName, isDescending, isCaseSensitive) {
+        isCaseSensitive = isCaseSensitive == null ? true : isCaseSensitive;
         var fn = function (a, b) {
             // localeCompare has issues in Chrome.
             // var compareResult = a[propertyName].localeCompare(b.propertyName);
             var av = a.getProperty(propertyName);
             var bv = b.getProperty(propertyName);
+            if (typeof av === "string" && !isCaseSensitive) {
+                av = av.toLowerCase();
+                bv = (bv || "").toLowerCase();
+            }
             var compareResult = av < bv ? -1 : (av > bv ? 1 : 0);
-            return isDescending ? compareResult : compareResult * -1;
+            return isDescending ? compareResult * -1 : compareResult;
         };
-        var copy = collection.slice(0); //map(function (o) { return o; });
-        copy.sort(fn);
-        ok(core.arrayEquals(collection, copy), propertyName + " is sorted correctly");
+        var arrayCopy = collection.map(function (o) { return o; });
+        arrayCopy.sort(fn);
+        ok(core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
     }
 
     /*********************************************************
     * Other helpers borrowed from breeze test code
     *********************************************************/
-
     function morphStringProp(entity, propName) {
         var val = entity.getProperty(propName);
         var newVal = morphString(val);
