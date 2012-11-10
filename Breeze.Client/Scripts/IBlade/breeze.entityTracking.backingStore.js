@@ -1,17 +1,28 @@
-﻿
-define(["core", "relationArray"],
-function (core, makeRelationArray) {
-    "use strict";
+﻿"use strict";
+(function(factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"), exports);
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze", "exports"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze, exports) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
-    var trackingImpl = {};
-    
+    var trackingImpl = { };
+
     trackingImpl.initialize = function() {
         // nothing to do yet;
     };
 
-    trackingImpl.name = "Backing store entity tracking impl";
-    
-    trackingImpl.getTrackablePropertyNames = function (entity) {
+    trackingImpl.name = "backingStore";
+
+    trackingImpl.getTrackablePropertyNames = function(entity) {
         var names = [];
         for (var p in entity) {
             var val = entity[p];
@@ -22,13 +33,13 @@ function (core, makeRelationArray) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function (proto) {
+    trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function (propertyName) {
+        proto.getProperty = function(propertyName) {
             return this[propertyName];
         };
 
-        proto.setProperty = function (propertyName, value) {
+        proto.setProperty = function(propertyName, value) {
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
@@ -36,35 +47,35 @@ function (core, makeRelationArray) {
 
         // this method cannot be called while a 'defineProperty' accessor is executing
         // because of IE bug 
-        proto.initializeFrom = function (rawEntity) {
+        proto.initializeFrom = function(rawEntity) {
             // copy unmapped properties from newly created client entity to the rawEntity.
             var that = this;
-            this.entityType.unmappedProperties.forEach(function (prop) {
+            this.entityType.unmappedProperties.forEach(function(prop) {
                 var propName = prop.name;
                 rawEntity[propName] = that[propName];
             });
             // this._backingStore = rawEntity;
             if (!this._backingStore) {
-                this._backingStore = {};
+                this._backingStore = { };
             }
         };
 
         // internal implementation details - ugly because of IE9 issues with defineProperty.
 
         proto._pendingSets = [];
-        proto._pendingSets.schedule = function (entity, propName, value) {
+        proto._pendingSets.schedule = function(entity, propName, value) {
             this.push({ entity: entity, propName: propName, value: value });
             if (!this.isPending) {
                 this.isPending = true;
                 var that = this;
-                setTimeout(function () { that.process(); });
+                setTimeout(function() { that.process(); });
             }
         };
-        proto._pendingSets.process = function () {
+        proto._pendingSets.process = function() {
             if (this.length === 0) return;
-            this.forEach(function (ps) {
+            this.forEach(function(ps) {
                 if (!ps.entity._backingStore) {
-                    ps.entity._backingStore = {};
+                    ps.entity._backingStore = { };
                 }
                 ps.entity._backingStore[ps.propName] = ps.value;
             });
@@ -76,13 +87,13 @@ function (core, makeRelationArray) {
 
     };
 
-    trackingImpl.startTracking = function (entity, proto) {
+    trackingImpl.startTracking = function(entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
 
         // assign default values to the entity
-        entity.entityType.getProperties().forEach(function (prop) {
+        entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
 
@@ -98,7 +109,7 @@ function (core, makeRelationArray) {
                     // TODO: change this to nullEntity later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = makeRelationArray([], entity, prop);
+                    bs[propName] = entityModel.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
@@ -106,11 +117,11 @@ function (core, makeRelationArray) {
         });
     };
 
-   
+
     // private methods
 
     function movePropDefsToProto(proto) {
-        proto.entityType.getProperties().forEach(function (prop) {
+        proto.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!proto[propName]) {
                 Object.defineProperty(proto, propName, makePropDescription(prop));
@@ -125,9 +136,9 @@ function (core, makeRelationArray) {
     function movePropsToBackingStore(instance) {
         var proto = Object.getPrototypeOf(instance);
         if (!instance._backingStore) {
-            instance._backingStore = {};
+            instance._backingStore = { };
         }
-        proto.entityType.getProperties().forEach(function (prop) {
+        proto.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!instance.hasOwnProperty(propName)) return;
             var value = instance[propName];
@@ -139,8 +150,8 @@ function (core, makeRelationArray) {
 
     function makePropDescription(property) {
         var propName = property.name;
-        var getAccessorFn = function (backingStore) {
-            return function () {
+        var getAccessorFn = function(backingStore) {
+            return function() {
                 if (arguments.length == 0) {
                     return backingStore[propName];
                 } else {
@@ -149,7 +160,7 @@ function (core, makeRelationArray) {
             };
         };
         return {
-            get: function () {
+            get: function() {
                 var bs = this._backingStore;
                 if (!bs) {
                     this._pendingSets.process();
@@ -158,7 +169,7 @@ function (core, makeRelationArray) {
                 }
                 return bs[propName];
             },
-            set: function (value) {
+            set: function(value) {
                 var bs = this._backingStore;
                 if (!bs) {
                     this._pendingSets.schedule(this, propName, value);
@@ -177,6 +188,6 @@ function (core, makeRelationArray) {
         };
     }
 
-    return trackingImpl;
+    core.config.registerInterface("entityTracking", trackingImpl);
 
-})
+}));

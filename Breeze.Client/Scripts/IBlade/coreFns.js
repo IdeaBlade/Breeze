@@ -13,6 +13,19 @@ define(function () {
         }
     }
     
+    
+    function objectFirst(obj, kvPredicate) {
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key)) {
+                var value = obj[key];
+                if (kvPredicate(key, value)) {
+                    return { key: key, value: value };
+                }
+            }
+        }
+        return null;
+    };
+
     function objectMapToArray(obj, kvFn) {
         var results = [];
         for (var key in obj) {
@@ -330,6 +343,7 @@ define(function () {
         getOwnPropertyValues: getOwnPropertyValues,
         objectForEach: objectForEach,
         objectMapToArray: objectMapToArray,
+        objectFirst: objectFirst,
         //objectMapValue: objectMapValue,
         //objectFilter: objectFilter,
 

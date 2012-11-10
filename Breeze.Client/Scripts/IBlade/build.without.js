@@ -1,6 +1,6 @@
 ﻿({
     name: "../ThirdParty/almond.js",
-    include: "root",
+    include: "breeze",
     baseUrl: ".",
     out: "../breeze.js",
     wrap: {

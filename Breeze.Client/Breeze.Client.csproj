@@ -39,7 +39,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Scripts\IBlade\ajax_jQuery.js" />
+    <Content Include="Scripts\IBlade\breeze.ajax.jQuery.js" />
+    <Content Include="Scripts\IBlade\breezeWith.js" />
+    <Content Include="Scripts\IBlade\build.with.js" />
     <Content Include="Scripts\IBlade\promise.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
     <Content Include="Scripts\Tests\queryLocalTests.js" />
@@ -53,8 +55,8 @@
     <None Include="Scripts\IBlade\buildend.frag" />
     <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\yuidoc.json" />
-    <Content Include="Scripts\IBlade\buildx.js" />
-    <Content Include="Scripts\IBlade\entityTracking_backbone.js" />
+    <Content Include="Scripts\IBlade\build.without.js" />
+    <Content Include="Scripts\IBlade\breeze.entityTracking.backbone.js" />
     <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\core.js" />
     <Content Include="Scripts\IBlade\coreFns.js" />
@@ -65,15 +67,15 @@
     <Content Include="Scripts\IBlade\entityMetadata.js" />
     <Content Include="Scripts\IBlade\entityModel.js" />
     <Content Include="Scripts\IBlade\entityQuery.js" />
-    <Content Include="Scripts\IBlade\entityTracking_backingStore.js" />
-    <Content Include="Scripts\IBlade\entityTracking_ko.js" />
+    <Content Include="Scripts\IBlade\breeze.entityTracking.backingStore.js" />
+    <Content Include="Scripts\IBlade\breeze.entityTracking.ko.js" />
     <Content Include="Scripts\IBlade\enum.js" />
     <Content Include="Scripts\IBlade\event.js" />
     <Content Include="Scripts\IBlade\keyGenerator.js" />
     <Content Include="Scripts\IBlade\relationArray.js" />
-    <Content Include="Scripts\IBlade\remoteAccess_odata.js" />
-    <Content Include="Scripts\IBlade\remoteAccess_webApi.js" />
-    <Content Include="Scripts\IBlade\root.js" />
+    <Content Include="Scripts\IBlade\breeze.remoteAccess.odata.js" />
+    <Content Include="Scripts\IBlade\breeze.remoteAccess.webApi.js" />
+    <Content Include="Scripts\IBlade\breeze.js" />
     <Content Include="Scripts\IBlade\testFns.js" />
     <Content Include="Scripts\IBlade\validate.js" />
     <Content Include="Scripts\Tests\attachTests.js" />

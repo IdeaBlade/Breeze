@@ -1,13 +1,26 @@
-﻿// also needs OData
-define(["core", "entityMetadata"], 
-function (core, m_entityMetadata) {
+﻿(function(factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"), exports);
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze", "exports"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze, exports) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
  
-    var EntityType = m_entityMetadata.EntityType;
+    var EntityType = entityModel.EntityType;
 
     var impl = {};
     // -------------------------------------------
 
     var OData;
+
+    impl.name = "OData";
 
     impl.initialize = function() {
         OData = window.OData;
@@ -121,7 +134,6 @@ function (core, m_entityMetadata) {
         return err;
     }
 
+    core.config.registerInterface("remoteAccess", impl);
 
-    return impl;
-
-});
+}));

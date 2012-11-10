@@ -1,13 +1,7 @@
-﻿define(["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
-        "ajax_jQuery",
-        "remoteAccess_webApi", "remoteAccess_odata",
-        "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
-function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
-          m_ajax_jQuery,
-          m_remoteAccess_webApi, m_remoteAccess_odata,
-          m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
+﻿define(["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "relationArray", "keyGenerator"],
+function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
+          
     "use strict";
-    
 
     var entityModel = { };
 
@@ -17,30 +11,21 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
     core.extend(entityModel, m_entityQuery);
     core.extend(entityModel, m_validate);
 
+    entityModel.makeRelationArray = makeRelationArray;
     entityModel.KeyGenerator = KeyGenerator;
 
-    entityModel.ajax_jQuery = m_ajax_jQuery;
-    core.config.setProperties({ ajaxImplementation: m_ajax_jQuery });
-
-    entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
-    entityModel.entityTracking_ko = m_entityTracking_ko;
-    entityModel.entityTracking_backbone = m_entityTracking_backbone;
-
-    entityModel.remoteAccess_odata = m_remoteAccess_odata;
-    entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
+    // legacy properties - will not be supported after 3/1/2013
+    entityModel.entityTracking_backingStore = "backingStore";
+    entityModel.entityTracking_ko = "ko";
+    entityModel.entityTracking_backbone = "backbone";
+    entityModel.remoteAccess_odata = "odata";
+    entityModel.remoteAccess_webApi = "webApi";
     
     /**
     The entityModel namespace.
     @module entityModel
     @main entityModel
     **/
-    
-
-    // set defaults
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_backingStore,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
 
     return entityModel;
 

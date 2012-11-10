@@ -9,10 +9,17 @@ function (core, Enum, Event, m_assertParam) {
     core.Enum = Enum;
     core.Event = Event;
     core.extend(core, m_assertParam);
-    core.config = { };
-    core.config.functionRegistry = { };
-    core.config.typeRegistry = { };
-    core.config.objectRegistry = { };
+
+    var coreConfig = { };
+    core.config = coreConfig;
+    coreConfig.functionRegistry = { };
+    coreConfig.typeRegistry = { };
+    coreConfig.objectRegistry = {};
+    coreConfig._interfaceRegistry = {
+        ajax: {}, 
+        entityTracking: {},
+        remoteAccess: {},
+    };
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -88,47 +95,109 @@ function (core, Enum, Event, m_assertParam) {
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
         @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
-    core.config.setProperties = function (config) {
+    coreConfig.setProperties = function (config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .whereParam("ajaxImplementation").isOptional()
-            .applyAll(core.config);
+            .applyAll(coreConfig);
         if (config.remoteAccessImplementation) {
-            config.remoteAccessImplementation.initialize();
+            coreConfig.initializeInterface("remoteAccess", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
-            config.trackingImplementation.initialize();
+            // note the name change
+            coreConfig.initializeInterface("entityTracking", config.trackingImplementation);
         }
         if (config.ajaxImplementation) {
-            config.ajaxImplementation.initialize();
+            coreConfig.initializeInterface("ajax", config.ajaxImplementation);
         }
     };
     
+    coreConfig.registerInterface = function (interfaceName, implementation, shouldInitialize) {
+        assertParam(implementation, "implementation").hasProperty("name");
+        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        kv.value[implementation.name.toLowerCase()] = implementation;
+        if (shouldInitialize === true) {
+            implementation.initialize();
+            coreConfig[kv.key + "Implementation"] = implementation;
+        }
+    };
+
+    coreConfig.initializeInterfaces = function(config) {
+        assertConfig(config)
+            .whereParam("remoteAccess").isOptional()
+            .whereParam("entityTracking").isOptional()
+            .whereParam("ajax").isOptional();
+        core.objectForEach(config, coreConfig.initializeInterface);
+        
+    };
+
+    coreConfig.initializeInterface = function (interfaceName, implementationName) {
+        assertParam(implementationName, "implementationName").isNonEmptyString();
+        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+
+        var implementation = kv.value[implementationName.toLowerCase()];
+        if (!implementation) {
+            throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
+        }
+
+        implementation.initialize();
+        coreConfig[interfaceName + "Implementation"] = implementation;
+    };
+
+    coreConfig.getInterfaceImplementation = function (interfaceName, implementationName) {
+        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        if (implementationName) {
+            return kv.value[implementationName.toLowerCase()];
+        } else {
+            return coreConfig[kv.key + "Implementation"];
+        }
+    };
+
+   
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
-    core.config.registerFunction = function (fn, fnName) {
+    coreConfig.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
-        core.config.functionRegistry[fnName] = fn;
+        coreConfig.functionRegistry[fnName] = fn;
     };
 
-    core.config.registerObject = function(obj, objName) {
+    coreConfig.registerObject = function(obj, objName) {
         core.assertParam(obj, "obj").isObject().check();
         core.assertParam(objName, "objName").isString().check();
 
-        core.config.objectRegistry[objName] = obj;
+        coreConfig.objectRegistry[objName] = obj;
     };
   
-    core.config.registerType = function (ctor, typeName) {
+    coreConfig.registerType = function (ctor, typeName) {
         core.assertParam(ctor, "ctor").isFunction().check();
         core.assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
-        core.config.typeRegistry[typeName] = ctor;
+        coreConfig.typeRegistry[typeName] = ctor;
     };
 
-    core.config.stringifyPad = "  ";
+    function findByName(source, propertyName) {
+        var lcName = propertyName.toLowerCase();
+        // source may be null
+        return core.objectFirst(source || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+    }
+    
+    coreConfig.stringifyPad = "  ";
+
+    
 
     return core;
 });

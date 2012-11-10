@@ -329,7 +329,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            core.config.entityTrackingImplementation.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }

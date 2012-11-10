@@ -1,14 +1,26 @@
-﻿// also needs JQuery
+﻿(function(factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"), exports);
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze", "exports"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze, exports) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
-define(["core", "entityMetadata"],
-function (core, m_entityMetadata) {
-
-    var EntityType = m_entityMetadata.EntityType;
+    var EntityType = entityModel.EntityType;
 
     var impl = {};
 
     // -------------------------------------------
     var ajax;
+
+    impl.name = "webApi";
     
     impl.initialize = function () {
         var ajaxImpl = core.config.ajaxImplementation;
@@ -174,8 +186,7 @@ function (core, m_entityMetadata) {
         }
         return err;
     }
+    
+    core.config.registerInterface("remoteAccess", impl);
 
-    return impl;
-
-
-});
+}));

@@ -74,6 +74,38 @@
       <Link>Scripts\IBlade\assertParam.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.ajax.jQuery.js">
+      <Link>Scripts\IBlade\breeze.ajax.jQuery.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.backbone.js">
+      <Link>Scripts\IBlade\breeze.entityTracking.backbone.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.backingStore.js">
+      <Link>Scripts\IBlade\breeze.entityTracking.backingStore.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.ko.js">
+      <Link>Scripts\IBlade\breeze.entityTracking.ko.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.js">
+      <Link>Scripts\IBlade\breeze.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.remoteAccess.odata.js">
+      <Link>Scripts\IBlade\breeze.remoteAccess.odata.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.remoteAccess.webApi.js">
+      <Link>Scripts\IBlade\breeze.remoteAccess.webApi.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breezeWith.js">
+      <Link>Scripts\IBlade\breezeWith.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\core.js">
       <Link>Scripts\IBlade\core.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -114,18 +146,6 @@
       <Link>Scripts\IBlade\entityQuery.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backbone.js">
-      <Link>Scripts\IBlade\entityTracking_backbone.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_backingStore.js">
-      <Link>Scripts\IBlade\entityTracking_backingStore.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityTracking_ko.js">
-      <Link>Scripts\IBlade\entityTracking_ko.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\enum.js">
       <Link>Scripts\IBlade\enum.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -140,18 +160,6 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\relationArray.js">
       <Link>Scripts\IBlade\relationArray.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\remoteAccess_odata.js">
-      <Link>Scripts\IBlade\remoteAccess_odata.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\remoteAccess_webApi.js">
-      <Link>Scripts\IBlade\remoteAccess_webApi.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\root.js">
-      <Link>Scripts\IBlade\root.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\testFns.js">

@@ -1146,7 +1146,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = core.config.trackingImplementation.createCtor;
+                var createCtor = core.config.entityTrackingImplementation.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -1174,7 +1174,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            core.config.trackingImplementation.initializeEntityPrototype(proto);
+            core.config.entityTrackingImplementation.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -1437,7 +1437,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = core.config.trackingImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = core.config.entityTrackingImplementation.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({

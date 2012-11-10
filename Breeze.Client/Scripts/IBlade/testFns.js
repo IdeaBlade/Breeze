@@ -2,7 +2,7 @@
 // Uncomment this line to run against a single file
 // define(["breeze.debug"], function (root) {
 // or uncomment this to run directly against source.
-define(["root"], function (root) {
+define(["breezeWith"], function (root) {
 
     "use strict";
 
@@ -39,21 +39,10 @@ define(["root"], function (root) {
         }
         
         window.localStorage.setItem("trackingOption", trackingOption);
-        if (trackingOption === "ko") {
-            testFns.entityTracking = entityModel.entityTracking_ko;
-            testFns.message += "entityTracking: ko,  ";
-        } else if (trackingOption === "backbone") {
-            testFns.entityTracking = entityModel.entityTracking_backbone;
-            testFns.message += "entityTracking: backbone,  ";
-        } else {
-            testFns.entityTracking = entityModel.entityTracking_backingStore;
-            testFns.message += "entityTracking: backingStore, ";
-        }
-
         testFns.trackingOption = trackingOption;
-        core.config.setProperties({
-            trackingImplementation: testFns.entityTracking
-        });
+        testFns.message += testFns.message += "entityTracking: " + trackingOption + ",  ";
+        core.config.initializeInterface("entityTracking", trackingOption);
+        testFns.entityTracking = core.config.getInterfaceImplementation("entityTracking");
     };
 
     var models = {};
@@ -128,17 +117,15 @@ define(["root"], function (root) {
 
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
-                testFns.remoteAccess = entityModel.remoteAccess_webApi;
+                testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "webApi");
                 testFns.ServiceName = "api/NorthwindIBModel";
                 testFns.message += "remoteAccess: webApi, ";
             } else {
-                testFns.remoteAccess = entityModel.remoteAccess_odata;
+                testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "OData");
                 testFns.ServiceName = "http://localhost:9009/ODataService.svc";
                 testFns.message += "remoteAccess: odataApi, ";
             }
-            core.config.setProperties({
-                remoteAccessImplementation: testFns.remoteAccess
-            });
+
         }
     };
       

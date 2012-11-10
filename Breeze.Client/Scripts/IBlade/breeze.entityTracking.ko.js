@@ -1,13 +1,24 @@
-﻿
-define(["core", "relationArray"],
-function (core, makeRelationArray) {
-    "use strict";
+﻿"use strict";
+(function(factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"), exports);
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze", "exports"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze, exports) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
     var ko;
     var trackingImpl = { };
-    
-    trackingImpl.name = "knockout entity tracking implementation";
-    
+
+    trackingImpl.name = "ko";
+
     trackingImpl.initialize = function() {
         ko = window.ko;
         if ((!ko) && require) {
@@ -16,11 +27,11 @@ function (core, makeRelationArray) {
         if (!ko) {
             throw new Error("Unable to initialize Knockout.");
         }
-        
+
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;
-            
+
             // create a computed observable to intercept writes to our observable
             var result;
             if (target.splice) {
@@ -41,8 +52,8 @@ function (core, makeRelationArray) {
         };
 
     };
-    
-    trackingImpl.getTrackablePropertyNames = function (entity) {
+
+    trackingImpl.getTrackablePropertyNames = function(entity) {
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
@@ -58,8 +69,8 @@ function (core, makeRelationArray) {
 
     trackingImpl.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function (propertyName) {
-            return this[propertyName]();          
+        proto.getProperty = function(propertyName) {
+            return this[propertyName]();
         };
 
         proto.setProperty = function(propertyName, value) {
@@ -97,15 +108,15 @@ function (core, makeRelationArray) {
                         // TODO: change this to nullEntity later.
                         koObj = ko.observable(null);
                     } else {
-                        val = makeRelationArray([], entity, prop);
+                        val = entityModel.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
-                        koObj.subscribe(function (b) {
+                        koObj.subscribe(function(b) {
                             koObj._suppressBreeze = true;
                         }, null, "beforeChange");
                         // code to insure that any been changes notify ko
-                        val.arrayChanged.subscribe(function (args) {
+                        val.arrayChanged.subscribe(function(args) {
                             if (koObj._suppressBreeze) {
                                 koObj._suppressBreeze = false;
                             } else {
@@ -122,7 +133,7 @@ function (core, makeRelationArray) {
                         //        throw new Error("Collection navigation properties may NOT be set");
                         //    }
                         //});
-                        
+
                     }
                 } else {
                     throw new Error("unknown property: " + propName);
@@ -139,6 +150,7 @@ function (core, makeRelationArray) {
 
     };
 
-    return trackingImpl;
+    core.config.registerInterface("entityTracking", trackingImpl);
 
-})
+
+}));
