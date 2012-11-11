@@ -1,6 +1,21 @@
 ﻿
-// Uncomment this line to run against a single file
-// define(["breeze.debug"], function (root) {
+//requirejs.config({
+//    shim: {
+//        'breeze.ajax.jQuery': ['breeze'],
+//        'breeze.entityTracking.ko': ['breeze'],
+//        'breeze.entityTracking.backbone': ['breeze'],
+//        'breeze.entityTracking.backingStore': ['breeze'],
+//        'breeze.remoteAccess.webApi': ['breeze', 'breeze.ajax.jQuery'],
+//        'breeze.remoteAccess.odata': ['breeze']
+//    }
+//});
+
+// Uncomment these lines to run against base + individual plugins.
+//define(["breeze",
+//        "breeze.ajax.jQuery",
+//        "breeze.entityTracking.ko", "breeze.entityTracking.backbone", "breeze.entityTracking.backingStore",
+//        "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata"
+//    ], function (root) {
 // or uncomment this to run directly against source.
 define(["breezeWith"], function (root) {
 
@@ -42,7 +57,7 @@ define(["breezeWith"], function (root) {
         testFns.trackingOption = trackingOption;
         testFns.message += testFns.message += "entityTracking: " + trackingOption + ",  ";
         core.config.initializeInterface("entityTracking", trackingOption);
-        testFns.entityTracking = core.config.getInterfaceImplementation("entityTracking");
+        testFns.entityTracking = core.config.entityTrackingImplementation;
     };
 
     var models = {};
@@ -118,6 +133,12 @@ define(["breezeWith"], function (root) {
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
                 testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "webApi");
+                core.config.ajaxImplementation.defaultSettings = {
+                    headers: {"X-Test-Header": "foo"},
+                    beforeSend: function (jqXHR, settings) {
+                        jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo");
+                    }
+                };
                 testFns.ServiceName = "api/NorthwindIBModel";
                 testFns.message += "remoteAccess: webApi, ";
             } else {

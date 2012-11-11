@@ -15,24 +15,32 @@
 
     var EntityType = entityModel.EntityType;
 
-    var impl = {};
-
-    // -------------------------------------------
     var ajax;
-
-    impl.name = "webApi";
+    var ajaxImpl;
     
-    impl.initialize = function () {
-        var ajaxImpl = core.config.ajaxImplementation;
+    var ctor = function () {
+    };
+
+    ctor.prototype.name = "webApi";
+
+    ctor.prototype.dependencies = ["ajax"];
+    
+    ctor.prototype.initialize = function () {
+        ajaxImpl = core.config.ajaxImplementation;
+
+        if (!ajaxImpl) {
+            throw new Error("Unable to initialize ajax for WebApi.");
+        }
+
         ajax = ajaxImpl.ajax;
         if (!ajax) {
             throw new Error("Breeze was unable to find an 'ajaxImplementation'");
         }
     };
 
-    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        ajax({
+        ajaxImpl.ajax({
             url: metadataSvcUrl,
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
@@ -66,10 +74,10 @@
         });
     };
 
-    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        ajax({
+        ajaxImpl.ajax({
             url: url,
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
@@ -91,9 +99,9 @@
         });
     };
 
-    impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        ajax({
+        ajaxImpl.ajax({
             url: url,
             type: "POST",
             contentType: "application/json",
@@ -113,10 +121,10 @@
                 if (errorCallback) errorCallback(createError(jqXHR));
             }
         });
-        };
+    };
 
     // will return null if anon
-    impl.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
         return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -126,12 +134,12 @@
     //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
     //};
 
-    impl.getDeferredValue = function (rawEntity) {
+    ctor.prototype.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
         return false;
     };
 
-    impl.resolveRefEntity = function (rawEntity, queryContext) {
+    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
             var entity = queryContext.refMap[id];
@@ -187,6 +195,6 @@
         return err;
     }
     
-    core.config.registerInterface("remoteAccess", impl);
+    core.config.registerInterface("remoteAccess", ctor);
 
 }));

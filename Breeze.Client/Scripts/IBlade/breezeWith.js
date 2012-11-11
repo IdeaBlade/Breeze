@@ -1,6 +1,6 @@
 ﻿
 define(["breeze",
-    // all these are self registering
+        // all these are self registering
         "breeze.ajax.jQuery",
         "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata",
         "breeze.entityTracking.backingStore", "breeze.entityTracking.ko", "breeze.entityTracking.backbone"], 

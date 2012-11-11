@@ -13,15 +13,17 @@
         factory(breeze);
     }
 }(function(breeze, exports) {
-
-    var impl = { };
-
-    // -------------------------------------------
+    var core = breeze.core;
+    
     var jQuery;
+    
+    var ctor = function() {
+        this.defaultSettings = { };
+    };
 
-    impl.name = "jQuery";
+    ctor.prototype.name = "jQuery";
 
-    impl.initialize = function() {
+    ctor.prototype.initialize = function() {
         jQuery = window.jQuery;
         if ((!jQuery) && require) {
             jQuery = require("jQuery");
@@ -32,11 +34,18 @@
 
     };
 
-    impl.ajax = function(settings) {
-        jQuery.ajax(settings);
+    ctor.prototype.ajax = function (settings) {
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeSettings = core.extend({}, this.defaultSettings);
+            core.extend(compositeSettings, settings);
+            jQuery.ajax(compositeSettings);
+        } else {
+            jQuery.ajax(settings);
+        }
     };
 
-    breeze.core.config.registerInterface("ajax", impl);
-
-
+    
+    // last param is true because for now we only have one impl.
+    breeze.core.config.registerInterface("ajax", ctor, true);
+    
 }));

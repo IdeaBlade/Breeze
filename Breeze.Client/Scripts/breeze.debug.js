@@ -1570,7 +1570,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
 
 define('core',["coreFns", "enum", "event", "assertParam"],
 function (core, Enum, Event, m_assertParam) {
-    
+
     /**
     Utility types and functions of generally global applicability.
     @module core
@@ -1584,13 +1584,19 @@ function (core, Enum, Event, m_assertParam) {
     core.config = coreConfig;
     coreConfig.functionRegistry = { };
     coreConfig.typeRegistry = { };
-    coreConfig.objectRegistry = {};
+    coreConfig.objectRegistry = { };
     coreConfig._interfaceRegistry = {
-        ajax: {}, 
-        entityTracking: {},
-        remoteAccess: {},
+        ajax: { },
+        entityTracking: { },
+        remoteAccess: { },
     };
-    
+
+    coreConfig._dependencyMap = {
+        ajax: [],
+        entityTracking: [],
+        remoteAccess: []
+    };
+   
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
       
@@ -1683,16 +1689,19 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-    coreConfig.registerInterface = function (interfaceName, implementation, shouldInitialize) {
-        assertParam(implementation, "implementation").hasProperty("name");
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
+    coreConfig.registerInterface = function (interfaceName, implementationCtor, shouldInitialize) {
+        assertParam(implementationCtor, "implementationCtor").isFunction();
+        // this impl will be thrown away after the name is retrieved.
+        var impl = new implementationCtor();
+        var implName = impl.name;
+        if (!implName) {
+            throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerInterface' call.");
         }
-        kv.value[implementation.name.toLowerCase()] = implementation;
+        var kv = getInterfaceKeyValue(interfaceName);
+        kv.value[implName.toLowerCase()] = implementationCtor;
+
         if (shouldInitialize === true) {
-            implementation.initialize();
-            coreConfig[kv.key + "Implementation"] = implementation;
+            initializeInterfaceCore(interfaceName, implementationCtor);
         }
     };
 
@@ -1701,38 +1710,74 @@ function (core, Enum, Event, m_assertParam) {
             .whereParam("remoteAccess").isOptional()
             .whereParam("entityTracking").isOptional()
             .whereParam("ajax").isOptional();
-        core.objectForEach(config, coreConfig.initializeInterface);
+        return core.objectMapToArray(config, coreConfig.initializeInterface);
         
     };
 
     coreConfig.initializeInterface = function (interfaceName, implementationName) {
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationName, "implementationName").isNonEmptyString();
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
-        }
-
-        var implementation = kv.value[implementationName.toLowerCase()];
-        if (!implementation) {
+        var kv = getInterfaceKeyValue(interfaceName);
+        var implementationCtor = kv.value[implementationName.toLowerCase()];
+        if (!implementationCtor) {
             throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
         }
 
-        implementation.initialize();
-        coreConfig[interfaceName + "Implementation"] = implementation;
+        return initializeInterfaceCore(interfaceName, implementationCtor);
     };
-
-    coreConfig.getInterfaceImplementation = function (interfaceName, implementationName) {
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
-        }
+    
+    coreConfig.getInterfaceCtor = function (interfaceName, implementationName) {
+        var kv = getInterfaceKeyValue(interfaceName);
         if (implementationName) {
             return kv.value[implementationName.toLowerCase()];
         } else {
-            return coreConfig[kv.key + "Implementation"];
+            return coreConfig[getImplName(kv.key)]._$ctor;
         }
     };
 
+    core.config.getCurrentImplementation = function(interfaceName) {
+        var kv = getInterfaceKeyValue(interfaceName);
+        return coreConfig[getImplName(kv.key)];
+    };
+    
+    function initializeInterfaceCore(interfaceName, implementationCtor) {
+        var implementation = new implementationCtor();
+        implementation._$ctor = implementationCtor;
+        implementation.initialize();
+        var depIfaces = implementation.dependencies;
+        // register deps
+        if (depIfaces) {
+            depIfaces.forEach(function (ifaceName) {
+                coreConfig._dependencyMap[ifaceName].push({ interfaceName: interfaceName, implementationName: implementation.name.toLowerCase() });
+            });
+        }
+        // reinitialize if necessary
+        coreConfig._dependencyMap[interfaceName].forEach(function (dep) {
+            var currentImpl = getCurrentImplementation(dep.interfaceName);
+            if (currentImpl.name === dep.implementationName) {
+                // reinitialize ( recompose) if currentImpl is dependent on this interface
+                currentImpl.initialize();
+            }
+        });
+        coreConfig[getImplName(interfaceName)] = implementation;
+        return implementation;
+    }
+
+    function getInterfaceKeyValue(interfaceName) {
+        var lcName = interfaceName.toLowerCase();
+        // source may be null
+        var kv = core.objectFirst(coreConfig._interfaceRegistry || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        return kv;
+    }
+    
+    function getImplName(interfaceName) {
+        return interfaceName + "Implementation";
+    }
    
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
@@ -1756,15 +1801,7 @@ function (core, Enum, Event, m_assertParam) {
         ctor.prototype._$typeName = typeName;
         coreConfig.typeRegistry[typeName] = ctor;
     };
-
-    function findByName(source, propertyName) {
-        var lcName = propertyName.toLowerCase();
-        // source may be null
-        return core.objectFirst(source || {}, function (k, v) {
-            return k.toLowerCase() === lcName;
-        });
-    }
-    
+   
     coreConfig.stringifyPad = "  ";
 
     
@@ -10730,15 +10767,17 @@ function (core, entityModel) {
         factory(breeze);
     }
 }(function(breeze, exports) {
-
-    var impl = { };
-
-    // -------------------------------------------
+    var core = breeze.core;
+    
     var jQuery;
+    
+    var ctor = function() {
+        this.defaultSettings = { };
+    };
 
-    impl.name = "jQuery";
+    ctor.prototype.name = "jQuery";
 
-    impl.initialize = function() {
+    ctor.prototype.initialize = function() {
         jQuery = window.jQuery;
         if ((!jQuery) && require) {
             jQuery = require("jQuery");
@@ -10749,13 +10788,20 @@ function (core, entityModel) {
 
     };
 
-    impl.ajax = function(settings) {
-        jQuery.ajax(settings);
+    ctor.prototype.ajax = function (settings) {
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeSettings = core.extend({}, this.defaultSettings);
+            core.extend(compositeSettings, settings);
+            jQuery.ajax(compositeSettings);
+        } else {
+            jQuery.ajax(settings);
+        }
     };
 
-    breeze.core.config.registerInterface("ajax", impl);
-
-
+    
+    // last param is true because for now we only have one impl.
+    breeze.core.config.registerInterface("ajax", ctor, true);
+    
 }));
 
 (function(factory) {
@@ -10775,24 +10821,32 @@ function (core, entityModel) {
 
     var EntityType = entityModel.EntityType;
 
-    var impl = {};
-
-    // -------------------------------------------
     var ajax;
-
-    impl.name = "webApi";
+    var ajaxImpl;
     
-    impl.initialize = function () {
-        var ajaxImpl = core.config.ajaxImplementation;
+    var ctor = function () {
+    };
+
+    ctor.prototype.name = "webApi";
+
+    ctor.prototype.dependencies = ["ajax"];
+    
+    ctor.prototype.initialize = function () {
+        ajaxImpl = core.config.ajaxImplementation;
+
+        if (!ajaxImpl) {
+            throw new Error("Unable to initialize ajax for WebApi.");
+        }
+
         ajax = ajaxImpl.ajax;
         if (!ajax) {
             throw new Error("Breeze was unable to find an 'ajaxImplementation'");
         }
     };
 
-    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        ajax({
+        ajaxImpl.ajax({
             url: metadataSvcUrl,
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
@@ -10826,10 +10880,10 @@ function (core, entityModel) {
         });
     };
 
-    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        ajax({
+        ajaxImpl.ajax({
             url: url,
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
@@ -10851,9 +10905,9 @@ function (core, entityModel) {
         });
     };
 
-    impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        ajax({
+        ajaxImpl.ajax({
             url: url,
             type: "POST",
             contentType: "application/json",
@@ -10873,10 +10927,10 @@ function (core, entityModel) {
                 if (errorCallback) errorCallback(createError(jqXHR));
             }
         });
-        };
+    };
 
     // will return null if anon
-    impl.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
         return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -10886,12 +10940,12 @@ function (core, entityModel) {
     //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
     //};
 
-    impl.getDeferredValue = function (rawEntity) {
+    ctor.prototype.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
         return false;
     };
 
-    impl.resolveRefEntity = function (rawEntity, queryContext) {
+    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
             var entity = queryContext.refMap[id];
@@ -10947,7 +11001,7 @@ function (core, entityModel) {
         return err;
     }
     
-    core.config.registerInterface("remoteAccess", impl);
+    core.config.registerInterface("remoteAccess", ctor);
 
 }));
 (function(factory) {
@@ -10966,25 +11020,24 @@ function (core, entityModel) {
     var core = breeze.core;
  
     var EntityType = entityModel.EntityType;
-
-    var impl = {};
-    // -------------------------------------------
-
+    
     var OData;
+    
+    var ctor = function () {
+    };
 
-    impl.name = "OData";
+    ctor.prototype.name = "OData";
 
-    impl.initialize = function() {
+    ctor.prototype.initialize = function () {
         OData = window.OData;
         if (!OData) {
             throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
         }
         OData.jsonHandler.recognizeDates = true;
-        
     };
     
     // will return null if anon
-    impl.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
         var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -10993,7 +11046,7 @@ function (core, entityModel) {
     };
 
 
-    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
@@ -11001,15 +11054,16 @@ function (core, entityModel) {
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));
-            });
+            }
+        );
     };
     
  
-    impl.getDeferredValue = function (rawEntity) {
+    ctor.prototype.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };
 
-    impl.resolveRefEntity = function (rawEntity, queryContext) {
+    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['__deferred'];
         if (id) {
             return null;
@@ -11018,7 +11072,7 @@ function (core, entityModel) {
         }
     };
 
-    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -11037,8 +11091,7 @@ function (core, entityModel) {
                 if (callback) {
                     callback(schema);
                 }
-            },
-            function (error) {
+            }, function (error) {
                 var err = createError(error);
                 err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
@@ -11048,7 +11101,7 @@ function (core, entityModel) {
 
     };
 
-    impl.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
 
@@ -11086,7 +11139,7 @@ function (core, entityModel) {
         return err;
     }
 
-    core.config.registerInterface("remoteAccess", impl);
+    core.config.registerInterface("remoteAccess", ctor);
 
 }));
 
@@ -11106,15 +11159,17 @@ function (core, entityModel) {
     var entityModel = breeze.entityModel;
     var core = breeze.core;
 
-    var trackingImpl = { };
+    var ctor = function() {
 
-    trackingImpl.initialize = function() {
+    };
+    
+    ctor.prototype.name = "backingStore";
+
+    ctor.prototype.initialize = function() {
         // nothing to do yet;
     };
 
-    trackingImpl.name = "backingStore";
-
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             var val = entity[p];
@@ -11125,7 +11180,7 @@ function (core, entityModel) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
         proto.getProperty = function(propertyName) {
             return this[propertyName];
@@ -11179,7 +11234,7 @@ function (core, entityModel) {
 
     };
 
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
@@ -11280,7 +11335,7 @@ function (core, entityModel) {
         };
     }
 
-    core.config.registerInterface("entityTracking", trackingImpl);
+    core.config.registerInterface("entityTracking", ctor);
 
 }));
 
@@ -11301,11 +11356,13 @@ function (core, entityModel) {
     var core = breeze.core;
 
     var ko;
-    var trackingImpl = { };
 
-    trackingImpl.name = "ko";
+    var ctor = function() {
+    };
 
-    trackingImpl.initialize = function() {
+    ctor.prototype.name = "ko";
+
+    ctor.prototype.initialize = function () {
         ko = window.ko;
         if ((!ko) && require) {
             ko = require("ko");
@@ -11339,7 +11396,7 @@ function (core, entityModel) {
 
     };
 
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
@@ -11353,7 +11410,7 @@ function (core, entityModel) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
         proto.getProperty = function(propertyName) {
             return this[propertyName]();
@@ -11366,7 +11423,7 @@ function (core, entityModel) {
         };
     };
 
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -11436,9 +11493,8 @@ function (core, entityModel) {
 
     };
 
-    core.config.registerInterface("entityTracking", trackingImpl);
-
-
+    core.config.registerInterface("entityTracking", ctor);
+    
 }));
 
 
@@ -11462,9 +11518,12 @@ function (core, entityModel) {
     var trackingImpl = { };
     var bbSet, bbGet;
 
-    trackingImpl.name = "backbone";
+    var ctor = function() {
+    };
+   
+    ctor.prototype.name = "backbone";
 
-    trackingImpl.initialize = function() {
+    ctor.prototype.initialize = function() {
         Backbone = window.Backbone;
         if ((!Backbone) && require) {
             Backbone = require("Backbone");
@@ -11480,12 +11539,12 @@ function (core, entityModel) {
         bbGet = Backbone.Model.prototype.get;
     };
 
-    trackingImpl.createCtor = function(entityType) {
+    ctor.prototype.createCtor = function(entityType) {
         var defaults = { };
         entityType.dataProperties.forEach(function(dp) {
             defaults[dp.name] = dp.defaultValue;
         });
-        var ctor = Backbone.Model.extend({
+        var modelCtor = Backbone.Model.extend({
             defaults: defaults,
             initialize: function() {
                 var that = this;
@@ -11497,11 +11556,11 @@ function (core, entityModel) {
                 });
             }
         });
-        return ctor;
+        return modelCtor;
 
     };
 
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function(entity) {
         var names = [];
         for (var p in entity.attributes) {
             names.push(p);
@@ -11509,7 +11568,7 @@ function (core, entityModel) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function(proto) {
 
         proto.getProperty = function(propertyName) {
             return this.get(propertyName);
@@ -11575,7 +11634,7 @@ function (core, entityModel) {
     };
 
     // called when the entityAspect is first created for an entity
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function(entity, proto) {
         if (!(entity instanceof Backbone.Model)) {
             throw Error("This entity is not an Backbone.Model instance");
         }
@@ -11624,7 +11683,7 @@ function (core, entityModel) {
         });
     };
 
-    core.config.registerInterface("entityTracking", trackingImpl);
+    core.config.registerInterface("entityTracking", ctor);
 
     // private methods
 
@@ -11632,7 +11691,7 @@ function (core, entityModel) {
 
 
 define('breezeWith',["breeze",
-    // all these are self registering
+        // all these are self registering
         "breeze.ajax.jQuery",
         "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata",
         "breeze.entityTracking.backingStore", "breeze.entityTracking.ko", "breeze.entityTracking.backbone"], 

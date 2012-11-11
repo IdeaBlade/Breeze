@@ -1570,7 +1570,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
 
 define('core',["coreFns", "enum", "event", "assertParam"],
 function (core, Enum, Event, m_assertParam) {
-    
+
     /**
     Utility types and functions of generally global applicability.
     @module core
@@ -1584,13 +1584,19 @@ function (core, Enum, Event, m_assertParam) {
     core.config = coreConfig;
     coreConfig.functionRegistry = { };
     coreConfig.typeRegistry = { };
-    coreConfig.objectRegistry = {};
+    coreConfig.objectRegistry = { };
     coreConfig._interfaceRegistry = {
-        ajax: {}, 
-        entityTracking: {},
-        remoteAccess: {},
+        ajax: { },
+        entityTracking: { },
+        remoteAccess: { },
     };
-    
+
+    coreConfig._dependencyMap = {
+        ajax: [],
+        entityTracking: [],
+        remoteAccess: []
+    };
+   
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
       
@@ -1683,16 +1689,19 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-    coreConfig.registerInterface = function (interfaceName, implementation, shouldInitialize) {
-        assertParam(implementation, "implementation").hasProperty("name");
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
+    coreConfig.registerInterface = function (interfaceName, implementationCtor, shouldInitialize) {
+        assertParam(implementationCtor, "implementationCtor").isFunction();
+        // this impl will be thrown away after the name is retrieved.
+        var impl = new implementationCtor();
+        var implName = impl.name;
+        if (!implName) {
+            throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerInterface' call.");
         }
-        kv.value[implementation.name.toLowerCase()] = implementation;
+        var kv = getInterfaceKeyValue(interfaceName);
+        kv.value[implName.toLowerCase()] = implementationCtor;
+
         if (shouldInitialize === true) {
-            implementation.initialize();
-            coreConfig[kv.key + "Implementation"] = implementation;
+            initializeInterfaceCore(interfaceName, implementationCtor);
         }
     };
 
@@ -1701,38 +1710,74 @@ function (core, Enum, Event, m_assertParam) {
             .whereParam("remoteAccess").isOptional()
             .whereParam("entityTracking").isOptional()
             .whereParam("ajax").isOptional();
-        core.objectForEach(config, coreConfig.initializeInterface);
+        return core.objectMapToArray(config, coreConfig.initializeInterface);
         
     };
 
     coreConfig.initializeInterface = function (interfaceName, implementationName) {
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationName, "implementationName").isNonEmptyString();
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
-        }
-
-        var implementation = kv.value[implementationName.toLowerCase()];
-        if (!implementation) {
+        var kv = getInterfaceKeyValue(interfaceName);
+        var implementationCtor = kv.value[implementationName.toLowerCase()];
+        if (!implementationCtor) {
             throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
         }
 
-        implementation.initialize();
-        coreConfig[interfaceName + "Implementation"] = implementation;
+        return initializeInterfaceCore(interfaceName, implementationCtor);
     };
-
-    coreConfig.getInterfaceImplementation = function (interfaceName, implementationName) {
-        var kv = findByName(coreConfig._interfaceRegistry, interfaceName);
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
-        }
+    
+    coreConfig.getInterfaceCtor = function (interfaceName, implementationName) {
+        var kv = getInterfaceKeyValue(interfaceName);
         if (implementationName) {
             return kv.value[implementationName.toLowerCase()];
         } else {
-            return coreConfig[kv.key + "Implementation"];
+            return coreConfig[getImplName(kv.key)]._$ctor;
         }
     };
 
+    core.config.getCurrentImplementation = function(interfaceName) {
+        var kv = getInterfaceKeyValue(interfaceName);
+        return coreConfig[getImplName(kv.key)];
+    };
+    
+    function initializeInterfaceCore(interfaceName, implementationCtor) {
+        var implementation = new implementationCtor();
+        implementation._$ctor = implementationCtor;
+        implementation.initialize();
+        var depIfaces = implementation.dependencies;
+        // register deps
+        if (depIfaces) {
+            depIfaces.forEach(function (ifaceName) {
+                coreConfig._dependencyMap[ifaceName].push({ interfaceName: interfaceName, implementationName: implementation.name.toLowerCase() });
+            });
+        }
+        // reinitialize if necessary
+        coreConfig._dependencyMap[interfaceName].forEach(function (dep) {
+            var currentImpl = getCurrentImplementation(dep.interfaceName);
+            if (currentImpl.name === dep.implementationName) {
+                // reinitialize ( recompose) if currentImpl is dependent on this interface
+                currentImpl.initialize();
+            }
+        });
+        coreConfig[getImplName(interfaceName)] = implementation;
+        return implementation;
+    }
+
+    function getInterfaceKeyValue(interfaceName) {
+        var lcName = interfaceName.toLowerCase();
+        // source may be null
+        var kv = core.objectFirst(coreConfig._interfaceRegistry || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        return kv;
+    }
+    
+    function getImplName(interfaceName) {
+        return interfaceName + "Implementation";
+    }
    
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
@@ -1756,15 +1801,7 @@ function (core, Enum, Event, m_assertParam) {
         ctor.prototype._$typeName = typeName;
         coreConfig.typeRegistry[typeName] = ctor;
     };
-
-    function findByName(source, propertyName) {
-        var lcName = propertyName.toLowerCase();
-        // source may be null
-        return core.objectFirst(source || {}, function (k, v) {
-            return k.toLowerCase() === lcName;
-        });
-    }
-    
+   
     coreConfig.stringifyPad = "  ";
 
     

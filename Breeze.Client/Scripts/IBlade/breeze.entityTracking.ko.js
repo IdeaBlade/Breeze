@@ -15,11 +15,13 @@
     var core = breeze.core;
 
     var ko;
-    var trackingImpl = { };
 
-    trackingImpl.name = "ko";
+    var ctor = function() {
+    };
 
-    trackingImpl.initialize = function() {
+    ctor.prototype.name = "ko";
+
+    ctor.prototype.initialize = function () {
         ko = window.ko;
         if ((!ko) && require) {
             ko = require("ko");
@@ -53,7 +55,7 @@
 
     };
 
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
@@ -67,7 +69,7 @@
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
         proto.getProperty = function(propertyName) {
             return this[propertyName]();
@@ -80,7 +82,7 @@
         };
     };
 
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -150,7 +152,6 @@
 
     };
 
-    core.config.registerInterface("entityTracking", trackingImpl);
-
-
+    core.config.registerInterface("entityTracking", ctor);
+    
 }));

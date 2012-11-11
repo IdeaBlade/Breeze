@@ -19,9 +19,12 @@
     var trackingImpl = { };
     var bbSet, bbGet;
 
-    trackingImpl.name = "backbone";
+    var ctor = function() {
+    };
+   
+    ctor.prototype.name = "backbone";
 
-    trackingImpl.initialize = function() {
+    ctor.prototype.initialize = function() {
         Backbone = window.Backbone;
         if ((!Backbone) && require) {
             Backbone = require("Backbone");
@@ -37,12 +40,12 @@
         bbGet = Backbone.Model.prototype.get;
     };
 
-    trackingImpl.createCtor = function(entityType) {
+    ctor.prototype.createCtor = function(entityType) {
         var defaults = { };
         entityType.dataProperties.forEach(function(dp) {
             defaults[dp.name] = dp.defaultValue;
         });
-        var ctor = Backbone.Model.extend({
+        var modelCtor = Backbone.Model.extend({
             defaults: defaults,
             initialize: function() {
                 var that = this;
@@ -54,11 +57,11 @@
                 });
             }
         });
-        return ctor;
+        return modelCtor;
 
     };
 
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function(entity) {
         var names = [];
         for (var p in entity.attributes) {
             names.push(p);
@@ -66,7 +69,7 @@
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function(proto) {
 
         proto.getProperty = function(propertyName) {
             return this.get(propertyName);
@@ -132,7 +135,7 @@
     };
 
     // called when the entityAspect is first created for an entity
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function(entity, proto) {
         if (!(entity instanceof Backbone.Model)) {
             throw Error("This entity is not an Backbone.Model instance");
         }
@@ -181,7 +184,7 @@
         });
     };
 
-    core.config.registerInterface("entityTracking", trackingImpl);
+    core.config.registerInterface("entityTracking", ctor);
 
     // private methods
 

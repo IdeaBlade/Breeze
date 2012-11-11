@@ -14,15 +14,17 @@
     var entityModel = breeze.entityModel;
     var core = breeze.core;
 
-    var trackingImpl = { };
+    var ctor = function() {
 
-    trackingImpl.initialize = function() {
+    };
+    
+    ctor.prototype.name = "backingStore";
+
+    ctor.prototype.initialize = function() {
         // nothing to do yet;
     };
 
-    trackingImpl.name = "backingStore";
-
-    trackingImpl.getTrackablePropertyNames = function(entity) {
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             var val = entity[p];
@@ -33,7 +35,7 @@
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
         proto.getProperty = function(propertyName) {
             return this[propertyName];
@@ -87,7 +89,7 @@
 
     };
 
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
@@ -188,6 +190,6 @@
         };
     }
 
-    core.config.registerInterface("entityTracking", trackingImpl);
+    core.config.registerInterface("entityTracking", ctor);
 
 }));
