@@ -19,11 +19,10 @@
     var trackingImpl = { };
     var bbSet, bbGet;
 
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "backbone";
     };
    
-    ctor.prototype.name = "backbone";
-
     ctor.prototype.initialize = function() {
         Backbone = window.Backbone;
         if ((!Backbone) && require) {
@@ -184,7 +183,7 @@
         });
     };
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
 
     // private methods
 

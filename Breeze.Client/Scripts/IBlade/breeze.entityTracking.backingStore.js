@@ -15,13 +15,11 @@
     var core = breeze.core;
 
     var ctor = function() {
-
+        this.name = "backingStore";
     };
     
-    ctor.prototype.name = "backingStore";
-
     ctor.prototype.initialize = function() {
-        // nothing to do yet;
+
     };
 
     ctor.prototype.getTrackablePropertyNames = function (entity) {
@@ -190,6 +188,6 @@
         };
     }
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
 
 }));

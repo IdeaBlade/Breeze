@@ -1690,7 +1690,9 @@ function (core, Enum, Event, m_assertParam) {
     };
     
     coreConfig.registerInterface = function (interfaceName, implementationCtor, shouldInitialize) {
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationCtor, "implementationCtor").isFunction();
+        assertParam(shouldInitialize, "shouldInitialize").isBoolean();
         // this impl will be thrown away after the name is retrieved.
         var impl = new implementationCtor();
         var implName = impl.name;
@@ -1726,7 +1728,7 @@ function (core, Enum, Event, m_assertParam) {
         return initializeInterfaceCore(interfaceName, implementationCtor);
     };
     
-    coreConfig.getInterfaceCtor = function (interfaceName, implementationName) {
+    coreConfig.getInterface = function (interfaceName, implementationName) {
         var kv = getInterfaceKeyValue(interfaceName);
         if (implementationName) {
             return kv.value[implementationName.toLowerCase()];
@@ -1735,7 +1737,7 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
 
-    core.config.getCurrentImplementation = function(interfaceName) {
+    coreConfig.getCurrentImplementation = function(interfaceName) {
         var kv = getInterfaceKeyValue(interfaceName);
         return coreConfig[getImplName(kv.key)];
     };
@@ -1751,15 +1753,17 @@ function (core, Enum, Event, m_assertParam) {
                 coreConfig._dependencyMap[ifaceName].push({ interfaceName: interfaceName, implementationName: implementation.name.toLowerCase() });
             });
         }
-        // reinitialize if necessary
+        // this needs to occur before any recomposition - further below.
+        coreConfig[getImplName(interfaceName)] = implementation;
+        // recompose (reinitialize) if necessary
         coreConfig._dependencyMap[interfaceName].forEach(function (dep) {
-            var currentImpl = getCurrentImplementation(dep.interfaceName);
-            if (currentImpl.name === dep.implementationName) {
+            var currentImpl = coreConfig.getCurrentImplementation(dep.interfaceName);
+            if (currentImpl.name.toLowerCase() === dep.implementationName) {
                 // reinitialize ( recompose) if currentImpl is dependent on this interface
                 currentImpl.initialize();
             }
         });
-        coreConfig[getImplName(interfaceName)] = implementation;
+        
         return implementation;
     }
 
@@ -10771,11 +10775,10 @@ function (core, entityModel) {
     
     var jQuery;
     
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "jQuery";
         this.defaultSettings = { };
     };
-
-    ctor.prototype.name = "jQuery";
 
     ctor.prototype.initialize = function() {
         jQuery = window.jQuery;
@@ -10825,9 +10828,8 @@ function (core, entityModel) {
     var ajaxImpl;
     
     var ctor = function () {
+        this.name = "webApi";
     };
-
-    ctor.prototype.name = "webApi";
 
     ctor.prototype.dependencies = ["ajax"];
     
@@ -11001,7 +11003,7 @@ function (core, entityModel) {
         return err;
     }
     
-    core.config.registerInterface("remoteAccess", ctor);
+    core.config.registerInterface("remoteAccess", ctor, false);
 
 }));
 (function(factory) {
@@ -11024,9 +11026,8 @@ function (core, entityModel) {
     var OData;
     
     var ctor = function () {
+        this.name = "OData";
     };
-
-    ctor.prototype.name = "OData";
 
     ctor.prototype.initialize = function () {
         OData = window.OData;
@@ -11139,7 +11140,7 @@ function (core, entityModel) {
         return err;
     }
 
-    core.config.registerInterface("remoteAccess", ctor);
+    core.config.registerInterface("remoteAccess", ctor, false);
 
 }));
 
@@ -11160,13 +11161,11 @@ function (core, entityModel) {
     var core = breeze.core;
 
     var ctor = function() {
-
+        this.name = "backingStore";
     };
     
-    ctor.prototype.name = "backingStore";
-
     ctor.prototype.initialize = function() {
-        // nothing to do yet;
+
     };
 
     ctor.prototype.getTrackablePropertyNames = function (entity) {
@@ -11335,7 +11334,7 @@ function (core, entityModel) {
         };
     }
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
 
 }));
 
@@ -11357,10 +11356,9 @@ function (core, entityModel) {
 
     var ko;
 
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "ko";
     };
-
-    ctor.prototype.name = "ko";
 
     ctor.prototype.initialize = function () {
         ko = window.ko;
@@ -11493,7 +11491,7 @@ function (core, entityModel) {
 
     };
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
     
 }));
 
@@ -11518,11 +11516,10 @@ function (core, entityModel) {
     var trackingImpl = { };
     var bbSet, bbGet;
 
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "backbone";
     };
    
-    ctor.prototype.name = "backbone";
-
     ctor.prototype.initialize = function() {
         Backbone = window.Backbone;
         if ((!Backbone) && require) {
@@ -11683,7 +11680,7 @@ function (core, entityModel) {
         });
     };
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
 
     // private methods
 

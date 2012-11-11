@@ -19,9 +19,8 @@
     var ajaxImpl;
     
     var ctor = function () {
+        this.name = "webApi";
     };
-
-    ctor.prototype.name = "webApi";
 
     ctor.prototype.dependencies = ["ajax"];
     
@@ -195,6 +194,6 @@
         return err;
     }
     
-    core.config.registerInterface("remoteAccess", ctor);
+    core.config.registerInterface("remoteAccess", ctor, false);
 
 }));

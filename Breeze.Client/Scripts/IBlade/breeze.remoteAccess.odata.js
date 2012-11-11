@@ -18,9 +18,8 @@
     var OData;
     
     var ctor = function () {
+        this.name = "OData";
     };
-
-    ctor.prototype.name = "OData";
 
     ctor.prototype.initialize = function () {
         OData = window.OData;
@@ -133,6 +132,6 @@
         return err;
     }
 
-    core.config.registerInterface("remoteAccess", ctor);
+    core.config.registerInterface("remoteAccess", ctor, false);
 
 }));

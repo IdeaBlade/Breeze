@@ -17,11 +17,10 @@
     
     var jQuery;
     
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "jQuery";
         this.defaultSettings = { };
     };
-
-    ctor.prototype.name = "jQuery";
 
     ctor.prototype.initialize = function() {
         jQuery = window.jQuery;

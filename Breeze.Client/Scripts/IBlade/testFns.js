@@ -125,7 +125,8 @@ define(["breezeWith"], function (root) {
             };
         }
     };
-    
+
+    testFns.TEST_RECOMPOSITION = true;
 
     testFns.setFlag = function (name, value) {
         testFns[name] = value;
@@ -133,12 +134,29 @@ define(["breezeWith"], function (root) {
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
                 testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "webApi");
-                core.config.ajaxImplementation.defaultSettings = {
-                    headers: {"X-Test-Header": "foo"},
-                    beforeSend: function (jqXHR, settings) {
-                        jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo");
-                    }
-                };
+                
+                if (testFns.TEST_RECOMPOSITION) {
+                    var oldAjaxCtor = core.config.getInterface("ajax");
+                    var newAjaxCtor = function() {
+                        this.name = "newAjax";
+                        this.defaultSettings = {
+                            headers: { "X-Test-Header": "foo1" },
+                            beforeSend: function (jqXHR, settings) {
+                                jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo1");
+                            }
+                        };
+                    };
+                    newAjaxCtor.prototype = new oldAjaxCtor();
+                    core.config.registerInterface("ajax", newAjaxCtor, true);
+                } else {
+                    core.config.ajaxImplementation.defaultSettings = {
+                        headers: { "X-Test-Header": "foo2" },
+                        beforeSend: function(jqXHR, settings) {
+                            jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo2");
+                        }
+                    };
+                }
+                // test recomposition
                 testFns.ServiceName = "api/NorthwindIBModel";
                 testFns.message += "remoteAccess: webApi, ";
             } else {

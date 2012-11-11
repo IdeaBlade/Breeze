@@ -1690,7 +1690,9 @@ function (core, Enum, Event, m_assertParam) {
     };
     
     coreConfig.registerInterface = function (interfaceName, implementationCtor, shouldInitialize) {
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationCtor, "implementationCtor").isFunction();
+        assertParam(shouldInitialize, "shouldInitialize").isBoolean();
         // this impl will be thrown away after the name is retrieved.
         var impl = new implementationCtor();
         var implName = impl.name;
@@ -1726,7 +1728,7 @@ function (core, Enum, Event, m_assertParam) {
         return initializeInterfaceCore(interfaceName, implementationCtor);
     };
     
-    coreConfig.getInterfaceCtor = function (interfaceName, implementationName) {
+    coreConfig.getInterface = function (interfaceName, implementationName) {
         var kv = getInterfaceKeyValue(interfaceName);
         if (implementationName) {
             return kv.value[implementationName.toLowerCase()];
@@ -1735,7 +1737,7 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
 
-    core.config.getCurrentImplementation = function(interfaceName) {
+    coreConfig.getCurrentImplementation = function(interfaceName) {
         var kv = getInterfaceKeyValue(interfaceName);
         return coreConfig[getImplName(kv.key)];
     };
@@ -1751,15 +1753,17 @@ function (core, Enum, Event, m_assertParam) {
                 coreConfig._dependencyMap[ifaceName].push({ interfaceName: interfaceName, implementationName: implementation.name.toLowerCase() });
             });
         }
-        // reinitialize if necessary
+        // this needs to occur before any recomposition - further below.
+        coreConfig[getImplName(interfaceName)] = implementation;
+        // recompose (reinitialize) if necessary
         coreConfig._dependencyMap[interfaceName].forEach(function (dep) {
-            var currentImpl = getCurrentImplementation(dep.interfaceName);
-            if (currentImpl.name === dep.implementationName) {
+            var currentImpl = coreConfig.getCurrentImplementation(dep.interfaceName);
+            if (currentImpl.name.toLowerCase() === dep.implementationName) {
                 // reinitialize ( recompose) if currentImpl is dependent on this interface
                 currentImpl.initialize();
             }
         });
-        coreConfig[getImplName(interfaceName)] = implementation;
+        
         return implementation;
     }
 

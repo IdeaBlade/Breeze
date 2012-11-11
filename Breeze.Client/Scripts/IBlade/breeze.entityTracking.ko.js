@@ -16,10 +16,9 @@
 
     var ko;
 
-    var ctor = function() {
+    var ctor = function () {
+        this.name = "ko";
     };
-
-    ctor.prototype.name = "ko";
 
     ctor.prototype.initialize = function () {
         ko = window.ko;
@@ -152,6 +151,6 @@
 
     };
 
-    core.config.registerInterface("entityTracking", ctor);
+    core.config.registerInterface("entityTracking", ctor, false);
     
 }));
