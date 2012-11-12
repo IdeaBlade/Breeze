@@ -112,7 +112,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
                 //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
-                .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.remoteAccessImplementation)
+                .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.getDefaultImplementation("remoteAccess"))
                 .applyAll(this);
 
             if (this.serviceName.substr(-1) !== "/") {
