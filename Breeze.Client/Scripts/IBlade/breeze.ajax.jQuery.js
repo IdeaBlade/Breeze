@@ -12,7 +12,7 @@
         // <script> tag: use the global `breeze` object
         factory(breeze);
     }
-}(function(breeze, exports) {
+}(function(breeze) {
     var core = breeze.core;
     
     var jQuery;

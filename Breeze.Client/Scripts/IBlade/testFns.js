@@ -1,21 +1,11 @@
 ﻿
-//requirejs.config({
-//    shim: {
-//        'breeze.ajax.jQuery': ['breeze'],
-//        'breeze.entityTracking.ko': ['breeze'],
-//        'breeze.entityTracking.backbone': ['breeze'],
-//        'breeze.entityTracking.backingStore': ['breeze'],
-//        'breeze.remoteAccess.webApi': ['breeze', 'breeze.ajax.jQuery'],
-//        'breeze.remoteAccess.odata': ['breeze']
-//    }
-//});
-
 // Uncomment these lines to run against base + individual plugins.
 //define(["breeze",
 //        "breeze.ajax.jQuery",
 //        "breeze.entityTracking.ko", "breeze.entityTracking.backbone", "breeze.entityTracking.backingStore",
 //        "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata"
 //    ], function (root) {
+
 // or uncomment this to run directly against source.
 define(["breezeWith"], function (root) {
 

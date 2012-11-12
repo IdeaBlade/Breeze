@@ -1,15 +1,15 @@
 ﻿(function(factory) {
     if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"), exports);
+        factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"]) {
         // AMD anonymous module with hard-coded dependency on "breeze"
-        define(["breeze", "exports"], factory);
+        define(["breeze"], factory);
     } else {
         // <script> tag: use the global `breeze` object
         factory(breeze);
-    }
-}(function(breeze, exports) {
+    }    
+}(function(breeze) {
     var entityModel = breeze.entityModel;
     var core = breeze.core;
 
