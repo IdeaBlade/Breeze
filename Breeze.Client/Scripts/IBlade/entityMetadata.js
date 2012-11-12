@@ -9,6 +9,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
+    var v_entityTrackingDef = core.config.interfaceRegistry.entityTracking;
+    var v_remoteAccessDef = core.config.interfaceRegistry.remoteAccess;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
@@ -443,7 +445,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
             remoteAccessImplementation = assertParam(remoteAccessImplementation, "remoteAccessImplementation")
-                .isOptional().hasProperty("fetchMetadata").check(core.config.remoteAccessImplementation);
+                .isOptional().hasProperty("fetchMetadata").check(v_remoteAccessDef.defaultImplementation);
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
@@ -1146,7 +1148,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = core.config.entityTrackingImplementation.createCtor;
+                var createCtor = v_entityTrackingDef.defaultImplementation.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -1174,7 +1176,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            core.config.entityTrackingImplementation.initializeEntityPrototype(proto);
+            v_entityTrackingDef.defaultImplementation.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -1437,7 +1439,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = core.config.entityTrackingImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_entityTrackingDef.defaultImplementation.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({

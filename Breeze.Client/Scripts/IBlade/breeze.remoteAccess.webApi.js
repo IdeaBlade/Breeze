@@ -15,23 +15,28 @@
 
     var EntityType = entityModel.EntityType;
 
-    var ajax;
+    
     var ajaxImpl;
     
     var ctor = function () {
         this.name = "webApi";
     };
 
-    ctor.prototype.dependencies = ["ajax"];
+    ctor.prototype.checkForRecomposition = function (interfaceInitializedArgs) {
+        if (interfaceInitializedArgs.interfaceName === "ajax" && interfaceInitializedArgs.isDefault) {
+            this.initialize();
+        }
+    };
     
     ctor.prototype.initialize = function () {
-        ajaxImpl = core.config.ajaxImplementation;
+        ajaxImpl = core.config.getDefaultImplementation("ajax");
 
         if (!ajaxImpl) {
             throw new Error("Unable to initialize ajax for WebApi.");
         }
 
-        ajax = ajaxImpl.ajax;
+        // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of brower support issues. 
+        var ajax = ajaxImpl.ajax;
         if (!ajax) {
             throw new Error("Breeze was unable to find an 'ajaxImplementation'");
         }

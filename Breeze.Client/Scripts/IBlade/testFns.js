@@ -57,7 +57,7 @@ define(["breezeWith"], function (root) {
         testFns.trackingOption = trackingOption;
         testFns.message += testFns.message += "entityTracking: " + trackingOption + ",  ";
         core.config.initializeInterface("entityTracking", trackingOption);
-        testFns.entityTracking = core.config.entityTrackingImplementation;
+        testFns.entityTracking = core.config.getDefaultImplementation("entityTracking");
     };
 
     var models = {};
@@ -149,7 +149,8 @@ define(["breezeWith"], function (root) {
                     newAjaxCtor.prototype = new oldAjaxCtor();
                     core.config.registerInterface("ajax", newAjaxCtor, true);
                 } else {
-                    core.config.ajaxImplementation.defaultSettings = {
+                    var ajaxImpl = core.config.getDefaultImplementation("ajax");
+                    ajaxImpl.defaultSettings = {
                         headers: { "X-Test-Header": "foo2" },
                         beforeSend: function(jqXHR, settings) {
                             jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo2");

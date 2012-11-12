@@ -14,19 +14,30 @@ function (core, Enum, Event, m_assertParam) {
     core.config = coreConfig;
     coreConfig.functionRegistry = { };
     coreConfig.typeRegistry = { };
-    coreConfig.objectRegistry = { };
-    coreConfig._interfaceRegistry = {
-        ajax: { },
-        entityTracking: { },
-        remoteAccess: { },
+    coreConfig.objectRegistry = {};
+    coreConfig.interfaceInitialized = new Event("interfaceInitialized_core", coreConfig);
+    
+    var InterfaceDef = function(name) {
+        this.name = name;
+        
+        this.defaultImplementation = null;
+        this.dependents = [];
+        this._ctorMap = {};
     };
-
-    coreConfig._dependencyMap = {
-        ajax: [],
-        entityTracking: [],
-        remoteAccess: []
+    InterfaceDef.prototype.registerCtor = function(implementationName, ctor) {
+        this._ctorMap[implementationName.toLowerCase()] = ctor;
+    };
+    InterfaceDef.prototype.getCtor = function(implementationName) {
+        return this._ctorMap[implementationName.toLowerCase()];
+    };
+    
+    coreConfig.interfaceRegistry = {
+        ajax: new InterfaceDef("ajax"),
+        entityTracking: new InterfaceDef("entityTracking"),
+        remoteAccess: new InterfaceDef("remoteAccess")
     };
    
+    
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
       
@@ -129,11 +140,11 @@ function (core, Enum, Event, m_assertParam) {
         if (!implName) {
             throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerInterface' call.");
         }
-        var kv = getInterfaceKeyValue(interfaceName);
-        kv.value[implName.toLowerCase()] = implementationCtor;
+        var idef = getInterfaceDef(interfaceName);
+        idef.registerCtor(implName, implementationCtor);
 
         if (shouldInitialize === true) {
-            initializeInterfaceCore(interfaceName, implementationCtor);
+            initializeInterfaceCore(idef, implementationCtor);
         }
     };
 
@@ -146,71 +157,74 @@ function (core, Enum, Event, m_assertParam) {
         
     };
 
-    coreConfig.initializeInterface = function (interfaceName, implementationName) {
+    coreConfig.initializeInterface = function (interfaceName, implementationName, isDefault) {
+        isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationName, "implementationName").isNonEmptyString();
-        var kv = getInterfaceKeyValue(interfaceName);
-        var implementationCtor = kv.value[implementationName.toLowerCase()];
+        assertParam(isDefault, "isDefault").isBoolean();
+        
+        var idef = getInterfaceDef(interfaceName);
+        var implementationCtor = idef.getCtor(implementationName);
         if (!implementationCtor) {
             throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
         }
 
-        return initializeInterfaceCore(interfaceName, implementationCtor);
+        return initializeInterfaceCore(idef, implementationCtor, isDefault);
     };
     
     coreConfig.getInterface = function (interfaceName, implementationName) {
-        var kv = getInterfaceKeyValue(interfaceName);
+        var idef = getInterfaceDef(interfaceName);
         if (implementationName) {
-            return kv.value[implementationName.toLowerCase()];
+            return idef.getCtor(implementationName);
         } else {
-            return coreConfig[getImplName(kv.key)]._$ctor;
+            return idef.defaultImplementation._$ctor;
         }
     };
 
-    coreConfig.getCurrentImplementation = function(interfaceName) {
-        var kv = getInterfaceKeyValue(interfaceName);
-        return coreConfig[getImplName(kv.key)];
+    coreConfig.getDefaultImplementation = function(interfaceName) {
+        var idef = getInterfaceDef(interfaceName);
+        return idef.defaultImplementation;
     };
     
-    function initializeInterfaceCore(interfaceName, implementationCtor) {
+    function initializeInterfaceCore(interfaceDef, implementationCtor, isDefault) {
+        var defaultImpl = interfaceDef.defaultImplementation;
+        if (defaultImpl && defaultImpl._$ctor === implementationCtor) {
+            defaultImpl.initialize();
+            return defaultImpl;
+        }
         var implementation = new implementationCtor();
-        implementation._$ctor = implementationCtor;
+        implementation._$interfaceDef = interfaceDef;
+        implementation._$ctor = implementationCtor;     
         implementation.initialize();
-        var depIfaces = implementation.dependencies;
-        // register deps
-        if (depIfaces) {
-            depIfaces.forEach(function (ifaceName) {
-                coreConfig._dependencyMap[ifaceName].push({ interfaceName: interfaceName, implementationName: implementation.name.toLowerCase() });
+        
+        if (isDefault) {
+            // next line needs to occur before any recomposition 
+            interfaceDef.defaultImplementation = implementation;
+        }
+
+        // recomposition of other impls will occur here.
+        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, implementation: implementation, isDefault: true });
+        
+        if (implementation.checkForRecomposition) {
+            // now register for own dependencies.
+            coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+                implementation.checkForRecomposition(interfaceInitializedArgs);
             });
         }
-        // this needs to occur before any recomposition - further below.
-        coreConfig[getImplName(interfaceName)] = implementation;
-        // recompose (reinitialize) if necessary
-        coreConfig._dependencyMap[interfaceName].forEach(function (dep) {
-            var currentImpl = coreConfig.getCurrentImplementation(dep.interfaceName);
-            if (currentImpl.name.toLowerCase() === dep.implementationName) {
-                // reinitialize ( recompose) if currentImpl is dependent on this interface
-                currentImpl.initialize();
-            }
-        });
-        
+               
         return implementation;
     }
 
-    function getInterfaceKeyValue(interfaceName) {
+    function getInterfaceDef(interfaceName) {
         var lcName = interfaceName.toLowerCase();
         // source may be null
-        var kv = core.objectFirst(coreConfig._interfaceRegistry || {}, function (k, v) {
+        var kv = core.objectFirst(coreConfig.interfaceRegistry || {}, function (k, v) {
             return k.toLowerCase() === lcName;
         });
         if (!kv) {
             throw new Error("Unknown interface name: " + interfaceName);
         }
-        return kv;
-    }
-    
-    function getImplName(interfaceName) {
-        return interfaceName + "Implementation";
+        return kv.value;
     }
    
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
