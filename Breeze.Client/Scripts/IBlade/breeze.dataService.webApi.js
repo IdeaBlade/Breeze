@@ -29,7 +29,7 @@
     };
     
     ctor.prototype.initialize = function () {
-        ajaxImpl = core.config.getDefaultImplementation("ajax");
+        ajaxImpl = core.config.getDefaultAdapterInstance("ajax");
 
         if (!ajaxImpl) {
             throw new Error("Unable to initialize ajax for WebApi.");
@@ -199,6 +199,6 @@
         return err;
     }
     
-    core.config.registerInterface("remoteAccess", ctor, false);
+    core.config.registerAdapter("dataService", ctor);
 
 }));

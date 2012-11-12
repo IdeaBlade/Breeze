@@ -30,11 +30,14 @@ function (core, Enum, Event, m_assertParam) {
     InterfaceDef.prototype.getCtor = function(implementationName) {
         return this._ctorMap[implementationName.toLowerCase()];
     };
+    InterfaceDef.prototype.getFirstCtor = function() {
+
+    };
     
     coreConfig.interfaceRegistry = {
         ajax: new InterfaceDef("ajax"),
-        entityTracking: new InterfaceDef("entityTracking"),
-        remoteAccess: new InterfaceDef("remoteAccess")
+        modelLibrary: new InterfaceDef("modelLibrary"),
+        dataService: new InterfaceDef("dataService")
     };
    
     
@@ -44,69 +47,17 @@ function (core, Enum, Event, m_assertParam) {
     /**
     A singleton object that is the repository of all entityModel specific configuration options.
 
-        core.config.setProperties( {
-            trackingImplemenation: entityModel.entityTracking_ko,
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
+        core.config.initializeAdapterInstance( {
+            modelLibrary: "ko",
+            dataService: "webApi"
         });
         
     @class config
     **/
     
-    /**        
-    The implementation currently in use for tracking entities
-    @example
-        var name = entityModel.trackingImplementation.name;
-    There are currently two implementations of this interface.
-    @example
-        // For knockout.js
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_ko 
-        });
-    or
-    @example
-        // Generic js implementation of observability
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_backingStore
-        });
-        
-    @property trackingImplementation {~entityTracking-interface}
-    **/
-
-    /**        
-    The implementation currently in use for communicating with a remote server and service.
-    @example
-        var name = entityModel.remoteAccessImplementation.name;
-    There are currently two implementations of this interface.
-    Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
-        });
-    or an implementation of the remoteAccess interface that supports OData services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_odata
-        });    
-    @property remoteAccessImplementation {~remoteAccess-interface}
-    **/
-    
-    /**        
-    The implementation currently in use for all ajax requests
-    @example
-        var name = entityModel.ajaxImplementation.name;
-    You can either extend the current implementation or replace it entirely.
-    
-    @example
-        var myAjaxImplementation = ...
-        core.config.setProperties( {
-            ajaxImplementation: myAjaxImplementation;
-        });
-    
-    @property ajaxImplementation {ajax-interface}
-    **/
-
     /**
     @method setProperties
+    @obsolete
     @param config {Object}
         @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
@@ -119,45 +70,50 @@ function (core, Enum, Event, m_assertParam) {
             .whereParam("ajaxImplementation").isOptional()
             .applyAll(coreConfig);
         if (config.remoteAccessImplementation) {
-            coreConfig.initializeInterface("remoteAccess", config.remoteAccessImplementation);
+            coreConfig.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
             // note the name change
-            coreConfig.initializeInterface("entityTracking", config.trackingImplementation);
+            coreConfig.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
         }
         if (config.ajaxImplementation) {
-            coreConfig.initializeInterface("ajax", config.ajaxImplementation);
+            coreConfig.initializeAdapterInstance("ajax", config.ajaxImplementation);
         }
     };
     
-    coreConfig.registerInterface = function (interfaceName, implementationCtor, shouldInitialize) {
+    coreConfig.registerAdapter = function (interfaceName, implementationCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationCtor, "implementationCtor").isFunction();
-        assertParam(shouldInitialize, "shouldInitialize").isBoolean();
         // this impl will be thrown away after the name is retrieved.
         var impl = new implementationCtor();
         var implName = impl.name;
         if (!implName) {
-            throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerInterface' call.");
+            throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerAdapter' call.");
         }
         var idef = getInterfaceDef(interfaceName);
         idef.registerCtor(implName, implementationCtor);
-
-        if (shouldInitialize === true) {
-            initializeInterfaceCore(idef, implementationCtor);
+        
+    };
+    
+    coreConfig.getAdapter = function (interfaceName, implementationName) {
+        var idef = getInterfaceDef(interfaceName);
+        if (implementationName) {
+            return idef.getCtor(implementationName);
+        } else {
+            return idef.defaultImplementation._$ctor;
         }
     };
 
-    coreConfig.initializeInterfaces = function(config) {
+    coreConfig.initializeAdapterInstances = function(config) {
         assertConfig(config)
-            .whereParam("remoteAccess").isOptional()
-            .whereParam("entityTracking").isOptional()
+            .whereParam("dataService").isOptional()
+            .whereParam("modelLibrary").isOptional()
             .whereParam("ajax").isOptional();
-        return core.objectMapToArray(config, coreConfig.initializeInterface);
+        return core.objectMapToArray(config, coreConfig.initializeAdapterInstance);
         
     };
 
-    coreConfig.initializeInterface = function (interfaceName, implementationName, isDefault) {
+    coreConfig.initializeAdapterInstance = function (interfaceName, implementationName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(implementationName, "implementationName").isNonEmptyString();
@@ -169,24 +125,19 @@ function (core, Enum, Event, m_assertParam) {
             throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
         }
 
-        return initializeInterfaceCore(idef, implementationCtor, isDefault);
-    };
-    
-    coreConfig.getInterface = function (interfaceName, implementationName) {
-        var idef = getInterfaceDef(interfaceName);
-        if (implementationName) {
-            return idef.getCtor(implementationName);
-        } else {
-            return idef.defaultImplementation._$ctor;
-        }
+        return initializeAdapterInstanceCore(idef, implementationCtor, isDefault);
     };
 
-    coreConfig.getDefaultImplementation = function(interfaceName) {
+    coreConfig.getDefaultAdapterInstance = function(interfaceName) {
         var idef = getInterfaceDef(interfaceName);
+        var defaultImpl = idef.defaultImplementation;
+        if (!defaultImpl) {
+            
+        }
         return idef.defaultImplementation;
     };
     
-    function initializeInterfaceCore(interfaceDef, implementationCtor, isDefault) {
+    function initializeAdapterInstanceCore(interfaceDef, implementationCtor, isDefault) {
         var defaultImpl = interfaceDef.defaultImplementation;
         if (defaultImpl && defaultImpl._$ctor === implementationCtor) {
             defaultImpl.initialize();

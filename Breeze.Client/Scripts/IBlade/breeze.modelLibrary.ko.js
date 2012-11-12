@@ -151,6 +151,6 @@
 
     };
 
-    core.config.registerInterface("entityTracking", ctor, false);
+    core.config.registerAdapter("modelLibrary", ctor);
     
 }));

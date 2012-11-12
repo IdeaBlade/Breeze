@@ -78,28 +78,28 @@
       <Link>Scripts\IBlade\breeze.ajax.jQuery.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.backbone.js">
-      <Link>Scripts\IBlade\breeze.entityTracking.backbone.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.dataService.odata.js">
+      <Link>Scripts\IBlade\breeze.dataService.odata.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.backingStore.js">
-      <Link>Scripts\IBlade\breeze.entityTracking.backingStore.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.entityTracking.ko.js">
-      <Link>Scripts\IBlade\breeze.entityTracking.ko.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.dataService.webApi.js">
+      <Link>Scripts\IBlade\breeze.dataService.webApi.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.js">
       <Link>Scripts\IBlade\breeze.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.remoteAccess.odata.js">
-      <Link>Scripts\IBlade\breeze.remoteAccess.odata.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.backbone.js">
+      <Link>Scripts\IBlade\breeze.modelLibrary.backbone.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.remoteAccess.webApi.js">
-      <Link>Scripts\IBlade\breeze.remoteAccess.webApi.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.backingStore.js">
+      <Link>Scripts\IBlade\breeze.modelLibrary.backingStore.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.ko.js">
+      <Link>Scripts\IBlade\breeze.modelLibrary.ko.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\breezeWith.js">

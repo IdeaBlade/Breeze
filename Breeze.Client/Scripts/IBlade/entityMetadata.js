@@ -9,8 +9,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
-    var v_entityTrackingDef = core.config.interfaceRegistry.entityTracking;
-    var v_remoteAccessDef = core.config.interfaceRegistry.remoteAccess;
+    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;
+    var v_dataServiceDef = core.config.interfaceRegistry.dataService;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
@@ -428,8 +428,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method fetchMetadata
         @async
         @param serviceName {String}  The service name to fetch metadata for.
-        @param [remoteAccessImplementation] {instance of this RemoteAccessImplementation interface} 
-        - will default to core.config.remoteAccessImplementation
+        @param [dataServiceImplementation] {instance of this dataServiceImplementation interface} 
+        - will default to core.config.dataServiceImplementation
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -442,10 +442,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
+        ctor.prototype.fetchMetadata = function (serviceName, dataServiceImplementation, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
-            remoteAccessImplementation = assertParam(remoteAccessImplementation, "remoteAccessImplementation")
-                .isOptional().hasProperty("fetchMetadata").check(v_remoteAccessDef.defaultImplementation);
+            dataServiceImplementation = assertParam(dataServiceImplementation, "dataServiceImplementation")
+                .isOptional().hasProperty("fetchMetadata").check(v_dataServiceDef.defaultImplementation);
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
@@ -458,7 +458,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             }
 
             var deferred = Q.defer();
-            remoteAccessImplementation.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceImplementation.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
@@ -1148,7 +1148,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = v_entityTrackingDef.defaultImplementation.createCtor;
+                var createCtor = v_modelLibraryDef.defaultImplementation.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -1176,7 +1176,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            v_entityTrackingDef.defaultImplementation.initializeEntityPrototype(proto);
+            v_modelLibraryDef.defaultImplementation.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -1439,7 +1439,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = v_entityTrackingDef.defaultImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_modelLibraryDef.defaultImplementation.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({

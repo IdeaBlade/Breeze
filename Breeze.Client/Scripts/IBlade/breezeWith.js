@@ -2,15 +2,15 @@
 define(["breeze",
         // all these are self registering
         "breeze.ajax.jQuery",
-        "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata",
-        "breeze.entityTracking.backingStore", "breeze.entityTracking.ko", "breeze.entityTracking.backbone"], 
+        "breeze.dataService.webApi", "breeze.dataService.odata",
+        "breeze.modelLibrary.backingStore", "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone"], 
 function(breeze) {
 
     // set defaults
-    breeze.core.config.initializeInterfaces({
+    breeze.core.config.initializeAdapterInstances({
         ajax: "jQuery",
-        entityTracking: "ko",
-        remoteAccess: "webApi"
+        modelLibrary: "ko",
+        dataService: "webApi"
     });
     return breeze;
 });

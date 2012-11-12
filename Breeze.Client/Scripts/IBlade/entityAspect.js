@@ -11,7 +11,7 @@ function (core, Event, m_validate) {
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
-    var v_entityTrackingDef = core.config.interfaceRegistry.entityTracking;   
+    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
 
     var EntityState = (function () {
         /**
@@ -331,7 +331,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            v_entityTrackingDef.defaultImplementation.startTracking(entity, entityCtor.prototype);
+            v_modelLibraryDef.defaultImplementation.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }

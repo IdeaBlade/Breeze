@@ -56,7 +56,7 @@
     <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\yuidoc.json" />
     <Content Include="Scripts\IBlade\build.without.js" />
-    <Content Include="Scripts\IBlade\breeze.entityTracking.backbone.js" />
+    <Content Include="Scripts\IBlade\breeze.modelLibrary.backbone.js" />
     <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\core.js" />
     <Content Include="Scripts\IBlade\coreFns.js" />
@@ -67,14 +67,14 @@
     <Content Include="Scripts\IBlade\entityMetadata.js" />
     <Content Include="Scripts\IBlade\entityModel.js" />
     <Content Include="Scripts\IBlade\entityQuery.js" />
-    <Content Include="Scripts\IBlade\breeze.entityTracking.backingStore.js" />
-    <Content Include="Scripts\IBlade\breeze.entityTracking.ko.js" />
+    <Content Include="Scripts\IBlade\breeze.modelLibrary.backingStore.js" />
+    <Content Include="Scripts\IBlade\breeze.modelLibrary.ko.js" />
     <Content Include="Scripts\IBlade\enum.js" />
     <Content Include="Scripts\IBlade\event.js" />
     <Content Include="Scripts\IBlade\keyGenerator.js" />
     <Content Include="Scripts\IBlade\relationArray.js" />
-    <Content Include="Scripts\IBlade\breeze.remoteAccess.odata.js" />
-    <Content Include="Scripts\IBlade\breeze.remoteAccess.webApi.js" />
+    <Content Include="Scripts\IBlade\breeze.dataService.odata.js" />
+    <Content Include="Scripts\IBlade\breeze.dataService.webApi.js" />
     <Content Include="Scripts\IBlade\breeze.js" />
     <Content Include="Scripts\IBlade\testFns.js" />
     <Content Include="Scripts\IBlade\validate.js" />

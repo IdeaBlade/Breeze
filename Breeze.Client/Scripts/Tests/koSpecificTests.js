@@ -24,7 +24,7 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    if (testFns.trackingOption !== "ko") {
+    if (testFns.modelLibrary !== "ko") {
         test("Skipping KO specific tests", function () {
             ok(false, "Skipped tests - ok to fail");
         });

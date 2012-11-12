@@ -80,7 +80,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
         @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
-        @param [config.remoteAccessImplementation] {instance of RemoteAccessImplementation interface}
+        @param [config.dataServiceImplementation] {instance of dataServiceImplementation interface}
         **/
         var ctor = function (config) {
             // // not allowed with useStrict
@@ -112,7 +112,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
                 //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
-                .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.getDefaultImplementation("remoteAccess"))
+                .whereParam("dataServiceImplementation").withDefault(core.parent.core.config.getDefaultAdapterInstance("dataService"))
                 .applyAll(this);
 
             if (this.serviceName.substr(-1) !== "/") {
@@ -176,10 +176,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
 
         /**
-        The RemoteAccess implementation instance associated with this EntityManager.
+        The dataService implementation instance associated with this EntityManager.
 
         __readOnly__
-        @property remoteAccessImplementation {implementation instance of remoteAccessImplementation interface}
+        @property dataServiceImplementation {implementation instance of dataServiceImplementation interface}
         **/
        
         // events
@@ -381,7 +381,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.queryOptions] {QueryOptions}
             @param [config.saveOptions] {SaveOptions}
             @param [config.validationOptions] {ValidationOptions}
-            @param [config.remoteAccessImplementation] 
+            @param [config.dataServiceImplementation] 
             @param [config.keyGeneratorCtor] {Function}
         **/
         ctor.prototype.setProperties = function (config) {
@@ -390,7 +390,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-                .whereParam("remoteAccessImplementation")
+                .whereParam("dataServiceImplementation")
                 .whereParam("keyGeneratorCtor")
                 .applyAll(this);
             if (config.keyGeneratorCtor) {
@@ -413,7 +413,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 serviceName: this.serviceName,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                remoteAccessImplementation: this.remoteAccessImplementation,
+                dataServiceImplementation: this.dataServiceImplementation,
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -556,7 +556,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
-            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.remoteAccessImplementation);
+            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.dataServiceImplementation);
 
             // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
             // TEST::: see if serialization actually works completely
@@ -816,7 +816,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
-            this.remoteAccessImplementation.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+            this.dataServiceImplementation.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
@@ -1492,7 +1492,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceImplementation.executeQuery(em, odataQuery, function (rawEntities) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -1544,13 +1544,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
             // null and undefined have different meaning - null means a ref entity that cannot be resolved - usually an odata __deferred value
             // undefined means that this is not a ref entity.
-            targetEntity = em.remoteAccessImplementation.resolveRefEntity(rawEntity, queryContext);
+            targetEntity = em.dataServiceImplementation.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
                 return targetEntity;
             }
 
             
-            var entityType =em.remoteAccessImplementation.getEntityType(rawEntity, em.metadataStore);
+            var entityType =em.dataServiceImplementation.getEntityType(rawEntity, em.metadataStore);
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
@@ -1588,7 +1588,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             } else {
                 targetEntity = entityType._createEntity(true);
                 if (targetEntity.initializeFrom) {
-                    // allows any injected post ctor activity to be performed by entityTracking impl.
+                    // allows any injected post ctor activity to be performed by modelLibrary impl.
                     targetEntity.initializeFrom(rawEntity);
                 }
                 updateEntity(targetEntity, rawEntity, queryContext);
@@ -1641,7 +1641,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
+                            return em.dataServiceImplementation.resolveRefEntity(v, queryContext);
                         } else {
                             return v;
                         }
@@ -1650,7 +1650,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.dataServiceImplementation.resolveRefEntity(value, queryContext);
                     } else {
                         result[newKey] = value;
                     }
@@ -1694,7 +1694,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntity);
+            var deferred = queryContext.entityManager.dataServiceImplementation.getDeferredValue(relatedRawEntity);
             if (deferred) {
                 return;
             }
@@ -1737,7 +1737,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntities);
+            var deferred = queryContext.entityManager.dataServiceImplementation.getDeferredValue(relatedRawEntities);
             if (deferred) {
                 return;
             }

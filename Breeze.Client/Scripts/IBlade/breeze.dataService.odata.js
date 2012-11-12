@@ -132,6 +132,6 @@
         return err;
     }
 
-    core.config.registerInterface("remoteAccess", ctor, false);
+    core.config.registerAdapter("dataService", ctor);
 
 }));

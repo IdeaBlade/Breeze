@@ -36,7 +36,7 @@ define(["testFns"], function (testFns) {
     }
 
     test("class watcher - inherited - backbone", function() {
-        if (testFns.trackingOption !== 'backbone') {
+        if (testFns.modelLibrary !== 'backbone') {
             ok(false, "Skipped tests - ok to fail - Backbone specific");
             return;
         }
@@ -105,7 +105,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("class watcher - inherited - not backbone", function () {
-        if (testFns.trackingOption === 'backbone') {
+        if (testFns.modelLibrary === 'backbone') {
             ok(false, "Skipped tests - ok to fail - Not for Backbone");
             return;
         }

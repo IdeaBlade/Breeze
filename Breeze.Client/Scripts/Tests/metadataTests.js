@@ -39,8 +39,8 @@ define(["testFns"], function (testFns) {
 
         var store = new MetadataStore({ namingConvention: NamingConvention.none } );
         stop();
-        var remoteAccess = core.config.getDefaultImplementation("remoteAccess");
-        remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
+        var dataService = core.config.getDefaultAdapterInstance("dataService");
+        dataService.fetchMetadata(store, testFns.ServiceName, function () {
 
             var typeMap = store._entityTypeMap;
             var types = objectValues(typeMap);
@@ -83,13 +83,13 @@ define(["testFns"], function (testFns) {
             ok(false, e);
             sc.start();
         };
-        var remoteAccess = core.config.getDefaultImplementation("remoteAccess");
-        remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
+        var dataService = core.config.getDefaultAdapterInstance("dataService");
+        dataService.fetchMetadata(store, testFns.ServiceName, function () {
             typeMap = store._entityTypeMap;
             ok(true, "should get here");
             sc.start();
         }, errFn);
-        remoteAccess.fetchMetadata(store, testFns.ServiceName, function () {
+        dataService.fetchMetadata(store, testFns.ServiceName, function () {
             typeMap = store._entityTypeMap;
             ok(true, "should also get here");
             sc.start();

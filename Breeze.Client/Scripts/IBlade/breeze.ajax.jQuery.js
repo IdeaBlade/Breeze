@@ -45,6 +45,6 @@
 
     
     // last param is true because for now we only have one impl.
-    breeze.core.config.registerInterface("ajax", ctor, true);
+    breeze.core.config.registerAdapter("ajax", ctor);
     
 }));

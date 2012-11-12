@@ -2,8 +2,8 @@
 // Uncomment these lines to run against base + individual plugins.
 //define(["breeze",
 //        "breeze.ajax.jQuery",
-//        "breeze.entityTracking.ko", "breeze.entityTracking.backbone", "breeze.entityTracking.backingStore",
-//        "breeze.remoteAccess.webApi", "breeze.remoteAccess.odata"
+//        "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone", "breeze.modelLibrary.backingStore",
+//        "breeze.dataService.webApi", "breeze.dataService.odata"
 //    ], function (root) {
 
 // or uncomment this to run directly against source.
@@ -22,7 +22,7 @@ define(["breezeWith"], function (root) {
     testFns.message = "";
 
     testFns.configure = function () {
-        var trackingOption = window.localStorage.getItem("trackingOption");
+        var modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
 
         var oldNext = !!window.localStorage.getItem("qunit.next");
         var curNext = !!QUnit.config.next;
@@ -34,31 +34,30 @@ define(["breezeWith"], function (root) {
         var doNext = oldNext != curNext;
         
         if (doNext) {
-            if (trackingOption == null || trackingOption === "ko") {
-                trackingOption = "backbone";
-            } else if (trackingOption === "backbone") {
-                trackingOption = "backingStore";
+            if (modelLibrary == null || modelLibrary === "ko") {
+                modelLibrary = "backbone";
+            } else if (modelLibrary === "backbone") {
+                modelLibrary = "backingStore";
             } else {
-                trackingOption = "ko";
+                modelLibrary = "ko";
             }
         }
         
-        window.localStorage.setItem("trackingOption", trackingOption);
-        testFns.trackingOption = trackingOption;
-        testFns.message += testFns.message += "entityTracking: " + trackingOption + ",  ";
-        core.config.initializeInterface("entityTracking", trackingOption);
-        testFns.entityTracking = core.config.getDefaultImplementation("entityTracking");
+        window.localStorage.setItem("modelLibrary", modelLibrary);
+        core.config.initializeAdapterInstance("modelLibrary", modelLibrary);
+        testFns.message += "modelLibrary: " + modelLibrary + ",  ";
+        testFns.modelLibrary = core.config.getDefaultAdapterInstance("modelLibrary").name;
     };
 
     var models = {};
     testFns.models = models;
 
     models.Customer = function() {
-        if (testFns.trackingOption == "ko") {
+        if (testFns.modelLibrary == "ko") {
             return function() {
                 this.companyName = ko.observable(null);
             };
-        } else if (testFns.trackingOption == "backbone") {
+        } else if (testFns.modelLibrary == "backbone") {
             return Backbone.Model.extend({
                 defaults: {
                     companyName: null
@@ -72,11 +71,11 @@ define(["breezeWith"], function (root) {
     };
     
     models.CustomerWithMiscData = function () {
-        if (testFns.trackingOption == "ko") {
+        if (testFns.modelLibrary == "ko") {
             return function() {
                 this.miscData = ko.observable("asdf");
             };
-        } else if (testFns.trackingOption == "backbone") {
+        } else if (testFns.modelLibrary == "backbone") {
             return Backbone.Model.extend({
                 defaults: {
                     miscData: "asdf"
@@ -96,12 +95,12 @@ define(["breezeWith"], function (root) {
             ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
             entity.setProperty("isObsolete", true);
         };
-        if (testFns.trackingOption == "ko") {
+        if (testFns.modelLibrary == "ko") {
             return function() {
                 this.isObsolete = ko.observable(false);
                 this.init = init;
             };
-        } else if (testFns.trackingOption == "backbone") {
+        } else if (testFns.modelLibrary == "backbone") {
             return Backbone.Model.extend({
                 defaults: {
                     isObsolete: false,
@@ -123,10 +122,10 @@ define(["breezeWith"], function (root) {
 
         if (name === "DEBUG_WEBAPI") {
             if (testFns.DEBUG_WEBAPI) {
-                testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "webApi");
+                testFns.dataService = core.config.initializeAdapterInstance("dataService", "webApi").name;
                 
                 if (testFns.TEST_RECOMPOSITION) {
-                    var oldAjaxCtor = core.config.getInterface("ajax");
+                    var oldAjaxCtor = core.config.getAdapter("ajax");
                     var newAjaxCtor = function() {
                         this.name = "newAjax";
                         this.defaultSettings = {
@@ -137,9 +136,10 @@ define(["breezeWith"], function (root) {
                         };
                     };
                     newAjaxCtor.prototype = new oldAjaxCtor();
-                    core.config.registerInterface("ajax", newAjaxCtor, true);
+                    core.config.registerAdapter("ajax", newAjaxCtor);
+                    core.config.initializeAdapterInstance("ajax", "newAjax", true);
                 } else {
-                    var ajaxImpl = core.config.getDefaultImplementation("ajax");
+                    var ajaxImpl = core.config.getDefaultAdapterInstance("ajax");
                     ajaxImpl.defaultSettings = {
                         headers: { "X-Test-Header": "foo2" },
                         beforeSend: function(jqXHR, settings) {
@@ -149,11 +149,11 @@ define(["breezeWith"], function (root) {
                 }
                 // test recomposition
                 testFns.ServiceName = "api/NorthwindIBModel";
-                testFns.message += "remoteAccess: webApi, ";
+                testFns.message += "dataService: webApi, ";
             } else {
-                testFns.remoteAccess = core.config.initializeInterface("remoteAccess", "OData");
+                testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData");
                 testFns.ServiceName = "http://localhost:9009/ODataService.svc";
-                testFns.message += "remoteAccess: odataApi, ";
+                testFns.message += "dataService: odataApi, ";
             }
 
         }
