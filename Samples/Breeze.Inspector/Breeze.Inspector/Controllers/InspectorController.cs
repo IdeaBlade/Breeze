@@ -1,4 +1,4 @@
-﻿namespace Breeze.Inspector.Controllers {
+namespace Breeze.Inspector.Controllers {
     using System.Linq;
     using System.Web.Http;
     using WebApi;
@@ -10,27 +10,27 @@
         readonly EFContextProvider<InspectorContext> _contextProvider = 
             new EFContextProvider<InspectorContext>();
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata() {
             return _contextProvider.Metadata();
         }
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<Inspector> Inspectors() {
             return _contextProvider.Context.Inspectors;
         }
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<InspectionForm> Forms() {
             return _contextProvider.Context.Forms;
         }
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<Job> Jobs() {
             return _contextProvider.Context.Jobs;
         }
 
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle) {
             return _contextProvider.SaveChanges(saveBundle);
         }

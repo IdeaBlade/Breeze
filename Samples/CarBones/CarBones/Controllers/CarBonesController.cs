@@ -13,26 +13,27 @@ namespace CarBones.Controllers
             new EFContextProvider<CarBonesContext>();
 
         // ~/api/CarBones/metadata
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata()
         {
             return _contextProvider.Metadata();
         }
 
         // ~/api/CarBones/SaveChanges
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _contextProvider.SaveChanges(saveBundle);
         }
 
-        [AcceptVerbs("GET")]
+        // ~/api/CarBones/cars
+        [HttpGet]
         public IQueryable<Car> Cars()
         {
             return _contextProvider.Context.Cars;
         }
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<Option> Options()
         {
             return _contextProvider.Context.Options;

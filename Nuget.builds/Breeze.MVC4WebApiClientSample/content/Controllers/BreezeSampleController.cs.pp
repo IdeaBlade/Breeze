@@ -13,17 +13,17 @@ namespace $rootnamespace$.Controllers {
         readonly EFContextProvider<BreezeSampleContext> _contextProvider =
             new EFContextProvider<BreezeSampleContext>();
 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata() {
             return _contextProvider.Metadata();
         }
         
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle) {
             return _contextProvider.SaveChanges(saveBundle);
         }
         
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<BreezeSampleTodoItem> Todos() {
             return _contextProvider.Context.Todos;
         }

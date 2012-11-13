@@ -16,20 +16,20 @@
         }
 
         // GET ~/api/BreezeTodo/Metadata 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata() {
             return _context.Metadata();
         }
 
         // POST ~/api/BreezeTodo/SaveChanges
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _context.SaveChanges(saveBundle);
         }
 
         // GET ~/api/BreezeTodo/TodoList
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<TodoList> TodoLists() {
             return _context.TodoLists
                 //.Include("Todos")// do it client-side
