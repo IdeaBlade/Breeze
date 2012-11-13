@@ -29,7 +29,7 @@
     };
     
     ctor.prototype.initialize = function () {
-        ajaxImpl = core.config.getDefaultAdapterInstance("ajax");
+        ajaxImpl = core.config.getAdapterInstance("ajax");
 
         if (!ajaxImpl) {
             throw new Error("Unable to initialize ajax for WebApi.");
@@ -38,7 +38,7 @@
         // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of brower support issues. 
         var ajax = ajaxImpl.ajax;
         if (!ajax) {
-            throw new Error("Breeze was unable to find an 'ajaxImplementation'");
+            throw new Error("Breeze was unable to find an 'ajax' adapter");
         }
     };
 

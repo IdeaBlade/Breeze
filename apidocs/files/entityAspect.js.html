@@ -224,6 +224,8 @@ function (core, Event, m_validate) {
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
+    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
+
     var EntityState = (function () {
         &#x2F;**
         EntityState is an &#x27;Enum&#x27; containing all of the valid states for an &#x27;Entity&#x27;.
@@ -542,7 +544,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }

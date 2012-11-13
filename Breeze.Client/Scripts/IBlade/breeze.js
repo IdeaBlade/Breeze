@@ -1,7 +1,7 @@
 ﻿define(["core", "entityModel"],
 function (core, entityModel) {
     var root = {
-        version: "0.66.1",
+        version: "0.70.1",
         core: core,
         entityModel: entityModel
     };

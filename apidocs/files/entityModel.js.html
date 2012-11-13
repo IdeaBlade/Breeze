@@ -211,14 +211,10 @@
 
 <div class="file">
     <pre class="code prettyprint linenums">
-﻿define([&quot;core&quot;, &quot;entityAspect&quot;, &quot;entityMetadata&quot;, &quot;entityManager&quot;, &quot;entityQuery&quot;, &quot;validate&quot;, &quot;keyGenerator&quot;,
-        &quot;remoteAccess_webApi&quot;, &quot;remoteAccess_odata&quot;,
-        &quot;entityTracking_backingStore&quot;, &quot;entityTracking_ko&quot;, &quot;entityTracking_backbone&quot;],
-function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
-          m_remoteAccess_webApi, m_remoteAccess_odata,
-          m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
+﻿define([&quot;core&quot;, &quot;entityAspect&quot;, &quot;entityMetadata&quot;, &quot;entityManager&quot;, &quot;entityQuery&quot;, &quot;validate&quot;, &quot;relationArray&quot;, &quot;keyGenerator&quot;],
+function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
+          
     &quot;use strict&quot;;
-    
 
     var entityModel = { };
 
@@ -228,27 +224,21 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
     core.extend(entityModel, m_entityQuery);
     core.extend(entityModel, m_validate);
 
+    entityModel.makeRelationArray = makeRelationArray;
     entityModel.KeyGenerator = KeyGenerator;
 
-    entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
-    entityModel.entityTracking_ko = m_entityTracking_ko;
-    entityModel.entityTracking_backbone = m_entityTracking_backbone;
-
-    entityModel.remoteAccess_odata = m_remoteAccess_odata;
-    entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
+    &#x2F;&#x2F; legacy properties - will not be supported after 3&#x2F;1&#x2F;2013
+    entityModel.entityTracking_backingStore = &quot;backingStore&quot;;
+    entityModel.entityTracking_ko = &quot;ko&quot;;
+    entityModel.entityTracking_backbone = &quot;backbone&quot;;
+    entityModel.remoteAccess_odata = &quot;odata&quot;;
+    entityModel.remoteAccess_webApi = &quot;webApi&quot;;
     
     &#x2F;**
     The entityModel namespace.
     @module entityModel
     @main entityModel
     **&#x2F;
-    
-
-    &#x2F;&#x2F; set defaults
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_backingStore,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
 
     return entityModel;
 

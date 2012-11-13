@@ -213,7 +213,7 @@
     <pre class="code prettyprint linenums">
 ﻿define([&quot;coreFns&quot;, &quot;enum&quot;, &quot;event&quot;, &quot;assertParam&quot;],
 function (core, Enum, Event, m_assertParam) {
-    
+
     &#x2F;**
     Utility types and functions of generally global applicability.
     @module core
@@ -222,10 +222,36 @@ function (core, Enum, Event, m_assertParam) {
     core.Enum = Enum;
     core.Event = Event;
     core.extend(core, m_assertParam);
-    core.config = { };
-    core.config.functionRegistry = { };
-    core.config.typeRegistry = { };
-    core.config.objectRegistry = { };
+
+    var coreConfig = { };
+    core.config = coreConfig;
+    coreConfig.functionRegistry = { };
+    coreConfig.typeRegistry = { };
+    coreConfig.objectRegistry = {};
+    coreConfig.interfaceInitialized = new Event(&quot;interfaceInitialized_core&quot;, coreConfig);
+    
+    var InterfaceDef = function(name) {
+        this.name = name;
+        this.defaultInstance = null;
+        this._implMap = {};
+        
+    };
+    InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
+        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
+    };
+    InterfaceDef.prototype.getImpl = function(adapterName) {
+        return this._implMap[adapterName.toLowerCase()];
+    };
+    InterfaceDef.prototype.getFirstImpl = function() {
+        return core.objectFirst(this._implMap, function(kv) { return true; });
+    };
+    
+    coreConfig.interfaceRegistry = {
+        ajax: new InterfaceDef(&quot;ajax&quot;),
+        modelLibrary: new InterfaceDef(&quot;modelLibrary&quot;),
+        dataService: new InterfaceDef(&quot;dataService&quot;)
+    };
+   
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -233,95 +259,215 @@ function (core, Enum, Event, m_assertParam) {
     &#x2F;**
     A singleton object that is the repository of all entityModel specific configuration options.
 
-        core.config.setProperties( {
-            trackingImplemenation: entityModel.entityTracking_ko,
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
+        core.config.initializeAdapterInstance( {
+            modelLibrary: &quot;ko&quot;,
+            dataService: &quot;webApi&quot;
         });
         
     @class config
     **&#x2F;
     
-    &#x2F;**        
-    The implementation currently in use for tracking entities
-    @example
-        var name = entityModel.trackingImplementation.name;
-    There are currently two implementations of this interface.
-    @example
-        &#x2F;&#x2F; For knockout.js
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_ko 
-        });
-    or
-    @example
-        &#x2F;&#x2F; Generic js implementation of observability
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_backingStore
-        });
-        
-    @property trackingImplementation {~entityTracking-interface}
-    **&#x2F;
-
-    &#x2F;**        
-    The implementation currently in use for communicating with a remote server and service.
-    @example
-        var name = entityModel.remoteAccessImplementation.name;
-    There are currently two implementations of this interface.
-    Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
-        });
-    or an implementation of the remoteAccess interface that supports OData services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_odata
-        });    
-    @property remoteAccessImplementation {~remoteAccess-interface}
-    **&#x2F;
-
     &#x2F;**
+    This method is now OBSOLETE.  Use the &quot;initializeAdapterInstances&quot; to accomplish the same result.
     @method setProperties
+    @obsolete
     @param config {Object}
-        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
-        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
+        @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
+        @param [config.trackingImplementation] { implementation of entityTracking-interface }
+        @param [config.ajaxImplementation] {implementation of ajax-interface }
     **&#x2F;
-    core.config.setProperties = function (config) {
+    coreConfig.setProperties = function (config) {
         assertConfig(config)
             .whereParam(&quot;remoteAccessImplementation&quot;).isOptional()
             .whereParam(&quot;trackingImplementation&quot;).isOptional()
-            .applyAll(core.config);
+            .whereParam(&quot;ajaxImplementation&quot;).isOptional()
+            .applyAll(coreConfig);
         if (config.remoteAccessImplementation) {
-            config.remoteAccessImplementation.initialize();
+            coreConfig.initializeAdapterInstance(&quot;dataService&quot;, config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
-            config.trackingImplementation.initialize();
+            &#x2F;&#x2F; note the name change
+            coreConfig.initializeAdapterInstance(&quot;modelLibrary&quot;, config.trackingImplementation);
+        }
+        if (config.ajaxImplementation) {
+            coreConfig.initializeAdapterInstance(&quot;ajax&quot;, config.ajaxImplementation);
         }
     };
     
+    &#x2F;**
+    Method use to register implementations of standard breeze interfaces.  Calls to this method are usually
+    made as the last step within an adapter implementation. 
+    @method registerAdapter
+    @param interfaceName {String} - one of the following interface names &quot;ajax&quot;, &quot;dataService&quot; or &quot;modelLibrary&quot;
+    @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
+    **&#x2F;
+    coreConfig.registerAdapter = function (interfaceName, adapterCtor) {
+        assertParam(interfaceName, &quot;interfaceName&quot;).isNonEmptyString();
+        assertParam(adapterCtor, &quot;adapterCtor&quot;).isFunction();
+        &#x2F;&#x2F; this impl will be thrown away after the name is retrieved.
+        var impl = new adapterCtor();
+        var implName = impl.name;
+        if (!implName) {
+            throw new Error(&quot;Unable to locate a &#x27;name&#x27; property on the constructor passed into the &#x27;registerAdapter&#x27; call.&quot;);
+        }
+        var idef = getInterfaceDef(interfaceName);
+        idef.registerCtor(implName, adapterCtor);
+        
+    };
+    
+    &#x2F;**
+    Returns the ctor function used to implement a specific interface with a specific adapter name.
+    @method getAdapter
+    @param interfaceName {String} One of the following interface names &quot;ajax&quot;, &quot;dataService&quot; or &quot;modelLibrary&quot;
+    @param [adapterName] {String} The name of any previously registered adapter. If this parameter is omitted then
+    this method returns the &quot;default&quot; adapter for this interface. If there is no default adapter, then a null is returned.
+    @return {Function|null} Returns either a ctor function or null.
+    **&#x2F;
+    coreConfig.getAdapter = function (interfaceName, adapterName) {
+        var idef = getInterfaceDef(interfaceName);
+        if (adapterName) {
+            var impl = idef.getImpl(adapterName);
+            return impl ? impl.ctor : null;
+        } else {
+            return idef.defaultInstance ? idef.defaultInstance._$impl.ctor : null;
+        }
+    };
+
+    &#x2F;**
+    Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.
+    @method initializeAdapterInstances
+    @param config {Object}
+    @param [config.ajax] {String} - the name of a previously registered &quot;ajax&quot; adapter
+    @param [config.dataService] {String} - the name of a previously registered &quot;dataService&quot; adapter
+    @param [config.modelLibrary] {String} - the name of a previously registered &quot;modelLibrary&quot; adapter
+    @return [array of instances]
+    **&#x2F;
+    coreConfig.initializeAdapterInstances = function(config) {
+        assertConfig(config)
+            .whereParam(&quot;dataService&quot;).isOptional()
+            .whereParam(&quot;modelLibrary&quot;).isOptional()
+            .whereParam(&quot;ajax&quot;).isOptional();
+        return core.objectMapToArray(config, coreConfig.initializeAdapterInstance);
+        
+    };
+
+    &#x2F;**
+    Initializes a single adapter implementation. Initialization means either newing a instance of the 
+    specified interface and then calling &quot;initialize&quot; on it or simply calling &quot;initialize&quot; on the instance
+    if it already exists.
+    @method initializeAdapterInstance
+    @param interfaceName {String} The name of the interface to which the adapter to initialize belongs.
+    @param adapterName {String} - The name of a previously registered adapter to initialize.
+    @param [isDefault=true] {Boolean} - Whether to make this the default &quot;adapter&quot; for this interface. 
+    @return {an instance of the specified adapter}
+    **&#x2F;
+    coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
+        isDefault = isDefault === undefined ? true : isDefault;
+        assertParam(interfaceName, &quot;interfaceName&quot;).isNonEmptyString();
+        assertParam(adapterName, &quot;adapterName&quot;).isNonEmptyString();
+        assertParam(isDefault, &quot;isDefault&quot;).isBoolean();
+        
+        var idef = getInterfaceDef(interfaceName);
+        var impl = idef.getImpl(adapterName);
+        if (!impl) {
+            throw new Error(&quot;Unregistered adapter.  Interface: &quot; + interfaceName + &quot; AdapterName: &quot; + adapterName);
+        }
+
+        return initializeAdapterInstanceCore(idef, impl, isDefault);
+    };
+
+    &#x2F;**
+    Returns the adapter instance corresponding to the specified interface and adapter names.
+    @method getAdapterInstance
+    @param interfaceName {String} The name of the interface.
+    @param [adapterName] {String} - The name of a previously registered adapter.  If this parameter is
+    omitted then the default implementation of the specified interface is returned. If there is
+    no defaultInstance of this interface, then the first registered instance of this interface is returned.
+    @return {an instance of the specified adapter}
+    **&#x2F;
+    core.config.getAdapterInstance = function(interfaceName, adapterName) {
+        var idef = getInterfaceDef(interfaceName);
+        var impl;
+        if (adapterName &amp; adapterName !== &quot;&quot;) {
+            impl = idef.getImpl(adapterName);
+            return impl ? impl.defaultInstance : null;
+        } else {
+            if (idef.defaultInstance) {
+                return idef.defaultInstance;
+            } else {
+                impl = idef.getFirstImpl();
+                return impl ? impl.defaultInstance : null;
+            }
+        }
+    };
+
+    
+    function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
+        var instance = impl.defaultInstance;
+        if (!instance) {
+            instance = new (impl.ctor)();
+            impl.defaultInstance = instance;
+            instance._$impl = impl;
+        }
+        
+        instance.initialize();
+        
+        if (isDefault) {
+            &#x2F;&#x2F; next line needs to occur before any recomposition 
+            interfaceDef.defaultInstance = instance;
+        }
+
+        &#x2F;&#x2F; recomposition of other impls will occur here.
+        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
+        
+        if (instance.checkForRecomposition) {
+            &#x2F;&#x2F; now register for own dependencies.
+            coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+                instance.checkForRecomposition(interfaceInitializedArgs);
+            });
+        }
+               
+        return instance;
+    }
+
+    function getInterfaceDef(interfaceName) {
+        var lcName = interfaceName.toLowerCase();
+        &#x2F;&#x2F; source may be null
+        var kv = core.objectFirst(coreConfig.interfaceRegistry || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+        if (!kv) {
+            throw new Error(&quot;Unknown interface name: &quot; + interfaceName);
+        }
+        return kv.value;
+    }
+   
     &#x2F;&#x2F; this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     &#x2F;&#x2F; used to register validators.
-    core.config.registerFunction = function (fn, fnName) {
+    coreConfig.registerFunction = function (fn, fnName) {
         core.assertParam(fn, &quot;fn&quot;).isFunction().check();
         core.assertParam(fnName, &quot;fnName&quot;).isString().check();
         fn.prototype._$fnName = fnName;
-        core.config.functionRegistry[fnName] = fn;
+        coreConfig.functionRegistry[fnName] = fn;
     };
 
-    core.config.registerObject = function(obj, objName) {
+    coreConfig.registerObject = function(obj, objName) {
         core.assertParam(obj, &quot;obj&quot;).isObject().check();
         core.assertParam(objName, &quot;objName&quot;).isString().check();
 
-        core.config.objectRegistry[objName] = obj;
+        coreConfig.objectRegistry[objName] = obj;
     };
   
-    core.config.registerType = function (ctor, typeName) {
+    coreConfig.registerType = function (ctor, typeName) {
         core.assertParam(ctor, &quot;ctor&quot;).isFunction().check();
         core.assertParam(typeName, &quot;typeName&quot;).isString().check();
         ctor.prototype._$typeName = typeName;
-        core.config.typeRegistry[typeName] = ctor;
+        coreConfig.typeRegistry[typeName] = ctor;
     };
+   
+    coreConfig.stringifyPad = &quot;  &quot;;
 
-    core.config.stringifyPad = &quot;  &quot;;
+    
 
     return core;
 });

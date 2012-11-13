@@ -44,9 +44,9 @@ define(["breezeWith"], function (root) {
         }
         
         window.localStorage.setItem("modelLibrary", modelLibrary);
-        core.config.initializeAdapterInstance("modelLibrary", modelLibrary);
+        core.config.initializeAdapterInstance("modelLibrary", modelLibrary, true);
         testFns.message += "modelLibrary: " + modelLibrary + ",  ";
-        testFns.modelLibrary = core.config.getDefaultAdapterInstance("modelLibrary").name;
+        testFns.modelLibrary = core.config.getAdapterInstance("modelLibrary").name;
     };
 
     var models = {};
@@ -139,7 +139,7 @@ define(["breezeWith"], function (root) {
                     core.config.registerAdapter("ajax", newAjaxCtor);
                     core.config.initializeAdapterInstance("ajax", "newAjax", true);
                 } else {
-                    var ajaxImpl = core.config.getDefaultAdapterInstance("ajax");
+                    var ajaxImpl = core.config.getAdapterInstance("ajax");
                     ajaxImpl.defaultSettings = {
                         headers: { "X-Test-Header": "foo2" },
                         beforeSend: function(jqXHR, settings) {

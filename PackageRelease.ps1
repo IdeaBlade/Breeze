@@ -21,7 +21,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
 }
 
 function getBreezeVersion($srcDir) {
-    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\root.js"
+    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\breeze.js"
     $text = get-content $versionFile
     $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
     return $versionNum
@@ -65,7 +65,9 @@ gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname
 
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
+new-item $destDir\Scripts\Adapters -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
+copy-item $srcDir\Breeze.Client\Scripts\IBlade\breeze.*.*.js $destDir\Scripts\Adapters
 copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
 new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
