@@ -30,7 +30,8 @@ function (core, Enum, Event, m_assertParam) {
         return this._implMap[adapterName.toLowerCase()];
     };
     InterfaceDef.prototype.getFirstImpl = function() {
-        return core.objectFirst(this._implMap, function(kv) { return true; });
+        var kv = core.objectFirst(this._implMap, function () { return true; });
+        return kv ? kv.value : null;
     };
     
     coreConfig.interfaceRegistry = {
@@ -183,12 +184,15 @@ function (core, Enum, Event, m_assertParam) {
                 return idef.defaultInstance;
             } else {
                 impl = idef.getFirstImpl();
-                return impl ? impl.defaultInstance : null;
+                if (impl.defaultInstance) {
+                    return impl.defaultInstance;
+                } else {
+                    return initializeAdapterInstanceCore(idef, impl, true);
+                }
             }
         }
     };
-
-    
+   
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
         if (!instance) {

@@ -222,7 +222,7 @@
             "module": "core",
             "namespace": "",
             "file": "core.js",
-            "line": 46,
+            "line": 47,
             "description": "A singleton object that is the repository of all entityModel specific configuration options.\n\n    core.config.initializeAdapterInstance( {\n        modelLibrary: \"ko\",\n        dataService: \"webApi\"\n    });"
         },
         "DataType": {
@@ -643,7 +643,7 @@
     "classitems": [
         {
             "file": "core.js",
-            "line": 57,
+            "line": 58,
             "description": "This method is now OBSOLETE.  Use the \"initializeAdapterInstances\" to accomplish the same result.",
             "itemtype": "method",
             "name": "setProperties",
@@ -680,7 +680,7 @@
         },
         {
             "file": "core.js",
-            "line": 84,
+            "line": 85,
             "description": "Method use to register implementations of standard breeze interfaces.  Calls to this method are usually\nmade as the last step within an adapter implementation.",
             "itemtype": "method",
             "name": "registerAdapter",
@@ -701,7 +701,7 @@
         },
         {
             "file": "core.js",
-            "line": 105,
+            "line": 106,
             "description": "Returns the ctor function used to implement a specific interface with a specific adapter name.",
             "itemtype": "method",
             "name": "getAdapter",
@@ -727,7 +727,7 @@
         },
         {
             "file": "core.js",
-            "line": 123,
+            "line": 124,
             "description": "Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.",
             "itemtype": "method",
             "name": "initializeAdapterInstances",
@@ -766,7 +766,7 @@
         },
         {
             "file": "core.js",
-            "line": 141,
+            "line": 142,
             "description": "Initializes a single adapter implementation. Initialization means either newing a instance of the \nspecified interface and then calling \"initialize\" on it or simply calling \"initialize\" on the instance\nif it already exists.",
             "itemtype": "method",
             "name": "initializeAdapterInstance",
@@ -798,7 +798,7 @@
         },
         {
             "file": "core.js",
-            "line": 166,
+            "line": 167,
             "description": "Returns the adapter instance corresponding to the specified interface and adapter names.",
             "itemtype": "method",
             "name": "getAdapterInstance",

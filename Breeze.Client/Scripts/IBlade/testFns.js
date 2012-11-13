@@ -4,15 +4,15 @@
 //        "breeze.ajax.jQuery",
 //        "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone", "breeze.modelLibrary.backingStore",
 //        "breeze.dataService.webApi", "breeze.dataService.odata"
-//    ], function (root) {
+//    ], function (breeze) {
 
-// or uncomment this to run directly against source.
-define(["breezeWith"], function (root) {
+// or uncomment this to run against a version of base and all plugins
+define(["breeze.full"], function (breeze) {
 
     "use strict";
 
-    var core = root.core;
-    var entityModel = root.entityModel;
+    var core = breeze.core;
+    var entityModel = breeze.entityModel;
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;
     var NamingConvention = entityModel.NamingConvention;
@@ -313,7 +313,7 @@ define(["breezeWith"], function (root) {
         document.body.appendChild(document.createElement('pre')).innerHTML = text;
     };
 
-    testFns.root = root;
+    testFns.breeze = breeze;
     testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
     testFns.configure();
 

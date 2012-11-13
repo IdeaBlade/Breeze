@@ -2,7 +2,7 @@
     name: "../ThirdParty/almond.js",
     include: "breeze",
     baseUrl: ".",
-    out: "../breeze.js",
+    out: "yyy",
     wrap: {
         startFile: "buildstart.frag",
         endFile: "buildend.frag"

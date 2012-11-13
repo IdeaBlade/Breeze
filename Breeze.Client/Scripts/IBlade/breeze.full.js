@@ -6,11 +6,21 @@ define(["breeze",
         "breeze.modelLibrary.backingStore", "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone"], 
 function(breeze) {
 
+
     // set defaults
     breeze.core.config.initializeAdapterInstances({
         ajax: "jQuery",
-        modelLibrary: "ko",
         dataService: "webApi"
     });
+    
+    // don't initialize with ko unless it exists.
+    var ko = window.ko;
+    if ((!ko) && require) {
+        ko = require("ko");
+    }
+    if (ko) {
+        breeze.core.config.initializeAdapterInstance("modelLibrary", "ko");
+    }
+        
     return breeze;
 });
