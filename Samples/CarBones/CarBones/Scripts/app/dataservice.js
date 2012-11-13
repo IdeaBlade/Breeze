@@ -7,10 +7,7 @@
         entityModel = breeze.entityModel;
 
     // configure Breeze for Backbone and Web API 
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_backbone,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
+    core.config.initializeAdapterInstances({ modelLibrary: "backbone", dataService: "webApi" });
 
     // Declare the camel case name convention to be the norm
     entityModel.NamingConvention.camelCase.setAsDefault();
