@@ -278,7 +278,9 @@
     <Content Include="Scripts\breeze.debug.js" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.js" />
-    <Content Include="Scripts\todoList.dataserviceConfig.js" />
+    <Content Include="Scripts\todoList.dataservice.js" />
+    <Content Include="Scripts\todoList.model.js" />
+    <Content Include="Scripts\todoList.breeze-dataserviceConfig.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\todoList.dataAccess.js" />
@@ -309,7 +311,7 @@
     <Content Include="Scripts\_references.js" />
     <Content Include="Scripts\AjaxLogin.js" />
     <Content Include="Scripts\todoList.viewmodel.js" />
-    <Content Include="Scripts\todoList.dataservice.js" />
+    <Content Include="Scripts\todoList.breeze-dataservice.js" />
     <Content Include="Scripts\todoList.bindings.js" />
     <Content Include="Images\accent.png" />
     <Content Include="Images\bullet.png" />
@@ -340,7 +342,7 @@
     <Content Include="Views\Home\_Login.cshtml" />
     <Content Include="Views\Home\_Register.cshtml" />
     <Content Include="Views\Home\Index.orig.cshtml" />
-    <Content Include="Scripts\todoList.model.js" />
+    <Content Include="Scripts\todoList.breeze-model.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
