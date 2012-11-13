@@ -9,17 +9,8 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
 
-    var breeze = testFns.breeze;
-
-    var core = breeze.core;
-    var entityModel = breeze.entityModel;
-
-    // Configure for Knockout binding and Web API persistence services
-    // testFns does this for the test suite; you must do it in your app
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_ko,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
+    var breeze = testFns.breeze
+        entityModel = breeze.entityModel;
 
     // Classes we'll need from the Breeze namespaces
     var EntityManager = entityModel.EntityManager;

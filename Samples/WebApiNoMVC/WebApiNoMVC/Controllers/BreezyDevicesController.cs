@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
 using WebApiNoMVC.Models;
@@ -13,14 +13,14 @@ namespace WebApiNoMVC.Controllers
             new EFContextProvider<BreezyDevicesContext>();
 
         // ~/api/breezydevices/Metadata 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata()
         {
             return _contextProvider.Metadata();
         }
 
         // ~/api/breezydevices/SaveChanges
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _contextProvider.SaveChanges(saveBundle);
@@ -28,20 +28,20 @@ namespace WebApiNoMVC.Controllers
 
         // ~/api/breezydevices/people
         // ~/api/breezydevices/people?$filter=LastName%20startswith%20L&$orderby=LastName 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<Person> People()
         {
             return _contextProvider.Context.People;
         }
 
         // ~/api/breezydevices/devices
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<Device> Devices()
         {
             return _contextProvider.Context.Devices;
         }
         // ~/api/breezydevices/reset
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public string Reset()
         {
             BreezyDevicesDatabaseInitializer

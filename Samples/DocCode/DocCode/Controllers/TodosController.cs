@@ -1,4 +1,4 @@
-﻿namespace Todo.Controllers {
+namespace Todo.Controllers {
     using System;
     using System.Linq;
     using System.Web.Http;
@@ -13,26 +13,26 @@
             new EFContextProvider<TodosContext>();
 
         // ~/api/todos/Metadata 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public string Metadata() {
             return _contextProvider.Metadata();
         }
 
         // ~/api/todos/Todos
         // ~/api/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
-        [AcceptVerbs("GET")]
+        [HttpGet]
         public IQueryable<TodoItem> Todos() {
             return _contextProvider.Context.Todos;
         }
 
         // ~/api/todos/SaveChanges
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle) {
             return _contextProvider.SaveChanges(saveBundle);
         }
 
         // ~/api/todos/purge
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public string Purge()
         {
             TodoDatabaseInitializer.PurgeDatabase(_contextProvider.Context);
@@ -40,7 +40,7 @@
         }
 
         // ~/api/todos/reset
-        [AcceptVerbs("POST")]
+        [HttpPost]
         public string Reset()
         {
             Purge();

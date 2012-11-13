@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Web.Http;
 
@@ -15,45 +15,45 @@ namespace DocCode.Controllers
     readonly EFContextProvider<NorthwindContext> _contextProvider =
         new EFContextProvider<NorthwindContext>();
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public String Metadata() {
       return _contextProvider.Metadata();
     }
 
-    [AcceptVerbs("POST")]
+    [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
       return _contextProvider.SaveChanges(saveBundle);
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> Customers() {
       return _contextProvider.Context.Customers;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> CustomersAndOrders() {
       var custs = _contextProvider.Context.Customers.Include("Orders");
       return custs;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> CustomersStartingWithA() {
       var custs = _contextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
       return custs;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Order> Orders() {
       return _contextProvider.Context.Orders;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Order> OrdersAndCustomers() {
       var orders = _contextProvider.Context.Orders.Include("Customer");
       return orders;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Order> OrdersAndDetails()
     {
         var orders = _contextProvider.Context.Orders
@@ -62,27 +62,27 @@ namespace DocCode.Controllers
         return orders;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Employee> Employees() {
       return _contextProvider.Context.Employees;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<OrderDetail> OrderDetails() {
       return _contextProvider.Context.OrderDetails;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Product> Products() {
       return _contextProvider.Context.Products;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Region> Regions() {
       return _contextProvider.Context.Regions;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Territory> Territories() {
       return _contextProvider.Context.Territories;
     }
@@ -104,7 +104,7 @@ namespace DocCode.Controllers
     /// N.B. Category is only available through lookup;
     /// it doesn't have its own query method.
     /// </remarks>
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<object> LookupsArray()
     {
         var regions = _contextProvider.Context.Regions;
@@ -128,7 +128,7 @@ namespace DocCode.Controllers
     /// N.B. Category is only available through lookup;
     /// it doesn't have its own query method.
     /// </remarks>
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<object> LookupsObject()
     {
         var regions = _contextProvider.Context.Regions;

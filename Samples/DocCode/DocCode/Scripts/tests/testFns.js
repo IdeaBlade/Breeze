@@ -6,15 +6,10 @@
 define(["breeze"], function (breeze) {
 
     "use strict";
-
-    var core = breeze.core;
-    var entityModel = breeze.entityModel;
-
-    // Configure for Knockout binding and Web API persistence services
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_ko,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
+    
+    // Default configured for Knockout binding and Web API persistence services
+    var core = breeze.core,
+        entityModel = breeze.entityModel;
 
     extendString();
 

@@ -1,17 +1,10 @@
-﻿(function (root) {
+(function (root) {
     var breeze = root.breeze;
     var app = root.app;
     var logger = app.logger;
 
-    // define Breeze namespaces
-    var core = breeze.core,
-        entityModel = breeze.entityModel;
-
-    // configure Breeze for Knockout and Web API 
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_ko,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
+    // define Breeze namespace
+    var entityModel = breeze.entityModel;
 
     // service name is route to our Web API controller
     var serviceName = 'api/breezydevices';
