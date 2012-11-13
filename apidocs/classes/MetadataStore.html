@@ -215,7 +215,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l235"><code>entityMetadata.js:235</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l237"><code>entityMetadata.js:237</code></a>
         </div>
     
 
@@ -414,7 +414,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l244"><code>entityMetadata.js:244</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l246"><code>entityMetadata.js:246</code></a>
         
         </p>
 
@@ -549,7 +549,7 @@ em1.setProperties( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l291"><code>entityMetadata.js:291</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l293"><code>entityMetadata.js:293</code></a>
         
         </p>
 
@@ -615,7 +615,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
                 <li class="arg">
                     
-                        <code class="optional">[remoteAccessImplementation]</code>
+                        <code class="optional">[dataServiceAdapterName]</code>
                     
                 </li>
             
@@ -666,7 +666,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l408"><code>entityMetadata.js:408</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l410"><code>entityMetadata.js:410</code></a>
         
         </p>
 
@@ -704,8 +704,8 @@ internally by an EntityManager before its first query against a new service.</p>
             
                 <li class="param">
                     
-                        <code class="param-name optional">[remoteAccessImplementation]</code>
-                        <span class="type">Instance of this RemoteAccessImplementation interface</span>
+                        <code class="param-name optional">[dataServiceAdapterName]</code>
+                        <span class="type">String</span>
                         <span class="flag optional" title="This parameter is optional.">optional</span>
                     
 
@@ -713,7 +713,7 @@ internally by an EntityManager before its first query against a new service.</p>
 
                     <div class="param-description">
                         <ul>
-<li>will default to core.config.remoteAccessImplementation</li>
+<li>name of a dataService adapter - will default to a default dataService adapter</li>
 </ul>
                     </div>
 
@@ -888,7 +888,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l550"><code>entityMetadata.js:550</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l552"><code>entityMetadata.js:552</code></a>
         
         </p>
 
@@ -1013,7 +1013,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l581"><code>entityMetadata.js:581</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l583"><code>entityMetadata.js:583</code></a>
         
         </p>
 
@@ -1103,7 +1103,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l389"><code>entityMetadata.js:389</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l391"><code>entityMetadata.js:391</code></a>
         
         </p>
 
@@ -1220,7 +1220,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l368"><code>entityMetadata.js:368</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l370"><code>entityMetadata.js:370</code></a>
         
         </p>
 
@@ -1340,7 +1340,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l315"><code>entityMetadata.js:315</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l317"><code>entityMetadata.js:317</code></a>
         
         </p>
 
@@ -1449,7 +1449,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l535"><code>entityMetadata.js:535</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l537"><code>entityMetadata.js:537</code></a>
         
         </p>
 
@@ -1549,7 +1549,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l487"><code>entityMetadata.js:487</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l489"><code>entityMetadata.js:489</code></a>
         
         </p>
 
@@ -1714,7 +1714,7 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l471"><code>entityMetadata.js:471</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l473"><code>entityMetadata.js:473</code></a>
         
         </p>
 
@@ -1807,7 +1807,7 @@ i.e. an unmapped type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l284"><code>entityMetadata.js:284</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l286"><code>entityMetadata.js:286</code></a>
         
         </p>
 

@@ -415,6 +415,13 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
+                                <a href="#property_dataServiceInstance">dataServiceInstance</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_keyGeneratorCtor">keyGeneratorCtor</a>
 
                                 
@@ -430,13 +437,6 @@
                         
                             <li class="index-item property">
                                 <a href="#property_queryOptions">queryOptions</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_remoteAccessImplementation">remoteAccessImplementation</a>
 
                                 
                                 
@@ -663,8 +663,8 @@
                             
                             <li class="param">
                                 
-                                    <code class="param-name optional">[remoteAccessImplementation]</code>
-                                    <span class="type">Instance of RemoteAccessImplementation interface</span>
+                                    <code class="param-name optional">[adapters]</code>
+                                    <span class="type">Adapter settings</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -672,6 +672,22 @@
                                     
                                 </div>
 
+                                
+                                    <ul class="params-list">
+                                        
+                                        <li class="param">
+                                            
+                                                <code class="param-name optional">[dataService]</code>
+                                                <span class="type">String</span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                dataService name
+                                            </div>
+                                        </li>
+                                        
+                                    </ul>
                                 
                             </li>
                             
@@ -774,7 +790,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l422"><code>entityManager.js:422</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l439"><code>entityManager.js:439</code></a>
         
         </p>
 
@@ -902,7 +918,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l443"><code>entityManager.js:443</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l460"><code>entityManager.js:460</code></a>
         
         </p>
 
@@ -1020,7 +1036,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l344"><code>entityManager.js:344</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l352"><code>entityManager.js:352</code></a>
         
         </p>
 
@@ -1091,7 +1107,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l401"><code>entityManager.js:401</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l418"><code>entityManager.js:418</code></a>
         
         </p>
 
@@ -1184,7 +1200,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l492"><code>entityManager.js:492</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l509"><code>entityManager.js:509</code></a>
         
         </p>
 
@@ -1315,7 +1331,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l573"><code>entityManager.js:573</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l590"><code>entityManager.js:590</code></a>
         
         </p>
 
@@ -1597,7 +1613,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l650"><code>entityManager.js:650</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l667"><code>entityManager.js:667</code></a>
         
         </p>
 
@@ -1724,7 +1740,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l235"><code>entityManager.js:235</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l243"><code>entityManager.js:243</code></a>
         
         </p>
 
@@ -1864,7 +1880,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l525"><code>entityManager.js:525</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l542"><code>entityManager.js:542</code></a>
         
         </p>
 
@@ -2048,7 +2064,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l850"><code>entityManager.js:850</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l867"><code>entityManager.js:867</code></a>
         
         </p>
 
@@ -2165,7 +2181,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l871"><code>entityManager.js:871</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l888"><code>entityManager.js:888</code></a>
         
         </p>
 
@@ -2299,7 +2315,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l974"><code>entityManager.js:974</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l991"><code>entityManager.js:991</code></a>
         
         </p>
 
@@ -2433,7 +2449,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1027"><code>entityManager.js:1027</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1044"><code>entityManager.js:1044</code></a>
         
         </p>
 
@@ -2583,7 +2599,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l912"><code>entityManager.js:912</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l929"><code>entityManager.js:929</code></a>
         
         </p>
 
@@ -2725,7 +2741,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l207"><code>entityManager.js:207</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l215"><code>entityManager.js:215</code></a>
         
         </p>
 
@@ -2885,7 +2901,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l278"><code>entityManager.js:278</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l286"><code>entityManager.js:286</code></a>
         
         </p>
 
@@ -3028,7 +3044,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1004"><code>entityManager.js:1004</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1021"><code>entityManager.js:1021</code></a>
         
         </p>
 
@@ -3140,7 +3156,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l711"><code>entityManager.js:711</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l728"><code>entityManager.js:728</code></a>
         
         </p>
 
@@ -3429,7 +3445,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l369"><code>entityManager.js:369</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l377"><code>entityManager.js:377</code></a>
         
         </p>
 
@@ -3523,8 +3539,8 @@ may be set.</p>
                             
                             <li class="param">
                                 
-                                    <code class="param-name optional">[remoteAccessImplementation]</code>
-                                    <span class="type"></span>
+                                    <code class="param-name optional">[keyGeneratorCtor]</code>
+                                    <span class="type">Function</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -3537,8 +3553,8 @@ may be set.</p>
                             
                             <li class="param">
                                 
-                                    <code class="param-name optional">[keyGeneratorCtor]</code>
-                                    <span class="type">Function</span>
+                                    <code class="param-name optional">[adapters]</code>
+                                    <span class="type">Object</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -3546,6 +3562,22 @@ may be set.</p>
                                     
                                 </div>
 
+                                
+                                    <ul class="params-list">
+                                        
+                                        <li class="param">
+                                            
+                                                <code class="param-name optional">[dataService]</code>
+                                                <span class="type">String</span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                - name of a "dataService" adapter.
+                                            </div>
+                                        </li>
+                                        
+                                    </ul>
                                 
                             </li>
                             
@@ -3584,6 +3616,52 @@ may be set.</p>
                 <h2 class="off-left">Properties</h2>
 
                 
+                    <div id="property_dataServiceInstance" class="property item">
+    <h3 class="name"><code>dataServiceInstance</code></h3>
+    <span class="type">An instance of the "dataService" adapter interface</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l186"><code>entityManager.js:186</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The "dataService" adapter implementation instance associated with this EntityManager.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="property_keyGeneratorCtor" class="property item">
     <h3 class="name"><code>keyGeneratorCtor</code></h3>
     <span class="type">KeyGenerator constructor</span>
@@ -3607,7 +3685,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l171"><code>entityManager.js:171</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l179"><code>entityManager.js:179</code></a>
         
         </p>
 
@@ -3653,7 +3731,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l143"><code>entityManager.js:143</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l151"><code>entityManager.js:151</code></a>
         
         </p>
 
@@ -3699,7 +3777,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l150"><code>entityManager.js:150</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l158"><code>entityManager.js:158</code></a>
         
         </p>
 
@@ -3710,52 +3788,6 @@ may be set.</p>
 
     <div class="description">
         <p>The <a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a> associated with this EntityManager.</p>
-
-<p><strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_remoteAccessImplementation" class="property item">
-    <h3 class="name"><code>remoteAccessImplementation</code></h3>
-    <span class="type">Implementation instance of remoteAccessImplementation interface</span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l178"><code>entityManager.js:178</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The RemoteAccess implementation instance associated with this EntityManager.</p>
 
 <p><strong>readOnly</strong></p>
     </div>
@@ -3791,7 +3823,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l157"><code>entityManager.js:157</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l165"><code>entityManager.js:165</code></a>
         
         </p>
 
@@ -3837,7 +3869,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l136"><code>entityManager.js:136</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l144"><code>entityManager.js:144</code></a>
         
         </p>
 
@@ -3883,7 +3915,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l164"><code>entityManager.js:164</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l172"><code>entityManager.js:172</code></a>
         
         </p>
 
@@ -3939,7 +3971,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l186"><code>entityManager.js:186</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l194"><code>entityManager.js:194</code></a>
         
         </p>
 
@@ -4052,7 +4084,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l948"><code>entityManager.js:948</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l965"><code>entityManager.js:965</code></a>
         
         </p>
 

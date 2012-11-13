@@ -215,7 +215,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;core.js.html#l20"><code>core.js:20</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;core.js.html#l46"><code>core.js:46</code></a>
         </div>
     
 
@@ -233,9 +233,9 @@
 <div class="box intro">
     <p>A singleton object that is the repository of all entityModel specific configuration options.</p>
 
-<pre class="code"><code class="prettyprint">core.config.setProperties( {
-    trackingImplemenation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
+<pre class="code"><code class="prettyprint">core.config.initializeAdapterInstance( {
+    modelLibrary: "ko",
+    dataService: "webApi"
 });
 </code></pre>
 </div>
@@ -249,8 +249,6 @@
         
             <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
         
-        
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
         
         
         
@@ -267,6 +265,41 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
+                                <a href="#method_getAdapter">getAdapter</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_getAdapterInstance">getAdapterInstance</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_initializeAdapterInstance">initializeAdapterInstance</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_initializeAdapterInstances">initializeAdapterInstances</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_registerAdapter">registerAdapter</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_setProperties">setProperties</a>
 
                                 
@@ -278,28 +311,6 @@
             
 
             
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_remoteAccessImplementation">remoteAccessImplementation</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_trackingImplementation">trackingImplementation</a>
-
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
 
             
 
@@ -309,6 +320,681 @@
         
             <div id="methods" class="api-class-tabpanel">
                 <h2 class="off-left">Methods</h2>
+
+                
+                    <div id="method_getAdapter" class="method item">
+    <h3 class="name"><code>getAdapter</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>interfaceName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[adapterName]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Function | Null</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;core.js.html#l105"><code>core.js:105</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the ctor function used to implement a specific interface with a specific adapter name.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">interfaceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>One of the following interface names "ajax", "dataService" or "modelLibrary"</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[adapterName]</code>
+                        <span class="type">String</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of any previously registered adapter. If this parameter is omitted then
+this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Function | Null</span>:
+                    
+                    Returns either a ctor function or null.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_getAdapterInstance" class="method item">
+    <h3 class="name"><code>getAdapterInstance</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>interfaceName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[adapterName]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">An instance of the specified adapter</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;core.js.html#l166"><code>core.js:166</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the adapter instance corresponding to the specified interface and adapter names.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">interfaceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the interface.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[adapterName]</code>
+                        <span class="type">String</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>The name of a previously registered adapter.  If this parameter is
+omitted then the default implementation of the specified interface is returned. If there is
+no defaultInstance of this interface, then the first registered instance of this interface is returned.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">An instance of the specified adapter</span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_initializeAdapterInstance" class="method item">
+    <h3 class="name"><code>initializeAdapterInstance</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>interfaceName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>adapterName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[isDefault=true]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">An instance of the specified adapter</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;core.js.html#l141"><code>core.js:141</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Initializes a single adapter implementation. Initialization means either newing a instance of the 
+specified interface and then calling "initialize" on it or simply calling "initialize" on the instance
+if it already exists.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">interfaceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the interface to which the adapter to initialize belongs.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">adapterName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>The name of a previously registered adapter to initialize.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[isDefault=true]</code>
+                        <span class="type">Boolean</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>Whether to make this the default "adapter" for this interface.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">An instance of the specified adapter</span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_initializeAdapterInstances" class="method item">
+    <h3 class="name"><code>initializeAdapterInstances</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>config</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;core.js.html#l123"><code>core.js:123</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">config</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[ajax]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <ul>
+<li>the name of a previously registered "ajax" adapter</li>
+</ul>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[dataService]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <ul>
+<li>the name of a previously registered "dataService" adapter</li>
+</ul>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[modelLibrary]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <ul>
+<li>the name of a previously registered "modelLibrary" adapter</li>
+</ul>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                    [array of instances]
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_registerAdapter" class="method item">
+    <h3 class="name"><code>registerAdapter</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>interfaceName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>adapterCtor</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;core.js.html#l84"><code>core.js:84</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Method use to register implementations of standard breeze interfaces.  Calls to this method are usually
+made as the last step within an adapter implementation.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">interfaceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>one of the following interface names "ajax", "dataService" or "modelLibrary"</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">adapterCtor</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>an ctor function that returns an instance of the specified interface.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
 
                 
                     <div id="method_setProperties" class="method item">
@@ -353,7 +1039,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;core.js.html#l69"><code>core.js:69</code></a>
+        <a href="..&#x2F;files&#x2F;core.js.html#l57"><code>core.js:57</code></a>
         
         </p>
 
@@ -364,7 +1050,7 @@
     </div>
 
     <div class="description">
-        
+        <p>This method is now OBSOLETE.  Use the "initializeAdapterInstances" to accomplish the same result.</p>
     </div>
 
     
@@ -391,7 +1077,7 @@
                             <li class="param">
                                 
                                     <code class="param-name optional">[remoteAccessImplementation]</code>
-                                    <span class="type">Implementation of ~remoteAccess-interface</span>
+                                    <span class="type">Implementation of remoteAccess-interface</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -405,7 +1091,21 @@
                             <li class="param">
                                 
                                     <code class="param-name optional">[trackingImplementation]</code>
-                                    <span class="type">Implementation of ~entityTracking-interface</span>
+                                    <span class="type">Implementation of entityTracking-interface</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[ajaxImplementation]</code>
+                                    <span class="type">Implementation of ajax-interface</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -433,141 +1133,6 @@
             </div>
         
 
-        
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
-
-                
-                    <div id="property_remoteAccessImplementation" class="property item">
-    <h3 class="name"><code>remoteAccessImplementation</code></h3>
-    <span class="type">~remoteAccess-interface</span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;core.js.html#l51"><code>core.js:51</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The implementation currently in use for communicating with a remote server and service.</p>
-    </div>
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code"><code class="prettyprint">var name = entityModel.remoteAccessImplementation.name;
-</code></pre>
-
-<p>There are currently two implementations of this interface.
-Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.</p><pre class="code"><code class="prettyprint">core.config.setProperties( {
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-</code></pre>
-
-<p>or an implementation of the remoteAccess interface that supports OData services.</p><pre class="code"><code class="prettyprint">core.config.setProperties( {
-    remoteAccessImplementation: entityModel.remoteAccess_odata
-});    
-</code></pre>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-                    <div id="property_trackingImplementation" class="property item">
-    <h3 class="name"><code>trackingImplementation</code></h3>
-    <span class="type">~entityTracking-interface</span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;core.js.html#l31"><code>core.js:31</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The implementation currently in use for tracking entities</p>
-    </div>
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code"><code class="prettyprint">var name = entityModel.trackingImplementation.name;
-</code></pre>
-
-<p>There are currently two implementations of this interface.</p><pre class="code"><code class="prettyprint">// For knockout.js
-core.config.setProperties( {
-    trackingImplementation: entityModel.entityTracking_ko 
-});
-</code></pre>
-
-<p>or</p><pre class="code"><code class="prettyprint">// Generic js implementation of observability
-core.config.setProperties( {
-    trackingImplementation: entityModel.entityTracking_backingStore
-});
-</code></pre>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-            </div>
         
 
         

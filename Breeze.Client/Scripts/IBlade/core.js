@@ -105,10 +105,10 @@ function (core, Enum, Event, m_assertParam) {
     /**
     Returns the ctor function used to implement a specific interface with a specific adapter name.
     @method getAdapter
-    @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
-    @param [adapterName] {String} - The name of any previously register adapter. If this parameter is omitted then
+    @param interfaceName {String} One of the following interface names "ajax", "dataService" or "modelLibrary"
+    @param [adapterName] {String} The name of any previously registered adapter. If this parameter is omitted then
     this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
-    @returns {Function|null} returns either a ctor function or null if none exists.
+    @return {Function|null} Returns either a ctor function or null.
     **/
     coreConfig.getAdapter = function (interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
@@ -121,13 +121,13 @@ function (core, Enum, Event, m_assertParam) {
     };
 
     /**
-    Initializes a collection of adapter implementations and makes them the default.
+    Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.
     @method initializeAdapterInstances
     @param config {Object}
     @param [config.ajax] {String} - the name of a previously registered "ajax" adapter
     @param [config.dataService] {String} - the name of a previously registered "dataService" adapter
     @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
-    @returns [array of instances]
+    @return [array of instances]
     **/
     coreConfig.initializeAdapterInstances = function(config) {
         assertConfig(config)
@@ -146,7 +146,7 @@ function (core, Enum, Event, m_assertParam) {
     @param interfaceName {String} The name of the interface to which the adapter to initialize belongs.
     @param adapterName {String} - The name of a previously registered adapter to initialize.
     @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
-    @returns {an instance of the specified adapter}
+    @return {an instance of the specified adapter}
     **/
     coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
@@ -170,7 +170,7 @@ function (core, Enum, Event, m_assertParam) {
     @param [adapterName] {String} - The name of a previously registered adapter.  If this parameter is
     omitted then the default implementation of the specified interface is returned. If there is
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
-    @returns {an instance of the specified adapter}
+    @return {an instance of the specified adapter}
     **/
     core.config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
