@@ -331,7 +331,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.defaultImplementation.startTracking(entity, entityCtor.prototype);
+            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }

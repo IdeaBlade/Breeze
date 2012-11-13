@@ -19,19 +19,18 @@ function (core, Enum, Event, m_assertParam) {
     
     var InterfaceDef = function(name) {
         this.name = name;
+        this.defaultInstance = null;
+        this._implMap = {};
         
-        this.defaultImplementation = null;
-        this.dependents = [];
-        this._ctorMap = {};
     };
-    InterfaceDef.prototype.registerCtor = function(implementationName, ctor) {
-        this._ctorMap[implementationName.toLowerCase()] = ctor;
+    InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
+        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
     };
-    InterfaceDef.prototype.getCtor = function(implementationName) {
-        return this._ctorMap[implementationName.toLowerCase()];
+    InterfaceDef.prototype.getImpl = function(adapterName) {
+        return this._implMap[adapterName.toLowerCase()];
     };
-    InterfaceDef.prototype.getFirstCtor = function() {
-
+    InterfaceDef.prototype.getFirstImpl = function() {
+        return core.objectFirst(this._implMap, function(kv) { return true; });
     };
     
     coreConfig.interfaceRegistry = {
@@ -56,6 +55,7 @@ function (core, Enum, Event, m_assertParam) {
     **/
     
     /**
+    This method is now OBSOLETE.  Use the "initializeAdapterInstances" to accomplish the same result.
     @method setProperties
     @obsolete
     @param config {Object}
@@ -81,29 +81,54 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-    coreConfig.registerAdapter = function (interfaceName, implementationCtor) {
+    /**
+    Method use to register implementations of standard breeze interfaces.  Calls to this method are usually
+    made as the last step within an adapter implementation. 
+    @method registerAdapter
+    @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
+    @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
+    **/
+    coreConfig.registerAdapter = function (interfaceName, adapterCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(implementationCtor, "implementationCtor").isFunction();
+        assertParam(adapterCtor, "adapterCtor").isFunction();
         // this impl will be thrown away after the name is retrieved.
-        var impl = new implementationCtor();
+        var impl = new adapterCtor();
         var implName = impl.name;
         if (!implName) {
             throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerAdapter' call.");
         }
         var idef = getInterfaceDef(interfaceName);
-        idef.registerCtor(implName, implementationCtor);
+        idef.registerCtor(implName, adapterCtor);
         
     };
     
-    coreConfig.getAdapter = function (interfaceName, implementationName) {
+    /**
+    Returns the ctor function used to implement a specific interface with a specific adapter name.
+    @method getAdapter
+    @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
+    @param [adapterName] {String} - The name of any previously register adapter. If this parameter is omitted then
+    this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
+    @returns {Function|null} returns either a ctor function or null if none exists.
+    **/
+    coreConfig.getAdapter = function (interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
-        if (implementationName) {
-            return idef.getCtor(implementationName);
+        if (adapterName) {
+            var impl = idef.getImpl(adapterName);
+            return impl ? impl.ctor : null;
         } else {
-            return idef.defaultImplementation._$ctor;
+            return idef.defaultInstance ? idef.defaultInstance._$impl.ctor : null;
         }
     };
 
+    /**
+    Initializes a collection of adapter implementations and makes them the default.
+    @method initializeAdapterInstances
+    @param config {Object}
+    @param [config.ajax] {String} - the name of a previously registered "ajax" adapter
+    @param [config.dataService] {String} - the name of a previously registered "dataService" adapter
+    @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
+    @returns [array of instances]
+    **/
     coreConfig.initializeAdapterInstances = function(config) {
         assertConfig(config)
             .whereParam("dataService").isOptional()
@@ -113,57 +138,83 @@ function (core, Enum, Event, m_assertParam) {
         
     };
 
-    coreConfig.initializeAdapterInstance = function (interfaceName, implementationName, isDefault) {
+    /**
+    Initializes a single adapter implementation. Initialization means either newing a instance of the 
+    specified interface and then calling "initialize" on it or simply calling "initialize" on the instance
+    if it already exists.
+    @method initializeAdapterInstance
+    @param interfaceName {String} The name of the interface to which the adapter to initialize belongs.
+    @param adapterName {String} - The name of a previously registered adapter to initialize.
+    @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
+    @returns {an instance of the specified adapter}
+    **/
+    coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(implementationName, "implementationName").isNonEmptyString();
+        assertParam(adapterName, "adapterName").isNonEmptyString();
         assertParam(isDefault, "isDefault").isBoolean();
         
         var idef = getInterfaceDef(interfaceName);
-        var implementationCtor = idef.getCtor(implementationName);
-        if (!implementationCtor) {
-            throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
+        var impl = idef.getImpl(adapterName);
+        if (!impl) {
+            throw new Error("Unregistered adapter.  Interface: " + interfaceName + " AdapterName: " + adapterName);
         }
 
-        return initializeAdapterInstanceCore(idef, implementationCtor, isDefault);
+        return initializeAdapterInstanceCore(idef, impl, isDefault);
     };
 
-    coreConfig.getDefaultAdapterInstance = function(interfaceName) {
+    /**
+    Returns the adapter instance corresponding to the specified interface and adapter names.
+    @method getAdapterInstance
+    @param interfaceName {String} The name of the interface.
+    @param [adapterName] {String} - The name of a previously registered adapter.  If this parameter is
+    omitted then the default implementation of the specified interface is returned. If there is
+    no defaultInstance of this interface, then the first registered instance of this interface is returned.
+    @returns {an instance of the specified adapter}
+    **/
+    core.config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
-        var defaultImpl = idef.defaultImplementation;
-        if (!defaultImpl) {
-            
+        var impl;
+        if (adapterName & adapterName !== "") {
+            impl = idef.getImpl(adapterName);
+            return impl ? impl.defaultInstance : null;
+        } else {
+            if (idef.defaultInstance) {
+                return idef.defaultInstance;
+            } else {
+                impl = idef.getFirstImpl();
+                return impl ? impl.defaultInstance : null;
+            }
         }
-        return idef.defaultImplementation;
     };
+
     
-    function initializeAdapterInstanceCore(interfaceDef, implementationCtor, isDefault) {
-        var defaultImpl = interfaceDef.defaultImplementation;
-        if (defaultImpl && defaultImpl._$ctor === implementationCtor) {
-            defaultImpl.initialize();
-            return defaultImpl;
+    function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
+        var instance = impl.defaultInstance;
+        if (!instance) {
+            instance = new (impl.ctor)();
+            impl.defaultInstance = instance;
+            instance._$impl = impl;
         }
-        var implementation = new implementationCtor();
-        implementation._$interfaceDef = interfaceDef;
-        implementation._$ctor = implementationCtor;     
-        implementation.initialize();
+        
+        instance.initialize();
         
         if (isDefault) {
             // next line needs to occur before any recomposition 
-            interfaceDef.defaultImplementation = implementation;
+            interfaceDef.defaultInstance = instance;
         }
 
         // recomposition of other impls will occur here.
-        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, implementation: implementation, isDefault: true });
+        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
         
-        if (implementation.checkForRecomposition) {
+        if (instance.checkForRecomposition) {
             // now register for own dependencies.
             coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
-                implementation.checkForRecomposition(interfaceInitializedArgs);
+                instance.checkForRecomposition(interfaceInitializedArgs);
             });
         }
                
-        return implementation;
+        return instance;
     }
 
     function getInterfaceDef(interfaceName) {

@@ -428,8 +428,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method fetchMetadata
         @async
         @param serviceName {String}  The service name to fetch metadata for.
-        @param [dataServiceImplementation] {instance of this dataServiceImplementation interface} 
-        - will default to core.config.dataServiceImplementation
+        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -442,10 +441,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, dataServiceImplementation, callback, errorCallback) {
+        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
-            dataServiceImplementation = assertParam(dataServiceImplementation, "dataServiceImplementation")
-                .isOptional().hasProperty("fetchMetadata").check(v_dataServiceDef.defaultImplementation);
+            assertParam(dataServiceAdapterName, "dataServiceAdapterName").isOptional().isString();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
@@ -456,9 +454,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
+            
+            var dataServiceInstance = core.config.getAdapterInstance("dataService", dataServiceAdapterName);
 
             var deferred = Q.defer();
-            dataServiceImplementation.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
@@ -1148,7 +1148,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = v_modelLibraryDef.defaultImplementation.createCtor;
+                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -1176,7 +1176,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            v_modelLibraryDef.defaultImplementation.initializeEntityPrototype(proto);
+            v_modelLibraryDef.defaultInstance.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -1439,7 +1439,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = v_modelLibraryDef.defaultImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_modelLibraryDef.defaultInstance.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({

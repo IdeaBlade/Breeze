@@ -1589,19 +1589,18 @@ function (core, Enum, Event, m_assertParam) {
     
     var InterfaceDef = function(name) {
         this.name = name;
+        this.defaultInstance = null;
+        this._implMap = {};
         
-        this.defaultImplementation = null;
-        this.dependents = [];
-        this._ctorMap = {};
     };
-    InterfaceDef.prototype.registerCtor = function(implementationName, ctor) {
-        this._ctorMap[implementationName.toLowerCase()] = ctor;
+    InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
+        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
     };
-    InterfaceDef.prototype.getCtor = function(implementationName) {
-        return this._ctorMap[implementationName.toLowerCase()];
+    InterfaceDef.prototype.getImpl = function(adapterName) {
+        return this._implMap[adapterName.toLowerCase()];
     };
-    InterfaceDef.prototype.getFirstCtor = function() {
-
+    InterfaceDef.prototype.getFirstImpl = function() {
+        return core.objectFirst(this._implMap, function(kv) { return true; });
     };
     
     coreConfig.interfaceRegistry = {
@@ -1651,26 +1650,27 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
     
-    coreConfig.registerAdapter = function (interfaceName, implementationCtor) {
+    coreConfig.registerAdapter = function (interfaceName, adapterCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(implementationCtor, "implementationCtor").isFunction();
+        assertParam(adapterCtor, "adapterCtor").isFunction();
         // this impl will be thrown away after the name is retrieved.
-        var impl = new implementationCtor();
+        var impl = new adapterCtor();
         var implName = impl.name;
         if (!implName) {
             throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerAdapter' call.");
         }
         var idef = getInterfaceDef(interfaceName);
-        idef.registerCtor(implName, implementationCtor);
+        idef.registerCtor(implName, adapterCtor);
         
     };
     
-    coreConfig.getAdapter = function (interfaceName, implementationName) {
+    coreConfig.getAdapter = function (interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
-        if (implementationName) {
-            return idef.getCtor(implementationName);
+        if (adapterName) {
+            var impl = idef.getImpl(adapterName);
+            return impl ? impl.ctor : null;
         } else {
-            return idef.defaultImplementation._$ctor;
+            return idef.defaultInstance ? idef.defaultInstance._$impl.ctor : null;
         }
     };
 
@@ -1683,57 +1683,62 @@ function (core, Enum, Event, m_assertParam) {
         
     };
 
-    coreConfig.initializeAdapterInstance = function (interfaceName, implementationName, isDefault) {
+    coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(implementationName, "implementationName").isNonEmptyString();
+        assertParam(adapterName, "adapterName").isNonEmptyString();
         assertParam(isDefault, "isDefault").isBoolean();
         
         var idef = getInterfaceDef(interfaceName);
-        var implementationCtor = idef.getCtor(implementationName);
-        if (!implementationCtor) {
-            throw new Error("Unregistered implementation.  Interface: " + interfaceName + " ImplementationName: " + implementationName);
+        var impl = idef.getImpl(adapterName);
+        if (!impl) {
+            throw new Error("Unregistered adapter.  Interface: " + interfaceName + " AdapterName: " + adapterName);
         }
 
-        return initializeAdapterInstanceCore(idef, implementationCtor, isDefault);
+        return initializeAdapterInstanceCore(idef, impl, isDefault);
     };
 
-    coreConfig.getDefaultAdapterInstance = function(interfaceName) {
+    core.config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
-        var defaultImpl = idef.defaultImplementation;
-        if (!defaultImpl) {
-            
+        var impl;
+        if (adapterName & adapterName !== "") {
+            impl = idef.getImpl(adapterName);
+            return impl ? impl.defaultInstance : null;
+        } else {
+            if (idef.defaultInstance) {
+                return idef.defaultInstance;
+            } else {
+                impl = idef.getFirstImpl();
+                return impl ? impl.defaultInstance : null;
+            }
         }
-        return idef.defaultImplementation;
     };
+
     
-    function initializeAdapterInstanceCore(interfaceDef, implementationCtor, isDefault) {
-        var defaultImpl = interfaceDef.defaultImplementation;
-        if (defaultImpl && defaultImpl._$ctor === implementationCtor) {
-            defaultImpl.initialize();
-            return defaultImpl;
-        }
-        var implementation = new implementationCtor();
-        implementation._$interfaceDef = interfaceDef;
-        implementation._$ctor = implementationCtor;     
-        implementation.initialize();
+    function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
+        if (impl.defaultInstance) return impl.defaultInstance;
+        var instance = new (impl.ctor)();
+        impl.defaultInstance = instance;
+        
+        instance._$impl = impl;
+        instance.initialize();
         
         if (isDefault) {
             // next line needs to occur before any recomposition 
-            interfaceDef.defaultImplementation = implementation;
+            interfaceDef.defaultInstance = instance;
         }
 
         // recomposition of other impls will occur here.
-        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, implementation: implementation, isDefault: true });
+        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
         
-        if (implementation.checkForRecomposition) {
+        if (instance.checkForRecomposition) {
             // now register for own dependencies.
             coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
-                implementation.checkForRecomposition(interfaceInitializedArgs);
+                instance.checkForRecomposition(interfaceInitializedArgs);
             });
         }
                
-        return implementation;
+        return instance;
     }
 
     function getInterfaceDef(interfaceName) {
@@ -2782,7 +2787,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.defaultImplementation.startTracking(entity, entityCtor.prototype);
+            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }
@@ -4245,8 +4250,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method fetchMetadata
         @async
         @param serviceName {String}  The service name to fetch metadata for.
-        @param [dataServiceImplementation] {instance of this dataServiceImplementation interface} 
-        - will default to core.config.dataServiceImplementation
+        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -4259,10 +4263,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, dataServiceImplementation, callback, errorCallback) {
+        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
-            dataServiceImplementation = assertParam(dataServiceImplementation, "dataServiceImplementation")
-                .isOptional().hasProperty("fetchMetadata").check(v_dataServiceDef.defaultImplementation);
+            assertParam(dataServiceAdapterName, "dataServiceAdapterName").isOptional().isString();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
@@ -4273,9 +4276,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
+            
+            var dataServiceInstance = core.config.getAdapterInstance("dataService", dataServiceAdapterName);
 
             var deferred = Q.defer();
-            dataServiceImplementation.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
@@ -4965,7 +4970,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = v_modelLibraryDef.defaultImplementation.createCtor;
+                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -4993,7 +4998,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            v_modelLibraryDef.defaultImplementation.initializeEntityPrototype(proto);
+            v_modelLibraryDef.defaultInstance.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -5256,7 +5261,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = v_modelLibraryDef.defaultImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_modelLibraryDef.defaultInstance.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
@@ -8337,7 +8342,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
         @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
-        @param [config.dataServiceImplementation] {instance of dataServiceImplementation interface}
+        @param [config.adapters] {Adapter settings}
+        @param [config.adapters.dataService] {String} dataService name
         **/
         var ctor = function (config) {
             // // not allowed with useStrict
@@ -8368,9 +8374,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
-                //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
-                .whereParam("dataServiceImplementation").withDefault(core.parent.core.config.getDefaultAdapterInstance("dataService"))
                 .applyAll(this);
+
+            if (config.adapters) {
+                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
+                this.adapters = config.adapters;
+            } else {
+                this.adapters = {};           
+            }
+            this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
 
             if (this.serviceName.substr(-1) !== "/") {
                 this.serviceName = this.serviceName + '/';
@@ -8387,6 +8399,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             
         };
         ctor.prototype._$typeName = "EntityManager";
+        
 
         Event.bubbleEvent(ctor.prototype, null);
         
@@ -8433,10 +8446,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
 
         /**
-        The dataService implementation instance associated with this EntityManager.
+        The "dataService" adapter implementation instance associated with this EntityManager.
 
         __readOnly__
-        @property dataServiceImplementation {implementation instance of dataServiceImplementation interface}
+        @property dataServiceInstance {an instance of the "dataService" adapter interface}
         **/
        
         // events
@@ -8638,8 +8651,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.queryOptions] {QueryOptions}
             @param [config.saveOptions] {SaveOptions}
             @param [config.validationOptions] {ValidationOptions}
-            @param [config.dataServiceImplementation] 
             @param [config.keyGeneratorCtor] {Function}
+            @param [config.adapters] { Object}
+            @param [config.adapters.dataService] {String} - name of a "dataService" adapter.
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
@@ -8647,12 +8661,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-                .whereParam("dataServiceImplementation")
                 .whereParam("keyGeneratorCtor")
-                .applyAll(this);
+             .applyAll(this);
+            
+            if (config.adapters) {
+                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
+                core.extend(this.adapters, config.adapters);
+                this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
+            }
+            
             if (config.keyGeneratorCtor) {
                 this.keyGenerator = new this.keyGeneratorCtor();
             }
+
+            
         };
 
         /**
@@ -8670,7 +8692,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 serviceName: this.serviceName,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                dataServiceImplementation: this.dataServiceImplementation,
+                adapters: core.extend({}, this.adapters),
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -8813,7 +8835,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
-            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.dataServiceImplementation);
+            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.adapters.dataService);
 
             // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
             // TEST::: see if serialization actually works completely
@@ -9073,7 +9095,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
-            this.dataServiceImplementation.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+            this.dataServiceInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
@@ -9374,6 +9396,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 
         // private fns
+        
+        function getAdapterInstance(adaptersConfig, interfaceName) {
+            if (adaptersConfig[interfaceName]) {
+                return core.config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
+            } else {
+                return core.config.getAdapterInstance(interfaceName);
+            }
+        }
+
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -9749,7 +9780,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceImplementation.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceInstance.executeQuery(em, odataQuery, function (rawEntities) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -9801,13 +9832,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
             // null and undefined have different meaning - null means a ref entity that cannot be resolved - usually an odata __deferred value
             // undefined means that this is not a ref entity.
-            targetEntity = em.dataServiceImplementation.resolveRefEntity(rawEntity, queryContext);
+            targetEntity = em.dataServiceInstance.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
                 return targetEntity;
             }
 
             
-            var entityType =em.dataServiceImplementation.getEntityType(rawEntity, em.metadataStore);
+            var entityType =em.dataServiceInstance.getEntityType(rawEntity, em.metadataStore);
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
@@ -9898,7 +9929,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            return em.dataServiceImplementation.resolveRefEntity(v, queryContext);
+                            return em.dataServiceInstance.resolveRefEntity(v, queryContext);
                         } else {
                             return v;
                         }
@@ -9907,7 +9938,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        result[newKey] = em.dataServiceImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.dataServiceInstance.resolveRefEntity(value, queryContext);
                     } else {
                         result[newKey] = value;
                     }
@@ -9951,7 +9982,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.dataServiceImplementation.getDeferredValue(relatedRawEntity);
+            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntity);
             if (deferred) {
                 return;
             }
@@ -9994,7 +10025,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.dataServiceImplementation.getDeferredValue(relatedRawEntities);
+            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntities);
             if (deferred) {
                 return;
             }
