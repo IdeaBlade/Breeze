@@ -41,14 +41,8 @@ name in the path by a ".". Property paths of any length can be specified in *Bre
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -124,14 +118,8 @@ begin with the letter "S".
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -171,7 +159,7 @@ So let's create a simple projection query by changing our query to the following
 >        .select("ProductID, ProductName");
 
 Next, because, we are no longer returning "Knockout" wrapped results, we will use jQuery in a simple loop to render our output 
-into a simple Html table structure. So let's add change our query execution logic from this:
+into a simple Html table structure. So let's change our query execution logic from this:
 
 >     manager.executeQuery(query).then(function(data){
 >         ko.applyBindings(data);
@@ -197,14 +185,8 @@ and press **Run**
       </Instructions>
       <StartingJavascript>
 <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -269,14 +251,8 @@ Now you can go ahead and press **Run**.
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -302,7 +278,8 @@ manager.executeQuery(query).then(function(data){
     <TutorialStep>
       <Instructions>
 <![CDATA[ 
-We can projections on collection navigation properties as well.  
+We can perform projections on collection navigation properties as well.  A collection navigation property is a property that
+returns a collection (array) of related entities instead of returning just a single entity.
 
 For example let's try this query:
 
@@ -331,14 +308,8 @@ This should produce a list of category names each with its associated products.
 ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -367,14 +338,8 @@ manager.executeQuery(query).then(function(data){
       <Instructions><![CDATA[  ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()

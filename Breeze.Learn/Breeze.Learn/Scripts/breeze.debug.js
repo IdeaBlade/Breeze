@@ -313,6 +313,19 @@ define('coreFns',[],function () {
         }
     }
     
+    
+    function objectFirst(obj, kvPredicate) {
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key)) {
+                var value = obj[key];
+                if (kvPredicate(key, value)) {
+                    return { key: key, value: value };
+                }
+            }
+        }
+        return null;
+    };
+
     function objectMapToArray(obj, kvFn) {
         var results = [];
         for (var key in obj) {
@@ -472,11 +485,11 @@ define('coreFns',[],function () {
         for (var i = 0; i < a1.length; i++) {
             //if the var is an array, we need to make a recursive check
             //otherwise we'll just compare the values
-            if (typeof a1[i] == 'object') {
+            if (Array.isArray( a1[i])) {
                 if (!arrayEquals(a1[i], a2[i])) return false;
             } else {
                 if (equalsFn) {
-                    if (!equalsFn(a1, a2)) return false;
+                    if (!equalsFn(a1[i], a2[i])) return false;
                 } else {
                     if (a1[i] != a2[i]) return false;
                 }
@@ -630,6 +643,7 @@ define('coreFns',[],function () {
         getOwnPropertyValues: getOwnPropertyValues,
         objectForEach: objectForEach,
         objectMapToArray: objectMapToArray,
+        objectFirst: objectFirst,
         //objectMapValue: objectMapValue,
         //objectFilter: objectFilter,
 
@@ -1279,16 +1293,26 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function (name, publisher, defaultErrorCallback) {
+    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
         assertParam(name, "eventName").isNonEmptyString();
         assertParam(publisher, "publisher").isObject();
-        this.name = name;
+        var that;
+        if (defaultFn) {
+            that = defaultFn;
+        } else {
+            that = this;
+        }
+        that.name = name;
         // register the name
-        __eventNameMap[name] = true; 
-        this.publisher = publisher;
-        this._nextUnsubKey = 1;
+        __eventNameMap[name] = true;
+        that.publisher = publisher;
+        that._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            this._defaultErrorCallback = defaultErrorCallback;
+            that._defaultErrorCallback = defaultErrorCallback;
+        }
+        if (defaultFn) {
+            core.extend(defaultFn, Event.prototype);
+            return defaultFn;
         }
     };
 
@@ -1546,7 +1570,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
 
 define('core',["coreFns", "enum", "event", "assertParam"],
 function (core, Enum, Event, m_assertParam) {
-    
+
     /**
     Utility types and functions of generally global applicability.
     @module core
@@ -1555,10 +1579,37 @@ function (core, Enum, Event, m_assertParam) {
     core.Enum = Enum;
     core.Event = Event;
     core.extend(core, m_assertParam);
-    core.config = { };
-    core.config.functionRegistry = { };
-    core.config.typeRegistry = { };
-    core.config.objectRegistry = { };
+
+    var coreConfig = { };
+    core.config = coreConfig;
+    coreConfig.functionRegistry = { };
+    coreConfig.typeRegistry = { };
+    coreConfig.objectRegistry = {};
+    coreConfig.interfaceInitialized = new Event("interfaceInitialized_core", coreConfig);
+    
+    var InterfaceDef = function(name) {
+        this.name = name;
+        this.defaultInstance = null;
+        this._implMap = {};
+        
+    };
+    InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
+        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
+    };
+    InterfaceDef.prototype.getImpl = function(adapterName) {
+        return this._implMap[adapterName.toLowerCase()];
+    };
+    InterfaceDef.prototype.getFirstImpl = function() {
+        var kv = core.objectFirst(this._implMap, function () { return true; });
+        return kv ? kv.value : null;
+    };
+    
+    coreConfig.interfaceRegistry = {
+        ajax: new InterfaceDef("ajax"),
+        modelLibrary: new InterfaceDef("modelLibrary"),
+        dataService: new InterfaceDef("dataService")
+    };
+   
     
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -1566,95 +1617,218 @@ function (core, Enum, Event, m_assertParam) {
     /**
     A singleton object that is the repository of all entityModel specific configuration options.
 
-        core.config.setProperties( {
-            trackingImplemenation: entityModel.entityTracking_ko,
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
+        core.config.initializeAdapterInstance( {
+            modelLibrary: "ko",
+            dataService: "webApi"
         });
         
     @class config
     **/
     
-    /**        
-    The implementation currently in use for tracking entities
-    @example
-        var name = entityModel.trackingImplementation.name;
-    There are currently two implementations of this interface.
-    @example
-        // For knockout.js
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_ko 
-        });
-    or
-    @example
-        // Generic js implementation of observability
-        core.config.setProperties( {
-            trackingImplementation: entityModel.entityTracking_backingStore
-        });
-        
-    @property trackingImplementation {~entityTracking-interface}
-    **/
-
-    /**        
-    The implementation currently in use for communicating with a remote server and service.
-    @example
-        var name = entityModel.remoteAccessImplementation.name;
-    There are currently two implementations of this interface.
-    Either an implementation of the remoteAccess interface that supports ASP.NET Web Api services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_webApi
-        });
-    or an implementation of the remoteAccess interface that supports OData services.
-    @example
-        core.config.setProperties( {
-            remoteAccessImplementation: entityModel.remoteAccess_odata
-        });    
-    @property remoteAccessImplementation {~remoteAccess-interface}
-    **/
-
     /**
+    This method is now OBSOLETE.  Use the "initializeAdapterInstances" to accomplish the same result.
     @method setProperties
+    @obsolete
     @param config {Object}
-        @param [config.remoteAccessImplementation] { implementation of ~remoteAccess-interface }
-        @param [config.trackingImplementation] { implementation of ~entityTracking-interface }
+        @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
+        @param [config.trackingImplementation] { implementation of entityTracking-interface }
+        @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
-    core.config.setProperties = function (config) {
+    coreConfig.setProperties = function (config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
-            .applyAll(core.config);
+            .whereParam("ajaxImplementation").isOptional()
+            .applyAll(coreConfig);
         if (config.remoteAccessImplementation) {
-            config.remoteAccessImplementation.initialize();
+            coreConfig.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
-            config.trackingImplementation.initialize();
+            // note the name change
+            coreConfig.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
+        }
+        if (config.ajaxImplementation) {
+            coreConfig.initializeAdapterInstance("ajax", config.ajaxImplementation);
         }
     };
     
+    /**
+    Method use to register implementations of standard breeze interfaces.  Calls to this method are usually
+    made as the last step within an adapter implementation. 
+    @method registerAdapter
+    @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
+    @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
+    **/
+    coreConfig.registerAdapter = function (interfaceName, adapterCtor) {
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
+        assertParam(adapterCtor, "adapterCtor").isFunction();
+        // this impl will be thrown away after the name is retrieved.
+        var impl = new adapterCtor();
+        var implName = impl.name;
+        if (!implName) {
+            throw new Error("Unable to locate a 'name' property on the constructor passed into the 'registerAdapter' call.");
+        }
+        var idef = getInterfaceDef(interfaceName);
+        idef.registerCtor(implName, adapterCtor);
+        
+    };
+    
+    /**
+    Returns the ctor function used to implement a specific interface with a specific adapter name.
+    @method getAdapter
+    @param interfaceName {String} One of the following interface names "ajax", "dataService" or "modelLibrary"
+    @param [adapterName] {String} The name of any previously registered adapter. If this parameter is omitted then
+    this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
+    @return {Function|null} Returns either a ctor function or null.
+    **/
+    coreConfig.getAdapter = function (interfaceName, adapterName) {
+        var idef = getInterfaceDef(interfaceName);
+        if (adapterName) {
+            var impl = idef.getImpl(adapterName);
+            return impl ? impl.ctor : null;
+        } else {
+            return idef.defaultInstance ? idef.defaultInstance._$impl.ctor : null;
+        }
+    };
+
+    /**
+    Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.
+    @method initializeAdapterInstances
+    @param config {Object}
+    @param [config.ajax] {String} - the name of a previously registered "ajax" adapter
+    @param [config.dataService] {String} - the name of a previously registered "dataService" adapter
+    @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
+    @return [array of instances]
+    **/
+    coreConfig.initializeAdapterInstances = function(config) {
+        assertConfig(config)
+            .whereParam("dataService").isOptional()
+            .whereParam("modelLibrary").isOptional()
+            .whereParam("ajax").isOptional();
+        return core.objectMapToArray(config, coreConfig.initializeAdapterInstance);
+        
+    };
+
+    /**
+    Initializes a single adapter implementation. Initialization means either newing a instance of the 
+    specified interface and then calling "initialize" on it or simply calling "initialize" on the instance
+    if it already exists.
+    @method initializeAdapterInstance
+    @param interfaceName {String} The name of the interface to which the adapter to initialize belongs.
+    @param adapterName {String} - The name of a previously registered adapter to initialize.
+    @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
+    @return {an instance of the specified adapter}
+    **/
+    coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
+        isDefault = isDefault === undefined ? true : isDefault;
+        assertParam(interfaceName, "interfaceName").isNonEmptyString();
+        assertParam(adapterName, "adapterName").isNonEmptyString();
+        assertParam(isDefault, "isDefault").isBoolean();
+        
+        var idef = getInterfaceDef(interfaceName);
+        var impl = idef.getImpl(adapterName);
+        if (!impl) {
+            throw new Error("Unregistered adapter.  Interface: " + interfaceName + " AdapterName: " + adapterName);
+        }
+
+        return initializeAdapterInstanceCore(idef, impl, isDefault);
+    };
+
+    /**
+    Returns the adapter instance corresponding to the specified interface and adapter names.
+    @method getAdapterInstance
+    @param interfaceName {String} The name of the interface.
+    @param [adapterName] {String} - The name of a previously registered adapter.  If this parameter is
+    omitted then the default implementation of the specified interface is returned. If there is
+    no defaultInstance of this interface, then the first registered instance of this interface is returned.
+    @return {an instance of the specified adapter}
+    **/
+    core.config.getAdapterInstance = function(interfaceName, adapterName) {
+        var idef = getInterfaceDef(interfaceName);
+        var impl;
+        if (adapterName & adapterName !== "") {
+            impl = idef.getImpl(adapterName);
+            return impl ? impl.defaultInstance : null;
+        } else {
+            if (idef.defaultInstance) {
+                return idef.defaultInstance;
+            } else {
+                impl = idef.getFirstImpl();
+                if (impl.defaultInstance) {
+                    return impl.defaultInstance;
+                } else {
+                    return initializeAdapterInstanceCore(idef, impl, true);
+                }
+            }
+        }
+    };
+   
+    function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
+        var instance = impl.defaultInstance;
+        if (!instance) {
+            instance = new (impl.ctor)();
+            impl.defaultInstance = instance;
+            instance._$impl = impl;
+        }
+        
+        instance.initialize();
+        
+        if (isDefault) {
+            // next line needs to occur before any recomposition 
+            interfaceDef.defaultInstance = instance;
+        }
+
+        // recomposition of other impls will occur here.
+        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
+        
+        if (instance.checkForRecomposition) {
+            // now register for own dependencies.
+            coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+                instance.checkForRecomposition(interfaceInitializedArgs);
+            });
+        }
+               
+        return instance;
+    }
+
+    function getInterfaceDef(interfaceName) {
+        var lcName = interfaceName.toLowerCase();
+        // source may be null
+        var kv = core.objectFirst(coreConfig.interfaceRegistry || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        return kv.value;
+    }
+   
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
-    core.config.registerFunction = function (fn, fnName) {
+    coreConfig.registerFunction = function (fn, fnName) {
         core.assertParam(fn, "fn").isFunction().check();
         core.assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
-        core.config.functionRegistry[fnName] = fn;
+        coreConfig.functionRegistry[fnName] = fn;
     };
 
-    core.config.registerObject = function(obj, objName) {
+    coreConfig.registerObject = function(obj, objName) {
         core.assertParam(obj, "obj").isObject().check();
         core.assertParam(objName, "objName").isString().check();
 
-        core.config.objectRegistry[objName] = obj;
+        coreConfig.objectRegistry[objName] = obj;
     };
   
-    core.config.registerType = function (ctor, typeName) {
+    coreConfig.registerType = function (ctor, typeName) {
         core.assertParam(ctor, "ctor").isFunction().check();
         core.assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
-        core.config.typeRegistry[typeName] = ctor;
+        coreConfig.typeRegistry[typeName] = ctor;
     };
+   
+    coreConfig.stringifyPad = "  ";
 
-    core.config.stringifyPad = "  ";
+    
 
     return core;
 });
@@ -2343,6 +2517,8 @@ function (core, Event, m_validate) {
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
+    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
+
     var EntityState = (function () {
         /**
         EntityState is an 'Enum' containing all of the valid states for an 'Entity'.
@@ -2661,7 +2837,7 @@ function (core, Event, m_validate) {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            core.config.trackingImplementation.startTracking(entity, entityCtor.prototype);
+            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             if (!deferInitialization) {
                 this._postInitialize();
             }
@@ -2814,7 +2990,11 @@ function (core, Event, m_validate) {
                 entity.setProperty(propName, originalValues[propName]);
             }
             if (this.entityState.isAdded()) {
-                this.entityManager.detachEntity(entity);
+                // next line is needed becuase the following line will cause this.entityManager -> null;
+                var entityManager = this.entityManager;
+                entityManager.detachEntity(entity);
+                // need to tell em that an entity that needed to be saved no longer does.
+                entityManager._notifyStateChange(entity, false);
             } else {
                 this.setUnchanged();
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
@@ -2833,7 +3013,7 @@ function (core, Event, m_validate) {
             this.originalValues = {};
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });            
+            this.entityManager._notifyStateChange(this.entity, false);
         };
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
@@ -2855,7 +3035,7 @@ function (core, Event, m_validate) {
         **/
         ctor.prototype.setModified = function () {
             this.entityState = EntityState.Modified;
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+            this.entityManager._notifyStateChange(this.entity, true);
         };
 
         /**
@@ -2873,7 +3053,7 @@ function (core, Event, m_validate) {
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                this.entityManager.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: this.entity });
+                this.entityManager._notifyStateChange(this.entity, true);
             }
             // TODO: think about cascade deletes
         };
@@ -3204,7 +3384,7 @@ function (core, Event, m_validate) {
         @param entityKey {EntityKey}
         **/
         ctor.prototype.equals = function (entityKey) {
-            if (!entityKey instanceof EntityKey) return false;
+            if (!(entityKey instanceof EntityKey)) return false;
             return (this.entityType === entityKey.entityType) &&
                 core.arrayEquals(this.values, entityKey.values);
         };
@@ -3235,7 +3415,7 @@ function (core, Event, m_validate) {
         @param k2 {EntityKey}
         **/
         ctor.equals = function (k1, k2) {
-            if (!k1 instanceof EntityKey) return false;
+            if (!(k1 instanceof EntityKey)) return false;
             return k1.equals(k2);
         };
 
@@ -3494,7 +3674,7 @@ function (core, m_entityAspect) {
             var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
-                // so propertyChanged is also fired in the entityManager mergeEntity method.
+                // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
                 }
@@ -3701,6 +3881,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
+    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;
+    var v_dataServiceDef = core.config.interfaceRegistry.dataService;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
@@ -3714,6 +3896,92 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     }
 
     // TODO: still need to handle inheritence here.
+
+    /**
+    A LocalQueryComparisonOptions instance is used to specify the "comparison rules" used when performing "local queries" in order 
+    to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+    manner in which your remote service interprets certain comparison operations.
+
+    The default LocalQueryComparisonOptions stipulates 'caseInsensitive" queries with ANSI SQL rules regarding comparisons of unequal
+    length strings. 
+
+    @class LocalQueryComparisonOptions
+    **/
+
+    /**
+    LocalQueryComparisonOptions constructor
+    @example
+        // create a 'caseSensitive - non SQL' instance.
+        var lqco = new LocalQueryComparisonOptions({
+            name: "caseSensitive-nonSQL"
+            isCaseSensitive: true;
+            usesSql92CompliantStringComparison: false;
+        });
+        // either apply it globally
+        lqco.setAsDefault();
+        // or to a specific MetadataStore
+        var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
+        var em = new EntityManager( { metadataStore: ms });
+
+    @method <ctor> LocalQueryComparisonOptions
+    @param config {Object}
+    @param [config.name] {String}
+    @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a "caseSensitive" manner. Default is 'false'
+    @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
+       of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
+       inequality predicates, and not with operations like 'startsWith', 'endsWith' or 'contains'.  Default is true.
+    **/
+    var LocalQueryComparisonOptions = (function() {
+        var ctor = function (config) {
+            assertConfig(config || {})
+                .whereParam("name").isOptional().isString()
+                .whereParam("isCaseSensitive").isOptional().isBoolean().withDefault(false)
+                .whereParam("usesSql92CompliantStringComparison").isBoolean().withDefault(true)
+                .applyAll(this);
+            if (!this.name) {
+                this.name = core.getUuid();
+            }
+            core.config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+        };
+        
+        // 
+        /**
+        Case insensitive SQL compliant options - this is also the default unless otherwise changed.
+        @property caseInsensitiveSQL {LocalQueryComparisonOptions}
+        @static
+        **/
+        ctor.caseInsensitiveSQL = new ctor({
+            name: "caseInsensitiveSQL",
+            isCaseSensitive: false,
+            usesSql92CompliantStringComparison: true
+        });
+
+        /**
+        The default value whenever LocalQueryComparisonOptions are not specified. By default this is 'caseInsensitiveSQL'.
+        @property defaultInstance {LocalQueryComparisonOptions}
+        @static
+        **/
+        ctor.defaultInstance = ctor.caseInsensitiveSQL;
+
+        /**
+        Makes this instance the default instance.
+        @method setAsDefault
+        @example
+            var lqco = new LocalQueryComparisonOptions({
+                isCaseSensitive: false;
+                usesSql92CompliantStringComparison: true;
+            });
+            lqco.setAsDefault();
+        @chainable
+        **/
+        ctor.prototype.setAsDefault = function () {
+            ctor.defaultInstance = this;
+            return this;
+        };
+
+
+        return ctor;
+    })();
 
     /**
     A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
@@ -3865,11 +4133,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @param [config] {Object} Configuration settings .
         @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
         between client and server. Uses the NamingConvention.defaultInstance if not specified.
+        @param [config.localQueryComparisonOptions=LocalQueryComparisonOptions.defaultInstance] {LocalQueryComparisonOptions} The LocalQueryComparisonOptions to be
+        used when performing "local queries" in order to match the semantics of queries against a remote service. 
         **/
         var ctor = function (config) {
             config = config || { };
             assertConfig(config)
                 .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
+                .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
             this.serviceNames = []; // array of serviceNames
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
@@ -3907,7 +4178,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **/
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
-                if (key === "namingConvention") {
+                if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
                 return value;
@@ -3933,16 +4204,26 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         ctor.prototype.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
+            var lqcoName = json.localQueryComparisonOptions;
             delete json.namingConvention;
+            delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
                 var nc = core.config.objectRegistry["NamingConvention:" + ncName];
                 if (!nc) {
                     throw new Error("Unable to locate a naming convention named: " + ncName);
                 }
                 this.namingConvention = nc;
+                var lqco = core.config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
+                if (!lqco) {
+                    throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
+                }
+                this.localQueryComparisonOptions = lqco;
             } else {
                 if (this.namingConvention.name !== ncName) {
-                    throw new Error("Cannot import metadata with a different naming convention from the current MetadataStore");
+                    throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
+                }
+                if (this.localQueryComparisonOptions.name !== lqcoName) {
+                    throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
                 }
             }
             var entityTypeMap = {};
@@ -4019,8 +4300,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         @method fetchMetadata
         @async
         @param serviceName {String}  The service name to fetch metadata for.
-        @param [remoteAccessImplementation] {instance of this RemoteAccessImplementation interface} 
-        - will default to core.config.remoteAccessImplementation
+        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -4033,10 +4313,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, remoteAccessImplementation, callback, errorCallback) {
+        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
             assertParam(serviceName, "serviceName").isString().check();
-            remoteAccessImplementation = assertParam(remoteAccessImplementation, "remoteAccessImplementation")
-                .isOptional().hasProperty("fetchMetadata").check(core.config.remoteAccessImplementation);
+            assertParam(dataServiceAdapterName, "dataServiceAdapterName").isOptional().isString();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
@@ -4047,9 +4326,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
+            
+            var dataServiceInstance = core.config.getAdapterInstance("dataService", dataServiceAdapterName);
 
             var deferred = Q.defer();
-            remoteAccessImplementation.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
@@ -4739,7 +5020,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var typeRegistry = this.metadataStore._typeRegistry;
             var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!entityCtor) {
-                var createCtor = core.config.trackingImplementation.createCtor;
+                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
                 if (createCtor) {
                     entityCtor = createCtor(this);
                 } else {
@@ -4767,7 +5048,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            core.config.trackingImplementation.initializeEntityPrototype(proto);
+            v_modelLibraryDef.defaultInstance.initializeEntityPrototype(proto);
 
             this._entityCtor = entityCtor;
         };
@@ -5030,7 +5311,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = core.config.trackingImplementation.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_modelLibraryDef.defaultInstance.getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
@@ -5710,6 +5991,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     var MetadataStore = m_entityMetadata.MetadataStore;
     var NavigationProperty = m_entityMetadata.NavigationProperty;
     var EntityType = m_entityMetadata.EntityType;
+    var DataType = m_entityMetadata.DataType;
     
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
@@ -6452,7 +6734,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!wherePredicate) return null;
             // may throw an exception
             wherePredicate.validate(entityType);
-            return wherePredicate.toFunction();
+            return wherePredicate.toFunction(entityType);
         };
 
         ctor.prototype._toOrderByComparer = function (entityType) {
@@ -6561,25 +6843,25 @@ function (core, m_entityMetadata, m_entityAspect) {
 
     var QueryFuncs = (function() {
         var obj = {
-            toupper: function(source) { return source.toUpperCase(); },
-            tolower: function (source) { return source.toLowerCase(); },
-            substring: function(source, pos, length) { return source.substring(pos, length); },   
-            substringof: function (source, find) { return source.indexOf(find) >= 0; },
-            length:  function(source) { return source.length; },            
-            trim: function(source) { return source.trim(); },
-            concat: function(s1, s2) { return s1.concat(s2); },
-            replace: function (source, find, replace) { return source.replace(find, replace); },
-            startswith: function (source, find) { return core.stringStartsWith(source, find); },
-            endswith: function (source, find) { return core.stringEndsWith(source, find); },
-            indexof: function(source, find) { return source.indexOf(find); },
-            round: function(source) { return Math.round(source); },
-            ceiling: function(source) {return Math.ceil(source); },
-            floor: function (source) { return Math.floor(source); },
-            second: function(source) { return source.second;},
-            minute: function (source) { return source.minute;},
-            day: function(source) { return source.day;},
-            month: function(source) { return source.month; },
-            year: function(source) { return source.year; }            
+            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: "String" },
+            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: "String" },
+            substring:   { fn: function(source, pos, length) { return source.substring(pos, length); }, dataType: "String" },
+            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: "Boolean" },
+            length:      { fn: function(source) { return source.length; }, dataType: "Number" },
+            trim:        { fn: function(source) { return source.trim(); }, dataType: "String" },
+            concat:      { fn: function(s1, s2) { return s1.concat(s2); }, dataType: "String" },
+            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: "String"},
+            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: "Boolean"},
+            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: "Boolean" },
+            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: "Number" },
+            round:       { fn: function (source) { return Math.round(source); }, dataType: "Number" },
+            ceiling:     { fn: function(source) {return Math.ceil(source); }, dataType: "Number" },
+            floor:       { fn: function (source) { return Math.floor(source); }, dataType: "Number" },
+            second:      { fn: function (source) { return source.second; }, dataType: "Number" },
+            minute:      { fn: function (source) { return source.minute; }, dataType: "Number" },
+            day:         { fn: function(source) { return source.day;}, dataType: "Number" },
+            month:       { fn: function(source) { return source.month; }, dataType: "Number" },
+            year:        { fn: function(source) { return source.year; }, dataType: "Number"},
         };
         
         return obj;
@@ -6603,19 +6885,23 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var quoted = firstChar == "'" || firstChar == '"';
                 if (quoted) {
                     var unquoted = value.substr(1, value.length - 2);
-                    this.fn = function(entity) { return unquoted; };
+                    this.fn = function (entity) { return unquoted; };
+                    this.dataType = "String";
                 } else {
                     var isIdentifier = RX_IDENTIFIER.test(value);
                     if (isIdentifier) {
                         this.propertyPath = value;
                         this.fn = createPropFunction(value);
                     } else {
-                        this.fn = function(entity) { return value; };
+                        this.fn = function (entity) { return value; };
+                        this.dataType = typeof value;
                     }
                 } 
             } else {
                 this.fnName = parts[0].trim().toLowerCase();
-                this.localFn = QueryFuncs[this.fnName];
+                var qf = QueryFuncs[this.fnName];
+                this.localFn = qf.fn;
+                this.dataType = qf.dataType;
                 var that = this;
                 this.fn = function(entity) {
                     var resolvedNodes = that.fnNodes.map(function(fnNode) {
@@ -6688,7 +6974,12 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (this._isValidated) return;            
             this._isValidated = true;
             if (this.propertyPath) {
-                entityType.getProperty(this.propertyPath, true);
+                var prop = entityType.getProperty(this.propertyPath, true);
+                if (prop.isDataProperty) {
+                    this.dataType = prop.dataType;
+                } else {
+                    this.dataType = prop.entityType;
+                }
             } else if (this.fnNodes) {
                 this.fnNodes.forEach(function(node) {
                     node.validate(entityType);
@@ -7097,8 +7388,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function () {            
-            var predFn = getPredicateFn(this._filterQueryOp, this._value);
+        ctor.prototype.toFunction = function (entityType) {            
+            var predFn = getPredicateFn(entityType, this._filterQueryOp, this._value);
             var exprFn = this._fnNode.fn;
             return function(entity) {
                 return predFn(makeComparable(exprFn(entity)));
@@ -7113,24 +7404,35 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.validate = function (entityType) {
             // throw if not valid
             this._fnNode.validate(entityType);
+            this.dataType = this._fnNode.dataType;
         };
         
         // internal functions
 
-        // TODO: still need to handle CacheQueryOptions - string casing, trimming and guids.
+        // TODO: still need to handle localQueryComparisonOptions for guids.
         
-        function getPredicateFn(filterQueryOp, value) {
+        function getPredicateFn(entityType, filterQueryOp, value) {
+            var lqco = entityType.metadataStore.localQueryComparisonOptions;
+            
             // Date do not compare properly but Date.getTime()'s do.
             if (value instanceof Date) {
                 value = value.getTime();
-            }
+            } 
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
-                    predFn = function (propValue) { return propValue == value; };
+                    if (typeof value === "string") {
+                        predFn = function (propValue) { return stringEquals(propValue, value, lqco); };
+                    } else {
+                        predFn = function(propValue) { return propValue == value; };
+                    }
                     break;
                 case FilterQueryOp.NotEquals:
-                    predFn = function (propValue) { return propValue != value; };
+                    if (typeof value === "string") {
+                        predFn = function(propValue) { return !stringEquals(propValue, value, lqco); };
+                    } else {
+                        predFn = function(propValue) { return propValue != value; };
+                    }
                     break;
                 case FilterQueryOp.GreaterThan:
                     predFn = function (propValue) { return propValue > value; };
@@ -7145,21 +7447,55 @@ function (core, m_entityMetadata, m_entityAspect) {
                     predFn = function (propValue) { return propValue <= value; };
                     break;
                 case FilterQueryOp.StartsWith:
-                    predFn = function (propValue) { return core.stringStartsWith(propValue, value); };
+                    predFn = function (propValue) { return stringStartsWith(propValue, value, lqco); };
                     break;
                 case FilterQueryOp.EndsWith:
-                    predFn = function (propValue) { return core.stringEndsWith(propValue, value); };
+                    predFn = function (propValue) { return stringEndsWith(propValue, value, lqco); };
                     break;
                 case FilterQueryOp.Contains:
-                    predFn = function (propValue) {
-                        return propValue.indexOf(value) >= 0;
-                    };
+                    predFn = function(propValue) { return stringContains(propValue, value, lqco); };
                     break;
                 default:
                     throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
                     
             }
             return predFn;
+        }
+        
+        function stringEquals(a, b, lqco) {
+            if (lqco.usesSql92CompliantStringComparison) {
+                a = (a || "").trim();
+                b = (b || "").trim();
+            }
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return a == b;
+        }
+        
+        function stringStartsWith(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return core.stringStartsWith(a, b);
+        }
+
+        function stringEndsWith(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return core.stringEndsWith(a, b);
+        }
+        
+        function stringContains(a, b, lqco) {
+            if (!lqco.isCaseSensitive) {
+                a = (a || "").toLowerCase();
+                b = (b || "").toLowerCase();
+            }
+            return a.indexOf(b) >= 0;
         }
 
         function formatValue(val) {
@@ -7214,8 +7550,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function () {
-            return createFunction(this._booleanQueryOp, this._predicates);
+        ctor.prototype.toFunction = function (entityType) {
+            return createFunction(entityType, this._booleanQueryOp, this._predicates);
         };
 
         ctor.prototype.toString = function () {
@@ -7238,16 +7574,16 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._isValidated = true;
         };
 
-        function createFunction(booleanQueryOp, predicates) {
+        function createFunction(entityType, booleanQueryOp, predicates) {
             var func, funcs;
             switch (booleanQueryOp) {
                 case BooleanQueryOp.Not:
-                    func = predicates[0].toFunction();
+                    func = predicates[0].toFunction(entityType);
                     return function (entity) {
                         return !func(entity);
                     };
                 case BooleanQueryOp.And:
-                    funcs = predicates.map(function (p) { return p.toFunction(); });
+                    funcs = predicates.map(function (p) { return p.toFunction(entityType); });
                     return function (entity) {
                         var result = funcs.reduce(function (prev, cur) {
                             return prev && cur(entity);
@@ -7255,7 +7591,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         return result;
                     };
                 case BooleanQueryOp.Or:
-                    funcs = predicates.map(function (p) { return p.toFunction(); });
+                    funcs = predicates.map(function (p) { return p.toFunction(entityType); });
                     return function (entity) {
                         var result = funcs.reduce(function (prev, cur) {
                             return prev || cur(entity);
@@ -7395,7 +7731,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return;
             } // can't validate yet
             // will throw an exception on bad propertyPath
-            entityType.getProperty(this.propertyPath, true);
+            this.lastProperty = entityType.getProperty(this.propertyPath, true);
         };
 
         ctor.prototype.toOdataFragment = function (entityType) {
@@ -7405,9 +7741,19 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.getComparer = function () {
             var properties = this.properties;
             var isDesc = this.isDesc;
+            var that = this;
             return function (entity1, entity2) {
-                var value1 = makeComparable(getPropertyPathValue(entity1, properties));
-                var value2 = makeComparable(getPropertyPathValue(entity2, properties));
+                var value1 = getPropertyPathValue(entity1, properties);
+                var value2 = getPropertyPathValue(entity2, properties);
+                if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
+                    if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
+                        value1 = (value1 || "").toLowerCase();
+                        value2 = (value2 || "").toLowerCase();
+                    }
+                } else {
+                    value1 = makeComparable(value1);
+                    value2 = makeComparable(value2);
+                }
                 if (value1 == value2) {
                     return 0;
                 } else if (value1 > value2) {
@@ -7596,6 +7942,238 @@ function (core, m_entityMetadata, m_entityAspect) {
         OrderByClause: OrderByClause
     };
 });
+
+define('relationArray',["core", "entityAspect", "entityQuery"],
+function (core, m_entityAspect, m_entityQuery) {
+    
+
+    var relationArrayMixin = {};
+    var EntityState = m_entityAspect.EntityState;
+    var EntityQuery = m_entityQuery.EntityQuery;
+
+    var Event = core.Event;
+    
+    /**
+    Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
+    entities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.
+    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class ↈ_relationArray_
+    **/
+    
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
+    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+    collections are collected into a single notification event for each relation array.
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        orders.arrayChanged.subscribe(
+            function (arrayChangedArgs) {
+                var addedEntities = arrayChangedArgs.added;
+                var removedEntities = arrayChanged.removed;
+            });
+     @event arrayChanged 
+     @param added {Array of Entity} An array of all of the entities added to this collection.
+     @param removed {Array of Entity} An array of all of the removed from this collection.
+     @readOnly
+     **/
+    
+    relationArrayMixin.push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+       
+        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+    
+    relationArrayMixin.unshift = function () {
+        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        
+        var result = Array.prototype.unshift.apply(this, goodAdds);
+        processAdds(this, Array.prototype.slice.call(goodAdds));
+        return result;
+    };
+
+    relationArrayMixin.pop = function () {
+        var result = Array.prototype.pop.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    relationArrayMixin.shift = function () {
+        var result = Array.prototype.shift.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    relationArrayMixin.splice = function () {
+        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
+        var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
+        
+        var result = Array.prototype.splice.apply(this, newArgs);
+        processRemoves(this, result);
+
+        if (goodAdds.length) {
+            processAdds(this, goodAdds);
+        }
+        return result;
+    };
+
+    /**
+    Performs an asynchronous load of all other the entities associated with this relationArray.
+    @example
+        // assume orders is an empty, as yet unpopulated, relation array of orders
+        // associated with a specific customer.
+        orders.load().then(...)
+    @method load
+    @param [callback] {Function} 
+    @param [errorCallback] {Function}
+    @return {Promise} 
+    **/
+    relationArrayMixin.load = function (callback, errorCallback) {
+        var parent = this.parentEntity;
+        var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
+        var em = parent.entityAspect.entityManager;
+        return em.executeQuery(query, callback, errorCallback);
+    };
+
+    relationArrayMixin._getEventParent = function() {
+        return this.parentEntity.entityAspect;
+    };
+
+    relationArrayMixin._getPendingPubs = function() {
+        var em = this.parentEntity.entityAspect.entityManager;
+        return em && em._pendingPubs;
+    };
+
+    function getGoodAdds(relationArray, adds) {
+        var goodAdds = checkForDups(relationArray, adds);
+        if (!goodAdds.length) {
+            return goodAdds;
+        }
+        var parentEntity = relationArray.parentEntity;
+        var entityManager = parentEntity.entityAspect.entityManager;
+        // we do not want to attach an entity during loading
+        // because these will all be 'attached' at a later step.
+        if (entityManager && !entityManager.isLoading) {
+            goodAdds.forEach(function (add) {
+                if (add.entityAspect.entityState.isDetached()) {
+                    relationArray._inProgress = true;
+                    try {
+                        entityManager.attachEntity(add, EntityState.Added);
+                    } finally {
+                        relationArray._inProgress = false;
+                    }
+                }
+            });
+        }
+        return goodAdds;
+    }
+
+    function checkForDups(relationArray, adds) {
+        // don't allow dups in this array. - also prevents recursion 
+        var inverseProp = relationArray.navigationProperty.inverse;
+        var goodAdds = adds.filter(function (a) {
+            if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                return false;
+            }
+            var inverseValue = a.getProperty(inverseProp.name);
+            return inverseValue != relationArray.parentEntity;
+        });
+        return goodAdds;
+    }
+
+    function processAdds(relationArray, adds) {
+        var inp = relationArray.navigationProperty.inverse;
+        if (inp) {
+            var addsInProcess = relationArray._addsInProcess;
+            var startIx = addsInProcess.length;
+            try {
+                adds.forEach(function (childEntity) {
+                    addsInProcess.push(childEntity);
+                    childEntity.setProperty(inp.name, relationArray.parentEntity);
+                });
+            } finally {
+                addsInProcess.splice(startIx, adds.length);
+            };
+        }
+        
+        // this is referencing the name of the method on the relationArray not the name of the event
+        publish(relationArray, "arrayChanged", { added: adds });
+    }
+    
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function () {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+    
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (hasOwnProperty.call(target, key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
+    }
+
+    function processRemoves(relationArray, removes) {
+        var inp = relationArray.navigationProperty.inverse;
+        if (inp) {
+            removes.forEach(function (childEntity) {
+                childEntity.setProperty(inp.name, null);
+            });
+        }
+        // this is referencing the name of the method on the relationArray not the name of the event
+        publish(relationArray, "arrayChanged", { removed: removes });
+    }
+
+
+    function makeRelationArray(arr, parentEntity, navigationProperty) {
+        arr.parentEntity = parentEntity;
+        arr.navigationProperty = navigationProperty;
+        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
+        // array of pushes currently in process on this relation array - used to prevent recursion.
+        arr._addsInProcess = [];
+        return core.extend(arr, relationArrayMixin);
+    }
+
+
+
+    return makeRelationArray;
+
+});
+
 
 define('keyGenerator',["core", "entityMetadata", "entityAspect"],
 function (core, m_entityMetadata, m_entityAspect) {
@@ -7814,7 +8392,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
         @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
-        @param [config.remoteAccessImplementation] {instance of RemoteAccessImplementation interface}
+        @param [config.adapters] {Adapter settings}
+        @param [config.adapters.dataService] {String} dataService name
         **/
         var ctor = function (config) {
             // // not allowed with useStrict
@@ -7845,19 +8424,32 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
-                //.whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(function() { return new KeyGenerator(); })
-                .whereParam("remoteAccessImplementation").withDefault(core.parent.core.config.remoteAccessImplementation)
                 .applyAll(this);
+
+            if (config.adapters) {
+                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
+                this.adapters = config.adapters;
+            } else {
+                this.adapters = {};           
+            }
+            this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
 
             if (this.serviceName.substr(-1) !== "/") {
                 this.serviceName = this.serviceName + '/';
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
+            this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
+                if (!this._hasChanges) return false;
+                if (entityTypes === undefined) return this._hasChanges;
+                return this._hasChangesCore(entityTypes);
+            });
+            
             
             this.clear();
             
         };
         ctor.prototype._$typeName = "EntityManager";
+        
 
         Event.bubbleEvent(ctor.prototype, null);
         
@@ -7904,10 +8496,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         **/
 
         /**
-        The RemoteAccess implementation instance associated with this EntityManager.
+        The "dataService" adapter implementation instance associated with this EntityManager.
 
         __readOnly__
-        @property remoteAccessImplementation {implementation instance of remoteAccessImplementation interface}
+        @property dataServiceInstance {an instance of the "dataService" adapter interface}
         **/
        
         // events
@@ -8088,6 +8680,10 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
+            if (this._hasChanges) {
+                this._hasChanges = false;
+                this.hasChanges.publish({ entityManager: this, hasChanges: false });
+            }
         };
 
         /**
@@ -8105,8 +8701,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             @param [config.queryOptions] {QueryOptions}
             @param [config.saveOptions] {SaveOptions}
             @param [config.validationOptions] {ValidationOptions}
-            @param [config.remoteAccessImplementation] 
             @param [config.keyGeneratorCtor] {Function}
+            @param [config.adapters] { Object}
+            @param [config.adapters.dataService] {String} - name of a "dataService" adapter.
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
@@ -8114,12 +8711,20 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-                .whereParam("remoteAccessImplementation")
                 .whereParam("keyGeneratorCtor")
-                .applyAll(this);
+             .applyAll(this);
+            
+            if (config.adapters) {
+                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
+                core.extend(this.adapters, config.adapters);
+                this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
+            }
+            
             if (config.keyGeneratorCtor) {
                 this.keyGenerator = new this.keyGeneratorCtor();
             }
+
+            
         };
 
         /**
@@ -8137,7 +8742,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 serviceName: this.serviceName,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                remoteAccessImplementation: this.remoteAccessImplementation,
+                adapters: core.extend({}, this.adapters),
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -8202,6 +8807,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             });
             if (this.validationOptions.validateOnAttach) {
                 entity.entityAspect.validateEntity();
+            }
+            if (!entityState.isUnchanged()) {
+                this._notifyStateChange(entity, true);
             }
             this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
 
@@ -8277,7 +8885,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
-            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.remoteAccessImplementation);
+            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.adapters.dataService);
 
             // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
             // TEST::: see if serialization actually works completely
@@ -8494,7 +9102,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
-
+            var isFullSave = entities == null;
             var entitiesToSave = getEntitiesToSave(this, entities);
             
             if (entitiesToSave.length == 0) {
@@ -8537,7 +9145,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
-            this.remoteAccessImplementation.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+            this.dataServiceInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
@@ -8549,6 +9157,8 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     return mergeEntity(rawEntity, queryContext, true);
                 });
                 markIsBeingSaved(entitiesToSave, false);
+                // update _hasChanges after save.
+                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);
@@ -8658,13 +9268,37 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         If this parameter is omitted, all EntityTypes are searched.
         @return {Boolean} Whether there were any changed entities.
         **/
-        ctor.prototype.hasChanges = function(entityTypes) {
+        //ctor.prototype.hasChanges = function (entityTypes) {
+        //    if (!this._hasChanges) return false;
+        //    if (entityTypes === undefined) return this._hasChanges;
+        //    return this._hasChangesCore(entityTypes);
+        //};
+        
+        /**
+        An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
+        @example                    
+            var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+            em.hasChanges.subscribe(function(args) {
+                var hasChanges = args.hasChanges;
+                var entityManager = args.entityManager;
+            });
+        });
+      
+        @event hasChanges 
+        @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
+        @param hasChanges {Boolean} Whether or not this EntityManager has changes.
+        @readOnly
+        **/
+        
+        
+        // backdoor the "really" check for changes.
+        ctor.prototype._hasChangesCore = function (entityTypes) {
             core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             var entityGroups = getEntityGroups(this, entityTypes);
-            return entityGroups.some(function(eg) {
+            return entityGroups.some(function (eg) {
                 return eg.hasChanges();
             });
-        };
+        }
         
         /**
         Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
@@ -8706,12 +9340,16 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
-        ctor.prototype.rejectChanges = function() {
+        ctor.prototype.rejectChanges = function () {
+            if (!this._hasChanges) return [];
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             var changes = this._getEntitiesCore(null, entityStates);
+            // next line stops individual reject changes from each calling _hasChangesCore
+            this._hasChanges = false;
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
+            this.hasChanges.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -8757,6 +9395,26 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
         // protected methods
 
+        ctor.prototype._notifyStateChange = function (entity, needsSave) {
+            this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
+
+            if (needsSave) {
+                if (!this._hasChanges) {
+                    this._hasChanges = true;
+                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
+                }
+            } else {
+                // called when rejecting a change or merging an unchanged record.
+                if (this._hasChanges) {
+                    // NOTE: this can be slow with lots of entities in the cache.
+                    this._hasChanges = this._hasChangesCore();
+                    if (!this._hasChanges) {
+                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                    }
+                }
+            }
+        };
+
         ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
 
@@ -8788,6 +9446,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 
         // private fns
+        
+        function getAdapterInstance(adaptersConfig, interfaceName) {
+            if (adaptersConfig[interfaceName]) {
+                return core.config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
+            } else {
+                return core.config.getAdapterInstance(interfaceName);
+            }
+        }
+
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -8901,11 +9568,21 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
 
                 if (targetEntity) {
-                    if (shouldOverwrite || targetEntity.entityAspect.entityState.isUnchanged()) {
+                    var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+                    if (shouldOverwrite || wasUnchanged) {
                         dpNames.forEach(function (dpName, ix) {
                             targetEntity.setProperty(dpName, rawEntity[ix]);
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
+                        if (wasUnchanged) {
+                            if (!entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            }
+                        } else {
+                            if (entityState.isUnchanged()) {
+                                entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            }
+                        }
                     } else {
                         targetEntity = null;
                     }
@@ -8934,6 +9611,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                     if (entityChanged) {
                         entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                        if (!entityState.isUnchanged()) {
+                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        }
                     }
                 }
 
@@ -9150,7 +9830,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.remoteAccessImplementation.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceInstance.executeQuery(em, odataQuery, function (rawEntities) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -9202,13 +9882,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
             // null and undefined have different meaning - null means a ref entity that cannot be resolved - usually an odata __deferred value
             // undefined means that this is not a ref entity.
-            targetEntity = em.remoteAccessImplementation.resolveRefEntity(rawEntity, queryContext);
+            targetEntity = em.dataServiceInstance.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
                 return targetEntity;
             }
 
             
-            var entityType =em.remoteAccessImplementation.getEntityType(rawEntity, em.metadataStore);
+            var entityType =em.dataServiceInstance.getEntityType(rawEntity, em.metadataStore);
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
@@ -9222,15 +9902,22 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     em.detachEntity(targetEntity);
                     return targetEntity;
                 }
+                var targetEntityState = targetEntity.entityAspect.entityState;
                 if (mergeStrategy === MergeStrategy.OverwriteChanges
-                        || targetEntity.entityAspect.entityState.isUnchanged()) {
+                        || targetEntityState.isUnchanged()) {
                     updateEntity(targetEntity, rawEntity, queryContext);
                     targetEntity.entityAspect.wasLoaded = true;
+                    
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
                     targetEntity.entityAspect.originalValues = {};
                     targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
                     var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
                     em.entityChanged.publish({ entityAction: action, entity: targetEntity });
+                    // this is needed to handle an overwrite or a modified entity with an unchanged entity 
+                    // which might in turn cause _hasChanges to change.
+                    if (!targetEntityState.isUnchanged) {
+                        em._notifyStateChange(targetEntity, false);
+                    }
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
@@ -9239,7 +9926,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             } else {
                 targetEntity = entityType._createEntity(true);
                 if (targetEntity.initializeFrom) {
-                    // allows any injected post ctor activity to be performed by entityTracking impl.
+                    // allows any injected post ctor activity to be performed by modelLibrary impl.
                     targetEntity.initializeFrom(rawEntity);
                 }
                 updateEntity(targetEntity, rawEntity, queryContext);
@@ -9292,7 +9979,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            return em.remoteAccessImplementation.resolveRefEntity(v, queryContext);
+                            return em.dataServiceInstance.resolveRefEntity(v, queryContext);
                         } else {
                             return v;
                         }
@@ -9301,7 +9988,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        result[newKey] = em.remoteAccessImplementation.resolveRefEntity(value, queryContext);
+                        result[newKey] = em.dataServiceInstance.resolveRefEntity(value, queryContext);
                     } else {
                         result[newKey] = value;
                     }
@@ -9345,7 +10032,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntity);
+            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntity);
             if (deferred) {
                 return;
             }
@@ -9388,7 +10075,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.remoteAccessImplementation.getDeferredValue(relatedRawEntities);
+            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntities);
             if (deferred) {
                 return;
             }
@@ -10074,102 +10761,233 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 
 
-// also needs JQuery
+define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "relationArray", "keyGenerator"],
+function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
+          
+    
 
-define('remoteAccess_webApi',["core", "entityMetadata"],
-function (core, m_entityMetadata) {
+    var entityModel = { };
 
-    var EntityType = m_entityMetadata.EntityType;
+    core.extend(entityModel, m_entityAspect);
+    core.extend(entityModel, m_entityMetadata);
+    core.extend(entityModel, m_entityManager);
+    core.extend(entityModel, m_entityQuery);
+    core.extend(entityModel, m_validate);
 
-    var impl = {};
+    entityModel.makeRelationArray = makeRelationArray;
+    entityModel.KeyGenerator = KeyGenerator;
 
-    // -------------------------------------------
+    // legacy properties - will not be supported after 3/1/2013
+    entityModel.entityTracking_backingStore = "backingStore";
+    entityModel.entityTracking_ko = "ko";
+    entityModel.entityTracking_backbone = "backbone";
+    entityModel.remoteAccess_odata = "odata";
+    entityModel.remoteAccess_webApi = "webApi";
+    
+    /**
+    The entityModel namespace.
+    @module entityModel
+    @main entityModel
+    **/
+
+    return entityModel;
+
+})
+;
+define('breeze',["core", "entityModel"],
+function (core, entityModel) {
+    var breeze = {
+        version: "0.70.1",
+        core: core,
+        entityModel: entityModel
+    };
+    core.parent = breeze;
+    
+    return breeze;
+});
+
+// needs JQuery
+(function(factory) {
+    // Module systems magic dance.
+
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.ajax.jQuery',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze) {
+    var core = breeze.core;
+    
     var jQuery;
     
-    impl.initialize = function() {
+    var ctor = function () {
+        this.name = "jQuery";
+        this.defaultSettings = { };
+    };
+
+    ctor.prototype.initialize = function() {
         jQuery = window.jQuery;
         if ((!jQuery) && require) {
             jQuery = require("jQuery");
         }
         if (!jQuery) {
-            throw new Error("Breeze currently needs jQuery for ajax support with WebApi and was unable to initialize jQuery.");
+            throw new Error("The Breeze 'ajax_jQuery' pluggin needs jQuery and was unable to find it.");
         }
-        
+
     };
 
-    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.ajax = function (settings) {
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeSettings = core.extend({}, this.defaultSettings);
+            core.extend(compositeSettings, settings);
+            jQuery.ajax(compositeSettings);
+        } else {
+            jQuery.ajax(settings);
+        }
+    };
+
+    
+    // last param is true because for now we only have one impl.
+    breeze.core.config.registerAdapter("ajax", ctor);
+    
+}));
+
+(function(factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.dataService.webApi',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }    
+}(function(breeze) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
+
+    var EntityType = entityModel.EntityType;
+
+    
+    var ajaxImpl;
+    
+    var ctor = function () {
+        this.name = "webApi";
+    };
+
+    ctor.prototype.checkForRecomposition = function (interfaceInitializedArgs) {
+        if (interfaceInitializedArgs.interfaceName === "ajax" && interfaceInitializedArgs.isDefault) {
+            this.initialize();
+        }
+    };
+    
+    ctor.prototype.initialize = function () {
+        ajaxImpl = core.config.getAdapterInstance("ajax");
+
+        if (!ajaxImpl) {
+            throw new Error("Unable to initialize ajax for WebApi.");
+        }
+
+        // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of brower support issues. 
+        var ajax = ajaxImpl.ajax;
+        if (!ajax) {
+            throw new Error("Breeze was unable to find an 'ajax' adapter");
+        }
+    };
+
+    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
-        jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
-            var metadata = JSON.parse(data);
-            if (!metadata) {
-                if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
-                return;
-            }
-            // setProperties metadataStore    
-            // if from Edmx
-            var schema = metadata.schema;
-            if (!schema) {
-                // if from DbContext 
-                schema = metadata.conceptualModels.schema;
-                if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+        ajaxImpl.ajax({
+            url: metadataSvcUrl,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+                var metadata = JSON.parse(data);
+                if (!metadata) {
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
+                // setProperties metadataStore    
+                // if from Edmx
+                var schema = metadata.schema;
+                if (!schema) {
+                    // if from DbContext 
+                    schema = metadata.conceptualModels.schema;
+                    if (!schema) {
+                        if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+                        return;
+                    }
+                }
+                metadataStore._parseODataMetadata(serviceName, schema);
+                if (callback) {
+                    callback(schema);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                var err = createError(jqXHR);
+                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                if (errorCallback) errorCallback(err);
             }
-            metadataStore._parseODataMetadata(serviceName, schema);
-            if (callback) {
-                callback(schema);
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            var err = createError(jqXHR);
-            err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-            if (errorCallback) errorCallback(err);
         });
     };
 
-    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
         var url = entityManager.serviceName + odataQuery;
-        jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
-            // TODO: check response object here for possible errors.
-            try {
-                data.XHR = jqXHR;
-                collectionCallback(data);
-            } catch (e) {
-                var error = createError(jqXHR);
-                error.internalError = e;
-                // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                if (errorCallback) errorCallback(error);
+        ajaxImpl.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
+                // TODO: check response object here for possible errors.
+                try {
+                    data.XHR = jqXHR;
+                    collectionCallback(data);
+                } catch(e) {
+                    var error = createError(jqXHR);
+                    error.internalError = e;
+                    // needed because it doesn't look like jquery calls .fail if an error occurs within the function
+                    if (errorCallback) errorCallback(error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            if (errorCallback) errorCallback(createError(jqXHR));
         });
     };
 
-    impl.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         var url = entityManager.serviceName + "SaveChanges";
-        jQuery.ajax(url, {
+        ajaxImpl.ajax({
+            url: url,
             type: "POST",
             contentType: "application/json",
-            data: saveBundleStringified
-        }).done(function (data, textStatus, jqXHR) {
-            if (data.Error) {
-                // anticipatable errors on server - concurrency...
-                var err = createError(jqXHR);
-                err.message = data.Error;
-                errorCallback(err);
-            } else {
-                data.XHR = jqXHR;
-                callback(data);
+            data: saveBundleStringified,
+            success: function(data, textStatus, jqXHR) {
+                if (data.Error) {
+                    // anticipatable errors on server - concurrency...
+                    var err = createError(jqXHR);
+                    err.message = data.Error;
+                    errorCallback(err);
+                } else {
+                    data.XHR = jqXHR;
+                    callback(data);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(jqXHR));
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            errorCallback(createError(jqXHR));
         });
-
     };
 
     // will return null if anon
-    impl.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
         return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -10179,12 +10997,12 @@ function (core, m_entityMetadata) {
     //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
     //};
 
-    impl.getDeferredValue = function (rawEntity) {
+    ctor.prototype.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
         return false;
     };
 
-    impl.resolveRefEntity = function (rawEntity, queryContext) {
+    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['$ref'];
         if (id) {
             var entity = queryContext.refMap[id];
@@ -10239,34 +11057,43 @@ function (core, m_entityMetadata) {
         }
         return err;
     }
+    
+    core.config.registerAdapter("dataService", ctor);
 
-    return impl;
-
-
-});
-
-// also needs OData
-define('remoteAccess_odata',["core", "entityMetadata"], 
-function (core, m_entityMetadata) {
+}));
+(function (factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.dataService.odata',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
  
-    var EntityType = m_entityMetadata.EntityType;
-
-    var impl = {};
-    // -------------------------------------------
-
+    var EntityType = entityModel.EntityType;
+    
     var OData;
+    
+    var ctor = function () {
+        this.name = "OData";
+    };
 
-    impl.initialize = function() {
+    ctor.prototype.initialize = function () {
         OData = window.OData;
         if (!OData) {
             throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
         }
         OData.jsonHandler.recognizeDates = true;
-        
     };
     
     // will return null if anon
-    impl.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
         var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -10275,7 +11102,7 @@ function (core, m_entityMetadata) {
     };
 
 
-    impl.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
@@ -10283,15 +11110,16 @@ function (core, m_entityMetadata) {
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));
-            });
+            }
+        );
     };
     
  
-    impl.getDeferredValue = function (rawEntity) {
+    ctor.prototype.getDeferredValue = function (rawEntity) {
         return rawEntity['__deferred'];
     };
 
-    impl.resolveRefEntity = function (rawEntity, queryContext) {
+    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
         var id = rawEntity['__deferred'];
         if (id) {
             return null;
@@ -10300,7 +11128,7 @@ function (core, m_entityMetadata) {
         }
     };
 
-    impl.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -10319,8 +11147,7 @@ function (core, m_entityMetadata) {
                 if (callback) {
                     callback(schema);
                 }
-            },
-            function (error) {
+            }, function (error) {
                 var err = createError(error);
                 err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
@@ -10330,7 +11157,7 @@ function (core, m_entityMetadata) {
 
     };
 
-    impl.saveChanges = function(entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
 
@@ -10368,257 +11195,35 @@ function (core, m_entityMetadata) {
         return err;
     }
 
+    core.config.registerAdapter("dataService", ctor);
 
-    return impl;
-
-});
+}));
 
 
-define('relationArray',["core", "entityAspect", "entityQuery"],
-function (core, m_entityAspect, m_entityQuery) {
-    
-
-    var relationArrayMixin = {};
-    var EntityState = m_entityAspect.EntityState;
-    var EntityQuery = m_entityQuery.EntityQuery;
-
-    var Event = core.Event;
-    
-    /**
-    Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
-    entities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.
-    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
-    are all provided as well as several special purpose methods. 
-    @class ↈ_relationArray_
-    **/
-    
-    /**
-    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
-    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
-    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
-    collections are collected into a single notification event for each relation array.
-    @example
-        // assume order is an order entity attached to an EntityManager.
-        orders.arrayChanged.subscribe(
-            function (arrayChangedArgs) {
-                var addedEntities = arrayChangedArgs.added;
-                var removedEntities = arrayChanged.removed;
-            });
-     @event arrayChanged 
-     @param added {Array of Entity} An array of all of the entities added to this collection.
-     @param removed {Array of Entity} An array of all of the removed from this collection.
-     @readOnly
-     **/
-    
-    relationArrayMixin.push = function () {
-        if (this._inProgress) {
-            return -1;
-        }
-       
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
-
-    
-    relationArrayMixin.unshift = function () {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, Array.prototype.slice.call(goodAdds));
-        return result;
-    };
-
-    relationArrayMixin.pop = function () {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.shift = function () {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.splice = function () {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
-        var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
-        
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-    /**
-    Performs an asynchronous load of all other the entities associated with this relationArray.
-    @example
-        // assume orders is an empty, as yet unpopulated, relation array of orders
-        // associated with a specific customer.
-        orders.load().then(...)
-    @method load
-    @param [callback] {Function} 
-    @param [errorCallback] {Function}
-    @return {Promise} 
-    **/
-    relationArrayMixin.load = function (callback, errorCallback) {
-        var parent = this.parentEntity;
-        var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
-        var em = parent.entityAspect.entityManager;
-        return em.executeQuery(query, callback, errorCallback);
-    };
-
-    relationArrayMixin._getEventParent = function() {
-        return this.parentEntity.entityAspect;
-    };
-
-    relationArrayMixin._getPendingPubs = function() {
-        var em = this.parentEntity.entityAspect.entityManager;
-        return em && em._pendingPubs;
-    };
-
-    function getGoodAdds(relationArray, adds) {
-        var goodAdds = checkForDups(relationArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
-        }
-        var parentEntity = relationArray.parentEntity;
-        var entityManager = parentEntity.entityAspect.entityManager;
-        // we do not want to attach an entity during loading
-        // because these will all be 'attached' at a later step.
-        if (entityManager && !entityManager.isLoading) {
-            goodAdds.forEach(function (add) {
-                if (add.entityAspect.entityState.isDetached()) {
-                    relationArray._inProgress = true;
-                    try {
-                        entityManager.attachEntity(add, EntityState.Added);
-                    } finally {
-                        relationArray._inProgress = false;
-                    }
-                }
-            });
-        }
-        return goodAdds;
+(function (factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.modelLibrary.backingStore',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
     }
+}(function(breeze) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
-    function checkForDups(relationArray, adds) {
-        // don't allow dups in this array. - also prevents recursion 
-        var inverseProp = relationArray.navigationProperty.inverse;
-        var goodAdds = adds.filter(function (a) {
-            if (relationArray._addsInProcess.indexOf(a) >= 0) {
-                return false;
-            }
-            var inverseValue = a.getProperty(inverseProp.name);
-            return inverseValue != relationArray.parentEntity;
-        });
-        return goodAdds;
-    }
-
-    function processAdds(relationArray, adds) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            var addsInProcess = relationArray._addsInProcess;
-            var startIx = addsInProcess.length;
-            try {
-                adds.forEach(function (childEntity) {
-                    addsInProcess.push(childEntity);
-                    childEntity.setProperty(inp.name, relationArray.parentEntity);
-                });
-            } finally {
-                addsInProcess.splice(startIx, adds.length);
-            };
-        }
-        
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { added: adds });
-    }
+    var ctor = function() {
+        this.name = "backingStore";
+    };
     
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function () {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-    
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (hasOwnProperty.call(target, key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
-    }
+    ctor.prototype.initialize = function() {
 
-    function processRemoves(relationArray, removes) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            removes.forEach(function (childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
-        }
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { removed: removes });
-    }
-
-
-    function makeRelationArray(arr, parentEntity, navigationProperty) {
-        arr.parentEntity = parentEntity;
-        arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
-        // array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
-        return core.extend(arr, relationArrayMixin);
-    }
-
-
-
-    return makeRelationArray;
-
-});
-
-
-define('entityTracking_backingStore',["core", "relationArray"],
-function (core, makeRelationArray) {
-    
-
-    var trackingImpl = {};
-    
-    trackingImpl.initialize = function() {
-        // nothing to do yet;
     };
 
-    trackingImpl.name = "Backing store entity tracking impl";
-    
-    trackingImpl.getTrackablePropertyNames = function (entity) {
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             var val = entity[p];
@@ -10629,13 +11234,13 @@ function (core, makeRelationArray) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function (proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
-        proto.getProperty = function (propertyName) {
+        proto.getProperty = function(propertyName) {
             return this[propertyName];
         };
 
-        proto.setProperty = function (propertyName, value) {
+        proto.setProperty = function(propertyName, value) {
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
@@ -10643,35 +11248,35 @@ function (core, makeRelationArray) {
 
         // this method cannot be called while a 'defineProperty' accessor is executing
         // because of IE bug 
-        proto.initializeFrom = function (rawEntity) {
+        proto.initializeFrom = function(rawEntity) {
             // copy unmapped properties from newly created client entity to the rawEntity.
             var that = this;
-            this.entityType.unmappedProperties.forEach(function (prop) {
+            this.entityType.unmappedProperties.forEach(function(prop) {
                 var propName = prop.name;
                 rawEntity[propName] = that[propName];
             });
             // this._backingStore = rawEntity;
             if (!this._backingStore) {
-                this._backingStore = {};
+                this._backingStore = { };
             }
         };
 
         // internal implementation details - ugly because of IE9 issues with defineProperty.
 
         proto._pendingSets = [];
-        proto._pendingSets.schedule = function (entity, propName, value) {
+        proto._pendingSets.schedule = function(entity, propName, value) {
             this.push({ entity: entity, propName: propName, value: value });
             if (!this.isPending) {
                 this.isPending = true;
                 var that = this;
-                setTimeout(function () { that.process(); });
+                setTimeout(function() { that.process(); });
             }
         };
-        proto._pendingSets.process = function () {
+        proto._pendingSets.process = function() {
             if (this.length === 0) return;
-            this.forEach(function (ps) {
+            this.forEach(function(ps) {
                 if (!ps.entity._backingStore) {
-                    ps.entity._backingStore = {};
+                    ps.entity._backingStore = { };
                 }
                 ps.entity._backingStore[ps.propName] = ps.value;
             });
@@ -10683,13 +11288,13 @@ function (core, makeRelationArray) {
 
     };
 
-    trackingImpl.startTracking = function (entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
 
         // assign default values to the entity
-        entity.entityType.getProperties().forEach(function (prop) {
+        entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
 
@@ -10705,7 +11310,7 @@ function (core, makeRelationArray) {
                     // TODO: change this to nullEntity later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = makeRelationArray([], entity, prop);
+                    bs[propName] = entityModel.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
@@ -10713,11 +11318,11 @@ function (core, makeRelationArray) {
         });
     };
 
-   
+
     // private methods
 
     function movePropDefsToProto(proto) {
-        proto.entityType.getProperties().forEach(function (prop) {
+        proto.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!proto[propName]) {
                 Object.defineProperty(proto, propName, makePropDescription(prop));
@@ -10732,9 +11337,9 @@ function (core, makeRelationArray) {
     function movePropsToBackingStore(instance) {
         var proto = Object.getPrototypeOf(instance);
         if (!instance._backingStore) {
-            instance._backingStore = {};
+            instance._backingStore = { };
         }
-        proto.entityType.getProperties().forEach(function (prop) {
+        proto.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!instance.hasOwnProperty(propName)) return;
             var value = instance[propName];
@@ -10746,8 +11351,8 @@ function (core, makeRelationArray) {
 
     function makePropDescription(property) {
         var propName = property.name;
-        var getAccessorFn = function (backingStore) {
-            return function () {
+        var getAccessorFn = function(backingStore) {
+            return function() {
                 if (arguments.length == 0) {
                     return backingStore[propName];
                 } else {
@@ -10756,7 +11361,7 @@ function (core, makeRelationArray) {
             };
         };
         return {
-            get: function () {
+            get: function() {
                 var bs = this._backingStore;
                 if (!bs) {
                     this._pendingSets.process();
@@ -10765,7 +11370,7 @@ function (core, makeRelationArray) {
                 }
                 return bs[propName];
             },
-            set: function (value) {
+            set: function(value) {
                 var bs = this._backingStore;
                 if (!bs) {
                     this._pendingSets.schedule(this, propName, value);
@@ -10784,21 +11389,33 @@ function (core, makeRelationArray) {
         };
     }
 
-    return trackingImpl;
+    core.config.registerAdapter("modelLibrary", ctor);
 
-})
-;
+}));
 
-define('entityTracking_ko',["core", "relationArray"],
-function (core, makeRelationArray) {
-    
+
+(function (factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.modelLibrary.ko',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
     var ko;
-    var trackingImpl = { };
-    
-    trackingImpl.name = "knockout entity tracking implementation";
-    
-    trackingImpl.initialize = function() {
+
+    var ctor = function () {
+        this.name = "ko";
+    };
+
+    ctor.prototype.initialize = function () {
         ko = window.ko;
         if ((!ko) && require) {
             ko = require("ko");
@@ -10806,11 +11423,11 @@ function (core, makeRelationArray) {
         if (!ko) {
             throw new Error("Unable to initialize Knockout.");
         }
-        
+
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;
-            
+
             // create a computed observable to intercept writes to our observable
             var result;
             if (target.splice) {
@@ -10831,8 +11448,8 @@ function (core, makeRelationArray) {
         };
 
     };
-    
-    trackingImpl.getTrackablePropertyNames = function (entity) {
+
+    ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
@@ -10846,10 +11463,10 @@ function (core, makeRelationArray) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function(proto) {
+    ctor.prototype.initializeEntityPrototype = function (proto) {
 
-        proto.getProperty = function (propertyName) {
-            return this[propertyName]();          
+        proto.getProperty = function(propertyName) {
+            return this[propertyName]();
         };
 
         proto.setProperty = function(propertyName, value) {
@@ -10859,7 +11476,7 @@ function (core, makeRelationArray) {
         };
     };
 
-    trackingImpl.startTracking = function(entity, proto) {
+    ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         entity.entityType.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -10887,15 +11504,15 @@ function (core, makeRelationArray) {
                         // TODO: change this to nullEntity later.
                         koObj = ko.observable(null);
                     } else {
-                        val = makeRelationArray([], entity, prop);
+                        val = entityModel.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
-                        koObj.subscribe(function (b) {
+                        koObj.subscribe(function(b) {
                             koObj._suppressBreeze = true;
                         }, null, "beforeChange");
                         // code to insure that any been changes notify ko
-                        val.arrayChanged.subscribe(function (args) {
+                        val.arrayChanged.subscribe(function(args) {
                             if (koObj._suppressBreeze) {
                                 koObj._suppressBreeze = false;
                             } else {
@@ -10912,7 +11529,7 @@ function (core, makeRelationArray) {
                         //        throw new Error("Collection navigation properties may NOT be set");
                         //    }
                         //});
-                        
+
                     }
                 } else {
                     throw new Error("unknown property: " + propName);
@@ -10929,23 +11546,36 @@ function (core, makeRelationArray) {
 
     };
 
-    return trackingImpl;
-
-})
-;
-
-define('entityTracking_backbone',["core", "relationArray"],
-function (core, makeRelationArray) {
+    core.config.registerAdapter("modelLibrary", ctor);
     
+}));
+
+
+(function (factory) {
+    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define('breeze.modelLibrary.backbone',["breeze"], factory);
+    } else {
+        // <script> tag: use the global `breeze` object
+        factory(breeze);
+    }
+}(function(breeze) {
+    var entityModel = breeze.entityModel;
+    var core = breeze.core;
 
     var Backbone;
     var _;
-    var trackingImpl = {};
+    var trackingImpl = { };
     var bbSet, bbGet;
-    
-    trackingImpl.name = "Backbone entity tracking impl";
-    
-    trackingImpl.initialize = function () {
+
+    var ctor = function () {
+        this.name = "backbone";
+    };
+   
+    ctor.prototype.initialize = function() {
         Backbone = window.Backbone;
         if ((!Backbone) && require) {
             Backbone = require("Backbone");
@@ -10960,29 +11590,29 @@ function (core, makeRelationArray) {
         bbSet = Backbone.Model.prototype.set;
         bbGet = Backbone.Model.prototype.get;
     };
-      
-    trackingImpl.createCtor = function (entityType) {
-        var defaults = {};
-        entityType.dataProperties.forEach(function (dp) {
+
+    ctor.prototype.createCtor = function(entityType) {
+        var defaults = { };
+        entityType.dataProperties.forEach(function(dp) {
             defaults[dp.name] = dp.defaultValue;
         });
-        var ctor = Backbone.Model.extend({
+        var modelCtor = Backbone.Model.extend({
             defaults: defaults,
-            initialize: function () {
+            initialize: function() {
                 var that = this;
-                entityType.navigationProperties.forEach(function (np) {
+                entityType.navigationProperties.forEach(function(np) {
                     if (!np.isScalar) {
-                        var val = makeRelationArray([], that, np);
+                        var val = entityModel.makeRelationArray([], that, np);
                         Backbone.Model.prototype.set.call(that, np.name, val);
                     }
                 });
             }
         });
-        return ctor;
-        
+        return modelCtor;
+
     };
-    
-    trackingImpl.getTrackablePropertyNames = function (entity) {
+
+    ctor.prototype.getTrackablePropertyNames = function(entity) {
         var names = [];
         for (var p in entity.attributes) {
             names.push(p);
@@ -10990,20 +11620,20 @@ function (core, makeRelationArray) {
         return names;
     };
 
-    trackingImpl.initializeEntityPrototype = function (proto) {
+    ctor.prototype.initializeEntityPrototype = function(proto) {
 
-        proto.getProperty = function (propertyName) {
+        proto.getProperty = function(propertyName) {
             return this.get(propertyName);
         };
 
-        proto.setProperty = function (propertyName, value) {
+        proto.setProperty = function(propertyName, value) {
             this.set(propertyName, value);
             // allow setProperty chaining.
             return this;
         };
 
         // override Backbone's set method.
-        proto.set = function (key, value, options) {
+        proto.set = function(key, value, options) {
             // call Backbone validate first - we need this because if it fails we don't want to call the Breeze interceptor.
             // if valid then call Breeze interceptor which will call Backbone's internal set
             if (!this.entityAspect) {
@@ -11020,7 +11650,7 @@ function (core, makeRelationArray) {
                 for (propName in attrs) {
                     if (hasOwnProperty.call(attrs, propName)) {
                         prop = this.entityType.getProperty(propName);
-                        this._$interceptor(prop, attrs[propName], function (pvalue) {
+                        this._$interceptor(prop, attrs[propName], function(pvalue) {
                             if (arguments.length === 0) {
                                 return bbGet.call(that, propName);
                             } else {
@@ -11030,14 +11660,14 @@ function (core, makeRelationArray) {
                     }
                 }
             } else {
-                attrs = {};
+                attrs = { };
                 attrs[key] = value;
-                options || (options = {});
+                options || (options = { });
                 if (!this._validate(attrs, options)) return false;
                 // TODO: suppress validate here
                 prop = this.entityType.getProperty(key);
                 propName = key;
-                this._$interceptor(prop, value, function (pvalue) {
+                this._$interceptor(prop, value, function(pvalue) {
                     if (arguments.length === 0) {
                         return bbGet.call(that, propName);
                     } else {
@@ -11046,24 +11676,24 @@ function (core, makeRelationArray) {
                 });
             }
             return this;
-            
+
         };
-        
+
         //// called after any create during a query;
         //proto.initializeFrom = function (rawEntity) {
         //};
 
     };
-    
+
     // called when the entityAspect is first created for an entity
-    trackingImpl.startTracking = function (entity, proto) {
+    ctor.prototype.startTracking = function(entity, proto) {
         if (!(entity instanceof Backbone.Model)) {
             throw Error("This entity is not an Backbone.Model instance");
         }
         var entityType = entity.entityType;
         var attributes = entity.attributes;
         // Update so that every data and navigation property has a value. 
-        entityType.dataProperties.forEach(function (dp) {
+        entityType.dataProperties.forEach(function(dp) {
             if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
                     bbSet.call(entity, dp.name, dp.defaultValue);
@@ -11072,7 +11702,7 @@ function (core, makeRelationArray) {
                 bbSet.call(entity, dp.name, dp.defaultValue);
             }
         });
-        entityType.navigationProperties.forEach(function (np) {
+        entityType.navigationProperties.forEach(function(np) {
             var msg;
             if (np.name in attributes) {
                 var val = bbGet.call(entity, np.name);
@@ -11090,7 +11720,7 @@ function (core, makeRelationArray) {
                             throw new Error(msg);
                         }
                     } else {
-                        val = makeRelationArray([], entity, np);
+                        val = entityModel.makeRelationArray([], entity, np);
                         bbSet.call(entity, np.name, val);
                     }
                 }
@@ -11098,76 +11728,47 @@ function (core, makeRelationArray) {
                 if (np.isScalar) {
                     bbSet.call(entity, np.name, null);
                 } else {
-                    val = makeRelationArray([], entity, np);
+                    val = entityModel.makeRelationArray([], entity, np);
                     bbSet.call(entity, np.name, val);
                 }
             }
         });
     };
-    
-    
+
+    core.config.registerAdapter("modelLibrary", ctor);
+
     // private methods
 
-    return trackingImpl;
+}));
 
-})
-;
-define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "keyGenerator",
-        "remoteAccess_webApi", "remoteAccess_odata",
-        "entityTracking_backingStore", "entityTracking_ko", "entityTracking_backbone"],
-function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, KeyGenerator,
-          m_remoteAccess_webApi, m_remoteAccess_odata,
-          m_entityTracking_backingStore, m_entityTracking_ko, m_entityTracking_backbone) {
-    
-    
 
-    var entityModel = { };
+define('breeze.full',["breeze",
+        // all these are self registering
+        "breeze.ajax.jQuery",
+        "breeze.dataService.webApi", "breeze.dataService.odata",
+        "breeze.modelLibrary.backingStore", "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone"], 
+function(breeze) {
 
-    core.extend(entityModel, m_entityAspect);
-    core.extend(entityModel, m_entityMetadata);
-    core.extend(entityModel, m_entityManager);
-    core.extend(entityModel, m_entityQuery);
-    core.extend(entityModel, m_validate);
-
-    entityModel.KeyGenerator = KeyGenerator;
-
-    entityModel.entityTracking_backingStore = m_entityTracking_backingStore;
-    entityModel.entityTracking_ko = m_entityTracking_ko;
-    entityModel.entityTracking_backbone = m_entityTracking_backbone;
-
-    entityModel.remoteAccess_odata = m_remoteAccess_odata;
-    entityModel.remoteAccess_webApi = m_remoteAccess_webApi;
-    
-    /**
-    The entityModel namespace.
-    @module entityModel
-    @main entityModel
-    **/
-    
 
     // set defaults
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_backingStore,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
+    breeze.core.config.initializeAdapterInstances({
+        ajax: "jQuery",
+        dataService: "webApi"
     });
-
-    return entityModel;
-
-})
-;
-
-define('root',["core", "entityModel"],
-function (core, entityModel) {
-    var root = {
-        version: "0.64.5",
-        core: core,
-        entityModel: entityModel
-    };
-    core.parent = root;
-    return root;
+    
+    // don't initialize with ko unless it exists.
+    var ko = window.ko;
+    if ((!ko) && require) {
+        ko = require("ko");
+    }
+    if (ko) {
+        breeze.core.config.initializeAdapterInstance("modelLibrary", "ko");
+    }
+        
+    return breeze;
 });
 
-    var breeze = requirejs('root');
+    var breeze = requirejs('breeze');
     // If two instances are loaded last one sets window.breeze.
     this.window.breeze = breeze;
     return breeze;

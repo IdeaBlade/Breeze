@@ -61,14 +61,8 @@ At this point you should see the same "Employees" as before, except that now the
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -127,14 +121,8 @@ The "orderBy" clause in this query could have gone either before or after the "w
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -229,14 +217,8 @@ and press **Run**.  Only two employees should be left with this filter.
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -289,13 +271,7 @@ You should now see a rather long list of company names, long enough that you nee
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-    entityModel = breeze.entityModel;
-    
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
+var entityModel = breeze.entityModel;
 
 var manager = new entityModel.EntityManager('api/northwind');
 
@@ -345,13 +321,7 @@ We should now only see customers with company names that start with "C" that are
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
-    
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
+var entityModel = breeze.entityModel;
 
 var manager = new entityModel.EntityManager('api/northwind');
 
@@ -413,14 +383,8 @@ the "pageNum" variable above and rerun to see the effect of moving between pages
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var Predicate = breeze.entityModel.Predicate;
@@ -448,13 +412,7 @@ manager.executeQuery(query).then(function(data){
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
-    
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
+var entityModel = breeze.entityModel;
 
 var manager = new entityModel.EntityManager('api/northwind');
 

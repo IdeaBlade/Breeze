@@ -49,14 +49,8 @@ A couple of things to notice.
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -102,14 +96,8 @@ Only customers with company names beginning with "C" should have been shown this
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -180,14 +168,8 @@ returns its results directly but has a different syntax for executing the query,
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
@@ -219,14 +201,8 @@ manager.executeQuery(query).then(function(data) {
       <Instructions></Instructions>
       <StartingJavascript>
         <![CDATA[
-var core = breeze.core,
-entityModel = breeze.entityModel;
+var entityModel = breeze.entityModel;
     
-core.config.setProperties({
-    trackingImplementation: entityModel.entityTracking_ko,
-    remoteAccessImplementation: entityModel.remoteAccess_webApi
-});
-
 var manager = new entityModel.EntityManager('api/northwind');
 
 var query = new entityModel.EntityQuery()
