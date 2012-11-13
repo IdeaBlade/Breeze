@@ -1,13 +1,6 @@
-﻿define(function(require) {
+define(function(require) {
     var breeze = require('breeze'),
-        core = breeze.core,
         entityModel = breeze.entityModel;
-
-    // Configure for Knockout binding and Web API persistence services
-    core.config.setProperties({
-        trackingImplementation: entityModel.entityTracking_ko,
-        remoteAccessImplementation: entityModel.remoteAccess_webApi
-    });
 
     var op = entityModel.FilterQueryOp,
         manager = new entityModel.EntityManager('api/inspector'),

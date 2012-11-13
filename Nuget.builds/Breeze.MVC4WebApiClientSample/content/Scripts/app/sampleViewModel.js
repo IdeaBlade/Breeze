@@ -1,11 +1,11 @@
-﻿/// <reference path="..\breeze.debug.js" />
+/// <reference path="..\breeze.debug.js" />
 
-(function (exports) {
-    var breeze = exports.breeze,
-        ko = exports.ko,
-        logger = exports.app.logger;
+(function (root) {
+    var breeze = root.breeze,
+        ko = root.ko,
+        logger = root.app.logger;
 
-    // define Breeze namespaces
+    // define Breeze namespace
     var entityModel = breeze.entityModel;
 
     // service name is route to the Web API controller
