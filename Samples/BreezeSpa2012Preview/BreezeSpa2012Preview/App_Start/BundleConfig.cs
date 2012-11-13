@@ -32,7 +32,7 @@ namespace BreezeSpa2012Preview
 
             // REVISED TEMPLATE
             bundles.Add(new ScriptBundle("~/bundles/todoListAppRevised").Include(
-                "~/Scripts/todoList.bindings.js", // same as original
+                "~/Scripts/todoList.bindings.js",
                 "~/Scripts/todoList.dataservice.js",
                 "~/Scripts/todoList.model.js",
                 "~/Scripts/todoList.viewmodel.js")); ;
@@ -43,7 +43,7 @@ namespace BreezeSpa2012Preview
                 "~/Scripts/q.js",
                 "~/Scripts/breeze.debug.js",
                 // the app itself
-                "~/Scripts/todoList.bindings.js", // same as original
+                "~/Scripts/todoList.bindings.js", 
                 "~/Scripts/todoList.breeze-dataserviceConfig.js",
                 "~/Scripts/todoList.breeze-dataservice.js",
                 "~/Scripts/todoList.breeze-model.js",

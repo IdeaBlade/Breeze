@@ -8,9 +8,12 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
             var todoList = dataservice.createTodoList();
             todoList.IsEditingListTitle(true);
             dataservice.saveNewTodoList(todoList)
-                .then(showTodoList)
+                .then(addSucceeded)
                 .fail(addFailed);
-
+            
+            function addSucceeded() {
+                showTodoList(todoList);
+            }
             function addFailed() {
                 error("Save of new TodoList failed");
             }
