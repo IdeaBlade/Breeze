@@ -40,8 +40,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Scripts\IBlade\breeze.ajax.jQuery.js" />
-    <Content Include="Scripts\IBlade\breezeWith.js" />
-    <Content Include="Scripts\IBlade\build.with.js" />
+    <Content Include="Scripts\IBlade\breeze.full.js" />
+    <Content Include="Scripts\IBlade\build.full.js" />
     <Content Include="Scripts\IBlade\promise.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
     <Content Include="Scripts\Tests\queryLocalTests.js" />
@@ -55,7 +55,7 @@
     <None Include="Scripts\IBlade\buildend.frag" />
     <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\yuidoc.json" />
-    <Content Include="Scripts\IBlade\build.without.js" />
+    <Content Include="Scripts\IBlade\build.js" />
     <Content Include="Scripts\IBlade\breeze.modelLibrary.backbone.js" />
     <Content Include="Scripts\IBlade\keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\core.js" />

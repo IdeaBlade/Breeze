@@ -1,11 +1,11 @@
 require.config({ baseUrl: "Scripts/IBlade" });
 
 define(["testFns"], function (testFns) {
-    var root = testFns.root;
-    var core = root.core;
+    var breeze = testFns.breeze;
+    var core = breeze.core;
     var Event = core.Event;
     
-    var entityModel = root.entityModel;
+    var entityModel = breeze.entityModel;
     var EntityQuery = entityModel.EntityQuery;
     var MetadataStore = entityModel.MetadataStore;
     var EntityManager = entityModel.EntityManager;

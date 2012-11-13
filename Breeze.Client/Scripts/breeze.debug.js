@@ -1600,7 +1600,8 @@ function (core, Enum, Event, m_assertParam) {
         return this._implMap[adapterName.toLowerCase()];
     };
     InterfaceDef.prototype.getFirstImpl = function() {
-        return core.objectFirst(this._implMap, function(kv) { return true; });
+        var kv = core.objectFirst(this._implMap, function () { return true; });
+        return kv ? kv.value : null;
     };
     
     coreConfig.interfaceRegistry = {
@@ -1753,12 +1754,15 @@ function (core, Enum, Event, m_assertParam) {
                 return idef.defaultInstance;
             } else {
                 impl = idef.getFirstImpl();
-                return impl ? impl.defaultInstance : null;
+                if (impl.defaultInstance) {
+                    return impl.defaultInstance;
+                } else {
+                    return initializeAdapterInstanceCore(idef, impl, true);
+                }
             }
         }
     };
-
-    
+   
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
         if (!instance) {
@@ -10792,14 +10796,14 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 ;
 define('breeze',["core", "entityModel"],
 function (core, entityModel) {
-    var root = {
+    var breeze = {
         version: "0.70.1",
         core: core,
         entityModel: entityModel
     };
-    core.parent = root;
+    core.parent = breeze;
     
-    return root;
+    return breeze;
 });
 
 // needs JQuery
@@ -10808,10 +10812,10 @@ function (core, entityModel) {
 
     if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"), exports);
+        factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"]) {
         // AMD anonymous module with hard-coded dependency on "breeze"
-        define('breeze.ajax.jQuery',["breeze", "exports"], factory);
+        define('breeze.ajax.jQuery',["breeze"], factory);
     } else {
         // <script> tag: use the global `breeze` object
         factory(breeze);
@@ -11738,19 +11742,29 @@ function (core, entityModel) {
 }));
 
 
-define('breezeWith',["breeze",
+define('breeze.full',["breeze",
         // all these are self registering
         "breeze.ajax.jQuery",
         "breeze.dataService.webApi", "breeze.dataService.odata",
         "breeze.modelLibrary.backingStore", "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone"], 
 function(breeze) {
 
+
     // set defaults
     breeze.core.config.initializeAdapterInstances({
         ajax: "jQuery",
-        modelLibrary: "ko",
         dataService: "webApi"
     });
+    
+    // don't initialize with ko unless it exists.
+    var ko = window.ko;
+    if ((!ko) && require) {
+        ko = require("ko");
+    }
+    if (ko) {
+        breeze.core.config.initializeAdapterInstance("modelLibrary", "ko");
+    }
+        
     return breeze;
 });
 

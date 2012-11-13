@@ -135,6 +135,10 @@
       <Link>Scripts\IBlade\breeze.dataService.webApi.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.full.js">
+      <Link>Scripts\IBlade\breeze.full.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.js">
       <Link>Scripts\IBlade\breeze.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -149,10 +153,6 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.ko.js">
       <Link>Scripts\IBlade\breeze.modelLibrary.ko.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breezeWith.js">
-      <Link>Scripts\IBlade\breezeWith.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\core.js">

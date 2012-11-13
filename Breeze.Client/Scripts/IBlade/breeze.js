@@ -1,11 +1,11 @@
 ﻿define(["core", "entityModel"],
 function (core, entityModel) {
-    var root = {
+    var breeze = {
         version: "0.70.1",
         core: core,
         entityModel: entityModel
     };
-    core.parent = root;
+    core.parent = breeze;
     
-    return root;
+    return breeze;
 });
