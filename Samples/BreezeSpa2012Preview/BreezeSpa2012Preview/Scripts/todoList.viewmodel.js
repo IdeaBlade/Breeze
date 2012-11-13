@@ -7,10 +7,13 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         addTodoList = function () {
             var todoList = dataservice.createTodoList();
             todoList.IsEditingListTitle(true);
-            dataservice.addAndSaveEntity(todoList)
-                .then(showTodoList)
+            dataservice.saveNewTodoList(todoList)
+                .then(addSucceeded)
                 .fail(addFailed);
-
+            
+            function addSucceeded() {
+                showTodoList(todoList);
+            }
             function addFailed() {
                 error("Save of new TodoList failed");
             }
@@ -20,7 +23,7 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         },
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
-            dataservice.deleteAndSaveTodoList(todoList)
+            dataservice.deleteTodoList(todoList)
                 .fail(deleteFailed);
 
             function deleteFailed() {
@@ -41,4 +44,4 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
 
 // Initiate the Knockout bindings
 ko.applyBindings(window.TodoApp.todoListViewModel);
-$("header p").text("My Breeze Todo List");
+$("header p").text("My " + TodoApp.dataservice.name + " Todo List");

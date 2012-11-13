@@ -4,6 +4,7 @@
 
     function TodoItem(data) {
         var self = this;
+        data = data || { };
 
         // Persisted properties
         self.TodoItemId = data.TodoItemId;
@@ -37,6 +38,7 @@
 
     function TodoList(data) {
         var self = this;
+        data = data || {};
 
         // Persisted properties
         self.TodoListId = data.TodoListId;

@@ -24,23 +24,30 @@ namespace BreezeSpa2012Preview
             bundles.Add(new ScriptBundle("~/bundles/AjaxLogin").Include(
                 "~/Scripts/AjaxLogin.js"));
 
+            // ORIGINAL TEMPLATE
             bundles.Add(new ScriptBundle("~/bundles/todoList").Include(
                 "~/Scripts/todoList.bindings.js",
                 "~/Scripts/todoList.dataAccess.js",
                 "~/Scripts/todoList.js"));
-            
-            // BEGIN: bundles for the Breeze version
-            bundles.Add(new ScriptBundle("~/bundles/breezeEssentials").Include(
-                "~/Scripts/q.js",
-                "~/Scripts/breeze.debug.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/breezeApp").Include(
-                "~/Scripts/todoList.bindings.js", // same as in original
-                "~/Scripts/todoList.dataserviceConfig.js",
+            // REVISED TEMPLATE
+            bundles.Add(new ScriptBundle("~/bundles/todoListAppRevised").Include(
+                "~/Scripts/todoList.bindings.js",
                 "~/Scripts/todoList.dataservice.js",
                 "~/Scripts/todoList.model.js",
+                "~/Scripts/todoList.viewmodel.js")); ;
+
+            // BREEZE
+            bundles.Add(new ScriptBundle("~/bundles/breezeApp").Include(
+                // 3rd party libs for breeze apps
+                "~/Scripts/q.js",
+                "~/Scripts/breeze.debug.js",
+                // the app itself
+                "~/Scripts/todoList.bindings.js", 
+                "~/Scripts/todoList.breeze-dataserviceConfig.js",
+                "~/Scripts/todoList.breeze-dataservice.js",
+                "~/Scripts/todoList.breeze-model.js",
                 "~/Scripts/todoList.viewmodel.js"));
-            // END: bundles for the Breeze version
 
             // Use the development version of Modernizr to develop with and learn from. Then, when you're
             // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
