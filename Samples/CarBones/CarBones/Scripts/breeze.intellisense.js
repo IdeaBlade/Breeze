@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Nov 06 2012 09:44:34 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Nov 13 2012 02:07:13 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -50,17 +50,65 @@ intellisense.annotate(breeze.core.config.prototype, {
   'setProperties': function() {
     /// <signature>
     ///   <summary>
+    ///   This method is now OBSOLETE.  Use the 'initializeAdapterInstances' to accomplish the same result.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     
     /// </signature>
   },
-  
-  /// <field name="trackingImplementation" type="~entityTracking-interface" >The implementation currently in use for tracking entities</field>
-  'trackingImplementation': null,
-  
-  /// <field name="remoteAccessImplementation" type="~remoteAccess-interface" >The implementation currently in use for communicating with a remote server and service.</field>
-  'remoteAccessImplementation': null,
+  'registerAdapter': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Method use to register implementations of standard breeze interfaces.  Calls to this method are usually
+    ///   made as the last step within an adapter implementation.
+    ///   </summary>
+    ///   <param name="interfaceName" type="String" optional="true">- one of the following interface names 'ajax', 'dataService' or 'modelLibrary'</param>
+    ///   <param name="adapterCtor" type="Function" optional="true">- an ctor function that returns an instance of the specified interface.</param>
+    
+    /// </signature>
+  },
+  'getAdapter': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns the ctor function used to implement a specific interface with a specific adapter name.
+    ///   </summary>
+    ///   <param name="interfaceName" type="String" optional="true">One of the following interface names 'ajax', 'dataService' or 'modelLibrary'</param>
+    ///   <param name="adapterName" type="String" optional="true">The name of any previously registered adapter. If this parameter is omitted then this method returns the 'default' adapter for this interface. If there is no default adapter, then a null is returned.</param>
+    ///   <returns type="Function|null" >Returns either a ctor function or null.</returns>
+    /// </signature>
+  },
+  'initializeAdapterInstances': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    ///   <returns type="" >[array of instances]</returns>
+    /// </signature>
+  },
+  'initializeAdapterInstance': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Initializes a single adapter implementation. Initialization means either newing a instance of the 
+    ///   specified interface and then calling 'initialize' on it or simply calling 'initialize' on the instance
+    ///   if it already exists.
+    ///   </summary>
+    ///   <param name="interfaceName" type="String" optional="true">The name of the interface to which the adapter to initialize belongs.</param>
+    ///   <param name="adapterName" type="String" optional="true">- The name of a previously registered adapter to initialize.</param>
+    ///   <param name="isDefault" type="Boolean" optional="true">- Whether to make this the default 'adapter' for this interface.</param>
+    ///   <returns type="An instance of the specified adapter" ></returns>
+    /// </signature>
+  },
+  'getAdapterInstance': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns the adapter instance corresponding to the specified interface and adapter names.
+    ///   </summary>
+    ///   <param name="interfaceName" type="String" optional="true">The name of the interface.</param>
+    ///   <param name="adapterName" type="String" optional="true">- The name of a previously registered adapter.  If this parameter is omitted then the default implementation of the specified interface is returned. If there is no defaultInstance of this interface, then the first registered instance of this interface is returned.</param>
+    ///   <returns type="An instance of the specified adapter" ></returns>
+    /// </signature>
+  },
   
 });
 intellisense.annotate(breeze.core.config, {
@@ -1013,8 +1061,8 @@ intellisense.annotate(breeze.entityModel.EntityManager.prototype, {
   /// <field name="keyGeneratorCtor" type="KeyGenerator constructor" >The  'KeyGenerator' constructor associated with this EntityManager.</field>
   'keyGeneratorCtor': null,
   
-  /// <field name="remoteAccessImplementation" type="Implementation instance of remoteAccessImplementation interface" >The RemoteAccess implementation instance associated with this EntityManager.</field>
-  'remoteAccessImplementation': null,
+  /// <field name="dataServiceInstance" type="An instance of the &quot;dataService&quot; adapter interface" >The 'dataService' adapter implementation instance associated with this EntityManager.</field>
+  'dataServiceInstance': null,
   
 });
 intellisense.annotate(breeze.entityModel.EntityManager, {
@@ -1267,7 +1315,7 @@ intellisense.annotate(breeze.entityModel.MetadataStore.prototype, {
     ///   internally by an EntityManager before its first query against a new service.
     ///   </summary>
     ///   <param name="serviceName" type="String" optional="true">The service name to fetch metadata for.</param>
-    ///   <param name="remoteAccessImplementation" type="Instance of this RemoteAccessImplementation interface" optional="true"> - will default to core.config.remoteAccessImplementation</param>
+    ///   <param name="dataServiceAdapterName" type="String" optional="true">- name of a dataService adapter - will default to a default dataService adapter</param>
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.</param>
     ///   <returns type="breeze.entityModel.Promise" >Promise</returns>

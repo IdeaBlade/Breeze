@@ -1,10 +1,18 @@
 ﻿body {
     font-family: arial;
-    margin: 10px;
+    position: absolute;
+    left: 50%;
+    width: 750px;
+    margin-top: 0;
+    margin-left: -350px;
+    background: white;
 }
-h1 {
-    font-size: 1.5em;
-    font-weight: bold;
+h1
+{
+    text-align: center;
+    font-size: 3em;
+    text-shadow: rgba(0, 0, 0, .5) 2.5px 2.5px 2px;
+    margin-bottom: .5em;
 }
 div {
     padding: .1em 0 ;
@@ -44,3 +52,22 @@ a {
 .log-info { color: blue; }
 .log-success { color: green; }
 .log-warning { color: orchid; }
+
+@media screen and (max-width: 750px)
+{
+    body
+    {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        left: 8px;
+        top: 4px;
+        position: fixed;
+    }
+
+    header h1
+    {
+        font-size: 2em;
+        margin-bottom: .2em;
+    }
+}
