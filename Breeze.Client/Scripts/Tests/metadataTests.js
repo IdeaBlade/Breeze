@@ -29,7 +29,7 @@ define(["testFns"], function (testFns) {
     test("default interface impl", function() {
         var store = new MetadataStore();
         stop();
-        store.fetchMetadata(testFns.ServiceName).then(function() {
+        store.fetchMetadata(testFns.serviceName).then(function() {
             ok(!store.isEmpty());
             start();
         }).fail(testFns.handleFail);
@@ -40,7 +40,7 @@ define(["testFns"], function (testFns) {
         var store = new MetadataStore({ namingConvention: NamingConvention.none } );
         stop();
         var dataService = core.config.getAdapterInstance("dataService");
-        dataService.fetchMetadata(store, testFns.ServiceName, function () {
+        dataService.fetchMetadata(store, testFns.serviceName, function () {
 
             var typeMap = store._entityTypeMap;
             var types = objectValues(typeMap);
@@ -64,11 +64,11 @@ define(["testFns"], function (testFns) {
 
     test("initialize only once", function() {
         var store = new MetadataStore();
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: store });
+        var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
         stop();
-        store.fetchMetadata(testFns.ServiceName).then(function() {
+        store.fetchMetadata(testFns.serviceName).then(function() {
             ok(!store.isEmpty());
-            ok(store.hasMetadataFor(testFns.ServiceName));
+            ok(store.hasMetadataFor(testFns.serviceName));
             ok(em.metadataStore.hasMetadataFor(em.serviceName), "manager serviceName is not the same as the metadataStore name");
             start();
         }).fail(testFns.handleFail);
@@ -84,12 +84,12 @@ define(["testFns"], function (testFns) {
             sc.start();
         };
         var dataService = core.config.getAdapterInstance("dataService");
-        dataService.fetchMetadata(store, testFns.ServiceName, function () {
+        dataService.fetchMetadata(store, testFns.serviceName, function () {
             typeMap = store._entityTypeMap;
             ok(true, "should get here");
             sc.start();
         }, errFn);
-        dataService.fetchMetadata(store, testFns.ServiceName, function () {
+        dataService.fetchMetadata(store, testFns.serviceName, function () {
             typeMap = store._entityTypeMap;
             ok(true, "should also get here");
             sc.start();

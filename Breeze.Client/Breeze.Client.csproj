@@ -43,6 +43,7 @@
     <Content Include="Scripts\IBlade\breeze.full.js" />
     <Content Include="Scripts\IBlade\build.full.js" />
     <Content Include="Scripts\IBlade\promise.js" />
+    <Content Include="Scripts\Tests\queryNonEFTests.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
     <Content Include="Scripts\Tests\queryLocalTests.js" />
     <Content Include="Scripts\ThirdParty\backbone.js" />

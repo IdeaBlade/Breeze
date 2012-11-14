@@ -20,6 +20,49 @@ define(["breeze.full"], function (breeze) {
     
     var testFns = {};
     testFns.message = "";
+    testFns.TEST_RECOMPOSITION = true;
+    
+    testFns.setDataService = function (value) {
+
+        value = value.toLowerCase();
+        testFns.DEBUG_WEBAPI = value === "webapi";
+        
+        if (testFns.DEBUG_WEBAPI) {
+            testFns.dataService = core.config.initializeAdapterInstance("dataService", "webApi").name;
+
+            if (testFns.TEST_RECOMPOSITION) {
+                var oldAjaxCtor = core.config.getAdapter("ajax");
+                var newAjaxCtor = function () {
+                    this.name = "newAjax";
+                    this.defaultSettings = {
+                        headers: { "X-Test-Header": "foo1" },
+                        beforeSend: function (jqXHR, settings) {
+                            jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo1");
+                        }
+                    };
+                };
+                newAjaxCtor.prototype = new oldAjaxCtor();
+                core.config.registerAdapter("ajax", newAjaxCtor);
+                core.config.initializeAdapterInstance("ajax", "newAjax", true);
+            } else {
+                var ajaxImpl = core.config.getAdapterInstance("ajax");
+                ajaxImpl.defaultSettings = {
+                    headers: { "X-Test-Header": "foo2" },
+                    beforeSend: function (jqXHR, settings) {
+                        jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo2");
+                    }
+                };
+            }
+            // test recomposition
+            testFns.serviceName = "api/NorthwindIBModel";
+            testFns.message += "dataService: webApi, ";
+        } else {
+            testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData").name;
+            testFns.serviceName = "http://localhost:9009/ODataService.svc";
+            testFns.message += "dataService: odataApi, ";
+        }
+
+    };
 
     testFns.configure = function () {
         var modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
@@ -34,7 +77,7 @@ define(["breeze.full"], function (breeze) {
         var doNext = oldNext != curNext;
         
         if (doNext) {
-            if (modelLibrary == null || modelLibrary === "ko") {
+            if (modelLibrary === "ko") {
                 modelLibrary = "backbone";
             } else if (modelLibrary === "backbone") {
                 modelLibrary = "backingStore";
@@ -49,116 +92,7 @@ define(["breeze.full"], function (breeze) {
         testFns.modelLibrary = core.config.getAdapterInstance("modelLibrary").name;
     };
 
-    var models = {};
-    testFns.models = models;
 
-    models.Customer = function() {
-        if (testFns.modelLibrary == "ko") {
-            return function() {
-                this.companyName = ko.observable(null);
-            };
-        } else if (testFns.modelLibrary == "backbone") {
-            return Backbone.Model.extend({
-                defaults: {
-                    companyName: null
-                }
-            });
-        } else {
-            return function() {
-                this.companyName = null;
-            };
-        }
-    };
-    
-    models.CustomerWithMiscData = function () {
-        if (testFns.modelLibrary == "ko") {
-            return function() {
-                this.miscData = ko.observable("asdf");
-            };
-        } else if (testFns.modelLibrary == "backbone") {
-            return Backbone.Model.extend({
-                defaults: {
-                    miscData: "asdf"
-                }
-            });
-        } else {
-            return function() {
-                this.miscData = "asdf";
-            };
-        }
-    };
-
-
-    models.Product = function() {
-        var init = function(entity) {
-            ok(entity.entityType.shortName === "Product", "entity's productType should be 'Product'");
-            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
-            entity.setProperty("isObsolete", true);
-        };
-        if (testFns.modelLibrary == "ko") {
-            return function() {
-                this.isObsolete = ko.observable(false);
-                this.init = init;
-            };
-        } else if (testFns.modelLibrary == "backbone") {
-            return Backbone.Model.extend({
-                defaults: {
-                    isObsolete: false,
-                },
-                init: init
-            });
-        } else {
-            return function() {
-                this.isObsolete = false;
-                this.init = init;
-            };
-        }
-    };
-
-    testFns.TEST_RECOMPOSITION = true;
-
-    testFns.setFlag = function (name, value) {
-        testFns[name] = value;
-
-        if (name === "DEBUG_WEBAPI") {
-            if (testFns.DEBUG_WEBAPI) {
-                testFns.dataService = core.config.initializeAdapterInstance("dataService", "webApi").name;
-                
-                if (testFns.TEST_RECOMPOSITION) {
-                    var oldAjaxCtor = core.config.getAdapter("ajax");
-                    var newAjaxCtor = function() {
-                        this.name = "newAjax";
-                        this.defaultSettings = {
-                            headers: { "X-Test-Header": "foo1" },
-                            beforeSend: function (jqXHR, settings) {
-                                jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo1");
-                            }
-                        };
-                    };
-                    newAjaxCtor.prototype = new oldAjaxCtor();
-                    core.config.registerAdapter("ajax", newAjaxCtor);
-                    core.config.initializeAdapterInstance("ajax", "newAjax", true);
-                } else {
-                    var ajaxImpl = core.config.getAdapterInstance("ajax");
-                    ajaxImpl.defaultSettings = {
-                        headers: { "X-Test-Header": "foo2" },
-                        beforeSend: function(jqXHR, settings) {
-                            jqXHR.setRequestHeader("X-Test-Before-Send-Header", "foo2");
-                        }
-                    };
-                }
-                // test recomposition
-                testFns.ServiceName = "api/NorthwindIBModel";
-                testFns.message += "dataService: webApi, ";
-            } else {
-                testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData");
-                testFns.ServiceName = "http://localhost:9009/ODataService.svc";
-                testFns.message += "dataService: odataApi, ";
-            }
-
-        }
-    };
-      
     testFns.newMs = function() {
         var namingConv = new NamingConvention({
             serverPropertyNameToClient: function (serverPropertyName, prop) {
@@ -185,12 +119,12 @@ define(["breeze.full"], function (breeze) {
     
     testFns.newEm = function (metadataStore) {
         if (metadataStore) {
-            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: metadataStore });
+            return new EntityManager({ serviceName: testFns.serviceName, metadataStore: metadataStore });
         } else {
             if (!testFns.metadataStore) {
                 testFns.metadataStore = testFns.newMs();
             }
-            return new EntityManager({ serviceName: testFns.ServiceName, metadataStore: testFns.metadataStore });
+            return new EntityManager({ serviceName: testFns.serviceName, metadataStore: testFns.metadataStore });
         }
     };
 
@@ -313,8 +247,73 @@ define(["breeze.full"], function (breeze) {
         document.body.appendChild(document.createElement('pre')).innerHTML = text;
     };
 
+    testFns.models = {};
+    var models = testFns.models;
+    
+    models.Customer = function () {
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+                this.companyName = ko.observable(null);
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    companyName: null
+                }
+            });
+        } else {
+            return function () {
+                this.companyName = null;
+            };
+        }
+    };
+
+    models.CustomerWithMiscData = function () {
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+                this.miscData = ko.observable("asdf");
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    miscData: "asdf"
+                }
+            });
+        } else {
+            return function () {
+                this.miscData = "asdf";
+            };
+        }
+    };
+
+    models.Product = function () {
+        var init = function (entity) {
+            ok(entity.entityType.shortName === "Product", "entity's productType should be 'Product'");
+            ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
+            entity.setProperty("isObsolete", true);
+        };
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+                this.isObsolete = ko.observable(false);
+                this.init = init;
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    isObsolete: false,
+                },
+                init: init
+            });
+        } else {
+            return function () {
+                this.isObsolete = false;
+                this.init = init;
+            };
+        }
+    };
+
     testFns.breeze = breeze;
-    testFns.setFlag("DEBUG_WEBAPI", DEBUG_WEBAPI);
+    testFns.setDataService(BREEZE_DataService);
     testFns.configure();
 
     return testFns;

@@ -13,7 +13,7 @@
   <script type="text/javascript" src="Scripts/ThirdParty/require.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
   <script type="text/javascript">
-      DEBUG_WEBAPI = false;
+      BREEZE_DataService = "OData";
   </script>
   <script type="text/javascript" src="Scripts/Tests/testRunner.js"></script>
   <meta name="viewport" content="width=device-width" />

@@ -71,6 +71,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -132,6 +134,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -229,6 +233,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -283,6 +289,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -331,6 +339,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -399,6 +409,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -427,6 +439,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
