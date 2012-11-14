@@ -1,6 +1,7 @@
 ﻿<Tutorial>
   <Order>1</Order>
   <Title>Tutorial 1 - Queries</Title>
+  <Moniker>Queries</Moniker>
   <Description>Shows how to compose basic Breeze queries</Description>
   <Steps>
     <TutorialStep>

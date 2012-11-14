@@ -1,6 +1,7 @@
 ﻿<Tutorial>
   <Order>3</Order>
   <Title>Tutorial 3 - Executing queries locally</Title>
+  <Moniker>Local Queries</Moniker>
   <Description>Demonstrates how to query the local Javascript client cache</Description>
   <Steps>
     <TutorialStep>

@@ -1,6 +1,7 @@
 ﻿<Tutorial>
   <Order>1</Order>
   <Title>Tutorial 2 - More advanced queries</Title>
+  <Moniker>Advanced Queries</Moniker>
   <Description>Shows some of Breeze's more advanced query capabilities</Description>
   <Steps>
     <TutorialStep>

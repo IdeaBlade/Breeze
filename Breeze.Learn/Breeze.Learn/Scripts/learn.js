@@ -1,4 +1,5 @@
-﻿var Learn = (function(learn, $) {
+﻿var Learn = (function (learn, $, _gaq) {
+    
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStepNumber = ko.observable(1);
     learn.currentInstructions = ko.observable();
@@ -6,7 +7,14 @@
     learn.currentJavascript = ko.observable();
     
     showStep(0);
-
+    
+    learn.trackEvent = function (eventLabel, includeStep) {
+        includeStep = (includeStep === false) ? false : true;
+        if (includeStep) {
+            eventLabel = "Step " + learn.activeStepNumber() + ": " + eventLabel;
+        }
+        _gaq.push(['_trackEvent', 'Tutorials', learn.activeTutorial().Moniker, eventLabel]);
+    };
     
     learn.maxStepNumber = ko.computed(function () {
         // the last step is not actually a real step; it is just where the 
@@ -23,6 +31,7 @@
     });
     
     learn.moveNext = function () {
+        learn.trackEvent("next");
         learn.activeStepNumber(learn.activeStepNumber() + 1);
         showStep();
     };
@@ -32,12 +41,14 @@
     });
     
     learn.movePrevious = function () {
+        learn.trackEvent("previous");
         learn.activeStepNumber(learn.activeStepNumber() - 1);
         showStep();
     };
 
     
-    learn.run = function() {
+    learn.run = function () {
+        learn.trackEvent("run");
         var container = document.getElementById("output-container");
         var frame = document.createElement("iframe");
         frame.frameBorder = 0;
@@ -82,10 +93,12 @@
         $('#dialog-select-tutorial').dialog('close');       
         learn.activeTutorial(tutorial);
         learn.activeStepNumber(1);
-        showStep(0); 
+        showStep(0);
+        learn.trackEvent("select-tutorial", false);
     };
 
-    learn.about = function() {
+    learn.about = function () {
+        learn.trackEvent("about", false);
         $('#dialog-about').dialog({
             resizable: false,
             position: { at: "top+35%" }
@@ -100,7 +113,8 @@
             width: 375,
             modal: true,
             buttons: {
-                "Yes! Fix my JavaScript and Html": function() {
+                "Yes! Fix my JavaScript and Html": function () {
+                    learn.trackEvent("help");
                     var nextStepIx = learn.activeStepNumber();
                     showJavascript(nextStepIx);
                     showHtml(nextStepIx);
@@ -114,14 +128,15 @@
         });
     };
 
-    learn.selectHelp = function(answer) {
-        if (answer == "Yes") {
-            var nextStepIx = learn.activeStepNumber();
-            showJavascript(nextStepIx);
-            showHtml(nextStepIx);
-            this.run();
-        }
-    };
+    //learn.selectHelp = function(answer) {
+    //    if (answer == "Yes") {
+    //        learn.trackEvent("help");
+    //        var nextStepIx = learn.activeStepNumber();
+    //        showJavascript(nextStepIx);
+    //        showHtml(nextStepIx);
+    //        this.run();
+    //    }
+    //};
     
     ko.bindingHandlers.jsEditor = createBindingHandler("jsEditor", {
         mode: "text/javascript"
@@ -193,6 +208,7 @@
         showStep(0);
     });
     
+    learn.trackEvent("enter", false);
    
     function resizeWhenMoved(elementName) {
         var isDragging = false;
@@ -315,4 +331,4 @@
     //}
 
     return learn;
-})(Learn || {}, $);
+})(Learn || {}, $, _gaq);
