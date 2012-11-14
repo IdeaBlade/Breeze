@@ -51,6 +51,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -129,6 +131,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -164,7 +168,9 @@ into a simple Html table structure. So let's change our query execution logic fr
 
 >     manager.executeQuery(query).then(function(data){
 >         ko.applyBindings(data);
->     });      
+>     }).fail(function(e) {
+<         alert(e);  
+>     });
 
 to this:
 
@@ -174,6 +180,8 @@ to this:
 >            outputHtml += item.ProductID +  " - " + item.ProductName + "<br>"
 >         });
 >         $("#output").html(outputHtml);
+>     }).fail(function(e) {
+>        alert(e);  
 >     });
 
 We will also need to modify the *Html* pane to add the "output" tag referenced in the code above: 
@@ -197,7 +205,9 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
-});      
+}).fail(function(e) {
+    alert(e);  
+});
 ]]>
       </StartingJavascript>
       <StartingHtml>
@@ -237,6 +247,8 @@ and then we need to update our display logic:
 >            outputHtml += item.Category.CategoryName() + "<br>";
 >         });
 >         $("#output").html(outputHtml);
+>     }).fail(function(e) {
+>        alert(e);  
 >     });
 
 > * Note: when navigation properties like this appear in a "select" clause. Breeze
@@ -267,6 +279,8 @@ manager.executeQuery(query).then(function(data){
         outputHtml += item.ProductID +  " - " + item.ProductName + "<br>";
      });
      $("#output").html(outputHtml);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -300,6 +314,8 @@ with this rendering logic.
 >            });
 >         });
 >         $("#output").html(outputHtml);
+>     }).fail(function(e) {
+>         alert(e);  
 >     });
 
 and press **Run**
@@ -325,7 +341,9 @@ manager.executeQuery(query).then(function(data){
         outputHtml += item.Category.CategoryName() + "<br>";
      });
      $("#output").html(outputHtml);
-});  
+}).fail(function(e) {
+    alert(e);  
+});
 ]]>
       </StartingJavascript>
       <StartingHtml>
@@ -358,6 +376,8 @@ manager.executeQuery(query).then(function(data){
        });
     });
     $("#output").html(outputHtml);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>

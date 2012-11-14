@@ -36,6 +36,8 @@ The easist way to accomplish this is replace the "executeQuery" call in the "Jav
 >         // put the results in a structure that Knockout recognizes
 >         var localQueryData = { results: customers };
 >         ko.applyBindings(localQueryData);
+>     }).fail(function(e) {
+>        alert(e);  
 >     });
 
 Go ahead and **Run** this.
@@ -59,6 +61,8 @@ var query = new entityModel.EntityQuery()
     
 manager.executeQuery(query).then(function(data){
     ko.applyBindings(data);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -88,6 +92,8 @@ This time replace the "executeQuery" call in the "JavaScript" pane with the foll
 >         // put the results in a structure that Knockout recognizes
 >         var localQueryData = { results: customers };
 >         ko.applyBindings(localQueryData);
+>     }).fail(function(e) {
+>        alert(e);  
 >     });
 
 and press **Run**.
@@ -110,6 +116,8 @@ manager.executeQuery(query).then(function(data) {
     // put the results in a structure that Knockout recognizes
     var localQueryData = { results: customers };
     ko.applyBindings(localQueryData);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -150,6 +158,8 @@ To set the FetchStrategy on a single query, let's change the "executeQuery" meth
 >         manager.executeQuery(query2).then(function(dataSubset) {
 >            ko.applyBindings(dataSubset);
 >         });
+>     }).fail(function(e) {
+>         alert(e);  
 >     });
 
 Now press **Run**.
@@ -183,6 +193,8 @@ manager.executeQuery(query).then(function(data) {
     // put the results in a structure that Knockout recognizes
     var localQueryData = { results: customers };
     ko.applyBindings(localQueryData);
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>
@@ -216,6 +228,8 @@ manager.executeQuery(query).then(function(data) {
     manager.executeQuery(query2).then(function(dataSubset) {
        ko.applyBindings(dataSubset);
     });
+}).fail(function(e) {
+    alert(e);  
 });
 ]]>
       </StartingJavascript>

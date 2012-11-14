@@ -1,5 +1,7 @@
 ﻿var Learn = (function (learn, $, _gaq) {
-    
+    // one page view for each entry
+    _gaq.push(['_trackPageview'],"/tutorials");
+
     learn.activeTutorial = ko.observable(learn.tutorials[0]);
     learn.activeStepNumber = ko.observable(1);
     learn.currentInstructions = ko.observable();
