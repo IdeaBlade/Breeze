@@ -1,8 +1,7 @@
-﻿/// <reference path="todoList.breezeDataservice.js"/>
-// ReSharper disable InconsistentNaming
-(function (ko, dataservice) {
+﻿/// <reference path="todoList.breeze-datacontext.js"/>
+(function (ko, datacontext) {
 
-    var store = dataservice.metadataStore;
+    var store = datacontext.metadataStore;
     store.registerEntityTypeCtor('TodoItem', function () { }, TodoItemInitializer);
     store.registerEntityTypeCtor('TodoList', TodoList, TodoListInitializer);
 
@@ -24,25 +23,25 @@
     TodoList.prototype.addTodo = function () {
         var self = this;
         if (self.NewTodoTitle()) { // need a title to save
-            var todoItem = dataservice.createTodoItem();
+            var todoItem = datacontext.createTodoItem();
             todoItem.Title(self.NewTodoTitle());
             todoItem.TodoList(self);
-            dataservice.saveNewTodoItem(todoItem);
+            datacontext.saveNewTodoItem(todoItem);
             self.NewTodoTitle("");
         }
     };
     TodoList.prototype.deleteTodo = function () {
-        return dataservice.deleteTodoItem(this); // this is the todoItem
+        return datacontext.deleteTodoItem(this); // this is the todoItem
     };
     function subscribeOnModified(entity) {
         entity.entityAspect.propertyChanged.subscribe(saveOnModified);
     }
     function saveOnModified(args) {
         var entity = args.entity;
-        if (!dataservice.suspendSave &&
+        if (!datacontext.suspendSave &&
             entity.entityAspect.entityState.isModified()) {
-            dataservice.saveEntity(entity);
+            datacontext.saveEntity(entity);
         };
     }
     
-})(ko, TodoApp.dataservice);
+})(ko, TodoApp.datacontext);

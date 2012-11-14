@@ -274,13 +274,13 @@
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <None Include="Scripts\breeze.intellisense.js" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
     <Content Include="Scripts\breeze.debug.js" />
-    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.js" />
-    <Content Include="Scripts\todoList.dataservice.js" />
+    <Content Include="Scripts\todoList.datacontext.js" />
     <Content Include="Scripts\todoList.model.js" />
-    <Content Include="Scripts\todoList.breeze-dataserviceConfig.js" />
+    <Content Include="Scripts\todoList.breeze-datacontextConfig.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\todoList.dataAccess.js" />
@@ -311,7 +311,7 @@
     <Content Include="Scripts\_references.js" />
     <Content Include="Scripts\AjaxLogin.js" />
     <Content Include="Scripts\todoList.viewmodel.js" />
-    <Content Include="Scripts\todoList.breeze-dataservice.js" />
+    <Content Include="Scripts\todoList.breeze-datacontext.js" />
     <Content Include="Scripts\todoList.bindings.js" />
     <Content Include="Images\accent.png" />
     <Content Include="Images\bullet.png" />

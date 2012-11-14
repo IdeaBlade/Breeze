@@ -1,9 +1,7 @@
-﻿/// <reference path="todoList.dataservice.js"/>
-// ReSharper disable InconsistentNaming
-(function (ko, dataservice) {
+﻿(function (ko, datacontext) {
 
-    dataservice.TodoItem = TodoItem;
-    dataservice.TodoList = TodoList;
+    datacontext.TodoItem = TodoItem;
+    datacontext.TodoList = TodoList;
     
     function TodoItem (data) {
         var self = this;
@@ -18,7 +16,7 @@
         // Non-persisted properties
         self.ErrorMessage = ko.observable();
 
-        self.save = function () { return dataservice.saveChangedTodoItem(self); };
+        self.save = function () { return datacontext.saveChangedTodoItem(self); };
 
         // Auto-save when these properties change
         self.IsDone.subscribe(self.save);
@@ -40,10 +38,10 @@
         self.NewTodoTitle = ko.observable();
         self.ErrorMessage = ko.observable();
         
-        self.save = function () { return dataservice.saveChangedTodoList(self); };
+        self.save = function () { return datacontext.saveChangedTodoList(self); };
         self.deleteTodo = function () {
             var todoItem = this;
-            return dataservice.deleteTodoItem(todoItem)
+            return datacontext.deleteTodoItem(todoItem)
                  .done(function () { self.Todos.remove(todoItem); });
         };
         
@@ -55,21 +53,21 @@
     function importTodoItems(todoItems) {
         return $.map(todoItems || [],
                 function (todoItemData) {
-                    return dataservice.createTodoItem(todoItemData);
+                    return datacontext.createTodoItem(todoItemData);
                 });
     }
     TodoList.prototype.addTodo = function () {
         var self = this;
         if (self.NewTodoTitle()) { // need a title to save
-            var todoItem = dataservice.createTodoItem(
+            var todoItem = datacontext.createTodoItem(
                 {
                     Title: self.NewTodoTitle(),
                     TodoListId: self.TodoListId
                 });
             self.Todos.push(todoItem);
-            dataservice.saveNewTodoItem(todoItem);
+            datacontext.saveNewTodoItem(todoItem);
             self.NewTodoTitle("");
         }
     };
     
-})(ko, TodoApp.dataservice);
+})(ko, TodoApp.datacontext);
