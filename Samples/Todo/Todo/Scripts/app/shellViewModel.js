@@ -70,11 +70,11 @@
 
     function getAllTodos() {
         dataservice.getAllTodos(shellVm.includeArchived())
-            .then(processTodoQueryResults)
-            .fail(handleQueryErrors);
+            .then(querySucceeded)
+            .fail(queryFailed);
     }
 
-    function processTodoQueryResults(data) {
+    function querySucceeded(data) {
         shellVm.items([]);
         data.results.forEach(function (item) {
             extendItem(item);
@@ -84,7 +84,7 @@
             (shellVm.includeArchived() ? "including archived" : "excluding archived"));
     }
 
-    function handleQueryErrors(error) {
+    function queryFailed(error) {
         logger.error(error, "Query failed");
     }
 
@@ -94,7 +94,7 @@
         item.isEditing = ko.observable(false);
 
         // listen for changes with Breeze PropertyChanged event
-        item.entityAspect.propertyChanged.subscribe(function (args) {
+        item.entityAspect.propertyChanged.subscribe(function () {
             if (item.propertyChangedPending || suspendItemSave) { return; }
             // throttle property changed response
             // allow time for other property changes (if any) to come through

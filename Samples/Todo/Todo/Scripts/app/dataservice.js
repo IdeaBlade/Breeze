@@ -1,67 +1,58 @@
 define(function (require) {
+
     var breeze = require('breeze'),
-        entityModel = breeze.entityModel;
-
-    var logger = require('logger');
-
-    var op = entityModel.FilterQueryOp,
-        todoType,
-        serviceName = 'api/todos',
+        entityModel = breeze.entityModel,
+        serviceName = 'api/todos', // route to the Web Api controller
         manager = new entityModel.EntityManager(serviceName);
 
-    manager.fetchMetadata()
-        .then(function () {
-            logger.success("Got metadata");
-            // grab the entity type info after metadata returned from server
-            todoType = manager.metadataStore.getEntityType("TodoItem");
-        })
-        .fail(function (error) {
-            logger.error(error, "Failed to get metadata");
-        });
+    var logger = require('logger');
 
     return {
         getAllTodos: getAllTodos,
         createTodo: createTodo,
         saveChanges: saveChanges,
-        saveChangesAfterDelay: function () { // Delay save while UI updates the entity
-            setTimeout(saveChanges, 0); // trickier if saveChanges returned a promise
-        },
         purge: purge,
         reset: reset
-
     };
 
+    /*** implementation details ***/
+ 
+    //#region main application operations
     function getAllTodos(includeArchived) {
-        var query = new entityModel.EntityQuery()
+        var query = entityModel.EntityQuery
                 .from("Todos")
                 .orderBy("CreatedAt");
 
-        if (!includeArchived) {
-            query = query.where("IsArchived", op.Equals, false);
+        if (!includeArchived) { // exclude archived Todos
+            // add filter clause limiting results to non-archived Todos
+            query = query.where("IsArchived", "==", false);
+            //query = query.where("IsArchived", entityModel.FilterQueryOp.Equals, false);
         }
 
         return manager.executeQuery(query);
-    };
+    }
 
     function createTodo() {
+        var todoType = manager.metadataStore.getEntityType("TodoItem");
         var newTodo = todoType.createEntity();
         return manager.addEntity(newTodo);
-    };
-
+    }
+   
     function saveChanges() {
         if (manager.hasChanges()) {
             manager.saveChanges()
-                .then(function (saveResult) {
-                    logger.success("# of Todos saved = " + saveResult.entities.length);
-                    logger.log(saveResult);
-                })
-                .fail(handleSaveError);
+                .then(saveSucceeded)
+                .fail(saveFailed);
         } else {
             logger.info("Nothing to save");
         };
-    };
-
-    function handleSaveError(error) {
+    }
+    function saveSucceeded(saveResult) {
+        logger.success("# of Todos saved = " + saveResult.entities.length);
+        logger.log(saveResult);
+    }
+    
+    function saveFailed(error) {
         var reason = error.message;
         var detail = error.detail;
         
@@ -88,8 +79,11 @@ define(function (require) {
             message += ": " + firstErr.errorMessage;
         } catch (e) { /* eat it for now */ }
         logger.error(message);
-    };
+    }
     
+    //#endregion
+    
+    //#region demo operations
     function purge(callback) {
         // Todo: breeze should support commands to the controller
         // Simplified: fails silently
@@ -97,7 +91,7 @@ define(function (require) {
             logger.success("database purged.");
             if (callback) callback();
         });
-    };
+    }
 
     function reset(callback) {
         // Todo: breeze should support commands to the controller
@@ -106,6 +100,7 @@ define(function (require) {
             logger.success("database reset.");
             if (callback) callback();
         });
-    };
+    }
+    //#endregion
 
 });
