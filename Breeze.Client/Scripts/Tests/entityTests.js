@@ -159,7 +159,7 @@ define(["testFns"], function (testFns) {
             cust.setProperty("companyName", "foo2");
             cust.setProperty("miscData", "zzz");
             var bundle = em1.exportEntities();
-            var em2 = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: em1.metadataStore });
+            var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
             em2.importEntities(bundle);
             var entities = em2.getEntities();
             ok(entities.length === 1);

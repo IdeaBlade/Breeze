@@ -48,7 +48,7 @@ define(["testFns"], function (testFns) {
             fetchStrategy: FetchStrategy.FromServer
         });
 
-        var em = new EntityManager({ serviceName: testFns.ServiceName, metadataStore: testFns.metadataStore, queryOptions: queryOptions });
+        var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: testFns.metadataStore, queryOptions: queryOptions });
         var q = EntityQuery.from("Customers").take(2).using(em);
         stop();
         q.execute().then(function (data) {
