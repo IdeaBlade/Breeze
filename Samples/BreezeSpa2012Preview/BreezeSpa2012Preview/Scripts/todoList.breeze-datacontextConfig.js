@@ -1,12 +1,10 @@
-﻿// ReSharper disable InconsistentNaming
-window.TodoApp = window.TodoApp || {};
+﻿window.TodoApp = window.TodoApp || {};
 
-window.TodoApp.breezeDataserviceConfig = (function(breeze) {
+window.TodoApp.breezedatacontextConfig = (function(breeze) {
+    
+    var entityModel = breeze.entityModel; // main Breeze namespace
 
-    // define Breeze namespaces
-    var entityModel = breeze.entityModel;
-
-    // service name is route to the Breeze Todo Web API controller
+    // service name is route to the Web API controller
     var serviceName = 'api/BreezeTodo';
     var saveOptions = new entityModel.SaveOptions({ allowConcurrentSaves: true });
 

@@ -1,14 +1,8 @@
-﻿/// <reference path="todoList.dataservice.js"/>
-// ReSharper disable InconsistentNaming
-window.TodoApp = window.TodoApp || {};
+﻿window.TodoApp = window.TodoApp || {};
 
-window.TodoApp.dataservice = (function (ko) {
+window.TodoApp.datacontext = (function (ko) {
     
-    // Private: Routes
-    var todoListUrl = function (id) { return "/api/todolist/" + (id || ""); },
-        todoItemUrl = function (id) { return "/api/todo/" + (id || ""); },
-
-        dataservice = {
+        var datacontext = {
             name: "Default",
             getTodoLists: getTodoLists,
             createTodoItem: createTodoItem,
@@ -21,23 +15,7 @@ window.TodoApp.dataservice = (function (ko) {
             deleteTodoList: deleteTodoList
         };
 
-    return dataservice;
-    
-    /*** Implementation ***/
-    
-    function clearErrorMessage (entity) { entity.ErrorMessage(null); }
-
-    // Private: Ajax helper
-    function ajaxRequest(type, url, data) {
-        var options = {
-            dataType: "json",
-            contentType: "application/json",
-            cache: false,
-            type: type,
-            data: ko.toJSON(data)
-        };
-        return $.ajax(url, options);
-    }
+    return datacontext;
 
     function getTodoLists(todoListsObservable, errorObservable) {
         return ajaxRequest("get", todoListUrl())
@@ -54,10 +32,10 @@ window.TodoApp.dataservice = (function (ko) {
         }
     }
     function createTodoItem(data) {
-        return new dataservice.TodoItem(data); // TodoItem is injected by model.js
+        return new datacontext.TodoItem(data); // TodoItem is injected by model.js
     }
     function createTodoList(data) {
-        return new dataservice.TodoList(data); // TodoList is injected by model.js
+        return new datacontext.TodoList(data); // TodoList is injected by model.js
     }
     function saveNewTodoItem(todoItem) {
         clearErrorMessage(todoItem);
@@ -106,5 +84,21 @@ window.TodoApp.dataservice = (function (ko) {
                 todoList.ErrorMessage("Error updating the todo list title. Please make sure it is non-empty.");
             });
     }
-    
+
+    // Private
+    function clearErrorMessage(entity) { entity.ErrorMessage(null); }
+    function ajaxRequest(type, url, data) { // Ajax helper
+        var options = {
+            dataType: "json",
+            contentType: "application/json",
+            cache: false,
+            type: type,
+            data: ko.toJSON(data)
+        };
+        return $.ajax(url, options);
+    }
+    // routes
+    function todoListUrl(id) { return "/api/todolist/" + (id || ""); }
+    function todoItemUrl(id) { return "/api/todo/" + (id || ""); }
+
 })(ko);

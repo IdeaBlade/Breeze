@@ -9,7 +9,7 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
 
-    var breeze = testFns.breeze
+    var breeze = testFns.breeze,
         entityModel = breeze.entityModel;
 
     // Classes we'll need from the Breeze namespaces

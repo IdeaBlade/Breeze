@@ -1,13 +1,11 @@
-﻿/// <reference path="todoList.dataservice.js"/>
-// ReSharper disable InconsistentNaming
-window.TodoApp.todoListViewModel = (function (ko, dataservice) {
+﻿window.TodoApp.todoListViewModel = (function (ko, datacontext) {
     var
         todoLists = ko.observableArray(),
         error = ko.observable(),
         addTodoList = function () {
-            var todoList = dataservice.createTodoList();
+            var todoList = datacontext.createTodoList();
             todoList.IsEditingListTitle(true);
-            dataservice.saveNewTodoList(todoList)
+            datacontext.saveNewTodoList(todoList)
                 .then(addSucceeded)
                 .fail(addFailed);
             
@@ -23,7 +21,7 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         },
         deleteTodoList = function (todoList) {
             todoLists.remove(todoList);
-            dataservice.deleteTodoList(todoList)
+            datacontext.deleteTodoList(todoList)
                 .fail(deleteFailed);
 
             function deleteFailed() {
@@ -31,7 +29,7 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
             }
         };
 
-    dataservice.getTodoLists(todoLists, error); // load TodoLists
+    datacontext.getTodoLists(todoLists, error); // load TodoLists
 
     return {
         todoLists: todoLists,
@@ -40,8 +38,8 @@ window.TodoApp.todoListViewModel = (function (ko, dataservice) {
         deleteTodoList: deleteTodoList
     };
 
-})(ko, TodoApp.dataservice);
+})(ko, TodoApp.datacontext);
 
 // Initiate the Knockout bindings
 ko.applyBindings(window.TodoApp.todoListViewModel);
-$("header p").text("My " + TodoApp.dataservice.name + " Todo List");
+$("header p").text("My " + TodoApp.datacontext.name + " Todo List");
