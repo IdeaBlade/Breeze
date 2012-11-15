@@ -47,10 +47,9 @@ namespace Breeze.WebApi {
         saveMap.Add(entityType, entityInfos);
       });
       saveMap = BeforeSaveEntities(saveMap);
-      SaveChangesCore(saveMap);
+      var keyMappings = SaveChangesCore(saveMap);
 
       var entities = saveMap.SelectMany(kvp => kvp.Value.Select(entityInfo => entityInfo.Entity)).ToList();
-      var keyMappings = UpdateGeneratedKeys();
 
       return new SaveResult() { Entities = entities, KeyMappings = keyMappings };
     }
@@ -59,9 +58,7 @@ namespace Breeze.WebApi {
 
     protected abstract String BuildJsonMetadata();
     
-    protected abstract void SaveChangesCore(Dictionary<Type, List<EntityInfo>> saveMap);
-
-    protected abstract List<KeyMapping> UpdateGeneratedKeys();
+    protected abstract List<KeyMapping> SaveChangesCore(Dictionary<Type, List<EntityInfo>> saveMap);
 
     protected virtual EntityInfo CreateEntityInfo() {
       return new EntityInfo();

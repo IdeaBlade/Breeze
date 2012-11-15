@@ -38,7 +38,7 @@ require([
 ], function (testFns) {
     
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
-    if (QUnit.config.canStart) {
+    if (QUnit.urlParams.canStart) {
 
         QUnit.start(); //Tests loaded, run tests
     }
