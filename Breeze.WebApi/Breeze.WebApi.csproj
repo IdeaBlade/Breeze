@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContextProvider.cs" />
     <Compile Include="ProjectionExpression.cs" />
     <Compile Include="DynamicGenericTypeBuilder.cs" />
     <Compile Include="DynamicTypeInfo.cs" />

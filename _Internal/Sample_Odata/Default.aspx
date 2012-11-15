@@ -23,3 +23,4 @@
     <div id="qunit"></div>
     <div id="qunit-fixture">test markup</div>
 </body>
+</html>
