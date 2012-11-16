@@ -68,7 +68,8 @@ define(["breeze.full"], function (breeze) {
         var modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
 
         var oldNext = !!window.localStorage.getItem("qunit.next");
-        var curNext = !!QUnit.config.next;
+        var curNext = !!QUnit.urlParams.next;
+        
         if (curNext) {
             window.localStorage.setItem("qunit.next", true);
         } else {
