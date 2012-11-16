@@ -79,9 +79,9 @@ namespace Breeze.WebApi {
       
 
         if (Context is DbContext) {
-          var dbContext = (DbContext) (Object) Context;
-          var oc = ((IObjectContextAdapter)dbContext).ObjectContext;
-          return GetJsonMetadataFromObjectContext(oc);
+          //var dbContext = (DbContext) (Object) Context;
+          //var oc = ((IObjectContextAdapter)dbContext).ObjectContext;
+          //return GetJsonMetadataFromObjectContext(oc);
 
           return GetJsonMetadataFromDbContext((DbContext) (Object) Context);
         } else {
