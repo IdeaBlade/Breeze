@@ -257,6 +257,51 @@ define(["testFns"], function (testFns) {
             );
         });
     /*********************************************************
+    * rejectChanges of a child entity restores it to its parent
+    * TEST FAILING in v.0.70.1. Reported as DEFECT #2267
+    *********************************************************/
+    test("rejectChanges of a child entity restores it to its parent", 8,
+        function() {
+            var em = newEm();
+            
+            var orderType = em.metadataStore.getEntityType("Order");
+            var parent = orderType.createEntity();
+            parent.OrderID(1);
+            em.attachEntity(parent);
+
+            var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
+            var child = orderDetailType.createEntity();
+            child.OrderID(42);
+            child.Order(parent); // adds child to parent's manager
+            child.entityAspect.setUnchanged();
+            
+            // parent and child are now unchanged ... as if freshly queried
+            ok(!em.hasChanges(),
+                "manager should not have unsaved changes before delete");
+
+            child.entityAspect.setDeleted();
+            
+            equal(parent.OrderID(), child.OrderID(),
+                "child's still has parent's FK Id after delete");
+            ok(null === child.Order(), // Bug? Should deleted child still have parent?
+                "deleted child cannot navigate to former parent after delete");
+            equal(parent.OrderDetails().length, 0,
+                "parent no longer has the chile after child delete");
+
+            em.rejectChanges();
+            
+            ok(!em.hasChanges(),
+               "manager should not have unsaved changes after rejectChanges");
+            equal(parent.OrderID(), child.OrderID(),
+                "child's still has parent's FK Id after rejectChanges");
+            ok(parent === child.Order(), 
+                "child can navigate to parent after rejectChanges");
+            ok(parent.OrderDetails()[0] === child,
+                "parent has child after rejectChanges");
+        }
+    );
+ 
+    /*********************************************************
     * TEST HELPERS
     *********************************************************/
 
