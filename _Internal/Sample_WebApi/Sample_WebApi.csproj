@@ -395,16 +395,10 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="breezeBasic.html" />
-    <None Include="Scripts\ThirdParty\jquery-1.7.2.intellisense.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <Content Include="Scripts\IBlade\_references.js" />
-    <Content Include="Scripts\ThirdParty\jquery-1.7.2.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Scripts\ThirdParty\jquery-1.7.2.min.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.8.2.js" />
+    <Content Include="Scripts\jquery-1.8.2.min.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
