@@ -54,11 +54,11 @@ define(["breeze.full"], function (breeze) {
                 };
             }
             // test recomposition
-            testFns.serviceName = "api/NorthwindIBModel";
+            testFns.defaultServiceName = "api/NorthwindIBModel";
             testFns.message += "dataService: webApi, ";
         } else {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData").name;
-            testFns.serviceName = "http://localhost:9009/ODataService.svc";
+            testFns.defaultServiceName = "http://localhost:9009/ODataService.svc";
             testFns.message += "dataService: odataApi, ";
         }
 
@@ -93,6 +93,43 @@ define(["breeze.full"], function (breeze) {
         testFns.modelLibrary = core.config.getAdapterInstance("modelLibrary").name;
     };
 
+    testFns.setup = function (config) {
+        config = config || {};
+        // config.serviceName - default = testFns.defaultServiceName
+        // config.serviceHasMetadata - default = true
+        // config.metadataFn - default = null
+        var serviceHasMetadata = (config.serviceHasMetadata === undefined) ? true : false;
+        if (config.serviceName == null || config.serviceName.length === 0) {
+            if (testFns.serviceName != testFns.defaultServiceName) {
+                testFns.serviceName = testFns.defaultServiceName;
+                testFns.metadataStore = null;
+            }
+        } else {
+            if (testFns.serviceName !== config.serviceName) {
+                testFns.serviceName = config.serviceName;
+                testFns.metadataStore = null;
+            }
+        }
+        if (!testFns.metadataStore) {
+            testFns.metadataStore = testFns.newMs();
+        }
+
+        if (!testFns.metadataStore.isEmpty()) {
+            if (config.metadataFn) config.metadataFn();
+            return;
+        }
+
+        stop();
+        var em = testFns.newEm();
+        if (serviceHasMetadata) {
+            em.fetchMetadata(function(rawMetadata) {
+                if (config.metadataFn) config.metadataFn();
+                start();
+            }).fail(testFns.handleFail);
+        } else {
+            start();
+        }
+    };
 
     testFns.newMs = function() {
         var namingConv = new NamingConvention({
@@ -129,23 +166,7 @@ define(["breeze.full"], function (breeze) {
         }
     };
 
-    testFns.setup = function(fn) {
-        if (!testFns.metadataStore) {
-            testFns.metadataStore = testFns.newMs();
-        } 
-
-        if (!testFns.metadataStore.isEmpty()) {
-            if (fn) fn();
-            return;
-        }
-        
-        stop();
-        var em = testFns.newEm();
-        em.fetchMetadata(function(rawMetadata) {
-            if (fn) fn();
-            start();
-        }).fail(testFns.handleFail);
-    };
+    
 
     testFns.handleFail = function (error) {
         if (!error) {

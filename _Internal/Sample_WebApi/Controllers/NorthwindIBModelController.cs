@@ -1,5 +1,8 @@
-﻿// #define DBCONTEXT_PROVIDER 
-// 
+﻿// Only one of the next 3 should be uncommented.
+// #define CODEFIRST_PROVIDER 
+// #define DATABASEFIRST_OLD
+#define DATABASEFIRST_NEW
+
 using System;
 using System.Linq;
 using System.Web.Http;
@@ -8,23 +11,27 @@ using Newtonsoft.Json.Linq;
 
 using System.Collections.Generic;
 
-#if DBCONTEXT_PROVIDER
+#if CODEFIRST_PROVIDER
 using Models.NorthwindIB.CF;
-#else
+#elif DATABASEFIRST_OLD
 using Models.NorthwindIB.EDMX;
+#elif DATABASEFIRST_NEW
+using Models.NorthwindIB.EDMX_2012;
 #endif
-
 
 namespace Sample_WebApi.Controllers {
 
-#if DBCONTEXT_PROVIDER
+#if CODEFIRST_PROVIDER
   public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_CF>  {
     public NorthwindContextProvider() : base() { }
-#else 
+#elif DATABASEFIRST_OLD
   public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_EDMX>  {
     public NorthwindContextProvider() : base() { }
+#elif DATABASEFIRST_NEW 
+  public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
+    public NorthwindContextProvider() : base() { }
 #endif
-    
+
 
     public override bool BeforeSaveEntity(EntityInfo entityInfo) {
       // prohibit any additions of entities of type 'Role'

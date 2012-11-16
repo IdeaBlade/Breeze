@@ -148,7 +148,7 @@
         if (id) {
             var entity = queryContext.refMap[id];
             if (entity === undefined) {
-                return function () { return queryContext.refIdMap[id]; };
+                return function () { return queryContext.refMap[id]; };
             } else {
                 return entity;
             }

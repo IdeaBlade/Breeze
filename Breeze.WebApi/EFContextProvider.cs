@@ -77,7 +77,12 @@ namespace Breeze.WebApi {
 
     protected override string BuildJsonMetadata() {
       
+
         if (Context is DbContext) {
+          var dbContext = (DbContext) (Object) Context;
+          var oc = ((IObjectContextAdapter)dbContext).ObjectContext;
+          return GetJsonMetadataFromObjectContext(oc);
+
           return GetJsonMetadataFromDbContext((DbContext) (Object) Context);
         } else {
           return GetJsonMetadataFromObjectContext((ObjectContext) (Object) Context);

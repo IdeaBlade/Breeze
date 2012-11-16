@@ -19,7 +19,7 @@ define(["testFns"], function (testFns) {
 
     module("named query", {
         setup: function () {
-
+            testFns.setup();
         },
         teardown: function () {
 

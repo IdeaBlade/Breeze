@@ -111,7 +111,9 @@
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\NonEFModelController.cs" />
     <Compile Include="Controllers\NorthwindIBModelController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -267,6 +269,10 @@
       <Link>Scripts\Tests\queryNamedTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryNonEFTests.js">
+      <Link>Scripts\Tests\queryNonEFTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryRawOdataTests.js">
       <Link>Scripts\Tests\queryRawOdataTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -392,12 +398,14 @@
     <None Include="Scripts\ThirdParty\jquery-1.7.2.intellisense.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Scripts\IBlade\_references.js" />
     <Content Include="Scripts\ThirdParty\jquery-1.7.2.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Scripts\ThirdParty\jquery-1.7.2.min.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Scripts\_references.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -452,6 +460,10 @@
     <ProjectReference Include="..\Model_NorthwindIB_EDMX\Model_NorthwindIB_EDMX.csproj">
       <Project>{370B1324-F59F-45F6-9519-B29258405CFB}</Project>
       <Name>Model_NorthwindIB_EDMX</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj">
+      <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
+      <Name>Model_NorthwindIB_EDMX_2012</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

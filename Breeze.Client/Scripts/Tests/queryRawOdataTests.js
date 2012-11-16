@@ -15,7 +15,7 @@ define(["testFns"], function (testFns) {
 
     module("raw odata query", {
         setup: function () {
-
+            testFns.setup();
         },
         teardown: function () {
 

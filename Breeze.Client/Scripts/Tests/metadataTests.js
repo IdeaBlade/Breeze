@@ -20,6 +20,7 @@ define(["testFns"], function (testFns) {
 
     module("metadata", {
         setup: function () {
+            testFns.setup();
         },
         teardown: function () {
 

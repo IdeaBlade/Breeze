@@ -12,7 +12,7 @@ define(["testFns"], function (testFns) {
 
     module("param", {
         setup: function () {
-
+            testFns.setup();
         },
         teardown: function () {
 

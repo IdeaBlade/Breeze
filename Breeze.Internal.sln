@@ -1,6 +1,5 @@
-
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2011
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{F42A48E6-42D1-4989-8ED9-F80C37D8A62D}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.targets = .nuget\NuGet.targets
@@ -31,6 +30,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_CF", "_Internal\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj", "{763B4341-7A4E-4880-A4E2-31AADC05F1AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_EDMX", "_Internal\Model_NorthwindIB_EDMX\Model_NorthwindIB_EDMX.csproj", "{370B1324-F59F-45F6-9519-B29258405CFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_EDMX_2012", "_Internal\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj", "{DEADB93B-F375-42B7-B41C-9D02D3199E77}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -115,6 +116,16 @@ Global
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{370B1324-F59F-45F6-9519-B29258405CFB}.Release|x86.ActiveCfg = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

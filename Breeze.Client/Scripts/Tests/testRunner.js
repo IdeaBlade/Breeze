@@ -26,6 +26,7 @@ require([
       "entityTests",
       "queryTests",
       "queryCtorTests",
+       "queryNonEFTests",
       "queryDatatypeTests",
       "queryLocalTests",
       "queryNamedTests",

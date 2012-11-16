@@ -1568,7 +1568,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             var mergeStrategy = queryContext.mergeStrategy;
 
             // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
-            // null and undefined have different meaning - null means a ref entity that cannot be resolved - usually an odata __deferred value
+            // null and undefined have different meanings - null means a ref entity that cannot be resolved - usually an odata __deferred value
             // undefined means that this is not a ref entity.
             targetEntity = em.dataServiceInstance.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
@@ -1653,21 +1653,31 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 }
                 var firstChar = key.substr(0, 1);
                 if (firstChar == "$") {
+                    if (key === "$id") {
+                        queryContext.refMap[value] = result;
+                    }
                     return;
                 } 
                 
                 var newKey = keyFn(key);
+                var refValue;
                 // == is deliberate here instead of ===
                 if (value == null) {
                     result[newKey] = value;
                 } else if (Array.isArray(value)) {
-                    result[newKey] = value.map(function(v) {
+                    result[newKey] = value.map(function(v, ix, arr) {
                         if (v == null) {
                             return v;
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            return em.dataServiceInstance.resolveRefEntity(v, queryContext);
+                            refValue = em.dataServiceInstance.resolveRefEntity(v, queryContext);
+                            if (typeof refValue == "function") {
+                                queryContext.deferredFns.push(function () {
+                                    arr[ix] = refValue();
+                                });
+                            }
+                            return refValue;
                         } else {
                             return v;
                         }
@@ -1676,7 +1686,13 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        result[newKey] = em.dataServiceInstance.resolveRefEntity(value, queryContext);
+                        refValue = em.dataServiceInstance.resolveRefEntity(value, queryContext);
+                        if (typeof refValue == "function") {
+                            queryContext.deferredFns.push(function () {
+                                result[newKey] = refValue();
+                            });
+                        }
+                        result[newKey] = refValue;
                     } else {
                         result[newKey] = value;
                     }

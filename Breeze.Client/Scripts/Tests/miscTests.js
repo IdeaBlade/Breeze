@@ -15,7 +15,7 @@ define(["testFns"], function (testFns) {
 
     module("misc", {
         setup: function () {
-
+            testFns.setup();
         },
         teardown: function () {
 

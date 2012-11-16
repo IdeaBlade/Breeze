@@ -14,7 +14,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Breeze.WebApi {
-
+  // Base for EFContextProvider
   public abstract class ContextProvider {
 
     public IKeyGenerator KeyGenerator { get; set; }
