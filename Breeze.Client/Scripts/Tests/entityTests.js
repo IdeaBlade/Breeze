@@ -24,6 +24,45 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("rejectChanges of a child entity restores it to its parent", 8, function () {
+        var em = newEm();
+
+        var orderType = em.metadataStore.getEntityType("Order");
+        var parent = orderType.createEntity();
+        parent.setProperty("orderID",1);
+        em.attachEntity(parent);
+
+        var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
+        var child = orderDetailType.createEntity();
+        child.setProperty("orderID", 42);
+        child.setProperty("order", parent); // adds child to parent's manager
+        child.entityAspect.setUnchanged();
+
+        // parent and child are now unchanged ... as if freshly queried
+        ok(!em.hasChanges(),
+            "manager should not have unsaved changes before delete");
+
+        child.entityAspect.setDeleted();
+
+        equal(parent.getProperty("orderID"), child.getProperty("orderID"),
+            "child's still has parent's FK Id after delete");
+        ok(null === child.getProperty("order"), // Bug? Should deleted child still have parent?
+            "deleted child cannot navigate to former parent after delete");
+        equal(parent.getProperty("orderDetails").length, 0,
+            "parent no longer has the chile after child delete");
+
+        em.rejectChanges();
+
+        ok(!em.hasChanges(),
+            "manager should not have unsaved changes after rejectChanges");
+        equal(parent.getProperty("orderID"), child.getProperty("orderID"),
+            "child's still has parent's FK Id after rejectChanges");
+        ok(parent === child.getProperty("order"),
+            "child can navigate to parent after rejectChanges");
+        ok(parent.getProperty("orderDetails")[0] === child,
+            "parent has child after rejectChanges");
+    });
+
 
     test("custom Customer type with createEntity", function() {
         var em = newEm(newMs());

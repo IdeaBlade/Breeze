@@ -490,6 +490,9 @@ function (core, Event, m_validate) {
                 // need to tell em that an entity that needed to be saved no longer does.
                 entityManager._notifyStateChange(entity, false);
             } else {
+                if (this.entityState.isDeleted()) {
+                    this.entityManager._linkRelatedEntities(entity);
+                } 
                 this.setUnchanged();
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
