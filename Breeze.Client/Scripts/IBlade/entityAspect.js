@@ -482,7 +482,7 @@ function (core, Event, m_validate) {
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
-            core.using(entityManager, "isLoading", true, function() {
+            core.using(entityManager, "isRejectingChanges", true, function() {
                 for (var propName in originalValues) {
                     entity.setProperty(propName, originalValues[propName]);
                 }

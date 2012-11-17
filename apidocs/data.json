@@ -5498,6 +5498,10 @@
                     ]
                 }
             ],
+            "return": {
+                "description": "false if event is disabled; true otherwise.",
+                "type": "Boolean"
+            },
             "class": "Event",
             "module": "core"
         },
@@ -5627,7 +5631,7 @@
         },
         {
             "file": "event.js",
-            "line": 241,
+            "line": 248,
             "description": "Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set.",
             "example": [
                 "\n    Event.isEnabled(“propertyChanged”, myEntityManager) "

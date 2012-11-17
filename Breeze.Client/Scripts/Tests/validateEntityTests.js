@@ -26,6 +26,60 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+    test("Attached employee validation errors raised when properties set to bad values", function () {
+
+        var em = newEm();  // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.setProperty("firstName", "John");
+        employee.setProperty("lastName", "Doe");
+
+        // enter the cache as 'Unchanged'
+        em.attachEntity(employee);
+
+        // Start monitoring validation error changes
+        employee.entityAspect
+            .validationErrorsChanged.subscribe(assertValidationErrorsChangedRaised);
+
+        employee.setProperty("lastName", null); // 1. LastName is required
+
+        employee.setProperty("birthDate", new Date()); // ok date
+
+        employee.setProperty("birthDate",null); // ok. no problem; it's nullable
+
+        employee.setProperty("birthDate","today"); // 2. Nice try! Wrong data type
+
+        employee.setProperty("employeeID", null); // 3. Id is the pk; automatically required
+
+        employee.setProperty("lastName",          // 4. adds "too long", 5. removes "required", 
+            "IamTheGreatestAndDontYouForgetIt");
+
+        employee.entityAspect.rejectChanges(); // (6, 7, 8) remove ID, Date, LastName errs 
+
+        expect(8); // asserts about validation errors
+
+    });
+
+    function assertValidationErrorsChangedRaised(errorsChangedArgs) {
+
+        var addedMessages = errorsChangedArgs.added.map(function (a) {
+            return a.errorMessage;
+        });
+        var addedCount = addedMessages.length;
+        if (addedCount > 0) {
+            ok(true, "added error: " + addedMessages.join(", "));
+        }
+
+        var removedMessages = errorsChangedArgs.removed.map(function (r) {
+            return r.errorMessage;
+        });
+        var removedCount = removedMessages.length;
+        if (removedCount > 0) {
+            ok(true, "removed error: " + removedMessages.join(", "));
+        }
+    }
 
     test("numeric validators - disallow string", function () {
         var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());

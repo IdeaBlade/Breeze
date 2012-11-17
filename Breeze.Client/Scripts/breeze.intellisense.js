@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Nov 17 2012 01:13:42 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Nov 17 2012 02:57:03 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -223,7 +223,7 @@ intellisense.annotate(breeze.core.Event.prototype, {
     ///   <param name="data" type="Object" optional="true">Data to publish</param>
     ///   <param name="publishAsync" type="" optional="true">Whether to publish asynchonously or not.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Will be called for any errors that occur during publication. If omitted,  errors will be eaten.</param>
-    
+    ///   <returns type="Boolean" >false if event is disabled; true otherwise.</returns>
     /// </signature>
   },
   'publishAsync': function() {

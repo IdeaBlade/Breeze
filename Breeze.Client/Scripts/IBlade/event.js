@@ -72,6 +72,7 @@
 
     errorCallback([e])
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
+    @return {Boolean} false if event is disabled; true otherwise.
     **/
     Event.prototype.publish = function(data, publishAsync, errorCallback) {
 
@@ -92,10 +93,11 @@
                 }
             });
         }
-
+        
         if (!Event._isEnabled(this.name, this.publisher)) return false;
         var subscribers = this._subscribers;
-        if (!subscribers) return false;
+        if (!subscribers) return true;
+        
         if (publishAsync === true) {
             setTimeout(publishCore, 0);
         } else {
@@ -103,8 +105,6 @@
         }
         return true;
     };
-    
-    
 
     /**
    Publish data for this event asynchronously.
@@ -236,6 +236,13 @@
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
+    };
+
+    Event._enableFast = function(event, obj, isEnabled) {
+        if (!obj._$eventMap) {
+            obj._$eventMap = {};
+        }
+        obj._$eventMap[event.name] = isEnabled;
     };
 
     /**

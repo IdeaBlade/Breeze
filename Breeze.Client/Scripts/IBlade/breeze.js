@@ -1,7 +1,7 @@
-﻿define(["core", "entityModel"],
+define(["core", "entityModel"],
 function (core, entityModel) {
     var breeze = {
-        version: "0.71.1",
+        version: "0.71.3",
         core: core,
         entityModel: entityModel
     };

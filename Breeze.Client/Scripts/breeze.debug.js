@@ -1337,6 +1337,7 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
 
     errorCallback([e])
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
+    @return {Boolean} false if event is disabled; true otherwise.
     **/
     Event.prototype.publish = function(data, publishAsync, errorCallback) {
 
@@ -1357,10 +1358,11 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
                 }
             });
         }
-
+        
         if (!Event._isEnabled(this.name, this.publisher)) return false;
         var subscribers = this._subscribers;
-        if (!subscribers) return false;
+        if (!subscribers) return true;
+        
         if (publishAsync === true) {
             setTimeout(publishCore, 0);
         } else {
@@ -1368,8 +1370,6 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
         }
         return true;
     };
-    
-    
 
     /**
    Publish data for this event asynchronously.
@@ -1501,6 +1501,13 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
+    };
+
+    Event._enableFast = function(event, obj, isEnabled) {
+        if (!obj._$eventMap) {
+            obj._$eventMap = {};
+        }
+        obj._$eventMap[event.name] = isEnabled;
     };
 
     /**
@@ -2988,7 +2995,7 @@ function (core, Event, m_validate) {
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
-            core.using(entityManager, "isLoading", true, function() {
+            core.using(entityManager, "isRejectingChanges", true, function() {
                 for (var propName in originalValues) {
                     entity.setProperty(propName, originalValues[propName]);
                 }
@@ -3683,8 +3690,9 @@ function (core, m_entityAspect) {
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
-                if (!entityManager.isLoading) {
+                if ( (!entityManager.isLoading) && (!entityManager.isRejectingChanges)) {
                     aspect.propertyChanged.publish(propChangedArgs);
+                    // don't fire entityChanged event if propertyChanged is suppressed.
                     entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
                 }
             } else {
@@ -10823,7 +10831,7 @@ function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery
 define('breeze',["core", "entityModel"],
 function (core, entityModel) {
     var breeze = {
-        version: "0.71.1",
+        version: "0.71.3",
         core: core,
         entityModel: entityModel
     };
