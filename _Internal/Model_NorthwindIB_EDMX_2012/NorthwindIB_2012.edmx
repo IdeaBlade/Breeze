@@ -103,7 +103,7 @@
           <Key>
             <PropertyRef Name="CustomerID" />
           </Key>
-          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="CustomerID_OLD" Type="nchar" MaxLength="5" />
           <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
           <Property Name="ContactName" Type="nvarchar" MaxLength="30" />
@@ -503,7 +503,7 @@
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="NorthwindIBModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
-        <EntityContainer Name="NorthwindIBContext_EDMX_2012" annotation:LazyLoadingEnabled="false">
+        <EntityContainer Name="NorthwindIBContext_EDMX_2012" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Categories" EntityType="NorthwindIBModel.Category" />
           <EntitySet Name="Customers" EntityType="NorthwindIBModel.Customer" />
           <EntitySet Name="Employees" EntityType="NorthwindIBModel.Employee" />
@@ -592,7 +592,7 @@
           <Key>
             <PropertyRef Name="CustomerID" />
           </Key>
-          <Property Name="CustomerID" Type="Guid" Nullable="false" />
+          <Property Name="CustomerID" Type="Guid" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CustomerID_OLD" Type="String" MaxLength="5" Unicode="true" FixedLength="true" />
           <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
           <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
@@ -604,7 +604,7 @@
           <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
           <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
           <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
-          <Property Name="RowVersion" Type="Int32" />
+          <Property Name="RowVersion" Type="Int32" ConcurrencyMode="Fixed" />
           <NavigationProperty Name="Orders" Relationship="NorthwindIBModel.FK_Order_Customer" FromRole="Customer" ToRole="Order" />
         </EntityType>
         <EntityType Name="Employee">
@@ -630,8 +630,8 @@
           <Property Name="PhotoPath" Type="String" MaxLength="255" Unicode="true" FixedLength="false" />
           <Property Name="ReportsToEmployeeID" Type="Int32" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="Employee1" Relationship="NorthwindIBModel.FK_Employee_Employee" FromRole="Employee" ToRole="Employee1" />
-          <NavigationProperty Name="Employee2" Relationship="NorthwindIBModel.FK_Employee_Employee" FromRole="Employee1" ToRole="Employee" />
+          <NavigationProperty Name="DirectReports" Relationship="NorthwindIBModel.FK_Employee_Employee" FromRole="Employee" ToRole="Employee1" />
+          <NavigationProperty Name="Manager" Relationship="NorthwindIBModel.FK_Employee_Employee" FromRole="Employee1" ToRole="Employee" />
           <NavigationProperty Name="EmployeeTerritories" Relationship="NorthwindIBModel.FK_EmployeeTerritory_Employee" FromRole="Employee" ToRole="EmployeeTerritory" />
           <NavigationProperty Name="Orders" Relationship="NorthwindIBModel.FK_Order_Employee" FromRole="Employee" ToRole="Order" />
           <NavigationProperty Name="Territories" Relationship="NorthwindIBModel.EmployeeTerritoryNoPayload" FromRole="Employee" ToRole="Territory" />

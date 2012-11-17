@@ -76,17 +76,19 @@ namespace Breeze.WebApi {
     #region Base implementation overrides
 
     protected override string BuildJsonMetadata() {
-      
 
-        if (Context is DbContext) {
-          //var dbContext = (DbContext) (Object) Context;
-          //var oc = ((IObjectContextAdapter)dbContext).ObjectContext;
-          //return GetJsonMetadataFromObjectContext(oc);
+      XDocument xDoc;
+      if (Context is DbContext) {
+        xDoc = GetCsdlFromDbContext(Context);
+      } else {
+        xDoc = GetCsdlFromObjectContext(Context);
+      }
+      var jsonText = CsdlToJson(xDoc);
 
-          return GetJsonMetadataFromDbContext((DbContext) (Object) Context);
-        } else {
-          return GetJsonMetadataFromObjectContext((ObjectContext) (Object) Context);
-        }
+      /* Original version
+      var jsonText = JsonConvert.SerializeXmlNode(doc);
+      */
+      return jsonText;
     }
 
     protected override EntityInfo CreateEntityInfo() {
@@ -370,30 +372,44 @@ namespace Breeze.WebApi {
 
     #region Metadata methods
 
-    protected string GetJsonMetadataFromObjectContext(ObjectContext objectContext) {
-      var xmlDoc = GetCsdlFromObjectContext(objectContext);
-      var jsonText = CsdlToJson(xmlDoc);
+    protected XDocument GetCsdlFromDbContext(Object context) {
+      var dbContext = (DbContext) context;
+      XElement xele;
 
-      /* Original version
-      var jsonText = JsonConvert.SerializeXmlNode(doc);
-      */
-      return jsonText;
+      try {
+        using (var swriter = new StringWriter()) {
+          using (var xwriter = new XmlTextWriter(swriter)) {
+            EdmxWriter.WriteEdmx(dbContext, xwriter);
+            xele = XElement.Parse(swriter.ToString());
+          }
+        }
+      } catch (Exception e) {
+        if (e is NotSupportedException) {
+          // DbContext that fails on WriteEdmx is likely a DataBase first DbContext.
+          return GetCsdlFromObjectContext(dbContext);
+        } else {
+          throw;
+        }
+      }
+
+      var ns = xele.Name.Namespace;
+      var conceptualModel = xele.Descendants(ns + "ConceptualModels").First();
+      var xDoc = XDocument.Load(conceptualModel.CreateReader());
+      return xDoc;
     }
 
-    protected string GetJsonMetadataFromDbContext(DbContext dbContext) {
-      var xDoc = GetCsdlFromDbContext(dbContext);
-      var jsonText = CsdlToJson(xDoc);
+    protected XDocument GetCsdlFromObjectContext(Object context) {
 
-      /* Original version
-      var jsonText = JsonConvert.SerializeXmlNode(doc);
-      */
-      return jsonText;
-    }
-
-    protected XDocument GetCsdlFromObjectContext(ObjectContext objectContext) {
-      var ocType = objectContext.GetType();
-      var ocAssembly = ocType.Assembly;
-      var ocNamespace = ocType.Namespace;
+      var ocAssembly = context.GetType().Assembly;
+      var ocNamespace = context.GetType().Namespace;
+      ObjectContext objectContext;
+      if (context is DbContext) {
+        var dbContext = (DbContext) context;
+        objectContext = ((IObjectContextAdapter) dbContext).ObjectContext;
+      } else {
+        objectContext = (ObjectContext) context;
+      }
+      
       var ec = objectContext.Connection as EntityConnection;
       
       if (ec == null) {
@@ -420,10 +436,18 @@ namespace Breeze.WebApi {
 
       var parts = csdlResource.Split('/', '.');
       var normalizedResourceName = String.Join(".", parts.Skip(parts.Length - 2));
-      var manifestResourceName = ocAssembly.GetManifestResourceNames()
+      var resourceNames = ocAssembly.GetManifestResourceNames();
+      var manifestResourceName = resourceNames
         .FirstOrDefault(n => n.EndsWith(normalizedResourceName));
       if (manifestResourceName == null) {
-        throw new Exception("Unable to locate an embedded resource that ends with: " + normalizedResourceName);
+        manifestResourceName = resourceNames.FirstOrDefault(n => 
+          n == "System.Data.Resources.DbProviderServices.ConceptualSchemaDefinition.csdl"
+        );
+        if (manifestResourceName == null) {
+          throw new Exception("Unable to locate an embedded resource with the name " +
+                              "'System.Data.Resources.DbProviderServices.ConceptualSchemaDefinition.csdl'" +
+                              " or a resource that ends with: " + normalizedResourceName);
+        }
       }
       XDocument xdoc;
       using (var mmxStream = ocAssembly.GetManifestResourceStream(manifestResourceName)) {
@@ -435,22 +459,7 @@ namespace Breeze.WebApi {
       return xdoc;
     }
   
-    protected static XDocument GetCsdlFromDbContext(DbContext dbContext) {
-
-      XElement xele;
-
-      using (var swriter = new StringWriter()) {
-        using (var xwriter = new XmlTextWriter(swriter)) {
-          EdmxWriter.WriteEdmx(dbContext, xwriter);
-          xele = XElement.Parse(swriter.ToString());
-        }
-      }
-
-      var ns = xele.Name.Namespace;
-      var conceptualModel = xele.Descendants(ns + "ConceptualModels").First();
-      var xDoc = XDocument.Load(conceptualModel.CreateReader());
-      return xDoc;
-    }
+    
 
     private String CsdlToJson(XDocument xDoc) {
 

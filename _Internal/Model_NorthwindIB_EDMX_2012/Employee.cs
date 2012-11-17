@@ -16,7 +16,7 @@ namespace Models.NorthwindIB.EDMX_2012
     {
         public Employee()
         {
-            this.Employee1 = new HashSet<Employee>();
+            this.DirectReports = new HashSet<Employee>();
             this.EmployeeTerritories = new HashSet<EmployeeTerritory>();
             this.Orders = new HashSet<Order>();
             this.Territories = new HashSet<Territory>();
@@ -42,8 +42,8 @@ namespace Models.NorthwindIB.EDMX_2012
         public Nullable<int> ReportsToEmployeeID { get; set; }
         public int RowVersion { get; set; }
     
-        public virtual ICollection<Employee> Employee1 { get; set; }
-        public virtual Employee Employee2 { get; set; }
+        public virtual ICollection<Employee> DirectReports { get; set; }
+        public virtual Employee Manager { get; set; }
         public virtual ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Territory> Territories { get; set; }

@@ -122,6 +122,7 @@ define(["testFns"], function (testFns) {
             }
             if (savedCount == 2) {
                 ok(false, "second fail should have failed");
+                start();
             }
         }
         

@@ -18,7 +18,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public NorthwindIBContext_EDMX_2012()
             : base("name=NorthwindIBContext_EDMX_2012")
         {
-            this.Configuration.LazyLoadingEnabled = false;
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
