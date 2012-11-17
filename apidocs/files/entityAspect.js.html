@@ -693,17 +693,25 @@ function (core, Event, m_validate) {
         ctor.prototype.rejectChanges = function () {
             var originalValues = this.originalValues;
             var entity = this.entity;
-            for (var propName in originalValues) {
-                entity.setProperty(propName, originalValues[propName]);
-            }
+            var entityManager = this.entityManager;
+            &#x2F;&#x2F; we do not want PropertyChange or EntityChange events to occur here
+            core.using(entityManager, &quot;isLoading&quot;, true, function() {
+                for (var propName in originalValues) {
+                    entity.setProperty(propName, originalValues[propName]);
+                }
+            });
             if (this.entityState.isAdded()) {
                 &#x2F;&#x2F; next line is needed becuase the following line will cause this.entityManager -&gt; null;
-                var entityManager = this.entityManager;
                 entityManager.detachEntity(entity);
                 &#x2F;&#x2F; need to tell em that an entity that needed to be saved no longer does.
                 entityManager._notifyStateChange(entity, false);
             } else {
+                if (this.entityState.isDeleted()) {
+                    this.entityManager._linkRelatedEntities(entity);
+                } 
                 this.setUnchanged();
+                &#x2F;&#x2F; propertyChanged propertyName is null because more than one property may have changed.
+                this.propertyChanged.publish({ entity: entity, propertyName: null });
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
