@@ -309,10 +309,8 @@ define(["testFns"], function (testFns) {
 
         changedArgs = [];
         emp.entityAspect.rejectChanges();
-        ok(changedArgs[0].entityAction === EntityAction.PropertyChange, "should have seen a property change");
-        ok(changedArgs[0].args.propertyName === "lastName", "PropertyName is wrong");
-        ok(changedArgs[1].entityAction === EntityAction.EntityStateChange, "should have seen a entityState change");
-        ok(changedArgs[2].entityAction === EntityAction.RejectChanges, "lastAction should have been 'RejectChanges'");
+        ok(changedArgs[0].entityAction === EntityAction.EntityStateChange, "should have seen a entityState change");
+        ok(changedArgs[1].entityAction === EntityAction.RejectChanges, "lastAction should have been 'RejectChanges'");
         ok(lastEntity === emp, "last entity is wrong");
         
         
@@ -364,10 +362,9 @@ define(["testFns"], function (testFns) {
             return em.executeQuery(q);
         }).then(function(data2) {
             ok(data2.results.length == 2, "results.length should be 2");
-            ok(changedArgs.length == 3);
-            ok(changedArgs[0].entityAction === EntityAction.PropertyChange, "first action should be a PropertyChange");
-            changedArgs.slice(1).forEach(function(arg) {
-                ok(arg.entityAction === EntityAction.MergeOnQuery, "all other actions should be MergeOnQuery"); 
+            ok(changedArgs.length == 2);
+            changedArgs.forEach(function(arg) {
+                ok(arg.entityAction === EntityAction.MergeOnQuery, "all actions should be MergeOnQuery"); 
             });
             start();
         }).fail(testFns.handleFail);

@@ -480,12 +480,15 @@ function (core, Event, m_validate) {
         ctor.prototype.rejectChanges = function () {
             var originalValues = this.originalValues;
             var entity = this.entity;
-            for (var propName in originalValues) {
-                entity.setProperty(propName, originalValues[propName]);
-            }
+            var entityManager = this.entityManager;
+            // we do not want PropertyChange or EntityChange events to occur here
+            core.using(entityManager, "isLoading", true, function() {
+                for (var propName in originalValues) {
+                    entity.setProperty(propName, originalValues[propName]);
+                }
+            });
             if (this.entityState.isAdded()) {
                 // next line is needed becuase the following line will cause this.entityManager -> null;
-                var entityManager = this.entityManager;
                 entityManager.detachEntity(entity);
                 // need to tell em that an entity that needed to be saved no longer does.
                 entityManager._notifyStateChange(entity, false);
@@ -494,6 +497,8 @@ function (core, Event, m_validate) {
                     this.entityManager._linkRelatedEntities(entity);
                 } 
                 this.setUnchanged();
+                // propertyChanged propertyName is null because more than one property may have changed.
+                this.propertyChanged.publish({ entity: entity, propertyName: null });
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };

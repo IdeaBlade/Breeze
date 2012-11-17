@@ -2986,17 +2986,25 @@ function (core, Event, m_validate) {
         ctor.prototype.rejectChanges = function () {
             var originalValues = this.originalValues;
             var entity = this.entity;
-            for (var propName in originalValues) {
-                entity.setProperty(propName, originalValues[propName]);
-            }
+            var entityManager = this.entityManager;
+            // we do not want PropertyChange or EntityChange events to occur here
+            core.using(entityManager, "isLoading", true, function() {
+                for (var propName in originalValues) {
+                    entity.setProperty(propName, originalValues[propName]);
+                }
+            });
             if (this.entityState.isAdded()) {
                 // next line is needed becuase the following line will cause this.entityManager -> null;
-                var entityManager = this.entityManager;
                 entityManager.detachEntity(entity);
                 // need to tell em that an entity that needed to be saved no longer does.
                 entityManager._notifyStateChange(entity, false);
             } else {
+                if (this.entityState.isDeleted()) {
+                    this.entityManager._linkRelatedEntities(entity);
+                } 
                 this.setUnchanged();
+                // propertyChanged propertyName is null because more than one property may have changed.
+                this.propertyChanged.publish({ entity: entity, propertyName: null });
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
@@ -3677,8 +3685,8 @@ function (core, m_entityAspect) {
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
+                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
                 }
-                entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
             } else {
                 aspect.propertyChanged.publish(propChangedArgs);
             }
@@ -9443,7 +9451,63 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             children.push(child);
         };
 
+        
+        ctor.prototype._linkRelatedEntities = function (entity) {
+            var em = this;
+            var entityAspect = entity.entityAspect;
+            // we do not want entityState to change as a result of linkage.
+            core.using(em, "isLoading", true, function () {
 
+                var entityType = entity.entityType;
+                var navigationProperties = entityType.navigationProperties;
+                var unattachedMap = em._unattachedChildrenMap;
+
+                navigationProperties.forEach(function (np) {
+                    if (np.isScalar) {
+                        var value = entity.getProperty(np.name);
+                        // property is already linked up
+                        if (value) return;
+                    }
+
+                    // first determine if np contains a parent or child
+                    // having a parentKey means that this is a child
+                    var parentKey = entityAspect.getParentKey(np);
+                    if (parentKey) {
+                        // check for empty keys - meaning that parent id's are not yet set.
+                        if (parentKey._isEmpty()) return;
+                        // if a child - look for parent in the em cache
+                        var parent = em.findEntityByKey(parentKey);
+                        if (parent) {
+                            // if found hook it up
+                            entity.setProperty(np.name, parent);
+                        } else {
+                            // else add parent to unresolvedParentMap;
+                            unattachedMap.addChild(parentKey, np, entity);
+                        }
+                    } else {
+                        // if a parent - look for unresolved children associated with this entity
+                        // and hook them up.
+                        var entityKey = entityAspect.getKey();
+                        var inverseNp = np.inverse;
+                        if (!inverseNp) return;
+                        var unattachedChildren = unattachedMap.getChildren(entityKey, inverseNp);
+                        if (!unattachedChildren) return;
+                        if (np.isScalar) {
+                            var onlyChild = unattachedChildren[0];
+                            entity.setProperty(np.name, onlyChild);
+                            onlyChild.setProperty(inverseNp.name, entity);
+                        } else {
+                            var currentChildren = entity.getProperty(np.name);
+                            unattachedChildren.forEach(function (child) {
+                                currentChildren.push(child);
+                                child.setProperty(inverseNp.name, entity);
+                            });
+                        }
+                        unattachedMap.removeChildren(entityKey, np);
+                    }
+                });
+            });
+        };
 
         // private fns
         
@@ -9622,7 +9686,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                     if (entityState.isModified()) {
                         targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
                     }
-                    linkRelatedEntities(entityGroup.entityManager, targetEntity);
+                    entityGroup.entityManager._linkRelatedEntities( targetEntity);
                 }
             });
         };
@@ -9730,7 +9794,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         function attachEntityCore(em, entity, entityState) {
             var group = findOrCreateEntityGroup(em, entity.entityType);
             group.attachEntity(entity, entityState);
-            linkRelatedEntities(em, entity);
+            em._linkRelatedEntities(entity);
         }
 
         function attachRelatedEntities(em, entity, entityState) {
@@ -9748,61 +9812,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             });
         }
 
-        function linkRelatedEntities(em, entity) {
-            var entityAspect = entity.entityAspect;
-            // we do not want entityState to change as a result of linkage.
-            core.using(em, "isLoading", true, function () {
-
-                var entityType = entity.entityType;
-                var navigationProperties = entityType.navigationProperties;
-                var unattachedMap = em._unattachedChildrenMap;
-
-                navigationProperties.forEach(function (np) {
-                    if (np.isScalar) {
-                        var value = entity.getProperty(np.name);
-                        // property is already linked up
-                        if (value) return;
-                    }
-
-                    // first determine if np contains a parent or child
-                    // having a parentKey means that this is a child
-                    var parentKey = entityAspect.getParentKey(np);
-                    if (parentKey) {
-                        // check for empty keys - meaning that parent id's are not yet set.
-                        if (parentKey._isEmpty()) return;
-                        // if a child - look for parent in the em cache
-                        var parent = em.findEntityByKey(parentKey);
-                        if (parent) {
-                            // if found hook it up
-                            entity.setProperty(np.name, parent);
-                        } else {
-                            // else add parent to unresolvedParentMap;
-                            unattachedMap.addChild(parentKey, np, entity);
-                        }
-                    } else {
-                        // if a parent - look for unresolved children associated with this entity
-                        // and hook them up.
-                        var entityKey = entityAspect.getKey();
-                        var inverseNp = np.inverse;
-                        if (!inverseNp) return;
-                        var unattachedChildren = unattachedMap.getChildren(entityKey, inverseNp);
-                        if (!unattachedChildren) return;
-                        if (np.isScalar) {
-                            var onlyChild = unattachedChildren[0];
-                            entity.setProperty(np.name, onlyChild);
-                            onlyChild.setProperty(inverseNp.name, entity);
-                        } else {
-                            var currentChildren = entity.getProperty(np.name);
-                            unattachedChildren.forEach(function (child) {
-                                currentChildren.push(child);
-                                child.setProperty(inverseNp.name, entity);
-                            });
-                        }
-                        unattachedMap.removeChildren(entityKey, np);
-                    }
-                });
-            });
-        };
+        
 
         // returns a promise
         function executeQueryCore(em, query) {
@@ -9938,15 +9948,15 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
             return targetEntity;
         }
         
-         function isSelectQuery(query) {
-            if (query == null) {
-                return false;
-            } else if (typeof query === 'string') {
-                return query.indexOf("$select") >= 0;
-            } else {
-                return !!query.selectClause;
-            }
-        }
+        // function isSelectQuery(query) {
+        //    if (query == null) {
+        //        return false;
+        //    } else if (typeof query === 'string') {
+        //        return query.indexOf("$select") >= 0;
+        //    } else {
+        //        return !!query.selectClause;
+        //    }
+        //}
         
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;

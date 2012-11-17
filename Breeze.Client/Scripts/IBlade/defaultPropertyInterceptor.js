@@ -223,8 +223,8 @@ function (core, m_entityAspect) {
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if (!entityManager.isLoading) {
                     aspect.propertyChanged.publish(propChangedArgs);
+                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
                 }
-                entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
             } else {
                 aspect.propertyChanged.publish(propChangedArgs);
             }

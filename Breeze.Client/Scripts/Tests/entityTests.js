@@ -23,6 +23,38 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("rejectChanges notification", function() {
+        //1) attach propertyChangedHandler to an existing entity
+        //2) modify entity (handler hears it, and reports that the entity is "Modified")
+        //3) entity.entityAspect.rejectChanges()
+        //4) handler hears it ... but reports "Modified" rather than "Unchanged"
+        var em = newEm();
+
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        order.setProperty("orderID", 1);
+        em.attachEntity(order);
+        var es;
+        var count = 0;
+        var lastArgs;
+        var entity;
+        order.entityAspect.propertyChanged.subscribe(function (args) {
+            count++;
+            lastArgs = args;
+        });
+        order.setProperty("freight", 55.55);
+        ok(count === 1, "count should be 1");
+        ok(lastArgs.entity === order, "entity should be order");
+        ok(lastArgs.propertyName === "freight", "property name should be 'freight'");
+        ok(lastArgs.entity.entityAspect.entityState.isModified(), "entityState should be modified");
+        order.entityAspect.rejectChanges();
+        ok(count === 2, "count should be 2");
+        ok(lastArgs.entity === order, "entity should be order");
+        ok(lastArgs.propertyName === null, "property name should be null");
+        ok(lastArgs.entity.entityAspect.entityState.isUnchanged(), "entityState should be unchanged");
+
+    });
     
     test("rejectChanges of a child entity restores it to its parent", 8, function () {
         var em = newEm();
