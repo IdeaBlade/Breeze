@@ -299,7 +299,100 @@ define(["testFns"], function (testFns) {
                 "parent has child after rejectChanges");
         }
     );
- 
+    /*********************************************************
+    * get and set property values with Breeze property accessors
+    * Breeze property accessor functions help utility authors
+    * access entity property values w/o regard to the model library
+    *********************************************************/
+    test("can get and set property values with Breeze property accessors", 2, function () {
+
+        var em = newEm();
+        var customer = getFakeExistingcustomer(em);
+
+        var name = "Ima Something Corp";
+        customer.setProperty("CompanyName", name);
+        equal(customer.getProperty("CompanyName"), name, "should get the same name we set");
+        var entityStateName = customer.entityAspect.entityState.name;
+        equal(entityStateName, "Modified", "setting with setProperty changes the entity state");
+
+    });
+    /*********************************************************
+    * get entityType from an entity instance
+    *********************************************************/
+    test("can get entityType from an entity instance", 1, function () {
+
+        var em = newEm();
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        deepEqual(customer.entityType, customerType,
+            "an entity's entityType should be the type that created it");
+    });
+    
+    /*********************************************************
+    * can control custom ko entityState property via entityManager.entityChanged event
+    * Illustrate how one can control a custom Knockout observable 
+    * that is updated when the entity's entityState changes.
+    * Perhaps there should be a Breeze event on the entityAspect
+    *********************************************************/
+    test("can control custom ko entityState property via entityManager.entityChanged", 1, function () {
+
+        var em = newEm();
+        addEntityStateChangeTracking(em);
+        
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity();
+        customer.entityState = ko.observable("Detached");
+
+        var expectedChangedStates = [];
+        var actualChangedStates = []; // spy records KO property change events
+        
+        // Capture each time KO 'entityState' property raises its change event
+        // which event would update a bound UI control
+        customer.entityState.subscribe(
+            function (newValue) { actualChangedStates.push(newValue.name); });
+
+        // Now do things that should trigger the KO property change event
+        em.addEntity(customer);
+        expectedChangedStates.push("Added");
+        customer.CompanyName("Acme"); // property changed but entityState doesn't
+        customer.CompanyName("Beta"); // property changed but entityState doesn't
+        
+        customer.entityAspect.acceptChanges(); // simulate save
+        expectedChangedStates.push("Unchanged");
+        
+        customer.CompanyName("Theta");
+        expectedChangedStates.push("Modified");
+        customer.CompanyName("Omega"); // property changed but entityState doesn't
+        
+        customer.entityAspect.rejectChanges(); // cancel
+        expectedChangedStates.push("Unchanged");
+        
+        customer.entityAspect.setDeleted(); 
+        expectedChangedStates.push("Deleted");
+
+        deepEqual(actualChangedStates, expectedChangedStates,
+            "'isChangedStateProperty' should have seen the following changes: " + 
+            JSON.stringify(expectedChangedStates));
+    });
+    
+    function addEntityStateChangeTracking(entityManager) {
+        
+        if (entityManager._entityStateChangeTrackingToken) { return; } // already tracking it
+        
+        // remember which handler is tracking; might unsubscribe in future
+        entityManager._entityStateChangeTrackingToken =
+            entityManager.entityChanged.subscribe(entityChanged);
+
+        var entityStateChangeAction = entityModel.EntityAction.EntityStateChange;
+        
+        function entityChanged(changeArgs) {            
+            if (changeArgs.entityAction === entityStateChangeAction) {
+                var entity = changeArgs.entity;
+                if (entity.entityState) { // entity has the entityState ko property
+                    entity.entityState(entity.entityAspect.entityState);
+                }
+            }}
+    }
     /*********************************************************
     * TEST HELPERS
     *********************************************************/
