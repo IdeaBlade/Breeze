@@ -100,10 +100,12 @@ namespace Sample_WebApi.Models {
 
   public class Dish {
     public Dish(String foodName, double servingSize) {
+      DishId = IdGenerator.GetNextId();
       FoodName = foodName;
       ServingSize = servingSize;
     }
 
+    public int DishId { get; set; }
     public String FoodName { get; set; }
     public double ServingSize { get; set; }
     public Food Food { get; set; }

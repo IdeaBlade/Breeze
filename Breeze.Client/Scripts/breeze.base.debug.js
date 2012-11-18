@@ -983,7 +983,7 @@ define('assertParam',["coreFns"], function (core) {
             return (typeof(v) === 'string') && v.length > 0;
         };
         result.getMessage = function() {
-            return core.formatString(" must be a nonEmpty string");
+            return " must be a nonEmpty string";
         };
         return this.compose(result);
     };
@@ -5612,6 +5612,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             var hasName = !!(this.name || this.nameOnServer);
+                                                              
             if (!hasName) {
                 throw new Error("A Navigation property must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
@@ -5735,6 +5736,9 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                     return;
                 }
             }
+            if (!isQualifiedTypeName(this.entityTypeName)) {
+                this.entityTypeName = qualifyTypeName(this.entityTypeName, parentEntityType.namespace)
+            }
             this.parentEntityType = parentEntityType;
             parentEntityType._updatePropertyNames(this);
             parentEntityType.navigationProperties.push(this);
@@ -5769,10 +5773,11 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var metadataStore = np.parentEntityType.metadataStore;
             var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
+            // ok to not find it yet
             var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
             if (targetEntityType) {
                 np.entityType = targetEntityType;
-            }
+            } 
 
             var assocMap = incompleteTypeMap[np.entityTypeName];
             if (!assocMap) {
@@ -5925,6 +5930,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     function isQualifiedTypeName(entityTypeName) {
         return entityTypeName.indexOf(":#") >= 0;
     }
+    
+    function qualifyTypeName(simpleTypeName, namespace) {
+        return simpleTypeName + ":#" + namespace;
+    }
 
     // schema is only needed for navProperty type name
     function normalizeTypeName(entityTypeName, schema) {
@@ -5958,7 +5967,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return {
                 shortTypeName: simpleTypeName,
                 namespace: namespace,
-                typeName: simpleTypeName + ":#" + namespace
+                typeName: qualifyTypeName(simpleTypeName, namespace)
             };
         } else {
             return {
