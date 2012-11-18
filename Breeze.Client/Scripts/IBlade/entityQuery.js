@@ -2,7 +2,7 @@
 function (core, m_entityMetadata, m_entityAspect) {
     "use strict";
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;

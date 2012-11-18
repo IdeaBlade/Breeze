@@ -3,11 +3,11 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
-    var Predicate = entityModel.Predicate;
-    var OrderByClause = entityModel.OrderByClause;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityType = entityModel.EntityType;
+    
+    var Predicate = breeze.Predicate;
+    var OrderByClause = breeze.OrderByClause;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityType = breeze.EntityType;
 
     module("entityQuery ctor", {
         setup: function () {

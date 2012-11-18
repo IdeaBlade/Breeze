@@ -12,11 +12,11 @@ define(["breeze.full"], function (breeze) {
     "use strict";
 
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var NamingConvention = entityModel.NamingConvention;
-    var DataType = entityModel.DataType;
+    
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var NamingConvention = breeze.NamingConvention;
+    var DataType = breeze.DataType;
     
     var testFns = {};
     testFns.message = "";

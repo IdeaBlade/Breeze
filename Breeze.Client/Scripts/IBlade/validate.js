@@ -1,8 +1,8 @@
-﻿define(["core"],
-function (core) {
+﻿define(["core", "config"],
+function (core, a_config) {
     "use strict";
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var assertParam = core.assertParam;
@@ -233,7 +233,7 @@ function (core) {
 
         ctor.fromJSON = function (json) {
             var validatorName = "Validator." + json.validatorName;
-            var fn = core.config.functionRegistry[validatorName];
+            var fn = a_config.functionRegistry[validatorName];
             if (!fn) {
                 throw new Error("Unable to locate a validator named:" + json.validatorName);
             }
@@ -549,7 +549,7 @@ function (core) {
                 return;
             }
 
-            core.config.registerFunction(value, "Validator." + key);
+            a_config.registerFunction(value, "Validator." + key);
         });
 
 

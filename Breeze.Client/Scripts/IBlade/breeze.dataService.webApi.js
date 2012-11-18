@@ -10,10 +10,10 @@
         factory(breeze);
     }    
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
 
-    var EntityType = entityModel.EntityType;
+    var EntityType = breeze.EntityType;
 
     
     var ajaxImpl;
@@ -29,7 +29,7 @@
     };
     
     ctor.prototype.initialize = function () {
-        ajaxImpl = core.config.getAdapterInstance("ajax");
+        ajaxImpl = breeze.config.getAdapterInstance("ajax");
 
         if (!ajaxImpl) {
             throw new Error("Unable to initialize ajax for WebApi.");
@@ -199,6 +199,6 @@
         return err;
     }
     
-    core.config.registerAdapter("dataService", ctor);
+    breeze.config.registerAdapter("dataService", ctor);
 
 }));

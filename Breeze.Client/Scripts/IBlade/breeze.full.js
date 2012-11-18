@@ -8,7 +8,7 @@ function(breeze) {
 
 
     // set defaults
-    breeze.core.config.initializeAdapterInstances({
+    breeze.config.initializeAdapterInstances({
         ajax: "jQuery",
         dataService: "webApi"
     });
@@ -19,7 +19,7 @@ function(breeze) {
         ko = require("ko");
     }
     if (ko) {
-        breeze.core.config.initializeAdapterInstance("modelLibrary", "ko");
+        breeze.config.initializeAdapterInstance("modelLibrary", "ko");
     }
         
     return breeze;

@@ -11,12 +11,12 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
 
     var Backbone;
     var _;
-    var trackingImpl = { };
+    
     var bbSet, bbGet;
 
     var ctor = function () {
@@ -50,7 +50,7 @@
                 var that = this;
                 entityType.navigationProperties.forEach(function(np) {
                     if (!np.isScalar) {
-                        var val = entityModel.makeRelationArray([], that, np);
+                        var val = breeze.makeRelationArray([], that, np);
                         Backbone.Model.prototype.set.call(that, np.name, val);
                     }
                 });
@@ -168,7 +168,7 @@
                             throw new Error(msg);
                         }
                     } else {
-                        val = entityModel.makeRelationArray([], entity, np);
+                        val = breeze.makeRelationArray([], entity, np);
                         bbSet.call(entity, np.name, val);
                     }
                 }
@@ -176,14 +176,14 @@
                 if (np.isScalar) {
                     bbSet.call(entity, np.name, null);
                 } else {
-                    val = entityModel.makeRelationArray([], entity, np);
+                    val = breeze.makeRelationArray([], entity, np);
                     bbSet.call(entity, np.name, val);
                 }
             }
         });
     };
 
-    core.config.registerAdapter("modelLibrary", ctor);
+    breeze.config.registerAdapter("modelLibrary", ctor);
 
     // private methods
 

@@ -5,16 +5,16 @@ define(["testFns"], function (testFns) {
     var core = breeze.core;
     var Event = core.Event;
     
-    var entityModel = breeze.entityModel;
-    var EntityQuery = entityModel.EntityQuery;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityKey = entityModel.EntityKey;
-    var FilterQueryOp = entityModel.FilterQueryOp;
-    var Predicate = entityModel.Predicate;
-    var QueryOptions = entityModel.QueryOptions;
-    var FetchStrategy = entityModel.FetchStrategy;
-    var MergeStrategy = entityModel.MergeStrategy;
+    
+    var EntityQuery = breeze.EntityQuery;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityKey = breeze.EntityKey;
+    var FilterQueryOp = breeze.FilterQueryOp;
+    var Predicate = breeze.Predicate;
+    var QueryOptions = breeze.QueryOptions;
+    var FetchStrategy = breeze.FetchStrategy;
+    var MergeStrategy = breeze.MergeStrategy;
 
     var newEm = testFns.newEm;
     
@@ -137,7 +137,7 @@ define(["testFns"], function (testFns) {
       
     test("executeQueryLocally for related entities after query", function () {
         var em = newEm();
-        var query = entityModel.EntityQuery.from("Orders").take(10);
+        var query = breeze.EntityQuery.from("Orders").take(10);
         var r;
         stop();
         em.executeQuery(query).then(function (data) {
@@ -295,7 +295,7 @@ define(["testFns"], function (testFns) {
     function executeComboQueryWithFetchStrategy(em, query) {
         query = query.using(em);
         return query.execute().then(function() {
-            return query.using(entityModel.FetchStrategy.FromLocalCache).execute();
+            return query.using(breeze.FetchStrategy.FromLocalCache).execute();
         });
     }
 

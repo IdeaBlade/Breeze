@@ -1587,12 +1587,24 @@ function (core, Enum, Event, m_assertParam) {
     core.Event = Event;
     core.extend(core, m_assertParam);
 
-    var coreConfig = { };
-    core.config = coreConfig;
-    coreConfig.functionRegistry = { };
-    coreConfig.typeRegistry = { };
-    coreConfig.objectRegistry = {};
-    coreConfig.interfaceInitialized = new Event("interfaceInitialized_core", coreConfig);
+    return core;
+});
+
+define('config',["core" ] ,
+function (core ) {
+
+    var assertParam = core.assertParam;
+    var assertConfig = core.assertConfig;
+    var Event = core.Event;
+    
+    // alias for within fns with a config param
+    var a_config = {};
+    
+    
+    a_config.functionRegistry = { };
+    a_config.typeRegistry = { };
+    a_config.objectRegistry = {};
+    a_config.interfaceInitialized = new Event("interfaceInitialized_config", a_config);
     
     var InterfaceDef = function(name) {
         this.name = name;
@@ -1611,20 +1623,16 @@ function (core, Enum, Event, m_assertParam) {
         return kv ? kv.value : null;
     };
     
-    coreConfig.interfaceRegistry = {
+    a_config.interfaceRegistry = {
         ajax: new InterfaceDef("ajax"),
         modelLibrary: new InterfaceDef("modelLibrary"),
         dataService: new InterfaceDef("dataService")
     };
    
-    
-    var assertParam = core.assertParam;
-    var assertConfig = core.assertConfig;
-      
     /**
-    A singleton object that is the repository of all entityModel specific configuration options.
+    A singleton object that is the repository of all configuration options.
 
-        core.config.initializeAdapterInstance( {
+        config.initializeAdapterInstance( {
             modelLibrary: "ko",
             dataService: "webApi"
         });
@@ -1641,21 +1649,21 @@ function (core, Enum, Event, m_assertParam) {
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
         @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
-    coreConfig.setProperties = function (config) {
+    a_config.setProperties = function (config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .whereParam("ajaxImplementation").isOptional()
-            .applyAll(coreConfig);
+            .applyAll(config);
         if (config.remoteAccessImplementation) {
-            coreConfig.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
+            a_config.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
             // note the name change
-            coreConfig.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
+            a_config.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
         }
         if (config.ajaxImplementation) {
-            coreConfig.initializeAdapterInstance("ajax", config.ajaxImplementation);
+            a_config.initializeAdapterInstance("ajax", config.ajaxImplementation);
         }
     };
     
@@ -1666,7 +1674,7 @@ function (core, Enum, Event, m_assertParam) {
     @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
     **/
-    coreConfig.registerAdapter = function (interfaceName, adapterCtor) {
+    a_config.registerAdapter = function (interfaceName, adapterCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(adapterCtor, "adapterCtor").isFunction();
         // this impl will be thrown away after the name is retrieved.
@@ -1688,7 +1696,7 @@ function (core, Enum, Event, m_assertParam) {
     this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
     @return {Function|null} Returns either a ctor function or null.
     **/
-    coreConfig.getAdapter = function (interfaceName, adapterName) {
+    a_config.getAdapter = function (interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         if (adapterName) {
             var impl = idef.getImpl(adapterName);
@@ -1707,12 +1715,12 @@ function (core, Enum, Event, m_assertParam) {
     @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
     @return [array of instances]
     **/
-    coreConfig.initializeAdapterInstances = function(config) {
+    a_config.initializeAdapterInstances = function (config) {
         assertConfig(config)
             .whereParam("dataService").isOptional()
             .whereParam("modelLibrary").isOptional()
             .whereParam("ajax").isOptional();
-        return core.objectMapToArray(config, coreConfig.initializeAdapterInstance);
+        return core.objectMapToArray(config, a_config.initializeAdapterInstance);
         
     };
 
@@ -1726,7 +1734,7 @@ function (core, Enum, Event, m_assertParam) {
     @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
     @return {an instance of the specified adapter}
     **/
-    coreConfig.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
+    a_config.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString();
         assertParam(adapterName, "adapterName").isNonEmptyString();
@@ -1750,7 +1758,7 @@ function (core, Enum, Event, m_assertParam) {
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    core.config.getAdapterInstance = function(interfaceName, adapterName) {
+    a_config.getAdapterInstance = function (interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         var impl;
         if (adapterName & adapterName !== "") {
@@ -1770,6 +1778,33 @@ function (core, Enum, Event, m_assertParam) {
         }
     };
    
+
+   
+    // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
+    // used to register validators.
+    a_config.registerFunction = function (fn, fnName) {
+        core.assertParam(fn, "fn").isFunction().check();
+        core.assertParam(fnName, "fnName").isString().check();
+        fn.prototype._$fnName = fnName;
+        a_config.functionRegistry[fnName] = fn;
+    };
+
+    a_config.registerObject = function (obj, objName) {
+        core.assertParam(obj, "obj").isObject().check();
+        core.assertParam(objName, "objName").isString().check();
+
+        a_config.objectRegistry[objName] = obj;
+    };
+  
+    a_config.registerType = function (ctor, typeName) {
+        core.assertParam(ctor, "ctor").isFunction().check();
+        core.assertParam(typeName, "typeName").isString().check();
+        ctor.prototype._$typeName = typeName;
+        a_config.typeRegistry[typeName] = ctor;
+    };
+   
+    a_config.stringifyPad = "  ";
+    
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
         if (!instance) {
@@ -1777,31 +1812,31 @@ function (core, Enum, Event, m_assertParam) {
             impl.defaultInstance = instance;
             instance._$impl = impl;
         }
-        
+
         instance.initialize();
-        
+
         if (isDefault) {
             // next line needs to occur before any recomposition 
             interfaceDef.defaultInstance = instance;
         }
 
         // recomposition of other impls will occur here.
-        coreConfig.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
-        
+        a_config.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
+
         if (instance.checkForRecomposition) {
             // now register for own dependencies.
-            coreConfig.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+            a_config.interfaceInitialized.subscribe(function (interfaceInitializedArgs) {
                 instance.checkForRecomposition(interfaceInitializedArgs);
             });
         }
-               
+
         return instance;
     }
 
     function getInterfaceDef(interfaceName) {
         var lcName = interfaceName.toLowerCase();
         // source may be null
-        var kv = core.objectFirst(coreConfig.interfaceRegistry || {}, function (k, v) {
+        var kv = core.objectFirst(a_config.interfaceRegistry || {}, function (k, v) {
             return k.toLowerCase() === lcName;
         });
         if (!kv) {
@@ -1809,42 +1844,15 @@ function (core, Enum, Event, m_assertParam) {
         }
         return kv.value;
     }
-   
-    // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
-    // used to register validators.
-    coreConfig.registerFunction = function (fn, fnName) {
-        core.assertParam(fn, "fn").isFunction().check();
-        core.assertParam(fnName, "fnName").isString().check();
-        fn.prototype._$fnName = fnName;
-        coreConfig.functionRegistry[fnName] = fn;
-    };
 
-    coreConfig.registerObject = function(obj, objName) {
-        core.assertParam(obj, "obj").isObject().check();
-        core.assertParam(objName, "objName").isString().check();
-
-        coreConfig.objectRegistry[objName] = obj;
-    };
-  
-    coreConfig.registerType = function (ctor, typeName) {
-        core.assertParam(ctor, "ctor").isFunction().check();
-        core.assertParam(typeName, "typeName").isString().check();
-        ctor.prototype._$typeName = typeName;
-        coreConfig.typeRegistry[typeName] = ctor;
-    };
-   
-    coreConfig.stringifyPad = "  ";
-
-    
-
-    return core;
+    return a_config;
 });
 
-define('validate',["core"],
-function (core) {
+define('validate',["core", "config"],
+function (core, a_config) {
     
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var assertParam = core.assertParam;
@@ -2075,7 +2083,7 @@ function (core) {
 
         ctor.fromJSON = function (json) {
             var validatorName = "Validator." + json.validatorName;
-            var fn = core.config.functionRegistry[validatorName];
+            var fn = a_config.functionRegistry[validatorName];
             if (!fn) {
                 throw new Error("Unable to locate a validator named:" + json.validatorName);
             }
@@ -2391,7 +2399,7 @@ function (core) {
                 return;
             }
 
-            core.config.registerFunction(value, "Validator." + key);
+            a_config.registerFunction(value, "Validator." + key);
         });
 
 
@@ -2512,10 +2520,10 @@ function (core) {
 });
 
 
-define('entityAspect',["core", "event", "validate"],
-function (core, Event, m_validate) {
+define('entityAspect',["core", "config", "event", "validate"],
+function (core, a_config, Event, m_validate) {
     /**
-    @module entityModel   
+    @module breeze   
     **/
 
     var Enum = core.Enum;
@@ -2524,7 +2532,7 @@ function (core, Event, m_validate) {
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;   
 
     var EntityState = (function () {
         /**
@@ -3711,7 +3719,7 @@ function (core, m_entityAspect) {
 define('dataType',["core", "validate"],
 function (core, m_validate) {
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;
@@ -3887,18 +3895,18 @@ function (core, m_validate) {
 
 
 
-define('entityMetadata',["core", "dataType", "entityAspect", "validate", "defaultPropertyInterceptor"],
-function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
+define('entityMetadata',["core", "config", "dataType", "entityAspect", "validate", "defaultPropertyInterceptor"],
+function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
     
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;
-    var v_dataServiceDef = core.config.interfaceRegistry.dataService;
+    
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
@@ -3957,7 +3965,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+            a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
         
         // 
@@ -4038,7 +4046,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, "NamingConvention:" + this.name);
+            a_config.registerObject(this, "NamingConvention:" + this.name);
         };
         
         /**
@@ -4198,7 +4206,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                     return value.name;
                 }
                 return value;
-            }, core.config.stringifyPad);
+            }, a_config.stringifyPad);
             return result;
         };
 
@@ -4224,12 +4232,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = core.config.objectRegistry["NamingConvention:" + ncName];
+                var nc = a_config.objectRegistry["NamingConvention:" + ncName];
                 if (!nc) {
                     throw new Error("Unable to locate a naming convention named: " + ncName);
                 }
                 this.namingConvention = nc;
-                var lqco = core.config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
+                var lqco = a_config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
                 if (!lqco) {
                     throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
                 }
@@ -4343,7 +4351,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
             
-            var dataServiceInstance = core.config.getAdapterInstance("dataService", dataServiceAdapterName);
+            var dataServiceInstance = a_config.getAdapterInstance("dataService", dataServiceAdapterName);
 
             var deferred = Q.defer();
             dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
@@ -6007,7 +6015,7 @@ define('entityQuery',["core", "entityMetadata", "entityAspect"],
 function (core, m_entityMetadata, m_entityAspect) {
     
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;
@@ -8193,19 +8201,17 @@ function (core, m_entityAspect, m_entityQuery) {
         return core.extend(arr, relationArrayMixin);
     }
 
-
-
     return makeRelationArray;
 
 });
 
 
-define('keyGenerator',["core", "entityMetadata", "entityAspect"],
-function (core, m_entityMetadata, m_entityAspect) {
+define('keyGenerator',["core", "config", "entityMetadata", "entityAspect"],
+function (core, a_config, m_entityMetadata, m_entityAspect) {
     
     
     /**
-    @module entityModel
+    @module breeze
     **/
     
     var DataType = m_entityMetadata.DataType;
@@ -8330,16 +8336,16 @@ function (core, m_entityMetadata, m_entityAspect) {
         return result;
     }
 
-    core.config.registerType(ctor, "KeyGenerator");
+    a_config.registerType(ctor, "KeyGenerator");
 
     return ctor;
 });
 
-define('entityManager',["core", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
-function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
+define('entityManager',["core", "config", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
+function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     
     /**
-    @module entityModel
+    @module breeze
     **/
     var Enum = core.Enum;
     var Event = core.Event;
@@ -8616,7 +8622,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeys: exportBundle.tempKeys,
                 entityGroupMap: exportBundle.entityGroupMap
             };
-            var result = JSON.stringify(json, null, core.config.stringifyPad);
+            var result = JSON.stringify(json, null, a_config.stringifyPad);
             return result;
         };
 
@@ -9530,9 +9536,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function getAdapterInstance(adaptersConfig, interfaceName) {
             if (adaptersConfig[interfaceName]) {
-                return core.config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
+                return a_config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
             } else {
-                return core.config.getAdapterInstance(interfaceName);
+                return a_config.getAdapterInstance(interfaceName);
             }
         }
 
@@ -10804,47 +10810,36 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
 
 
-define('entityModel',["core", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "relationArray", "keyGenerator"],
-function (core, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
+
+
+define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityManager", "entityQuery", "validate", "relationArray", "keyGenerator"],
+function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
-    
-
-    var entityModel = { };
-
-    core.extend(entityModel, m_entityAspect);
-    core.extend(entityModel, m_entityMetadata);
-    core.extend(entityModel, m_entityManager);
-    core.extend(entityModel, m_entityQuery);
-    core.extend(entityModel, m_validate);
-
-    entityModel.makeRelationArray = makeRelationArray;
-    entityModel.KeyGenerator = KeyGenerator;
-
-    // legacy properties - will not be supported after 3/1/2013
-    entityModel.entityTracking_backingStore = "backingStore";
-    entityModel.entityTracking_ko = "ko";
-    entityModel.entityTracking_backbone = "backbone";
-    entityModel.remoteAccess_odata = "odata";
-    entityModel.remoteAccess_webApi = "webApi";
-    
-    /**
-    The entityModel namespace.
-    @module entityModel
-    @main entityModel
-    **/
-
-    return entityModel;
-
-})
-;
-define('breeze',["core", "entityModel"],
-function (core, entityModel) {
     var breeze = {
         version: "0.71.3",
         core: core,
-        entityModel: entityModel
+        config: a_config
     };
     core.parent = breeze;
+
+    core.extend(breeze, m_entityAspect);
+    core.extend(breeze, m_entityMetadata);
+    core.extend(breeze, m_entityManager);
+    core.extend(breeze, m_entityQuery);
+    core.extend(breeze, m_validate);
+
+    breeze.makeRelationArray = makeRelationArray;
+    breeze.KeyGenerator = KeyGenerator;
+
+    // legacy properties 
+    core.config = a_config;
+    breeze.entityModel = breeze;
+    // legacy properties - will not be supported after 3/1/2013
+    breeze.entityTracking_backingStore = "backingStore";
+    breeze.entityTracking_ko = "ko";
+    breeze.entityTracking_backbone = "backbone";
+    breeze.remoteAccess_odata = "odata";
+    breeze.remoteAccess_webApi = "webApi";
     
     return breeze;
 });

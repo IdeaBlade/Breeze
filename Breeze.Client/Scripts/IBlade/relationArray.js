@@ -224,8 +224,6 @@ function (core, m_entityAspect, m_entityQuery) {
         return core.extend(arr, relationArrayMixin);
     }
 
-
-
     return makeRelationArray;
 
 });

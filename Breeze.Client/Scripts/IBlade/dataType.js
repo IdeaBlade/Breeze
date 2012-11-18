@@ -2,7 +2,7 @@
 define(["core", "validate"],
 function (core, m_validate) {
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;

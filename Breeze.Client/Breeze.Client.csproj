@@ -42,6 +42,7 @@
     <Content Include="Scripts\IBlade\breeze.ajax.jQuery.js" />
     <Content Include="Scripts\IBlade\breeze.full.js" />
     <Content Include="Scripts\IBlade\build.full.js" />
+    <Content Include="Scripts\IBlade\config.js" />
     <Content Include="Scripts\IBlade\promise.js" />
     <Content Include="Scripts\Tests\queryNonEFTests.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
@@ -66,7 +67,6 @@
     <Content Include="Scripts\IBlade\entityAspect.js" />
     <Content Include="Scripts\IBlade\entityManager.js" />
     <Content Include="Scripts\IBlade\entityMetadata.js" />
-    <Content Include="Scripts\IBlade\entityModel.js" />
     <Content Include="Scripts\IBlade\entityQuery.js" />
     <Content Include="Scripts\IBlade\breeze.modelLibrary.backingStore.js" />
     <Content Include="Scripts\IBlade\breeze.modelLibrary.ko.js" />

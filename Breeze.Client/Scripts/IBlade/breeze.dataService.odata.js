@@ -10,10 +10,10 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
  
-    var EntityType = entityModel.EntityType;
+    var EntityType = breeze.EntityType;
     
     var OData;
     
@@ -132,6 +132,6 @@
         return err;
     }
 
-    core.config.registerAdapter("dataService", ctor);
+    breeze.config.registerAdapter("dataService", ctor);
 
 }));

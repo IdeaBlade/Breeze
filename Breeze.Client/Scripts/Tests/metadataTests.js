@@ -11,12 +11,12 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
+    
 
-    var EntityType = entityModel.EntityType;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var NamingConvention = entityModel.NamingConvention;
+    var EntityType = breeze.EntityType;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var NamingConvention = breeze.NamingConvention;
 
     module("metadata", {
         setup: function () {

@@ -1,10 +1,10 @@
 ﻿
-define(["core", "entityMetadata", "entityAspect"],
-function (core, m_entityMetadata, m_entityAspect) {
+define(["core", "config", "entityMetadata", "entityAspect"],
+function (core, a_config, m_entityMetadata, m_entityAspect) {
     "use strict";
     
     /**
-    @module entityModel
+    @module breeze
     **/
     
     var DataType = m_entityMetadata.DataType;
@@ -129,7 +129,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         return result;
     }
 
-    core.config.registerType(ctor, "KeyGenerator");
+    a_config.registerType(ctor, "KeyGenerator");
 
     return ctor;
 });

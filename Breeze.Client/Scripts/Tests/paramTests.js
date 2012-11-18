@@ -3,12 +3,12 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
+    
 
     var Enum = core.Enum;
     var assertParam = core.assertParam;
 
-    var EntityState = entityModel.EntityState;
+    var EntityState = breeze.EntityState;
 
     module("param", {
         setup: function () {

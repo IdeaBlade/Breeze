@@ -11,7 +11,7 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
 
     var ko;
@@ -109,7 +109,7 @@
                         // TODO: change this to nullEntity later.
                         koObj = ko.observable(null);
                     } else {
-                        val = entityModel.makeRelationArray([], entity, prop);
+                        val = breeze.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
@@ -151,6 +151,6 @@
 
     };
 
-    core.config.registerAdapter("modelLibrary", ctor);
+    breeze.config.registerAdapter("modelLibrary", ctor);
     
 }));

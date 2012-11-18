@@ -1,16 +1,16 @@
 ﻿
-define(["core", "dataType", "entityAspect", "validate", "defaultPropertyInterceptor"],
-function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
+define(["core", "config", "dataType", "entityAspect", "validate", "defaultPropertyInterceptor"],
+function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
     "use strict";
     /**
-    @module entityModel
+    @module breeze
     **/
 
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;
-    var v_dataServiceDef = core.config.interfaceRegistry.dataService;
+    
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
@@ -69,7 +69,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+            a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
         
         // 
@@ -150,7 +150,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, "NamingConvention:" + this.name);
+            a_config.registerObject(this, "NamingConvention:" + this.name);
         };
         
         /**
@@ -310,7 +310,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                     return value.name;
                 }
                 return value;
-            }, core.config.stringifyPad);
+            }, a_config.stringifyPad);
             return result;
         };
 
@@ -336,12 +336,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = core.config.objectRegistry["NamingConvention:" + ncName];
+                var nc = a_config.objectRegistry["NamingConvention:" + ncName];
                 if (!nc) {
                     throw new Error("Unable to locate a naming convention named: " + ncName);
                 }
                 this.namingConvention = nc;
-                var lqco = core.config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
+                var lqco = a_config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
                 if (!lqco) {
                     throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
                 }
@@ -455,7 +455,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
             
-            var dataServiceInstance = core.config.getAdapterInstance("dataService", dataServiceAdapterName);
+            var dataServiceInstance = a_config.getAdapterInstance("dataService", dataServiceAdapterName);
 
             var deferred = Q.defer();
             dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);

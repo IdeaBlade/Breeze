@@ -3,11 +3,8 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
-
-    var EntityAspect = entityModel.EntityAspect;
-
-    var MetadataStore = entityModel.MetadataStore;
+    var EntityAspect = breeze.EntityAspect;
+    var MetadataStore = breeze.MetadataStore;
     
     module("classRewrite", {
         setup: function () {

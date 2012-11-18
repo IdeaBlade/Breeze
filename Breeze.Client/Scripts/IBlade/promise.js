@@ -1,5 +1,5 @@
 ﻿/**
-@module entityModel
+@module breeze
 **/
 
 /**
