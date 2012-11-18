@@ -258,7 +258,6 @@ define(["testFns"], function (testFns) {
         });
     /*********************************************************
     * rejectChanges of a child entity restores it to its parent
-    * TEST FAILING in v.0.70.1. Reported as DEFECT #2267
     *********************************************************/
     test("rejectChanges of a child entity restores it to its parent", 8,
         function() {
@@ -283,7 +282,7 @@ define(["testFns"], function (testFns) {
             
             equal(parent.OrderID(), child.OrderID(),
                 "child's still has parent's FK Id after delete");
-            ok(null === child.Order(), // Bug? Should deleted child still have parent?
+            ok(null === child.Order(), // Deleted child no longer has a parent
                 "deleted child cannot navigate to former parent after delete");
             equal(parent.OrderDetails().length, 0,
                 "parent no longer has the chile after child delete");
