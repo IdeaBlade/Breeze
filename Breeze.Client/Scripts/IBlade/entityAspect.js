@@ -1,11 +1,12 @@
 ﻿
-define(["core", "config", "event", "validate"],
-function (core, a_config, Event, m_validate) {
+define(["core", "config", "validate"],
+function (core, a_config, m_validate) {
     /**
     @module breeze   
     **/
 
     var Enum = core.Enum;
+    var Event = core.Event;
     var assertParam = core.assertParam;
 
     var Validator = m_validate.Validator;

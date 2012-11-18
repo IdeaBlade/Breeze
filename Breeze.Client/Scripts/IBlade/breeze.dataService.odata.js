@@ -22,10 +22,7 @@
     };
 
     ctor.prototype.initialize = function () {
-        OData = window.OData;
-        if (!OData) {
-            throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
-        }
+        OData = core.requireLib("OData", "Needed to support remote OData services");
         OData.jsonHandler.recognizeDates = true;
     };
     

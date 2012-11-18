@@ -199,6 +199,25 @@ define(function () {
     }
 
     // end of array functions
+    
+    function requireLib(libNames, errMessage) {
+        var arrNames = libNames.split(";");
+        for (var i = 0, j = arrNames.length; i < j; i++) {
+            var lib = requireLibCore(arrNames[i]);
+            if (lib) return lib;
+        }
+        throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    }
+    
+    function requireLibCore(libName) {
+        var lib = window[libName];
+        if (lib) return lib;
+        if (require) {
+            lib = require(libName);
+        }
+        if (lib) return lib;
+        return null;
+    }
 
     function using(obj, property, tempValue, fn) {
         var originalValue = obj[property];
@@ -359,6 +378,7 @@ define(function () {
         arrayRemoveItem: arrayRemoveItem,
         arrayZip: arrayZip,
 
+        requireLib: requireLib,
         using: using,
         wrapExecution: wrapExecution,
         memoize: memoize,

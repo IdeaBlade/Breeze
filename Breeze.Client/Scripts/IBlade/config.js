@@ -186,8 +186,6 @@ function (core ) {
         }
     };
    
-
-   
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
     a_config.registerFunction = function (fn, fnName) {

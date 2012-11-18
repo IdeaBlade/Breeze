@@ -24,17 +24,8 @@
     };
    
     ctor.prototype.initialize = function() {
-        Backbone = window.Backbone;
-        if ((!Backbone) && require) {
-            Backbone = require("Backbone");
-        }
-        if (!Backbone) {
-            throw new Error("Unable to initialize Backbone.");
-        }
-        _ = window._;
-        if ((!_) && require) {
-            _ = require("underscore");
-        }
+        Backbone = core.requireLib("Backbone");
+        _ = core.requireLib("_;underscore");
         bbSet = Backbone.Model.prototype.set;
         bbGet = Backbone.Model.prototype.get;
     };

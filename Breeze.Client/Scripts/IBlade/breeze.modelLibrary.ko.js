@@ -21,14 +21,7 @@
     };
 
     ctor.prototype.initialize = function () {
-        ko = window.ko;
-        if ((!ko) && require) {
-            ko = require("ko");
-        }
-        if (!ko) {
-            throw new Error("Unable to initialize Knockout.");
-        }
-
+        ko = core.requireLib("ko", "The Knockout library");
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;

@@ -499,6 +499,25 @@ define('coreFns',[],function () {
     }
 
     // end of array functions
+    
+    function requireLib(libNames, errMessage) {
+        var arrNames = libNames.split(";");
+        for (var i = 0, j = arrNames.length; i < j; i++) {
+            var lib = requireLibCore(arrNames[i]);
+            if (lib) return lib;
+        }
+        throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    }
+    
+    function requireLibCore(libName) {
+        var lib = window[libName];
+        if (lib) return lib;
+        if (require) {
+            lib = require(libName);
+        }
+        if (lib) return lib;
+        return null;
+    }
 
     function using(obj, property, tempValue, fn) {
         var originalValue = obj[property];
@@ -659,6 +678,7 @@ define('coreFns',[],function () {
         arrayRemoveItem: arrayRemoveItem,
         arrayZip: arrayZip,
 
+        requireLib: requireLib,
         using: using,
         wrapExecution: wrapExecution,
         memoize: memoize,
@@ -1266,7 +1286,6 @@ define('assertParam',["coreFns"], function (core) {
 define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     
     var assertParam = m_assertParam.assertParam;
-    var assertConfig = m_assertParam.assertConfig;
     
     
 
@@ -1777,8 +1796,6 @@ function (core ) {
             }
         }
     };
-   
-
    
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
@@ -2520,13 +2537,14 @@ function (core, a_config) {
 });
 
 
-define('entityAspect',["core", "config", "event", "validate"],
-function (core, a_config, Event, m_validate) {
+define('entityAspect',["core", "config", "validate"],
+function (core, a_config, m_validate) {
     /**
     @module breeze   
     **/
 
     var Enum = core.Enum;
+    var Event = core.Event;
     var assertParam = core.assertParam;
 
     var Validator = m_validate.Validator;
@@ -3910,14 +3928,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
-    
-    var Q = window.Q;
-    if ((!Q) && require) {
-        Q = require("Q");
-    }
-    if (!Q) {
-        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
-    }
+
+    var Q = core.requireLib("Q", "See https://github.com/kriskowal/q ");
 
     // TODO: still need to handle inheritence here.
 
@@ -8344,6 +8356,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect) {
 define('entityManager',["core", "config", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
 function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     
+
     /**
     @module breeze
     **/
@@ -8364,13 +8377,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
-    var Q = window.Q;
-    if ((!Q) && require) {
-        Q = require("Q");
-    }
-    if (!Q) {
-        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
-    }
+    var Q = core.requireLib("Q", "see https://github.com/kriskowal/q");
     
     // TODO: think about dif between find and get.
 
