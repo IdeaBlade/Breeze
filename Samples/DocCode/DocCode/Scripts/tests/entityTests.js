@@ -371,7 +371,7 @@ define(["testFns"], function (testFns) {
         expectedChangedStates.push("Deleted");
 
         deepEqual(actualChangedStates, expectedChangedStates,
-            "'isChangedStateProperty' should have seen the following changes: " + 
+            "'entityState' property should have seen the following changes: " +
             JSON.stringify(expectedChangedStates));
     });
     
