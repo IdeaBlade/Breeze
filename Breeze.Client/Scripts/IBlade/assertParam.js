@@ -35,7 +35,7 @@ define(["coreFns"], function (core) {
             return (typeof(v) === 'string') && v.length > 0;
         };
         result.getMessage = function() {
-            return core.formatString(" must be a nonEmpty string");
+            return " must be a nonEmpty string";
         };
         return this.compose(result);
     };
