@@ -300,6 +300,74 @@ define(["testFns"], function (testFns) {
         }
     );
     /*********************************************************
+    * entityState is Unchanged after calling acceptChanges on added entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    * Beware of the key, especially if the key should have been store generated
+    *********************************************************/
+    test("entityState is Unchanged after calling acceptChanges on added entity", 2,
+        function () {
+
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
+
+            var employee = empType.createEntity(); // created but not attached
+
+            em.addEntity(employee);
+            var tempId = employee.EmployeeID(); // tempId assigned by Breeze
+
+            employee.entityAspect.acceptChanges();
+            //em.acceptChanges(); // this works too ... for all changed entities in cache
+            ok(employee.entityAspect.entityState.isUnchanged(),
+                'employee should be "Unchanged" after calling acceptChanges');
+        
+            equal(employee.EmployeeID(), tempId,
+                'employeeID should still be the tempId, ' + tempId +
+                    ', a dubious choice.');
+        });
+    /*********************************************************
+    * entityState is Unchanged after calling acceptChanges on modified entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    *********************************************************/
+    test("entityState is Unchanged after calling acceptChanges on modified entity", 1,
+    function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(42);
+        em.attachEntity(employee); // simulate existing employee
+
+        employee.FirstName("Bob");
+        employee.entityAspect.acceptChanges(); // simulate post-save state
+        //em.acceptChanges(); // this works too ... for all changed entities in cache
+
+        ok(employee.entityAspect.entityState.isUnchanged(),
+            'employee should be "Unchanged" after calling acceptChanges');
+    });
+    /*********************************************************
+    * entityState is Detached after calling acceptChanges on deleted entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    * TEST FAILS because state is Unchanged, not Detached. Filed D#2269
+    *********************************************************/
+    test("entityState is Detached after calling acceptChanges on deleted entity", 1,
+    function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(42);
+        em.attachEntity(employee); // simulate existing employee
+
+        employee.entityAspect.setDeleted();
+        employee.entityAspect.acceptChanges(); // simulate post-save state
+        //em.acceptChanges(); // this works too ... for all changed entities in cache
+
+        ok(employee.entityAspect.entityState.isDetached(),
+            'employee should be "Detached" after calling acceptChanges');
+    });
+    /*********************************************************
     * get and set property values with Breeze property accessors
     * Breeze property accessor functions help utility authors
     * access entity property values w/o regard to the model library
