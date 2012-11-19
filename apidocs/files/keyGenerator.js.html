@@ -168,9 +168,9 @@
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="..&#x2F;modules/core.html">core</a></li>
+                <li><a href="..&#x2F;modules/breeze.html">breeze</a></li>
             
-                <li><a href="..&#x2F;modules/entityModel.html">entityModel</a></li>
+                <li><a href="..&#x2F;modules/core.html">core</a></li>
             
             </ul>
         </div>
@@ -212,12 +212,12 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-define([&quot;core&quot;, &quot;entityMetadata&quot;, &quot;entityAspect&quot;],
-function (core, m_entityMetadata, m_entityAspect) {
+define([&quot;core&quot;, &quot;config&quot;, &quot;entityMetadata&quot;, &quot;entityAspect&quot;],
+function (core, a_config, m_entityMetadata, m_entityAspect) {
     &quot;use strict&quot;;
     
     &#x2F;**
-    @module entityModel
+    @module breeze
     **&#x2F;
     
     var DataType = m_entityMetadata.DataType;
@@ -342,7 +342,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         return result;
     }
 
-    core.config.registerType(ctor, &quot;KeyGenerator&quot;);
+    a_config.registerType(ctor, &quot;KeyGenerator&quot;);
 
     return ctor;
 });

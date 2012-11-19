@@ -23,6 +23,23 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+    test("acceptChanges - detach deleted", 1, function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.setProperty("employeeID", 42);
+        em.attachEntity(employee); // simulate existing employee
+
+        employee.entityAspect.setDeleted();
+        employee.entityAspect.acceptChanges(); // simulate post-save state
+        //em.acceptChanges(); // this works too ... for all changed entities in cache
+
+        ok(employee.entityAspect.entityState.isDetached(),
+            'employee should be "Detached" after calling acceptChanges');
+    });
 
     test("rejectChanges notification", function() {
         //1) attach propertyChangedHandler to an existing entity

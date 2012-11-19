@@ -112,7 +112,7 @@ function processRawApi(rawApi) {
     objectForEach(rawApi.classitems, function (k, v) {
         var module = moduleMap[v.module];
         if (!module) {
-            modules.undefinedmodules.push(v);
+            modules.undefinedModules.push(v);
         } else {
             aClass = module.classMap[v.class];
             if (!aClass) {

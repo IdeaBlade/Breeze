@@ -1,5 +1,9 @@
 ﻿define(["core" ] ,
-function (core ) {
+function (core) {
+    
+    /**
+    @module breeze   
+    **/
 
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;

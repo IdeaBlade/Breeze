@@ -1610,7 +1610,11 @@ function (core, Enum, Event, m_assertParam) {
 });
 
 define('config',["core" ] ,
-function (core ) {
+function (core) {
+    
+    /**
+    @module breeze   
+    **/
 
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
@@ -3003,8 +3007,13 @@ function (core, a_config, m_validate) {
         @method acceptChanges
         **/
         ctor.prototype.acceptChanges = function () {
-            this.setUnchanged();
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
+            var em = this.entityManager;
+            if (this.entityState.isDeleted()) {
+                em.detachEntity(this.entity);
+            } else {
+                this.setUnchanged();
+            }
+            em.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
         };
 
         /**
@@ -10815,7 +10824,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.71.3",
+        version: "0.72.1",
         core: core,
         config: a_config
     };

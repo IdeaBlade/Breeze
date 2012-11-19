@@ -168,9 +168,9 @@
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="..&#x2F;modules/core.html">core</a></li>
+                <li><a href="..&#x2F;modules/breeze.html">breeze</a></li>
             
-                <li><a href="..&#x2F;modules/entityModel.html">entityModel</a></li>
+                <li><a href="..&#x2F;modules/core.html">core</a></li>
             
             </ul>
         </div>
@@ -212,19 +212,20 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-define([&quot;core&quot;, &quot;event&quot;, &quot;validate&quot;],
-function (core, Event, m_validate) {
+define([&quot;core&quot;, &quot;config&quot;, &quot;validate&quot;],
+function (core, a_config, m_validate) {
     &#x2F;**
-    @module entityModel   
+    @module breeze   
     **&#x2F;
 
     var Enum = core.Enum;
+    var Event = core.Event;
     var assertParam = core.assertParam;
 
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;   
 
     var EntityState = (function () {
         &#x2F;**

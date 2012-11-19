@@ -465,8 +465,13 @@ function (core, a_config, m_validate) {
         @method acceptChanges
         **/
         ctor.prototype.acceptChanges = function () {
-            this.setUnchanged();
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
+            var em = this.entityManager;
+            if (this.entityState.isDeleted()) {
+                em.detachEntity(this.entity);
+            } else {
+                this.setUnchanged();
+            }
+            em.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
         };
 
         /**

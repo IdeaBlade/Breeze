@@ -168,9 +168,9 @@
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="..&#x2F;modules/core.html">core</a></li>
+                <li><a href="..&#x2F;modules/breeze.html">breeze</a></li>
             
-                <li><a href="..&#x2F;modules/entityModel.html">entityModel</a></li>
+                <li><a href="..&#x2F;modules/core.html">core</a></li>
             
             </ul>
         </div>
@@ -211,11 +211,12 @@
 
 <div class="file">
     <pre class="code prettyprint linenums">
-﻿define([&quot;core&quot;, &quot;entityMetadata&quot;, &quot;entityAspect&quot;, &quot;entityQuery&quot;, &quot;keyGenerator&quot;],
-function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
+﻿define([&quot;core&quot;, &quot;config&quot;, &quot;entityMetadata&quot;, &quot;entityAspect&quot;, &quot;entityQuery&quot;, &quot;keyGenerator&quot;],
+function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     &quot;use strict&quot;;
+
     &#x2F;**
-    @module entityModel
+    @module breeze
     **&#x2F;
     var Enum = core.Enum;
     var Event = core.Event;
@@ -234,13 +235,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
-    var Q = window.Q;
-    if ((!Q) &amp;&amp; require) {
-        Q = require(&quot;Q&quot;);
-    }
-    if (!Q) {
-        throw new Error(&quot;Unable to initialize Q - see https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
-    }
+    var Q = core.requireLib(&quot;Q&quot;, &quot;see https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q&quot;);
     
     &#x2F;&#x2F; TODO: think about dif between find and get.
 
@@ -492,7 +487,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeys: exportBundle.tempKeys,
                 entityGroupMap: exportBundle.entityGroupMap
             };
-            var result = JSON.stringify(json, null, core.config.stringifyPad);
+            var result = JSON.stringify(json, null, a_config.stringifyPad);
             return result;
         };
 
@@ -1406,9 +1401,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function getAdapterInstance(adaptersConfig, interfaceName) {
             if (adaptersConfig[interfaceName]) {
-                return core.config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
+                return a_config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
             } else {
-                return core.config.getAdapterInstance(interfaceName);
+                return a_config.getAdapterInstance(interfaceName);
             }
         }
 

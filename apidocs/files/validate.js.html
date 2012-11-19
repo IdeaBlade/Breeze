@@ -168,9 +168,9 @@
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="..&#x2F;modules/core.html">core</a></li>
+                <li><a href="..&#x2F;modules/breeze.html">breeze</a></li>
             
-                <li><a href="..&#x2F;modules/entityModel.html">entityModel</a></li>
+                <li><a href="..&#x2F;modules/core.html">core</a></li>
             
             </ul>
         </div>
@@ -211,11 +211,11 @@
 
 <div class="file">
     <pre class="code prettyprint linenums">
-﻿define([&quot;core&quot;],
-function (core) {
+﻿define([&quot;core&quot;, &quot;config&quot;],
+function (core, a_config) {
     &quot;use strict&quot;;
     &#x2F;**
-    @module entityModel
+    @module breeze
     **&#x2F;
 
     var assertParam = core.assertParam;
@@ -446,7 +446,7 @@ function (core) {
 
         ctor.fromJSON = function (json) {
             var validatorName = &quot;Validator.&quot; + json.validatorName;
-            var fn = core.config.functionRegistry[validatorName];
+            var fn = a_config.functionRegistry[validatorName];
             if (!fn) {
                 throw new Error(&quot;Unable to locate a validator named:&quot; + json.validatorName);
             }
@@ -762,7 +762,7 @@ function (core) {
                 return;
             }
 
-            core.config.registerFunction(value, &quot;Validator.&quot; + key);
+            a_config.registerFunction(value, &quot;Validator.&quot; + key);
         });
 
 

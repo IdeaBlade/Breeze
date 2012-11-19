@@ -33,19 +33,18 @@ YUI.add("yuidoc-meta", function(Y) {
         "ↈ_relationArray_"
     ],
     "modules": [
-        "core",
-        "entityModel"
+        "breeze",
+        "core"
     ],
     "allModules": [
+        {
+            "displayName": "breeze",
+            "name": "breeze"
+        },
         {
             "displayName": "core",
             "name": "core",
             "description": "Utility types and functions of generally global applicability."
-        },
-        {
-            "displayName": "entityModel",
-            "name": "entityModel",
-            "description": "The entityModel namespace."
         }
     ]
 } };

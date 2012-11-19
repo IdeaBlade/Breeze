@@ -168,9 +168,9 @@
 
             <ul id="api-modules" class="apis modules">
             
-                <li><a href="..&#x2F;modules/core.html">core</a></li>
+                <li><a href="..&#x2F;modules/breeze.html">breeze</a></li>
             
-                <li><a href="..&#x2F;modules/entityModel.html">entityModel</a></li>
+                <li><a href="..&#x2F;modules/core.html">core</a></li>
             
             </ul>
         </div>
@@ -212,29 +212,23 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-define([&quot;core&quot;, &quot;dataType&quot;, &quot;entityAspect&quot;, &quot;validate&quot;, &quot;defaultPropertyInterceptor&quot;],
-function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
+define([&quot;core&quot;, &quot;config&quot;, &quot;dataType&quot;, &quot;entityAspect&quot;, &quot;validate&quot;, &quot;defaultPropertyInterceptor&quot;],
+function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor) {
     &quot;use strict&quot;;
     &#x2F;**
-    @module entityModel
+    @module breeze
     **&#x2F;
 
     var Enum = core.Enum;
     var assertParam = core.assertParam;
     var assertConfig = core.assertConfig;
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;
-    var v_dataServiceDef = core.config.interfaceRegistry.dataService;
+    
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
     var EntityAspect = m_entityAspect.EntityAspect;
     var Validator = m_validate.Validator;
-    
-    var Q = window.Q;
-    if ((!Q) &amp;&amp; require) {
-        Q = require(&quot;Q&quot;);
-    }
-    if (!Q) {
-        throw new Error(&quot;Unable to initialize Q - see https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
-    }
+
+    var Q = core.requireLib(&quot;Q&quot;, &quot;See https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
 
     &#x2F;&#x2F; TODO: still need to handle inheritence here.
 
@@ -282,7 +276,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, &quot;LocalQueryComparisonOptions:&quot; + this.name);
+            a_config.registerObject(this, &quot;LocalQueryComparisonOptions:&quot; + this.name);
         };
         
         &#x2F;&#x2F; 
@@ -363,7 +357,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            core.config.registerObject(this, &quot;NamingConvention:&quot; + this.name);
+            a_config.registerObject(this, &quot;NamingConvention:&quot; + this.name);
         };
         
         &#x2F;**
@@ -490,11 +484,27 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             this._shortNameMap = {}; &#x2F;&#x2F; key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
-            this._incompleteTypeMap = {};
+            this._incompleteTypeMap = {}; &#x2F;&#x2F; key is entityTypeName; value is map where key is assocName and value is navProp
         };
         
         ctor.prototype._$typeName = &quot;MetadataStore&quot;;
         ctor.ANONTYPE_PREFIX = &quot;_IB_&quot;;
+
+        ctor.prototype.addEntityType = function(entityType) {
+            entityType.metadataStore = this;
+            &#x2F;&#x2F; don&#x27;t register anon types
+            if (!entityType.isAnonymous) {
+                this._registerEntityType(entityType);
+            }
+            entityType._fixup();
+                                  
+            entityType.getProperties().forEach(function(property) {
+                if (!property.isUnmapped) {
+                    entityType._mappedPropertiesCount++;
+                }
+            });
+
+        };
         
         &#x2F;**
         The  {{#crossLink &quot;NamingConvention&quot;}}{{&#x2F;crossLink}} associated with this MetadataStore.
@@ -523,7 +533,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                     return value.name;
                 }
                 return value;
-            }, core.config.stringifyPad);
+            }, a_config.stringifyPad);
             return result;
         };
 
@@ -549,12 +559,12 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = core.config.objectRegistry[&quot;NamingConvention:&quot; + ncName];
+                var nc = a_config.objectRegistry[&quot;NamingConvention:&quot; + ncName];
                 if (!nc) {
                     throw new Error(&quot;Unable to locate a naming convention named: &quot; + ncName);
                 }
                 this.namingConvention = nc;
-                var lqco = core.config.objectRegistry[&quot;LocalQueryComparisonOptions:&quot; + lqcoName];
+                var lqco = a_config.objectRegistry[&quot;LocalQueryComparisonOptions:&quot; + lqcoName];
                 if (!lqco) {
                     throw new Error(&quot;Unable to locate a LocalQueryComparisonOptions instance named: &quot; + lqcoName);
                 }
@@ -668,11 +678,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + serviceName);
             }
             
-            var dataServiceInstance = core.config.getAdapterInstance(&quot;dataService&quot;, dataServiceAdapterName);
+            var dataServiceInstance = a_config.getAdapterInstance(&quot;dataService&quot;, dataServiceAdapterName);
 
             var deferred = Q.defer();
             dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
-            var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
@@ -939,10 +948,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
             var entityType = new EntityType({
-                metadataStore: metadataStore,
                 shortName: shortName,
                 namespace: namespace,
-                serviceName: serviceName
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck(&quot;name&quot;));
             toArray(odataEntityType.property).forEach(function (prop) {
@@ -952,7 +959,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             toArray(odataEntityType.navigationProperty).forEach(function (prop) {
                 convertFromOdataNavProperty(entityType, prop, schema);
             });
-            
+            metadataStore.addEntityType(entityType);
             return entityType;
         }
 
@@ -1102,6 +1109,13 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         return ctor;
     })();
 
+    var DataService = function() {
+        var ctor = function() {
+
+        };
+        return ctor;
+    }();
+
     var EntityType = (function () {
         &#x2F;**
         Container for all of the metadata about a specific type of Entity.
@@ -1112,8 +1126,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
 
         &#x2F;** 
         @example                    
-            var entityManager = new EntityType( {
-                metadataStore: myMetadataStore,
+            var entityType = new EntityType( {
                 serviceName: &quot;api&#x2F;NorthwindIBModel&quot;,
                 name: &quot;person&quot;,
                 namespace: &quot;myAppNamespace&quot;
@@ -1136,41 +1149,19 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 this.metadataStore = config;
                 this.shortName = &quot;Anon_&quot; + ++__nextAnonIx;
                 this.namespace = &quot;&quot;;
-                this.serviceName = null;
+                this.isAnonymous = true;
             } else {
                 assertConfig(config)
-                    .whereParam(&quot;metadataStore&quot;).isInstanceOf(MetadataStore)
                     .whereParam(&quot;shortName&quot;).isNonEmptyString()
                     .whereParam(&quot;namespace&quot;).isString().isOptional().withDefault(&quot;&quot;)
-                    .whereParam(&quot;serviceName&quot;).isString()
                     .whereParam(&quot;defaultResourceName&quot;).isNonEmptyString().isOptional().withDefault(null)
                     .applyAll(this);
-                if (this.serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
-                    this.serviceName = this.serviceName + &#x27;&#x2F;&#x27;;
-                }
             }
 
-            this.name = this.shortName + &quot;:#&quot; + this.namespace;
+            this.name = qualifyTypeName(this.shortName, this.namespace);
             
             &#x2F;&#x2F; the defaultResourceName may also be set up either via metadata lookup or first query or via the &#x27;setProperties&#x27; method
-
-            var metadataStore = this.metadataStore;
-            &#x2F;&#x2F; don&#x27;t register anon types
-            if (this.serviceName) {
-                metadataStore._registerEntityType(this);
-            }
-            var incompleteMap = metadataStore._incompleteTypeMap[this.name];
-            var that = this;
-            if (incompleteMap) {
-                core.objectForEach(incompleteMap, function (key, value) {
-                    value.entityType = that;
-                    &#x2F;&#x2F; I think this is allowed per the spec. i.e. within an outer loop
-                    delete incompleteMap[key];
-                });
-                if (core.isEmpty(incompleteMap)) {
-                    delete metadataStore._incompleteTypeMap[that.name];
-                }
-            }
+            
             this.dataProperties = [];
             this.navigationProperties = [];
             this.keyProperties = [];
@@ -1318,17 +1309,177 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
         **&#x2F;
         ctor.prototype.addProperty = function (property) {
             assertParam(property, &quot;dataProperty&quot;).isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
-            if (this._$initialized &amp;&amp; !property.isUnmapped) {
-                throw new Error(&quot;This EntityType has been &#x27;completed&#x27; and is no longer open for additional properties&quot;);
+            if (this.metadataStore &amp;&amp; !property.isUnmapped) {
+                throw new Error(&quot;The &#x27;&quot; + this.name + &quot;&#x27; EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.&quot;);
             }
-            property._completeInitialization(this);
-            if (!property.isUnmapped) {
-                this._mappedPropertiesCount++;
+            if (property.parentEntityType) {
+                if (property.parentEntityType !== this) {
+                    throw new Error(&quot;This dataProperty has already been added to &quot; + property.parentEntityType.name);
+                } else {
+                    return this;
+                }
+            }
+            property.parentEntityType = this;
+            if (property.isDataProperty) {
+                this._addDataProperty(property);
+            } else {
+                this._addNavigationProperty(property);
             }
             return this;
         };
         
+        ctor.prototype._addDataProperty = function (dp) {
 
+            this.dataProperties.push(dp);
+
+            if (dp.isPartOfKey) {
+                this.keyProperties.push(dp);
+            };
+
+            if (dp.concurrencyMode &amp;&amp; dp.concurrencyMode !== &quot;None&quot;) {
+                this.concurrencyProperties.push(dp);
+            };
+
+            if (dp.isUnmapped) {
+                this.unmappedProperties.push(dp);
+            }
+
+        };
+        
+        ctor.prototype._addNavigationProperty = function (np) {
+
+            this.navigationProperties.push(np);
+
+            if (!isQualifiedTypeName(np.entityTypeName)) {
+                np.entityTypeName = qualifyTypeName(np.entityTypeName, this.namespace);
+            }
+        };
+
+        ctor.prototype._fixup = function() {
+            var that = this;
+            this.getProperties().forEach(function(property) {
+                that._updatePropertyNames(property);
+            });
+            this.navigationProperties.forEach(function(np) {
+                &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+                resolveFks(np);
+                &#x2F;&#x2F; Tries to set - these two may get set later
+                &#x2F;&#x2F; this.inverse
+                &#x2F;&#x2F; this.entityType
+                updateCrossEntityRelationship(np);
+            });
+        };
+        
+        function resolveFks(np) {
+            if (np.foreignKeyProperties) return;
+            var fkProps = getFkProps(np);
+            &#x2F;&#x2F; returns null if can&#x27;t yet finish
+            if (!fkProps) return;
+
+            fkProps.forEach(function (dp) {
+                dp.relatedNavigationProperty = np;
+                np.parentEntityType.foreignKeyProperties.push(dp);
+                if (np.relatedDataProperties) {
+                    np.relatedDataProperties.push(dp);
+                } else {
+                    np.relatedDataProperties = [dp];
+                }
+            });
+        };
+
+
+
+        &#x2F;&#x2F; returns null if can&#x27;t yet finish
+        function getFkProps(np) {
+            var fkNames = np.foreignKeyNames;
+            var isNameOnServer = fkNames.length == 0;
+            if (isNameOnServer) {
+                fkNames = np.foreignKeyNamesOnServer;
+                if (fkNames.length == 0) {
+                    np.foreignKeyProperties = [];
+                    return np.foreignKeyProperties;
+                }
+            }
+            var ok = true;
+            var parentEntityType = np.parentEntityType;
+            var fkProps = fkNames.map(function (fkName) {
+                var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
+                ok = ok &amp;&amp; !!fkProp;
+                return fkProp;
+            });
+
+            if (ok) {
+                if (isNameOnServer) {
+                    np.foreignKeyNames = fkProps.map(core.pluck(&quot;name&quot;));
+                }
+                np.foreignKeyProperties = fkProps;
+                return fkProps;
+            } else {
+                return null;
+            }
+        }
+        
+        function updateCrossEntityRelationship(np) {
+            var metadataStore = np.parentEntityType.metadataStore;
+            var incompleteTypeMap = metadataStore._incompleteTypeMap;
+
+            &#x2F;&#x2F; ok to not find it yet
+            var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
+            if (targetEntityType) {
+                np.entityType = targetEntityType;
+            }
+
+            var assocMap = incompleteTypeMap[np.entityTypeName];
+            if (!assocMap) {
+                addToIncompleteMap(incompleteTypeMap, np);
+            } else {
+                var inverse = assocMap[np.associationName];
+                if (inverse) {
+                    removeFromIncompleteMap(incompleteTypeMap, np, inverse);
+                } else {
+                    addToIncompleteMap(incompleteTypeMap, np);
+                }
+            }
+        };
+
+        function addToIncompleteMap(incompleteTypeMap, np) {
+            if (!np.entityType) {
+                var assocMap = {};
+                incompleteTypeMap[np.entityTypeName] = assocMap;
+                assocMap[np.associationName] = np;
+            }
+
+            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+            if (!altAssocMap) {
+                altAssocMap = {};
+                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
+            }
+            altAssocMap[np.associationName] = np;
+        }
+
+        function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
+            np.inverse = inverse;
+            var assocMap = incompleteTypeMap[np.entityTypeName];
+
+            delete assocMap[np.associationName];
+            if (core.isEmpty(assocMap)) {
+                delete incompleteTypeMap[np.entityTypeName];
+            }
+            if (!inverse.inverse) {
+                inverse.inverse = np;
+                &#x2F;&#x2F; not sure if these are needed
+                if (inverse.entityType == null) {
+                    inverse.entityType = np.parentEntityType;
+                }
+                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+                if (altAssocMap) {
+                    delete altAssocMap[np.associationName];
+                    if (core.isEmpty(altAssocMap)) {
+                        delete incompleteTypeMap[np.parentEntityType.name];
+                    }
+                }
+            }
+        }
 
         &#x2F;**
         Create a new entity of this type.
@@ -1551,7 +1702,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 name: this.name,
                 shortName: this.shortName,
                 namespace: this.namespace,
-                serviceName: this.serviceName,
                 defaultResourceName: this.defaultResourceName,
                 dataProperties: this.dataProperties,
                 navigationProperties: this.navigationProperties,
@@ -1565,10 +1715,8 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             var et = metadataStore.getEntityType(json.name, true);
             if (et) return et;
             et = new EntityType({
-                metadataStore: metadataStore,
                 shortName: json.shortName,
                 namespace: json.namespace,
-                serviceName: json.serviceName
             });
                 
             json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
@@ -1582,6 +1730,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 return NavigationProperty.fromJSON(dp, et);
             });
             et = core.extend(et, json);
+            metadataStore.addEntityType(et);
             return et;
         };
         
@@ -1722,44 +1871,14 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             if (!hasName) {
                 throw new Error(&quot;A DataProperty must be instantiated with either a &#x27;name&#x27; or a &#x27;nameOnServer&#x27; property&quot;);
             }
-        };
-        
-        ctor.prototype._completeInitialization = function (parentEntityType) {
-            if (this.parentEntityType) {
-                if (this.parentEntityType !== parentEntityType) {
-                    throw new Error(&quot;This dataProperty has already been added to &quot; + this.parentEntityType.name);
-                } else {
-                    return;
-                }
-            }
-            this.parentEntityType = parentEntityType;
-            parentEntityType._updatePropertyNames(this);
-
             if (this.defaultValue === undefined) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
             } else if (this.defaultValue === null &amp;&amp; !this.isNullable) {
                 throw new Error(&quot;A nonnullable DataProperty cannot have a null defaultValue. Name: &quot; + this.name);
             }
-            parentEntityType.dataProperties.push(this);
-            
-            if (this.isPartOfKey) {
-                parentEntityType.keyProperties.push(this);
-            };
-            
-            if (this.concurrencyMode &amp;&amp; this.concurrencyMode !== &quot;None&quot;) {
-                parentEntityType.concurrencyProperties.push(this);
-            };
-
-            if (this.isUnmapped) {
-                parentEntityType.unmappedProperties.push(this);
-            }
-
-            &#x2F;&#x2F; sets this.relatedNavigationProperty - this will be set for all foreignKey data properties.
-            this.parentEntityType.navigationProperties.forEach(function (np) {
-                np._resolveFks();
-            });
-            
         };
+        
+
         
         ctor.prototype._$typeName = &quot;DataProperty&quot;;
 
@@ -1937,6 +2056,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
                 .whereParam(&quot;validators&quot;).isInstanceOf(Validator).isArray().isOptional().withDefault([])
                 .applyAll(this);
             var hasName = !!(this.name || this.nameOnServer);
+                                                              
             if (!hasName) {
                 throw new Error(&quot;A Navigation property must be instantiated with either a &#x27;name&#x27; or a &#x27;nameOnServer&#x27; property&quot;);
             }
@@ -2051,135 +2171,6 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             parentEntityType.addProperty(np);
             return np;
         };
-        
-        ctor.prototype._completeInitialization = function (parentEntityType) {
-            if (this.parentEntityType) {
-                if (this.parentEntityType !== parentEntityType) {
-                    throw new Error(&quot;This dataProperty has already been added to &quot; + this.parentEntityType.name);
-                } else {
-                    return;
-                }
-            }
-            this.parentEntityType = parentEntityType;
-            parentEntityType._updatePropertyNames(this);
-            parentEntityType.navigationProperties.push(this);
-            &#x2F;&#x2F; set this.relatedDataProperties and dataProperty.relatedNavigationPropery to this
-            this._resolveFks();
-
-            &#x2F;&#x2F; Tries to set - these two may get set later
-            &#x2F;&#x2F; this.inverse
-            &#x2F;&#x2F; this.entityType
-            updateCrossEntityRelationship(this);
-        };
-        
-        ctor.prototype._resolveFks = function () {
-            var np = this;
-            if (np.foreignKeyProperties) return;
-            var fkProps = getFkProps(np);
-            &#x2F;&#x2F; returns null if can&#x27;t yet finish
-            if (!fkProps) return;
-
-            fkProps.forEach(function (dp) {
-                dp.relatedNavigationProperty = np;
-                np.parentEntityType.foreignKeyProperties.push(dp);
-                if (np.relatedDataProperties) {
-                    np.relatedDataProperties.push(dp);
-                } else {
-                    np.relatedDataProperties = [dp];
-                }
-            });
-        };
-        
-        function updateCrossEntityRelationship(np) {
-            var metadataStore = np.parentEntityType.metadataStore;
-            var incompleteTypeMap = metadataStore._incompleteTypeMap;
-
-            var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
-            if (targetEntityType) {
-                np.entityType = targetEntityType;
-            }
-
-            var assocMap = incompleteTypeMap[np.entityTypeName];
-            if (!assocMap) {
-                addToIncompleteMap(incompleteTypeMap, np);
-            } else {
-                var inverse = assocMap[np.associationName];
-                if (inverse) {
-                    removeFromIncompleteMap(incompleteTypeMap, np, inverse);
-                } else {
-                    addToIncompleteMap(incompleteTypeMap, np);
-                }
-            }
-        };
-        
-        function addToIncompleteMap(incompleteTypeMap, np) {
-            if (!np.entityType) {
-                var assocMap = {};
-                incompleteTypeMap[np.entityTypeName] = assocMap;
-                assocMap[np.associationName] = np;
-            }
-
-            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
-            if (!altAssocMap) {
-                altAssocMap = {};
-                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
-            }
-            altAssocMap[np.associationName] = np;
-        }
-        
-        function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
-            np.inverse = inverse;
-            var assocMap = incompleteTypeMap[np.entityTypeName];
-
-            delete assocMap[np.associationName];
-            if (core.isEmpty(assocMap)) {
-                delete incompleteTypeMap[np.entityTypeName];
-            }
-            if (!inverse.inverse) {
-                inverse.inverse = np;
-                &#x2F;&#x2F; not sure if these are needed
-                if (inverse.entityType == null) {
-                    inverse.entityType = np.parentEntityType;
-                }
-                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
-                if (altAssocMap) {
-                    delete altAssocMap[np.associationName];
-                    if (core.isEmpty(altAssocMap)) {
-                        delete incompleteTypeMap[np.parentEntityType.name];
-                    }
-                }
-            }
-        }
-
-        &#x2F;&#x2F; returns null if can&#x27;t yet finish
-        function getFkProps(np) {
-            var fkNames = np.foreignKeyNames;
-            var isNameOnServer = fkNames.length == 0;
-            if (isNameOnServer) {
-                fkNames = np.foreignKeyNamesOnServer;
-                if (fkNames.length == 0) {
-                    np.foreignKeyProperties = [];
-                    return np.foreignKeyProperties;
-                }
-            }
-            var ok = true;
-            var parentEntityType = np.parentEntityType;
-            var fkProps = fkNames.map(function (fkName) {
-                var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
-                ok = ok &amp;&amp; !!fkProp;
-                return fkProp;
-            });
-
-            if (ok) {
-                if (isNameOnServer) {
-                    np.foreignKeyNames = fkProps.map(core.pluck(&quot;name&quot;));
-                }
-                np.foreignKeyProperties = fkProps;
-                return fkProps;
-            } else {
-                return null;
-            }
-        }
 
         return ctor;
     })();
@@ -2250,6 +2241,10 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
     function isQualifiedTypeName(entityTypeName) {
         return entityTypeName.indexOf(&quot;:#&quot;) &gt;= 0;
     }
+    
+    function qualifyTypeName(simpleTypeName, namespace) {
+        return simpleTypeName + &quot;:#&quot; + namespace;
+    }
 
     &#x2F;&#x2F; schema is only needed for navProperty type name
     function normalizeTypeName(entityTypeName, schema) {
@@ -2283,7 +2278,7 @@ function (core, DataType, m_entityAspect, m_validate, defaultPropertyInterceptor
             return {
                 shortTypeName: simpleTypeName,
                 namespace: namespace,
-                typeName: simpleTypeName + &quot;:#&quot; + namespace
+                typeName: qualifyTypeName(simpleTypeName, namespace)
             };
         } else {
             return {
