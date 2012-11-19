@@ -75,9 +75,8 @@ define(["testFns"], function (testFns) {
 
     });
     
-    function initializeMetadataStore(metadataStore, serviceName) {
+    function initializeMetadataStore(metadataStore) {
         var et = new EntityType({
-            serviceName: serviceName,
             shortName: "Person",
             namespace: "Sample_WebApi.Models"
         });
@@ -111,7 +110,6 @@ define(["testFns"], function (testFns) {
         metadataStore.addEntityType(et);
         
         et = new EntityType({
-            serviceName: serviceName,
             shortName: "Meal",
             namespace: "Sample_WebApi.Models"
         });
@@ -147,7 +145,6 @@ define(["testFns"], function (testFns) {
         metadataStore.addEntityType(et);
         
         et = new EntityType({
-            serviceName: serviceName,
             shortName: "Dish",
             namespace: "Sample_WebApi.Models"
         });
@@ -177,7 +174,6 @@ define(["testFns"], function (testFns) {
         metadataStore.addEntityType(et);
 
         et = new EntityType({
-            serviceName: serviceName,
             shortName: "Food",
             namespace: "Sample_WebApi.Models"
         });
@@ -197,7 +193,6 @@ define(["testFns"], function (testFns) {
     
     function initializeMetadataStore2(metadataStore, serviceName) {
         var entityTypes = [ {
-            serviceName: serviceName,
             shortName: "Person",
             namespace: "Sample_WebApi.Models",
             dataProperties: [{
@@ -225,7 +220,6 @@ define(["testFns"], function (testFns) {
                 associationName: "personMeals"
             }]
         }, {
-            serviceName: serviceName,
             shortName: "Meal",
             namespace: "Sample_WebApi.Models",
             dataProperties: [{
@@ -255,7 +249,6 @@ define(["testFns"], function (testFns) {
                     associationName: "mealDishes",
                 }]
         }, {
-            serviceName: serviceName,
             shortName: "Dish",
             namespace: "Sample_WebApi.Models",
             dataProperties: [{
@@ -280,7 +273,6 @@ define(["testFns"], function (testFns) {
                 foreignKeyNames: ["foodName"]
             }]
         }, {
-            serviceName: serviceName,
             shortName: "Food",
             namespace: "Sample_WebApi.Models",
             dataProperties: [{
