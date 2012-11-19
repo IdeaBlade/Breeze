@@ -5084,7 +5084,29 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 // this.entityType
                 updateCrossEntityRelationship(np);
             });
+            updateIncomplete(this);
         };
+
+        function updateIncomplete(entityType) {
+            var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
+            var incompleteMap = incompleteTypeMap[entityType.name];
+            if (core.isEmpty(incompleteMap)) {
+                delete incompleteTypeMap[entityType.name];
+                return;
+            }
+            if (incompleteMap) {
+                core.objectForEach(incompleteMap, function (assocName, np) {
+                    if (!np.entityType) {
+                        if (np.entityTypeName === entityType.name) {
+                            np.entityType = entityType;
+                            delete incompleteMap[assocName];
+                            updateIncomplete(np.parentEntityType);
+                        }
+                    }
+                });
+            }
+
+        }
         
         function resolveFks(np) {
             if (np.foreignKeyProperties) return;
