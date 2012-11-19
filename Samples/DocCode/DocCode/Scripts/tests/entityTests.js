@@ -113,9 +113,9 @@ define(["testFns"], function (testFns) {
     });
 
     /*********************************************************
-    * original values are tracked AFTER attached
+    * original values are tracked after attached
     *********************************************************/
-    test("original values are tracked AFTER entity is attached", 5, function () {
+    test("original values are tracked after entity is attached", 5, function () {
 
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
@@ -140,18 +140,53 @@ define(["testFns"], function (testFns) {
         
         employee.entityAspect.rejectChanges(); //reverts to original values
         //em.rejectChanges(); // this works too ... for all changed entities in cache
-        
-        equal(employee.LastName(), originalValuesLastName,
-            "After rejectChanges, employee LastName should be " + originalValuesLastName);
 
         ok(employee.entityAspect.entityState.isUnchanged(),
             'employee should be "Unchanged" after calling rejectChanges');
+        
+        equal(employee.LastName(), originalValuesLastName,
+            "LastName should be restored to " + originalValuesLastName);
 
         equal(originalValuesKeys.length, 0,
             "After rejectChanges, 'entityAspect.originalValues' should be empty; it is: " +
             originalValuesKeys.toString());
     });
+    /*********************************************************
+    * setUnchanged() does not restore property values
+    *********************************************************/
+    test("setUnchanged() does not restore property values", 4, function () {
 
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity();
+        employee.LastName("Jones"); 
+
+        em.attachEntity(employee); // attach as Unchanged
+
+        var changedName = "Black";
+        employee.LastName(changedName);
+
+        var originalValuesLastName = employee.entityAspect.originalValues.LastName;
+        ok(originalValuesLastName === "Jones",
+            "New LastName is '{0}', original value is '{1}' "
+                .format(employee.LastName(), originalValuesLastName));
+        
+        //changes entityState but doesn't revert to original values
+        employee.entityAspect.setUnchanged(); 
+ 
+        ok(employee.entityAspect.entityState.isUnchanged(),
+            'employee should be "Unchanged" after calling setUnchanged()');
+        
+        equal(employee.LastName(), changedName,
+            "But LastName should still be " + changedName);
+
+        var originalValuesKeys = getOriginalValuesKeys(employee);
+        
+        equal(originalValuesKeys.length, 0,
+            "After setUnchanged(), 'entityAspect.originalValues' should be empty; it is: " +
+            originalValuesKeys.toString());
+    });
    /*********************************************************
    * Setting an entity property value to itself doesn't trigger entityState change
    *********************************************************/
@@ -332,7 +367,7 @@ define(["testFns"], function (testFns) {
     * entityState is Unchanged after calling acceptChanges on modified entity
     * Beware of acceptChanges; it makes an entity look like it was saved
     *********************************************************/
-    test("entityState is Unchanged after calling acceptChanges on modified entity", 3,
+    test("entityState is Unchanged after calling acceptChanges on modified entity", 4,
     function () {
 
         var em = newEm(); // new empty EntityManager
@@ -343,10 +378,13 @@ define(["testFns"], function (testFns) {
         employee.FirstName("Sally");
         em.attachEntity(employee); // simulate existing employee
 
-        employee.FirstName("Bob");
+        var changedFirstName = "Bob";
+        employee.FirstName(changedFirstName);
 
-        ok(employee.entityAspect.originalValues.FirstName,
-            "'FirstName' change adds 'FirstName' field to 'entityAspect.originalValues'.");
+        var originalValuesFirstName = employee.entityAspect.originalValues.FirstName;
+        ok(originalValuesFirstName === "Sally",
+            "New FirstName is '{0}', original value is '{1}' "
+                .format(employee.FirstName(), originalValuesFirstName));
         
         employee.entityAspect.acceptChanges(); // simulate post-save state
         //em.acceptChanges(); // this works too ... for all changed entities in cache
@@ -354,6 +392,9 @@ define(["testFns"], function (testFns) {
         ok(employee.entityAspect.entityState.isUnchanged(),
             'employee should be "Unchanged" after calling acceptChanges');
 
+        equal(employee.FirstName(), changedFirstName,
+            "FirstName should be the changed name, " + changedFirstName);
+        
         var originalValuesKeys = getOriginalValuesKeys(employee);
         
         equal(originalValuesKeys.length, 0,
