@@ -152,7 +152,37 @@ define(["testFns"], function (testFns) {
             originalValuesKeys.toString());
     });
     /*********************************************************
+    * originalValues is a new object after the entity returns to Unchanged state
+    *********************************************************/
+    test("entityAspect.originalValues is a new object after the entity returns to Unchanged state", 3,
+        function () {
+
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
+
+            var employee = empType.createEntity(); 
+            employee.LastName("Jones");
+            em.attachEntity(employee);// Attach as "Unchanged". 
+            employee.LastName("Black"); // should be tracking original value
+
+            var originalValues1 = employee.entityAspect.originalValues;
+            
+            employee.entityAspect.rejectChanges();
+
+            ok(employee.entityAspect.entityState.isUnchanged(),
+                'employee should be "Unchanged" after calling rejectChanges');
+
+            var originalValues2 = employee.entityAspect.originalValues;
+            
+            notStrictEqual(originalValues1, originalValues2,
+                "entityAspect.originalValues is a new object after rejectChanges");
+
+            equal(originalValues1.LastName, "Jones",
+                "The 'original' LastName, 'Jones', should still be on the first originalValues object.");
+        });
+    /*********************************************************
     * setUnchanged() does not restore property values
+    * but it does clear the originalValues hash
     *********************************************************/
     test("setUnchanged() does not restore property values", 4, function () {
 
