@@ -23,12 +23,12 @@ This is possible because each instance of the "Product" type has a "Category" pr
 
 Let's change the query on the right from this: 
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Products");
 
 to this:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S");  
 
@@ -41,12 +41,10 @@ name in the path by a ".". Property paths of any length can be specified in *Bre
 ]]>
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[    
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Products");
     
 manager.executeQuery(query).then(function(data){
@@ -106,7 +104,7 @@ But sometimes we need this data and we really do not want to execute another que
 
 Our query should now look like this:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S")
 >        .expand("Category");
@@ -121,11 +119,9 @@ begin with the letter "S".
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Products")
     .where("Category.CategoryName", "startswith", "S"); 
     
@@ -158,7 +154,7 @@ queries is a collection of plain JavaScript objects.
 
 So let's create a simple projection query by changing our query to the following:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S")
 >        .select("ProductID, ProductName");
@@ -194,11 +190,9 @@ and press **Run**
       </Instructions>
       <StartingJavascript>
 <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Products")
     .where("Category.CategoryName", "startswith", "S")
     .expand("Category");
@@ -233,7 +227,7 @@ For example, let's change the "select" clause in the current query to:
 
 The query should now look like this:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Products")
 >        .where("Category.CategoryName", "startswith", "S")
 >        .select("ProductID, ProductName, Category");
@@ -264,11 +258,9 @@ Now you can go ahead and press **Run**.
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Products")
     .where("Category.CategoryName", "startswith", "S")
     .select("ProductID, ProductName");
@@ -298,7 +290,7 @@ returns a collection (array) of related entities instead of returning just a sin
 
 For example let's try this query:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >        .from("Categories")
 >        .select("CategoryName, Products");
 
@@ -325,11 +317,9 @@ This should produce a list of category names each with its associated products.
 ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Products")
     .where("Category.CategoryName", "startswith", "S")
     .select("ProductID, ProductName, Category");
@@ -357,11 +347,9 @@ manager.executeQuery(query).then(function(data){
       <Instructions><![CDATA[  ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
    .from("Categories")
    .select("CategoryName, Products");
 

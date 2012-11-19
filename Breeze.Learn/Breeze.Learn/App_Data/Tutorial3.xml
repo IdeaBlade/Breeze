@@ -51,12 +51,10 @@ A couple of things to notice.
 ]]>
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[   
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers");
     
 manager.executeQuery(query).then(function(data){
@@ -102,12 +100,10 @@ Only customers with company names beginning with "C" should have been shown this
 ]]>        
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[   
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers");
     
 manager.executeQuery(query).then(function(data) {
@@ -154,7 +150,7 @@ To set the FetchStrategy on a single query, let's change the "executeQuery" meth
 >     manager.executeQuery(query).then(function(data) {
 >         // we are going to ignore the results of the query - the "data" parameter above
 >         var query2 = query.where("CompanyName", "startsWith", "C")
->                     .using(entityModel.FetchStrategy.FromLocalCache);
+>                     .using(breeze.FetchStrategy.FromLocalCache);
 >         manager.executeQuery(query2).then(function(dataSubset) {
 >            ko.applyBindings(dataSubset);
 >         });
@@ -178,12 +174,10 @@ returns its results directly but has a different syntax for executing the query,
 ]]>
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[    
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers");
     
 manager.executeQuery(query).then(function(data) {
@@ -213,18 +207,16 @@ manager.executeQuery(query).then(function(data) {
     <TutorialStep>
       <Instructions></Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[   
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers");
     
 manager.executeQuery(query).then(function(data) {
     // we are going to ignore the results of the query - the "data" parameter above
     var query2 = query.where("CompanyName", "startsWith", "C")
-                .using(entityModel.FetchStrategy.FromLocalCache);
+                .using(breeze.FetchStrategy.FromLocalCache);
     manager.executeQuery(query2).then(function(dataSubset) {
        ko.applyBindings(dataSubset);
     });

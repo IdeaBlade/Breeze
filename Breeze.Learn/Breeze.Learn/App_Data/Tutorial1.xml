@@ -34,7 +34,7 @@ There is actually a "Breeze" server application that this tutorial is connected 
 server side here, because we really want to focus on demonstrating *Breeze's* client side query capabilities. But, in case you were wondering the following line in the 
 *JavaScript* panel is where we specify the server that we will be talking to. 
 
->     var manager = new entityModel.EntityManager('api/northwind');
+>     var manager = new breeze.EntityManager('api/northwind');
 
 This server application is hosting an entity data model that is loosely based on Microsoft's Northwind database. 
 
@@ -51,7 +51,7 @@ Let's try this by adding the following clause to the bottom of the query in the 
 
 The query should now look like this:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >         .from("Employees")
 >         .orderBy("LastName");
 
@@ -62,11 +62,9 @@ At this point you should see the same "Employees" as before, except that now the
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Employees");
     
 manager.executeQuery(query).then(function(data){
@@ -110,7 +108,7 @@ To accomplish this, simply add the following "where" clause to the bottom of the
 
 The query should now look like this:
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >       .from("Employees")
 >       .orderBy("LastName")
 >       .where("LastName", "startsWith", "P");
@@ -124,11 +122,10 @@ The "orderBy" clause in this query could have gone either before or after the "w
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+  
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Employees")
     .orderBy("LastName");
     
@@ -190,7 +187,7 @@ These operators can also be expressed using one of the static properties of the 
 
 So the query fragments above can also be expressed as
 
->     var op = breeze.entityModel.FilterQueryOp;
+>     var op = breeze.FilterQueryOp;
 
 >     .where("Qty", op.GreaterThan, 7);
 >     .where("IsCompleted", op.Equals , true);
@@ -221,12 +218,10 @@ and press **Run**.  Only two employees should be left with this filter.
 ]]>
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[  
+var manager = new breeze.EntityManager('api/northwind');
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Employees")
     .orderBy("LastName")
     .where("LastName", "startsWith", "P");
@@ -278,11 +273,9 @@ You should now see a rather long list of company names, long enough that you nee
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
+var manager = new breeze.EntityManager('api/northwind');
 
-var manager = new entityModel.EntityManager('api/northwind');
-
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Employees")
     .orderBy("LastName")
     .where("BirthDate", "lt", new Date(50, 9, 12));
@@ -309,17 +302,17 @@ are simply going to create a *Predicate* directly.
 
 First, change this query
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >         .from("Customers");
 
 to 
 
->     var Predicate = breeze.entityModel.Predicate;
+>     var Predicate = breeze.Predicate;
 >     var p1 = Predicate.create("CompanyName", "startsWith", "S");
 >     var p2 = Predicate.create("City", "contains", "er");
 >     var whereClause = p1.and(p2);
 >
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >         .from("Customers")
 >         .where(whereClause);
 
@@ -330,11 +323,9 @@ We should now only see customers with company names that start with "C" that are
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
+var manager = new breeze.EntityManager('api/northwind');
 
-var manager = new entityModel.EntityManager('api/northwind');
-
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers");
     
 manager.executeQuery(query).then(function(data){
@@ -364,7 +355,7 @@ Another way to restrict the list is to specify that we only want the first few c
 
 To accomplish this, let's change the query to only give us the first 5 customers.
 
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >         .from("Customers")
 >         .take(5);
 
@@ -379,7 +370,7 @@ To see this, replace the query with this new query.
 
 >     var pageSize = 5;
 >     var pageNum = 3;
->     var query = new entityModel.EntityQuery()
+>     var query = new breeze.EntityQuery()
 >         .from("Customers")
 >         .orderBy("CompanyName")
 >         .skip(pageSize*(pageNum-1))
@@ -393,17 +384,15 @@ the "pageNum" variable above and rerun to see the effect of moving between pages
 ]]>
       </Instructions>
       <StartingJavascript>
-        <![CDATA[
-var entityModel = breeze.entityModel;
-    
-var manager = new entityModel.EntityManager('api/northwind');
+        <![CDATA[   
+var manager = new breeze.EntityManager('api/northwind');
 
-var Predicate = breeze.entityModel.Predicate;
+var Predicate = breeze.Predicate;
 var p1 = Predicate.create("CompanyName", "startsWith", "S");
 var p2 = Predicate.create("City", "contains", "er");
 var whereClause = p1.and(p2);
 
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers")
     .where(whereClause);
     
@@ -425,13 +414,11 @@ manager.executeQuery(query).then(function(data){
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var entityModel = breeze.entityModel;
-
-var manager = new entityModel.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('api/northwind');
 
 var pageSize = 5;
 var pageNum = 3;
-var query = new entityModel.EntityQuery()
+var query = new breeze.EntityQuery()
     .from("Customers")
     .orderBy("CompanyName")
     .skip(pageSize*(pageNum-1))
