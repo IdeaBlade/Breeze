@@ -180,43 +180,6 @@ define(["testFns"], function (testFns) {
             equal(originalValues1.LastName, "Jones",
                 "The 'original' LastName, 'Jones', should still be on the first originalValues object.");
         });
-    /*********************************************************
-    * setUnchanged() does not restore property values
-    * but it does clear the originalValues hash
-    *********************************************************/
-    test("setUnchanged() does not restore property values", 4, function () {
-
-        var em = newEm(); // new empty EntityManager
-        var empType = em.metadataStore.getEntityType("Employee");
-
-        var employee = empType.createEntity();
-        employee.LastName("Jones"); 
-
-        em.attachEntity(employee); // attach as Unchanged
-
-        var changedName = "Black";
-        employee.LastName(changedName);
-
-        var originalValuesLastName = employee.entityAspect.originalValues.LastName;
-        ok(originalValuesLastName === "Jones",
-            "New LastName is '{0}', original value is '{1}' "
-                .format(employee.LastName(), originalValuesLastName));
-        
-        //changes entityState but doesn't revert to original values
-        employee.entityAspect.setUnchanged(); 
- 
-        ok(employee.entityAspect.entityState.isUnchanged(),
-            'employee should be "Unchanged" after calling setUnchanged()');
-        
-        equal(employee.LastName(), changedName,
-            "But LastName should still be " + changedName);
-
-        var originalValuesKeys = getOriginalValuesKeys(employee);
-        
-        equal(originalValuesKeys.length, 0,
-            "After setUnchanged(), 'entityAspect.originalValues' should be empty; it is: " +
-            originalValuesKeys.toString());
-    });
    /*********************************************************
    * Setting an entity property value to itself doesn't trigger entityState change
    *********************************************************/
@@ -368,6 +331,44 @@ define(["testFns"], function (testFns) {
                 "parent has child after rejectChanges");
         }
     );
+
+    /*********************************************************
+    * setUnchanged() does not restore property values
+    * but it does clear the originalValues hash
+    *********************************************************/
+    test("setUnchanged() does not restore property values", 4, function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity();
+        employee.LastName("Jones");
+
+        em.attachEntity(employee); // attach as Unchanged
+
+        var changedName = "Black";
+        employee.LastName(changedName);
+
+        var originalValuesLastName = employee.entityAspect.originalValues.LastName;
+        ok(originalValuesLastName === "Jones",
+            "New LastName is '{0}', original value is '{1}' "
+                .format(employee.LastName(), originalValuesLastName));
+
+        //changes entityState but doesn't revert to original values
+        employee.entityAspect.setUnchanged();
+
+        ok(employee.entityAspect.entityState.isUnchanged(),
+            'employee should be "Unchanged" after calling setUnchanged()');
+
+        equal(employee.LastName(), changedName,
+            "But LastName should still be " + changedName);
+
+        var originalValuesKeys = getOriginalValuesKeys(employee);
+
+        equal(originalValuesKeys.length, 0,
+            "After setUnchanged(), 'entityAspect.originalValues' should be empty; it is: " +
+            originalValuesKeys.toString());
+    });
     /*********************************************************
     * entityState is Unchanged after calling acceptChanges on added entity
     * Beware of acceptChanges; it makes an entity look like it was saved
@@ -454,6 +455,77 @@ define(["testFns"], function (testFns) {
         ok(employee.entityAspect.entityState.isDetached(),
             'employee should be "Detached" after calling acceptChanges');
     });
+    /*********************************************************
+     * changing a property raises propertyChanged 
+     *********************************************************/
+    test("changing a property raises propertyChanged", 5,
+        function () {
+
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
+
+            var employee = empType.createEntity();
+            employee.LastName("Jones");
+                     
+            em.addEntity(employee); // attaching as unchanged would be ok too
+            
+            // get ready for propertyChanged event after property change
+            var propertyChangedArgs;
+            employee.entityAspect.propertyChanged.subscribe(function (changeArgs) {
+                propertyChangedArgs = changeArgs;
+            });
+            employee.LastName("Black"); 
+
+            notEqual(propertyChangedArgs, null,
+                "LastName change should have raised the propertyChanged event");
+            equal(propertyChangedArgs.entity, employee,
+                "the changeArgs.entity should be the expected employee");
+            equal(propertyChangedArgs.propertyName, "LastName",
+                "the changeArgs.propertyName should be 'LastName'");
+            equal(propertyChangedArgs.oldValue, "Jones",
+                "the changeArgs oldValue should be 'Jones'");
+            equal(propertyChangedArgs.newValue, "Black",
+                "the changeArgs newValue should be 'Black'");
+        });
+    /*********************************************************
+    * rejectChanges raises propertyChanged with null changeArgs
+    *********************************************************/
+    test("rejectChanges raises propertyChanged with null changeArgs", 5,
+        function () {
+
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
+
+            var employee = empType.createEntity();
+            employee.LastName("Jones");
+            em.attachEntity(employee);// Attach as "Unchanged". 
+            employee.LastName("Black"); // should be tracking original value
+
+            // Hold onto propertyNames that changed before calling rejectChanges
+            var originalValuesKeys = getOriginalValuesKeys(employee);
+
+            // get ready for propertyChanged event after rejectChanges()
+            var propertyChangedArgs;
+            employee.entityAspect.propertyChanged.subscribe(function (changeArgs) {
+                propertyChangedArgs = changeArgs;
+            });
+            employee.entityAspect.rejectChanges();
+
+            notEqual(propertyChangedArgs, null,
+                "rejectChanges should have raised the propertyChanged event");
+            equal(propertyChangedArgs.entity, employee,
+                "the changeArgs.entity should be the expected employee");
+            equal(propertyChangedArgs.propertyName, null,
+                "the changeArgs.propertyName should be null");
+            ok(propertyChangedArgs.oldValue === undefined &&
+                propertyChangedArgs.newValue === undefined,
+                "the changeArgs oldValue and newValue should be undefined");
+
+            notEqual(originalValuesKeys.length, 0,
+                "can infer the properties that were changed via the pre-rejectChanges " +
+                "original values if you remembered to capture them: " +
+                originalValuesKeys.toString());
+        });
     /*********************************************************
     * get and set property values with Breeze property accessors
     * Breeze property accessor functions help utility authors
