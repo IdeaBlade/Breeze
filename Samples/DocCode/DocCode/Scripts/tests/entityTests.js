@@ -124,8 +124,8 @@ define(["testFns"], function (testFns) {
         employee.LastName("Smith"); // initial value before attached
         employee.LastName("Jones"); // change value before attaching 
 
-        var originalValuesKeys = getOriginalValuesKeys(employee);
-        equal(originalValuesKeys.length, 0,
+        var origValuePropNames = getOriginalValuesPropertyNames(employee);
+        equal(origValuePropNames.length, 0,
             "No original values tracked for detached entity.");
         
         // Attach as "Unchanged". 
@@ -147,9 +147,9 @@ define(["testFns"], function (testFns) {
         equal(employee.LastName(), originalValuesLastName,
             "LastName should be restored to " + originalValuesLastName);
 
-        equal(originalValuesKeys.length, 0,
+        equal(origValuePropNames.length, 0,
             "After rejectChanges, 'entityAspect.originalValues' should be empty; it is: " +
-            originalValuesKeys.toString());
+            origValuePropNames.toString());
     });
     /*********************************************************
     * originalValues is a new object after the entity returns to Unchanged state
@@ -363,11 +363,11 @@ define(["testFns"], function (testFns) {
         equal(employee.LastName(), changedName,
             "But LastName should still be " + changedName);
 
-        var originalValuesKeys = getOriginalValuesKeys(employee);
+        var origValuePropNames = getOriginalValuesPropertyNames(employee);
 
-        equal(originalValuesKeys.length, 0,
+        equal(origValuePropNames.length, 0,
             "After setUnchanged(), 'entityAspect.originalValues' should be empty; it is: " +
-            originalValuesKeys.toString());
+            origValuePropNames.toString());
     });
     /*********************************************************
     * entityState is Unchanged after calling acceptChanges on added entity
@@ -426,11 +426,11 @@ define(["testFns"], function (testFns) {
         equal(employee.FirstName(), changedFirstName,
             "FirstName should be the changed name, " + changedFirstName);
         
-        var originalValuesKeys = getOriginalValuesKeys(employee);
+        var origValuePropNames = getOriginalValuesPropertyNames(employee);
         
-        equal(originalValuesKeys.length, 0,
+        equal(origValuePropNames.length, 0,
             "After acceptChanges, 'entityAspect.originalValues' should be empty; it is: "+
-            originalValuesKeys.toString());
+            origValuePropNames.toString());
 
     });
     /*********************************************************
@@ -502,7 +502,7 @@ define(["testFns"], function (testFns) {
             employee.LastName("Black"); // should be tracking original value
 
             // Hold onto propertyNames that changed before calling rejectChanges
-            var originalValuesKeys = getOriginalValuesKeys(employee);
+            var origValuePropNames = getOriginalValuesPropertyNames(employee);
 
             // get ready for propertyChanged event after rejectChanges()
             var propertyChangedArgs;
@@ -521,10 +521,10 @@ define(["testFns"], function (testFns) {
                 propertyChangedArgs.newValue === undefined,
                 "the changeArgs oldValue and newValue should be undefined");
 
-            notEqual(originalValuesKeys.length, 0,
+            notEqual(origValuePropNames.length, 0,
                 "can infer the properties that were changed via the pre-rejectChanges " +
                 "original values if you remembered to capture them: " +
-                originalValuesKeys.toString());
+                origValuePropNames.toString());
         });
     /*********************************************************
     * get and set property values with Breeze property accessors
@@ -646,14 +646,14 @@ define(["testFns"], function (testFns) {
         return customer;
     }
     
-    // get keys of the entity's entityAspect.OriginalValues hash
-    function getOriginalValuesKeys(entity) {
-        var keys = [];
-        for (var key in entity.entityAspect.originalValues) { keys.push(key); }
-        return keys;
+    // get the names of properties whose original values are in the originalValues hash map
+    function getOriginalValuesPropertyNames(entity) {
+        var names = [];
+        for (var name in entity.entityAspect.originalValues) { names.push(name); }
+        return names;
     }
 
-    /*  Suggested Test subjects
+    /*  Suggested future Test subjects
     *----------------------
     * Id Generation 
     *  Guid Ids of a new customer are store generated
@@ -661,14 +661,9 @@ define(["testFns"], function (testFns) {
     *  Ids of the composite key of a new OrderDetail must be client generated
     *
     * EntityAspect
-    *    acceptChanges/rejectChanges
-    *    propertyChanged
-    *    validationErrorsChanged
     *    isBeingSaved (in combination with EM.entityChanged)
-    *    EM.entityChanged (as we watch notification)
     *
     * EntityManager
-    *   Remove entity from cache with em.detach(); changes its entity state to detached
     *   Clearing cache detaches all entities
     *   4 flavors of GetEntities
     *   EM.setProperties
