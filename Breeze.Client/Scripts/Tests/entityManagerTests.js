@@ -3,22 +3,21 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
-
+    
     var Enum = core.Enum;
     var Event = core.Event;
 
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityQuery = entityModel.EntityQuery;
-    var EntityKey = entityModel.EntityKey;
-    var EntityState = entityModel.EntityState;
-    var EntityAction = entityModel.EntityAction;
-    var QueryOptions = entityModel.QueryOptions;
-    var SaveOptions = entityModel.SaveOptions;
-    var ValidationOptions = entityModel.ValidationOptions;
-    var MergeStrategy = entityModel.MergeStrategy;
-    var FetchStrategy = entityModel.FetchStrategy;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityQuery = breeze.EntityQuery;
+    var EntityKey = breeze.EntityKey;
+    var EntityState = breeze.EntityState;
+    var EntityAction = breeze.EntityAction;
+    var QueryOptions = breeze.QueryOptions;
+    var SaveOptions = breeze.SaveOptions;
+    var ValidationOptions = breeze.ValidationOptions;
+    var MergeStrategy = breeze.MergeStrategy;
+    var FetchStrategy = breeze.FetchStrategy;
 
     var newEm = testFns.newEm;
 

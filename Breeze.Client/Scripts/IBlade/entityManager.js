@@ -1,8 +1,9 @@
-﻿define(["core", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
-function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
+﻿define(["core", "config", "entityMetadata", "entityAspect", "entityQuery", "keyGenerator"],
+function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
     "use strict";
+
     /**
-    @module entityModel
+    @module breeze
     **/
     var Enum = core.Enum;
     var Event = core.Event;
@@ -21,13 +22,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
 
     var EntityQuery = m_entityQuery.EntityQuery;
 
-    var Q = window.Q;
-    if ((!Q) && require) {
-        Q = require("Q");
-    }
-    if (!Q) {
-        throw new Error("Unable to initialize Q - see https://github.com/kriskowal/q ");
-    }
+    var Q = core.requireLib("Q", "see https://github.com/kriskowal/q");
     
     // TODO: think about dif between find and get.
 
@@ -279,7 +274,7 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
                 tempKeys: exportBundle.tempKeys,
                 entityGroupMap: exportBundle.entityGroupMap
             };
-            var result = JSON.stringify(json, null, core.config.stringifyPad);
+            var result = JSON.stringify(json, null, a_config.stringifyPad);
             return result;
         };
 
@@ -1193,9 +1188,9 @@ function (core, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGenerator) {
         
         function getAdapterInstance(adaptersConfig, interfaceName) {
             if (adaptersConfig[interfaceName]) {
-                return core.config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
+                return a_config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
             } else {
-                return core.config.getAdapterInstance(interfaceName);
+                return a_config.getAdapterInstance(interfaceName);
             }
         }
 

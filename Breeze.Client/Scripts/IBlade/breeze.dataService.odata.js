@@ -10,10 +10,10 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
  
-    var EntityType = entityModel.EntityType;
+    var EntityType = breeze.EntityType;
     
     var OData;
     
@@ -22,10 +22,7 @@
     };
 
     ctor.prototype.initialize = function () {
-        OData = window.OData;
-        if (!OData) {
-            throw new Error("Breeze needs the OData library to support remote OData services and was unable to initialize OData.");
-        }
+        OData = core.requireLib("OData", "Needed to support remote OData services");
         OData.jsonHandler.recognizeDates = true;
     };
     
@@ -132,6 +129,6 @@
         return err;
     }
 
-    core.config.registerAdapter("dataService", ctor);
+    breeze.config.registerAdapter("dataService", ctor);
 
 }));

@@ -22,15 +22,8 @@
         this.defaultSettings = { };
     };
 
-    ctor.prototype.initialize = function() {
-        jQuery = window.jQuery;
-        if ((!jQuery) && require) {
-            jQuery = require("jQuery");
-        }
-        if (!jQuery) {
-            throw new Error("The Breeze 'ajax_jQuery' pluggin needs jQuery and was unable to find it.");
-        }
-
+    ctor.prototype.initialize = function () {
+        jQuery = core.requireLib("jQuery", "needed for 'ajax_jQuery' pluggin");
     };
 
     ctor.prototype.ajax = function (settings) {
@@ -45,6 +38,6 @@
 
     
     // last param is true because for now we only have one impl.
-    breeze.core.config.registerAdapter("ajax", ctor);
+    breeze.config.registerAdapter("ajax", ctor);
     
 }));

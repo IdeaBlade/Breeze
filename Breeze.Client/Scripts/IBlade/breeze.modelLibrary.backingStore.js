@@ -11,7 +11,7 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
 
     var ctor = function() {
@@ -109,7 +109,7 @@
                     // TODO: change this to nullEntity later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = entityModel.makeRelationArray([], entity, prop);
+                    bs[propName] = breeze.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
@@ -188,6 +188,6 @@
         };
     }
 
-    core.config.registerAdapter("modelLibrary", ctor);
+    breeze.config.registerAdapter("modelLibrary", ctor);
 
 }));

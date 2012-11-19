@@ -1,17 +1,18 @@
 ﻿
-define(["core", "event", "validate"],
-function (core, Event, m_validate) {
+define(["core", "config", "validate"],
+function (core, a_config, m_validate) {
     /**
-    @module entityModel   
+    @module breeze   
     **/
 
     var Enum = core.Enum;
+    var Event = core.Event;
     var assertParam = core.assertParam;
 
     var Validator = m_validate.Validator;
     var ValidationError = m_validate.ValidationError;
 
-    var v_modelLibraryDef = core.config.interfaceRegistry.modelLibrary;   
+    var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;   
 
     var EntityState = (function () {
         /**

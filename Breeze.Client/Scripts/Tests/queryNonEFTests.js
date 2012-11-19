@@ -5,20 +5,20 @@ define(["testFns"], function (testFns) {
     var core = breeze.core;
     var Event = core.Event;
     
-    var entityModel = breeze.entityModel;
-    var EntityType = entityModel.EntityType;
-    var DataProperty = entityModel.DataProperty;
-    var NavigationProperty = entityModel.NavigationProperty;
-    var DataType = entityModel.DataType;
-    var EntityQuery = entityModel.EntityQuery;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityKey = entityModel.EntityKey;
-    var FilterQueryOp = entityModel.FilterQueryOp;
-    var Predicate = entityModel.Predicate;
-    var QueryOptions = entityModel.QueryOptions;
-    var FetchStrategy = entityModel.FetchStrategy;
-    var MergeStrategy = entityModel.MergeStrategy;
+    
+    var EntityType = breeze.EntityType;
+    var DataProperty = breeze.DataProperty;
+    var NavigationProperty = breeze.NavigationProperty;
+    var DataType = breeze.DataType;
+    var EntityQuery = breeze.EntityQuery;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityKey = breeze.EntityKey;
+    var FilterQueryOp = breeze.FilterQueryOp;
+    var Predicate = breeze.Predicate;
+    var QueryOptions = breeze.QueryOptions;
+    var FetchStrategy = breeze.FetchStrategy;
+    var MergeStrategy = breeze.MergeStrategy;
 
     var newEm = testFns.newEm;
     
@@ -39,7 +39,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         // HACK - add to the API for this
         em.metadataStore.serviceNames.push(em.serviceName);
-        var query = entityModel.EntityQuery.from("Persons");
+        var query = breeze.EntityQuery.from("Persons");
         stop();
         
         em.executeQuery(query).then(function(data) {
@@ -59,7 +59,7 @@ define(["testFns"], function (testFns) {
         // HACK - add to the API for this
         em.metadataStore.serviceNames.push(em.serviceName);
         initializeMetadataStore(em.metadataStore, em.serviceName);
-        var query = entityModel.EntityQuery.from("Persons");
+        var query = breeze.EntityQuery.from("Persons");
         stop();
 
         em.executeQuery(query).then(function (data) {
@@ -77,7 +77,6 @@ define(["testFns"], function (testFns) {
     
     function initializeMetadataStore(metadataStore, serviceName) {
         var et = new EntityType({
-            metadataStore: metadataStore,
             serviceName: serviceName,
             shortName: "Person",
             namespace: "Sample_WebApi.Models"
@@ -109,9 +108,9 @@ define(["testFns"], function (testFns) {
             isScalar: false,
             associationName: "personMeals"
         }));
+        metadataStore.addEntityType(et);
         
         et = new EntityType({
-            metadataStore: metadataStore,
             serviceName: serviceName,
             shortName: "Meal",
             namespace: "Sample_WebApi.Models"
@@ -145,9 +144,9 @@ define(["testFns"], function (testFns) {
             isScalar: false,
             associationName: "mealDishes",
         }));
+        metadataStore.addEntityType(et);
         
         et = new EntityType({
-            metadataStore: metadataStore,
             serviceName: serviceName,
             shortName: "Dish",
             namespace: "Sample_WebApi.Models"
@@ -175,9 +174,9 @@ define(["testFns"], function (testFns) {
             associationName: "DishFood",
             foreignKeyNames: ["foodName"]
         }));
+        metadataStore.addEntityType(et);
 
         et = new EntityType({
-            metadataStore: metadataStore,
             serviceName: serviceName,
             shortName: "Food",
             namespace: "Sample_WebApi.Models"
@@ -193,7 +192,110 @@ define(["testFns"], function (testFns) {
             dataType: DataType.Int32,
             isNullable: false,
         }));
+        metadataStore.addEntityType(et);
     }
+    
+    function initializeMetadataStore2(metadataStore, serviceName) {
+        var entityTypes = [ {
+            serviceName: serviceName,
+            shortName: "Person",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: [{
+                    name: "personId",
+                    dataType: DataType.Int32,
+                    isNullable: false,
+                    isPartOfKey: true,
+                }, {
+                    name: "firstName",
+                    dataType: DataType.String,
+                    isNullable: false,
+                }, {
+                    name: "lastName",
+                    dataType: DataType.String,
+                    isNullable: false,
+                }, {
+                    name: "birthDate",
+                    dataType: DataType.DateTime,
+                    isNullable: true
+                }],
+            navigationProperties: [{
+                name: "meals",
+                entityTypeName: "Meal",
+                isScalar: false,
+                associationName: "personMeals"
+            }]
+        }, {
+            serviceName: serviceName,
+            shortName: "Meal",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: [{
+                    name: "mealId",
+                    dataType: DataType.Int32,
+                    isNullable: false,
+                    isPartOfKey: true,
+                }, {
+                    name: "personId",
+                    dataType: DataType.Int32,
+                    isNullable: false,
+                }, {
+                    name: "dateConsumed",
+                    dataType: DataType.DateTime,
+                    isNullable: false,
+                }],
+            navigationProperties: [{
+                    name: "person",
+                    entityTypeName: "Person",
+                    isScalar: true,
+                    associationName: "personMeals",
+                    foreignKeyNames: ["personId"]
+                }, {
+                    name: "dishes",
+                    entityTypeName: "Dish",
+                    isScalar: false,
+                    associationName: "mealDishes",
+                }]
+        }, {
+            serviceName: serviceName,
+            shortName: "Dish",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: [{
+                    name: "dishId",
+                    dataType: DataType.Int32,
+                    isNullable: false,
+                    isPartOfKey: true,
+                }, {
+                    name: "foodName",
+                    dataType: DataType.String,
+                    isNullable: false,
+                }, {
+                    name: "servingSize",
+                    dataType: DataType.Double,
+                    isNullable: false,
+                }],
+            navigationProperties: [{
+                name: "food",
+                entityTypeName: "Food",
+                isScalar: true,
+                associationName: "DishFood",
+                foreignKeyNames: ["foodName"]
+            }]
+        }, {
+            serviceName: serviceName,
+            shortName: "Food",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: [{
+                    name: "foodName",
+                    dataType: DataType.String,
+                    isNullable: false,
+                    isPartOfKey: true,
+                }, {
+                    name: "calories",
+                    dataType: DataType.Int32,
+                    isNullable: false,
+                }]
+        }];
+    }
+    
     return testFns;
 
 });

@@ -5,16 +5,16 @@ define(["testFns"], function (testFns) {
     var core = breeze.core;
     var Event = core.Event;
     
-    var entityModel = breeze.entityModel;
-    var EntityQuery = entityModel.EntityQuery;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityKey = entityModel.EntityKey;
-    var FilterQueryOp = entityModel.FilterQueryOp;
-    var Predicate = entityModel.Predicate;
-    var QueryOptions = entityModel.QueryOptions;
-    var FetchStrategy = entityModel.FetchStrategy;
-    var MergeStrategy = entityModel.MergeStrategy;
+    
+    var EntityQuery = breeze.EntityQuery;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityKey = breeze.EntityKey;
+    var FilterQueryOp = breeze.FilterQueryOp;
+    var Predicate = breeze.Predicate;
+    var QueryOptions = breeze.QueryOptions;
+    var FetchStrategy = breeze.FetchStrategy;
+    var MergeStrategy = breeze.MergeStrategy;
 
     var newEm = testFns.newEm;
     
@@ -86,7 +86,7 @@ define(["testFns"], function (testFns) {
 
     test("getEntities after query", function() {
         var em = newEm();
-        var query = entityModel.EntityQuery.from("Categories");
+        var query = breeze.EntityQuery.from("Categories");
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0); //this returns 45 results
@@ -328,7 +328,7 @@ define(["testFns"], function (testFns) {
             "# of entities in cache is " + em.getEntities().length);
 
         // this refresh query will fill the customer values from remote storage
-        var refreshQuery = entityModel.EntityQuery.fromEntities(customer);
+        var refreshQuery = breeze.EntityQuery.fromEntities(customer);
 
         stop(); // going async ...
 
@@ -440,7 +440,7 @@ define(["testFns"], function (testFns) {
         var p2 = Predicate.create("city", "contains", "er");
         var whereClause = p1.and(p2);
 
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
             .from("Customers")
             .where(whereClause);
         stop();

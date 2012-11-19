@@ -11,7 +11,7 @@
         factory(breeze);
     }
 }(function(breeze) {
-    var entityModel = breeze.entityModel;
+    
     var core = breeze.core;
 
     var ko;
@@ -21,14 +21,7 @@
     };
 
     ctor.prototype.initialize = function () {
-        ko = window.ko;
-        if ((!ko) && require) {
-            ko = require("ko");
-        }
-        if (!ko) {
-            throw new Error("Unable to initialize Knockout.");
-        }
-
+        ko = core.requireLib("ko", "The Knockout library");
         ko.extenders.intercept = function(target, interceptorOptions) {
             var instance = interceptorOptions.instance;
             var property = interceptorOptions.property;
@@ -109,7 +102,7 @@
                         // TODO: change this to nullEntity later.
                         koObj = ko.observable(null);
                     } else {
-                        val = entityModel.makeRelationArray([], entity, prop);
+                        val = breeze.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
@@ -151,6 +144,6 @@
 
     };
 
-    core.config.registerAdapter("modelLibrary", ctor);
+    breeze.config.registerAdapter("modelLibrary", ctor);
     
 }));

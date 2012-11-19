@@ -1,7 +1,6 @@
 ﻿define(["coreFns", "assertParam"], function (core, m_assertParam) {
     
     var assertParam = m_assertParam.assertParam;
-    var assertConfig = m_assertParam.assertConfig;
     
     "use strict";
 

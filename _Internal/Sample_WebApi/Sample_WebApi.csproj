@@ -157,6 +157,10 @@
       <Link>Scripts\IBlade\breeze.modelLibrary.ko.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\config.js">
+      <Link>Scripts\IBlade\config.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\core.js">
       <Link>Scripts\IBlade\core.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -187,10 +191,6 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityMetadata.js">
       <Link>Scripts\IBlade\entityMetadata.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityModel.js">
-      <Link>Scripts\IBlade\entityModel.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityQuery.js">

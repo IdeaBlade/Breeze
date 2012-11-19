@@ -3,14 +3,14 @@ require.config({ baseUrl: "Scripts/IBlade" });
 define(["testFns"], function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    var entityModel = breeze.entityModel;
+    
     var Enum = core.Enum;
     var Event = core.Event;
 
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityQuery = entityModel.EntityQuery;
-    var EntityKey = entityModel.EntityKey;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityQuery = breeze.EntityQuery;
+    var EntityKey = breeze.EntityKey;
 
     var newEm = testFns.newEm;
     var newMs = testFns.newMs;
