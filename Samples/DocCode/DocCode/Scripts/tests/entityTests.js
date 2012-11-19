@@ -115,39 +115,43 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * original values are tracked AFTER attached
     *********************************************************/
-    test("original values are tracked AFTER entity is attached", 3, function () {
+    test("original values are tracked AFTER entity is attached", 5, function () {
 
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
         employee.LastName("Smith"); // initial value before attached
-        employee.LastName("Jones"); // change value before attaching   
+        employee.LastName("Jones"); // change value before attaching 
 
-        // Attach as "Unchanged". Original values captured
-        // Should be "Jones", not "Smith"
+        var originalValuesKeys = getOriginalValuesKeys(employee);
+        equal(originalValuesKeys.length, 0,
+            "No original values tracked for detached entity.");
+        
+        // Attach as "Unchanged". 
         em.attachEntity(employee);
 
-        var origLastName = employee.entityAspect.originalValues['LastName'];
-        ok(typeof origLastName === "undefined", 
-            "Only have original value after value has changed.");
+        employee.LastName("Black"); // should be tracking original value
 
-        employee.LastName("What"); // change
-
-        // originalValues is a hash map so property syntax works
-        origLastName = employee.entityAspect.originalValues.LastName;
-        ok(origLastName === "Jones",
+        var originalValuesLastName = employee.entityAspect.originalValues.LastName;
+        ok(originalValuesLastName === "Jones",
             "New LastName is '{0}', original value is '{1}' "
-                .format(employee.LastName(), origLastName));
+                .format(employee.LastName(), originalValuesLastName));
         
-        em.rejectChanges(); //reverts to original values
+        employee.entityAspect.rejectChanges(); //reverts to original values
+        //em.rejectChanges(); // this works too ... for all changed entities in cache
+        
+        equal(employee.LastName(), originalValuesLastName,
+            "After rejectChanges, employee LastName should be " + originalValuesLastName);
 
-        var currentLastName = employee.LastName();
-        equal(currentLastName, origLastName,
-            "After rejectChanges, employee LastName is " + currentLastName);
+        ok(employee.entityAspect.entityState.isUnchanged(),
+            'employee should be "Unchanged" after calling rejectChanges');
 
+        equal(originalValuesKeys.length, 0,
+            "After rejectChanges, 'entityAspect.originalValues' should be empty; it is: " +
+            originalValuesKeys.toString());
     });
-    
+
    /*********************************************************
    * Setting an entity property value to itself doesn't trigger entityState change
    *********************************************************/
@@ -300,6 +304,86 @@ define(["testFns"], function (testFns) {
         }
     );
     /*********************************************************
+    * entityState is Unchanged after calling acceptChanges on added entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    * Beware of the key, especially if the key should have been store generated
+    *********************************************************/
+    test("entityState is Unchanged after calling acceptChanges on added entity", 2,
+        function () {
+
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
+
+            var employee = empType.createEntity(); // created but not attached
+
+            em.addEntity(employee);
+            var tempId = employee.EmployeeID(); // tempId assigned by Breeze
+
+            employee.entityAspect.acceptChanges();
+            //em.acceptChanges(); // this works too ... for all changed entities in cache
+            ok(employee.entityAspect.entityState.isUnchanged(),
+                'employee should be "Unchanged" after calling acceptChanges');
+        
+            equal(employee.EmployeeID(), tempId,
+                'employeeID should still be the tempId, ' + tempId +
+                    ', a dubious choice.');
+        });
+    /*********************************************************
+    * entityState is Unchanged after calling acceptChanges on modified entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    *********************************************************/
+    test("entityState is Unchanged after calling acceptChanges on modified entity", 3,
+    function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(42);
+        employee.FirstName("Sally");
+        em.attachEntity(employee); // simulate existing employee
+
+        employee.FirstName("Bob");
+
+        ok(employee.entityAspect.originalValues.FirstName,
+            "'FirstName' change adds 'FirstName' field to 'entityAspect.originalValues'.");
+        
+        employee.entityAspect.acceptChanges(); // simulate post-save state
+        //em.acceptChanges(); // this works too ... for all changed entities in cache
+
+        ok(employee.entityAspect.entityState.isUnchanged(),
+            'employee should be "Unchanged" after calling acceptChanges');
+
+        var originalValuesKeys = getOriginalValuesKeys(employee);
+        
+        equal(originalValuesKeys.length, 0,
+            "After acceptChanges, 'entityAspect.originalValues' should be empty; it is: "+
+            originalValuesKeys.toString());
+
+    });
+    /*********************************************************
+    * entityState is Detached after calling acceptChanges on deleted entity
+    * Beware of acceptChanges; it makes an entity look like it was saved
+    * TEST FAILS because state is Unchanged, not Detached. Filed D#2269
+    *********************************************************/
+    test("entityState is Detached after calling acceptChanges on deleted entity", 1,
+    function () {
+
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(42);
+        em.attachEntity(employee); // simulate existing employee
+
+        employee.entityAspect.setDeleted();
+        employee.entityAspect.acceptChanges(); // simulate post-save state
+        //em.acceptChanges(); // this works too ... for all changed entities in cache
+
+        ok(employee.entityAspect.entityState.isDetached(),
+            'employee should be "Detached" after calling acceptChanges');
+    });
+    /*********************************************************
     * get and set property values with Breeze property accessors
     * Breeze property accessor functions help utility authors
     * access entity property values w/o regard to the model library
@@ -371,7 +455,7 @@ define(["testFns"], function (testFns) {
         expectedChangedStates.push("Deleted");
 
         deepEqual(actualChangedStates, expectedChangedStates,
-            "'isChangedStateProperty' should have seen the following changes: " + 
+            "'entityState' property should have seen the following changes: " +
             JSON.stringify(expectedChangedStates));
     });
     
@@ -417,6 +501,13 @@ define(["testFns"], function (testFns) {
         var customer = getFakeExistingcustomer(em, name);
         customer.entityAspect.setDeleted();
         return customer;
+    }
+    
+    // get keys of the entity's entityAspect.OriginalValues hash
+    function getOriginalValuesKeys(entity) {
+        var keys = [];
+        for (var key in entity.entityAspect.originalValues) { keys.push(key); }
+        return keys;
     }
 
     /*  Suggested Test subjects
