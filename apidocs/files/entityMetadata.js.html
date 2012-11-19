@@ -490,6 +490,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype._$typeName = &quot;MetadataStore&quot;;
         ctor.ANONTYPE_PREFIX = &quot;_IB_&quot;;
 
+        &#x2F;**
+        Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
+        been added to the MetadataStore.
+        @method addEntityType
+        @param entityType {EntityType} The EntityType to add
+        **&#x2F;
         ctor.prototype.addEntityType = function(entityType) {
             entityType.metadataStore = this;
             &#x2F;&#x2F; don&#x27;t register anon types

@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Nov 19 2012 10:10:59 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Mon Nov 19 2012 10:55:29 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -1077,6 +1077,16 @@ intellisense.annotate(breeze.breeze.NamingConvention, {
 
 intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   
+  'addEntityType': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
+    ///   been added to the MetadataStore.
+    ///   </summary>
+    ///   <param name="entityType" type="breeze.breeze.EntityType" optional="true">The EntityType to add</param>
+    
+    /// </signature>
+  },
   'exportMetadata': function() {
     /// <signature>
     ///   <summary>

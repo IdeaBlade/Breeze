@@ -3007,8 +3007,13 @@ function (core, a_config, m_validate) {
         @method acceptChanges
         **/
         ctor.prototype.acceptChanges = function () {
-            this.setUnchanged();
-            this.entityManager.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
+            var em = this.entityManager;
+            if (this.entityState.isDeleted()) {
+                em.detachEntity(this.entity);
+            } else {
+                this.setUnchanged();
+            }
+            em.entityChanged.publish({ entityAction: EntityAction.AcceptChanges, entity: this.entity });
         };
 
         /**
@@ -4195,6 +4200,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
 
+        /**
+        Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
+        been added to the MetadataStore.
+        @method addEntityType
+        @param entityType {EntityType} The EntityType to add
+        **/
         ctor.prototype.addEntityType = function(entityType) {
             entityType.metadataStore = this;
             // don't register anon types

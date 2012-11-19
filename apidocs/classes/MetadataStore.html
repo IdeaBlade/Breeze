@@ -270,6 +270,13 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_addEntityType">addEntityType</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_exportMetadata">exportMetadata</a>
 
                                 
@@ -513,6 +520,94 @@ em1.setProperties( { metadataStore: ms });
 </div>
 
                 
+                    <div id="method_addEntityType" class="method item">
+    <h3 class="name"><code>addEntityType</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>entityType</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l280"><code>entityMetadata.js:280</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
+been added to the MetadataStore.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityType</code>
+                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The EntityType to add</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="method_exportMetadata" class="method item">
     <h3 class="name"><code>exportMetadata</code></h3>
 
@@ -549,7 +644,7 @@ em1.setProperties( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l303"><code>entityMetadata.js:303</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l309"><code>entityMetadata.js:309</code></a>
         
         </p>
 
@@ -666,7 +761,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l420"><code>entityMetadata.js:420</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l426"><code>entityMetadata.js:426</code></a>
         
         </p>
 
@@ -888,7 +983,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l561"><code>entityMetadata.js:561</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l567"><code>entityMetadata.js:567</code></a>
         
         </p>
 
@@ -1013,7 +1108,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l592"><code>entityMetadata.js:592</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l598"><code>entityMetadata.js:598</code></a>
         
         </p>
 
@@ -1103,7 +1198,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l401"><code>entityMetadata.js:401</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l407"><code>entityMetadata.js:407</code></a>
         
         </p>
 
@@ -1220,7 +1315,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l380"><code>entityMetadata.js:380</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l386"><code>entityMetadata.js:386</code></a>
         
         </p>
 
@@ -1340,7 +1435,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l327"><code>entityMetadata.js:327</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l333"><code>entityMetadata.js:333</code></a>
         
         </p>
 
@@ -1449,7 +1544,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l546"><code>entityMetadata.js:546</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l552"><code>entityMetadata.js:552</code></a>
         
         </p>
 
@@ -1549,7 +1644,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l498"><code>entityMetadata.js:498</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l504"><code>entityMetadata.js:504</code></a>
         
         </p>
 
@@ -1714,7 +1809,7 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l482"><code>entityMetadata.js:482</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l488"><code>entityMetadata.js:488</code></a>
         
         </p>
 
@@ -1807,7 +1902,7 @@ i.e. an unmapped type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l296"><code>entityMetadata.js:296</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l302"><code>entityMetadata.js:302</code></a>
         
         </p>
 
