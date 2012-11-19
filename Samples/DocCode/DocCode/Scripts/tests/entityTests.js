@@ -436,7 +436,6 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * entityState is Detached after calling acceptChanges on deleted entity
     * Beware of acceptChanges; it makes an entity look like it was saved
-    * TEST FAILS because state is Unchanged, not Detached. Filed D#2269
     *********************************************************/
     test("entityState is Detached after calling acceptChanges on deleted entity", 1,
     function () {
