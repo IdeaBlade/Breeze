@@ -27,4 +27,4 @@ Five scripts
 
 One configuration file
 
-	App_Start/BreezeConfig.cs 
+	App_Start/BreezeWebApiConfig.cs 
