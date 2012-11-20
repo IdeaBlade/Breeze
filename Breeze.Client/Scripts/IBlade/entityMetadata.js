@@ -264,7 +264,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
                 .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
-            this.serviceNames = []; // array of serviceNames
+            this.dataServices = []; // array of dataServices;
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
@@ -276,6 +276,24 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
+
+        /**
+        Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
+        in the MetadataStore an exception will be thrown. 
+        @method addDataService
+        @param dataService {DataService} The DataService to add
+        **/
+        
+        ctor.prototype.addDataService = function(dataService) {
+            assertParam(dataService, "dataService").isInstanceOf(DataService).check();
+            var alreadyExists = this.dataServices.some(function(ds) {
+                return dataService.serviceName === ds.serviceName;
+            });
+            if (alreadyExists) {
+                throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+            }
+            this.dataServices.push(dataService);
+        };
 
         /**
         Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
@@ -415,12 +433,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.hasMetadataFor = function (serviceName) {
+        ctor.prototype.hasMetadataFor = function(serviceName) {
+            return !!this.getDataService(serviceName);
+        };
+        
+        /**
+       Returns the DataService for a specified service name
+       @example
+           // Assume em1 is an existing EntityManager.
+           var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+           var adapterName = ds.adapterName; // may be null
+           
+       @method hasMetadataFor
+       @param serviceName {String} The service name.
+       @return {Boolean}
+       **/
+        ctor.prototype.getDataService = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
-            if (serviceName.substr(-1) !== "/") {
-                serviceName = serviceName + '/';
-            }
-            return this.serviceNames.indexOf(serviceName) >= 0;
+
+            serviceName = DataService._normalizeServiceName(serviceName);
+            return core.arrayFirst(this.dataServices, function (ds) {
+                return ds.serviceName === serviceName;
+            });
         };
 
         /**
@@ -443,8 +477,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         @method fetchMetadata
         @async
-        @param serviceName {String}  The service name to fetch metadata for.
-        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
+        @param dataService {DataService|String}  Either a DataService or just the name of the DataService to fetch metadata for.
+        
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -457,25 +491,30 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
-            assertParam(serviceName, "serviceName").isString().check();
-            assertParam(dataServiceAdapterName, "dataServiceAdapterName").isOptional().isString();
+        ctor.prototype.fetchMetadata = function (dataService, callback, errorCallback) {
+            assertParam(dataService, "dataService").isString().or().isInstanceOf(DataService).check();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
-            if (serviceName.substr(-1) !== "/") {
-                serviceName = serviceName + '/';
+            if (typeof dataService === "string") {
+                // use the dataService with a matching name or create a new one.
+                dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
+
+            var serviceName = dataService.serviceName;
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
             
-            var dataServiceInstance = a_config.getAdapterInstance("dataService", dataServiceAdapterName);
+            var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            var that = this;
             return deferred.promise.then(function (rawMetadata) {
+                // this.dataServices.push(dataService);
+                that.addDataService(dataService);
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -560,7 +599,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Boolean}
         **/
         ctor.prototype.isEmpty = function () {
-            return this.serviceNames.length === 0;
+            return this.dataServices.length === 0;
         };
 
 
@@ -695,7 +734,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
-            this.serviceNames.push(serviceName);
             var that = this;
             toArray(schemas).forEach(function (schema) {
                 if (schema.entityContainer) {
@@ -708,7 +746,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
-                        var entityType = convertFromODataEntityType(et, schema, that, serviceName);
+                        var entityType = convertFromODataEntityType(et, schema, that);
 
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
                         var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
@@ -727,6 +765,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("Bad nav properties");
             }
         };
+        
+        
 
         function getQualifiedTypeName(metadataStore, entityTypeName, throwIfNotFound) {
             if (isQualifiedTypeName(entityTypeName)) return entityTypeName;
@@ -737,7 +777,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return result;
         }
 
-        function convertFromODataEntityType(odataEntityType, schema, metadataStore, serviceName) {
+        function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
             var entityType = new EntityType({
@@ -903,9 +943,31 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     })();
 
     var DataService = function() {
-        var ctor = function() {
+        var ctor = function(config) {
+            if (arguments.length != 1) {
+                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+            }
 
+            assertConfig(config)
+                .whereParam("serviceName").isNonEmptyString()
+                .whereParam("adapterName").isString().isOptional().withDefault(null)
+                .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
+                .applyAll(this);
+            this.serviceName = DataService._normalizeServiceName(this.serviceName);
+            
         };
+
+        ctor._normalizeServiceName = function(serviceName) {
+            serviceName = serviceName.trim();
+            if (serviceName.substr(-1) !== "/") {
+                return serviceName + '/';
+            } else {
+                return serviceName;
+            }
+        };
+        
+        ctor.prototype._$typeName = "DataService";
+        
         return ctor;
     }();
 
@@ -2113,6 +2175,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
     return {
         MetadataStore: MetadataStore,
+        DataService: DataService,
         EntityType: EntityType,
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,

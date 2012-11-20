@@ -4187,7 +4187,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
                 .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
-            this.serviceNames = []; // array of serviceNames
+            this.dataServices = []; // array of dataServices;
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
@@ -4199,6 +4199,24 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         ctor.prototype._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
+
+        /**
+        Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
+        in the MetadataStore an exception will be thrown. 
+        @method addDataService
+        @param dataService {DataService} The DataService to add
+        **/
+        
+        ctor.prototype.addDataService = function(dataService) {
+            assertParam(dataService, "dataService").isInstanceOf(DataService).check();
+            var alreadyExists = this.dataServices.some(function(ds) {
+                return dataService.serviceName === ds.serviceName;
+            });
+            if (alreadyExists) {
+                throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+            }
+            this.dataServices.push(dataService);
+        };
 
         /**
         Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
@@ -4338,12 +4356,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.hasMetadataFor = function (serviceName) {
+        ctor.prototype.hasMetadataFor = function(serviceName) {
+            return !!this.getDataService(serviceName);
+        };
+        
+        /**
+       Returns the DataService for a specified service name
+       @example
+           // Assume em1 is an existing EntityManager.
+           var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+           var adapterName = ds.adapterName; // may be null
+           
+       @method hasMetadataFor
+       @param serviceName {String} The service name.
+       @return {Boolean}
+       **/
+        ctor.prototype.getDataService = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
-            if (serviceName.substr(-1) !== "/") {
-                serviceName = serviceName + '/';
-            }
-            return this.serviceNames.indexOf(serviceName) >= 0;
+
+            serviceName = DataService._normalizeServiceName(serviceName);
+            return core.arrayFirst(this.dataServices, function (ds) {
+                return ds.serviceName === serviceName;
+            });
         };
 
         /**
@@ -4366,8 +4400,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         @method fetchMetadata
         @async
-        @param serviceName {String}  The service name to fetch metadata for.
-        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
+        @param dataService {DataService|String}  Either a DataService or just the name of the DataService to fetch metadata for.
+        
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -4380,25 +4414,30 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
-            assertParam(serviceName, "serviceName").isString().check();
-            assertParam(dataServiceAdapterName, "dataServiceAdapterName").isOptional().isString();
+        ctor.prototype.fetchMetadata = function (dataService, callback, errorCallback) {
+            assertParam(dataService, "dataService").isString().or().isInstanceOf(DataService).check();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
-            if (serviceName.substr(-1) !== "/") {
-                serviceName = serviceName + '/';
+            if (typeof dataService === "string") {
+                // use the dataService with a matching name or create a new one.
+                dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
+
+            var serviceName = dataService.serviceName;
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
             }
             
-            var dataServiceInstance = a_config.getAdapterInstance("dataService", dataServiceAdapterName);
+            var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            var that = this;
             return deferred.promise.then(function (rawMetadata) {
+                // this.dataServices.push(dataService);
+                that.addDataService(dataService);
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -4483,7 +4522,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Boolean}
         **/
         ctor.prototype.isEmpty = function () {
-            return this.serviceNames.length === 0;
+            return this.dataServices.length === 0;
         };
 
 
@@ -4618,7 +4657,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
-            this.serviceNames.push(serviceName);
             var that = this;
             toArray(schemas).forEach(function (schema) {
                 if (schema.entityContainer) {
@@ -4631,7 +4669,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
-                        var entityType = convertFromODataEntityType(et, schema, that, serviceName);
+                        var entityType = convertFromODataEntityType(et, schema, that);
 
                         // check if this entityTypeName, short version or qualified version has a registered ctor.
                         var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
@@ -4650,6 +4688,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("Bad nav properties");
             }
         };
+        
+        
 
         function getQualifiedTypeName(metadataStore, entityTypeName, throwIfNotFound) {
             if (isQualifiedTypeName(entityTypeName)) return entityTypeName;
@@ -4660,7 +4700,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return result;
         }
 
-        function convertFromODataEntityType(odataEntityType, schema, metadataStore, serviceName) {
+        function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
             var entityType = new EntityType({
@@ -4826,9 +4866,31 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     })();
 
     var DataService = function() {
-        var ctor = function() {
+        var ctor = function(config) {
+            if (arguments.length != 1) {
+                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+            }
 
+            assertConfig(config)
+                .whereParam("serviceName").isNonEmptyString()
+                .whereParam("adapterName").isString().isOptional().withDefault(null)
+                .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
+                .applyAll(this);
+            this.serviceName = DataService._normalizeServiceName(this.serviceName);
+            
         };
+
+        ctor._normalizeServiceName = function(serviceName) {
+            serviceName = serviceName.trim();
+            if (serviceName.substr(-1) !== "/") {
+                return serviceName + '/';
+            } else {
+                return serviceName;
+            }
+        };
+        
+        ctor.prototype._$typeName = "DataService";
+        
         return ctor;
     }();
 
@@ -6036,6 +6098,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
     return {
         MetadataStore: MetadataStore,
+        DataService: DataService,
         EntityType: EntityType,
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
@@ -8391,9 +8454,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
     var assertParam = core.assertParam;
 
     var MetadataStore = m_entityMetadata.MetadataStore;
+    var DataService = m_entityMetadata.DataService;
     var EntityType = m_entityMetadata.EntityType;
     var AutoGeneratedKeyType = m_entityMetadata.AutoGeneratedKeyType;
     var DataType = m_entityMetadata.DataType;
+    
     
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
@@ -8450,38 +8515,27 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method <ctor> EntityManager
         @param [config] {Object|String} Configuration settings or a service name.
         @param [config.serviceName] {String}
+        @param [config.dataService] {DataService} An entire DataService (instead of just the serviceName above).
         @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
         @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
         @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
         @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
         @param [config.keyGeneratorCtor] {Function}
-        @param [config.adapters] {Adapter settings}
-        @param [config.adapters.dataService] {String} dataService name
         **/
         var ctor = function (config) {
-            // // not allowed with useStrict
-            //              if (!(this instanceof arguments.callee)) {
-            //                  throw new Error("Constructor called as a function");
-            //              }
-
-            var assert = null;
+            
             if (arguments.length > 1) {
                 throw new Error("The EntityManager ctor has a single optional argument that is either a 'serviceName' or a configuration object.");
             }
             if (arguments.length === 0) {
-                this.serviceName = "";
-                config = {};
+                config = { serviceName: "" };
             } else if (typeof config === 'string') {
-                this.serviceName = config;
-                config = {};
-            } else {
-                assert = assertConfig(config).whereParam("serviceName").isString();
+                config = { serviceName: config };
             }
-
-            if (!assert) {
-                assert = assertConfig(config);
-            }
-            assert
+            
+            assertConfig(config)
+                .whereParam("serviceName").isOptional().isString()
+                .whereParam("dataService").isOptional().isInstanceOf(DataService)
                 .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore())
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
@@ -8489,16 +8543,17 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
                 .applyAll(this);
 
-            if (config.adapters) {
-                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
-                this.adapters = config.adapters;
-            } else {
-                this.adapters = {};           
-            }
-            this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
+            if (config.dataService) {
+                this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", config.dataService.adapterName);
+            } else if (config.serviceName) {
+                this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService");
+                this.dataService = new DataService({
+                    serviceName: this.serviceName,
+                });
+            } 
 
-            if (this.serviceName.substr(-1) !== "/") {
-                this.serviceName = this.serviceName + '/';
+            if (this.dataService) {
+                this.serviceName = this.dataService.serviceName;
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
             this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
@@ -8506,7 +8561,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (entityTypes === undefined) return this._hasChanges;
                 return this._hasChangesCore(entityTypes);
             });
-            
             
             this.clear();
             
@@ -8521,6 +8575,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         __readOnly__
         @property serviceName {String}
+        **/
+        
+        /**
+        The DataService name associated with this EntityManager.
+
+        __readOnly__
+        @property dataService {DataService}
         **/
 
         /**
@@ -8562,7 +8623,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         The "dataService" adapter implementation instance associated with this EntityManager.
 
         __readOnly__
-        @property dataServiceInstance {an instance of the "dataService" adapter interface}
+        @property dataServiceAdapterInstance {an instance of the "dataService" adapter interface}
         **/
        
         // events
@@ -8761,32 +8822,36 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method setProperties
         @param config {Object}
             @param [config.serviceName] {String}
+            @param [config.dataService] {DataService}
             @param [config.queryOptions] {QueryOptions}
             @param [config.saveOptions] {SaveOptions}
             @param [config.validationOptions] {ValidationOptions}
             @param [config.keyGeneratorCtor] {Function}
-            @param [config.adapters] { Object}
-            @param [config.adapters.dataService] {String} - name of a "dataService" adapter.
+
         **/
         ctor.prototype.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("serviceName").isString().isOptional()
+                .whereParam("dataService").isInstanceOf(DataService).isOptional()
                 .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
                 .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-                .whereParam("keyGeneratorCtor")
+                .whereParam("keyGeneratorCtor").isOptional()
              .applyAll(this);
             
-            if (config.adapters) {
-                assertConfig(config.adapters).whereParam("dataService").isOptional().isString().check();
-                core.extend(this.adapters, config.adapters);
-                this.dataServiceInstance = getAdapterInstance(this.adapters, "dataService");
+            if (config.dataService) {
+                this.dataServiceAdapterInstance = getAdapterInstance("dataService", this.dataService.adapterName);
+                this.serviceName = this.dataService.serviceName;
+            } else if (config.serviceName) {
+                this.dataService = new DataService({
+                    serviceName: this.serviceName,
+                });
+                this.serviceName = this.dataService.serviceName;
             }
             
             if (config.keyGeneratorCtor) {
                 this.keyGenerator = new this.keyGeneratorCtor();
             }
-
             
         };
 
@@ -8948,7 +9013,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
-            var promise = this.metadataStore.fetchMetadata(this.serviceName, this.adapters.dataService);
+            var promise = this.metadataStore.fetchMetadata(this.dataService);
 
             // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
             // TEST::: see if serialization actually works completely
@@ -9208,7 +9273,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
-            this.dataServiceInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+            this.dataServiceAdapterInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
@@ -9566,14 +9631,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // private fns
         
-        function getAdapterInstance(adaptersConfig, interfaceName) {
-            if (adaptersConfig[interfaceName]) {
-                return a_config.initializeAdapterInstance(interfaceName, adaptersConfig[interfaceName]);
-            } else {
-                return a_config.getAdapterInstance(interfaceName);
-            }
-        }
-
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -9895,7 +9952,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceInstance.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (rawEntities) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -9947,13 +10004,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
             // null and undefined have different meanings - null means a ref entity that cannot be resolved - usually an odata __deferred value
             // undefined means that this is not a ref entity.
-            targetEntity = em.dataServiceInstance.resolveRefEntity(rawEntity, queryContext);
+            targetEntity = em.dataServiceAdapterInstance.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
                 return targetEntity;
             }
 
             
-            var entityType =em.dataServiceInstance.getEntityType(rawEntity, em.metadataStore);
+            var entityType =em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
@@ -10048,7 +10105,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            refValue = em.dataServiceInstance.resolveRefEntity(v, queryContext);
+                            refValue = em.dataServiceAdapterInstance.resolveRefEntity(v, queryContext);
                             if (typeof refValue == "function") {
                                 queryContext.deferredFns.push(function () {
                                     arr[ix] = refValue();
@@ -10063,7 +10120,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        refValue = em.dataServiceInstance.resolveRefEntity(value, queryContext);
+                        refValue = em.dataServiceAdapterInstance.resolveRefEntity(value, queryContext);
                         if (typeof refValue == "function") {
                             queryContext.deferredFns.push(function () {
                                 result[newKey] = refValue();
@@ -10113,7 +10170,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntity);
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
             if (deferred) {
                 return;
             }
@@ -10156,7 +10213,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
 
             if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.dataServiceInstance.getDeferredValue(relatedRawEntities);
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
             if (deferred) {
                 return;
             }

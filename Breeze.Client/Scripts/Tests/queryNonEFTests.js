@@ -8,6 +8,7 @@ define(["testFns"], function (testFns) {
     
     var EntityType = breeze.EntityType;
     var DataProperty = breeze.DataProperty;
+    var DataService = breeze.DataService;
     var NavigationProperty = breeze.NavigationProperty;
     var DataType = breeze.DataType;
     var EntityQuery = breeze.EntityQuery;
@@ -29,6 +30,11 @@ define(["testFns"], function (testFns) {
                 serviceName: "api/NonEFModel",
                 serviceHasMetadata: false
             });
+            
+            testFns.metadataStore.addDataService(new DataService({
+                serviceName: testFns.serviceName,
+                hasServerMetadata: false
+            }));
         },
         teardown: function () {
         }
@@ -37,8 +43,7 @@ define(["testFns"], function (testFns) {
     
     test("getSimple - anonymous - Persons", function() {
         var em = newEm();
-        // HACK - add to the API for this
-        em.metadataStore.serviceNames.push(em.serviceName);
+        
         var query = breeze.EntityQuery.from("Persons");
         stop();
         
@@ -57,7 +62,7 @@ define(["testFns"], function (testFns) {
     test("getSimple - typed - Persons", function () {
         var em = newEm();
         // HACK - add to the API for this
-        em.metadataStore.serviceNames.push(em.serviceName);
+        
         initializeMetadataStore(em.metadataStore, em.serviceName);
         var query = breeze.EntityQuery.from("Persons");
         stop();

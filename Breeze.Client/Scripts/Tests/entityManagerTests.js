@@ -441,7 +441,7 @@ define(["testFns"], function (testFns) {
     test("persist entityMetadata", function () {
         var em = newEm();
         var ets = em.metadataStore.getEntityTypes();
-        var snames = em.metadataStore.serviceNames;
+        var dataServices = em.metadataStore.dataServices;
         var exportedStore = em.metadataStore.exportMetadata();
         var newMs = new MetadataStore();
         newMs.importMetadata(exportedStore);
@@ -450,8 +450,8 @@ define(["testFns"], function (testFns) {
         var newEts = newMs.getEntityTypes();
         ok(ets.length == newEts.length);
         for (var i = 0; i < ets.length; i++) {
-            var snames2 = newMs.serviceNames;
-            ok(snames.length === snames2.length, "service names are different");
+            var dataServices2 = newMs.dataServices;
+            ok(dataServices.length === dataServices2.length, "service names are different");
             var et = ets[i];
             var et2 = newMs.getEntityType(et.name);
 
