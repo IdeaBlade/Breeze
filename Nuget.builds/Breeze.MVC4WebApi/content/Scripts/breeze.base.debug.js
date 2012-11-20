@@ -4851,11 +4851,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param config {Object|MetadataStore} Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore
         then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for
         client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.
-        @param config.metadataStore  {MetadataStore} The MetadataStore that will contain this EntityType.
-        @param config.serviceName {String} 
         @param config.shortName {String}
         @param [config.namespace=""] {String}
-        @param [config.defaultResourceName] {String}
         **/
         var ctor = function (config) {
             if (arguments.length > 1) {
@@ -5084,7 +5081,29 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 // this.entityType
                 updateCrossEntityRelationship(np);
             });
+            updateIncomplete(this);
         };
+
+        function updateIncomplete(entityType) {
+            var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
+            var incompleteMap = incompleteTypeMap[entityType.name];
+            if (core.isEmpty(incompleteMap)) {
+                delete incompleteTypeMap[entityType.name];
+                return;
+            }
+            if (incompleteMap) {
+                core.objectForEach(incompleteMap, function (assocName, np) {
+                    if (!np.entityType) {
+                        if (np.entityTypeName === entityType.name) {
+                            np.entityType = entityType;
+                            delete incompleteMap[assocName];
+                            updateIncomplete(np.parentEntityType);
+                        }
+                    }
+                });
+            }
+
+        }
         
         function resolveFks(np) {
             if (np.foreignKeyProperties) return;
@@ -10830,7 +10849,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.72.1",
+        version: "0.72.2",
         core: core,
         config: a_config
     };

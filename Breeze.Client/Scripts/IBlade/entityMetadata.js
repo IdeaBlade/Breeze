@@ -920,7 +920,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         /** 
         @example                    
             var entityType = new EntityType( {
-                serviceName: "api/NorthwindIBModel",
                 name: "person",
                 namespace: "myAppNamespace"
              });
@@ -928,11 +927,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param config {Object|MetadataStore} Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore
         then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for
         client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.
-        @param config.metadataStore  {MetadataStore} The MetadataStore that will contain this EntityType.
-        @param config.serviceName {String} 
         @param config.shortName {String}
         @param [config.namespace=""] {String}
-        @param [config.defaultResourceName] {String}
         **/
         var ctor = function (config) {
             if (arguments.length > 1) {

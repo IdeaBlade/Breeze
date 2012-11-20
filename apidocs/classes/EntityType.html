@@ -540,32 +540,6 @@ client side use and will be given an automatically generated name. Normally, how
                             
                             <li class="param">
                                 
-                                    <code class="param-name">metadataStore</code>
-                                    <span class="type"><a href="..\classes\MetadataStore.html" class="crosslink">MetadataStore</a></span>
-                                
-
-                                <div class="param-description">
-                                    <p>The MetadataStore that will contain this EntityType.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name">serviceName</code>
-                                    <span class="type">String</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
                                     <code class="param-name">shortName</code>
                                     <span class="type">String</span>
                                 
@@ -580,20 +554,6 @@ client side use and will be given an automatically generated name. Normally, how
                             <li class="param">
                                 
                                     <code class="param-name optional">[namespace=&quot;&quot;]</code>
-                                    <span class="type">String</span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[defaultResourceName]</code>
                                     <span class="type">String</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
@@ -621,7 +581,6 @@ client side use and will be given an automatically generated name. Normally, how
 
             <div class="example-content">
                 <pre class="code"><code class="prettyprint">var entityType = new EntityType( {
-    serviceName: "api/NorthwindIBModel",
     name: "person",
     namespace: "myAppNamespace"
  });
@@ -674,7 +633,7 @@ client side use and will be given an automatically generated name. Normally, how
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1093"><code>entityMetadata.js:1093</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1089"><code>entityMetadata.js:1089</code></a>
         
         </p>
 
@@ -779,7 +738,7 @@ myEntityType.addProperty(navigationProperty1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1341"><code>entityMetadata.js:1341</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1359"><code>entityMetadata.js:1359</code></a>
         
         </p>
 
@@ -904,7 +863,7 @@ custType.addValidator(countryValidator, countryProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1277"><code>entityMetadata.js:1277</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1295"><code>entityMetadata.js:1295</code></a>
         
         </p>
 
@@ -997,7 +956,7 @@ em1.addEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1407"><code>entityMetadata.js:1407</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1425"><code>entityMetadata.js:1425</code></a>
         
         </p>
 
@@ -1102,7 +1061,7 @@ var customerNameDataProp = custType.getDataProperty("CustomerName");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1298"><code>entityMetadata.js:1298</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1316"><code>entityMetadata.js:1316</code></a>
         
         </p>
 
@@ -1183,7 +1142,7 @@ var customerNameDataProp = custType.getDataProperty("CustomerName");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1422"><code>entityMetadata.js:1422</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1440"><code>entityMetadata.js:1440</code></a>
         
         </p>
 
@@ -1288,7 +1247,7 @@ var customerOrdersNavProp = custType.getDataProperty("Orders");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1381"><code>entityMetadata.js:1381</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1399"><code>entityMetadata.js:1399</code></a>
         
         </p>
 
@@ -1386,7 +1345,7 @@ var arrayOfProps = custType.getProperties();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1437"><code>entityMetadata.js:1437</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1455"><code>entityMetadata.js:1455</code></a>
         
         </p>
 
@@ -1514,7 +1473,7 @@ var companyNameProp2 = orderDetailType.getProperty("Order.Customer.CompanyName")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1394"><code>entityMetadata.js:1394</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1412"><code>entityMetadata.js:1412</code></a>
         
         </p>
 
@@ -1601,7 +1560,7 @@ var arrayOfPropNames = custType.getPropertyNames();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1069"><code>entityMetadata.js:1069</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1065"><code>entityMetadata.js:1065</code></a>
         
         </p>
 
@@ -1728,7 +1687,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1484"><code>entityMetadata.js:1484</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1502"><code>entityMetadata.js:1502</code></a>
         
         </p>
 
@@ -1793,7 +1752,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1050"><code>entityMetadata.js:1050</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1046"><code>entityMetadata.js:1046</code></a>
         
         </p>
 
@@ -1841,7 +1800,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1005"><code>entityMetadata.js:1005</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1001"><code>entityMetadata.js:1001</code></a>
         
         </p>
 
@@ -1887,7 +1846,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l977"><code>entityMetadata.js:977</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l973"><code>entityMetadata.js:973</code></a>
         
         </p>
 
@@ -1933,7 +1892,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1020"><code>entityMetadata.js:1020</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1016"><code>entityMetadata.js:1016</code></a>
         
         </p>
 
@@ -1981,7 +1940,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l998"><code>entityMetadata.js:998</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l994"><code>entityMetadata.js:994</code></a>
         
         </p>
 
@@ -2027,7 +1986,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l991"><code>entityMetadata.js:991</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l987"><code>entityMetadata.js:987</code></a>
         
         </p>
 
@@ -2073,7 +2032,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l970"><code>entityMetadata.js:970</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l966"><code>entityMetadata.js:966</code></a>
         
         </p>
 
@@ -2119,7 +2078,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1029"><code>entityMetadata.js:1029</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1025"><code>entityMetadata.js:1025</code></a>
         
         </p>
 
@@ -2165,7 +2124,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1043"><code>entityMetadata.js:1043</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1039"><code>entityMetadata.js:1039</code></a>
         
         </p>
 
@@ -2211,7 +2170,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l984"><code>entityMetadata.js:984</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l980"><code>entityMetadata.js:980</code></a>
         
         </p>
 
@@ -2257,7 +2216,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1036"><code>entityMetadata.js:1036</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1032"><code>entityMetadata.js:1032</code></a>
         
         </p>
 
@@ -2303,7 +2262,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1012"><code>entityMetadata.js:1012</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1008"><code>entityMetadata.js:1008</code></a>
         
         </p>
 
@@ -2350,7 +2309,7 @@ properties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1058"><code>entityMetadata.js:1058</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1054"><code>entityMetadata.js:1054</code></a>
         
         </p>
 

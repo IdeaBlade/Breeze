@@ -1133,7 +1133,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         &#x2F;** 
         @example                    
             var entityType = new EntityType( {
-                serviceName: &quot;api&#x2F;NorthwindIBModel&quot;,
                 name: &quot;person&quot;,
                 namespace: &quot;myAppNamespace&quot;
              });
@@ -1141,11 +1140,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param config {Object|MetadataStore} Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore
         then what will be created is an &#x27;anonymous&#x27; type that will never be communicated to or from the server. It is purely for
         client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.
-        @param config.metadataStore  {MetadataStore} The MetadataStore that will contain this EntityType.
-        @param config.serviceName {String} 
         @param config.shortName {String}
         @param [config.namespace=&quot;&quot;] {String}
-        @param [config.defaultResourceName] {String}
         **&#x2F;
         var ctor = function (config) {
             if (arguments.length &gt; 1) {
@@ -1374,7 +1370,29 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 &#x2F;&#x2F; this.entityType
                 updateCrossEntityRelationship(np);
             });
+            updateIncomplete(this);
         };
+
+        function updateIncomplete(entityType) {
+            var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
+            var incompleteMap = incompleteTypeMap[entityType.name];
+            if (core.isEmpty(incompleteMap)) {
+                delete incompleteTypeMap[entityType.name];
+                return;
+            }
+            if (incompleteMap) {
+                core.objectForEach(incompleteMap, function (assocName, np) {
+                    if (!np.entityType) {
+                        if (np.entityTypeName === entityType.name) {
+                            np.entityType = entityType;
+                            delete incompleteMap[assocName];
+                            updateIncomplete(np.parentEntityType);
+                        }
+                    }
+                });
+            }
+
+        }
         
         function resolveFks(np) {
             if (np.foreignKeyProperties) return;
