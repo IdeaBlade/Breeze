@@ -260,13 +260,13 @@ define(["testFns"], function (testFns) {
         }
         var c1 = em.getChanges();
         ok(c1.length === 10);
-        var c2 = em.getChanges(orderType);
+        var c2 = em.getChanges("Order");
         ok(c2.length === 5);
         var c3 = em.getChanges([orderType, custType]);
         ok(c3.length === 5);
         var c4 = em.getChanges([orderType, empType]);
         ok(c4.length === 10);
-        var c5 = em.getEntities([orderType], EntityState.Modified);
+        var c5 = em.getEntities(["Order"], EntityState.Modified);
         ok(c5.length === 5);
         var c6 = em.getEntities([orderType], EntityState.Added);
         ok(c6.length === 0);

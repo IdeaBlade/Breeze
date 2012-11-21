@@ -23,6 +23,29 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("create entity with initial properties", function() {
+        var em = newEm(); // new empty EntityManager
+        var empType = em.metadataStore.getEntityType("Employee");
+
+        var employee = empType.createEntity({
+            firstName: "John",
+            lastName: "Smith",
+            employeeID: 42
+        });
+        ok(employee.getProperty("firstName") === "John", "first name should be 'John'");
+        ok(employee.getProperty("employeeID") === 42, "employeeID should be 42");
+        try {
+            var badEmp = empType.createEntity({
+                firstxame: "John",
+                lastName: "Smith",
+                employeeID: 42,
+            });
+            ok(false, "shouldn't get here");
+        } catch(e) {
+            ok(e.message.indexOf("firstxame") !== -1, "error should mention 'firstxame'");
+        }
+    });
     
     test("acceptChanges - detach deleted", 1, function () {
 
@@ -449,8 +472,20 @@ define(["testFns"], function (testFns) {
         
         var valid = em.hasChanges();
         ok(valid, "should have some changes");
-        valid = em.hasChanges(orderType);
+        try {
+            var x = em.hasChanges("order");
+            ok(false, "should have failed");
+        } catch(e) {
+            ok(e.message.indexOf("order") != -1, " should have an error message about 'order'");
+        }
+        valid = em.hasChanges("Order");
         ok(valid, "should have changes for Orders");
+        try {
+            var y = em.hasChanges(["Order", "OrderDetXXX"]);
+            ok(false, "should have failed");
+        } catch (e) {
+            ok(e.message.indexOf("OrderDetXXX") != -1, " should have an error message about 'order'");
+        }
         valid = em.hasChanges([orderType, orderDetailType]);
         ok(valid, "should have changes for Orders or OrderDetails");
         em.getChanges(orderType).forEach(function(e) {
@@ -458,12 +493,13 @@ define(["testFns"], function (testFns) {
         });
         valid = !em.hasChanges(orderType);
         ok(valid, "should not have changes for Orders");
-        valid = em.hasChanges(orderDetailType);
+        valid = em.hasChanges("OrderDetail");
         ok(valid, "should still have changes for OrderDetails");
         em.getChanges(orderDetailType).forEach(function(e) {
             e.entityAspect.acceptChanges();
         });
-        valid = !em.hasChanges([orderType, orderDetailType]);
+        
+        valid = !em.hasChanges(["Order", "OrderDetail"]);
         ok(valid, "should no longer have changes for Orders or OrderDetails");
         valid = !em.hasChanges();
         ok(valid, "should no longer have any changes");

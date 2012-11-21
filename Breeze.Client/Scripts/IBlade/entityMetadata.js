@@ -560,7 +560,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
-        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+        and populated with any initial values.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
@@ -1362,10 +1363,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var cust1 = custType.createEntity();
             em1.addEntity(cust1);
         @method createEntity
+        @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function () {
-            return this._createEntity(false);
+        ctor.prototype.createEntity = function (initialValues) {
+            if (initialValues) {
+                var entity = this._createEntity(true);
+                core.objectForEach(initialValues, function(key, value) {
+                    entity.setProperty(key, value);
+                });
+                entity.entityAspect._postInitialize();
+                return entity;
+            } else {
+                return this._createEntity(false);
+            }
+            
         };
 
         ctor.prototype._createEntity = function(deferInitialization) {

@@ -89,6 +89,9 @@
                 for (propName in attrs) {
                     if (hasOwnProperty.call(attrs, propName)) {
                         prop = this.entityType.getProperty(propName);
+                        if (prop == null) {
+                            throw new Error("Unknown property: " + key);
+                        }
                         this._$interceptor(prop, attrs[propName], function(pvalue) {
                             if (arguments.length === 0) {
                                 return bbGet.call(that, propName);
@@ -105,6 +108,9 @@
                 if (!this._validate(attrs, options)) return false;
                 // TODO: suppress validate here
                 prop = this.entityType.getProperty(key);
+                if (prop == null) {
+                    throw new Error("Unknown property: " + key);
+                }
                 propName = key;
                 this._$interceptor(prop, value, function(pvalue) {
                     if (arguments.length === 0) {

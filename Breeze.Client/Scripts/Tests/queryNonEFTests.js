@@ -7,6 +7,7 @@ define(["testFns"], function (testFns) {
     
     
     var EntityType = breeze.EntityType;
+    var NamingConvention = breeze.NamingConvention;
     var DataProperty = breeze.DataProperty;
     var DataService = breeze.DataService;
     var NavigationProperty = breeze.NavigationProperty;
@@ -21,28 +22,37 @@ define(["testFns"], function (testFns) {
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
 
-    var newEm = testFns.newEm;
-    
+   
     module("queryNonEF", {
         setup: function () {
-            // testFns.setup();
-            testFns.setup({
-                serviceName: "api/NonEFModel",
-                serviceHasMetadata: false
-            });
-            
-            testFns.metadataStore.addDataService(new DataService({
-                serviceName: testFns.serviceName,
-                hasServerMetadata: false
-            }));
+            testFns.setup();
         },
         teardown: function () {
         }
     });
+
+    
+    
+    function newAltEm() {
+        var altServiceName = "api/NonEFModel";
+
+        var dataService = new DataService({
+            serviceName: altServiceName,
+            hasServerMetadata: false
+        });
+        var altMs = new MetadataStore({
+            namingConvention: NamingConvention.camelCase
+        });
+        
+        return new EntityManager({
+            dataService: dataService,
+            metadataStore: altMs
+        });
+    }
     
     
     test("getSimple - anonymous - Persons", function() {
-        var em = newEm();
+        var em = newAltEm();
         
         var query = breeze.EntityQuery.from("Persons");
         stop();
@@ -60,10 +70,9 @@ define(["testFns"], function (testFns) {
     });
     
     test("getSimple - typed - Persons", function () {
-        var em = newEm();
+        var em = newAltEm();
         // HACK - add to the API for this
-        
-        initializeMetadataStore(em.metadataStore, em.serviceName);
+        initializeMetadataStore(em.metadataStore);
         var query = breeze.EntityQuery.from("Persons");
         stop();
 

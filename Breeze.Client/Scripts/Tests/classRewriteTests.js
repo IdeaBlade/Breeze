@@ -8,7 +8,7 @@ define(["testFns"], function (testFns) {
     
     module("classRewrite", {
         setup: function () {
-            this.interceptor = function (propName, newValue, accessorFn) {
+            this.interceptor = function (property, newValue, accessorFn) {
                 var prevValues = this.prevValues;
                 if (!prevValues) {
                     prevValues = [];

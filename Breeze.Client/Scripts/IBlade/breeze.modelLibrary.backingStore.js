@@ -25,6 +25,7 @@
     ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -39,7 +40,10 @@
             return this[propertyName];
         };
 
-        proto.setProperty = function(propertyName, value) {
+        proto.setProperty = function (propertyName, value) {
+            if (!this._backingStore.hasOwnProperty(propertyName)) {
+                throw new Error("Unknown property name:" + propertyName);
+            }
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;

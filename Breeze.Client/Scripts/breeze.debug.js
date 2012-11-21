@@ -4483,7 +4483,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
-        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+        and populated with any initial values.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
@@ -5285,10 +5286,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var cust1 = custType.createEntity();
             em1.addEntity(cust1);
         @method createEntity
+        @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function () {
-            return this._createEntity(false);
+        ctor.prototype.createEntity = function (initialValues) {
+            if (initialValues) {
+                var entity = this._createEntity(true);
+                core.objectForEach(initialValues, function(key, value) {
+                    entity.setProperty(key, value);
+                });
+                entity.entityAspect._postInitialize();
+                return entity;
+            } else {
+                return this._createEntity(false);
+            }
+            
         };
 
         ctor.prototype._createEntity = function(deferInitialization) {
@@ -9392,8 +9404,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                // do something interesting
             }
         @method hasChanges
-        @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
-        If this parameter is omitted, all EntityTypes are searched.
+        @param [entityTypes] {String|Array of String|EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
+        If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
         //ctor.prototype.hasChanges = function (entityTypes) {
@@ -9421,7 +9433,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         // backdoor the "really" check for changes.
         ctor.prototype._hasChangesCore = function (entityTypes) {
-            core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+            entityTypes = checkEntityTypes(this, entityTypes);
             var entityGroups = getEntityGroups(this, entityTypes);
             return entityGroups.some(function (eg) {
                 return eg.hasChanges();
@@ -9448,12 +9460,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var orderType = em1.metadataStore.getEntityType("Order");
             var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
         @method getChanges
-        @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
-        If this parameter is omitted, all EntityTypes are searched.
+        @param [entityTypes] {String|Array of String|EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
+        If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getChanges = function (entityTypes) {
-            core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+            entityTypes = checkEntityTypes(this, entityTypes);
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             return this._getEntitiesCore(entityTypes, entityStates);
         };
@@ -9506,20 +9518,36 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var orderType = em1.metadataStore.getEntityType("Order");
             var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState.Added);
         @method getEntities
-        @param [entityTypes] {EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which entities will be found.
-        If this parameter is omitted, all EntityTypes are searched.
+        @param [entityTypes] {String|Array of String|EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which entities will be found.
+        If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @param [entityState] {EntityState|Array of EntityState} The {{#crossLink "EntityState"}}{{/crossLink}}s for which entities will be found.
-        If this parameter is omitted, entities of all EntityStates are returned.
+        If this parameter is omitted, entities of all EntityStates are returned. 
         @return {Array of Entity} Array of Entities
         **/
         ctor.prototype.getEntities = function (entityTypes, entityStates) {
-            core.assertParam(entityTypes, "entityTypes").isOptional().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+            entityTypes = checkEntityTypes(this, entityTypes);
             core.assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
+            
             if (entityStates) {
                 entityStates = validateEntityStates(this, entityStates);
             }
             return this._getEntitiesCore(entityTypes, entityStates);
         };
+        
+        // takes in entityTypes as either strings or entityTypes or arrays of either
+        // and returns either an entityType or an array of entityTypes or throws an error
+        function checkEntityTypes(em, entityTypes) {
+            core.assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
+                .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+            if (typeof entityTypes === "string") {
+                entityTypes = em.metadataStore.getEntityType(entityTypes, false);
+            } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
+                entityTypes = entityTypes.map(function(etName) {
+                    return em.metadataStore.getEntityType(etName, false);
+                });
+            }
+            return entityTypes;
+        }
 
         // protected methods
 
@@ -11343,6 +11371,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -11357,7 +11386,10 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
             return this[propertyName];
         };
 
-        proto.setProperty = function(propertyName, value) {
+        proto.setProperty = function (propertyName, value) {
+            if (!this._backingStore.hasOwnProperty(propertyName)) {
+                throw new Error("Unknown property name:" + propertyName);
+            }
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
@@ -11751,6 +11783,9 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 for (propName in attrs) {
                     if (hasOwnProperty.call(attrs, propName)) {
                         prop = this.entityType.getProperty(propName);
+                        if (prop == null) {
+                            throw new Error("Unknown property: " + key);
+                        }
                         this._$interceptor(prop, attrs[propName], function(pvalue) {
                             if (arguments.length === 0) {
                                 return bbGet.call(that, propName);
@@ -11767,6 +11802,9 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 if (!this._validate(attrs, options)) return false;
                 // TODO: suppress validate here
                 prop = this.entityType.getProperty(key);
+                if (prop == null) {
+                    throw new Error("Unknown property: " + key);
+                }
                 propName = key;
                 this._$interceptor(prop, value, function(pvalue) {
                     if (arguments.length === 0) {
