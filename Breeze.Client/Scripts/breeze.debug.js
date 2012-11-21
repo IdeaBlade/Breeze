@@ -3622,7 +3622,7 @@ function (core, m_entityAspect) {
              
                 rawAccessorFn(newValue);
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged()) {
+                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
                         aspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
@@ -3667,7 +3667,7 @@ function (core, m_entityAspect) {
                 rawAccessorFn(newValue);
                   // NOTE: next few lines are the same as above but not refactored for perf reasons.
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged()) {
+                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
                         aspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {

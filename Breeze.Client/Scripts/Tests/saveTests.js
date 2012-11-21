@@ -70,11 +70,12 @@ define(["testFns"], function (testFns) {
             });
             var cust = customers[0];
             cust.setProperty("miscData", "xxx");
-            ok(cust.entityAspect.entityState == EntityState.Modified);
+            ok(cust.entityAspect.entityState == EntityState.Unchanged);
+            ok(!em1.hasChanges(), "should not have changes")
             return em1.saveChanges();
         }).then(function(sr) {
             var saved = sr.entities;
-            ok(saved.length === 1);
+            ok(saved.length === 0);
             ok(!em1.hasChanges());
         }).fail(testFns.handleFail).fin(start);
     });

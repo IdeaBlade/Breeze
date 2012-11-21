@@ -605,7 +605,10 @@ define(["testFns"], function (testFns) {
         var entity = entityType.createEntity();
         props.forEach(function (p) {
             var v = entity.getProperty(p.name);
-            if (p.isDataProperty) {
+            if (p.isUnmapped) {
+                // do nothing
+            } else if (p.isDataProperty) {
+                
                 if (p.isNullable) {
                     ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
                         entityType.name, p.name, v));
