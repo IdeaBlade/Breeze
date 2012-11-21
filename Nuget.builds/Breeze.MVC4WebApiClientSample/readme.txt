@@ -86,11 +86,6 @@ to display, edit, and save changes.
 
 It automatically includes the "Breeze Web Api" NuGet Package if it is not already installed.
 
-It also depends upon 3 other NuGet packages and will install them if not present:
-- jQuery v.1.7.1 
-- Knockout v.2.1.0
-- Modernizr v.2.5.3
-
 This specific nuget package added the following files to this project.
 
 One configuration file
@@ -120,6 +115,11 @@ Two application scripts
 
 	Scripts/app/logger.js
 	Scripts/app/sampleViewModel.js
+
+Two 3rd party scripts
+
+	Scripts/app/jquery-1.7.1.min.js
+	Scripts/app/knockout-2.1.0.js
 
 -------------------------------------------------------	
 Artifacts added by the "Breeze Web Api" NuGet package
