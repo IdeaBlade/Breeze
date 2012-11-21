@@ -17,10 +17,6 @@
         <tags>javascript MVC4 EntityFramework Breeze</tags>
 		<dependencies>
 			<dependency id="Breeze.MVC4WebApi" version="{{version}}" />
-            <!-- Force version #s to align with the MVC 4 Web API template -->
-            <dependency id="jQuery" version="[1.7.1, 1.7.2)" />
-            <dependency id="knockoutjs" version="[2.1.0, 2.1.1)" />
-            <dependency id="Modernizr" version="[2.5.3, 2.5.4)" />
 		</dependencies>
     </metadata>
     <files>
@@ -34,6 +30,8 @@
         <file src="content\Views\BreezeSampleShell\index.cshtml" target="content\Views\BreezeSampleShell\index.cshtml" />
         <file src="content\Scripts\app\logger.js" target="content\Scripts\app\logger.js" />
 		<file src="content\Scripts\app\sampleViewModel.js" target="content\Scripts\app\sampleViewModel.js" />
+        <file src="content\Scripts\jquery-1.7.1.min.js" target="content\Scripts\jquery-1.7.1.min.js" />
+        <file src="content\Scripts\knockout-2.1.0.js" target="content\Scripts\knockout-2.1.0.js" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>
