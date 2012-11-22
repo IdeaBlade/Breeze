@@ -26,6 +26,24 @@ define(["testFns"], function (testFns) {
         }
     });
 
+
+    test("numeric local query ", function () {
+        var em = newEm();
+        stop();
+        EntityQuery.from("Products").take(5).using(em).execute().then(function (data) {
+            var id = data.results[0].getProperty("productID").toString();
+            var query = new breeze.EntityQuery()
+                .from("Products").where('productID', '==', id);
+            var r = em.executeQueryLocally(query);
+            
+            ok(r.length == 1);
+            query = new breeze.EntityQuery()
+                .from("Products").where('productID', '!=', id);
+            r = em.executeQueryLocally(query);
+            ok(r.length == 4);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("case sensitivity - startsWith", function() {
         var em = newEm();
         var query = EntityQuery.from("Customers")

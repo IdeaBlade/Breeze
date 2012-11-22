@@ -4,6 +4,7 @@
 // #define DATABASEFIRST_NEW
 
 using System;
+using System.Net;
 using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
@@ -66,6 +67,22 @@ namespace Sample_WebApi.Controllers {
     }
 
     #region standard queries
+
+    [AcceptVerbs("GET")]
+    public Customer  CustomerWithScalarResult() {
+      return ContextProvider.Context.Customers.First();
+    }
+
+    [AcceptVerbs("GET")]
+    public IQueryable<Customer> CustomersWithHttpError() {
+      throw new HttpResponseException(HttpStatusCode.NotFound);
+    }
+
+    //[AcceptVerbs("GET")]
+    //public IQueryable<Customer> CustomersWithHttpErrorResponse() {
+    //  Not sure where to find CreateErrorResponse
+    //  Request.CreateErrorResponse(HttpStatusCode.NotFound, "Couldn't find the resource");
+    //}
 
     [AcceptVerbs("GET")]
     public IQueryable<Customer> Customers() {

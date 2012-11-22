@@ -1441,18 +1441,22 @@ function (core, m_entityMetadata, m_entityAspect) {
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
-                    if (typeof value === "string") {
-                        predFn = function (propValue) { return stringEquals(propValue, value, lqco); };
-                    } else {
-                        predFn = function(propValue) { return propValue == value; };
-                    }
+                    predFn = function(propValue) {
+                        if (propValue && typeof propValue === 'string') {
+                            return stringEquals(propValue, value, lqco);
+                        } else {
+                            return propValue == value;
+                        }
+                    };
                     break;
                 case FilterQueryOp.NotEquals:
-                    if (typeof value === "string") {
-                        predFn = function(propValue) { return !stringEquals(propValue, value, lqco); };
-                    } else {
-                        predFn = function(propValue) { return propValue != value; };
-                    }
+                    predFn = function (propValue) {
+                        if (propValue && typeof propValue === 'string') {
+                            return !stringEquals(propValue, value, lqco);
+                        } else {
+                            return propValue != value;
+                        }
+                    };
                     break;
                 case FilterQueryOp.GreaterThan:
                     predFn = function (propValue) { return propValue > value; };
@@ -1483,6 +1487,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringEquals(a, b, lqco) {
+            if (typeof b !== 'string') {
+                b = b.toString();
+            }
             if (lqco.usesSql92CompliantStringComparison) {
                 a = (a || "").trim();
                 b = (b || "").trim();

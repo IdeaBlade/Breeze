@@ -39,17 +39,24 @@ namespace Breeze.WebApi {
         return;
       }
 
-      NameValueCollection querystringParams =
-        HttpUtility.ParseQueryString(actionExecutedContext.Request.RequestUri.Query);
+      if (!actionExecutedContext.Response.IsSuccessStatusCode) {
+        return;
+      }
 
       object responseObject;
-      actionExecutedContext.Response.TryGetContentValue(out responseObject);
+      if (!actionExecutedContext.Response.TryGetContentValue(out responseObject)) {
+        return;
+      }
+
       var dQuery = ((dynamic)responseObject);
       if (dQuery.GetType().IsInstanceOfType(typeof(IQueryable))) {
         return;
       }
 
       var elementType = TypeFns.GetElementType(responseObject.GetType());
+
+      NameValueCollection querystringParams =
+        HttpUtility.ParseQueryString(actionExecutedContext.Request.RequestUri.Query);
 
       string filterQueryString = querystringParams["$filter"];
       if (!string.IsNullOrWhiteSpace(filterQueryString)) {
@@ -101,6 +108,9 @@ namespace Breeze.WebApi {
         });
       }
 
+      //if (!(dQuery is System.Collections.IEnumerable)) {
+      //  dQuery = new Object[] {dQuery};
+      //}
       if (!string.IsNullOrWhiteSpace(selectQueryString)) {
         var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
         var oc = new System.Net.Http.ObjectContent(dQuery.GetType(), dQuery, formatter);

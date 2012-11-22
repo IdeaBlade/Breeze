@@ -7566,18 +7566,22 @@ function (core, m_entityMetadata, m_entityAspect) {
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
-                    if (typeof value === "string") {
-                        predFn = function (propValue) { return stringEquals(propValue, value, lqco); };
-                    } else {
-                        predFn = function(propValue) { return propValue == value; };
-                    }
+                    predFn = function(propValue) {
+                        if (propValue && typeof propValue === 'string') {
+                            return stringEquals(propValue, value, lqco);
+                        } else {
+                            return propValue == value;
+                        }
+                    };
                     break;
                 case FilterQueryOp.NotEquals:
-                    if (typeof value === "string") {
-                        predFn = function(propValue) { return !stringEquals(propValue, value, lqco); };
-                    } else {
-                        predFn = function(propValue) { return propValue != value; };
-                    }
+                    predFn = function (propValue) {
+                        if (propValue && typeof propValue === 'string') {
+                            return !stringEquals(propValue, value, lqco);
+                        } else {
+                            return propValue != value;
+                        }
+                    };
                     break;
                 case FilterQueryOp.GreaterThan:
                     predFn = function (propValue) { return propValue > value; };
@@ -7608,6 +7612,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringEquals(a, b, lqco) {
+            if (typeof b !== 'string') {
+                b = b.toString();
+            }
             if (lqco.usesSql92CompliantStringComparison) {
                 a = (a || "").trim();
                 b = (b || "").trim();
@@ -9990,7 +9997,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
-                    }, function() {
+                    }, function () {
+                        var XHR = rawEntities.XHR;
+                        if (!Array.isArray(rawEntities)) {
+                            rawEntities = [rawEntities];
+                        }
                         var entities = rawEntities.map(function(rawEntity) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
@@ -10933,7 +10944,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.72.2",
+        version: "0.73.1",
         core: core,
         config: a_config
     };

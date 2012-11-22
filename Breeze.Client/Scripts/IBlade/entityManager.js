@@ -1535,7 +1535,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
-                    }, function() {
+                    }, function () {
+                        var XHR = rawEntities.XHR;
+                        if (!Array.isArray(rawEntities)) {
+                            rawEntities = [rawEntities];
+                        }
                         var entities = rawEntities.map(function(rawEntity) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.

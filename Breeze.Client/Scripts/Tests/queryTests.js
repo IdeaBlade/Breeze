@@ -26,6 +26,47 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    
+
+    test("scalar server query ", function() {
+        var em = newEm();
+
+        var query = EntityQuery.from("CustomerWithScalarResult")
+            .using(em);
+        stop();
+
+        query.execute().then(function (data) {
+            ok(data.results.length === 1, "should be 1 result");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    //test("scalar server query 2 ", function () {
+    //    var em = newEm();
+
+    //    var query = EntityQuery.from("CustomerWithScalarResult")
+    //        .using(em)
+    //        .take(5);
+    //    stop();
+
+    //    query.execute().then(function (data) {
+    //        ok(data.results.length === 1, "should be 1 result");
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
+    
+    test("http 404 error thrown on server ", function () {
+        var em = newEm();
+
+        var query = EntityQuery.from("CustomersWithHttpError")
+            .using(em);
+        stop();
+
+        query.execute().then(function (data) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.status == 404, "status should be 404");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("query results notification", function () {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
