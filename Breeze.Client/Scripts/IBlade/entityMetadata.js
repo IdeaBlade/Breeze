@@ -799,7 +799,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
 
         function convertFromOdataDataProperty(entityType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.toDataType(odataProperty.type);
+            var dataType = DataType.fromEdmDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
             var isPartOfKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;

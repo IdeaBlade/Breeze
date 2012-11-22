@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
@@ -18,8 +19,9 @@ namespace Breeze.WebApi {
         PreserveReferencesHandling = PreserveReferencesHandling.Objects,
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
         TypeNameHandling = TypeNameHandling.Objects,
-        TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple
+        TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
       };
+      
       var formatter = new JsonMediaTypeFormatter();
       formatter.SerializerSettings = jsonSerializerSettings;
       formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));

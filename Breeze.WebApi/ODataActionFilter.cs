@@ -108,16 +108,21 @@ namespace Breeze.WebApi {
         });
       }
 
-      //if (!(dQuery is System.Collections.IEnumerable)) {
-      //  dQuery = new Object[] {dQuery};
-      //}
-      if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-        var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
-        var oc = new System.Net.Http.ObjectContent(dQuery.GetType(), dQuery, formatter);
-        actionExecutedContext.Response.Content = oc;
+      // execute any DbQueries here, so that any exceptions thrown can be properly returned.
+      // if we wait to have the query executed within the serializer, some exceptions will not
+      // serialize properly.
+      Object rQuery;
+      if (dQuery is IQueryable) {
+        rQuery = System.Linq.Enumerable.ToList((dynamic) dQuery);
       } else {
-        ((ObjectContent) actionExecutedContext.Response.Content).Value = dQuery;
+        rQuery = dQuery;
       }
+
+      var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
+      var oc = new System.Net.Http.ObjectContent(rQuery.GetType(), rQuery, formatter);
+      actionExecutedContext.Response.Content = oc;
+
+      
     }
 
     private static Func<IQueryable, IQueryable> BuildSelectFunc(Type elementType, List<String> selectClauses) {

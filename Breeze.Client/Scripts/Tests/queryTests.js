@@ -26,6 +26,31 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("numeric/string  query ", function () {
+        var em = newEm();
+        stop();
+        var r;
+        EntityQuery.from("Products").take(5).using(em).execute().then(function(data) {
+            var id = data.results[0].getProperty("productID").toString();
+
+            var query = new breeze.EntityQuery()
+                .from("Products").where('productID', '==', id).take(5);
+            query.using(em).execute().then(function(data2) {
+                r = data2.results;
+                ok(r.length == 1);
+                query = new breeze.EntityQuery()
+                    .from("Products").where('productID', '!=', id);
+                return query.using(em).execute();
+            }).then(function(data3) {
+                r = data3.results;
+                ok(r.length > 1);
+                start();
+            }).fail(function(e) {
+                ok(false, e);
+                start();
+            });
+        }).fail(testFns.handleFail);
+    });
     
 
     test("scalar server query ", function() {
@@ -586,7 +611,7 @@ define(["testFns"], function (testFns) {
     test("unidirectional navigation bad query", function () {
         var em = newEm();
 
-        var query = EntityQuery.from("Product")
+        var query = EntityQuery.from("Products")
             .where("productID", "==", 1)
             .expand("orderDetails");
 

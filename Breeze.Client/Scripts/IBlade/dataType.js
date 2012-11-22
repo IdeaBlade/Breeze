@@ -41,19 +41,19 @@ function (core, m_validate) {
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true , isInteger: true });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
     /**
     @property Decimal {DataType}
     @final
@@ -114,13 +114,13 @@ function (core, m_validate) {
     });
 
     /**
-    Returns the DataType for a specified type name.
-    @method toDataType
+    Returns the DataType for a specified EDM type name.
+    @method fromEdmDataType
     @static
     @param typeName {String}
     @return {DataType} A DataType.
     **/
-    DataType.toDataType = function (typeName) {
+    DataType.fromEdmDataType = function (typeName) {
         // if OData style
         var dt;
         var parts = typeName.split("Edm.");
@@ -137,6 +137,18 @@ function (core, m_validate) {
             throw new Error("Unable to recognize DataType for: " + typeName);
         }
         return dt;
+    };
+    
+    DataType.fromJsType = function (typeName) {
+        switch (typeName) {
+            case "string":
+                return DataType.String;
+            case "boolean":
+                return DataType.Boolean;
+            case "number":
+                return DataType.Int32;
+        }
+        return null;
     };
 
     function getValidatorCtor(symbol) {

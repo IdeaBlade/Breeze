@@ -27,7 +27,7 @@ define(["testFns"], function (testFns) {
     });
 
 
-    test("numeric local query ", function () {
+    test("numeric/string local query ", function () {
         var em = newEm();
         stop();
         EntityQuery.from("Products").take(5).using(em).execute().then(function (data) {

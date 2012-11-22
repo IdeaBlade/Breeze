@@ -863,25 +863,25 @@ function (core, m_entityMetadata, m_entityAspect) {
 
     var QueryFuncs = (function() {
         var obj = {
-            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: "String" },
-            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: "String" },
-            substring:   { fn: function(source, pos, length) { return source.substring(pos, length); }, dataType: "String" },
-            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: "Boolean" },
-            length:      { fn: function(source) { return source.length; }, dataType: "Number" },
-            trim:        { fn: function(source) { return source.trim(); }, dataType: "String" },
-            concat:      { fn: function(s1, s2) { return s1.concat(s2); }, dataType: "String" },
-            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: "String"},
-            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: "Boolean"},
-            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: "Boolean" },
-            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: "Number" },
-            round:       { fn: function (source) { return Math.round(source); }, dataType: "Number" },
-            ceiling:     { fn: function(source) {return Math.ceil(source); }, dataType: "Number" },
-            floor:       { fn: function (source) { return Math.floor(source); }, dataType: "Number" },
-            second:      { fn: function (source) { return source.second; }, dataType: "Number" },
-            minute:      { fn: function (source) { return source.minute; }, dataType: "Number" },
-            day:         { fn: function(source) { return source.day;}, dataType: "Number" },
-            month:       { fn: function(source) { return source.month; }, dataType: "Number" },
-            year:        { fn: function(source) { return source.year; }, dataType: "Number"},
+            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: DataType.String },
+            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
+            substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
+            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
+            length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
+            trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
+            concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
+            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: DataType.String },
+            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: DataType.Boolean },
+            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: DataType.Boolean },
+            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: DataType.Int32 },
+            round:       { fn: function (source) { return Math.round(source); }, dataType: DataType.Int32 },
+            ceiling:     { fn: function (source) { return Math.ceil(source); }, dataType: DataType.Int32 },
+            floor:       { fn: function (source) { return Math.floor(source); }, dataType: DataType.Int32 },
+            second:      { fn: function (source) { return source.second; }, dataType: DataType.Int32 },
+            minute:      { fn: function (source) { return source.minute; }, dataType: DataType.Int32 },
+            day:         { fn: function (source) { return source.day; }, dataType: DataType.Int32 },
+            month:       { fn: function (source) { return source.month; }, dataType: DataType.Int32 },
+            year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 },
         };
         
         return obj;
@@ -906,7 +906,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (quoted) {
                     var unquoted = value.substr(1, value.length - 2);
                     this.fn = function (entity) { return unquoted; };
-                    this.dataType = "String";
+                    this.dataType = DataType.String;
                 } else {
                     var isIdentifier = RX_IDENTIFIER.test(value);
                     if (isIdentifier) {
@@ -914,7 +914,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         this.fn = createPropFunction(value);
                     } else {
                         this.fn = function (entity) { return value; };
-                        this.dataType = typeof value;
+                        this.dataType = DataType.fromJsType(typeof value);
                     }
                 } 
             } else {
@@ -970,7 +970,20 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        ctor.prototype.updateWithEntityType = function(entityType) {
+            if (this.propertyPath) {
+                if (entityType.isAnonymous) return;
+                var prop = entityType.getProperty(this.propertyPath);
+                if (!prop) {
+                    var msg = core.formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
+                    throw new Error(msg);
+                }
+                this.dataType = prop.dataType;
+            }
+        };
+
+        ctor.prototype.toOdataFragment = function (entityType) {
+            this.updateWithEntityType(entityType);
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
                     return fnNode.toOdataFragment(entityType);
@@ -1400,7 +1413,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.toOdataFragment = function (entityType) {
             var exprFrag = this._fnNode.toOdataFragment(entityType);
-            var val = formatValue(this._value);
+            var val = formatValue(this._value, this._fnNode);
             if (this._filterQueryOp.isFunction) {
                 return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
             } else {
@@ -1417,7 +1430,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.toString = function () {
-            var val = formatValue(this._value);
+            var val = formatValue(this._value, this._fnNode);
             return this._fnNode.toString() + " " + this._filterQueryOp.operator + " " + val;
         };
 
@@ -1525,21 +1538,76 @@ function (core, m_entityMetadata, m_entityAspect) {
             return a.indexOf(b) >= 0;
         }
 
-        function formatValue(val) {
-            if (typeof val === "string") {
-                if (core.isGuid(val)) {
-                    return "guid'" + val + "'";
+        function formatValue(val, fnNode) {
+            if (val == null) {
+                return null;
+            }
+            
+            var msg;
+            var dataType = fnNode.dataType;
+            if (!dataType) {
+                // used for toString calls
+                if (core.isDate(val)) {
+                    dataType = DataType.DateTime;
+                } else if (core.isGuid(val)) {
+                    dataType = DataType.Guid;
                 } else {
-                    return "'" + val + "'";
+                    dataType = DataType.fromJsType(typeof val) || DataType.String;
                 }
-            } else if (core.isDate(val)) {
-                // return core.toISODateString(val);
-                return "datetime'"+val.toISOString() + "'";
-                // return val.toISOString();
+            }
+                       
+            if (dataType.isNumeric) {
+                if (typeof val === "string") {
+                    if (dataType.isInteger) {
+                        val = parseInt(val);
+                    } else {
+                        val = parseFloat(val);
+                    }
+                }
+                return val;
+            } else if (dataType === DataType.String) {
+                return "'" + val + "'";
+            } else if (dataType === DataType.DateTime) {
+                try {
+                    return "datetime'" + val.toISOString() + "'";
+                } catch(e) {
+                    msg = core.formatString("'%1' is not a valid dateTime: '%2'", fnNode.toString, val);
+                    throw new Error(msg);
+                }
+            } else if (dataType === DataType.Guid) {
+                if (!core.isGuid(val)) {
+                    msg = core.formatString("'%1' is not a valid guid: '%2'", fnNode.toString, val);
+                    throw new Error(msg);
+                }
+                return "guid'" + val + "'";
+            } else if (dataType === DataType.Boolean) {
+                if (typeof val === "string") {
+                    return val.trim().toLowerCase() === "true";
+                } else {
+                    return val;
+                }
             } else {
                 return val;
             }
+
         }
+
+        //function formatValue(val) {
+            
+        //    if (typeof val === "string") {
+        //        if (core.isGuid(val)) {
+        //            return "guid'" + val + "'";
+        //        } else {
+        //            return "'" + val + "'";
+        //        }
+        //    } else if (core.isDate(val)) {
+        //        // return core.toISODateString(val);
+        //        return "datetime'"+val.toISOString() + "'";
+        //        // return val.toISOString();
+        //    } else {
+        //        return val;
+        //    }
+        //}
 
         return ctor;
 
