@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>EntityManager - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -21,43 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
 <div id="wrap">
 
 <div id="doc">
@@ -68,20 +30,22 @@
 
     <div class="primary-nav">
 <ul>
+		
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+		
 	</ul>
 </div>
 </div>
@@ -215,7 +179,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l30"><code>entityManager.js:30</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l32"><code>entityManager.js:32</code></a>
         </div>
     
 
@@ -415,7 +379,14 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
-                                <a href="#property_dataServiceInstance">dataServiceInstance</a>
+                                <a href="#property_dataService">dataService</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_dataServiceAdapterInstance">dataServiceAdapterInstance</a>
 
                                 
                                 
@@ -541,7 +512,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l35"><code>entityManager.js:35</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l37"><code>entityManager.js:37</code></a>
         
         </p>
 
@@ -586,6 +557,20 @@
 
                                 <div class="param-description">
                                     
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[dataService]</code>
+                                    <span class="type">DataService</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>An entire DataService (instead of just the serviceName above).</p>
                                 </div>
 
                                 
@@ -658,36 +643,6 @@
                                     
                                 </div>
 
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[adapters]</code>
-                                    <span class="type">Adapter settings</span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                                    <ul class="params-list">
-                                        
-                                        <li class="param">
-                                            
-                                                <code class="param-name optional">[dataService]</code>
-                                                <span class="type">String</span>
-                                                <span class="flag optional" title="This parameter is optional.">optional</span>
-                                            
-
-                                            <div class="param-description">
-                                                dataService name
-                                            </div>
-                                        </li>
-                                        
-                                    </ul>
                                 
                             </li>
                             
@@ -790,7 +745,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l434"><code>entityManager.js:434</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l436"><code>entityManager.js:436</code></a>
         
         </p>
 
@@ -918,7 +873,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l455"><code>entityManager.js:455</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l457"><code>entityManager.js:457</code></a>
         
         </p>
 
@@ -1036,7 +991,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l347"><code>entityManager.js:347</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l345"><code>entityManager.js:345</code></a>
         
         </p>
 
@@ -1107,7 +1062,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l413"><code>entityManager.js:413</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l415"><code>entityManager.js:415</code></a>
         
         </p>
 
@@ -1200,7 +1155,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l504"><code>entityManager.js:504</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l506"><code>entityManager.js:506</code></a>
         
         </p>
 
@@ -1331,7 +1286,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l585"><code>entityManager.js:585</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l587"><code>entityManager.js:587</code></a>
         
         </p>
 
@@ -1613,7 +1568,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l662"><code>entityManager.js:662</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l664"><code>entityManager.js:664</code></a>
         
         </p>
 
@@ -1740,7 +1695,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l238"><code>entityManager.js:238</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l236"><code>entityManager.js:236</code></a>
         
         </p>
 
@@ -1880,7 +1835,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l537"><code>entityManager.js:537</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l539"><code>entityManager.js:539</code></a>
         
         </p>
 
@@ -2064,7 +2019,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l862"><code>entityManager.js:862</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l864"><code>entityManager.js:864</code></a>
         
         </p>
 
@@ -2181,7 +2136,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l883"><code>entityManager.js:883</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l885"><code>entityManager.js:885</code></a>
         
         </p>
 
@@ -2315,7 +2270,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l986"><code>entityManager.js:986</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l988"><code>entityManager.js:988</code></a>
         
         </p>
 
@@ -2339,7 +2294,7 @@ has an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> o
                 <li class="param">
                     
                         <code class="param-name optional">[entityTypes]</code>
-                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
+                        <span class="type">String | Array of String | <a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
                         <span class="flag optional" title="This parameter is optional.">optional</span>
                     
 
@@ -2347,7 +2302,7 @@ has an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> o
 
                     <div class="param-description">
                         <p>The <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s for which 'changed' entities will be found.
-If this parameter is omitted, all EntityTypes are searched.</p>
+If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</p>
                     </div>
 
                     
@@ -2449,7 +2404,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1039"><code>entityManager.js:1039</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1041"><code>entityManager.js:1041</code></a>
         
         </p>
 
@@ -2472,7 +2427,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
                 <li class="param">
                     
                         <code class="param-name optional">[entityTypes]</code>
-                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
+                        <span class="type">String | Array of String | <a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
                         <span class="flag optional" title="This parameter is optional.">optional</span>
                     
 
@@ -2480,7 +2435,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
 
                     <div class="param-description">
                         <p>The <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s for which entities will be found.
-If this parameter is omitted, all EntityTypes are searched.</p>
+If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</p>
                     </div>
 
                     
@@ -2599,7 +2554,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l924"><code>entityManager.js:924</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l926"><code>entityManager.js:926</code></a>
         
         </p>
 
@@ -2623,7 +2578,7 @@ has an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> o
                 <li class="param">
                     
                         <code class="param-name optional">[entityTypes]</code>
-                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
+                        <span class="type">String | Array of String | <a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | Array of EntityType</span>
                         <span class="flag optional" title="This parameter is optional.">optional</span>
                     
 
@@ -2631,7 +2586,7 @@ has an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> o
 
                     <div class="param-description">
                         <p>The <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s for which 'changed' entities will be found.
-If this parameter is omitted, all EntityTypes are searched.</p>
+If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</p>
                     </div>
 
                     
@@ -2741,7 +2696,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l210"><code>entityManager.js:210</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l208"><code>entityManager.js:208</code></a>
         
         </p>
 
@@ -2901,7 +2856,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l281"><code>entityManager.js:281</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l279"><code>entityManager.js:279</code></a>
         
         </p>
 
@@ -3044,7 +2999,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1016"><code>entityManager.js:1016</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1018"><code>entityManager.js:1018</code></a>
         
         </p>
 
@@ -3156,7 +3111,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l723"><code>entityManager.js:723</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l725"><code>entityManager.js:725</code></a>
         
         </p>
 
@@ -3445,7 +3400,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l372"><code>entityManager.js:372</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l370"><code>entityManager.js:370</code></a>
         
         </p>
 
@@ -3485,6 +3440,20 @@ may be set.</p>
                                 
                                     <code class="param-name optional">[serviceName]</code>
                                     <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[dataService]</code>
+                                    <span class="type">DataService</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -3551,36 +3520,6 @@ may be set.</p>
                                 
                             </li>
                             
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[adapters]</code>
-                                    <span class="type">Object</span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                                    <ul class="params-list">
-                                        
-                                        <li class="param">
-                                            
-                                                <code class="param-name optional">[dataService]</code>
-                                                <span class="type">String</span>
-                                                <span class="flag optional" title="This parameter is optional.">optional</span>
-                                            
-
-                                            <div class="param-description">
-                                                - name of a "dataService" adapter.
-                                            </div>
-                                        </li>
-                                        
-                                    </ul>
-                                
-                            </li>
-                            
                         </ul>
                     
                 </li>
@@ -3616,8 +3555,54 @@ may be set.</p>
                 <h2 class="off-left">Properties</h2>
 
                 
-                    <div id="property_dataServiceInstance" class="property item">
-    <h3 class="name"><code>dataServiceInstance</code></h3>
+                    <div id="property_dataService" class="property item">
+    <h3 class="name"><code>dataService</code></h3>
+    <span class="type">DataService</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l137"><code>entityManager.js:137</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The DataService name associated with this EntityManager.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_dataServiceAdapterInstance" class="property item">
+    <h3 class="name"><code>dataServiceAdapterInstance</code></h3>
     <span class="type">An instance of the "dataService" adapter interface</span>
 
     
@@ -3639,7 +3624,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l181"><code>entityManager.js:181</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l179"><code>entityManager.js:179</code></a>
         
         </p>
 
@@ -3685,7 +3670,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l174"><code>entityManager.js:174</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l172"><code>entityManager.js:172</code></a>
         
         </p>
 
@@ -3731,7 +3716,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l146"><code>entityManager.js:146</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l144"><code>entityManager.js:144</code></a>
         
         </p>
 
@@ -3777,7 +3762,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l153"><code>entityManager.js:153</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l151"><code>entityManager.js:151</code></a>
         
         </p>
 
@@ -3823,7 +3808,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l160"><code>entityManager.js:160</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l158"><code>entityManager.js:158</code></a>
         
         </p>
 
@@ -3869,7 +3854,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l139"><code>entityManager.js:139</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l130"><code>entityManager.js:130</code></a>
         
         </p>
 
@@ -3915,7 +3900,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l167"><code>entityManager.js:167</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l165"><code>entityManager.js:165</code></a>
         
         </p>
 
@@ -3971,7 +3956,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l189"><code>entityManager.js:189</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l187"><code>entityManager.js:187</code></a>
         
         </p>
 
@@ -4084,7 +4069,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l960"><code>entityManager.js:960</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l962"><code>entityManager.js:962</code></a>
         
         </p>
 
@@ -4171,19 +4156,19 @@ em.hasChanges.subscribe(function(args) {
 <div class="primary-nav-foot">
 	<ul>
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>
 </div>
 </div>

@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>entityMetadata.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -21,43 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
 <div id="wrap">
 
 <div id="doc">
@@ -68,20 +30,22 @@
 
     <div class="primary-nav">
 <ul>
+		
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+		
 	</ul>
 </div>
 </div>
@@ -477,7 +441,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam(&quot;namingConvention&quot;).isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
                 .whereParam(&quot;localQueryComparisonOptions&quot;).isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
                 .applyAll(this);
-            this.serviceNames = []; &#x2F;&#x2F; array of serviceNames
+            this.dataServices = []; &#x2F;&#x2F; array of dataServices;
             this._resourceEntityTypeMap = {}; &#x2F;&#x2F; key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; &#x2F;&#x2F; key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; &#x2F;&#x2F; key is qualified entitytype name - value is entityType.
@@ -489,6 +453,24 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         ctor.prototype._$typeName = &quot;MetadataStore&quot;;
         ctor.ANONTYPE_PREFIX = &quot;_IB_&quot;;
+
+        &#x2F;**
+        Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
+        in the MetadataStore an exception will be thrown. 
+        @method addDataService
+        @param dataService {DataService} The DataService to add
+        **&#x2F;
+        
+        ctor.prototype.addDataService = function(dataService) {
+            assertParam(dataService, &quot;dataService&quot;).isInstanceOf(DataService).check();
+            var alreadyExists = this.dataServices.some(function(ds) {
+                return dataService.serviceName === ds.serviceName;
+            });
+            if (alreadyExists) {
+                throw new Error(&quot;A dataService with this name &#x27;&quot; + dataService.serviceName + &quot;&#x27; already exists in this MetadataStore&quot;);
+            }
+            this.dataServices.push(dataService);
+        };
 
         &#x2F;**
         Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
@@ -628,12 +610,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **&#x2F;
-        ctor.prototype.hasMetadataFor = function (serviceName) {
+        ctor.prototype.hasMetadataFor = function(serviceName) {
+            return !!this.getDataService(serviceName);
+        };
+        
+        &#x2F;**
+       Returns the DataService for a specified service name
+       @example
+           &#x2F;&#x2F; Assume em1 is an existing EntityManager.
+           var ds = em1.metadataStore.getDataService(&quot;api&#x2F;NorthwindIBModel&quot;);
+           var adapterName = ds.adapterName; &#x2F;&#x2F; may be null
+           
+       @method hasMetadataFor
+       @param serviceName {String} The service name.
+       @return {Boolean}
+       **&#x2F;
+        ctor.prototype.getDataService = function (serviceName) {
             assertParam(serviceName, &quot;serviceName&quot;).isString().check();
-            if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
-                serviceName = serviceName + &#x27;&#x2F;&#x27;;
-            }
-            return this.serviceNames.indexOf(serviceName) &gt;= 0;
+
+            serviceName = DataService._normalizeServiceName(serviceName);
+            return core.arrayFirst(this.dataServices, function (ds) {
+                return ds.serviceName === serviceName;
+            });
         };
 
         &#x2F;**
@@ -656,8 +654,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         @method fetchMetadata
         @async
-        @param serviceName {String}  The service name to fetch metadata for.
-        @param [dataServiceAdapterName] {String} - name of a dataService adapter - will default to a default dataService adapter
+        @param dataService {DataService|String}  Either a DataService or just the name of the DataService to fetch metadata for.
+        
         @param [callback] {Function} Function called on success.
         
             successFunction([data])
@@ -670,25 +668,30 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @return {Promise} Promise
         **&#x2F;
-        ctor.prototype.fetchMetadata = function (serviceName, dataServiceAdapterName, callback, errorCallback) {
-            assertParam(serviceName, &quot;serviceName&quot;).isString().check();
-            assertParam(dataServiceAdapterName, &quot;dataServiceAdapterName&quot;).isOptional().isString();
+        ctor.prototype.fetchMetadata = function (dataService, callback, errorCallback) {
+            assertParam(dataService, &quot;dataService&quot;).isString().or().isInstanceOf(DataService).check();
             assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
             assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             
-            if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
-                serviceName = serviceName + &#x27;&#x2F;&#x27;;
+            if (typeof dataService === &quot;string&quot;) {
+                &#x2F;&#x2F; use the dataService with a matching name or create a new one.
+                dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
+
+            var serviceName = dataService.serviceName;
             
             if (this.hasMetadataFor(serviceName)) {
                 throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + serviceName);
             }
             
-            var dataServiceInstance = a_config.getAdapterInstance(&quot;dataService&quot;, dataServiceAdapterName);
+            var dataServiceAdapterInstance = a_config.getAdapterInstance(&quot;dataService&quot;, dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            var that = this;
             return deferred.promise.then(function (rawMetadata) {
+                &#x2F;&#x2F; this.dataServices.push(dataService);
+                that.addDataService(dataService);
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -734,7 +737,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
         @param entityCtor {Function}  The constructor for this EntityType.
-        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created.
+        @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+        and populated with any initial values.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
@@ -773,7 +777,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Boolean}
         **&#x2F;
         ctor.prototype.isEmpty = function () {
-            return this.serviceNames.length === 0;
+            return this.dataServices.length === 0;
         };
 
 
@@ -908,7 +912,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
-            this.serviceNames.push(serviceName);
             var that = this;
             toArray(schemas).forEach(function (schema) {
                 if (schema.entityContainer) {
@@ -921,7 +924,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
-                        var entityType = convertFromODataEntityType(et, schema, that, serviceName);
+                        var entityType = convertFromODataEntityType(et, schema, that);
 
                         &#x2F;&#x2F; check if this entityTypeName, short version or qualified version has a registered ctor.
                         var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
@@ -940,6 +943,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error(&quot;Bad nav properties&quot;);
             }
         };
+        
+        
 
         function getQualifiedTypeName(metadataStore, entityTypeName, throwIfNotFound) {
             if (isQualifiedTypeName(entityTypeName)) return entityTypeName;
@@ -950,7 +955,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return result;
         }
 
-        function convertFromODataEntityType(odataEntityType, schema, metadataStore, serviceName) {
+        function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
             var namespace = translateNamespace(schema, schema.namespace);
             var entityType = new EntityType({
@@ -1116,9 +1121,31 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     })();
 
     var DataService = function() {
-        var ctor = function() {
+        var ctor = function(config) {
+            if (arguments.length != 1) {
+                throw new Error(&quot;The DataService ctor should be called with a single argument that is a configuration object.&quot;);
+            }
 
+            assertConfig(config)
+                .whereParam(&quot;serviceName&quot;).isNonEmptyString()
+                .whereParam(&quot;adapterName&quot;).isString().isOptional().withDefault(null)
+                .whereParam(&quot;hasServerMetadata&quot;).isBoolean().isOptional().withDefault(true)
+                .applyAll(this);
+            this.serviceName = DataService._normalizeServiceName(this.serviceName);
+            
         };
+
+        ctor._normalizeServiceName = function(serviceName) {
+            serviceName = serviceName.trim();
+            if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
+                return serviceName + &#x27;&#x2F;&#x27;;
+            } else {
+                return serviceName;
+            }
+        };
+        
+        ctor.prototype._$typeName = &quot;DataService&quot;;
+        
         return ctor;
     }();
 
@@ -1513,10 +1540,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var cust1 = custType.createEntity();
             em1.addEntity(cust1);
         @method createEntity
+        @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **&#x2F;
-        ctor.prototype.createEntity = function () {
-            return this._createEntity(false);
+        ctor.prototype.createEntity = function (initialValues) {
+            if (initialValues) {
+                var entity = this._createEntity(true);
+                core.objectForEach(initialValues, function(key, value) {
+                    entity.setProperty(key, value);
+                });
+                entity.entityAspect._postInitialize();
+                return entity;
+            } else {
+                return this._createEntity(false);
+            }
+            
         };
 
         ctor.prototype._createEntity = function(deferInitialization) {
@@ -2326,6 +2364,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
     return {
         MetadataStore: MetadataStore,
+        DataService: DataService,
         EntityType: EntityType,
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
@@ -2350,19 +2389,19 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 <div class="primary-nav-foot">
 	<ul>
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>
 </div>
 </div>

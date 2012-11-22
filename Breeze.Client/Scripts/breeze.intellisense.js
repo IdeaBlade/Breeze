@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Nov 19 2012 17:53:17 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Wed Nov 21 2012 18:09:42 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -806,7 +806,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   Returns whether there are any changed entities of the specified  'EntityType's. A 'changed' Entity has
     ///   has an  'EntityState' of either Added, Modified or Deleted.
     ///   </summary>
-    ///   <param name="entityTypes" type="EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched.</param>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
     ///   <returns type="Boolean" >Whether there were any changed entities.</returns>
     /// </signature>
   },
@@ -816,7 +816,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   Returns a array of all changed entities of the specified  'EntityType's. A 'changed' Entity has
     ///   has an  'EntityState' of either Added, Modified or Deleted.
     ///   </summary>
-    ///   <param name="entityTypes" type="EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched.</param>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
     ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
     /// </signature>
   },
@@ -833,7 +833,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <summary>
     ///   Returns a array of all entities of the specified  'EntityType's with the specified  'EntityState's.
     ///   </summary>
-    ///   <param name="entityTypes" type="EntityType|Array of EntityType" optional="true">The  'EntityType's for which entities will be found. If this parameter is omitted, all EntityTypes are searched.</param>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
     ///   <param name="entityState" type="EntityState|Array of EntityState" optional="true">The  'EntityState's for which entities will be found. If this parameter is omitted, entities of all EntityStates are returned.</param>
     ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
     /// </signature>
@@ -841,6 +841,9 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   
   /// <field name="serviceName" type="String" >The service name associated with this EntityManager.</field>
   'serviceName': null,
+  
+  /// <field name="dataService" type="DataService" >The DataService name associated with this EntityManager.</field>
+  'dataService': null,
   
   /// <field name="metadataStore" type="breeze.breeze.MetadataStore" >The  'MetadataStore' associated with this EntityManager. </field>
   'metadataStore': null,
@@ -857,8 +860,8 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   /// <field name="keyGeneratorCtor" type="KeyGenerator constructor" >The  'KeyGenerator' constructor associated with this EntityManager.</field>
   'keyGeneratorCtor': null,
   
-  /// <field name="dataServiceInstance" type="An instance of the &quot;dataService&quot; adapter interface" >The 'dataService' adapter implementation instance associated with this EntityManager.</field>
-  'dataServiceInstance': null,
+  /// <field name="dataServiceAdapterInstance" type="An instance of the &quot;dataService&quot; adapter interface" >The 'dataService' adapter implementation instance associated with this EntityManager.</field>
+  'dataServiceAdapterInstance': null,
   
 });
 intellisense.annotate(breeze.breeze.EntityManager, {
@@ -1077,6 +1080,16 @@ intellisense.annotate(breeze.breeze.NamingConvention, {
 
 intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   
+  'addDataService': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
+    ///   in the MetadataStore an exception will be thrown.
+    ///   </summary>
+    ///   <param name="dataService" type="DataService" optional="true">The DataService to add</param>
+    
+    /// </signature>
+  },
   'addEntityType': function() {
     /// <signature>
     ///   <summary>
@@ -1114,14 +1127,22 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   <returns type="Boolean" ></returns>
     /// </signature>
   },
+  'hasMetadataFor': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns the DataService for a specified service name
+    ///   </summary>
+    ///   <param name="serviceName" type="String" optional="true">The service name.</param>
+    ///   <returns type="Boolean" ></returns>
+    /// </signature>
+  },
   'fetchMetadata': function() {
     /// <signature>
     ///   <summary>
     ///   Fetches the metadata for a specified 'service'. This method is automatically called 
     ///   internally by an EntityManager before its first query against a new service.
     ///   </summary>
-    ///   <param name="serviceName" type="String" optional="true">The service name to fetch metadata for.</param>
-    ///   <param name="dataServiceAdapterName" type="String" optional="true">- name of a dataService adapter - will default to a default dataService adapter</param>
+    ///   <param name="dataService" type="DataService|String" optional="true">Either a DataService or just the name of the DataService to fetch metadata for.</param>
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.</param>
     ///   <returns type="breeze.breeze.Promise" >Promise</returns>
@@ -1149,7 +1170,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   </summary>
     ///   <param name="entityTypeName" type="String" optional="true">The name of the EntityType</param>
     ///   <param name="entityCtor" type="Function" optional="true">The constructor for this EntityType.</param>
-    ///   <param name="initializationFn" type="Function" optional="true">A function or the name of a function on the entity that is to be executed immediately after the entity has been created.      initializationFn(entity)</param>
+    ///   <param name="initializationFn" type="Function" optional="true">A function or the name of a function on the entity that is to be executed immediately after the entity has been created and populated with any initial values.      initializationFn(entity)</param>
     
     /// </signature>
   },
@@ -1223,6 +1244,7 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
     ///   <summary>
     ///   Create a new entity of this type.
     ///   </summary>
+    ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <returns type="Entity" >The new entity.</returns>
     /// </signature>
   },

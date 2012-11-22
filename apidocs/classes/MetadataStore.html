@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>MetadataStore - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -21,43 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
 <div id="wrap">
 
 <div id="doc">
@@ -68,20 +30,22 @@
 
     <div class="primary-nav">
 <ul>
+		
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+		
 	</ul>
 </div>
 </div>
@@ -270,6 +234,13 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_addDataService">addDataService</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_addEntityType">addEntityType</a>
 
                                 
@@ -299,6 +270,13 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                         
                             <li class="index-item method">
                                 <a href="#method_getEntityTypes">getEntityTypes</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_hasMetadataFor">hasMetadataFor</a>
 
                                 
                                 
@@ -520,6 +498,94 @@ em1.setProperties( { metadataStore: ms });
 </div>
 
                 
+                    <div id="method_addDataService" class="method item">
+    <h3 class="name"><code>addDataService</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>dataService</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l280"><code>entityMetadata.js:280</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
+in the MetadataStore an exception will be thrown.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">dataService</code>
+                        <span class="type">DataService</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The DataService to add</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="method_addEntityType" class="method item">
     <h3 class="name"><code>addEntityType</code></h3>
 
@@ -562,7 +628,7 @@ em1.setProperties( { metadataStore: ms });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l280"><code>entityMetadata.js:280</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l298"><code>entityMetadata.js:298</code></a>
         
         </p>
 
@@ -644,7 +710,7 @@ been added to the MetadataStore.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l309"><code>entityMetadata.js:309</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l327"><code>entityMetadata.js:327</code></a>
         
         </p>
 
@@ -704,13 +770,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
                 <li class="arg">
                     
-                        <code>serviceName</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code class="optional">[dataServiceAdapterName]</code>
+                        <code>dataService</code>
                     
                 </li>
             
@@ -761,7 +821,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l426"><code>entityMetadata.js:426</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l460"><code>entityMetadata.js:460</code></a>
         
         </p>
 
@@ -784,32 +844,14 @@ internally by an EntityManager before its first query against a new service.</p>
             
                 <li class="param">
                     
-                        <code class="param-name">serviceName</code>
-                        <span class="type">String</span>
+                        <code class="param-name">dataService</code>
+                        <span class="type">DataService | String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>The service name to fetch metadata for.</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[dataServiceAdapterName]</code>
-                        <span class="type">String</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <ul>
-<li>name of a dataService adapter - will default to a default dataService adapter</li>
-</ul>
+                        <p>Either a DataService or just the name of the DataService to fetch metadata for.</p>
                     </div>
 
                     
@@ -983,7 +1025,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l567"><code>entityMetadata.js:567</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l607"><code>entityMetadata.js:607</code></a>
         
         </p>
 
@@ -1108,7 +1150,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l598"><code>entityMetadata.js:598</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l638"><code>entityMetadata.js:638</code></a>
         
         </p>
 
@@ -1198,7 +1240,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l407"><code>entityMetadata.js:407</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l425"><code>entityMetadata.js:425</code></a>
         
         </p>
 
@@ -1267,6 +1309,120 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
 </div>
 
                 
+                    <div id="method_hasMetadataFor" class="method item">
+    <h3 class="name"><code>hasMetadataFor</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>serviceName</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Boolean</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l440"><code>entityMetadata.js:440</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the DataService for a specified service name</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">serviceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The service name.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Boolean</span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// Assume em1 is an existing EntityManager.
+var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+var adapterName = ds.adapterName; // may be null
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_importMetadata" class="method item">
     <h3 class="name"><code>importMetadata</code></h3>
 
@@ -1315,7 +1471,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l386"><code>entityMetadata.js:386</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l404"><code>entityMetadata.js:404</code></a>
         
         </p>
 
@@ -1435,7 +1591,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l333"><code>entityMetadata.js:333</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l351"><code>entityMetadata.js:351</code></a>
         
         </p>
 
@@ -1544,7 +1700,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l552"><code>entityMetadata.js:552</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l592"><code>entityMetadata.js:592</code></a>
         
         </p>
 
@@ -1644,7 +1800,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l504"><code>entityMetadata.js:504</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l543"><code>entityMetadata.js:543</code></a>
         
         </p>
 
@@ -1708,7 +1864,8 @@ Metadata discovery.</p>
                     
 
                     <div class="param-description">
-                        <p>A function or the name of a function on the entity that is to be executed immediately after the entity has been created.</p>
+                        <p>A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+and populated with any initial values.</p>
 
 <p>initializationFn(entity)</p>
                     </div>
@@ -1809,7 +1966,7 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l488"><code>entityMetadata.js:488</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l527"><code>entityMetadata.js:527</code></a>
         
         </p>
 
@@ -1902,7 +2059,7 @@ i.e. an unmapped type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l302"><code>entityMetadata.js:302</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l320"><code>entityMetadata.js:320</code></a>
         
         </p>
 
@@ -1943,19 +2100,19 @@ i.e. an unmapped type.</p>
 <div class="primary-nav-foot">
 	<ul>
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>
 </div>
 </div>

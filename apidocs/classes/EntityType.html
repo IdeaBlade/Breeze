@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <title>EntityType - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
@@ -21,43 +20,6 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
   })();
 </script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34729465-1']);
-  _gaq.push(['_setDomainName', 'breezejs.com']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-
-<script type="text/javascript">
-    var _elqQ = _elqQ || [];
-    _elqQ.push(['elqSetSiteId', '1020']);
-    _elqQ.push(['elqTrackPageView']);
-    
-    (function () {
-        function async_load() {
-            var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-            s.src = '//img.en25.com/i/elqCfg.min.js';
-            var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
-        }
-        if (window.addEventListener) window.addEventListener('DOMContentLoaded', async_load, false);
-        else if (window.attachEvent) window.attachEvent('onload', async_load); 
-    })();
-</script>
-
-
-
-
-
-
 <div id="wrap">
 
 <div id="doc">
@@ -68,20 +30,22 @@
 
     <div class="primary-nav">
 <ul>
+		
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+		
 	</ul>
 </div>
 </div>
@@ -215,7 +179,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l913"><code>entityMetadata.js:913</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l976"><code>entityMetadata.js:976</code></a>
         </div>
     
 
@@ -501,7 +465,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l920"><code>entityMetadata.js:920</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l983"><code>entityMetadata.js:983</code></a>
         
         </p>
 
@@ -633,7 +597,7 @@ client side use and will be given an automatically generated name. Normally, how
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1089"><code>entityMetadata.js:1089</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1152"><code>entityMetadata.js:1152</code></a>
         
         </p>
 
@@ -738,7 +702,7 @@ myEntityType.addProperty(navigationProperty1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1359"><code>entityMetadata.js:1359</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1433"><code>entityMetadata.js:1433</code></a>
         
         </p>
 
@@ -831,7 +795,17 @@ custType.addValidator(countryValidator, countryProp);
     <h3 class="name"><code>createEntity</code></h3>
 
     
-        <span class="paren">()</span>
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[initialValues]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
     
 
     
@@ -863,7 +837,7 @@ custType.addValidator(countryValidator, countryProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1295"><code>entityMetadata.js:1295</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1358"><code>entityMetadata.js:1358</code></a>
         
         </p>
 
@@ -877,6 +851,32 @@ custType.addValidator(countryValidator, countryProp);
         <p>Create a new entity of this type.</p>
     </div>
 
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[initialValues]</code>
+                        <span class="type">Config object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>Configuration object of the properties to set immediately after creation.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
     
 
     
@@ -956,7 +956,7 @@ em1.addEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1425"><code>entityMetadata.js:1425</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1499"><code>entityMetadata.js:1499</code></a>
         
         </p>
 
@@ -1061,7 +1061,7 @@ var customerNameDataProp = custType.getDataProperty("CustomerName");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1316"><code>entityMetadata.js:1316</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1390"><code>entityMetadata.js:1390</code></a>
         
         </p>
 
@@ -1142,7 +1142,7 @@ var customerNameDataProp = custType.getDataProperty("CustomerName");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1440"><code>entityMetadata.js:1440</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1514"><code>entityMetadata.js:1514</code></a>
         
         </p>
 
@@ -1247,7 +1247,7 @@ var customerOrdersNavProp = custType.getDataProperty("Orders");
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1399"><code>entityMetadata.js:1399</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1473"><code>entityMetadata.js:1473</code></a>
         
         </p>
 
@@ -1345,7 +1345,7 @@ var arrayOfProps = custType.getProperties();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1455"><code>entityMetadata.js:1455</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1529"><code>entityMetadata.js:1529</code></a>
         
         </p>
 
@@ -1473,7 +1473,7 @@ var companyNameProp2 = orderDetailType.getProperty("Order.Customer.CompanyName")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1412"><code>entityMetadata.js:1412</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1486"><code>entityMetadata.js:1486</code></a>
         
         </p>
 
@@ -1560,7 +1560,7 @@ var arrayOfPropNames = custType.getPropertyNames();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1065"><code>entityMetadata.js:1065</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1128"><code>entityMetadata.js:1128</code></a>
         
         </p>
 
@@ -1687,7 +1687,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1502"><code>entityMetadata.js:1502</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1576"><code>entityMetadata.js:1576</code></a>
         
         </p>
 
@@ -1752,7 +1752,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1046"><code>entityMetadata.js:1046</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1109"><code>entityMetadata.js:1109</code></a>
         
         </p>
 
@@ -1800,7 +1800,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1001"><code>entityMetadata.js:1001</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1064"><code>entityMetadata.js:1064</code></a>
         
         </p>
 
@@ -1846,7 +1846,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l973"><code>entityMetadata.js:973</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1036"><code>entityMetadata.js:1036</code></a>
         
         </p>
 
@@ -1892,7 +1892,7 @@ custType.setProperties( {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1016"><code>entityMetadata.js:1016</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1079"><code>entityMetadata.js:1079</code></a>
         
         </p>
 
@@ -1940,7 +1940,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l994"><code>entityMetadata.js:994</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1057"><code>entityMetadata.js:1057</code></a>
         
         </p>
 
@@ -1986,7 +1986,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l987"><code>entityMetadata.js:987</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1050"><code>entityMetadata.js:1050</code></a>
         
         </p>
 
@@ -2032,7 +2032,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l966"><code>entityMetadata.js:966</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1029"><code>entityMetadata.js:1029</code></a>
         
         </p>
 
@@ -2078,7 +2078,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1025"><code>entityMetadata.js:1025</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1088"><code>entityMetadata.js:1088</code></a>
         
         </p>
 
@@ -2124,7 +2124,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1039"><code>entityMetadata.js:1039</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1102"><code>entityMetadata.js:1102</code></a>
         
         </p>
 
@@ -2170,7 +2170,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l980"><code>entityMetadata.js:980</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1043"><code>entityMetadata.js:1043</code></a>
         
         </p>
 
@@ -2216,7 +2216,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1032"><code>entityMetadata.js:1032</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1095"><code>entityMetadata.js:1095</code></a>
         
         </p>
 
@@ -2262,7 +2262,7 @@ or when executing any <a href="..\classes\EntityQuery.html" class="crosslink">En
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1008"><code>entityMetadata.js:1008</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1071"><code>entityMetadata.js:1071</code></a>
         
         </p>
 
@@ -2309,7 +2309,7 @@ properties.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1054"><code>entityMetadata.js:1054</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1117"><code>entityMetadata.js:1117</code></a>
         
         </p>
 
@@ -2351,19 +2351,19 @@ removed from this collection.</p>
 <div class="primary-nav-foot">
 	<ul>
 		<li>
-			<a href="/home">Home</a></li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/documentation/download">Download</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="/samples">Samples</a></li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
-			<a href="/documentation/introduction">Docs</a></li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
-			<a href="/sites/all/apidocs/index.html" target="_blank">API</a></li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/" target="_blank">Forum</a></li>
+			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
 		<li>
-			<a href="/contact">Contact</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>
 </div>
 </div>
