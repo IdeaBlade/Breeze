@@ -111,7 +111,34 @@ define(["testFns"], function (testFns) {
         .fin(start);
     });
   
-    
+    /*********************************************************
+    * Can run two queries in parallel for fresh EM w/ empty metadataStore
+    *********************************************************/
+    test("Can run two queries in parallel for fresh EM w/ empty metadataStore", 1,
+        function () {
+            var em = new breeze.EntityManager("api/Northwind");
+            var query = breeze.EntityQuery.from("Customers");
+            var successCount = 0;
+            stop();
+            var prom1 = em.executeQuery(query)
+                .then(function () { return successCount++; })
+                .fail(queryFailed);
+            var prom2 = em.executeQuery(query)
+               .then(function () { return successCount++; })
+               .fail(queryFailed);
+
+            Q.all([prom1, prom2])
+                .then(function () {
+                    equal(successCount, 2, "two queries should succeed");
+                })
+                .fail(queryFailed)
+                .fin(start);
+
+            function queryFailed(error) {
+                ok(false, "query failed when successCount is " + successCount +
+                    " with error message = " + error.message);
+            }
+        });
 
 
     /*** NamingConvention Tests ***/
