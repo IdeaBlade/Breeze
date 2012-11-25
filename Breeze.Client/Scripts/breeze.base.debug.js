@@ -4448,8 +4448,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                // this.dataServices.push(dataService);
-                that.addDataService(dataService);
+                // might have been fetched by another query
+                if (!that.hasMetadataFor(serviceName)) {
+                    that.addDataService(dataService);
+                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -7686,6 +7688,8 @@ function (core, m_entityMetadata, m_entityAspect) {
                 // used for toString calls
                 if (core.isDate(val)) {
                     dataType = DataType.DateTime;
+                } else if (core.isGuid(val)) {
+                    dataType = DataType.Guid;
                 } else {
                     dataType = DataType.fromJsType(typeof val) || DataType.String;
                 }
@@ -11022,7 +11026,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.73.1",
+        version: "0.73.3",
         core: core,
         config: a_config
     };
