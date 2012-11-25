@@ -513,8 +513,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                // this.dataServices.push(dataService);
-                that.addDataService(dataService);
+                // might have been fetched by another query
+                if (!that.hasMetadataFor(serviceName)) {
+                    that.addDataService(dataService);
+                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {

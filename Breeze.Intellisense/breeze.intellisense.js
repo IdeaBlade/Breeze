@@ -1,4 +1,4 @@
-﻿// Generated on: Wed Nov 21 2012 18:09:42 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Nov 24 2012 16:25:29 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -321,10 +321,10 @@ intellisense.annotate(breeze.breeze.DataType.prototype, {
 });
 intellisense.annotate(breeze.breeze.DataType, {
   
-  'toDataType': function() {
+  'fromEdmDataType': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns the DataType for a specified type name.
+    ///   Returns the DataType for a specified EDM type name.
     ///   </summary>
     ///   <param name="typeName" type="String" optional="true"></param>
     ///   <returns type="breeze.breeze.DataType >A DataType.</returns>
