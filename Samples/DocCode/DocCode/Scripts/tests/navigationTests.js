@@ -9,12 +9,11 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
     var breeze = testFns.breeze;
-    var entityModel = breeze.entityModel;
 
     var handleFail = testFns.handleFail;
-    var EntityQuery = entityModel.EntityQuery;
-    var Predicate = entityModel.Predicate;
-    var EntityState = entityModel.EntityState;
+    var EntityQuery = breeze.EntityQuery;
+    var Predicate = breeze.Predicate;
+    var EntityState = breeze.EntityState;
 
     // We'll use this "alfred's predicate" a lot
     // e.g. to find Orders that belong to the Alfred's customer
@@ -452,7 +451,7 @@ define(["testFns"], function (testFns) {
 
         var newOrder = createOrder();
 
-        equal(newOrder.entityAspect.entityState, entityModel.EntityState.Detached,
+        equal(newOrder.entityAspect.entityState, breeze.EntityState.Detached,
             "newOrder's entityState is 'Detached' because not yet in cache");
         
         // N.B.: Have not added newOrder explicitly to cache.
@@ -464,7 +463,7 @@ define(["testFns"], function (testFns) {
         // newOrder.CustomerID(existingCustomer.CustomerID());
         // em.addEntity(newOrder); // now must add explicitly
 
-        equal(newOrder.entityAspect.entityState, entityModel.EntityState.Added,
+        equal(newOrder.entityAspect.entityState, breeze.EntityState.Added,
             "newOrder's entityState is 'Added' after setting its Customer");
 
         ok(newOrder.entityAspect.entityManager === em,
@@ -486,7 +485,7 @@ define(["testFns"], function (testFns) {
 
         existingOrder.Customer(existingCustomer);
 
-        equal(existingOrder.entityAspect.entityState, entityModel.EntityState.Modified,
+        equal(existingOrder.entityAspect.entityState, breeze.EntityState.Modified,
              "order's entityState is 'Modified' after setting its Customer");
 
     });
@@ -695,7 +694,7 @@ define(["testFns"], function (testFns) {
         var order = firstDetail.Order();
         ok(order !== null, "OrderDetail.Order returns the parent Order");
 
-        equal(order.entityAspect.entityState, entityModel.EntityState.Unchanged,
+        equal(order.entityAspect.entityState, breeze.EntityState.Unchanged,
             "order's entityState remains 'Unchanged' after getting its details by query");
 
         equal(order.OrderDetails().length, details.length,
@@ -747,7 +746,7 @@ define(["testFns"], function (testFns) {
         });
 
         // this refresh query will fill the customer values from remote storage
-        var refreshQuery = entityModel.EntityQuery.fromEntities(customer);
+        var refreshQuery = breeze.EntityQuery.fromEntities(customer);
 
         stop(); // going async ...
 
@@ -783,14 +782,14 @@ define(["testFns"], function (testFns) {
         var newCustomer = createCustomer();
         var newOrder = createOrder();
 
-        equal(newCustomer.entityAspect.entityState, entityModel.EntityState.Detached,
+        equal(newCustomer.entityAspect.entityState, breeze.EntityState.Detached,
             "newCustomer's entityState is 'Detached' because not in cache");
-        equal(newOrder.entityAspect.entityState, entityModel.EntityState.Detached,
+        equal(newOrder.entityAspect.entityState, breeze.EntityState.Detached,
             "newOrder's entityState is 'Detached' because not in cache");
 
         newOrder.Customer(newCustomer);
 
-        equal(newOrder.entityAspect.entityState, entityModel.EntityState.Detached,
+        equal(newOrder.entityAspect.entityState, breeze.EntityState.Detached,
              "newOrder's entityState is 'Detached' after setting its Customer");
 
         ok(newOrder.Customer() === newCustomer,

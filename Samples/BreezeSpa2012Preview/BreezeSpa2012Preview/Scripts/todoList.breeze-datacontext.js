@@ -1,7 +1,6 @@
 ﻿window.TodoApp.datacontext = (function (breeze, config) {
 
-    var entityModel = breeze.entityModel, // namespace
-        manager = config.createManager(),
+    var manager = config.createManager(),
         metadataStore = manager.metadataStore,
 
         datacontext = {
@@ -21,7 +20,7 @@
     return datacontext;
 
     function getTodoLists(todoListsObservable, errorObservable) {
-        return entityModel.EntityQuery
+        return breeze.EntityQuery
             .from("TodoLists").expand("Todos")
             .using(manager).execute()
             .then(querySucceeded)

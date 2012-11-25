@@ -6,10 +6,6 @@
 define(["breeze"], function (breeze) {
 
     "use strict";
-    
-    // Default configured for Knockout binding and Web API persistence services
-    var core = breeze.core,
-        entityModel = breeze.entityModel;
 
     extendString();
 
@@ -117,12 +113,12 @@ define(["breeze"], function (breeze) {
     //    var em = newEm();
     function newEmFactory(serviceName) {
         var factory = function () {
-            return new entityModel.EntityManager(factory.options);
+            return new breeze.EntityManager(factory.options);
         };
         factory.options = {
             serviceName: serviceName,
             // every module gets its own metadataStore; they do not share the default
-            metadataStore: new entityModel.MetadataStore()
+            metadataStore: new breeze.MetadataStore()
         };
         return factory;
     }
@@ -188,7 +184,7 @@ define(["breeze"], function (breeze) {
     *********************************************************/
     // get an EntityManager from arg (which is either an em or an em factory)
     function ensureIsEm(em) {
-        if (!(em instanceof entityModel.EntityManager)) {
+        if (!(em instanceof breeze.EntityManager)) {
             return em(); // assume it's an EntityManager factory, e.g. "newEm".
         }
         return em;
@@ -372,7 +368,7 @@ define(["breeze"], function (breeze) {
         };
         var arrayCopy = collection.map(function (o) { return o; });
         arrayCopy.sort(fn);
-        ok(core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
+        ok(breeze.core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
     }
 
     /*********************************************************
@@ -389,7 +385,7 @@ define(["breeze"], function (breeze) {
         if (!str) {
             return "_X";
         }
-        if (str.length > 1 && core.stringEndsWith(str, "_X")) {
+        if (str.length > 1 && breeze.core.stringEndsWith(str, "_X")) {
             return str.substr(0, str.length - 2);
         } else {
             return str + "_X";

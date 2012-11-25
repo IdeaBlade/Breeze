@@ -7,8 +7,8 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
 
-    var entityModel = testFns.breeze.entityModel;
-    var MetadataStore = entityModel.MetadataStore;
+    var breeze = testFns.breeze;
+    var MetadataStore = breeze.MetadataStore;
     
 
     var moduleMetadataStore = new MetadataStore();
@@ -151,7 +151,7 @@ define(["testFns"], function (testFns) {
     // Populate the namingConventionMetadataStore with Northwind service metadata
     // Use the camelCase naming convention shipped in Breeze
     // N.B.: Typically would set the naming convention one for all application managers
-    //       e.g. entityModel.NamingConvention.camelCase.setAsDefault();
+    //       e.g. breeze.NamingConvention.camelCase.setAsDefault();
     //       Not doing so in these tests in order to avoid cross-test pollution
     function namingConventionMetadataStoreSetup() {
         
@@ -159,7 +159,7 @@ define(["testFns"], function (testFns) {
 
         camelCaseMetadataStore =
             // use the camelCase naming convention shipped in Breeze
-            new MetadataStore({ namingConvention: entityModel.NamingConvention.camelCase });
+            new MetadataStore({ namingConvention: breeze.NamingConvention.camelCase });
 
         var fetchMetadataPromises =
             [camelCaseMetadataStore.fetchMetadata(northwindService)];
@@ -177,7 +177,7 @@ define(["testFns"], function (testFns) {
     }
 
     // A naming convention that prepends an underscore (_) to every property name.
-    var underscoreNamingConvention = new entityModel.NamingConvention({
+    var underscoreNamingConvention = new breeze.NamingConvention({
         serverPropertyNameToClient: function(serverPropertyName) {
             return "_" + serverPropertyName;
         },
@@ -213,13 +213,13 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("query with camelCasing NamingConvention", 1, function () {
 
-        var em = new entityModel.EntityManager(
+        var em = new breeze.EntityManager(
             {
                 serviceName: northwindService,
                 metadataStore: camelCaseMetadataStore
             });
 
-        var query = entityModel.EntityQuery.from("Customers")
+        var query = breeze.EntityQuery.from("Customers")
             // notice using camelCase property name in predicate!
             .where("companyName", "startsWith", "A");
 

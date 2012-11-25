@@ -12,13 +12,11 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-
     var breeze = testFns.breeze;
-    var entityModel = breeze.entityModel;
 
     // Classes we'll need from the breeze namespaces
-    var EntityQuery = entityModel.EntityQuery;
-    var Qop = entityModel.FilterQueryOp;
+    var EntityQuery = breeze.EntityQuery;
+    var Qop = breeze.FilterQueryOp;
 
     var queryForOne = testFns.queryForOne;
     var runQuery = testFns.runQuery;

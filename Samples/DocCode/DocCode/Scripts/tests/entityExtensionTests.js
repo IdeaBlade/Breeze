@@ -7,10 +7,9 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
     var breeze = testFns.breeze;
-    var entityModel = breeze.entityModel;
-    var MetadataStore = entityModel.MetadataStore;
-    var EntityManager = entityModel.EntityManager;
-    var EntityQuery = entityModel.EntityQuery;
+    var MetadataStore = breeze.MetadataStore;
+    var EntityManager = breeze.EntityManager;
+    var EntityQuery = breeze.EntityQuery;
 
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
@@ -275,7 +274,7 @@ define(["testFns"], function (testFns) {
                     .format(expected));
 
             // Now show it works for materialized query entity
-            var query = entityModel.EntityQuery.from("Employees").top(1);
+            var query = breeze.EntityQuery.from("Employees").top(1);
             var em = newEm(store);
 
             stop(); // going async
@@ -474,7 +473,7 @@ define(["testFns"], function (testFns) {
                 return self.nextNumber -= 1;
             }
 
-            if (dataType === entityModel.DataType.Guid) {
+            if (dataType === breeze.DataType.Guid) {
                 return breeze.core.getUuid();
             }
 

@@ -3,14 +3,11 @@
     var app = root.app;
     var logger = app.logger;
 
-    // define Breeze namespace
-    var entityModel = breeze.entityModel;
-
     // service name is route to our Web API controller
     var serviceName = 'api/breezydevices';
 
     // manager is the service gateway and cache holder
-    var manager = new entityModel.EntityManager(serviceName);
+    var manager = new breeze.EntityManager(serviceName);
 
     // add members to the dataservice
     var dataservice = {
@@ -31,7 +28,7 @@
         
         logger.info("querying for all persons");
         
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
                 .from("People")
                 //.where("LastName", "startsWith", "Lerman")
                 //.expand("Devices")

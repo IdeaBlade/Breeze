@@ -5,7 +5,6 @@
 define(['breeze'], function (breeze) {
 
     "use strict";
-    var core = breeze.core;
     
     return {
         primeTheCache: primeTheCache,
@@ -77,7 +76,7 @@ define(['breeze'], function (breeze) {
     function createFakeExistingCustomer(em, name) {
         name = name || "Duya Nomee";
         var customer = createCustomer(em, name);
-        customer.CustomerID(core.getUuid());
+        customer.CustomerID(breeze.core.getUuid());
         em.attachEntity(customer); // pretend already exists
         return customer;
     }

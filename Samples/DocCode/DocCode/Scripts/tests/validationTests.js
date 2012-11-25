@@ -6,10 +6,9 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var entityModel = testFns.breeze.entityModel;
-    var core = testFns.breeze.core;
+    var breeze = testFns.breeze;
 
-    var Validator = entityModel.Validator;
+    var Validator = breeze.Validator;
 
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
@@ -419,7 +418,7 @@ define(["testFns"], function (testFns) {
             "should have no errors at test start: \"{0}\"".format(errmsgs));
         
         // create a fake error
-        var fakeError = new entityModel.ValidationError(
+        var fakeError = new breeze.ValidationError(
             fakeValidator,                // the marker validator
             {},                           // validation context
             "You were wrong this time!"   // error message
@@ -501,7 +500,7 @@ define(["testFns"], function (testFns) {
     }
 
     function cloneMetadataStore(metadataStore) {
-        return new entityModel.MetadataStore()
+        return new breeze.MetadataStore()
             .importMetadata(metadataStore.exportMetadata());
     };
 });

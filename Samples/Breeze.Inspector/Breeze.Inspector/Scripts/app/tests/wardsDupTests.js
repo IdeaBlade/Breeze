@@ -1,9 +1,8 @@
 define(function(require) {
-    var breeze = require('breeze'),
-        entityModel = breeze.entityModel;
+    var breeze = require('breeze');
 
-    var manager = new entityModel.EntityManager('api/inspector');
-    var op = entityModel.FilterQueryOp;
+    var manager = new breeze.EntityManager('api/inspector');
+    var op = breeze.FilterQueryOp;
 
     function handleFail(e) {
         ok(false, "Exception: " + e);
@@ -81,7 +80,7 @@ define(function(require) {
 
     // Should be completely irrelevant
     function getFormsAndQuestions() {
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
              .from("Forms")
              .expand("Questions");
 
@@ -89,7 +88,7 @@ define(function(require) {
     }
 
     function getInspectors() {
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
             .from("Inspectors");
 
         return manager.executeQuery(query);
@@ -102,7 +101,7 @@ define(function(require) {
         // Rob's query in the dataservice is in this comment. 
         // He should have written "InspectorId" instead of "Inspector.Id" but it shouldn't matter
         
-        //var query = new entityModel.EntityQuery()
+        //var query = new breeze.EntityQuery()
         //   .from("Jobs")
         //   .expand("Location, Inspections.Answers")
         //   .where("Inspector.Id", op.Equals, inspectorId)
@@ -110,7 +109,7 @@ define(function(require) {
         
         // a faithful reproduction albeit unnecessarily faithful
         var queryPromises = inspectors.map(function(inspector) {
-            return new entityModel.EntityQuery()
+            return new breeze.EntityQuery()
                 .from("Jobs")
                 .expand("Location, Inspections.Answers")
                 .where("Inspector.Id", op.Equals, inspector.Id())
@@ -123,7 +122,7 @@ define(function(require) {
     };
     
     function getJobs() {
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
             .from("Jobs")
             .expand("Inspector");
 

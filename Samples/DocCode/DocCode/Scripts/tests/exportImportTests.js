@@ -6,11 +6,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze,
-        entityModel = breeze.entityModel;
-
-    var EntityQuery = entityModel.EntityQuery;    
-    
+    var breeze = testFns.breeze;
+    var EntityQuery = breeze.EntityQuery;       
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 

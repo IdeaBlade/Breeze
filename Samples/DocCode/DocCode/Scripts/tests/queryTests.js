@@ -9,13 +9,12 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
     var breeze = testFns.breeze;
-    var entityModel = breeze.entityModel;
 
     var handleFail = testFns.handleFail;
-    var EntityQuery = entityModel.EntityQuery;
-    var EntityType = entityModel.EntityType;
-    var FilterQueryOp = entityModel.FilterQueryOp;
-    var Predicate = entityModel.Predicate;
+    var EntityQuery = breeze.EntityQuery;
+    var EntityType = breeze.EntityType;
+    var FilterQueryOp = breeze.FilterQueryOp;
+    var Predicate = breeze.Predicate;
 
     // We'll use this "alfred's predicate" a lot
     // e.g. to find Orders that belong to the Alfred's customer
@@ -219,7 +218,7 @@ define(["testFns"], function (testFns) {
         var customerType =
             em.metadataStore.getEntityType("Customer");
 
-        var key = new entityModel.EntityKey(customerType, testFns.wellKnownData.alfredsID);
+        var key = new breeze.EntityKey(customerType, testFns.wellKnownData.alfredsID);
 
         var query = EntityQuery.fromEntityKey(key);
 
@@ -893,7 +892,7 @@ define(["testFns"], function (testFns) {
             var categories = lookups[0];
             ok(categories[0], "should have a category");
             equal(categories[0].entityAspect.entityState.name,
-                entityModel.EntityState.Unchanged.name,
+                breeze.EntityState.Unchanged.name,
                 "first category should be unchanged entity in cache");
         }
     });
@@ -919,7 +918,7 @@ define(["testFns"], function (testFns) {
             ok(lookups.territories.length, "should have lookups.territories");
             ok(lookups.categories.length, "should have lookups.categories");
             equal(lookups.categories[0].entityAspect.entityState.name,
-                entityModel.EntityState.Unchanged.name,
+                breeze.EntityState.Unchanged.name,
                 "first lookups.category should be unchanged entity in cache");
         }
     });
@@ -1126,7 +1125,7 @@ define(["testFns"], function (testFns) {
         query = query.using(em);
         return query.execute()
             .then(function() { // ignore remote query results
-                return query.using(entityModel.FetchStrategy.FromLocalCache).execute();
+                return query.using(breeze.FetchStrategy.FromLocalCache).execute();
             });
     }
     
@@ -1166,7 +1165,7 @@ define(["testFns"], function (testFns) {
     function getByIdCacheOrRemote(manager, typeName, id, queryResult) {
         // get key for entity of specified type and id
         var typeInfo = manager.metadataStore.getEntityType(typeName);
-        var key = new entityModel.EntityKey(typeInfo, id);
+        var key = new breeze.EntityKey(typeInfo, id);
 
         // look in cache first
         var entity = manager.findEntityByKey(key);
