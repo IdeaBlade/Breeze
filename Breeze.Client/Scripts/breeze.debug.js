@@ -9192,7 +9192,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             var promise;
-            if (this.metadataStore.hasMetadataFor(this.serviceName)) {
+            if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
                 promise = executeQueryCore(this, query);
             } else {
                 var that = this;
@@ -10047,7 +10047,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function executeQueryCore(em, query) {
             try {
                 var metadataStore = em.metadataStore;
-                if (metadataStore.isEmpty()) {
+                if (metadataStore.isEmpty() && em.dataService.hasServerMetadata) {
                     throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
@@ -11026,7 +11026,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.73.3",
+        version: "0.73.4",
         core: core,
         config: a_config
     };

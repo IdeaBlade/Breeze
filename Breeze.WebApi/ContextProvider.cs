@@ -20,12 +20,12 @@ namespace Breeze.WebApi {
     public IKeyGenerator KeyGenerator { get; set; }
 
     public string Metadata() {
-      lock (__metadataLock) {
-        if (__jsonMetadata == null) {
-          __jsonMetadata = BuildJsonMetadata();
+      lock (_metadataLock) {
+        if (_jsonMetadata == null) {
+          _jsonMetadata = BuildJsonMetadata();
         }
 
-        return __jsonMetadata;
+        return _jsonMetadata;
       }
     }
 
@@ -154,8 +154,8 @@ namespace Breeze.WebApi {
     };
   
 
-    private static object __metadataLock = new object();
-    private static string __jsonMetadata;
+    private object _metadataLock = new object();
+    private string _jsonMetadata;
     
   }
 
