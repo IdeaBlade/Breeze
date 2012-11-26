@@ -1,16 +1,12 @@
 ﻿app.dataservice = (function (breeze, logger) {
     
     /*** Breeze Configuration ***/
-    
-    // define Breeze namespaces
-    var core = breeze.core,
-        entityModel = breeze.entityModel;
 
-    // configure Breeze for Backbone and Web API 
-    core.config.initializeAdapterInstances({ modelLibrary: "backbone", dataService: "webApi" });
+    // configure Breeze for Backbone (config'd for Web API by default)
+    breeze.core.config.initializeAdapterInstances({modelLibrary: "backbone"});
 
     // Declare the camel case name convention to be the norm
-    entityModel.NamingConvention.camelCase.setAsDefault();
+    breeze.NamingConvention.camelCase.setAsDefault();
 
     // service name is route to the Web API controller
     var serviceName = 'api/CarBones';
@@ -18,11 +14,11 @@
     /*** dataservice proper ***/
     
     // manager (aka context) is the service gateway and cache holder
-    var manager = new entityModel.EntityManager(serviceName);
+    var manager = new breeze.EntityManager(serviceName);
     
     // get all cars from the service
     var getCars = function() {
-        return breeze.entityModel.EntityQuery
+        return breeze.EntityQuery
             .from("Cars")
             .using(manager)
             .execute()

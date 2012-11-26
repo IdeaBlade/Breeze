@@ -6,7 +6,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var entityModel = testFns.breeze.entityModel;
+    var breeze = testFns.breeze;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
@@ -80,7 +80,7 @@ define(["testFns"], function (testFns) {
         var customer = getFakeDeletedcustomer(em);
 
         var customerType = em.metadataStore.getEntityType("Customer");
-        var key = new entityModel.EntityKey(customerType, customer.CustomerID());
+        var key = new breeze.EntityKey(customerType, customer.CustomerID());
 
         var foundcustomer = em.findEntityByKey(key);
         ok(foundcustomer !== null,
@@ -97,7 +97,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
 
-        var customerQuery = entityModel.EntityQuery.fromEntities(customer);
+        var customerQuery = breeze.EntityQuery.fromEntities(customer);
         var queryResults = em.executeQueryLocally(customerQuery);
 
         if (queryResults.length === 0) {
@@ -609,7 +609,7 @@ define(["testFns"], function (testFns) {
         entityManager._entityStateChangeTrackingToken =
             entityManager.entityChanged.subscribe(entityChanged);
 
-        var entityStateChangeAction = entityModel.EntityAction.EntityStateChange;
+        var entityStateChangeAction = breeze.EntityAction.EntityStateChange;
         
         function entityChanged(changeArgs) {            
             if (changeArgs.entityAction === entityStateChangeAction) {

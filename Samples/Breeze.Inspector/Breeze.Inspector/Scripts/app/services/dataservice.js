@@ -1,9 +1,8 @@
 define(function(require) {
-    var breeze = require('breeze'),
-        entityModel = breeze.entityModel;
+    var breeze = require('breeze');
 
-    var op = entityModel.FilterQueryOp,
-        manager = new entityModel.EntityManager('api/inspector'),
+    var op = breeze.FilterQueryOp,
+        manager = new breeze.EntityManager('api/inspector'),
         answerType, jobType, addressType, inspectionType,
         data,
         forms;
@@ -21,7 +20,7 @@ define(function(require) {
     }
 
     function preloadData(def) {
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
             .from("Forms")
             .expand("Questions");
 
@@ -52,13 +51,13 @@ define(function(require) {
             return forms;
         },
         getInspectors: function() {
-            var query = new entityModel.EntityQuery()
+            var query = new breeze.EntityQuery()
                 .from("Inspectors");
 
             return executeQuery(query);
         },
         getJobsFor: function(inspectorId) {
-            var query = new entityModel.EntityQuery()
+            var query = new breeze.EntityQuery()
                 .from("Jobs")
                 .expand("Location, Inspections.Answers")
                 .where("Inspector.Id", op.Equals, inspectorId)

@@ -1,9 +1,8 @@
 define(function (require) {
 
     var breeze = require('breeze'),
-        entityModel = breeze.entityModel,
         serviceName = 'api/todos', // route to the Web Api controller
-        manager = new entityModel.EntityManager(serviceName);
+        manager = new breeze.EntityManager(serviceName);
 
     var logger = require('logger');
 
@@ -19,14 +18,14 @@ define(function (require) {
  
     //#region main application operations
     function getAllTodos(includeArchived) {
-        var query = entityModel.EntityQuery
+        var query = breeze.EntityQuery
                 .from("Todos")
                 .orderBy("CreatedAt");
 
         if (!includeArchived) { // exclude archived Todos
             // add filter clause limiting results to non-archived Todos
             query = query.where("IsArchived", "==", false);
-            //query = query.where("IsArchived", entityModel.FilterQueryOp.Equals, false);
+            //query = query.where("IsArchived", breeze.FilterQueryOp.Equals, false);
         }
 
         return manager.executeQuery(query);

@@ -9,13 +9,12 @@ define(["testFns"], function (testFns) {
     * Breeze configuration and module setup 
     *********************************************************/
 
-    var breeze = testFns.breeze,
-        entityModel = breeze.entityModel;
+    var breeze = testFns.breeze;
 
     // Classes we'll need from the Breeze namespaces
-    var EntityManager = entityModel.EntityManager;
-    var EntityQuery = entityModel.EntityQuery;
-    var Qop = entityModel.FilterQueryOp;
+    var EntityManager = breeze.EntityManager;
+    var EntityQuery = breeze.EntityQuery;
+    var Qop = breeze.FilterQueryOp;
 
     // query and failure helpers
     var verifyQuery = testFns.verifyQuery;
@@ -98,8 +97,8 @@ define(["testFns"], function (testFns) {
 
     test("get only open and active todos", 2, function () {
 
-        var p1 = new entityModel.Predicate("IsArchived", Qop.Equals, false);
-        var p2 = entityModel.Predicate("IsDone", "==", false);
+        var p1 = new breeze.Predicate("IsArchived", Qop.Equals, false);
+        var p2 = breeze.Predicate("IsDone", "==", false);
         var predicate = p1.and(p2);
 
         var query = new EntityQuery("Todos")
@@ -134,7 +133,7 @@ define(["testFns"], function (testFns) {
 
         var manager = newEm();
 
-        var query = new entityModel.EntityQuery
+        var query = new breeze.EntityQuery
             .from("Todos")
             .orderBy("CreatedAt");
 
@@ -339,7 +338,7 @@ define(["testFns"], function (testFns) {
                 equal(count, 3, "em.getChanges should return 3 Todos");
 
                 // overload of getEntities filters for added entities of all types.
-                var added = em.getEntities(null, entityModel.EntityState.Added);
+                var added = em.getEntities(null, breeze.EntityState.Added);
                 count = added.length;
                 equal(count, 2, "2 of the changed entities should be added.");
 

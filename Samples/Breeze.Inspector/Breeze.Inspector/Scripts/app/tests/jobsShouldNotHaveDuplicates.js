@@ -1,10 +1,9 @@
 define(function(require) {
-    var breeze = require('breeze'),
-        entityModel = breeze.entityModel;
+    var breeze = require('breeze');
 
-    var manager = new entityModel.EntityManager('api/inspector'),
-        op = entityModel.FilterQueryOp,
-        entityAction = entityModel.EntityAction,
+    var manager = new breeze.EntityManager('api/inspector'),
+        op = breeze.FilterQueryOp,
+        entityAction = breeze.EntityAction,
         inspectors,
         jobs = {};
 
@@ -27,13 +26,13 @@ define(function(require) {
     function arrange() {
         return fetchMetadata()
             .then(function() {
-                var query = new entityModel.EntityQuery()
+                var query = new breeze.EntityQuery()
                     .from("Forms")
                     .expand("Questions");
 
                 return manager.executeQuery(query);
             }).then(function() {
-                var query = new entityModel.EntityQuery()
+                var query = new breeze.EntityQuery()
                     .from("Inspectors");
 
                 return manager.executeQuery(query).then(function(data) {
@@ -43,7 +42,7 @@ define(function(require) {
     }
 
     var getJobsFor = function(inspectorId, jobs) {
-        var query = new entityModel.EntityQuery()
+        var query = new breeze.EntityQuery()
             .from("Jobs")
             .expand("Location, Inspections.Answers")
             .where("Inspector.Id", op.Equals, inspectorId)
