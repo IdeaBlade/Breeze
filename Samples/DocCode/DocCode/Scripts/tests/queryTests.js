@@ -905,7 +905,7 @@ define(["testFns"], function (testFns) {
 
         var em = newEm();
         stop(); // going async .. 
-        EntityQuery.from('LookupsObject')
+        EntityQuery.from('Lookups')
             .using(em).execute()
             .then(querySucceeded)
             .fail(handleFail)
@@ -922,6 +922,59 @@ define(["testFns"], function (testFns) {
                 "first lookups.category should be unchanged entity in cache");
         }
     });
+    
+    /*********************************************************
+    * PROJECTION: Populate a combobox with a list from a lookup
+    * Also demonstrates QUnit testing of Knockout binding
+    *********************************************************/
+    test("Can populate a combobox with a list from a lookup", 1, function () {
+        var view = setupCombobox();
+        var vm = getComboboxTestVm();
+        ko.applyBindings(vm, view);
+        
+        var em = newEm();
+        stop(); // going async .. 
+        EntityQuery.from('Lookups')
+            .using(em).execute()
+            .then(querySucceeded)
+            .fail(handleFail)
+            .fin(start);
+
+        function querySucceeded(data) {
+            var lookups = data.results[0];
+            var categories = lookups.categories;
+            vm.categories(categories);
+            vm.item().Category(categories[1]);
+            var expectedText = categories[1].CategoryName();
+            var selectedText = $("select option:selected", view)[0].text;
+            equal(selectedText, expectedText,
+                "Should have bound to combobox and selected option should be " + expectedText);
+        }
+        
+        function setupCombobox() {
+            var fixtureNode = $('#qunit-fixture').append(
+                '<div id="vm" data-bind="with: item"> '+
+                    '<label>Categories</label>' +
+                    '<select id="categoryCombo" ' +
+                        'data-bind="options: $parent.categories, ' +
+                        'optionsText: \'CategoryName\', value: Category">' +
+                    '</select></div>').get(0);
+            return $("#vm", fixtureNode).get(0);
+        }
+        
+        function getComboboxTestVm() {
+            var testItem = {
+                Name: ko.observable("Test Item"),
+                Category: ko.observable()           
+            };
+            return {
+                categories: ko.observableArray(),
+                item: ko.observable(testItem)
+            };
+        }
+
+    });
+    
     /*** LOCAL QUERY EXECUTION ***/
 
     module("queryTests (local)", testFns.getModuleOptions(newEm));

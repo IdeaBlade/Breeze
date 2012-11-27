@@ -129,7 +129,7 @@ namespace DocCode.Controllers
     /// it doesn't have its own query method.
     /// </remarks>
     [HttpGet]
-    public IQueryable<object> LookupsObject()
+    public IQueryable<object> Lookups()
     {
         var regions = _contextProvider.Context.Regions;
         var territories = _contextProvider.Context.Territories;
