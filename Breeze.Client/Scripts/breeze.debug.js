@@ -7639,6 +7639,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringEquals(a, b, lqco) {
+            if (b == null) return false;
             if (typeof b !== 'string') {
                 b = b.toString();
             }
@@ -7654,6 +7655,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringStartsWith(a, b, lqco) {
+            
             if (!lqco.isCaseSensitive) {
                 a = (a || "").toLowerCase();
                 b = (b || "").toLowerCase();
@@ -7730,23 +7732,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
 
         }
-
-        //function formatValue(val) {
-            
-        //    if (typeof val === "string") {
-        //        if (core.isGuid(val)) {
-        //            return "guid'" + val + "'";
-        //        } else {
-        //            return "'" + val + "'";
-        //        }
-        //    } else if (core.isDate(val)) {
-        //        // return core.toISODateString(val);
-        //        return "datetime'"+val.toISOString() + "'";
-        //        // return val.toISOString();
-        //    } else {
-        //        return val;
-        //    }
-        //}
 
         return ctor;
 
@@ -7937,26 +7922,26 @@ function (core, m_entityMetadata, m_entityAspect) {
     var SimpleOrderByClause = (function () {
 
         var ctor = function (propertyPath, isDesc) {
-            if (!typeof propertyPath == 'string') {
+            if (!(typeof propertyPath == 'string')) {
                 throw new Error("propertyPath is not a string");
             }
             propertyPath = propertyPath.trim();
 
-            var properties = propertyPath.split(' ');
+            var parts = propertyPath.split(' ');
             // parts[0] is the propertyPath; [1] would be whether descending or not.
-            if (properties.length > 1 && isDesc !== true && isDesc !== false) {
-                isDesc = core.stringStartsWith(properties[1].toLowerCase(), "desc");
+            if (parts.length > 1 && isDesc !== true && isDesc !== false) {
+                isDesc = core.stringStartsWith(parts[1].toLowerCase(), "desc");
                 if (!isDesc) {
-                    var isAsc = core.stringStartsWith(properties[1].toLowerCase(), "asc");
+                    // isDesc is false but check to make sure its intended.
+                    var isAsc = core.stringStartsWith(parts[1].toLowerCase(), "asc");
                     if (!isAsc) {
                         throw new Error("the second word in the propertyPath must begin with 'desc' or 'asc'");
                     }
-                    isDesc = !isAsc;
+                    
                 }
             }
-            this.propertyPath = properties[0];
+            this.propertyPath = parts[0];
             this.isDesc = isDesc;
-            this.properties = properties;
         };
         ctor.prototype = new OrderByClause({ prototype: true });
 
@@ -7973,12 +7958,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.getComparer = function () {
-            var properties = this.properties;
+            var propertyPath = this.propertyPath;
             var isDesc = this.isDesc;
             var that = this;
             return function (entity1, entity2) {
-                var value1 = getPropertyPathValue(entity1, properties);
-                var value2 = getPropertyPathValue(entity2, properties);
+                var value1 = getPropertyPathValue(entity1, propertyPath);
+                var value2 = getPropertyPathValue(entity2, propertyPath);
                 if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
                     if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
                         value1 = (value1 || "").toLowerCase();
@@ -11026,7 +11011,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.73.4",
+        version: "0.73.5",
         core: core,
         config: a_config
     };

@@ -155,7 +155,7 @@ define(["testFns"], function (testFns) {
     });
     
 
-    test("case sensitivity - order by 4", function () {
+    test("case sensitivity - order by desc", function () {
         var em = newEm();
         var baseQuery = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "F");
@@ -172,7 +172,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("case sensitivity - order by 5", function () {
+    test("case sensitivity - order by multiple props", function () {
         var em = newEm();
         var baseQuery = EntityQuery.from("Customers")
             .where("city", "startsWith", "B");
@@ -190,7 +190,64 @@ define(["testFns"], function (testFns) {
             testFns.assertIsSorted(r2, "city", false, false);
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("case sensitivity - order by multiple props desc", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("city", "startsWith", "B");
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
 
+            var query = baseQuery.orderBy("city desc, companyName desc");
+
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function (e) {
+                return e.getProperty("city");
+            });
+            testFns.assertIsSorted(r2, "city", true, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query for null values", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("city", "!=", null);
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+
+            var query = baseQuery.orderBy("city");
+
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function (e) {
+                return e.getProperty("city");
+            });
+            testFns.assertIsSorted(r2, "city", false, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    // To run this test you need to rename on of the Customer entity properties to "Name".
+    //test("case sensitivity - order by 'name'", function () {
+    //    var em = newEm();
+    //    var baseQuery = EntityQuery.from("Customers")
+    //        .where("name", "!=", null);
+    //    stop();
+    //    em.executeQuery(baseQuery).then(function (data) {
+    //        var r = data.results;
+    //        ok(r.length > 0);
+
+    //        var query = EntityQuery.from("Customers").orderBy("name");
+
+    //        var r2 = em.executeQueryLocally(query);
+    //        var names = r2.map(function (e) {
+    //            return e.getProperty("name");
+    //        });
+    //        testFns.assertIsSorted(r2, "name", false, false);
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
     
     test("case sensitivity - string padding", function () {
         var em = newEm();
