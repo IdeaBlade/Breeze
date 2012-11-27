@@ -103,6 +103,95 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
+    test("case sensitivity - order by", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", "F")
+            .orderBy("companyName");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            var comps1 = r.map(function (e) { return e.getProperty("companyName"); });
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+            var comps2 = r2.map(function (e) { return e.getProperty("companyName") });
+            ok(r.length === r2.length, "should have returned some entities");
+            ok(core.arrayEquals(r, r2), "arrays should be equal");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - order by 2", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", "F");
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var query = baseQuery.orderBy("companyName");
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function (e) {
+                return e.getProperty("companyName");
+            });
+            testFns.assertIsSorted(r2, "companyName", false, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - order by 3", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", "F");
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var query = baseQuery.orderBy("city");
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function (e) {
+                return e.getProperty("city");
+            });
+            testFns.assertIsSorted(r2, "city", false, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+
+    test("case sensitivity - order by 4", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("companyName", "startsWith", "F");
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var query = baseQuery.orderBy("companyName desc");
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function(e) {
+                return e.getProperty("companyName");
+            });
+            testFns.assertIsSorted(r2, "companyName", true, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("case sensitivity - order by 5", function () {
+        var em = newEm();
+        var baseQuery = EntityQuery.from("Customers")
+            .where("city", "startsWith", "B");
+        stop();
+        em.executeQuery(baseQuery).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+
+            var query = baseQuery.orderBy("city, companyName");
+
+            var r2 = em.executeQueryLocally(query);
+            var names = r2.map(function (e) {
+                return e.getProperty("city");
+            });
+            testFns.assertIsSorted(r2, "city", false, false);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    
     test("case sensitivity - string padding", function () {
         var em = newEm();
         var origCompName = "Simons bistro";

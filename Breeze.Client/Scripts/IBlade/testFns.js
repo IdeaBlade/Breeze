@@ -236,7 +236,7 @@ define(["breeze.full"], function (breeze) {
         };
         var arrayCopy = collection.map(function (o) { return o; });
         arrayCopy.sort(fn);
-        ok(core.arrayEquals(collection, arrayCopy), propertyName + "not sorted correctly");
+        ok(core.arrayEquals(collection, arrayCopy), propertyName + " not sorted correctly");
 
     };
 
