@@ -843,7 +843,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 // update _hasChanges after save.
-                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
+                that._hasChanges = isFullSave ? false : that._hasChangesCore();
+                if (!that._hasChanges) {
+                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);

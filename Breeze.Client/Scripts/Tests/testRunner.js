@@ -34,7 +34,7 @@ require([
       "querySelectTests",
       "validateTests",
       "validateEntityTests",
-       "saveTests"
+      "saveTests"
 
 ], function (testFns) {
     
