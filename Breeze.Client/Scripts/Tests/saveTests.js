@@ -71,7 +71,7 @@ define(["testFns"], function (testFns) {
             var cust = customers[0];
             cust.setProperty("miscData", "xxx");
             ok(cust.entityAspect.entityState == EntityState.Unchanged);
-            ok(!em1.hasChanges(), "should not have changes")
+            ok(!em1.hasChanges(), "should not have changes");
             return em1.saveChanges();
         }).then(function(sr) {
             var saved = sr.entities;
@@ -82,10 +82,16 @@ define(["testFns"], function (testFns) {
     
     test("add parent and children", function () {
         var em = newEm();
+        var recentArgs;
+        em.hasChanges.subscribe(function(args) {
+            recentArgs = args;
+        });
         var zzz = createParentAndChildren(em);
+        ok(recentArgs.hasChanges === true);
         stop();
         em.saveChanges(null, null,
-            function(saveResult) {
+            function (saveResult) {
+                ok(recentArgs.hasChanges === false);
                 ok(zzz.cust1.entityAspect.entityState.isUnchanged());
                 ok(zzz.cust2.entityAspect.entityState.isUnchanged());
                 ok(zzz.order1.entityAspect.entityState.isUnchanged());

@@ -9372,7 +9372,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 // update _hasChanges after save.
-                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
+                that._hasChanges = isFullSave ? false : that._hasChangesCore();
+                if (!that._hasChanges) {
+                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);
@@ -11011,7 +11014,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.73.5",
+        version: "0.73.6",
         core: core,
         config: a_config
     };
