@@ -26,7 +26,72 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    test("Can run two queries in parallel for fresh EM w/ empty metadataStore", 1, function () {
+    test("hasChanges after query",  function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers").take(20);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length === 20);
+            ok(!em.hasChanges());
+        }).fail(queryFailed).fin(start);
+
+        function queryFailed(error) {
+            ok(false, "query failed with error message = " + error.message);
+        }
+    });
+
+    test("hasChanges after query 2", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers").take(20);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length === 20);
+            ok(!em.hasChanges());
+            return r[0].entityAspect.loadNavigationProperty("orders");
+        }).then(function (data2) {
+            var orders = data2.results;
+            ok(orders.length > 0, "should be some orders - this is a 'test' bug if not");
+            var areAllOrders = orders.every(function(o) {
+                return o.entityType.shortName === "Order";
+            });
+            ok(areAllOrders, "all results should be of the 'order' type");
+            ok(!em.hasChanges(), "should not have changes after nav prop load");
+            var changes = em.getChanges();
+            ok(changes.length === 0, "getChanges should return 0 results");
+        }).fail(queryFailed).fin(start);
+
+        function queryFailed(error) {
+            ok(false, "query failed with error message = " + error.message);
+        }
+    });
+    
+    test("hasChanges after query 3", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers").take(20);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length === 20);
+            ok(!em.hasChanges());
+            return query.expand("orders").using(em).execute();
+        }).then(function (data2) {
+            var r2 = data2.results;
+            ok(r2.length === 20);
+            ok(!em.hasChanges(), "should not have changes after nav prop load");
+            var changes = em.getChanges();
+            ok(changes.length === 0, "getChanges should return 0 results");
+        }).fail(queryFailed).fin(start);
+
+        function queryFailed(error) {
+            ok(false, "query failed with error message = " + error.message);
+        }
+    });
+
+
+    
+    test("can run two queries in parallel for fresh EM w/ empty metadataStore", 1, function () {
         var em = new breeze.EntityManager("api/NorthwindIBModel");
         var query = breeze.EntityQuery.from("Customers");
         var successCount = 0;
@@ -232,6 +297,7 @@ define(["testFns"], function (testFns) {
 
     test("duplicates after relation query", function() {
         var em = newEm();
+        em.queryOptions = em.queryOptions.using(MergeStrategy.OverwriteChanges);
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
             .where("customerID", "==", alfredsID);
@@ -245,7 +311,9 @@ define(["testFns"], function (testFns) {
                 .where("customerID", "==", alfredsID)
                 .expand("customer"); // bug goes away if you remove this
             return q2.using(em).execute();
-        }).then(function(data2) {
+        }).then(function (data2) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 records");
             var details = customer.getProperty("orders");
             var dups = testFns.getDups(details);
             ok(dups.length == 0, "should be no dups");
@@ -456,10 +524,14 @@ define(["testFns"], function (testFns) {
 
         stop();
         em.executeQuery(q).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var region = data.results[0];
             var terrs = region.getProperty("territories");
             return terrs.load();
         }).then(function (data2) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             ok(data2.results.length > 0);
             start();
         }).fail(testFns.handleFail);
@@ -732,6 +804,8 @@ define(["testFns"], function (testFns) {
             .take(5);
         stop();
         em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var products = data.results;
             var cats = [];
             products.map(function (product) {
@@ -754,7 +828,9 @@ define(["testFns"], function (testFns) {
         query = query.expand("customer, employee")
             .take(20);
         stop();
-        em.executeQuery(query).then(function(data) {
+        em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var orders = data.results;
             var custs = [];
             var emps = [];
@@ -784,7 +860,9 @@ define(["testFns"], function (testFns) {
         query = query.expand("customer, orderDetails, orderDetails.product")
             .take(5);
         stop();
-        em.executeQuery(query).then(function(data) {
+        em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var orders = data.results;
             var custs = [];
             var orderDetails = [];
@@ -824,6 +902,8 @@ define(["testFns"], function (testFns) {
 
         stop();
         em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var products = data.results;
             var cats = products.map(function (product) {
                 return product.getProperty("category");
@@ -844,6 +924,8 @@ define(["testFns"], function (testFns) {
 
         stop();
         em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 results");
             var products = data.results;
             var cats = products.map(function (product) {
                 return product.getProperty("category");
