@@ -126,7 +126,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * can save add,update, and delete in one batch
     *********************************************************/
-    test("can save add,update, and delete in one batch", 8, function () {
+    test("can save add, update, and delete in one batch", 8, function () {
 
         var em = newEm();      // new empty EntityManager
         var newTodo, updateTodo, deleteTodo;
@@ -183,6 +183,51 @@ define(["testFns"], function (testFns) {
 
         .fail(handleFail)
         .fin(start);
+    });
+    /*********************************************************
+    * hasChanges event raised after rejectChanges
+    *********************************************************/
+    test("hasChanges event raised after rejectChanges", 1, function () {
+        var em = newEm();
+        var hasChangesWasRaised;
+        em.hasChanges.subscribe(
+            function () { hasChangesWasRaised = true; }
+        );
+
+        // add a Todo
+        var newTodo = createTodo("Learn to save in breeze");
+        em.addEntity(newTodo); // add to the cache
+
+        em.rejectChanges();
+        ok(hasChangesWasRaised,
+            "hasChanges should have been raised after rejectChanges");
+    });
+    /*********************************************************
+    * hasChanges event raised after saveChanges
+    *********************************************************/
+    test("hasChanges event raised after saveChanges", 1, function () {
+        var em = newEm();    
+        var hasChangesWasRaised;
+        em.hasChanges.subscribe(
+            function() {
+                 hasChangesWasRaised = true;
+            }
+        );
+
+        // add a Todo
+        var newTodo = createTodo("Learn to save in breeze");
+        em.addEntity(newTodo); // add to the cache
+
+        stop();
+        em.saveChanges()
+           .then ( function() {
+               ok(hasChangesWasRaised,
+                "hasChanges should have been raised after rejectChanges");
+           })
+           .fail( function(error) {
+               ok(false, "save failed: " + error.message);
+           })
+           .fin(start);
     });
 
     /*********************************************************

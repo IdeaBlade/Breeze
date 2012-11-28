@@ -7,39 +7,13 @@
     <TutorialStep>
       <Instructions>
         <![CDATA[        
-###Getting started
+This tutorial guides you through some of *Breeze's* basic capabilities with an emphasis on querying data.
 
-This is an introductory tutorial that is intended to walk thru some of *Breeze's* basic query capabilities.
+### How does it work?
+Follow the instructions in this top left panel, enter your JavaScript in the top right panel, click "Run" in the lower left output panel and see the results. <a href="http://www.breezejs.com/live-tutorial-overview" target="_blank" title="Live Tutorial Overview">Learn more here</a>.
 
-### What are all these panes for?
-The JavaScript code needed to execute each step of this tutorial is shown in the *JavaScript* panel to the right.  The Html needed to display the data
-returned by the JavaScript code appears just below that in the *Html* panel.  Finally, the *Output* panel just below this one
-is both where you start the execution of the JavaScript code and where any results will appear.
-
-Each tutorial consists of a series of steps.  You can move between steps by clicking on the arrow keys at the top of this panel. Each time you change
-steps, the *Javascript* and *Html* panes will be updated to a state consistent with the completion of the previous step.  You should try to
-perform all of the instructions listed in each panel before moving on to the next step.
-
-If at any time during this tutorial you find it unclear how to proceed, or your code isn't behaving as the tutorial describes,
-you can always click the **"Help, it didn't work!"** button (above). This will replace your code with a working copy and run it.
-
-We have already prepared the starting point for this tutorial and filled the *JavaScript* and *Html* panels.
-
-For this tutorial we will be making use of Knockout (www.knockoutjs.com) to display our results.  If you already know *Knockout*, great!, but if not,
-don't worry too much; most of the examples are pretty self explanatory in terms of what the *Html* pane is expected to produce. 
-
-> *Breeze works well with a variety of different frameworks and libraries. Additional tutorials will show Breeze working with several of these.*
-
-There is actually a "Breeze" server application that this tutorial is connected to.  We will not be going into much in the way of details about the
-server side here, because we really want to focus on demonstrating *Breeze's* client side query capabilities. But, in case you were wondering the following line in the 
-*JavaScript* panel is where we specify the server that we will be talking to. 
-
->     var manager = new breeze.EntityManager('api/northwind');
-
-This server application is hosting an entity data model that is loosely based on Microsoft's Northwind database. 
-
-### Ok, now what?
-So, let's get started by having you click the **Run** button in the box below.
+### Let's go!
+Click the **Run** button in the box below.
 
 You should see a list of employee names appear in the *Output* pane below.
 
@@ -76,7 +50,8 @@ manager.executeQuery(query).then(function(data){
       </StartingJavascript>
       <StartingHtml>
         <![CDATA[
-<ul data-bind="foreach: results">
+<p data-bind="visible: !results">Fetching data ... </p>
+<ul data-bind="foreach: results, visible: results" style="display:none">
   <li>
     <span data-bind="text:FirstName"></span>
     <span data-bind="text:LastName"></span>
@@ -337,10 +312,11 @@ manager.executeQuery(query).then(function(data){
       </StartingJavascript>
       <StartingHtml>
         <![CDATA[
-<ul data-bind="foreach: results">
+<p data-bind="visible: !results">Fetching data ... </p>        
+<ul data-bind="foreach: results, visible: results" style="display:none">
   <li>
     <span data-bind="text:CompanyName"></span>
-    in
+     in 
     <span data-bind="text:City"></span>
   </li>
 </ul>
@@ -433,7 +409,8 @@ manager.executeQuery(query).then(function(data){
       </StartingJavascript>
       <StartingHtml>
         <![CDATA[
-<ul data-bind="foreach: results">
+<p data-bind="visible: !results">Fetching data ... </p>        
+<ul data-bind="foreach: results, visible: results" style="display:none">
   <li>
     <span data-bind="text:CompanyName"></span>
   </li>
