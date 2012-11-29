@@ -96,32 +96,34 @@ namespace DocCode.Controllers
     /// Regions, Territories, and Categories.
     /// </summary>
     /// <returns>
-    /// Each item is a different entity list.
-    /// The items arrive as objects, not arrays, with properties
-    /// such as '0', '1', '2' ...
+    /// Returns an array, not an IQueryable. 
+    /// Each array element is a different entity list.
+    /// Note that the list elements arrive on the client
+    /// as objects, not arrays, with properties
+    /// such as '0', '1', '2' ... 
+    /// See the DocCode:QueryTests (Projections) module.
     /// </returns>
     /// <remarks>
     /// N.B. Category is only available through lookup;
     /// it doesn't have its own query method.
     /// </remarks>
     [HttpGet]
-    public IQueryable<object> LookupsArray()
+    public object LookupsArray()
     {
         var regions = _contextProvider.Context.Regions;
         var territories = _contextProvider.Context.Territories;
-        // NB: Not exposed directly as a GET method
         var categories = _contextProvider.Context.Categories;
 
         var lookups = new object[] {regions, territories, categories};
-        return lookups.AsQueryable();
+        return lookups;
     }
     /// <summary>
     /// Query returing a 1-element array with a lookups object whose 
     /// properties are all Regions, Territories, and Categories.
     /// </summary>
     /// <returns>
-    /// Returns one object whose properties are
-    /// "region", "territory", "category".
+    /// Returns one object, not an IQueryable, 
+    /// whose properties are "region", "territory", "category".
     /// The items arrive as arrays.
     /// </returns>
     /// <remarks>
@@ -129,15 +131,14 @@ namespace DocCode.Controllers
     /// it doesn't have its own query method.
     /// </remarks>
     [HttpGet]
-    public IQueryable<object> Lookups()
+    public object Lookups()
     {
         var regions = _contextProvider.Context.Regions;
         var territories = _contextProvider.Context.Territories;
-        // NB: Not exposed directly as a GET method
         var categories = _contextProvider.Context.Categories;
 
-        var lookups = new object [] {new {regions, territories, categories}};
-        return lookups.AsQueryable();
+        var lookups = new {regions, territories, categories};
+        return lookups;
     }
   }
 
