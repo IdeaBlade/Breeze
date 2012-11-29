@@ -1666,7 +1666,7 @@ function (core) {
     /**
     This method is now OBSOLETE.  Use the "initializeAdapterInstances" to accomplish the same result.
     @method setProperties
-    @obsolete
+    @deprecated
     @param config {Object}
         @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
@@ -3397,9 +3397,10 @@ function (core, a_config, m_validate) {
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }
-            if (!this instanceof ctor) {
-                return new ctor(entityType, keyValues);
-            }
+            // fluff
+            //if (!(this instanceof ctor)) {
+            //    return new ctor(entityType, keyValues);
+            //}
             this.entityType = entityType;
             this.values = keyValues;
             this._keyInGroup = createKeyString(keyValues);
@@ -6670,7 +6671,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         
         /**
-        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the "using" method.
+        Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the "using" method.
         @example
             // assume em is an entityManager already filled with order entities;
             var query = new EntityQuery("Orders").using(em);
@@ -9393,6 +9394,106 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this._entityGroupMap[entityType.name];
         };
 
+        
+        /**
+        Attempts to locate an entity within this EntityManager by its key. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employee = em1.getEntityByKey("Employee", 1);
+            // employee will either be an entity or null.
+        @method getEntityByKey
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @return {Entity} An Entity or null;
+        **/
+        
+        /**
+        Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            var employee = em1.getEntityByKey(employeeKey);
+            // employee will either be an entity or null.
+        @method getEntityByKey - overload
+        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+        @return {Entity} An Entity or null;
+        **/
+        ctor.prototype.getEntityByKey = function () {
+
+            var entityKey = createEntityKey(this, arguments).entityKey;
+
+            var group = this.findEntityGroup(entityKey.entityType);
+            if (!group) {
+                return null;
+            }
+            return group.findEntityByKey(entityKey);
+        };
+        
+        /**
+        Attempts to fetch an entity from the server by its key with
+        an option to check the local cache first. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey
+        @async
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @return {Promise} 
+
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+        **/
+        
+        /**
+        Attempts to fetch an entity from the server by its {{#crossLink "EntityKey"}}{{/crossLink}} with
+        an option to check the local cache first. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey - overload
+        @async
+        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @return {Promise} 
+        
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+        **/
+        ctor.prototype.fetchEntityByKey = function () {
+            var tpl = createEntityKey(this, arguments);
+            var entityKey = tpl.entityKey;
+            var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
+            var entity;
+            if (checkLocalCacheFirst) {
+                entity = this.getEntityByKey(entityKey);
+            } 
+            if (entity) {
+                return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+            } else {
+                return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
+                    entity = (data.results.length === 0) ? null : data.results[0];
+                    return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
+                });
+            }
+        };
+        
         /**
         Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
         @example
@@ -9402,16 +9503,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var employee = em1.findEntityByKey(employeeKey);
             // employee will either be an entity or null.
         @method findEntityByKey
+        @deprecated - use getEntityByKey instead
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
         ctor.prototype.findEntityByKey = function (entityKey) {
-            core.assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
-            var group = this.findEntityGroup(entityKey.entityType);
-            if (!group) {
-                return null;
-            }
-            return group.findEntityByKey(entityKey);
+            return this.getEntityByKey(entityKey);
         };
 
         /**
@@ -9736,6 +9833,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // private fns
         
+        function createEntityKey(em, args) {
+            if (args[0] instanceof EntityKey) {
+                return { entityKey: args[0], remainingArgs: Array.prototype.slice.call(args, 1) };
+            } else if (typeof args[0] === 'string' && args.length >= 2) {
+                var entityType = em.metadataStore.getEntityType(args[0], false);
+                return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: Array.prototype.slice.call(args, 2) };
+            } else {
+                throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
+            }
+        }       
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -10552,6 +10659,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             aspect.entityManager = null;
             return entity;
         };
+        
+
 
         // returns entity based on an entity key defined either as an array of key values or an EntityKey
         ctor.prototype.findEntityByKey = function (entityKey) {
@@ -11014,7 +11123,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.73.6",
+        version: "0.74.1",
         core: core,
         config: a_config
     };

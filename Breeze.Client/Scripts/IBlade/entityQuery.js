@@ -531,7 +531,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **/
         
         /**
-        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the "using" method.
+        Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the "using" method.
         @example
             // assume em is an entityManager already filled with order entities;
             var query = new EntityQuery("Orders").using(em);

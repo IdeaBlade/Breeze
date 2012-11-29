@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Nov 27 2012 11:39:38 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Wed Nov 28 2012 23:19:30 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -778,6 +778,48 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
     ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    /// </signature>
+  },
+  'getEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its key.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'getEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its   'EntityKey'.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'fetchEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its key with
+    ///   an option to check the local cache first.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean" optional="true">Whether to check this EntityManager first before going to the server.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
+    /// </signature>
+  },
+  'fetchEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its  'EntityKey' with
+    ///   an option to check the local cache first.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean" optional="true">Whether to check this EntityManager first before going to the server.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
     /// </signature>
   },
   'findEntityByKey': function() {
@@ -1580,7 +1622,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'executeLocally': function() {
     /// <signature>
     ///   <summary>
-    ///   Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the 'using' method.
+    ///   Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the 'using' method.
     ///   </summary>
     
     /// </signature>

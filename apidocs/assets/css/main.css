@@ -72,23 +72,23 @@ dd p:first-child, td p:first-child { margin-top: 0; }
 /* -- Headings -------------------------------------------------------------- */
 h1, h2, h3, h4, h5, h6 {
     color: #444444; /*was #f80*/
-    font-family: 'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-weight: bold;
     line-height: 1.1;
     margin: 15px 0 15px 0px; /*1.1em 0 0.5em*/
 }
 
 h1 {
-    font-size: 28px;
+    font-size: 25px;
     color: #444444;
-    margin: 0px 15px 15px 0px;
-    font-weight:normal;
+    margin: -15px 15px 15px 0px;
+    font-weight:bold;
 }
 
 h2 {
-    font-size: 28px;
+    font-size: 25px;
     color: #444444;
-    font-weight:normal;
+    font-weight:bold;
 }
 
 h3 { font-size: 138.462%; }
@@ -108,23 +108,23 @@ h5, h6 { font-size: 107.692%; }
 
 /* -- Primary nav ----------------------------------------------------------- */
 
-.primary-nav  {font-size:100%; text-align:center; color:#444444; margin-bottom:15px; font-weight:bold;}
+.primary-nav  {font-size:16px; text-align:center; color:#2e2e2e; margin:0px 0px 15px 0px; font-weight:bold;font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;}
 
-.primary-nav li {display: inline; margin:0px 7px;}
-.primary-nav a {color: #444444; text-decoration: none;}
-.primary-nav a:link {color: #444444; text-decoration: none;}
-.primary-nav a:visited {color: #444444; text-decoration: none;}
-.primary-nav a:active {color: #444444; text-decoration: none;}
-.primary-nav a:hover {color: #444444; text-decoration: underline;}
+.primary-nav li {display: inline; margin:0px 10px;}
+.primary-nav a {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:hover {color: #2e2e2e; text-decoration: underline;}
 
 
-.primary-nav-foot  {font-size:22px; text-align:center;  color:#444444; }
+.primary-nav-foot  {font-size:20px; text-align:center;  color:#2e2e2e; }
 .primary-nav-foot li {display: inline; margin:0px 7px;}
-.primary-nav-foot a {color: #444444; text-decoration: none;}
-.primary-nav-foot a:link {color: #444444; text-decoration: none;}
-.primary-nav-foot a:visited {color: #444444; text-decoration: none;}
-.primary-nav-foot a:active {color: #444444; text-decoration: none;}
-.primary-nav-foot a:hover {color: #444444; text-decoration: underline;}
+.primary-nav-foot a {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:hover {color: #2e2e2e; text-decoration: underline;}
 
 
 
@@ -231,6 +231,7 @@ th {
 .content {
     	margin:33px 8px 20px 5px;
 		padding:15px;
+		padding-left:30px;
 		background-color:transparent;
 		}
 
@@ -437,7 +438,7 @@ h2, h3, h4, h5, h6 {
     color: #444444;
     font-weight: bold;
     text-decoration: none;
-    font-weight:normal;
+    font-weight:bold;
 }
 
 #properties h2{
@@ -525,7 +526,7 @@ h2, h3, h4, h5, h6 {
 
 .apidocs .meta p { margin: 15px 0 0 15px; }
 .apidocs .meta p code {
-	font-family:'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 
 }
 
@@ -659,7 +660,7 @@ kbd .cmd { font-family: Monaco, Helvetica; }
     display: inline;
     margin: 0 0.0 0;
     font-size:22px;
-    font-family:'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
  .paren {
@@ -669,7 +670,7 @@ kbd .cmd { font-family: Monaco, Helvetica; }
 
 li.arg code {
 	font-size:22px;
-	font-family:'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
 #methods .returns-inline .type {display:none;}
@@ -724,7 +725,7 @@ li.arg code {
 .apidocs .item .name code {
     display: inline;
     font-size: 22px;
-    font-family:'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
     margin:22px 0px 0px -30px;
     
  
@@ -871,8 +872,8 @@ li.arg code {
 /* -- API options ----------------------------------------------------------- */
 #api-options {
     font-size: 15px;
-    margin-top: 90px;
-    margin-left:26px;
+    margin-top: 70px;
+    margin-left:35px;
     margin-bottom:15px;
     position: absolute;
     color:#444444;
@@ -883,10 +884,10 @@ li.arg code {
 
 /* -- API list -------------------------------------------------------------- */
 #api-list {
-    margin:33px 51px 20px 0px;
+    margin:33px 0px 20px 0px;
 		padding-left:15px;
 		background-color:transparent;
- 		border-right: 2px inset  #aec2cb;
+ 		/* border-right: 2px inset  #aec2cb; */
  		width:225px;
 		}
 		
@@ -945,19 +946,20 @@ li.arg code {
 
 /* Primary nav */
 .primary-nav  {
-		font-size:100%; 
+		font-size:16px; 
 		text-align:right; 
-		color:#444444;
-		margin-top:-45px;
+		color:#2e2e2e;
+		margin-top:-60px;
 		margin-right:10px;
+		font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 		}
 
-.primary-nav li {display: inline; margin:0px 7px;}
-.primary-nav a {color: #444444; text-decoration: none;}
-.primary-nav a:link {color: #444444; text-decoration: none;}
-.primary-nav a:visited {color: #444444; text-decoration: none;}
-.primary-nav a:active {color: #444444; text-decoration: none;}
-.primary-nav a:hover {color: #444444; text-decoration: underline;}
+.primary-nav li {display: inline; margin:0px 10px;}
+.primary-nav a {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:hover {color: #2e2e2e; text-decoration: underline;}
 
 
 
@@ -980,8 +982,9 @@ li.arg code {
 /* Logo */
 .logo img {
 		text-align:left;
-		padding:45px 15px 0 10px;
+		padding:10px 0px 0 10px;
 		border:0px;
+		width:150px;
 		}
 /*
 .logo a { text-decoration: none;}
@@ -991,7 +994,7 @@ li.arg code {
 .logo a:hover  { text-decoration: none;}
 */
 
-.header {background:#fff; height:100px; padding:0px 2000px; margin:0px -2000px 0px -2000px;}
+.header {background:#fff; height:60px; padding:0px 2005px; margin:0px -2000px 0px -2000px;}
 
 /*Index*/
 .index-body {margin-top:105px;}
@@ -1000,24 +1003,22 @@ li.arg code {
 @media all and (min-width: 1200px) 
 {
 	#doc {width:1200px;}
-	.logo img {margin: 0px 0 0 .1%;}
+	
 	.content {width:97%; margin:20px 1.5% 20px -1.5%;}
 	#api-list {width:83%; margin:22px 51px 20px 2%;}
-	.primary-nav  {font-size:100%; }
-	.primary-nav-foot  {font-size:100%; margin-right: 32px; margin-top:15px;}
-	#api-options {margin-top: 78px; margin-left:.6%; margin-bottom:15px; }
+	
+	#api-options {margin-top: 58px; margin-left:17px; margin-bottom:15px; }
 	
 }
 
 @media all and (min-width: 1600px) 
 {
 	#doc {width:1600px;}
-	.logo img {margin: 0px 0 0 .1%;}
+	
 	.content {width:98.2%; margin:20px 1.5% 20px -1.5%;}
 	#api-list {width:83%; margin:22px 51px 20px 2%;}
-	.primary-nav  {font-size:100%;  }
-	.primary-nav-foot  {font-size:100%; margin-right: 16%; margin-top:15px;}
-	#api-options {margin-top: 78px; margin-left:.2%; margin-bottom:15px; }
+	
+	#api-options {margin-top: 58px; margin-left:13px; margin-bottom:15px; }
 	
 }
 
@@ -1030,10 +1031,12 @@ li.arg code {
 .yui3-tab{display:inline-block;*display:inline;vertical-align:bottom;cursor:pointer}
 .yui3-tab-label{display:block;display:inline-block;padding:6px 10px;position:relative;text-decoration:none;vertical-align:bottom}
 
+
 .yui3-skin-sam .yui3-tabview-list {
 	border:solid #46ade8;	
 	border-width:0 0 5px;	
 	}
+
 
 .yui3-skin-sam .yui3-tab{margin:0 .2em 0 0;padding:1px 0 0;zoom:1}
 .yui3-skin-sam .yui3-tab-selected{margin-bottom:-1px}

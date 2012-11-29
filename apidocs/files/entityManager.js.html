@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -825,7 +825,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             core.assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
             core.assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             var promise;
-            if (this.metadataStore.hasMetadataFor(this.serviceName)) {
+            if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
                 promise = executeQueryCore(this, query);
             } else {
                 var that = this;
@@ -1020,7 +1020,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 &#x2F;&#x2F; update _hasChanges after save.
-                that._hasChanges = isFullSave ? false : that._hasChangesCore(); 
+                that._hasChanges = isFullSave ? false : that._hasChangesCore();
+                if (!that._hasChanges) {
+                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
                 return Q.resolve(saveResult);
@@ -1038,6 +1041,106 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this._entityGroupMap[entityType.name];
         };
 
+        
+        &#x2F;**
+        Attempts to locate an entity within this EntityManager by its key. 
+        @example
+            &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employee = em1.getEntityByKey(&quot;Employee&quot;, 1);
+            &#x2F;&#x2F; employee will either be an entity or null.
+        @method getEntityByKey
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @return {Entity} An Entity or null;
+        **&#x2F;
+        
+        &#x2F;**
+        Attempts to locate an entity within this EntityManager by its  {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}}.
+        @example
+            &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+            var employeeKey = new EntityKey(employeeType, 1);
+            var employee = em1.getEntityByKey(employeeKey);
+            &#x2F;&#x2F; employee will either be an entity or null.
+        @method getEntityByKey - overload
+        @param entityKey {EntityKey} The  {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}} of the Entity to be located.
+        @return {Entity} An Entity or null;
+        **&#x2F;
+        ctor.prototype.getEntityByKey = function () {
+
+            var entityKey = createEntityKey(this, arguments).entityKey;
+
+            var group = this.findEntityGroup(entityKey.entityType);
+            if (!group) {
+                return null;
+            }
+            return group.findEntityByKey(entityKey);
+        };
+        
+        &#x2F;**
+        Attempts to fetch an entity from the server by its key with
+        an option to check the local cache first. 
+        @example
+            &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+            var employeeKey = new EntityKey(employeeType, 1);
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey
+        @async
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @return {Promise} 
+
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+        **&#x2F;
+        
+        &#x2F;**
+        Attempts to fetch an entity from the server by its {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}} with
+        an option to check the local cache first. 
+        @example
+            &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+            var employeeKey = new EntityKey(employeeType, 1);
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey - overload
+        @async
+        @param entityKey {EntityKey} The  {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}} of the Entity to be located.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @return {Promise} 
+        
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+        **&#x2F;
+        ctor.prototype.fetchEntityByKey = function () {
+            var tpl = createEntityKey(this, arguments);
+            var entityKey = tpl.entityKey;
+            var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
+            var entity;
+            if (checkLocalCacheFirst) {
+                entity = this.getEntityByKey(entityKey);
+            } 
+            if (entity) {
+                return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+            } else {
+                return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
+                    entity = (data.results.length === 0) ? null : data.results[0];
+                    return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
+                });
+            }
+        };
+        
         &#x2F;**
         Attempts to locate an entity within this EntityManager by its  {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}}.
         @example
@@ -1047,16 +1150,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var employee = em1.findEntityByKey(employeeKey);
             &#x2F;&#x2F; employee will either be an entity or null.
         @method findEntityByKey
+        @deprecated - use getEntityByKey instead
         @param entityKey {EntityKey} The  {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **&#x2F;
         ctor.prototype.findEntityByKey = function (entityKey) {
-            core.assertParam(entityKey, &quot;entityKey&quot;).isInstanceOf(EntityKey).check();
-            var group = this.findEntityGroup(entityKey.entityType);
-            if (!group) {
-                return null;
-            }
-            return group.findEntityByKey(entityKey);
+            return this.getEntityByKey(entityKey);
         };
 
         &#x2F;**
@@ -1381,6 +1480,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         &#x2F;&#x2F; private fns
         
+        function createEntityKey(em, args) {
+            if (args[0] instanceof EntityKey) {
+                return { entityKey: args[0], remainingArgs: Array.prototype.slice.call(args, 1) };
+            } else if (typeof args[0] === &#x27;string&#x27; &amp;&amp; args.length &gt;= 2) {
+                var entityType = em.metadataStore.getEntityType(args[0], false);
+                return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: Array.prototype.slice.call(args, 2) };
+            } else {
+                throw new Error(&quot;This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.&quot;);
+            }
+        }       
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -1680,7 +1789,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function executeQueryCore(em, query) {
             try {
                 var metadataStore = em.metadataStore;
-                if (metadataStore.isEmpty()) {
+                if (metadataStore.isEmpty() &amp;&amp; em.dataService.hasServerMetadata) {
                     throw new Error(&quot;cannot execute _executeQueryCore until metadataStore is populated.&quot;);
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
@@ -2197,6 +2306,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             aspect.entityManager = null;
             return entity;
         };
+        
+
 
         &#x2F;&#x2F; returns entity based on an entity key defined either as an array of key values or an EntityKey
         ctor.prototype.findEntityByKey = function (entityKey) {

@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -218,19 +218,19 @@ function (core, m_validate) {
     @final
     @static
     **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
     &#x2F;**
     @property Int32 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true , isInteger: true });
     &#x2F;**
     @property Int16 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
     &#x2F;**
     @property Decimal {DataType}
     @final
@@ -291,13 +291,13 @@ function (core, m_validate) {
     });
 
     &#x2F;**
-    Returns the DataType for a specified type name.
-    @method toDataType
+    Returns the DataType for a specified EDM type name.
+    @method fromEdmDataType
     @static
     @param typeName {String}
     @return {DataType} A DataType.
     **&#x2F;
-    DataType.toDataType = function (typeName) {
+    DataType.fromEdmDataType = function (typeName) {
         &#x2F;&#x2F; if OData style
         var dt;
         var parts = typeName.split(&quot;Edm.&quot;);
@@ -314,6 +314,18 @@ function (core, m_validate) {
             throw new Error(&quot;Unable to recognize DataType for: &quot; + typeName);
         }
         return dt;
+    };
+    
+    DataType.fromJsType = function (typeName) {
+        switch (typeName) {
+            case &quot;string&quot;:
+                return DataType.String;
+            case &quot;boolean&quot;:
+                return DataType.Boolean;
+            case &quot;number&quot;:
+                return DataType.Int32;
+        }
+        return null;
     };
 
     function getValidatorCtor(symbol) {

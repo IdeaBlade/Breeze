@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -1032,9 +1032,10 @@ function (core, a_config, m_validate) {
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }
-            if (!this instanceof ctor) {
-                return new ctor(entityType, keyValues);
-            }
+            &#x2F;&#x2F; fluff
+            &#x2F;&#x2F;if (!(this instanceof ctor)) {
+            &#x2F;&#x2F;    return new ctor(entityType, keyValues);
+            &#x2F;&#x2F;}
             this.entityType = entityType;
             this.values = keyValues;
             this._keyInGroup = createKeyString(keyValues);

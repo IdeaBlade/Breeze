@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -290,16 +290,32 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_fetchMetadata">fetchMetadata</a>
+                                <a href="#method_fetchEntityByKey">fetchEntityByKey</a>
 
                                 
                                 
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_fetchEntityByKey - overload">fetchEntityByKey - overload</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_fetchMetadata">fetchMetadata</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method deprecated">
                                 <a href="#method_findEntityByKey">findEntityByKey</a>
 
                                 
+                                
+                                    <span class="flag deprecated">deprecated</span>
                                 
                             </li>
                         
@@ -325,6 +341,20 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_getEntityByKey">getEntityByKey</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_getEntityByKey - overload">getEntityByKey - overload</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_hasChanges">hasChanges</a>
 
                                 
@@ -335,14 +365,14 @@
                                 <a href="#method_importEntities">importEntities</a>
 
                                 
-                                    <span class="flag static">static</span>
-                                
                                 
                             </li>
                         
                             <li class="index-item method">
                                 <a href="#method_importEntities">importEntities</a>
 
+                                
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -1781,6 +1811,321 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
 </div>
 
                 
+                    <div id="method_fetchEntityByKey" class="method item">
+    <h3 class="name"><code>fetchEntityByKey</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>typeName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>keyValues</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>checkLocalCacheFirst</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag async">async</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l903"><code>entityManager.js:903</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Attempts to fetch an entity from the server by its key with
+an option to check the local cache first.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">typeName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The entityType name for this key.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">keyValues</code>
+                        <span class="type">Object | Array of Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The values for this key - will usually just be a single value; an array is only needed for multipart keys.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">checkLocalCacheFirst</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Whether to check this EntityManager first before going to the server.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
+                    
+                    <pre><code>promise.entity {Object} The entity returned or null
+promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+</code></pre>
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+var employeeType = em1.metadataStore.getEntityType("Employee");
+var employeeKey = new EntityKey(employeeType, 1);
+em1.fetchEntityByKey(employeeKey).then(function(result) {
+    var employee = result.entity;
+    var entityKey = result.entityKey;
+    var fromCache = result.fromCache;
+});
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_fetchEntityByKey - overload" class="method item">
+    <h3 class="name"><code>fetchEntityByKey - overload</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>entityKey</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>checkLocalCacheFirst</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag async">async</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l927"><code>entityManager.js:927</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Attempts to fetch an entity from the server by its <a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a> with
+an option to check the local cache first.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityKey</code>
+                        <span class="type"><a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The  <a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a> of the Entity to be located.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">checkLocalCacheFirst</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Whether to check this EntityManager first before going to the server.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
+                    
+                    <pre><code>promise.entity {Object} The entity returned or null
+promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+</code></pre>
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+var employeeType = em1.metadataStore.getEntityType("Employee");
+var employeeKey = new EntityKey(employeeType, 1);
+em1.fetchEntityByKey(employeeKey).then(function(result) {
+    var employee = result.entity;
+    var entityKey = result.entityKey;
+    var fromCache = result.fromCache;
+});
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_fetchMetadata" class="method item">
     <h3 class="name"><code>fetchMetadata</code></h3>
 
@@ -1973,7 +2318,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
 </div>
 
                 
-                    <div id="method_findEntityByKey" class="method item">
+                    <div id="method_findEntityByKey" class="method item deprecated">
     <h3 class="name"><code>findEntityByKey</code></h3>
 
     
@@ -1997,6 +2342,8 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
     
 
     
+        <span class="flag deprecated" title="- use getEntityByKey instead">deprecated</span>
+    
 
     
 
@@ -2019,11 +2366,13 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l864"><code>entityManager.js:864</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l967"><code>entityManager.js:967</code></a>
         
         </p>
 
 
+        
+            <p>Deprecated: - use getEntityByKey instead</p>
         
 
         
@@ -2136,7 +2485,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l885"><code>entityManager.js:885</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l984"><code>entityManager.js:984</code></a>
         
         </p>
 
@@ -2270,7 +2619,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l988"><code>entityManager.js:988</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1087"><code>entityManager.js:1087</code></a>
         
         </p>
 
@@ -2404,7 +2753,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1041"><code>entityManager.js:1041</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1140"><code>entityManager.js:1140</code></a>
         
         </p>
 
@@ -2508,6 +2857,259 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
 </div>
 
                 
+                    <div id="method_getEntityByKey" class="method item">
+    <h3 class="name"><code>getEntityByKey</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>typeName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>keyValues</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Entity</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l868"><code>entityManager.js:868</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Attempts to locate an entity within this EntityManager by its key.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">typeName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The entityType name for this key.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">keyValues</code>
+                        <span class="type">Object | Array of Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The values for this key - will usually just be a single value; an array is only needed for multipart keys.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Entity</span>:
+                    
+                    An Entity or null;
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+var employee = em1.getEntityByKey("Employee", 1);
+// employee will either be an entity or null.
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_getEntityByKey - overload" class="method item">
+    <h3 class="name"><code>getEntityByKey - overload</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>entityKey</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Entity</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l880"><code>entityManager.js:880</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Attempts to locate an entity within this EntityManager by its  <a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a>.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityKey</code>
+                        <span class="type"><a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The  <a href="..\classes\EntityKey.html" class="crosslink">EntityKey</a> of the Entity to be located.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Entity</span>:
+                    
+                    An Entity or null;
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+var employeeType = em1.metadataStore.getEntityType("Employee");
+var employeeKey = new EntityKey(employeeType, 1);
+var employee = em1.getEntityByKey(employeeKey);
+// employee will either be an entity or null.
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_hasChanges" class="method item">
     <h3 class="name"><code>hasChanges</code></h3>
 
@@ -2554,7 +3156,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l926"><code>entityManager.js:926</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1025"><code>entityManager.js:1025</code></a>
         
         </p>
 
@@ -2635,6 +3237,163 @@ var orderType = em1.metadataStore.getEntityType("Order");
 if ( em1.hasChanges( [custType, orderType]) {
    // do something interesting
 }
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_importEntities" class="method item">
+    <h3 class="name"><code>importEntities</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>exportedString</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[config]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l279"><code>entityManager.js:279</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Imports a previously exported result into this EntityManager.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">exportedString</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The result of a previous 'export' call.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[config]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A configuration object.</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[mergeStrategy]</code>
+                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
+    merging into an existing EntityManager.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
+in a previous session and stored in localStorage. The static version of this method performs a
+very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+var bundle = em1.exportEntities();
+// bundle can be stored in window.localStorage or just held in memory.
+var em2 = new EntityManager({ 
+    serviceName: em1.serviceName, 
+    metadataStore: em1.metadataStore 
+});
+em2.importEntities(bundle);
+// em2 will now have a complete copy of what was in em1
+</code></pre>
+
+<p>It can also be used to merge the contents of a previously created EntityManager with an 
+existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.exportEntities();
+// assume em2 is another entityManager containing some of the same entities possibly with modifications.
+em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
+// made modifications will not have been touched, but all other entities from em1 will have been imported.
 </code></pre>
             </div>
         </div>
@@ -2806,163 +3565,6 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
 </div>
 
                 
-                    <div id="method_importEntities" class="method item">
-    <h3 class="name"><code>importEntities</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>exportedString</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code class="optional">[config]</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l279"><code>entityManager.js:279</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Imports a previously exported result into this EntityManager.</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">exportedString</code>
-                        <span class="type">String</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The result of a previous 'export' call.</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[config]</code>
-                        <span class="type">Object</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>A configuration object.</p>
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[mergeStrategy]</code>
-                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
-    merging into an existing EntityManager.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
-in a previous session and stored in localStorage. The static version of this method performs a
-very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
-var bundle = em1.exportEntities();
-// bundle can be stored in window.localStorage or just held in memory.
-var em2 = new EntityManager({ 
-    serviceName: em1.serviceName, 
-    metadataStore: em1.metadataStore 
-});
-em2.importEntities(bundle);
-// em2 will now have a complete copy of what was in em1
-</code></pre>
-
-<p>It can also be used to merge the contents of a previously created EntityManager with an 
-existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.exportEntities();
-// assume em2 is another entityManager containing some of the same entities possibly with modifications.
-em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
-// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
-// made modifications will not have been touched, but all other entities from em1 will have been imported.
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
                     <div id="method_rejectChanges" class="method item">
     <h3 class="name"><code>rejectChanges</code></h3>
 
@@ -2999,7 +3601,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1018"><code>entityManager.js:1018</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1117"><code>entityManager.js:1117</code></a>
         
         </p>
 
@@ -4069,7 +4671,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l962"><code>entityManager.js:962</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1061"><code>entityManager.js:1061</code></a>
         
         </p>
 

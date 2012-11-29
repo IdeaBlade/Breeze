@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -690,8 +690,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                &#x2F;&#x2F; this.dataServices.push(dataService);
-                that.addDataService(dataService);
+                &#x2F;&#x2F; might have been fetched by another query
+                if (!that.hasMetadataFor(serviceName)) {
+                    that.addDataService(dataService);
+                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -976,7 +978,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
 
         function convertFromOdataDataProperty(entityType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.toDataType(odataProperty.type);
+            var dataType = DataType.fromEdmDataType(odataProperty.type);
             var isNullable = odataProperty.nullable === &#x27;true&#x27; || odataProperty.nullable == null;
             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
             var isPartOfKey = keyNamesOnServer.indexOf(odataProperty.name) &gt;= 0;

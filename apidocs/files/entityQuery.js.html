@@ -25,7 +25,7 @@
 <div id="doc">
 <div class="header">
 <div class="logo">
-	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze.png" /></a>
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
 	</div>
 
     <div class="primary-nav">
@@ -708,7 +708,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         **&#x2F;
         
         &#x2F;**
-        Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
+        Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
         @example
             &#x2F;&#x2F; assume em is an entityManager already filled with order entities;
             var query = new EntityQuery(&quot;Orders&quot;).using(em);
@@ -1040,25 +1040,25 @@ function (core, m_entityMetadata, m_entityAspect) {
 
     var QueryFuncs = (function() {
         var obj = {
-            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: &quot;String&quot; },
-            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: &quot;String&quot; },
-            substring:   { fn: function(source, pos, length) { return source.substring(pos, length); }, dataType: &quot;String&quot; },
-            substringof: { fn: function (source, find) { return source.indexOf(find) &gt;= 0;}, dataType: &quot;Boolean&quot; },
-            length:      { fn: function(source) { return source.length; }, dataType: &quot;Number&quot; },
-            trim:        { fn: function(source) { return source.trim(); }, dataType: &quot;String&quot; },
-            concat:      { fn: function(s1, s2) { return s1.concat(s2); }, dataType: &quot;String&quot; },
-            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: &quot;String&quot;},
-            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: &quot;Boolean&quot;},
-            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: &quot;Boolean&quot; },
-            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: &quot;Number&quot; },
-            round:       { fn: function (source) { return Math.round(source); }, dataType: &quot;Number&quot; },
-            ceiling:     { fn: function(source) {return Math.ceil(source); }, dataType: &quot;Number&quot; },
-            floor:       { fn: function (source) { return Math.floor(source); }, dataType: &quot;Number&quot; },
-            second:      { fn: function (source) { return source.second; }, dataType: &quot;Number&quot; },
-            minute:      { fn: function (source) { return source.minute; }, dataType: &quot;Number&quot; },
-            day:         { fn: function(source) { return source.day;}, dataType: &quot;Number&quot; },
-            month:       { fn: function(source) { return source.month; }, dataType: &quot;Number&quot; },
-            year:        { fn: function(source) { return source.year; }, dataType: &quot;Number&quot;},
+            toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: DataType.String },
+            tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
+            substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
+            substringof: { fn: function (source, find) { return source.indexOf(find) &gt;= 0;}, dataType: DataType.Boolean },
+            length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
+            trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
+            concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
+            replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: DataType.String },
+            startswith:  { fn: function (source, find) { return core.stringStartsWith(source, find); }, dataType: DataType.Boolean },
+            endswith:    { fn: function (source, find) { return core.stringEndsWith(source, find); }, dataType: DataType.Boolean },
+            indexof:     { fn: function (source, find) { return source.indexOf(find); }, dataType: DataType.Int32 },
+            round:       { fn: function (source) { return Math.round(source); }, dataType: DataType.Int32 },
+            ceiling:     { fn: function (source) { return Math.ceil(source); }, dataType: DataType.Int32 },
+            floor:       { fn: function (source) { return Math.floor(source); }, dataType: DataType.Int32 },
+            second:      { fn: function (source) { return source.second; }, dataType: DataType.Int32 },
+            minute:      { fn: function (source) { return source.minute; }, dataType: DataType.Int32 },
+            day:         { fn: function (source) { return source.day; }, dataType: DataType.Int32 },
+            month:       { fn: function (source) { return source.month; }, dataType: DataType.Int32 },
+            year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 },
         };
         
         return obj;
@@ -1083,7 +1083,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 if (quoted) {
                     var unquoted = value.substr(1, value.length - 2);
                     this.fn = function (entity) { return unquoted; };
-                    this.dataType = &quot;String&quot;;
+                    this.dataType = DataType.String;
                 } else {
                     var isIdentifier = RX_IDENTIFIER.test(value);
                     if (isIdentifier) {
@@ -1091,7 +1091,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         this.fn = createPropFunction(value);
                     } else {
                         this.fn = function (entity) { return value; };
-                        this.dataType = typeof value;
+                        this.dataType = DataType.fromJsType(typeof value);
                     }
                 } 
             } else {
@@ -1147,7 +1147,20 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        ctor.prototype.updateWithEntityType = function(entityType) {
+            if (this.propertyPath) {
+                if (entityType.isAnonymous) return;
+                var prop = entityType.getProperty(this.propertyPath);
+                if (!prop) {
+                    var msg = core.formatString(&quot;Unable to resolve propertyPath.  EntityType: &#x27;%1&#x27;   PropertyPath: &#x27;%2&#x27;&quot;, entityType.name, this.propertyPath);
+                    throw new Error(msg);
+                }
+                this.dataType = prop.dataType;
+            }
+        };
+
+        ctor.prototype.toOdataFragment = function (entityType) {
+            this.updateWithEntityType(entityType);
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
                     return fnNode.toOdataFragment(entityType);
@@ -1577,7 +1590,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.toOdataFragment = function (entityType) {
             var exprFrag = this._fnNode.toOdataFragment(entityType);
-            var val = formatValue(this._value);
+            var val = formatValue(this._value, this._fnNode);
             if (this._filterQueryOp.isFunction) {
                 return this._filterQueryOp.operator + &quot;(&quot; + exprFrag + &quot;,&quot; + val + &quot;) eq true&quot;;
             } else {
@@ -1594,7 +1607,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.toString = function () {
-            var val = formatValue(this._value);
+            var val = formatValue(this._value, this._fnNode);
             return this._fnNode.toString() + &quot; &quot; + this._filterQueryOp.operator + &quot; &quot; + val;
         };
 
@@ -1664,6 +1677,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringEquals(a, b, lqco) {
+            if (b == null) return false;
             if (typeof b !== &#x27;string&#x27;) {
                 b = b.toString();
             }
@@ -1679,6 +1693,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         }
         
         function stringStartsWith(a, b, lqco) {
+            
             if (!lqco.isCaseSensitive) {
                 a = (a || &quot;&quot;).toLowerCase();
                 b = (b || &quot;&quot;).toLowerCase();
@@ -1702,20 +1717,58 @@ function (core, m_entityMetadata, m_entityAspect) {
             return a.indexOf(b) &gt;= 0;
         }
 
-        function formatValue(val) {
-            if (typeof val === &quot;string&quot;) {
-                if (core.isGuid(val)) {
-                    return &quot;guid&#x27;&quot; + val + &quot;&#x27;&quot;;
+        function formatValue(val, fnNode) {
+            if (val == null) {
+                return null;
+            }
+            
+            var msg;
+            var dataType = fnNode.dataType;
+            if (!dataType) {
+                &#x2F;&#x2F; used for toString calls
+                if (core.isDate(val)) {
+                    dataType = DataType.DateTime;
+                } else if (core.isGuid(val)) {
+                    dataType = DataType.Guid;
                 } else {
-                    return &quot;&#x27;&quot; + val + &quot;&#x27;&quot;;
+                    dataType = DataType.fromJsType(typeof val) || DataType.String;
                 }
-            } else if (core.isDate(val)) {
-                &#x2F;&#x2F; return core.toISODateString(val);
-                return &quot;datetime&#x27;&quot;+val.toISOString() + &quot;&#x27;&quot;;
-                &#x2F;&#x2F; return val.toISOString();
+            }
+                       
+            if (dataType.isNumeric) {
+                if (typeof val === &quot;string&quot;) {
+                    if (dataType.isInteger) {
+                        val = parseInt(val);
+                    } else {
+                        val = parseFloat(val);
+                    }
+                }
+                return val;
+            } else if (dataType === DataType.String) {
+                return &quot;&#x27;&quot; + val + &quot;&#x27;&quot;;
+            } else if (dataType === DataType.DateTime) {
+                try {
+                    return &quot;datetime&#x27;&quot; + val.toISOString() + &quot;&#x27;&quot;;
+                } catch(e) {
+                    msg = core.formatString(&quot;&#x27;%1&#x27; is not a valid dateTime: &#x27;%2&#x27;&quot;, fnNode.toString, val);
+                    throw new Error(msg);
+                }
+            } else if (dataType === DataType.Guid) {
+                if (!core.isGuid(val)) {
+                    msg = core.formatString(&quot;&#x27;%1&#x27; is not a valid guid: &#x27;%2&#x27;&quot;, fnNode.toString, val);
+                    throw new Error(msg);
+                }
+                return &quot;guid&#x27;&quot; + val + &quot;&#x27;&quot;;
+            } else if (dataType === DataType.Boolean) {
+                if (typeof val === &quot;string&quot;) {
+                    return val.trim().toLowerCase() === &quot;true&quot;;
+                } else {
+                    return val;
+                }
             } else {
                 return val;
             }
+
         }
 
         return ctor;
@@ -1907,26 +1960,26 @@ function (core, m_entityMetadata, m_entityAspect) {
     var SimpleOrderByClause = (function () {
 
         var ctor = function (propertyPath, isDesc) {
-            if (!typeof propertyPath == &#x27;string&#x27;) {
+            if (!(typeof propertyPath == &#x27;string&#x27;)) {
                 throw new Error(&quot;propertyPath is not a string&quot;);
             }
             propertyPath = propertyPath.trim();
 
-            var properties = propertyPath.split(&#x27; &#x27;);
+            var parts = propertyPath.split(&#x27; &#x27;);
             &#x2F;&#x2F; parts[0] is the propertyPath; [1] would be whether descending or not.
-            if (properties.length &gt; 1 &amp;&amp; isDesc !== true &amp;&amp; isDesc !== false) {
-                isDesc = core.stringStartsWith(properties[1].toLowerCase(), &quot;desc&quot;);
+            if (parts.length &gt; 1 &amp;&amp; isDesc !== true &amp;&amp; isDesc !== false) {
+                isDesc = core.stringStartsWith(parts[1].toLowerCase(), &quot;desc&quot;);
                 if (!isDesc) {
-                    var isAsc = core.stringStartsWith(properties[1].toLowerCase(), &quot;asc&quot;);
+                    &#x2F;&#x2F; isDesc is false but check to make sure its intended.
+                    var isAsc = core.stringStartsWith(parts[1].toLowerCase(), &quot;asc&quot;);
                     if (!isAsc) {
                         throw new Error(&quot;the second word in the propertyPath must begin with &#x27;desc&#x27; or &#x27;asc&#x27;&quot;);
                     }
-                    isDesc = !isAsc;
+                    
                 }
             }
-            this.propertyPath = properties[0];
+            this.propertyPath = parts[0];
             this.isDesc = isDesc;
-            this.properties = properties;
         };
         ctor.prototype = new OrderByClause({ prototype: true });
 
@@ -1943,12 +1996,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.getComparer = function () {
-            var properties = this.properties;
+            var propertyPath = this.propertyPath;
             var isDesc = this.isDesc;
             var that = this;
             return function (entity1, entity2) {
-                var value1 = getPropertyPathValue(entity1, properties);
-                var value2 = getPropertyPathValue(entity2, properties);
+                var value1 = getPropertyPathValue(entity1, propertyPath);
+                var value2 = getPropertyPathValue(entity2, propertyPath);
                 if (that.lastProperty &amp;&amp; that.lastProperty.dataType == DataType.String) {
                     if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
                         value1 = (value1 || &quot;&quot;).toLowerCase();

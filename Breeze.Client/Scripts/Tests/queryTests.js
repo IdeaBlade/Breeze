@@ -36,13 +36,57 @@ define(["testFns"], function (testFns) {
             ok(alfred, "alfred should have been found");
             ok(data.fromCache === false, "should have been from database");
             return em.fetchEntityByKey("Customer", alfredsID, true);
-        }).then(function (data2) {
+        }).then(function(data2) {
             var alfred2 = data2.entity;
             ok(alfred2, "alfred2 should have been found");
             ok(alfred === alfred2, "should be the same entity");
             ok(data2.fromCache === true, "should have been from cache");
+            return em.fetchEntityByKey(data2.entityKey);
+        }).then(function(data3) {
+            var alfred3 = data3.entity;
+            ok(alfred3 === alfred, "alfred3 should = alfred");
+            ok(data3.fromCache === false, "should not have been from cache");
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("fetchEntityByKey - cache first not found", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        stop();
+        var alfred;
+        em.fetchEntityByKey("Customer", alfredsID, true).then(function (data) {
+            alfred = data.entity;
+            ok(alfred, "alfred should have been found");
+            ok(data.fromCache === false, "should have been from database");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("fetchEntityByKey - missing key", function () {
+        var em = newEm();
+        var alfredsID = '885efa04-cbf2-4dd7-a7de-083ee17b6ad7'; // not a valid key
+        stop();
+        var alfred;
+        em.fetchEntityByKey("Customer", alfredsID, true).then(function (data) {
+            alfred = data.entity;
+            ok(alfred === null, "alfred should not have been found");
+            ok(data.fromCache === false, "should have been from database");
+            ok(data.entityKey);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("fetchEntityByKey - bad args", function () {
+        var em = newEm();
+        stop();
+        try {
+            em.fetchEntityByKey("Customer").then(function(data) {
+                ok(false, "should not have gotten here");
+            }).fail(testFns.handleFail).fin(start);
+        } catch (e) {
+            ok(e.message.indexOf("EntityKey") >= 0, "should have an error message than mentions 'EntityKey'");
+            start();
+        }
+    });
+
     
     test("hasChanges after query",  function () {
         var em = newEm();

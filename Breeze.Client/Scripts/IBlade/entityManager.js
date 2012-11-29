@@ -901,16 +901,50 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
         
         /**
-        Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
+        Attempts to fetch an entity from the server by its key with
+        an option to check the local cache first. 
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities. 
             var employeeType = em1.metadataStore.getEntityType("Employee");
             var employeeKey = new EntityKey(employeeType, 1);
-            var employee = em1.getEntityByKey(employeeKey);
-            // employee will either be an entity or null.
-        @method fetchEntityByKey - overload
-        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey
+        @async
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
         @return {Promise} 
+
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+        **/
+        
+        /**
+        Attempts to fetch an entity from the server by its {{#crossLink "EntityKey"}}{{/crossLink}} with
+        an option to check the local cache first. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            em1.fetchEntityByKey(employeeKey).then(function(result) {
+                var employee = result.entity;
+                var entityKey = result.entityKey;
+                var fromCache = result.fromCache;
+            });
+        @method fetchEntityByKey - overload
+        @async
+        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @return {Promise} 
+        
+            promise.entity {Object} The entity returned or null
+            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
         **/
         ctor.prototype.fetchEntityByKey = function () {
             var tpl = createEntityKey(this, arguments);
