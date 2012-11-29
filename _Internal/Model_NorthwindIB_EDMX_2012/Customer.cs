@@ -17,6 +17,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public Customer()
         {
             this.Orders = new HashSet<Order>();
+            this.Location = new Location();
         }
     
         public System.Guid CustomerID { get; set; }
@@ -24,14 +25,11 @@ namespace Models.NorthwindIB.EDMX_2012
         public string CompanyName { get; set; }
         public string ContactName { get; set; }
         public string ContactTitle { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Region { get; set; }
-        public string PostalCode { get; set; }
-        public string Country { get; set; }
         public string Phone { get; set; }
         public string Fax { get; set; }
         public Nullable<int> RowVersion { get; set; }
+    
+        public Location Location { get; set; }
     
         public virtual ICollection<Order> Orders { get; set; }
     }
