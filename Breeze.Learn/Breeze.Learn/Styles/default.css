@@ -1,11 +1,14 @@
 ﻿
 body {
     margin: 0;
+	background-image:url("http://www.breezejs.com/sites/all/themes/breeze/images/bodybackground.png");
+	background-repeat:repeat-x;
 	
 }
 
 p, h3, ol, ul {
-	font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	color:#444444;
 	font-size:95%;
 }
 
@@ -16,16 +19,19 @@ code {
 .row, .col {
      position: absolute;
 	 overflow: hidden;
+	 background:transparent;
 }
 
 .row {
      left: 0; 
      right: 0;
+     background:transparent;
 }
 
 .col {
      top: 0; 
      bottom: 0;
+     background:transparent;
 }
 
 .scroll {
@@ -44,20 +50,26 @@ code {
 
 .left.col {
 	width: 50%;
+	background:transparent;
 }
 	
 .right.col {
 	right: 0;
 	width: 50%;
+	background:transparent;
 }
 
 .top.row {
 	height: 50%;
+	background:transparent;
+	
+	
 }
 
 .bottom.row {
 	bottom: 0;
 	height: 50%;
+	background:transparent;
 }
 
 /*    end of std */
@@ -129,20 +141,39 @@ code {
 
 .page-links a {
     
-    /*border-top-left-radius: .5em;
-    border-top-right-radius: .5em;
-    border-bottom-left-radius: .5em;
-    border-bottom-right-radius: .5em;*/
-    outline-color: invert;
-    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
-	font-size:90%;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size:16px;
+    margin:0px 10px;
+    color: #2e2e2e;
+	text-decoration: none; 
+	font-weight:bold;
+}
+
+.page-links a:hover {
+	text-decoration:underline;
+	color:#2e2e2e;
+}
+
+
+a {
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size:100%;
     margin-left: 1em;
+    color: #379ad3;
+	text-decoration: none; 
+
+} 
+
+a:hover {
+	text-decoration:underline;
+	color:#379ad3;
 }
 
 .header-container {
     position: absolute;
     left: 0;
     right: 0;
+    background:#fff;
 }
 
 .page-title {
@@ -152,8 +183,9 @@ code {
     padding-left: 1em;
     font-size: 160%;
     font-weight: bold;
-    color: #111111;
-    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #444444;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:bold;
 }
 
 .header-button {
@@ -191,11 +223,11 @@ code {
     height: 34px;
     overflow: hidden;
     line-height: 34px;
-    background-color: #0072c6;
+    background-color: #444444;
     color: #fff;
     font-size: .9em;
     font-weight: bold;
-    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
     text-align:center;
 
 }
@@ -208,6 +240,8 @@ code {
     right: 0;
     overflow: hidden;
     margin-left: 10px;
+    background:transparent;
+    
     
 }
 
@@ -219,11 +253,12 @@ code {
     right: 0;
     overflow: auto;
     margin-left: 10px;
+    
 }
 
 
 .button {
-    background: #0072c6;
+    background: #444444;
     background-repeat: repeat-x;
     border: none;
     border-top: 1px solid rgba(255, 255, 255, .65);
@@ -236,12 +271,11 @@ code {
     */
     white-space: nowrap;
     color: #fff;
-    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
-}
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 
 .button:hover {
-    background-color: #3faeff;
-    color: black;
+    background-color: #46ade8;
+    color: #fff;
     background-image: none;
     cursor: pointer;
     /*
@@ -255,7 +289,8 @@ code {
     top: 0;
     width: 40px;
     height: 40px;
-    background: url("/Images/arrowdown.png") no-repeat right top;
+    background: url("/Images/arrowdown.png") no-repeat right top; 
+   
 }
 
 
@@ -281,14 +316,14 @@ code {
 }
 
 .tutorial-item.selected {
-    background-color: #0072c6;
+    background-color: #444444;
     background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#56a3dc),color-stop(.2,#0072c6),color-stop(1,#56a3dc));
     background-image: -moz-linear-gradient(center bottom,#EFEFBD0%,#F4F4CC20%,#FFFFD7100%);
     color: #fff;
 }
 
 .tutorial-item:hover {
-    background-color: #3faeff;
+    background-color: #46ade8;
     color: white;
     cursor: pointer;
     background-image: -webkit-gradient(linear,left bottom,left top,color-stop(0,#1B2F53),color-stop(.2,#2F4367),color-stop(1,#43577B));
@@ -365,6 +400,7 @@ iframe {
 
 /*jQuery overrides*/
 .ui-widget { 
-    font-family:"Segoe UI", "Lucida Grande","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 	font-size:95%;
+	color:#444444;
 }
