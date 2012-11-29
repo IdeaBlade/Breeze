@@ -28,7 +28,7 @@ define(["testFns"], function (testFns) {
 
     if (!testFns.DEBUG_WEBAPI) {
         test("Skipping named query tests - not available for thru Odata", function () {
-            ok(false, "Skipped tests - ok to fail");
+            ok(true, "Skipped tests - named queries not available in OData");
         });
         return testFns;
     };
@@ -184,7 +184,7 @@ define(["testFns"], function (testFns) {
                 var c2 = em.findEntityByKey(ckey);
                 ok(c2 === c, "cust not cached");
                 var okey = orders[0].entityAspect.getKey();
-                var o2 = em.findEntityByKey(okey);
+                var o2 = em.getEntityByKey(okey);
                 ok(o2 === orders[0], "order not cached");
             });
             start();

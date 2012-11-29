@@ -855,9 +855,10 @@ function (core, a_config, m_validate) {
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }
-            if (!this instanceof ctor) {
-                return new ctor(entityType, keyValues);
-            }
+            // fluff
+            //if (!(this instanceof ctor)) {
+            //    return new ctor(entityType, keyValues);
+            //}
             this.entityType = entityType;
             this.values = keyValues;
             this._keyInGroup = createKeyString(keyValues);

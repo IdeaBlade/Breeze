@@ -141,9 +141,11 @@ define(["testFns"], function (testFns) {
         var origProductId = product.getProperty("productID");
         var entityKey = new EntityKey(productType, [origProductId]);
         var sameProduct = em.findEntityByKey(entityKey);
+        var sameProduct2 = em.getEntityByKey("Product", origProductId);
         ok(product === sameProduct);
+        ok(product === sameProduct2);
         product.setProperty("productID", 7);
-        sameProduct = em.findEntityByKey(entityKey);
+        sameProduct = em.getEntityByKey(entityKey);
         ok(sameProduct === null);
         entityKey = new EntityKey(productType, [7]);
         sameProduct = em.findEntityByKey(entityKey);

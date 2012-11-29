@@ -55,7 +55,7 @@ function (core) {
     /**
     This method is now OBSOLETE.  Use the "initializeAdapterInstances" to accomplish the same result.
     @method setProperties
-    @obsolete
+    @deprecated
     @param config {Object}
         @param [config.remoteAccessImplementation] { implementation of remoteAccess-interface }
         @param [config.trackingImplementation] { implementation of entityTracking-interface }

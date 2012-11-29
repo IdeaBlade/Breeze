@@ -864,6 +864,72 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this._entityGroupMap[entityType.name];
         };
 
+        
+        /**
+        Attempts to locate an entity within this EntityManager by its key. 
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employee = em1.getEntityByKey("Employee", 1);
+            // employee will either be an entity or null.
+        @method getEntityByKey
+        @param typeName {String} The entityType name for this key.
+        @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
+        @return {Entity} An Entity or null;
+        **/
+        
+        /**
+        Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            var employee = em1.getEntityByKey(employeeKey);
+            // employee will either be an entity or null.
+        @method getEntityByKey - overload
+        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+        @return {Entity} An Entity or null;
+        **/
+        ctor.prototype.getEntityByKey = function () {
+
+            var entityKey = createEntityKey(this, arguments).entityKey;
+
+            var group = this.findEntityGroup(entityKey.entityType);
+            if (!group) {
+                return null;
+            }
+            return group.findEntityByKey(entityKey);
+        };
+        
+        /**
+        Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities. 
+            var employeeType = em1.metadataStore.getEntityType("Employee");
+            var employeeKey = new EntityKey(employeeType, 1);
+            var employee = em1.getEntityByKey(employeeKey);
+            // employee will either be an entity or null.
+        @method fetchEntityByKey - overload
+        @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
+        @return {Promise} 
+        **/
+        ctor.prototype.fetchEntityByKey = function () {
+            var tpl = createEntityKey(this, arguments);
+            var entityKey = tpl.entityKey;
+            var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
+            var entity;
+            if (checkLocalCacheFirst) {
+                entity = this.getEntityByKey(entityKey);
+            } 
+            if (entity) {
+                return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+            } else {
+                return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
+                    entity = (data.results.length === 0) ? null : data.results[0];
+                    return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
+                });
+            }
+        };
+        
         /**
         Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
         @example
@@ -873,16 +939,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var employee = em1.findEntityByKey(employeeKey);
             // employee will either be an entity or null.
         @method findEntityByKey
+        @deprecated - use getEntityByKey instead
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
         ctor.prototype.findEntityByKey = function (entityKey) {
-            core.assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
-            var group = this.findEntityGroup(entityKey.entityType);
-            if (!group) {
-                return null;
-            }
-            return group.findEntityByKey(entityKey);
+            return this.getEntityByKey(entityKey);
         };
 
         /**
@@ -1207,6 +1269,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // private fns
         
+        function createEntityKey(em, args) {
+            if (args[0] instanceof EntityKey) {
+                return { entityKey: args[0], remainingArgs: Array.prototype.slice.call(args, 1) };
+            } else if (typeof args[0] === 'string' && args.length >= 2) {
+                var entityType = em.metadataStore.getEntityType(args[0], false);
+                return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: Array.prototype.slice.call(args, 2) };
+            } else {
+                throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
+            }
+        }       
         
         function markIsBeingSaved(entities, flag) {
             entities.forEach(function(entity) {
@@ -2023,6 +2095,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             aspect.entityManager = null;
             return entity;
         };
+        
+
 
         // returns entity based on an entity key defined either as an array of key values or an EntityKey
         ctor.prototype.findEntityByKey = function (entityKey) {

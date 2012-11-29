@@ -25,6 +25,24 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    test("fetchEntityByKey", function() {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        stop();
+        var alfred;
+        em.fetchEntityByKey("Customer", alfredsID).then(function(data) {
+            alfred = data.entity;
+            ok(alfred, "alfred should have been found");
+            ok(data.fromCache === false, "should have been from database");
+            return em.fetchEntityByKey("Customer", alfredsID, true);
+        }).then(function (data2) {
+            var alfred2 = data2.entity;
+            ok(alfred2, "alfred2 should have been found");
+            ok(alfred === alfred2, "should be the same entity");
+            ok(data2.fromCache === true, "should have been from cache");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("hasChanges after query",  function () {
         var em = newEm();
@@ -474,7 +492,7 @@ define(["testFns"], function (testFns) {
         // TEST FAILS  (2 IN CACHE W/ SAME ID) ... CHANGING THE ID AFTER ATTACH
         customer.setProperty("customerID", alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
         var ek = customer.entityAspect.getKey();
-        var sameCustomer = em.findEntityByKey(ek);
+        var sameCustomer = em.getEntityByKey(ek);
         customer.entityAspect.setUnchanged();
         
         // SHOULD BE THE SAME. EITHER WAY ITS AN ATTACHED UNCHANGED ENTITY

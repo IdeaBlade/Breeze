@@ -34,7 +34,7 @@ define(["testFns"], function (testFns) {
 
     test("class watcher - inherited - backbone", function() {
         if (testFns.modelLibrary !== 'backbone') {
-            ok(false, "Skipped tests - ok to fail - Backbone specific");
+            ok(true, "Skipped test - Backbone specific");
             return;
         }
         var metadataStore = new MetadataStore();
@@ -103,7 +103,7 @@ define(["testFns"], function (testFns) {
 
     test("class watcher - inherited - not backbone", function () {
         if (testFns.modelLibrary === 'backbone') {
-            ok(false, "Skipped tests - ok to fail - Not for Backbone");
+            ok(true, "Skipped test - Not written for Backbone");
             return;
         }
         var metadataStore = new MetadataStore();

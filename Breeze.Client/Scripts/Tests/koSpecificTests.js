@@ -26,7 +26,7 @@ define(["testFns"], function (testFns) {
     
     if (testFns.modelLibrary !== "ko") {
         test("Skipping KO specific tests", function () {
-            ok(false, "Skipped tests - ok to fail");
+            ok(true, "Skipped tests - ko specfic");
         });
         return testFns;
     };
