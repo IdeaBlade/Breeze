@@ -762,6 +762,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                             
                     });
                 }
+                if (schema.complexType) {
+                    toArray(schema.complexType).forEach(function (et) {
+                        var complexType = convertFromODataComplexType(et, schema, that);
+
+                        // check if this entityTypeName, short version or qualified version has a registered ctor.
+                        var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
+                        if (entityCtor) {
+                            // next line is in case the complexType was originally registered with a shortname.
+                            entityCtor.prototype._$typeName = entityType.name;
+                            complexType._setEntityCtor(entityCtor);
+                            that._complexTypeMap[complexType.name] = complexType;
+                        }
+
+                    });
+                }
             });
             var badNavProps = this.getIncompleteNavigationProperties();
             if (badNavProps.length > 0) {
@@ -799,6 +814,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return entityType;
         }
 
+        function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
+            var shortName = odataComplexType.name;
+            var namespace = translateNamespace(schema, schema.namespace);
+            var complexType = new ComplexType({
+                shortName: shortName,
+                namespace: namespace,
+            });
+            
+            toArray(odataComplexType.property).forEach(function (prop) {
+                convertFromOdataDataProperty(entityType, prop, null);
+            });
+            
+            metadataStore.addComplexType(complexType);
+            return complexType;
+        }
 
         function convertFromOdataDataProperty(entityType, odataProperty, keyNamesOnServer) {
             var dataType = DataType.fromEdmDataType(odataProperty.type);
@@ -973,6 +1003,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         return ctor;
     }();
+    
+    var BaseType = (function () {
+
+
+    })();
 
     var EntityType = (function () {
         /**
