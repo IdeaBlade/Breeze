@@ -280,7 +280,6 @@
     <Content Include="Scripts\breeze.js" />
     <Content Include="Scripts\todoList.datacontext.js" />
     <Content Include="Scripts\todoList.model.js" />
-    <Content Include="Scripts\todoList.breeze-datacontextConfig.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\todoList.dataAccess.js" />

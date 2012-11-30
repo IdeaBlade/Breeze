@@ -1,9 +1,20 @@
-﻿window.TodoApp.datacontext = (function (breeze, config) {
+﻿window.TodoApp = window.TodoApp || {};
 
-    var manager = config.createManager(),
-        metadataStore = manager.metadataStore,
+window.TodoApp.datacontext = (function (breeze) {
 
-        datacontext = {
+    // service name is route to the Web API controller
+    var serviceName = 'api/BreezeTodo';
+    var saveOptions = new breeze.SaveOptions({ allowConcurrentSaves: true });
+
+    // manager is the service gateway and cache holder
+    var manager = new breeze.EntityManager({
+            serviceName: serviceName,
+            saveOptions: saveOptions
+    });
+    
+    var metadataStore = manager.metadataStore;
+
+    var datacontext = {
             name: "Breeze",
             metadataStore: metadataStore,
             getTodoLists: getTodoLists,
@@ -95,4 +106,4 @@
         entities.forEach(function (entity) { manager.detach(entity); });
     }
 
-})(breeze, window.TodoApp.breezedatacontextConfig);
+})(breeze);

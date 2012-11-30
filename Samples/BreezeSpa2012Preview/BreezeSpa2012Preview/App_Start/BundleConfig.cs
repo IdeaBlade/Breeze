@@ -44,7 +44,6 @@ namespace BreezeSpa2012Preview
                 "~/Scripts/breeze.debug.js",
                 // the app itself
                 "~/Scripts/todoList.bindings.js", 
-                "~/Scripts/todoList.breeze-datacontextConfig.js",
                 "~/Scripts/todoList.breeze-datacontext.js",
                 "~/Scripts/todoList.breeze-model.js",
                 "~/Scripts/todoList.viewmodel.js"));
