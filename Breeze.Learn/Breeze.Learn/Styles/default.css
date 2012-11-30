@@ -16,6 +16,14 @@ code {
     font-family: Consolas, Monaco, Andale, Courier New, Courier, Monospace;
 }
 
+.breeze-logo {
+	background-image: url("/Images/breeze_150.png");
+    width: 150px;
+    height:51px;
+    float:left;
+    margin:13px;
+}
+
 .row, .col {
      position: absolute;
 	 overflow: hidden;
