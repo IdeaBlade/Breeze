@@ -47,7 +47,9 @@ define(["breeze"], function (breeze) {
             // ID of the Northwind "Alfreds Futterkiste" customer
             alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
             // ID of the Northwind "Nancy Davolio" employee
-            nancyID: 1
+            nancyID: 1,
+            // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
+            alfredsOrderDetailKey: {OrderID: 10643, ProductID: 28 /*Rössle Sauerkraut*/}
         }
     };
 

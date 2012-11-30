@@ -1206,22 +1206,176 @@ define(["testFns"], function (testFns) {
 
     module("queryTests (by id)", testFns.getModuleOptions(newEm));
 
-    // This module tests the following async getById utility method.
-    // whose successful promise returns the entity if found in cache 
+    /*********************************************************
+     * Fetch unchanged Customer by key found on server
+     *********************************************************/
+    test("fetchEntityByKey of Customer found on the server", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = testFns.wellKnownData.alfredsID;
+
+            stop(); // should go async
+            em.fetchEntityByKey("Customer", id,
+                // Look in cache first; it won't be there
+               /* checkLocalCacheFirst */ true) 
+              .then(fetchSucceeded)
+              .fail(handleFail)
+              .fin(start);
+
+            function fetchSucceeded(data) {
+                var customer = data.entity;
+                var name = customer && customer.CompanyName();
+                var entityState = customer && customer.entityAspect.entityState;
+                ok(entityState.isUnchanged, "should have found unchanged customer, " + name);
+                ok(!data.fromCache, "should have queried the service");
+            }
+        });
+    /*********************************************************
+    * Fetch unchanged Customer by key found in cache
+    *********************************************************/
+    test("fetchEntityByKey of unchanged Customer found in cache", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = '11111111-2222-3333-4444-555555555555';
+            // fake it in cache so we can find it
+            makeAttachedCustomerWithId(em, id);
+
+            stop(); // actually won't go async
+            em.fetchEntityByKey("Customer", id,
+               // Look in cache first; it will be there this time
+               /* checkLocalCacheFirst */ true)
+              .then(fetchSucceeded)
+              .fail(handleFail)
+              .fin(start);
+
+            function fetchSucceeded(data) {
+                var customer = data.entity;
+                var name = customer && customer.CompanyName();
+                var entityState = customer && customer.entityAspect.entityState;
+                ok(entityState.isUnchanged, "should have found unchanged customer, " + name);
+                ok(data.fromCache, "should have found customer in cache");
+            }
+        });
+    /*********************************************************
+     * Fetch OrderDetail by its 2-part key from cache from server
+     *********************************************************/
+    test("fetchEntityByKey of OrderDetail by 2-part key from server", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var orderDetailKey = testFns.wellKnownData.alfredsOrderDetailKey;
+
+            stop(); // should go async
+            em.fetchEntityByKey("OrderDetail",
+                orderDetailKey.OrderID,
+                orderDetailKey.ProductID) // don't bother looking in cache
+              //.expand("Product") // sorry ... can't use expand
+              .then(fetchSucceeded)
+              .fail(handleFail)
+              .fin(start);
+
+            function fetchSucceeded(data) {
+                var orderDetail = data.entity;
+                ok(orderDetail, "should have found OrderDetail for " + 
+                    JSON.stringify(orderDetailKey));
+                ok(!data.fromCache, "should have queried the service");
+            }
+        });
+
+    /*********************************************************
+    * fetchEntityByKey of non-existent Customer returns null
+    *********************************************************/
+    test("fetchEntityByKey of non-existent Customer returns null", 2,
+    function () {
+
+        var em = newEm(); // empty manager
+        var id = '11111111-2222-3333-4444-555555555555';
+
+        stop(); // should go async
+        em.fetchEntityByKey("Customer", id,
+           /* checkLocalCacheFirst */ true)
+          .then(fetchSucceeded)
+          .fail(handleFail)
+          .fin(start);
+
+        function fetchSucceeded(data) {
+            // fetch "succeeds" even when entity is not found
+            // "success" == "did not break"
+            ok(data.entity == null, "should not find customer with id " + id);
+            ok(!data.fromCache, "should have checked the server");
+        }
+    });
+    /*********************************************************
+    * fetchEntityByKey of Customer marked-for-delete returns null
+    *********************************************************/
+    test("fetchEntityByKey of Customer marked-for-delete returns null", 2,
+    function () {
+
+        var em = newEm(); // empty manager
+        var id = '11111111-2222-3333-4444-555555555555';
+        // fake it in cache so we can find it
+        var customer = makeAttachedCustomerWithId(em, id);
+        customer.entityAspect.setDeleted();
+
+        stop(); // actually won't go async
+        em.fetchEntityByKey("Customer", id,
+           /* checkLocalCacheFirst */ true)
+          .then(fetchSucceeded)
+          .fail(handleFail)
+          .fin(start);
+
+        function fetchSucceeded(data) {
+            // fetch "succeeds" even when entity is deleted
+            // "success" == "did not break"
+            ok(data.entity == null, "should not find deleted customer with id " + id);
+            ok(data.fromCache, "should NOT have checked the server");
+        }
+    });
+    /*********************************************************
+    * getEntityByKey of Customer marked-for-delete returns the deleted entity
+    * getEntityByKey is a synchronous method that only looks at cache
+    *********************************************************/
+    test("getEntityByKey of Customer marked-for-delete returns the deleted entity", 2,
+    function () {
+
+        var em = newEm(); // empty manager
+        var id = '11111111-2222-3333-4444-555555555555';
+        // fake it in cache so we can find it
+        var customer = makeAttachedCustomerWithId(em, id);
+        customer.entityAspect.setDeleted();
+
+        var entity = em.getEntityByKey("Customer", id);
+        
+        ok(entity == customer, "should find deleted customer with id " + id);
+        equal(entity.entityAspect.entityState.name, "Deleted",
+            "customer should be in 'Deleted' state.");
+    });
+    /*********************************************************************
+     * This portion of the "queryTests (by id)" module  
+     * tests a hand-built async getById utility that was the way to do it 
+     * before EntityManager.fetchEntityByKey
+     * A curiosity now.
+     ********************************************************************/
+    
+    // This hand-built async getById utility method returns a promise.
+    // A successful promise returns the entity if found in cache 
     // or if found remotely.
     // Returns null if not found or if found in cache but is marked deleted.
     // Caller should check for query failure.
-    // 
-    // This fnc may be useful in your application (perhaps w/o the queryResult).
     // 'queryResult' reports if queried the remote service 
     // and holds a found entity even if it is marked for deletion.
+    // 
+    // This fnc has been replaced by EntityManager.getEntityByKey.
+    
     function getByIdCacheOrRemote(manager, typeName, id, queryResult) {
         // get key for entity of specified type and id
         var typeInfo = manager.metadataStore.getEntityType(typeName);
         var key = new breeze.EntityKey(typeInfo, id);
 
         // look in cache first
-        var entity = manager.findEntityByKey(key);
+        var entity = manager.getEntityByKey(key);
         if (entity) {
             queryResult.queriedRemotely = false; // found it in cache
             queryResult.entity = entity;
@@ -1243,9 +1397,9 @@ define(["testFns"], function (testFns) {
     }
     
     /*********************************************************
-     * Get unchanced customer by id from cache from server
+     * [obsolete] Get unchanged customer by id from cache from server
      *********************************************************/
-    test("getById of unchanged customer from server", 2,
+    test("getById of unchanged customer from server [obsolete]", 2,
         function () {
 
             var em = newEm(); // empty manager
@@ -1266,7 +1420,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * Get unchanged customer by id from cache 
     *********************************************************/
-    test("getById of unchanged customer from cache ", 2,
+    test("getById of unchanged customer from cache [obsolete]", 2,
         function () {
 
             var em = newEm(); // empty manager
@@ -1288,7 +1442,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * getById of deleted customer in cache returns null
     *********************************************************/
-    test("getById of deleted customer in cache returns null", 3,
+    test("getById of deleted customer in cache returns null [obsolete]", 3,
         function () {
 
             var em = newEm(); // empty manager
