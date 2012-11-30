@@ -565,6 +565,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             failureFunction([error])
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @return {Promise} Promise 
+
+            promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
+            it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
         **/
         ctor.prototype.fetchMetadata = function (callback, errorCallback) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -641,6 +644,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
         @return {Promise} Promise
+
+            promiseData.results {Array of Entity}
+            promiseData.query {EntityQuery} The original query
+            promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         **/
         ctor.prototype.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
@@ -916,12 +923,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @async
         @param typeName {String} The entityType name for this key.
         @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
-        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @param checkLocalCacheFirst {Boolean=false} Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.
         @return {Promise} 
 
-            promise.entity {Object} The entity returned or null
-            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
-            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+            promiseData.entity {Object} The entity returned or null
+            promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
         **/
         
         /**
@@ -939,12 +946,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method fetchEntityByKey - overload
         @async
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
-        @param checkLocalCacheFirst {Boolean} Whether to check this EntityManager first before going to the server.
+        @param checkLocalCacheFirst {Boolean=false} Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.
         @return {Promise} 
         
-            promise.entity {Object} The entity returned or null
-            promise.entityKey {EntityKey} The entityKey of the entity to fetch.
-            promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+            promiseData.entity {Object} The entity returned or null
+            promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
+            promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
         **/
         ctor.prototype.fetchEntityByKey = function () {
             var tpl = createEntityKey(this, arguments);

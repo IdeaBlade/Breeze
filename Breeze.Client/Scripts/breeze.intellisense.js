@@ -1,4 +1,4 @@
-﻿// Generated on: Wed Nov 28 2012 23:19:30 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Nov 29 2012 18:08:07 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -744,7 +744,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
-    ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    ///   <returns type="breeze.breeze.Promise" >Promise </returns>
     /// </signature>
   },
   'executeQuery': function() {
@@ -807,7 +807,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
-    ///   <param name="checkLocalCacheFirst" type="Boolean" optional="true">Whether to check this EntityManager first before going to the server.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
     ///   <returns type="breeze.breeze.Promise" ></returns>
     /// </signature>
   },
@@ -818,7 +818,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   an option to check the local cache first.
     ///   </summary>
     ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
-    ///   <param name="checkLocalCacheFirst" type="Boolean" optional="true">Whether to check this EntityManager first before going to the server.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
     ///   <returns type="breeze.breeze.Promise" ></returns>
     /// </signature>
   },

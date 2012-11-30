@@ -879,6 +879,10 @@ function (core, a_config, m_validate) {
         @param [callback] {Function} Function to call on success.
         @param [errorCallback] {Function} Function to call on failure.
         @return {Promise} 
+
+            promiseData.results {Array of Entity}
+            promiseData.query {EntityQuery} The original query
+            promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         **&#x2F;
         &#x2F;&#x2F; This method is provided in entityQuery.js.
         &#x2F;&#x2F; ctor.prototype.loadNavigationProperty = function(navigationProperty, callback, errorCallback) 

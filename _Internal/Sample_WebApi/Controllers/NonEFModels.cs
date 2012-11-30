@@ -84,7 +84,8 @@ namespace Sample_WebApi.Models {
 
   public class Meal {
     public Meal(Person person, DateTime dateConsumed, params Dish[] dishes) {
-      Person = person;
+      // next deliberately omitted to see if entity fixup occurs on the client. 
+      // Person = person;
       PersonId = person.PersonId;
       DateConsumed = dateConsumed;
       MealId = IdGenerator.GetNextId();
