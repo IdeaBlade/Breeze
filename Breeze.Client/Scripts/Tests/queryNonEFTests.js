@@ -61,7 +61,9 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0);
             var person = data.results[0];
             ok(person.meals.length > 0, "person should have meals");
-            ok(person.meals[0].person === person, "check internal consistency");
+            // deliberately omitted because we only use ids to link meals -> person 
+            // and fixup will not occur with anon types
+            // ok(person.meals[0].person === person, "check internal consistency");
             var ents = em.getEntities();
             ok(ents.length === 0,"should return 0 - not yet entities");
             start();
@@ -71,12 +73,13 @@ define(["testFns"], function (testFns) {
     
     test("getSimple - typed - Persons", function () {
         var em = newAltEm();
-        // HACK - add to the API for this
+        
         initializeMetadataStore(em.metadataStore);
         var query = breeze.EntityQuery.from("Persons");
         stop();
 
         em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
             ok(data.results.length > 0);
             var person = data.results[0];
             var meals = person.getProperty("meals");

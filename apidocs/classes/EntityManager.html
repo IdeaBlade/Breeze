@@ -1316,7 +1316,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l587"><code>entityManager.js:587</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l590"><code>entityManager.js:590</code></a>
         
         </p>
 
@@ -1503,6 +1503,11 @@ em1.detachEntity(cust1);
                         <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
                     
                     Promise
+
+<pre><code>promiseData.results {Array of Entity}
+promiseData.query {EntityQuery} The original query
+promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+</code></pre>
                 
             </div>
         </div>
@@ -1598,7 +1603,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l664"><code>entityManager.js:664</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l671"><code>entityManager.js:671</code></a>
         
         </p>
 
@@ -1871,7 +1876,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l903"><code>entityManager.js:903</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l910"><code>entityManager.js:910</code></a>
         
         </p>
 
@@ -1925,13 +1930,13 @@ an option to check the local cache first.</p>
                 <li class="param">
                     
                         <code class="param-name">checkLocalCacheFirst</code>
-                        <span class="type">Boolean</span>
+                        <span class="type">Boolean=false</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>Whether to check this EntityManager first before going to the server.</p>
+                        <p>Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</p>
                     </div>
 
                     
@@ -1950,9 +1955,9 @@ an option to check the local cache first.</p>
                     
                         <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
                     
-                    <pre><code>promise.entity {Object} The entity returned or null
-promise.entityKey {EntityKey} The entityKey of the entity to fetch.
-promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+                    <pre><code>promiseData.entity {Object} The entity returned or null
+promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
+promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
 </code></pre>
                 
             </div>
@@ -2033,7 +2038,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l927"><code>entityManager.js:927</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l934"><code>entityManager.js:934</code></a>
         
         </p>
 
@@ -2072,13 +2077,13 @@ an option to check the local cache first.</p>
                 <li class="param">
                     
                         <code class="param-name">checkLocalCacheFirst</code>
-                        <span class="type">Boolean</span>
+                        <span class="type">Boolean=false</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>Whether to check this EntityManager first before going to the server.</p>
+                        <p>Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</p>
                     </div>
 
                     
@@ -2097,9 +2102,9 @@ an option to check the local cache first.</p>
                     
                         <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
                     
-                    <pre><code>promise.entity {Object} The entity returned or null
-promise.entityKey {EntityKey} The entityKey of the entity to fetch.
-promise.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
+                    <pre><code>promiseData.entity {Object} The entity returned or null
+promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
+promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
 </code></pre>
                 
             </div>
@@ -2290,7 +2295,11 @@ loaded.</p>
                     
                         <span class="type"><a href="..\classes\Promise.html" class="crosslink">Promise</a></span>:
                     
-                    Promise
+                    Promise 
+
+<pre><code>promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
+it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.
+</code></pre>
                 
             </div>
         </div>
@@ -2366,7 +2375,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l967"><code>entityManager.js:967</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l974"><code>entityManager.js:974</code></a>
         
         </p>
 
@@ -2485,7 +2494,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l984"><code>entityManager.js:984</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l991"><code>entityManager.js:991</code></a>
         
         </p>
 
@@ -2619,7 +2628,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1087"><code>entityManager.js:1087</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1094"><code>entityManager.js:1094</code></a>
         
         </p>
 
@@ -2753,7 +2762,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1140"><code>entityManager.js:1140</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1147"><code>entityManager.js:1147</code></a>
         
         </p>
 
@@ -2909,7 +2918,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l868"><code>entityManager.js:868</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l875"><code>entityManager.js:875</code></a>
         
         </p>
 
@@ -3039,7 +3048,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l880"><code>entityManager.js:880</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l887"><code>entityManager.js:887</code></a>
         
         </p>
 
@@ -3156,7 +3165,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1025"><code>entityManager.js:1025</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1032"><code>entityManager.js:1032</code></a>
         
         </p>
 
@@ -3601,7 +3610,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1117"><code>entityManager.js:1117</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1124"><code>entityManager.js:1124</code></a>
         
         </p>
 
@@ -3713,7 +3722,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l725"><code>entityManager.js:725</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l732"><code>entityManager.js:732</code></a>
         
         </p>
 
@@ -4671,7 +4680,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1061"><code>entityManager.js:1061</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1068"><code>entityManager.js:1068</code></a>
         
         </p>
 
