@@ -48,7 +48,7 @@ todoMain.controller('shellVm', function ($scope) {
     $scope.addItem = function() {
         var item = dataservice.createTodo();
 
-        item.IsDone = this.allCompleted;
+        item.IsDone = false;
         item.Description = this.newTodo;
         item.CreatedAt = new Date();
 
@@ -125,7 +125,7 @@ todoMain.controller('shellVm', function ($scope) {
     };
 
     $scope.toggleCompleted = function () {
-        this.markAllCompleted(this.allCompleted);
+        this.markAllCompleted(!this.allCompleted);
     };
 
     $scope.markAllCompleted = function(value) {
@@ -136,12 +136,6 @@ todoMain.controller('shellVm', function ($scope) {
         suspendItemSave = false;
         dataservice.saveChanges();
     };
-
-    $scope.areAllCompleted = function() {
-        var state = getStateOfItems();
-        return state.itemsLeftCount === 0 && this.items.length > 0;
-    };
-
 
     $scope.getAllTodos = function() {
         dataservice.getAllTodos($scope.includeArchived)
@@ -157,7 +151,6 @@ todoMain.controller('shellVm', function ($scope) {
             extendItem(item);
             $scope.items.push(item);
         });
-        $scope.allCompleted = $scope.areAllCompleted();
         $scope.$apply();
         
         logger.info("Fetched Todos " +
@@ -220,6 +213,8 @@ todoMain.controller('shellVm', function ($scope) {
                 itemsLeft.push(item);
             }
         });
+
+        $scope.allCompleted = itemsLeft.length === 0 && itemsDone.length > 0;
 
         return {
             itemsDone: itemsDone,
