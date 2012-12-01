@@ -34,6 +34,15 @@ function eraseExtraFiles($dir) {
 	$files | foreach ($_) { remove-item $_.fullname -recurse }
 }
 
+function prepareSample($srcDir, $destDir, $sampleName, $filesToRemove) {
+    $src = "$srcDir\Samples\$sampleName\" 
+    $dest = "$destDir\Samples\$sampleName" 
+    eraseExtraFiles $src
+    copy-item "$src" "$dest" -recurse
+    $xxx = "gci '$dest' -include $filesToRemove -recurse -force | remove-Item -recurse -force"
+    invoke-expression $xxx
+}
+
 # make sure 7-Zip is available
 if (test-path "$env:ProgramFiles (x86)\7-Zip\7z.exe") {
     set-alias sz "$env:ProgramFiles (x86)\7-Zip\7z.exe" 
@@ -81,21 +90,11 @@ if (test-path $zipFile) {
 sz a -tzip "$zipFile" "$destDir\*"    
 
 #create basic plus... release folder structure and zip it
-eraseExtraFiles "$srcDir\Samples\DocCode\"
-copy-item $srcDir\Samples\DocCode $destDir\Samples\DocCode -recurse
-gci $destDir\Samples\DocCode -include Todos.sdf -recurse -force | remove-Item -recurse -force
-
-eraseExtraFiles "$srcDir\Samples\ToDo\" 
-copy-item $srcDir\Samples\ToDo $destDir\Samples\ToDo -recurse
-gci $destDir\Samples\Todo -include *.sdf -recurse -force | remove-Item -recurse -force
-
-eraseExtraFiles "$srcDir\Samples\BreezyDevices\"
-copy-item $srcDir\Samples\BreezyDevices $destDir\Samples\BreezyDevices -recurse
-gci $destDir\Samples\BreezyDevices -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
-
-eraseExtraFiles "$srcDir\Samples\CarBones\"
-copy-item $srcDir\Samples\CarBones $destDir\Samples\CarBones -recurse
-gci $destDir\Samples\CarBones -include *.mdf,*.ldf -recurse -force | remove-Item -recurse -force
+prepareSample $srcDir $destDir "DocCode"       "Todos.sdf"
+prepareSample $srcDir $destDir "Todo"          "*.sdf"
+prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf"
+prepareSample $srcDir $destDir "BreezyDevices" "*.mdf,*.ldf"
+prepareSample $srcDir $destDir "CarBones"      "*.mdf,*.ldf"
 
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = "$srcDir\breeze-runtime-plus-$versionNum.zip"
