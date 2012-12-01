@@ -148,9 +148,9 @@ function (core) {
     **/
     a_config.initializeAdapterInstance = function (interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
-        assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(adapterName, "adapterName").isNonEmptyString();
-        assertParam(isDefault, "isDefault").isBoolean();
+        assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
+        assertParam(adapterName, "adapterName").isNonEmptyString().check();
+        assertParam(isDefault, "isDefault").isBoolean().check();
         
         var idef = getInterfaceDef(interfaceName);
         var impl = idef.getImpl(adapterName);
