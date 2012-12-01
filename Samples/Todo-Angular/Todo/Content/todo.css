@@ -65,6 +65,11 @@ section li:last-child {
     border-bottom: 0;
 }
 
+/*Hack for IE9 repaint bug*/
+section .done {
+    padding: 1px;
+}
+
 section label.done {
     text-decoration: line-through;
 }

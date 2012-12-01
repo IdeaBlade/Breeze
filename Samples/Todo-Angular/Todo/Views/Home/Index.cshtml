@@ -36,7 +36,8 @@
             <ul>
                 <li data-ng-repeat="item in items">
                     <div data-ng-show="!(item.isEditing)">
-                        <input type="checkbox" data-ng-model="item.IsDone" />
+                         @*data-ng-class on the checkbox in the next line is a fix for a subtle IE9 repaint bug*@
+                        <input type="checkbox" data-ng-model="item.IsDone" data-ng-class="{done: item.IsDone}" />
                         <label data-ng-click="edit(item)" data-ng-class="{done: item.IsDone, archived: item.IsArchived}" >{{item.Description}}</label>
                         <a href="#" data-ng-click="removeItem(item)">X</a>
                     </div>
