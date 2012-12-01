@@ -35,7 +35,15 @@ namespace DocCode.Controllers
       var custs = _contextProvider.Context.Customers.Include("Orders");
       return custs;
     }
-
+    [HttpGet]
+    public IQueryable<Order> OrdersForProduct(int productID = 0)
+    {
+        System.Data.Entity.Infrastructure.DbQuery<Order> query = _contextProvider.Context.Orders;
+        query = query.Include("Customer").Include("OrderDetails");
+        return (productID == 0)
+                   ? query
+                   : query.Where(o => o.OrderDetails.Any(od => od.ProductID == productID));
+    }
     [HttpGet]
     public IQueryable<Customer> CustomersStartingWithA() {
       var custs = _contextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));

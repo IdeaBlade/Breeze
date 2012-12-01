@@ -510,8 +510,45 @@ define(["testFns"], function (testFns) {
         });
         ok(true, "Got " + prods.join(", "));
     }
+    
+    /*********************************************************
+     * Orders with an OrderDetail for a specific product
+     * Demonstrates "nested query" filtering on a collection navigation
+     * You can't really do this clientside. 
+     * But you can call a controller method to do it
+     *********************************************************/
+    test("orders for Chai", 2, function () {
 
+        var manager = newEm();
+        var chaiProductID = testFns.wellKnownData.chaiProductID;
 
+        var query = EntityQuery.from("OrdersForProduct/?productID=" + chaiProductID);
+        // query = query.expand("Customer, OrderDetails");
+
+        stop();
+        manager.executeQuery(query)
+            .then(showChaiOrders)
+            .fail(handleFail)
+            .fin(start);
+        
+        function showChaiOrders(data) {
+            ok(data.results.length, "should have orders");
+            var prods = data.results.map(function (o) {
+                var customer = o.Customer();
+                
+                var customerName = customer ? customer.CompanyName() : "<unknown customer>";
+                
+                var chaiItems = o.OrderDetails().filter(
+                    function (od) { return od.ProductID() === chaiProductID; });
+                
+                var quantity = (chaiItems.length) ? chaiItems[0].Quantity() : "some";
+                
+                return "({0}) '{1}' ordered {2} boxes of Chai".format(
+                    o.OrderID(), customerName, quantity);
+            });
+            ok(true, "Got " + prods.join(", "));
+        }
+    });
 
     /*** EXPAND ***/
 
@@ -751,7 +788,7 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * PROJECTION: customer names of Orders with Freight >1000
+    * PROJECTION: customer names of Orders with Freight >500
     *********************************************************/
     test("select company names of orders with Freight > 500", 2, function () {
 
