@@ -43,6 +43,7 @@ todoMain.controller('shellVm', function ($scope) {
 
     $scope.newTodo = "";
     $scope.items = [];
+    $scope.includeArchived = false;
     
     $scope.addItem = function() {
         var item = dataservice.createTodo();
@@ -67,10 +68,8 @@ todoMain.controller('shellVm', function ($scope) {
         }
     };
 
-    $scope.xxx = function (item) {
-
-        
-
+    $scope.debug = function (item) {
+        var z = item.IsDone;
     };
     
     $scope.completeEdit = function(item) {
@@ -145,7 +144,7 @@ todoMain.controller('shellVm', function ($scope) {
 
 
     $scope.getAllTodos = function() {
-        dataservice.getAllTodos(this.includeArchived)
+        dataservice.getAllTodos($scope.includeArchived)
             .then(querySucceeded)
             .fail(queryFailed);
     };
@@ -160,6 +159,7 @@ todoMain.controller('shellVm', function ($scope) {
         });
         $scope.allCompleted = $scope.areAllCompleted();
         $scope.$apply();
+        
         logger.info("Fetched Todos " +
             ($scope.includeArchived ? "including archived" : "excluding archived"));
     }

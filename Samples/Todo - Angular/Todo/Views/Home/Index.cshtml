@@ -40,7 +40,7 @@
                     </div>
                     <div data-ng-show="item.isEditing">
                         <form data-ng-submit="completeEdit(item)">
-                            <input id="editor" type="text" data-ng-model="item.Description" data-on-blur="completeEdit(item)" data-focus-when="item.isEditing" />
+                            <input type="text" data-ng-model="item.Description" data-on-blur="completeEdit(item)" data-focus-when="item.isEditing" />
                         </form>
                     </div>
                 </li>
