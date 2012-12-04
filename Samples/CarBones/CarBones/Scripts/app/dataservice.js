@@ -3,7 +3,7 @@
     /*** Breeze Configuration ***/
 
     // configure Breeze for Backbone (config'd for Web API by default)
-    breeze.core.config.initializeAdapterInstances({modelLibrary: "backbone"});
+    breeze.config.initializeAdapterInstances({modelLibrary: "backbone"});
 
     // Declare the camel case name convention to be the norm
     breeze.NamingConvention.camelCase.setAsDefault();
