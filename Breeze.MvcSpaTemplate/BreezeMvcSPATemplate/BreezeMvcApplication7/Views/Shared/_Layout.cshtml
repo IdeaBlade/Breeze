@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - My ASP.NET MVC Application</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Styles.Render("~/Content/themes/base/css")
+</head>
+<body>
+    <header>
+        <div id="userSettings">
+            @Html.Partial("_UserSettings")
+        </div>
+        <p>@ViewBag.Title</p>
+    </header>
+
+    <div id="body">
+        @RenderBody()
+    </div>
+
+    <footer>
+        <nav>
+            <ul id="menu">
+                <li>@Html.ActionLink("Todo List", "Index", "Home", new { area = "" }, null)</li>
+                <li>@Html.ActionLink("API", "Index", "Help", new { area = "HelpPage" }, null)</li>
+            </ul>
+        </nav> 
+        <p>Learn more about <a href="http://go.microsoft.com/fwlink/?LinkId=273732">Single Page Applications</a></p>
+        <p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</p>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/ajaxlogin")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
