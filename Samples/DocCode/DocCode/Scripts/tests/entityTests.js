@@ -52,7 +52,27 @@ define(["testFns"], function (testFns) {
         ok(count == 0, "should have no entities in cache; have " + count);
 
     });
+    /*********************************************************
+    * local query does not return added entity after rejectChanges
+    *********************************************************/
 
+    test("local query does not return added entity after rejectChanges", 2, function () {
+        var em = newEm();
+
+        var typeInfo = em.metadataStore.getEntityType("Order");
+        var newEntity = typeInfo.createEntity();
+        em.addEntity(newEntity);
+
+        newEntity.entityAspect.rejectChanges();
+        var entityState = newEntity.entityAspect.entityState;
+        ok(entityState.isDetached(),
+            "state of newEntity, after rejectChanges should be Detached; is " + entityState);
+
+        var orders = em.executeQueryLocally(breeze.EntityQuery.from("Orders"));
+        equal(orders.length, 0,
+            "Local query should return no orders");
+    });
+    
     /*********************************************************
     * can find deleted entity in cache with getEntities()
     *********************************************************/
