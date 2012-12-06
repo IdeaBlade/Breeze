@@ -705,12 +705,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
             if (filterFunc) {
                 var undeletedFilterFunc = function(entity) {
-                    return ((!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity));
+                    return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
                 };
                 result = group._entities.filter(undeletedFilterFunc);
             } else {
                 result = group._entities.filter(function(entity) {
-                    return !entity.entityAspect.entityState.isDeleted();
+                    return entity && (!entity.entityAspect.entityState.isDeleted());
                 });
             }
             
