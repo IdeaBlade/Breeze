@@ -1907,6 +1907,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings = propertyPaths.split(",").map(function(pp) {
                 return pp.trim();
             });
+            this._pathNames = this._pathStrings.map(function(pp) {
+                return pp.replace(".", "_");
+            });
         };
 
         ctor.prototype.validate = function (entityType) {
@@ -1917,16 +1920,27 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings.forEach(function(path) {
                 entityType.getProperty(path, true);
             });
-         };
+        };
 
-         ctor.prototype.toOdataFragment = function(entityType) {
+        ctor.prototype.toOdataFragment = function(entityType) {
              var frag = this._pathStrings.map(function(pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
-         };
+        };
+        
+        ctor.prototype.toFunction = function (entityType) {
+            var that = this;
+            return function (entity) {
+                var result = {};
+                that._pathStrings.forEach(function (path, i) {
+                    result[that._pathNames[i]] = getPropertyPathValue(entity, path);
+                });
+                return result;
+            };
+        };
 
-         return ctor;
+        return ctor;
     })();
     
      // Not exposed

@@ -726,6 +726,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (takeCount) {
                 result = result.slice(0, takeCount);
             }
+
+            var selectClause = query.selectClause;
+            if (selectClause) {
+                var selectFn = selectClause.toFunction();
+                result = result.map(function(e) {
+                    return selectFn(e);
+                });
+            }
             return result;
         };
 

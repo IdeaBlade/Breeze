@@ -8063,16 +8063,28 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings.forEach(function(path) {
                 entityType.getProperty(path, true);
             });
-         };
+        };
 
-         ctor.prototype.toOdataFragment = function(entityType) {
+        ctor.prototype.toOdataFragment = function(entityType) {
              var frag = this._pathStrings.map(function(pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
-         };
+        };
+        
+        ctor.prototype.toFunction = function (entityType) {
+            var that = this;
+            return function (entity) {
+                var result = {};
+                that._pathStrings.forEach(function (path) {
+                    var pathName = path.replace(".", "_");
+                    result[pathName] = entity.getProperty(path);
+                });
+                return result;
+            };
+        };
 
-         return ctor;
+        return ctor;
     })();
     
      // Not exposed
@@ -9241,12 +9253,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
             if (filterFunc) {
                 var undeletedFilterFunc = function(entity) {
-                    return ((!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity));
+                    return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
                 };
                 result = group._entities.filter(undeletedFilterFunc);
             } else {
                 result = group._entities.filter(function(entity) {
-                    return !entity.entityAspect.entityState.isDeleted();
+                    return entity && (!entity.entityAspect.entityState.isDeleted());
                 });
             }
             
@@ -9261,6 +9273,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var takeCount = query.takeCount;
             if (takeCount) {
                 result = result.slice(0, takeCount);
+            }
+
+            var selectClause = query.selectClause;
+            if (selectClause) {
+                var selectFn = selectClause.toFunction();
+                result = result.map(function(e) {
+                    return selectFn(e);
+                });
             }
             return result;
         };

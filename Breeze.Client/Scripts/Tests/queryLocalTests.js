@@ -26,6 +26,55 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("local query with select", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", "startswith", "c");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var q2 = new EntityQuery()
+                  .from("Customers")
+                  .where("companyName", "startsWith", "C")
+                  .select("companyName");            
+            var r2 = em.executeQueryLocally(q2);
+            
+            ok(r.length === r2.length, "should have returned the same number of results");
+            ok(r2[0].entityAspect === undefined, "local query projected results should not be entities");
+            ok(r2[0].companyName != null);
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("local query with complex select", function () {
+        var em = newEm();
+
+        var query = EntityQuery
+            .from("Orders")
+            .where("customer.companyName", "startsWith", "C")
+            .orderBy("customer.companyName")
+            .expand("customer");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var q2 = query.select("customer.companyName, customer, orderDate");
+            var r2 = em.executeQueryLocally(q2);
+
+            ok(r.length === r2.length, "should have returned the same number of results");
+            var rx = r2[0];
+            ok(rx.entityAspect === undefined, "local query projected results should not be entities");
+            ok(rx["customer_companyName"] != null, "customer company name should not be null");
+            ok(rx["customer"].entityAspect != null, "customer property should be an entity");
+            ok(rx["orderDate"] != null, "orderDate should not be null");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
+    
+    
     test("local query does not return added entity after rejectChanges", 2, function () {
         var em = newEm();
 
