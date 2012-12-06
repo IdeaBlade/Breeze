@@ -2,7 +2,7 @@
 
 window.todoApp.datacontext = (function (breeze) {
 
-    var serviceName = 'api/BreezeTodo'; // route to the Web API controller
+    var serviceName = 'api/Todo'; // route to the Web API controller
     var saveOptions = new breeze.SaveOptions({ allowConcurrentSaves: true });
 
     // manager is the service gateway and cache holder

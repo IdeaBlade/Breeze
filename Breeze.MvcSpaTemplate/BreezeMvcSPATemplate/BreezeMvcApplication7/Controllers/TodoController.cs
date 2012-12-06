@@ -7,11 +7,11 @@
 
     [Authorize]
     [JsonFormatter, ODataActionFilter]
-    public class BreezeTodoController : ApiController
+    public class TodoController : ApiController
     {
         private readonly TodoContextProvider _context;
 
-        public BreezeTodoController() {
+        public TodoController() {
             _context = new TodoContextProvider(User);
         }
 
