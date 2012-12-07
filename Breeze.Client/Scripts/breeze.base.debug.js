@@ -6196,6 +6196,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.skipCount = null;
             this.takeCount = null;
             this.expandClause = null;
+            this.inlineCountEnabled = false;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
             this.entityManager = null;                 
@@ -6590,6 +6591,30 @@ function (core, m_entityMetadata, m_entityAspect) {
             return expandCore(this, propertyPaths);
         };
 
+        /**
+        Returns the query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'count' property
+        will be returned with the query results that will contain the number of entities that would have been returned by this
+        query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored. 
+
+        @example
+            var query = new EntityQuery("Customers")
+                .take(20)
+                .orderBy("CompanyName")
+                .inlineCount(true);
+        will return the first 20 customers as well as a count of all of the customers in the remote store.
+
+        @method inlineCount
+        @param enabled {Boolean=true} Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed. 
+        @return {EntityQuery}
+        @chainable
+        **/
+        ctor.prototype.inlineCount = function(enabled) {
+            if (enabled === undefined) enabled = true;
+            var eq = this._clone();
+            eq.inlineCountEnabled = enabled;
+            return eq;
+        };
+
          // Implementations found in EntityManager
         /**
         Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} 
@@ -6827,7 +6852,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             queryOptions["$top"] = toTopString();
             queryOptions["$expand"] = toExpandString();
             queryOptions["$select"] = toSelectString();
-
+            queryOptions["$inlineCount"] = toInlineCountString();
             var qoText = toQueryOptionsString();
             return this.resourceName + qoText;
 
@@ -6840,6 +6865,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                     clause.validate(eq.entityType);
                 }
                 return clause.toOdataFragment(entityType);
+            }
+            
+            function toInlineCountString() {
+                if (!eq.inlineCountEnabled) return "";
+                return eq.inlineCountEnabled ? "allpages" : "none";
             }
 
             function toOrderByString() {
@@ -8053,6 +8083,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings = propertyPaths.split(",").map(function(pp) {
                 return pp.trim();
             });
+            this._pathNames = this._pathStrings.map(function(pp) {
+                return pp.replace(".", "_");
+            });
         };
 
         ctor.prototype.validate = function (entityType) {
@@ -8076,9 +8109,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             var that = this;
             return function (entity) {
                 var result = {};
-                that._pathStrings.forEach(function (path) {
-                    var pathName = path.replace(".", "_");
-                    result[pathName] = entity.getProperty(path);
+                that._pathStrings.forEach(function (path, i) {
+                    result[that._pathNames[i]] = getPropertyPathValue(entity, path);
                 });
                 return result;
             };
@@ -10227,7 +10259,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                                 fn();
                             });
                         }
-                        return { results: entities, query: query, XHR: rawEntities.XHR };
+                        
+                        var r = { results: entities, query: query, XHR: XHR };
+                        var inlineCount = XHR.getResponseHeader("X-InlineCount");
+                        
+                        if (inlineCount) {
+                            r.count = parseInt(inlineCount, 10);
+                        }
+                        return r;
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -11156,7 +11195,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.74.2",
+        version: "0.75.1",
         core: core,
         config: a_config
     };

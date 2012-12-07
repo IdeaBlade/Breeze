@@ -26,6 +26,49 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("query with inlineCount", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Customers")
+            .take(20)
+            .inlineCount(true);
+        stop();
+        em.executeQuery(q).then(function(data) {
+            var r = data.results;
+            var count = data.count;
+            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            ok(count > r.length);
+            ok(parseInt(count2, 10) === count);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query without inlineCount", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Customers")
+            .take(5);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var inlineCount = data.XHR.getResponseHeader("X-InlineCount");
+            ok(!inlineCount);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query with inlineCount 2", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("customer.companyName", "startsWith", "C")
+            .take(5)
+            .inlineCount(true);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var count = data.count;
+            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            ok(count > r.length);
+            ok(parseInt(count2, 10) === count);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("fetchEntityByKey", function() {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
