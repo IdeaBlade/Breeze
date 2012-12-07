@@ -36,9 +36,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="http://www.breezejs.com/samples">Samples</a></li>
-		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
@@ -1416,6 +1416,19 @@ em1.detachEntity(cust1);
                                             </div>
                                         </li>
                                         
+                                        <li class="param">
+                                            
+                                                <code class="param-name">inlineCount</code>
+                                                <span class="type">Integer</span>
+                                            
+
+                                            <div class="param-description">
+                                                Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+    would have been applied.
+                                            </div>
+                                        </li>
+                                        
                                     </ul>
                                 
                             </li>
@@ -1507,6 +1520,9 @@ em1.detachEntity(cust1);
 <pre><code>promiseData.results {Array of Entity}
 promiseData.query {EntityQuery} The original query
 promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+would have been applied.
 </code></pre>
                 
             </div>
@@ -1603,7 +1619,7 @@ promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l671"><code>entityManager.js:671</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l678"><code>entityManager.js:678</code></a>
         
         </p>
 
@@ -1876,7 +1892,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l910"><code>entityManager.js:910</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l925"><code>entityManager.js:925</code></a>
         
         </p>
 
@@ -2038,7 +2054,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l934"><code>entityManager.js:934</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l949"><code>entityManager.js:949</code></a>
         
         </p>
 
@@ -2375,7 +2391,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l974"><code>entityManager.js:974</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l989"><code>entityManager.js:989</code></a>
         
         </p>
 
@@ -2494,7 +2510,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l991"><code>entityManager.js:991</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1006"><code>entityManager.js:1006</code></a>
         
         </p>
 
@@ -2628,7 +2644,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1094"><code>entityManager.js:1094</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1109"><code>entityManager.js:1109</code></a>
         
         </p>
 
@@ -2762,7 +2778,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1147"><code>entityManager.js:1147</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1162"><code>entityManager.js:1162</code></a>
         
         </p>
 
@@ -2918,7 +2934,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l875"><code>entityManager.js:875</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l890"><code>entityManager.js:890</code></a>
         
         </p>
 
@@ -3048,7 +3064,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l887"><code>entityManager.js:887</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l902"><code>entityManager.js:902</code></a>
         
         </p>
 
@@ -3165,7 +3181,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1032"><code>entityManager.js:1032</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1047"><code>entityManager.js:1047</code></a>
         
         </p>
 
@@ -3610,7 +3626,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1124"><code>entityManager.js:1124</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1139"><code>entityManager.js:1139</code></a>
         
         </p>
 
@@ -3722,7 +3738,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l732"><code>entityManager.js:732</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l747"><code>entityManager.js:747</code></a>
         
         </p>
 
@@ -4680,7 +4696,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1068"><code>entityManager.js:1068</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1083"><code>entityManager.js:1083</code></a>
         
         </p>
 
@@ -4771,9 +4787,9 @@ em.hasChanges.subscribe(function(args) {
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="http://www.breezejs.com/samples">Samples</a></li>
-		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>

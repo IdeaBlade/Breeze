@@ -6196,6 +6196,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.skipCount = null;
             this.takeCount = null;
             this.expandClause = null;
+            this.inlineCountEnabled = false;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
             this.entityManager = null;                 
@@ -6590,6 +6591,30 @@ function (core, m_entityMetadata, m_entityAspect) {
             return expandCore(this, propertyPaths);
         };
 
+        /**
+        Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+        will be returned with the query results that will contain the number of entities that would have been returned by this
+        query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored. 
+
+        @example
+            var query = new EntityQuery("Customers")
+                .take(20)
+                .orderBy("CompanyName")
+                .inlineCount(true);
+        will return the first 20 customers as well as a count of all of the customers in the remote store.
+
+        @method inlineCount
+        @param enabled {Boolean=true} Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed. 
+        @return {EntityQuery}
+        @chainable
+        **/
+        ctor.prototype.inlineCount = function(enabled) {
+            if (enabled === undefined) enabled = true;
+            var eq = this._clone();
+            eq.inlineCountEnabled = enabled;
+            return eq;
+        };
+
          // Implementations found in EntityManager
         /**
         Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} 
@@ -6665,6 +6690,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
             @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
 
         @param errorCallback {Function} Function called on failure.
             
@@ -6827,7 +6855,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             queryOptions["$top"] = toTopString();
             queryOptions["$expand"] = toExpandString();
             queryOptions["$select"] = toSelectString();
-
+            queryOptions["$inlinecount"] = toInlineCountString();
             var qoText = toQueryOptionsString();
             return this.resourceName + qoText;
 
@@ -6840,6 +6868,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                     clause.validate(eq.entityType);
                 }
                 return clause.toOdataFragment(entityType);
+            }
+            
+            function toInlineCountString() {
+                if (!eq.inlineCountEnabled) return "";
+                return eq.inlineCountEnabled ? "allpages" : "none";
             }
 
             function toOrderByString() {
@@ -7012,7 +7045,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: DataType.String },
             tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
             substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
-            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
+            substringof: { fn: function (find, source) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
             length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
             trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
             concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
@@ -7561,7 +7594,12 @@ function (core, m_entityMetadata, m_entityAspect) {
             var exprFrag = this._fnNode.toOdataFragment(entityType);
             var val = formatValue(this._value, this._fnNode);
             if (this._filterQueryOp.isFunction) {
-                return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
+                if (this._filterQueryOp == FilterQueryOp.Contains) {
+                    return this._filterQueryOp.operator + "(" + val + "," + exprFrag + ") eq true";
+                } else {
+                    return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
+                }
+                
             } else {
                 return exprFrag + " " + this._filterQueryOp.operator + " " + val;
             }
@@ -8053,6 +8091,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings = propertyPaths.split(",").map(function(pp) {
                 return pp.trim();
             });
+            this._pathNames = this._pathStrings.map(function(pp) {
+                return pp.replace(".", "_");
+            });
         };
 
         ctor.prototype.validate = function (entityType) {
@@ -8063,16 +8104,27 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._pathStrings.forEach(function(path) {
                 entityType.getProperty(path, true);
             });
-         };
+        };
 
-         ctor.prototype.toOdataFragment = function(entityType) {
+        ctor.prototype.toOdataFragment = function(entityType) {
              var frag = this._pathStrings.map(function(pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
-         };
+        };
+        
+        ctor.prototype.toFunction = function (entityType) {
+            var that = this;
+            return function (entity) {
+                var result = {};
+                that._pathStrings.forEach(function (path, i) {
+                    result[that._pathNames[i]] = getPropertyPathValue(entity, path);
+                });
+                return result;
+            };
+        };
 
-         return ctor;
+        return ctor;
     })();
     
      // Not exposed
@@ -9171,6 +9223,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
             @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
 
         @param [errorCallback] {Function} Function called on failure.
             
@@ -9178,12 +9233,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
             @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            
 
         @return {Promise} Promise
 
             promiseData.results {Array of Entity}
             promiseData.query {EntityQuery} The original query
             promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
         **/
         ctor.prototype.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
@@ -9241,12 +9300,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
             if (filterFunc) {
                 var undeletedFilterFunc = function(entity) {
-                    return ((!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity));
+                    return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
                 };
                 result = group._entities.filter(undeletedFilterFunc);
             } else {
                 result = group._entities.filter(function(entity) {
-                    return !entity.entityAspect.entityState.isDeleted();
+                    return entity && (!entity.entityAspect.entityState.isDeleted());
                 });
             }
             
@@ -9261,6 +9320,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var takeCount = query.takeCount;
             if (takeCount) {
                 result = result.slice(0, takeCount);
+            }
+
+            var selectClause = query.selectClause;
+            if (selectClause) {
+                var selectFn = selectClause.toFunction();
+                result = result.map(function(e) {
+                    return selectFn(e);
+                });
             }
             return result;
         };
@@ -10177,7 +10244,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (data) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -10188,7 +10255,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
                     }, function () {
-                        var XHR = rawEntities.XHR;
+                        var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
@@ -10207,7 +10274,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                                 fn();
                             });
                         }
-                        return { results: entities, query: query, XHR: rawEntities.XHR };
+                        
+                        return { results: entities, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
+                        
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -11136,7 +11205,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.74.2",
+        version: "0.75.1",
         core: core,
         config: a_config
     };

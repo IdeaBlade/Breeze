@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Dec 06 2012 15:04:42 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Fri Dec 07 2012 12:34:02 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -1596,6 +1596,17 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
     ///   </summary>
     ///   <param name="propertyPaths" type="String" optional="true">A comma-separated list of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
+    ///   <returns type="breeze.breeze.EntityQuery" ></returns>
+    /// </signature>
+  },
+  'inlineCount': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+    ///   will be returned with the query results that will contain the number of entities that would have been returned by this
+    ///   query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.
+    ///   </summary>
+    ///   <param name="enabled" type="Boolean=true" optional="true">Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },

@@ -635,6 +635,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
             @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
 
         @param [errorCallback] {Function} Function called on failure.
             
@@ -642,12 +645,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
             @param [errorCallback.error.query] The query that caused the error.
             @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            
 
         @return {Promise} Promise
 
             promiseData.results {Array of Entity}
             promiseData.query {EntityQuery} The original query
             promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
         **/
         ctor.prototype.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.

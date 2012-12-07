@@ -321,7 +321,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2224,
+            "line": 2241,
             "description": "MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.",
             "static": 1
         },
@@ -336,7 +336,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2253,
+            "line": 2270,
             "description": "FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.",
             "static": 1
         },
@@ -351,7 +351,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2278,
+            "line": 2295,
             "description": "A QueryOptions instance is used to specify the 'options' under which a query will occur."
         },
         "SaveOptions": {
@@ -365,7 +365,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2391,
+            "line": 2408,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
         },
         "ValidationOptions": {
@@ -379,7 +379,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2439,
+            "line": 2456,
             "description": "A ValidationOptions instance is used to specify the conditions under which validation will be executed."
         },
         "LocalQueryComparisonOptions": {
@@ -507,7 +507,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1028,
+            "line": 1061,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -522,7 +522,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1153,
+            "line": 1186,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
         },
         "Enum": {
@@ -2271,6 +2271,11 @@
                                     "name": "XHR",
                                     "description": "The raw XMLHttpRequest returned from the server.",
                                     "type": "XMLHttpRequest"
+                                },
+                                {
+                                    "name": "inlineCount",
+                                    "description": "Only available if 'inlineCount(true)' was applied to the query.  Returns the count of \n    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates\n    would have been applied.",
+                                    "type": "Integer"
                                 }
                             ]
                         }
@@ -2305,7 +2310,7 @@
                 }
             ],
             "return": {
-                "description": "Promise\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.",
+                "description": "Promise\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.\n    promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of \n    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates\n    would have been applied.",
                 "type": "Promise"
             },
             "class": "EntityManager",
@@ -2313,7 +2318,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 671,
+            "line": 678,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -2338,7 +2343,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 732,
+            "line": 747,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",
@@ -2428,7 +2433,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 875,
+            "line": 890,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -2456,7 +2461,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 887,
+            "line": 902,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -2479,7 +2484,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 910,
+            "line": 925,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -2513,7 +2518,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 934,
+            "line": 949,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -2542,7 +2547,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 974,
+            "line": 989,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -2567,7 +2572,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 991,
+            "line": 1006,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -2590,7 +2595,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1032,
+            "line": 1047,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -2617,7 +2622,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1068,
+            "line": 1083,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"api/NorthwindIBModel\" });\n    em.hasChanges.subscribe(function(args) {\n        var hasChanges = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -2642,7 +2647,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1094,
+            "line": 1109,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -2669,7 +2674,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1124,
+            "line": 1139,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -2685,7 +2690,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1147,
+            "line": 1162,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",
@@ -2719,7 +2724,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2231,
+            "line": 2248,
             "description": "PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is not replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "PreserveChanges",
@@ -2731,7 +2736,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2241,
+            "line": 2258,
             "description": "OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "OverwriteChanges",
@@ -2743,7 +2748,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2260,
+            "line": 2277,
             "description": "FromServer is used to tell the query to execute the query against a remote data source on the server.",
             "itemtype": "property",
             "name": "FromServer",
@@ -2755,7 +2760,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2267,
+            "line": 2284,
             "description": "FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.",
             "itemtype": "property",
             "name": "FromLocalCache",
@@ -2767,7 +2772,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2284,
+            "line": 2301,
             "description": "QueryOptions constructor",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { queryOptions: newQo });"
@@ -2803,7 +2808,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2303,
+            "line": 2320,
             "description": "A {{#crossLink \"FetchStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "fetchStrategy",
@@ -2813,7 +2818,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2309,
+            "line": 2326,
             "description": "A {{#crossLink \"MergeStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "mergeStrategy",
@@ -2823,7 +2828,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2317,
+            "line": 2334,
             "description": "The default value whenever QueryOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2834,7 +2839,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2324,
+            "line": 2341,
             "description": "Returns a copy of this QueryOptions with the specified {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n    var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);\nor",
@@ -2860,7 +2865,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2350,
+            "line": 2367,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2873,7 +2878,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2397,
+            "line": 2414,
             "itemtype": "method",
             "name": "<ctor> SaveOptions",
             "params": [
@@ -2896,7 +2901,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2411,
+            "line": 2428,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2906,7 +2911,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2421,
+            "line": 2438,
             "description": "Whether another save can be occuring at the same time as this one - default is false.\n\n__readOnly__",
             "itemtype": "property",
             "name": "allowConcurrentSaves",
@@ -2916,7 +2921,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2428,
+            "line": 2445,
             "description": "The default value whenever SaveOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2927,7 +2932,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2445,
+            "line": 2462,
             "description": "ValidationOptions constructor",
             "example": [
                 "\n    var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { validationOptions: newVo });"
@@ -2977,7 +2982,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2466,
+            "line": 2483,
             "description": "Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnAttach",
@@ -2987,7 +2992,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2473,
+            "line": 2490,
             "description": "Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnSave",
@@ -2997,7 +3002,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2480,
+            "line": 2497,
             "description": "Whether entity and property level validation should occur after entities are queried from a remote server.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnQuery",
@@ -3007,7 +3012,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2487,
+            "line": 2504,
             "description": "Whether property level validation should occur after entities are modified.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnPropertyChange",
@@ -3017,7 +3022,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2496,
+            "line": 2513,
             "description": "Returns a copy of this ValidationOptions with changes to the specified config properties.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions();\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );"
@@ -3067,7 +3072,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2516,
+            "line": 2533,
             "description": "Makes this instance the default instance.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
@@ -3080,7 +3085,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2530,
+            "line": 2547,
             "description": "The default value whenever ValidationOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -4496,7 +4501,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 58,
+            "line": 59,
             "description": "The resource name used by this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "resourceName",
@@ -4506,7 +4511,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 65,
+            "line": 66,
             "description": "The 'where' predicate used by this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "wherePredicate",
@@ -4516,7 +4521,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 72,
+            "line": 73,
             "description": "The {{#crossLink \"OrderByClause\"}}{{/crossLink}} used by this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "orderByClause",
@@ -4526,7 +4531,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 79,
+            "line": 80,
             "description": "The number of entities to 'skip' for this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "skipCount",
@@ -4536,7 +4541,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 86,
+            "line": 87,
             "description": "The number of entities to 'take' for this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "takeCount",
@@ -4546,7 +4551,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 93,
+            "line": 94,
             "description": "The {{#crossLink \"QueryOptions\"}}{{/crossLink}} for this query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "queryOptions",
@@ -4556,7 +4561,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 100,
+            "line": 101,
             "description": "The {{#crossLink \"EntityManager\"}}{{/crossLink}} for this query. This may be null and can be set via the 'using' method.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityManager",
@@ -4566,7 +4571,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 148,
+            "line": 149,
             "description": "Specifies the resource to query for this EntityQuery.",
             "example": [
                 "                    \n    var query = new EntityQuery()\n        .from(\"Customers\");\nis the same as ",
@@ -4591,7 +4596,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 174,
+            "line": 175,
             "description": "This is a static version of the \"from\" method and it creates a 'base' entityQuery for the specified resource name.",
             "example": [
                 "                    \n    var query = EntityQuery.from(\"Customers\");\nis the same as ",
@@ -4617,7 +4622,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 193,
+            "line": 194,
             "description": "Adds a filter to the query. Can be called multiple times which means to 'and' with any existing Predicate.",
             "example": [
                 "                    \n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\");\nThis can also be expressed using an explicit {{#crossLink \"FilterQueryOp\"}}{{/crossLink}} as",
@@ -4648,7 +4653,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 261,
+            "line": 262,
             "description": "Returns a query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.",
             "example": [
                 "\n     var query = new EntityQuery(\"Customers\")\n         .orderBy(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -4676,7 +4681,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 297,
+            "line": 298,
             "description": "Returns a query that orders the results of the query by property name in descending order.",
             "example": [
                 "\n     var query = new EntityQuery(\"Customers\")\n         .orderByDesc(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -4702,7 +4707,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 323,
+            "line": 324,
             "description": "Returns a query that selects a list of properties from the results of the original query and returns the values of just these properties. This\nwill be referred to as a projection. \nIf the result of this selection \"projection\" contains entities, these entities will automatically be added to EntityManager's cache and will \nbe made 'observable'.\nAny simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.",
             "example": [
                 "\nSimple data properties can be projected",
@@ -4730,7 +4735,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 363,
+            "line": 364,
             "description": "Returns a query that skips the specified number of entities when returning results.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n       .where(\"CompanyName\", \"startsWith\", \"C\")\n       .skip(5);"
@@ -4754,7 +4759,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 385,
+            "line": 386,
             "description": "Returns a query that returns only the specified number of entities when returning results. - Same as 'take'.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .top(5);"
@@ -4778,7 +4783,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 399,
+            "line": 400,
             "description": "Returns a query that returns only the specified number of entities when returning results - Same as 'top'",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .take(5);"
@@ -4802,7 +4807,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 420,
+            "line": 421,
             "description": "Returns a query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property\nnames such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\")\n        .expand(\"Orders\");\nwill return the filtered customers each with its \"Orders\" properties fully resolved.\nMultiple paths may be specified by separating the paths by a ','",
@@ -4829,6 +4834,30 @@
         {
             "file": "entityQuery.js",
             "line": 448,
+            "description": "Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property\nwill be returned with the query results that will contain the number of entities that would have been returned by this\nquery with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.",
+            "example": [
+                "\n    var query = new EntityQuery(\"Customers\")\n        .take(20)\n        .orderBy(\"CompanyName\")\n        .inlineCount(true);\nwill return the first 20 customers as well as a count of all of the customers in the remote store."
+            ],
+            "itemtype": "method",
+            "name": "inlineCount",
+            "params": [
+                {
+                    "name": "enabled",
+                    "description": "Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.",
+                    "type": "Boolean=true"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "EntityQuery"
+            },
+            "chainable": 1,
+            "class": "EntityQuery",
+            "module": "breeze"
+        },
+        {
+            "file": "entityQuery.js",
+            "line": 473,
             "description": "Returns a copy of this EntityQuery with the specified {{#crossLink \"EntityManager\"}}{{/crossLink}}, {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n'using' can be used to return a new query with a specified EntityManager.",
@@ -4856,7 +4885,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 475,
+            "line": 500,
             "description": "Executes this query.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -4893,6 +4922,11 @@
                                     "name": "XHR",
                                     "description": "The raw XMLHttpRequest returned from the server.",
                                     "type": "XMLHttpRequest"
+                                },
+                                {
+                                    "name": "inlineCount",
+                                    "description": "Only available if 'inlineCount(true)' was applied to the query.  Returns the count of \n    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates\n    would have been applied.",
+                                    "type": "Integer"
                                 }
                             ]
                         }
@@ -4934,7 +4968,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 533,
+            "line": 561,
             "description": "Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\n    // assume em is an entityManager already filled with order entities;\n    var query = new EntityQuery(\"Orders\").using(em);\n    var orders = query.executeLocally();\n\nNote that calling this method is the same as calling {{#crossLink \"EntityManager/executeQueryLocally\"}}{{/crossLink}}."
@@ -4946,7 +4980,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 545,
+            "line": 573,
             "description": "Static method tht creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful\nto force a requery of selected entities, or to restrict an existing collection of entities according to some filter.",
             "example": [
                 "\n    // assuming 'customers' is an array of 'Customer' entities retrieved earlier.\n    var customersQuery = EntityQuery.fromEntities(customers);\nThe resulting query can, of course, be extended",
@@ -4973,7 +5007,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 586,
+            "line": 614,
             "description": "Creates an EntityQuery for the specified {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    var empType = metadataStore.getEntityType(\"Employee\");\n    var entityKey = new EntityKey(empType, 1);\n    var query = EntityQuery.fromEntityKey(entityKey);\nor",
@@ -4999,7 +5033,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 611,
+            "line": 639,
             "description": "Creates an EntityQuery for the specified entity and {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n    // 'employee' is a previously queried employee\n    var ordersNavProp = employee.entityType.getProperty(\"Orders\");\n    var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);\nwill return a query for the \"Orders\" of the specified 'employee'."
@@ -5029,7 +5063,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1036,
+            "line": 1069,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
@@ -5041,7 +5075,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1043,
+            "line": 1076,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
@@ -5053,7 +5087,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1050,
+            "line": 1083,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
@@ -5065,7 +5099,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1057,
+            "line": 1090,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
@@ -5077,7 +5111,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1064,
+            "line": 1097,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
@@ -5089,7 +5123,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1071,
+            "line": 1104,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
@@ -5101,7 +5135,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1078,
+            "line": 1111,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
@@ -5113,7 +5147,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1086,
+            "line": 1119,
             "itemtype": "property",
             "name": "StartsWith",
             "type": "FilterQueryOp",
@@ -5124,7 +5158,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1092,
+            "line": 1125,
             "itemtype": "property",
             "name": "EndsWith",
             "type": "FilterQueryOp",
@@ -5135,7 +5169,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1159,
+            "line": 1192,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -5165,7 +5199,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1181,
+            "line": 1214,
             "description": "Returns whether an object is a Predicate",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    if (Predicate.isPredicate(p1)) {\n        // do something\n    }"
@@ -5185,7 +5219,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1196,
+            "line": 1229,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -5217,7 +5251,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1221,
+            "line": 1254,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -5239,7 +5273,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1246,
+            "line": 1279,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -5261,7 +5295,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1271,
+            "line": 1304,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -5283,7 +5317,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1290,
+            "line": 1323,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -5305,7 +5339,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1315,
+            "line": 1348,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -5327,7 +5361,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1340,
+            "line": 1373,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -5341,7 +5375,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1360,
+            "line": 1393,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -5354,7 +5388,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1366,
+            "line": 1399,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -5367,7 +5401,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1372,
+            "line": 1405,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",

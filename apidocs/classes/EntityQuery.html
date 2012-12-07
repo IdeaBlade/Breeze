@@ -36,9 +36,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="http://www.breezejs.com/samples">Samples</a></li>
-		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
@@ -294,6 +294,13 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
 
                                 
                                     <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_inlineCount">inlineCount</a>
+
                                 
                                 
                             </li>
@@ -583,7 +590,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l475"><code>entityQuery.js:475</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l500"><code>entityQuery.js:500</code></a>
         
         </p>
 
@@ -665,6 +672,19 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
 
                                             <div class="param-description">
                                                 The raw XMLHttpRequest returned from the server.
+                                            </div>
+                                        </li>
+                                        
+                                        <li class="param">
+                                            
+                                                <code class="param-name">inlineCount</code>
+                                                <span class="type">Integer</span>
+                                            
+
+                                            <div class="param-description">
+                                                Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+    would have been applied.
                                             </div>
                                         </li>
                                         
@@ -833,7 +853,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l533"><code>entityQuery.js:533</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l561"><code>entityQuery.js:561</code></a>
         
         </p>
 
@@ -916,7 +936,7 @@ var orders = query.executeLocally();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l420"><code>entityQuery.js:420</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l421"><code>entityQuery.js:421</code></a>
         
         </p>
 
@@ -1045,7 +1065,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l174"><code>entityQuery.js:174</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l175"><code>entityQuery.js:175</code></a>
         
         </p>
 
@@ -1162,7 +1182,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l148"><code>entityQuery.js:148</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l149"><code>entityQuery.js:149</code></a>
         
         </p>
 
@@ -1282,7 +1302,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l545"><code>entityQuery.js:545</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l573"><code>entityQuery.js:573</code></a>
         
         </p>
 
@@ -1411,7 +1431,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l586"><code>entityQuery.js:586</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l614"><code>entityQuery.js:614</code></a>
         
         </p>
 
@@ -1540,7 +1560,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l611"><code>entityQuery.js:611</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l639"><code>entityQuery.js:639</code></a>
         
         </p>
 
@@ -1625,6 +1645,127 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
 </div>
 
                 
+                    <div id="method_inlineCount" class="method item">
+    <h3 class="name"><code>inlineCount</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>enabled</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l448"><code>entityQuery.js:448</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+will be returned with the query results that will contain the number of entities that would have been returned by this
+query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">enabled</code>
+                        <span class="type">Boolean=true</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a></span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+    .take(20)
+    .orderBy("CompanyName")
+    .inlineCount(true);
+</code></pre>
+
+<p>will return the first 20 customers as well as a count of all of the customers in the remote store.</p>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_orderBy" class="method item">
     <h3 class="name"><code>orderBy</code></h3>
 
@@ -1673,7 +1814,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l261"><code>entityQuery.js:261</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l262"><code>entityQuery.js:262</code></a>
         
         </p>
 
@@ -1804,7 +1945,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l297"><code>entityQuery.js:297</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l298"><code>entityQuery.js:298</code></a>
         
         </p>
 
@@ -1927,7 +2068,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l323"><code>entityQuery.js:323</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l324"><code>entityQuery.js:324</code></a>
         
         </p>
 
@@ -2064,7 +2205,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l363"><code>entityQuery.js:363</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l364"><code>entityQuery.js:364</code></a>
         
         </p>
 
@@ -2180,7 +2321,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l399"><code>entityQuery.js:399</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l400"><code>entityQuery.js:400</code></a>
         
         </p>
 
@@ -2295,7 +2436,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l385"><code>entityQuery.js:385</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l386"><code>entityQuery.js:386</code></a>
         
         </p>
 
@@ -2410,7 +2551,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l448"><code>entityQuery.js:448</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l473"><code>entityQuery.js:473</code></a>
         
         </p>
 
@@ -2537,7 +2678,7 @@ var query = new EntityQuery("Orders")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l193"><code>entityQuery.js:193</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l194"><code>entityQuery.js:194</code></a>
         
         </p>
 
@@ -2669,7 +2810,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l100"><code>entityQuery.js:100</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l101"><code>entityQuery.js:101</code></a>
         
         </p>
 
@@ -2715,7 +2856,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l72"><code>entityQuery.js:72</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l73"><code>entityQuery.js:73</code></a>
         
         </p>
 
@@ -2761,7 +2902,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l93"><code>entityQuery.js:93</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l94"><code>entityQuery.js:94</code></a>
         
         </p>
 
@@ -2807,7 +2948,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l58"><code>entityQuery.js:58</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l59"><code>entityQuery.js:59</code></a>
         
         </p>
 
@@ -2853,7 +2994,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l79"><code>entityQuery.js:79</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l80"><code>entityQuery.js:80</code></a>
         
         </p>
 
@@ -2899,7 +3040,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l86"><code>entityQuery.js:86</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l87"><code>entityQuery.js:87</code></a>
         
         </p>
 
@@ -2945,7 +3086,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l65"><code>entityQuery.js:65</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l66"><code>entityQuery.js:66</code></a>
         
         </p>
 
@@ -2990,9 +3131,9 @@ var query = new EntityQuery("Customers")
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
 		<li>
-			<a href="http://www.breezejs.com/samples">Samples</a></li>
-		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>

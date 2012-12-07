@@ -750,6 +750,20 @@ define(["testFns"], function (testFns) {
             start();
         }).fail(testFns.handleFail);
     });
+
+    test("query with contains", function() {
+        var em = newEm();
+        var query = EntityQuery.from("Customers")
+            .where("companyName", FilterQueryOp.Contains, 'market');
+        //.where("CompanyName", "contains", 'market'); // Alternative to FilterQueryOp
+        //.where("substringof(CompanyName,'market')", "eq", true); // becomes in OData
+        //.where("indexOf(toLower(CompanyName),'market')", "ne", -1); // equivalent to
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length > 0);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     
      asyncTest("predicate 2", function () {
         var em = newEm();

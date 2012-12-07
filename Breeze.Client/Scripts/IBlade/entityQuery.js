@@ -446,7 +446,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns the query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+        Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
         will be returned with the query results that will contain the number of entities that would have been returned by this
         query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored. 
 
@@ -544,6 +544,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             @param callback.data.results {Array of Entity}
             @param callback.data.query {EntityQuery} The original query
             @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+            @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
+            items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+            would have been applied. 
 
         @param errorCallback {Function} Function called on failure.
             
