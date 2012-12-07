@@ -726,6 +726,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (takeCount) {
                 result = result.slice(0, takeCount);
             }
+
+            var selectClause = query.selectClause;
+            if (selectClause) {
+                var selectFn = selectClause.toFunction();
+                result = result.map(function(e) {
+                    return selectFn(e);
+                });
+            }
             return result;
         };
 
@@ -1671,7 +1679,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                                 fn();
                             });
                         }
-                        return { results: entities, query: query, XHR: rawEntities.XHR };
+                        
+                        var r = { results: entities, query: query, XHR: XHR };
+                        var inlineCount = XHR.getResponseHeader("X-InlineCount");
+                        
+                        if (inlineCount) {
+                            r.count = parseInt(inlineCount, 10);
+                        }
+                        return r;
                     });
                     deferred.resolve( result);
                 }, function (e) {

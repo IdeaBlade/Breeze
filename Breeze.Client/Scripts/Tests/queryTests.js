@@ -26,6 +26,49 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("query with inlineCount", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Customers")
+            .take(20)
+            .inlineCount(true);
+        stop();
+        em.executeQuery(q).then(function(data) {
+            var r = data.results;
+            var count = data.count;
+            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            ok(count > r.length);
+            ok(parseInt(count2, 10) === count);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query without inlineCount", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Customers")
+            .take(5);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var inlineCount = data.XHR.getResponseHeader("X-InlineCount");
+            ok(!inlineCount);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query with inlineCount 2", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("customer.companyName", "startsWith", "C")
+            .take(5)
+            .inlineCount(true);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var count = data.count;
+            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            ok(count > r.length);
+            ok(parseInt(count2, 10) === count);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("fetchEntityByKey", function() {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
@@ -48,6 +91,31 @@ define(["testFns"], function (testFns) {
             ok(data3.fromCache === false, "should not have been from cache");
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("fetchEntityByKey - deleted", function () {
+        var em = newEm();
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        stop();
+        var alfred;
+        em.fetchEntityByKey("Customer", alfredsID).then(function (data) {
+            alfred = data.entity;
+            ok(alfred, "alfred should have been found");
+            ok(data.fromCache === false, "should have been from database");
+            alfred.entityAspect.setDeleted();
+            return em.fetchEntityByKey("Customer", alfredsID, true);
+        }).then(function (data2) {
+            var alfred2 = data2.entity;
+            ok(alfred2, "alfred2 should have been found");
+            ok(alfred === alfred2, "should be the same entity");
+            ok(data2.fromCache === true, "should have been from cache");
+            return em.fetchEntityByKey(data2.entityKey);
+        }).then(function (data3) {
+            var alfred3 = data3.entity;
+            ok(alfred3 === alfred, "alfred3 should = alfred");
+            ok(data3.fromCache === false, "should not have been from cache");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     
     test("fetchEntityByKey - cache first not found", function () {
         var em = newEm();

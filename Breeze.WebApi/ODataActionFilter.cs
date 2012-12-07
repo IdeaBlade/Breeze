@@ -64,6 +64,17 @@ namespace Breeze.WebApi {
         dQuery = func(dQuery as IQueryable);
       }
 
+      int? inlineCount = null;
+      string inlinecountString = querystringParams["$inlinecount"];
+      if (!string.IsNullOrWhiteSpace(inlinecountString)) {
+        if (inlinecountString == "allpages") {
+          if (dQuery is IQueryable) {
+            inlineCount = Queryable.Count(dQuery);
+          }
+        }
+      }
+
+
       string orderByQueryString = querystringParams["$orderby"];
       if (!string.IsNullOrWhiteSpace(orderByQueryString)) {
         var orderByClauses = orderByQueryString.Split(',').ToList();
@@ -122,7 +133,10 @@ namespace Breeze.WebApi {
       var oc = new System.Net.Http.ObjectContent(rQuery.GetType(), rQuery, formatter);
       actionExecutedContext.Response.Content = oc;
 
-      
+      if (inlineCount.HasValue) {
+        actionExecutedContext.Response.Headers.Add("X-InlineCount", inlineCount.ToString());
+      }
+ 
     }
 
     private static Func<IQueryable, IQueryable> BuildSelectFunc(Type elementType, List<String> selectClauses) {
