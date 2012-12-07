@@ -84,21 +84,25 @@
         ajaxImpl.ajax({
             url: url,
             dataType: 'json',
-            success: function(data, textStatus, jqXHR) {
+            success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
                 // TODO: check response object here for possible errors.
                 try {
-                    data.XHR = jqXHR;
-                    collectionCallback(data);
+                    var inlineCount = XHR.getResponseHeader("X-InlineCount");
+
+                    if (inlineCount) {
+                        inlineCount = parseInt(inlineCount, 10);
+                    }
+                    collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
                 } catch(e) {
-                    var error = createError(jqXHR);
+                    var error = createError(XHR);
                     error.internalError = e;
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                if (errorCallback) errorCallback(createError(jqXHR));
+            error: function(XHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(XHR));
             }
         });
     };

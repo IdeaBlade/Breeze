@@ -40,7 +40,7 @@
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
-                collectionCallback( data.results);
+                collectionCallback({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));

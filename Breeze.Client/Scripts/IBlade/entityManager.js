@@ -1649,7 +1649,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (data) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -1660,7 +1660,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
                     }, function () {
-                        var XHR = rawEntities.XHR;
+                        var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
@@ -1680,13 +1680,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                             });
                         }
                         
-                        var r = { results: entities, query: query, XHR: XHR };
-                        var inlineCount = XHR.getResponseHeader("X-InlineCount");
+                        return { results: entities, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                         
-                        if (inlineCount) {
-                            r.count = parseInt(inlineCount, 10);
-                        }
-                        return r;
                     });
                     deferred.resolve( result);
                 }, function (e) {

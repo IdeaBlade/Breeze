@@ -6592,7 +6592,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns the query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'count' property
+        Returns the query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
         will be returned with the query results that will contain the number of entities that would have been returned by this
         query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored. 
 
@@ -6852,7 +6852,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             queryOptions["$top"] = toTopString();
             queryOptions["$expand"] = toExpandString();
             queryOptions["$select"] = toSelectString();
-            queryOptions["$inlineCount"] = toInlineCountString();
+            queryOptions["$inlinecount"] = toInlineCountString();
             var qoText = toQueryOptionsString();
             return this.resourceName + qoText;
 
@@ -7042,7 +7042,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             toupper:     { fn: function (source) { return source.toUpperCase(); }, dataType: DataType.String },
             tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
             substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
-            substringof: { fn: function (source, find) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
+            substringof: { fn: function (find, source) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
             length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
             trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
             concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
@@ -7591,7 +7591,12 @@ function (core, m_entityMetadata, m_entityAspect) {
             var exprFrag = this._fnNode.toOdataFragment(entityType);
             var val = formatValue(this._value, this._fnNode);
             if (this._filterQueryOp.isFunction) {
-                return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
+                if (this._filterQueryOp == FilterQueryOp.Contains) {
+                    return this._filterQueryOp.operator + "(" + val + "," + exprFrag + ") eq true";
+                } else {
+                    return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
+                }
+                
             } else {
                 return exprFrag + " " + this._filterQueryOp.operator + " " + val;
             }
@@ -10229,7 +10234,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (rawEntities) {
+                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (data) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -10240,7 +10245,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
                     }, function () {
-                        var XHR = rawEntities.XHR;
+                        var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
@@ -10260,13 +10265,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                             });
                         }
                         
-                        var r = { results: entities, query: query, XHR: XHR };
-                        var inlineCount = XHR.getResponseHeader("X-InlineCount");
+                        return { results: entities, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                         
-                        if (inlineCount) {
-                            r.count = parseInt(inlineCount, 10);
-                        }
-                        return r;
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -11353,21 +11353,25 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         ajaxImpl.ajax({
             url: url,
             dataType: 'json',
-            success: function(data, textStatus, jqXHR) {
+            success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
                 // TODO: check response object here for possible errors.
                 try {
-                    data.XHR = jqXHR;
-                    collectionCallback(data);
+                    var inlineCount = XHR.getResponseHeader("X-InlineCount");
+
+                    if (inlineCount) {
+                        inlineCount = parseInt(inlineCount, 10);
+                    }
+                    collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
                 } catch(e) {
-                    var error = createError(jqXHR);
+                    var error = createError(XHR);
                     error.internalError = e;
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                if (errorCallback) errorCallback(createError(jqXHR));
+            error: function(XHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(XHR));
             }
         });
     };
@@ -11513,7 +11517,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
             function (data, response) {
-                collectionCallback( data.results);
+                collectionCallback({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
                 if (errorCallback) errorCallback(createError(error));

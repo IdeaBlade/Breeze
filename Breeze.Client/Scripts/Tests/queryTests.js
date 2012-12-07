@@ -34,10 +34,12 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function(data) {
             var r = data.results;
-            var count = data.count;
-            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            var count = data.inlineCount;
             ok(count > r.length);
-            ok(parseInt(count2, 10) === count);
+            if (testFns.DEBUG_WEBAPI) {
+                var count2 = data.XHR.getResponseHeader("X-InlineCount");
+                ok(parseInt(count2, 10) === count);
+            }
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -48,7 +50,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            var inlineCount = data.XHR.getResponseHeader("X-InlineCount");
+            var inlineCount = data.inlineCount;
             ok(!inlineCount);
         }).fail(testFns.handleFail).fin(start);
     });
@@ -62,10 +64,12 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            var count = data.count;
-            var count2 = data.XHR.getResponseHeader("X-InlineCount");
+            var count = data.inlineCount;
             ok(count > r.length);
-            ok(parseInt(count2, 10) === count);
+            if (testFns.DEBUG_WEBAPI) {
+                var count2 = data.XHR.getResponseHeader("X-InlineCount");
+                ok(parseInt(count2, 10) === count);
+            }
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -222,7 +226,7 @@ define(["testFns"], function (testFns) {
 
     
     test("can run two queries in parallel for fresh EM w/ empty metadataStore", 1, function () {
-        var em = new breeze.EntityManager("api/NorthwindIBModel");
+        var em = newEm();
         var query = breeze.EntityQuery.from("Customers");
         var successCount = 0;
         stop();
@@ -271,7 +275,11 @@ define(["testFns"], function (testFns) {
     });
     
 
-    test("scalar server query ", function() {
+    test("scalar server query ", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Named queries not supported by OData");
+            return;
+        }
         var em = newEm();
 
         var query = EntityQuery.from("CustomerWithScalarResult")
@@ -729,6 +737,7 @@ define(["testFns"], function (testFns) {
 
         var p1 = Predicate.create("companyName", "startsWith", "S");
         var p2 = Predicate.create("city", "contains", "er");
+        
         var whereClause = p1.and(p2);
 
         var query = new breeze.EntityQuery()
