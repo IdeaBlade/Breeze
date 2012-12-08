@@ -884,6 +884,7 @@ namespace Models.NorthwindIB.CF {
       get;
       set;
     }
+
     #endregion Navigation properties
 
   }

@@ -14,11 +14,6 @@ namespace Models.NorthwindIB.EDMX_2012
     
     public partial class Product
     {
-        public Product()
-        {
-            this.OrderDetails = new HashSet<OrderDetail>();
-        }
-    
         public int ProductID { get; set; }
         public string ProductName { get; set; }
         public Nullable<int> SupplierID { get; set; }
@@ -33,7 +28,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public int RowVersion { get; set; }
     
         public virtual Category Category { get; set; }
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual Supplier Supplier { get; set; }
     }
 }

@@ -24,6 +24,24 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("multipart foreign keys", function() {
+        var em = newEm(); // new empty EntityManager
+        var bodType = em.metadataStore.getEntityType("BonusOrderDetailItem");
+        stop();
+        EntityQuery.from("OrderDetails").take(1).using(em).execute().then(function(data) {
+            var orderDetail = data.results[0];
+            var bod = bodType.createEntity();
+            bod.setProperty("bonusOrderDetailItemID", core.getUuid());
+            bod.setProperty("orderDetail", orderDetail);
+            var orderId = bod.getProperty("orderID");
+            ok(orderId === orderDetail.getProperty("orderID"), "orderId's should be the same");
+            var productId = bod.getProperty("productID");
+            ok(productId === orderDetail.getProperty("productID"), "productId's should be the same");
+        }).fail(testFns.handleFail).fin(start);
+
+
+    });
+
     test("create entity with initial properties", function() {
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");

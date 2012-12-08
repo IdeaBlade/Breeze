@@ -41,5 +41,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public DbSet<Territory> Territories { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<BonusOrderDetailItem> BonusOrderDetailItems { get; set; }
     }
 }

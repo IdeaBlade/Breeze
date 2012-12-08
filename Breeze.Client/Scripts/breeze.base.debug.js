@@ -3519,6 +3519,7 @@ function (core, m_entityAspect) {
         // 'this' is the entity itself in this context.
 
         var oldValue = rawAccessorFn();
+        var that = this;
         // exit if no change
         if (newValue === oldValue) {
             return;
@@ -3647,6 +3648,11 @@ function (core, m_entityAspect) {
                         var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
 
                         this.setProperty(property.relatedDataProperties[0].name, relatedValue);
+                        
+                        //inverseKeyProps.forEach(function(keyProp, i ) {
+                        //    var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
+                        //    that.setProperty(property.relatedDataProperties[i].name, relatedValue);
+                        //});
                     }
                 }
 
@@ -3705,7 +3711,6 @@ function (core, m_entityAspect) {
                         aspect.primaryKeyWasChanged = true;
                         
                     }
-                    var that = this;
                     this.entityType.navigationProperties.forEach(function(np) {
                         var inverseNp = np.inverse;
                         if (!inverseNp) return;

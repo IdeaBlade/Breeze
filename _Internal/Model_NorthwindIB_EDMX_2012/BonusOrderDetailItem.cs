@@ -12,22 +12,15 @@ namespace Models.NorthwindIB.EDMX_2012
     using System;
     using System.Collections.Generic;
     
-    public partial class OrderDetail
+    public partial class BonusOrderDetailItem
     {
-        public OrderDetail()
-        {
-            this.BonusOrderDetailItems = new HashSet<BonusOrderDetailItem>();
-        }
-    
+        public System.Guid BonusOrderDetailItemID { get; set; }
         public int OrderID { get; set; }
         public int ProductID { get; set; }
-        public decimal UnitPrice { get; set; }
-        public short Quantity { get; set; }
-        public float Discount { get; set; }
-        public int RowVersion { get; set; }
+        public int BonusProductID { get; set; }
+        public string Comment { get; set; }
     
-        public virtual Order Order { get; set; }
-        public virtual Product Product { get; set; }
-        public virtual ICollection<BonusOrderDetailItem> BonusOrderDetailItems { get; set; }
+        public virtual OrderDetail OrderDetail { get; set; }
+        public virtual Product BonusProduct { get; set; }
     }
 }
