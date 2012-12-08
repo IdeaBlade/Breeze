@@ -3523,6 +3523,8 @@ function (core, m_entityAspect) {
         if (newValue === oldValue) {
             return;
         }
+        
+        var that = this;
         var propName = property.name;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
@@ -3640,13 +3642,10 @@ function (core, m_entityAspect) {
                 if (property.relatedDataProperties) {
                     if (!aspect.entityState.isDeleted()) {
                         var inverseKeyProps = property.entityType.keyProperties;
-                        if (inverseKeyProps.length !== 1 && !newValue) {
-                            throw new Error("Only single property foreign keys are currently supported.");
-                        }
-                        var keyProp = inverseKeyProps[0];
-                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
-
-                        this.setProperty(property.relatedDataProperties[0].name, relatedValue);
+                        inverseKeyProps.forEach(function(keyProp, i ) {
+                            var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
+                            that.setProperty(property.relatedDataProperties[i].name, relatedValue);
+                        });
                     }
                 }
 
@@ -3705,7 +3704,6 @@ function (core, m_entityAspect) {
                         aspect.primaryKeyWasChanged = true;
                         
                     }
-                    var that = this;
                     this.entityType.navigationProperties.forEach(function(np) {
                         var inverseNp = np.inverse;
                         if (!inverseNp) return;
@@ -11205,7 +11203,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.75.1",
+        version: "0.75.2",
         core: core,
         config: a_config
     };
