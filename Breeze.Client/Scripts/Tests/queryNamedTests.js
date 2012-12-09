@@ -33,6 +33,79 @@ define(["testFns"], function (testFns) {
         return testFns;
     };
 
+    test("with parameter", function () {
+        var em = newEm();
+        var q = EntityQuery.from("CustomersStartingWith")
+            .withParameters({ companyName: "C" });
+
+        stop();
+        var r, q2;
+        em.executeQuery(q).then(function(data) {
+            r = data.results;
+            ok(r.length > 0, "should be some results");
+            var allok = r.every(function(r) {
+                return r.getProperty("companyName").substr(0, 1) === "C";
+            });
+            ok(allok, "all customers should have company names starting with 'c'");
+            q2 = q.where("fax", "!=", null);
+            return em.executeQuery(q2);
+        }).then(function(data2) {
+            var r2 = data2.results;
+            ok(r2.length > 0, "should be some results again");
+            ok(r2.length < r.length, "should be fewer than returned by original query");
+            return em.executeQuery(q2.take(1));
+        }).then(function(data3) {
+            var r3 = data3.results;
+            ok(r3.length === 1, "should be only a single result");
+            ok(r.indexOf(r3[0]) >= 0, "should have been in the original result set");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("with two parameters", function () {
+        var em = newEm();
+        var q = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+            .withParameters({ birthDate: "1/1/1960", country: "USA" });
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be some results");
+            var allok = r.every(function (emp) {
+                return emp.getProperty("country") == "USA";
+            });
+            ok(allok, "all employees should be in the US");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("with bad parameters", function () {
+        var em = newEm();
+        var q = EntityQuery.from("CustomersStartingWith")
+            .withParameters({ foo: "C" });
+
+        stop();
+        var r, q2;
+        em.executeQuery(q).then(function (data) {
+            ok(false, "should not get here")
+        }).fail(function(e) {
+            ok(e.message.indexOf("foo") >= 0, "foo should have been in message");
+        }).fin(start);
+    });
+    
+    test("with extra parameters", function () {
+        var em = newEm();
+        var q = EntityQuery.from("CustomersStartingWith")
+            .withParameters({ companyName: "C", extra: 123123 });
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be some results");
+            var allok = r.every(function (r) {
+                return r.getProperty("companyName").substr(0, 1) === "C";
+            });
+            ok(allok, "all customers should have company names starting with 'c'");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("project strings", function () {
         var em = newEm();

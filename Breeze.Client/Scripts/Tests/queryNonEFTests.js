@@ -66,7 +66,6 @@ define(["testFns"], function (testFns) {
             // ok(person.meals[0].person === person, "check internal consistency");
             var ents = em.getEntities();
             ok(ents.length === 0,"should return 0 - not yet entities");
-            start();
         }).fail(testFns.handleFail).fin(start);
         
     });
@@ -87,7 +86,6 @@ define(["testFns"], function (testFns) {
             ok(meals[0].getProperty("person") === person, "check internal consistency");
             var ents = em.getEntities();
             ok(ents.length > 0, "should return some entities");
-            start();
         }).fail(testFns.handleFail).fin(start);
 
     });

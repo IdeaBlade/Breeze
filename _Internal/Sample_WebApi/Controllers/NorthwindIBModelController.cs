@@ -56,75 +56,80 @@ namespace Sample_WebApi.Controllers {
     NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public String Metadata() {
       return ContextProvider.Metadata();
     }
 
-    [AcceptVerbs("POST")]
+    [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
     #region standard queries
 
-    [AcceptVerbs("GET")]
-    public Customer  CustomerWithScalarResult() {
-      return ContextProvider.Context.Customers.First();
-    }
-
-    [AcceptVerbs("GET")]
-    public IQueryable<Customer> CustomersWithHttpError() {
-      throw new HttpResponseException(HttpStatusCode.NotFound);
-    }
-
-    //[AcceptVerbs("GET")]
-    //public IQueryable<Customer> CustomersWithHttpErrorResponse() {
-    //  Not sure where to find CreateErrorResponse
-    //  Request.CreateErrorResponse(HttpStatusCode.NotFound, "Couldn't find the resource");
-    //}
-
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
       return custs;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
+    public IQueryable<Customer> CustomersStartingWith(string companyName) {
+      var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName));
+      return custs;
+    }
+
+    [HttpGet]
+    public Customer CustomerWithScalarResult() {
+      return ContextProvider.Context.Customers.First();
+    }
+
+    [HttpGet]
+    public IQueryable<Customer> CustomersWithHttpError() {
+      throw new HttpResponseException(HttpStatusCode.NotFound);
+    }
+
+    [HttpGet]
     public IQueryable<Order> Orders() {
       var orders = ContextProvider.Context.Orders;
       return orders;
     }
     
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Employee> Employees() {
       return ContextProvider.Context.Employees;
     }
 
+    [HttpGet]
+    public IQueryable<Employee> EmployeesFilteredByCountryAndBirthdate(DateTime birthDate, string country) {
+      return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Country == country);
+    }
+
     // [Queryable]
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<OrderDetail> OrderDetails() {
       return ContextProvider.Context.OrderDetails;
     }
 
     // [Queryable]
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Product> Products() {
       return ContextProvider.Context.Products;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Region> Regions() {
       return ContextProvider.Context.Regions;
     }
 
     
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Territory> Territories() {
       return ContextProvider.Context.Territories;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Category> Categories() {
       return ContextProvider.Context.Categories;
     }
@@ -132,25 +137,25 @@ namespace Sample_WebApi.Controllers {
 
     #region named queries
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Object> CompanyNames() {
       var stuff = ContextProvider.Context.Customers.Select(c => c.CompanyName);
       return stuff;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Object> CompanyNamesAndIds() {
       var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID });
       return stuff;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Object> CompanyInfoAndOrders() {
       var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
       return stuff;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Object> TypeEnvelopes() {
       var stuff =this.GetType().Assembly.GetTypes()
         .Select(t => new {t.Assembly.FullName, t.Name, t.Namespace})
@@ -159,20 +164,20 @@ namespace Sample_WebApi.Controllers {
     }
 
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> CustomersAndOrders() {
       var custs = ContextProvider.Context.Customers.Include("Orders");
       return custs;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Order> OrdersAndCustomers() {
       var orders = ContextProvider.Context.Orders.Include("Customer");
       return orders;
     }
 
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Customer> CustomersStartingWithA() {
       var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
       return custs;

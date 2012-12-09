@@ -6194,6 +6194,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.skipCount = null;
             this.takeCount = null;
             this.expandClause = null;
+            this.parameters = {};
             this.inlineCountEnabled = false;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
@@ -6234,6 +6235,13 @@ function (core, m_entityMetadata, m_entityAspect) {
         __readOnly__
         @property takeCount {Integer}
         **/
+        
+        /**
+       Any additional parameters that were added to the query via the 'withParameters' method. 
+
+       __readOnly__
+       @property parameters {Object}
+       **/
 
         /**
         The {{#crossLink "QueryOptions"}}{{/crossLink}} for this query.
@@ -6336,7 +6344,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
 
         /**
-        Adds a filter to the query. Can be called multiple times which means to 'and' with any existing Predicate.
+        Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
         @example                    
             var query = new EntityQuery("Customers")
                 .where("CompanyName", "startsWith", "C");
@@ -6404,7 +6412,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns a query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well. 
+        Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well. 
         @example
              var query = new EntityQuery("Customers")
                  .orderBy("CompanyName");
@@ -6440,7 +6448,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns a query that orders the results of the query by property name in descending order.
+        Returns a new query that orders the results of the query by property name in descending order.
         @example
              var query = new EntityQuery("Customers")
                  .orderByDesc("CompanyName");
@@ -6456,7 +6464,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 .orderByDesc("Category.CategoryName");
 
         @method orderByDesc
-        @param propertyPaths {String} A list of property paths seperated by ','.
+        @param propertyPaths {String} A list of property paths separated by ','.
         @return {EntityQuery}
         @chainable
         **/
@@ -6466,7 +6474,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        Returns a query that selects a list of properties from the results of the original query and returns the values of just these properties. This
+        Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This
         will be referred to as a projection. 
         If the result of this selection "projection" contains entities, these entities will automatically be added to EntityManager's cache and will 
         be made 'observable'.
@@ -6506,7 +6514,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns a query that skips the specified number of entities when returning results.
+        Returns a new query that skips the specified number of entities when returning results.
         @example
             var query = new EntityQuery("Customers")
                .where("CompanyName", "startsWith", "C")
@@ -6528,7 +6536,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        Returns a query that returns only the specified number of entities when returning results. - Same as 'take'.
+        Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
         @example
             var query = new EntityQuery("Customers")
                 .top(5);
@@ -6542,7 +6550,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         /**
-        Returns a query that returns only the specified number of entities when returning results - Same as 'top'
+        Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
         @example
             var query = new EntityQuery("Customers")
                 .take(5);
@@ -6563,7 +6571,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
         
         /**
-        Returns a query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
+        Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
         names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
         @example
             var query = new EntityQuery("Customers")
@@ -6587,6 +6595,33 @@ function (core, m_entityMetadata, m_entityAspect) {
         ctor.prototype.expand = function (propertyPaths) {
             assertParam(propertyPaths, "propertyPaths").isString().check();
             return expandCore(this, propertyPaths);
+        };
+
+        /**
+        Returns a new query that includes a collection of parameters to pass to the server.
+        @example
+            var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+                .withParameters({ BirthDate: "1/1/1960", Country: "USA" });
+        will call the 'EmployeesFilteredByCountryAndBirthdata' method on the server and pass in 2 parameters. This
+        query will be uri encoded as 
+
+            {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA
+        
+        Parameters may also be mixed in with other query criteria.
+        @example
+             var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+                .withParameters({ BirthDate: "1/1/1960", Country: "USA" })
+                .where("LastName", "startsWith", "S")
+                .orderBy("BirthDate");
+        
+        @method withParameters
+        @param parameters {Object} A parameters object where the keys are the parameter names and the values are the parameter values. 
+        @return {EntityQuery}
+        @chainable
+        **/
+        ctor.prototype.withParameters = function(parameters) {
+            assertParam(parameters, "parameters").isObject().check();
+            return withParametersCore(this, parameters);
         };
 
         /**
@@ -6821,6 +6856,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             copy.skipCount = this.skipCount;
             copy.takeCount = this.takeCount;
             copy.expandClause = this.expandClause;
+            copy.inlineCountEnabled = this.inlineCountEnabled;
+            copy.parameters = core.extend({}, this.parameters);
             // default is to get queryOptions from the entityManager.
             copy.queryOptions = this.queryOptions;
             copy.entityManager = this.entityManager;
@@ -6854,7 +6891,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             queryOptions["$expand"] = toExpandString();
             queryOptions["$select"] = toSelectString();
             queryOptions["$inlinecount"] = toInlineCountString();
-            var qoText = toQueryOptionsString();
+            queryOptions = core.extend(queryOptions, this.parameters);
+            
+            var qoText = toQueryOptionsString(queryOptions);
             return this.resourceName + qoText;
 
             // private methods to this func.
@@ -6909,12 +6948,12 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return count.toString();
             }
 
-            function toQueryOptionsString() {
+            function toQueryOptionsString(queryOptions) {
                 var qoStrings = [];
                 for (var qoName in queryOptions) {
                     var qoValue = queryOptions[qoName];
                     if (qoValue) {
-                        qoStrings.push(qoName + "=" + qoValue);
+                        qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
                     }
                 }
 
@@ -7003,6 +7042,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             return eq;
         }
         
+        function withParametersCore(that, parameters) {
+            var eq = that._clone();
+            eq.parameters = parameters;
+            return eq;
+        }
 
         function buildKeyPredicate(entityKey) {
             var keyProps = entityKey.entityType.keyProperties;
@@ -11203,7 +11247,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.75.2",
+        version: "0.76.1",
         core: core,
         config: a_config
     };

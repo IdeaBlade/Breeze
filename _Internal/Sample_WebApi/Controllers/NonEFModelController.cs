@@ -38,25 +38,25 @@ namespace Sample_WebApi.Controllers {
     NonEFContextProvider ContextProvider = new NonEFContextProvider();
 
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public String Metadata() {
       return ContextProvider.Metadata();
     }
 
-    [AcceptVerbs("POST")]
+    [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
     #region standard queries
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Person> Persons() {
       var custs = ContextProvider.Context.Persons;
       return custs;
     }
 
-    [AcceptVerbs("GET")]
+    [HttpGet]
     public IQueryable<Meal> Meals() {
       var orders = ContextProvider.Context.Meals;
       return orders;

@@ -24,107 +24,99 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    asyncTest("nullable int", function () {
+    test("nullable int", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
             .where("rowVersion", "==", 1);
-
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
-            start();
-         }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("nullable int == null", function () {
+    test("nullable int == null", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
             .where("rowVersion", "==", null);
-
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
-            start();
-         }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("nullable date", function () {
+    test("nullable date", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
             .where("orderDate", ">", new Date(1998, 1, 1))
             .take(10);
-
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("nullable date == null", function () {
+    test("nullable date == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
             .where("orderDate", "==", null);
-
-        em.executeQuery(query).then(function (data) {
-            ok(data.results.length > 0 );
-            start();
-         }).fail(testFns.handleFail);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length > 0);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     // we don't have a nullable book in NorthwindIB
-    asyncTest("bool", function () {
+    test("bool", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
             .where("isDiscontinued", "==", true );
-
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             var products = data.results;
             ok(products.length > 0);
             ok(products.every(function(p) {
                 return p.getProperty("isDiscontinued") === true;
             }));
-            start();
-         }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("nonnullable bool == null", function () {
+    test("nonnullable bool == null", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
             .where("discontinued", "==", null );
-
+        stop();
         em.executeQuery(query).then(function(data) {
             ok(false);
-            start();
         }).fail(function(error) {
             // TODO: let see if we can't improve this error message.
             var x = error;
             ok(true, "should get here");
-            start();
-        });
+        }).fin(start);
     });
 
-    asyncTest("nullable guid", function () {
+    test("nullable guid", function () {
         // ID of the Northwind "Alfreds Futterkiste" customer
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var em = newEm();
         var query = new EntityQuery("Orders")
                 .where("customerID", "==", alfredsID);
-
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
-            start();
-         }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
-    asyncTest("nullable guid == null", function () {
+    test("nullable guid == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
             .where("customerID", "==", null);
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
-            start();
-         }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
-    asyncTest("string equals null", function () {
+    test("string equals null", function () {
         var em = newEm();
 
         var query = new EntityQuery()
@@ -133,19 +125,18 @@ define(["testFns"], function (testFns) {
             .take(20);
 
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var customers = data.results;
             ok(customers.length > 0);
-            customers.forEach(function (customer) {
+            customers.forEach(function(customer) {
                 var region = customer.getProperty("region");
                 ok(region == null, "region should be either null or undefined");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("string not equals null", function () {
+    test("string not equals null", function () {
         var em = newEm();
 
         var query = new EntityQuery()
@@ -154,16 +145,16 @@ define(["testFns"], function (testFns) {
             .take(10);
 
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var customers = data.results;
             ok(customers.length > 0);
-            customers.forEach(function (customer) {
+            customers.forEach(function(customer) {
                 var region = customer.getProperty("region");
                 ok(region != null, "region should not be either null or undefined");
             });
-            start();
-        }).fail(testFns.handleFail);
+
+        }).fail(testFns.handleFail).fin(start);
     });
 
     return testFns;
