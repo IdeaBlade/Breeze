@@ -10006,23 +10006,27 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var entityType = entityGroup.entityType;
             var dpNames = entityType.dataProperties.map(core.pluck("name"));
             resultGroup.dataPropertyNames = dpNames;
-            resultGroup.entities = entityGroup._entities.map(function (e) {
-                var rawEntity = [];
-                dpNames.forEach(function (dpName) {
-                    rawEntity.push(e.getProperty(dpName));
-                });
-                var aspect = e.entityAspect;
-                var entityState = aspect.entityState;
-                var newAspect = {
-                    tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
-                    entityState: entityState.name
-                };
-                if (entityState.isModified() || entityState.isDeleted()) {
-                    newAspect.originalValuesMap = aspect.originalValues;
-                };
-                rawEntity.push(newAspect);
-                return rawEntity;
+            var rawEntities = [];
+            entityGroup._entities.forEach(function (e) {
+                if (e) {
+                    var rawEntity = [];
+                    dpNames.forEach(function(dpName) {
+                        rawEntity.push(e.getProperty(dpName));
+                    });
+                    var aspect = e.entityAspect;
+                    var entityState = aspect.entityState;
+                    var newAspect = {
+                        tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
+                        entityState: entityState.name
+                    };
+                    if (entityState.isModified() || entityState.isDeleted()) {
+                        newAspect.originalValuesMap = aspect.originalValues;
+                    }
+                    rawEntity.push(newAspect);
+                    rawEntities.push(rawEntity);
+                }
             });
+            resultGroup.entities = rawEntities;
             return resultGroup;
         }
 
@@ -11247,7 +11251,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.76.1",
+        version: "0.76.2",
         core: core,
         config: a_config
     };

@@ -41,6 +41,41 @@ define(["testFns"], function (testFns) {
         ok(em);
     });
     
+    test("export/import deleted", function() {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var cust1 = custType.createEntity();
+        cust1.setProperty("companyName", "Test_js_1");
+        cust1.setProperty("city", "Oakland");
+        cust1.setProperty("rowVersion", 13);
+        cust1.setProperty("fax", "510 999-9999");
+        em.addEntity(cust1);
+        var cust2 = custType.createEntity();
+        cust2.setProperty("companyName", "Test_js_2");
+        cust2.setProperty("city", "Oakland");
+        cust2.setProperty("rowVersion", 13);
+        cust2.setProperty("fax", "510 999-9999");
+        em.addEntity(cust2);
+
+        stop();
+        em.saveChanges().then(function(sr) {
+            var custs = sr.entities;
+            ok(custs.length == 2);
+            custs[0].entityAspect.setDeleted();
+            custs[1].setProperty("companyName", "foo");
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(sr.entities.length == 2);
+            var exported = em.exportEntities();
+            var em2 = newEm();
+            em2.importEntities(exported);
+        }).fail(function (e) {
+            var x = e;
+        }).fin(start);
+
+
+    });
+    
     test("mergeStrategy.overwrite", function () {
         var queryOptions = new QueryOptions({
             mergeStrategy: MergeStrategy.OverwriteChanges,

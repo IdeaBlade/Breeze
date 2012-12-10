@@ -321,7 +321,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2241,
+            "line": 2245,
             "description": "MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.",
             "static": 1
         },
@@ -336,7 +336,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2270,
+            "line": 2274,
             "description": "FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.",
             "static": 1
         },
@@ -351,7 +351,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2295,
+            "line": 2299,
             "description": "A QueryOptions instance is used to specify the 'options' under which a query will occur."
         },
         "SaveOptions": {
@@ -365,7 +365,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2408,
+            "line": 2412,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
         },
         "ValidationOptions": {
@@ -379,7 +379,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2456,
+            "line": 2460,
             "description": "A ValidationOptions instance is used to specify the conditions under which validation will be executed."
         },
         "LocalQueryComparisonOptions": {
@@ -2724,7 +2724,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2248,
+            "line": 2252,
             "description": "PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is not replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "PreserveChanges",
@@ -2736,7 +2736,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2258,
+            "line": 2262,
             "description": "OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "OverwriteChanges",
@@ -2748,7 +2748,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2277,
+            "line": 2281,
             "description": "FromServer is used to tell the query to execute the query against a remote data source on the server.",
             "itemtype": "property",
             "name": "FromServer",
@@ -2760,7 +2760,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2284,
+            "line": 2288,
             "description": "FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.",
             "itemtype": "property",
             "name": "FromLocalCache",
@@ -2772,7 +2772,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2301,
+            "line": 2305,
             "description": "QueryOptions constructor",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { queryOptions: newQo });"
@@ -2808,7 +2808,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2320,
+            "line": 2324,
             "description": "A {{#crossLink \"FetchStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "fetchStrategy",
@@ -2818,7 +2818,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2326,
+            "line": 2330,
             "description": "A {{#crossLink \"MergeStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "mergeStrategy",
@@ -2828,7 +2828,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2334,
+            "line": 2338,
             "description": "The default value whenever QueryOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2839,7 +2839,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2341,
+            "line": 2345,
             "description": "Returns a copy of this QueryOptions with the specified {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n    var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);\nor",
@@ -2865,7 +2865,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2367,
+            "line": 2371,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2878,7 +2878,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2414,
+            "line": 2418,
             "itemtype": "method",
             "name": "<ctor> SaveOptions",
             "params": [
@@ -2901,7 +2901,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2428,
+            "line": 2432,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -2911,7 +2911,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2438,
+            "line": 2442,
             "description": "Whether another save can be occuring at the same time as this one - default is false.\n\n__readOnly__",
             "itemtype": "property",
             "name": "allowConcurrentSaves",
@@ -2921,7 +2921,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2445,
+            "line": 2449,
             "description": "The default value whenever SaveOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2932,7 +2932,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2462,
+            "line": 2466,
             "description": "ValidationOptions constructor",
             "example": [
                 "\n    var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { validationOptions: newVo });"
@@ -2982,7 +2982,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2483,
+            "line": 2487,
             "description": "Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnAttach",
@@ -2992,7 +2992,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2490,
+            "line": 2494,
             "description": "Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnSave",
@@ -3002,7 +3002,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2497,
+            "line": 2501,
             "description": "Whether entity and property level validation should occur after entities are queried from a remote server.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnQuery",
@@ -3012,7 +3012,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2504,
+            "line": 2508,
             "description": "Whether property level validation should occur after entities are modified.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnPropertyChange",
@@ -3022,7 +3022,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2513,
+            "line": 2517,
             "description": "Returns a copy of this ValidationOptions with changes to the specified config properties.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions();\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );"
@@ -3072,7 +3072,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2533,
+            "line": 2537,
             "description": "Makes this instance the default instance.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
@@ -3085,7 +3085,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2547,
+            "line": 2551,
             "description": "The default value whenever ValidationOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
