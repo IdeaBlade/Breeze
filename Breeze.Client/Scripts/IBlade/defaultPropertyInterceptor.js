@@ -99,6 +99,7 @@ function (core, m_entityAspect) {
                         }
                     }
                 } else {
+                     // To get here - the newValue is either null or undefined;
                      if (inverseProp) {
                         if (inverseProp.isScalar) {
                             // navigation property change - undo old relation
@@ -141,10 +142,8 @@ function (core, m_entityAspect) {
                 }
 
             } else {
-              
-                // updating a dataProperty
+                // To get here it must be a DataProperty  
                 if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
-                    
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
                         if (p == property) {
@@ -171,6 +170,7 @@ function (core, m_entityAspect) {
                         aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
+                
                 // update corresponding nav property if attached.
                 if (property.relatedNavigationProperty && entityManager) {
                     var relatedNavProp = property.relatedNavigationProperty;

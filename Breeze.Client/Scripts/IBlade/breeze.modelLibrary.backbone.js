@@ -30,21 +30,24 @@
         bbGet = Backbone.Model.prototype.get;
     };
 
-    ctor.prototype.createCtor = function(entityType) {
+    // may be an entityType or a complexType
+    ctor.prototype.createCtor = function(structuralType) {
         var defaults = { };
-        entityType.dataProperties.forEach(function(dp) {
+        structuralType.dataProperties.forEach(function (dp) {
             defaults[dp.name] = dp.defaultValue;
         });
         var modelCtor = Backbone.Model.extend({
             defaults: defaults,
-            initialize: function() {
-                var that = this;
-                entityType.navigationProperties.forEach(function(np) {
-                    if (!np.isScalar) {
-                        var val = breeze.makeRelationArray([], that, np);
-                        Backbone.Model.prototype.set.call(that, np.name, val);
-                    }
-                });
+            initialize: function () {
+                if (structuralType.navigationProperties) {
+                    var that = this;
+                    structuralType.navigationProperties.forEach(function (np) {
+                        if (!np.isScalar) {
+                            var val = breeze.makeRelationArray([], that, np);
+                            Backbone.Model.prototype.set.call(that, np.name, val);
+                        }
+                    });
+                }
             }
         });
         return modelCtor;
