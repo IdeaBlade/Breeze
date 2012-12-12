@@ -31,6 +31,42 @@ define(["testFns"], function (testFns) {
         return testFns;
     };
     
+
+    test("add knockout computed property based on collection navigation via constructor", 2, function () {
+          // clones based on a fully populated store created at top of tests
+          // see cloneModuleMetadataStore() below
+        var store = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var em = newEm(store);
+
+        var Employee = function () {
+            this.orderCount = ko.computed(
+                {
+                    read: function () {
+                        return this.orders().length;
+                    },
+                    // Orders not defined yet
+                    deferEvaluation: true
+                }, this);
+        };
+
+        store.registerEntityTypeCtor("Employee", Employee);
+
+        var employeeType = store.getEntityType("Employee");
+        var emp = employeeType.createEntity(); // DIES HERE
+
+        equal(emp.orderCount(), 0,
+            "should have a zero orderCount");
+
+        var orderType = store.getEntityType("Order");
+        var newOrder = orderType.createEntity();
+        emp.orders.push(newOrder);
+
+        equal(emp.orderCount(), 1,
+            "orderCount should be 1 after pushing newOrder");
+    });
+
+
+    
     test("disallow setting collection navigation properties", function () {
         // ko specific
         var em = newEm();

@@ -76,7 +76,12 @@
 
     ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
-        entity.entityType.getProperties().forEach(function(prop) {
+        // force unmapped properties to the end
+        entity.entityType.getProperties().sort(function (p1, p2) {
+            var v1 = p1.isUnmapped ? 1 :  0;
+            var v2 = p2.isUnmapped ? 1 :  0;
+            return v1 - v2;
+        }).forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
             var koObj;
