@@ -22,5 +22,6 @@ namespace Models.NorthwindIB.EDMX_2012
     
         public virtual OrderDetail OrderDetail { get; set; }
         public virtual Product BonusProduct { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

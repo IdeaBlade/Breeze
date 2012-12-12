@@ -26,7 +26,6 @@ namespace Models.NorthwindIB.EDMX_2012
         }
     
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Customer> Customers { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeTerritory> EmployeeTerritories { get; set; }
         public DbSet<InternationalOrder> InternationalOrders { get; set; }
@@ -42,5 +41,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<BonusOrderDetailItem> BonusOrderDetailItems { get; set; }
+        public DbSet<Customer> Customers { get; set; }
     }
 }

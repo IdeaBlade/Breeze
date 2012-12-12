@@ -32,9 +32,9 @@ namespace Models.NorthwindIB.EDMX_2012
     
         public Location ShipLocation { get; set; }
     
-        public virtual Customer Customer { get; set; }
         public virtual Employee Employee { get; set; }
         public virtual InternationalOrder InternationalOrder { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual Customer Customer { get; set; }
     }
 }

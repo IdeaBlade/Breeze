@@ -103,7 +103,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Employee> EmployeesFilteredByCountryAndBirthdate(DateTime birthDate, string country) {
-      return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Country == country);
+      return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Location.Country == country);
     }
 
     // [Queryable]

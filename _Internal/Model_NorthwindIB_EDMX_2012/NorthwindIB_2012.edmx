@@ -29,6 +29,14 @@
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_BonusProduct">
+            <End Role="Product" EntitySet="Product" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
+          </AssociationSet>
+          <AssociationSet Name="FK_BonusOrderDetailItem_OrderDetail" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_OrderDetail">
+            <End Role="OrderDetail" EntitySet="OrderDetail" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
+          </AssociationSet>
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
             <End Role="Employee" EntitySet="Employee" />
             <End Role="Employee1" EntitySet="Employee" />
@@ -114,7 +122,7 @@
           <Key>
             <PropertyRef Name="CustomerID" />
           </Key>
-          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CustomerID_OLD" Type="nchar" MaxLength="5" />
           <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
           <Property Name="ContactName" Type="nvarchar" MaxLength="30" />
@@ -329,6 +337,32 @@
           <Property Name="UserId" Type="bigint" Nullable="false" />
           <Property Name="RoleId" Type="bigint" Nullable="false" />
         </EntityType>
+        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
+          <End Role="Product" Type="NorthwindIBModel.Store.Product" Multiplicity="1" />
+          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="BonusProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_BonusOrderDetailItem_OrderDetail">
+          <End Role="OrderDetail" Type="NorthwindIBModel.Store.OrderDetail" Multiplicity="1" />
+          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderDetail">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Employee_Employee">
           <End Role="Employee" Type="NorthwindIBModel.Store.Employee" Multiplicity="0..1" />
           <End Role="Employee1" Type="NorthwindIBModel.Store.Employee" Multiplicity="*" />
@@ -515,7 +549,6 @@
       <Schema Namespace="NorthwindIBModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
         <EntityContainer Name="NorthwindIBContext_EDMX_2012" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Categories" EntityType="NorthwindIBModel.Category" />
-          <EntitySet Name="Customers" EntityType="NorthwindIBModel.Customer" />
           <EntitySet Name="Employees" EntityType="NorthwindIBModel.Employee" />
           <EntitySet Name="EmployeeTerritories" EntityType="NorthwindIBModel.EmployeeTerritory" />
           <EntitySet Name="InternationalOrders" EntityType="NorthwindIBModel.InternationalOrder" />
@@ -533,10 +566,6 @@
           <AssociationSet Name="FK_Product_Category" Association="NorthwindIBModel.FK_Product_Category">
             <End Role="Category" EntitySet="Categories" />
             <End Role="Product" EntitySet="Products" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Order_Customer" Association="NorthwindIBModel.FK_Order_Customer">
-            <End Role="Customer" EntitySet="Customers" />
-            <End Role="Order" EntitySet="Orders" />
           </AssociationSet>
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.FK_Employee_Employee">
             <End Role="Employee" EntitySet="Employees" />
@@ -595,6 +624,15 @@
             <End Role="Product" EntitySet="Products" />
             <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
           </AssociationSet>
+          <EntitySet Name="Customers" EntityType="NorthwindIBModel.Customer" />
+          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Order_Customer" Association="NorthwindIBModel.FK_Order_Customer">
+            <End Role="Customer" EntitySet="Customers" />
+            <End Role="Order" EntitySet="Orders" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="Category">
           <Key>
@@ -606,21 +644,6 @@
           <Property Name="Picture" Type="Binary" MaxLength="Max" FixedLength="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Products" Relationship="NorthwindIBModel.FK_Product_Category" FromRole="Category" ToRole="Product" />
-        </EntityType>
-        <EntityType Name="Customer">
-          <Key>
-            <PropertyRef Name="CustomerID" />
-          </Key>
-          <Property Name="CustomerID" Type="Guid" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="CustomerID_OLD" Type="String" MaxLength="5" Unicode="true" FixedLength="true" />
-          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
-          <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
-          <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
-          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
-          <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
-          <Property Name="RowVersion" Type="Int32" ConcurrencyMode="Fixed" />
-          <NavigationProperty Name="Orders" Relationship="NorthwindIBModel.FK_Order_Customer" FromRole="Customer" ToRole="Order" />
-          <Property Name="Location" Type="NorthwindIBModel.Location" Nullable="false" />
         </EntityType>
         <EntityType Name="Employee">
           <Key>
@@ -689,11 +712,11 @@
           <Property Name="Freight" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="ShipName" Type="String" MaxLength="40" Unicode="true" FixedLength="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="Customer" Relationship="NorthwindIBModel.FK_Order_Customer" FromRole="Order" ToRole="Customer" />
           <NavigationProperty Name="Employee" Relationship="NorthwindIBModel.FK_Order_Employee" FromRole="Order" ToRole="Employee" />
           <NavigationProperty Name="InternationalOrder" Relationship="NorthwindIBModel.FK_InternationalOrder_Order" FromRole="Order" ToRole="InternationalOrder" />
           <NavigationProperty Name="OrderDetails" Relationship="NorthwindIBModel.FK_OrderDetail_Order" FromRole="Order" ToRole="OrderDetail" />
           <Property Name="ShipLocation" Type="NorthwindIBModel.Location" Nullable="false" />
+          <NavigationProperty Name="Customer" Relationship="NorthwindIBModel.FK_Order_Customer" FromRole="Order" ToRole="Customer" />
         </EntityType>
         <EntityType Name="OrderDetail">
           <Key>
@@ -747,6 +770,7 @@
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Category" Relationship="NorthwindIBModel.FK_Product_Category" FromRole="Product" ToRole="Category" />
           <NavigationProperty Name="Supplier" Relationship="NorthwindIBModel.FK_Product_Supplier" FromRole="Product" ToRole="Supplier" />
+          <NavigationProperty Name="BonusOrderDetailItems" Relationship="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" FromRole="Product" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="Region">
           <Key>
@@ -831,18 +855,6 @@
             </Principal>
             <Dependent Role="Product">
               <PropertyRef Name="CategoryID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Order_Customer">
-          <End Role="Customer" Type="NorthwindIBModel.Customer" Multiplicity="0..1" />
-          <End Role="Order" Type="NorthwindIBModel.Order" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Customer">
-              <PropertyRef Name="CustomerID" />
-            </Principal>
-            <Dependent Role="Order">
-              <PropertyRef Name="CustomerID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -993,6 +1005,7 @@
           <Property Type="String" Name="Comment" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="OrderDetail" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
           <NavigationProperty Name="BonusProduct" Relationship="NorthwindIBModel.ProductBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="Product" />
+          <NavigationProperty Name="Product" Relationship="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" FromRole="BonusOrderDetailItem" ToRole="Product" />
         </EntityType>
         <Association Name="OrderDetailBonusOrderDetailItem">
           <End Type="NorthwindIBModel.OrderDetail" Role="OrderDetail" Multiplicity="1" />
@@ -1020,6 +1033,52 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Customer">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Type="Guid" Name="CustomerID" Nullable="false" />
+          <Property Type="String" Name="CustomerID_OLD" MaxLength="5" FixedLength="true" Unicode="true" />
+          <Property Type="String" Name="CompanyName" Nullable="false" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="ContactName" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="ContactTitle" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Phone" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Fax" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Type="Int32" Name="RowVersion" />
+          <NavigationProperty Name="Orders" Relationship="NorthwindIBModel.FK_Order_Customer" FromRole="Customer" ToRole="Order" />
+          <Property Name="Location" Type="NorthwindIBModel.Location" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
+          <End Type="NorthwindIBModel.Product" Role="Product" Multiplicity="1" />
+          <End Type="NorthwindIBModel.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="BonusProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Order_Customer">
+          <End Type="NorthwindIBModel.Customer" Role="Customer" Multiplicity="0..1" />
+          <End Type="NorthwindIBModel.Order" Role="Order" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customer">
+              <PropertyRef Name="CustomerID" />
+            </Principal>
+            <Dependent Role="Order">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="Location">
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
+        </ComplexType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1034,27 +1093,6 @@
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Picture" ColumnName="Picture" />
                 <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Customers">
-            <EntityTypeMapping TypeName="NorthwindIBModel.Customer">
-              <MappingFragment StoreEntitySet="Customer">
-                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
-                <ScalarProperty Name="CustomerID_OLD" ColumnName="CustomerID_OLD" />
-                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
-                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
-                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
-                <ScalarProperty Name="Phone" ColumnName="Phone" />
-                <ScalarProperty Name="Fax" ColumnName="Fax" />
-                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
-                <ComplexProperty Name="Location">
-                  <ScalarProperty Name="Country" ColumnName="Country" />
-                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
-                  <ScalarProperty Name="Region" ColumnName="Region" />
-                  <ScalarProperty Name="City" ColumnName="City" />
-                  <ScalarProperty Name="Address" ColumnName="Address" />
-                </ComplexProperty>
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1296,6 +1334,27 @@
               <ScalarProperty Name="OrderID" ColumnName="OrderID" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="Customers">
+            <EntityTypeMapping TypeName="NorthwindIBModel.Customer">
+              <MappingFragment StoreEntitySet="Customer">
+                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
+                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="CustomerID_OLD" ColumnName="CustomerID_OLD" />
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ComplexProperty Name="Location">
+                  <ScalarProperty Name="Country" ColumnName="Country" />
+                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                  <ScalarProperty Name="Region" ColumnName="Region" />
+                  <ScalarProperty Name="City" ColumnName="City" />
+                  <ScalarProperty Name="Address" ColumnName="Address" />
+                </ComplexProperty>
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

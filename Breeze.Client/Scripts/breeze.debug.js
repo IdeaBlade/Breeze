@@ -4208,6 +4208,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
+            this._complexTypeMap = {} // key is qualified complexType name - value is complexType
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -4245,7 +4246,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             entityType.metadataStore = this;
             // don't register anon types
             if (!entityType.isAnonymous) {
-                this._registerEntityType(entityType);
+                this._entityTypeMap[entityType.name] = entityType;
+                this._shortNameMap[entityType.shortName] = entityType.name;
+                // in case resourceName was registered before this point
+                var resourceName = this._entityTypeResourceMap[entityType.name];
+                if (resourceName) {
+                    entityType.defaultResourceName = resourceName;
+                }
             }
             entityType._fixup();
                                   
@@ -4256,6 +4263,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             });
 
         };
+        
+        /**
+        Adds an ComplexType to this MetadataStore.  No additional properties may be added to the ComplexType after its has
+        been added to the MetadataStore.
+        @method addComplexType
+        @param complexType {ComplexType} The ComplexType to add
+        **/
+        ctor.prototype.addComplexType = function (complexType) {
+            complexType.metadataStore = this;
+            // don't register anon types
+            this._complexTypeMap[complexType.name] = complexType;
+            this._shortNameMap[complexType.shortName] = complexType.name;
+            
+            complexType._fixup();
+
+        };
+
         
         /**
         The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
@@ -4666,14 +4690,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
        
-        ctor.prototype._registerEntityType = function (entityType) {
-            this._entityTypeMap[entityType.name] = entityType;
-            this._shortNameMap[entityType.shortName] = entityType.name;
-            // in case resourceName was registered before this point
-            var resourceName = this._entityTypeResourceMap[entityType.name];
-            if (resourceName) {
-                entityType.defaultResourceName = resourceName;
-            }
+        ctor.prototype._registerComplexType = function (complexType) {
+
         };
 
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
@@ -4700,6 +4718,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                              that._entityTypeMap[entityType.name] = entityType;
                         }
                             
+                    });
+                }
+                if (schema.complexType) {
+                    toArray(schema.complexType).forEach(function (ct) {
+                        var complexType = convertFromODataComplexType(ct, schema, that);
                     });
                 }
             });
@@ -4739,33 +4762,71 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return entityType;
         }
 
+        function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
+            var shortName = odataComplexType.name;
+            var namespace = translateNamespace(schema, schema.namespace);
+            var complexType = new ComplexType({
+                shortName: shortName,
+                namespace: namespace,
+            });
+            
+            toArray(odataComplexType.property).forEach(function (prop) {
+                convertFromOdataDataProperty(complexType, prop, null);
+            });
+            
+            metadataStore.addComplexType(complexType);
+            return complexType;
+        }
 
-        function convertFromOdataDataProperty(entityType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.fromEdmDataType(odataProperty.type);
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-            var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isPartOfKey = keyNamesOnServer.indexOf(odataProperty.name) >= 0;
-            if (entityType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
-                if (isIdentityProperty(odataProperty)) {
-                    entityType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
-                }
+        function convertFromOdataDataProperty(parentType, odataProperty, keyNamesOnServer) {
+            var dp;
+            var typeParts = odataProperty.type.split(".");
+            if (typeParts.length == 2) {
+                dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+            } else {
+                dp = convertFromODataComplexProperty(parentType, odataProperty);
             }
-            var maxLength = odataProperty.maxLength;
-            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
+            parentType.addProperty(dp);
+            addValidators(dp);
+
+            return dp;
+        }
+
+        function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
+             var dataType = DataType.fromEdmDataType(odataProperty.type);
+             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+             var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+             var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+             if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+                 if (isIdentityProperty(odataProperty)) {
+                     parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
+                 }
+             }
+             var maxLength = odataProperty.maxLength;
+             maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
+             // can't set the name until we go thru namingConventions and these need the dp.
+             var dp = new DataProperty({
+                 nameOnServer: odataProperty.name,
+                 dataType: dataType,
+                 isNullable: isNullable,
+                 isPartOfKey: isPartOfKey,
+                 maxLength: maxLength,
+                 fixedLength: fixedLength,
+                 concurrencyMode: odataProperty.concurrencyMode
+             });
+            return dp;
+        }
+        
+        function convertFromODataComplexProperty(parentType, odataProperty, keyNamesOnServer) {
+            
+            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+            var complexTypeName = odataProperty.type.split("Edm.")[1];
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
-                dataType: dataType,
-                isNullable: isNullable,
-                isPartOfKey: isPartOfKey,
-                maxLength: maxLength,
-                fixedLength: fixedLength,
-                concurrencyMode: odataProperty.concurrencyMode
+                complexTypeName: complexTypeName,
+                isNullable: false,
             });
-            
-            entityType.addProperty(dp);
-            addValidators(dp);
-            
             return dp;
         }
 
@@ -5113,6 +5174,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     return this;
                 }
             }
+            property.parentType = this;
             property.parentEntityType = this;
             if (property.isDataProperty) {
                 this._addDataProperty(property);
@@ -5122,180 +5184,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return this;
         };
         
-        ctor.prototype._addDataProperty = function (dp) {
 
-            this.dataProperties.push(dp);
-
-            if (dp.isPartOfKey) {
-                this.keyProperties.push(dp);
-            };
-
-            if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
-                this.concurrencyProperties.push(dp);
-            };
-
-            if (dp.isUnmapped) {
-                this.unmappedProperties.push(dp);
-            }
-
-        };
-        
-        ctor.prototype._addNavigationProperty = function (np) {
-
-            this.navigationProperties.push(np);
-
-            if (!isQualifiedTypeName(np.entityTypeName)) {
-                np.entityTypeName = qualifyTypeName(np.entityTypeName, this.namespace);
-            }
-        };
-
-        ctor.prototype._fixup = function() {
-            var that = this;
-            this.getProperties().forEach(function(property) {
-                that._updatePropertyNames(property);
-            });
-            this.navigationProperties.forEach(function(np) {
-                // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-                resolveFks(np);
-                // Tries to set - these two may get set later
-                // this.inverse
-                // this.entityType
-                updateCrossEntityRelationship(np);
-            });
-            updateIncomplete(this);
-        };
-
-        function updateIncomplete(entityType) {
-            var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
-            var incompleteMap = incompleteTypeMap[entityType.name];
-            if (core.isEmpty(incompleteMap)) {
-                delete incompleteTypeMap[entityType.name];
-                return;
-            }
-            if (incompleteMap) {
-                core.objectForEach(incompleteMap, function (assocName, np) {
-                    if (!np.entityType) {
-                        if (np.entityTypeName === entityType.name) {
-                            np.entityType = entityType;
-                            delete incompleteMap[assocName];
-                            updateIncomplete(np.parentEntityType);
-                        }
-                    }
-                });
-            }
-
-        }
-        
-        function resolveFks(np) {
-            if (np.foreignKeyProperties) return;
-            var fkProps = getFkProps(np);
-            // returns null if can't yet finish
-            if (!fkProps) return;
-
-            fkProps.forEach(function (dp) {
-                dp.relatedNavigationProperty = np;
-                np.parentEntityType.foreignKeyProperties.push(dp);
-                if (np.relatedDataProperties) {
-                    np.relatedDataProperties.push(dp);
-                } else {
-                    np.relatedDataProperties = [dp];
-                }
-            });
-        };
-
-
-
-        // returns null if can't yet finish
-        function getFkProps(np) {
-            var fkNames = np.foreignKeyNames;
-            var isNameOnServer = fkNames.length == 0;
-            if (isNameOnServer) {
-                fkNames = np.foreignKeyNamesOnServer;
-                if (fkNames.length == 0) {
-                    np.foreignKeyProperties = [];
-                    return np.foreignKeyProperties;
-                }
-            }
-            var ok = true;
-            var parentEntityType = np.parentEntityType;
-            var fkProps = fkNames.map(function (fkName) {
-                var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
-                ok = ok && !!fkProp;
-                return fkProp;
-            });
-
-            if (ok) {
-                if (isNameOnServer) {
-                    np.foreignKeyNames = fkProps.map(core.pluck("name"));
-                }
-                np.foreignKeyProperties = fkProps;
-                return fkProps;
-            } else {
-                return null;
-            }
-        }
-        
-        function updateCrossEntityRelationship(np) {
-            var metadataStore = np.parentEntityType.metadataStore;
-            var incompleteTypeMap = metadataStore._incompleteTypeMap;
-
-            // ok to not find it yet
-            var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
-            if (targetEntityType) {
-                np.entityType = targetEntityType;
-            }
-
-            var assocMap = incompleteTypeMap[np.entityTypeName];
-            if (!assocMap) {
-                addToIncompleteMap(incompleteTypeMap, np);
-            } else {
-                var inverse = assocMap[np.associationName];
-                if (inverse) {
-                    removeFromIncompleteMap(incompleteTypeMap, np, inverse);
-                } else {
-                    addToIncompleteMap(incompleteTypeMap, np);
-                }
-            }
-        };
-
-        function addToIncompleteMap(incompleteTypeMap, np) {
-            if (!np.entityType) {
-                var assocMap = {};
-                incompleteTypeMap[np.entityTypeName] = assocMap;
-                assocMap[np.associationName] = np;
-            }
-
-            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
-            if (!altAssocMap) {
-                altAssocMap = {};
-                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
-            }
-            altAssocMap[np.associationName] = np;
-        }
-
-        function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
-            np.inverse = inverse;
-            var assocMap = incompleteTypeMap[np.entityTypeName];
-
-            delete assocMap[np.associationName];
-            if (core.isEmpty(assocMap)) {
-                delete incompleteTypeMap[np.entityTypeName];
-            }
-            if (!inverse.inverse) {
-                inverse.inverse = np;
-                // not sure if these are needed
-                if (inverse.entityType == null) {
-                    inverse.entityType = np.parentEntityType;
-                }
-                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
-                if (altAssocMap) {
-                    delete altAssocMap[np.associationName];
-                    if (core.isEmpty(altAssocMap)) {
-                        delete incompleteTypeMap[np.parentEntityType.name];
-                    }
-                }
-            }
-        }
 
         /**
         Create a new entity of this type.
@@ -5561,6 +5450,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return et;
         };
         
+
+        
         ctor.prototype._clientPropertyPathToServer = function (propertyPath) {
             var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
             var that = this;
@@ -5626,6 +5517,181 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
         };
         
+        ctor.prototype._addDataProperty = function (dp) {
+
+            this.dataProperties.push(dp);
+
+            if (dp.isPartOfKey) {
+                this.keyProperties.push(dp);
+            };
+
+            if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
+                this.concurrencyProperties.push(dp);
+            };
+
+            if (dp.isUnmapped) {
+                this.unmappedProperties.push(dp);
+            }
+
+        };
+
+        ctor.prototype._addNavigationProperty = function (np) {
+
+            this.navigationProperties.push(np);
+
+            if (!isQualifiedTypeName(np.entityTypeName)) {
+                np.entityTypeName = qualifyTypeName(np.entityTypeName, this.namespace);
+            }
+        };
+
+        ctor.prototype._fixup = function () {
+            var that = this;
+            this.getProperties().forEach(function (property) {
+                that._updatePropertyNames(property);
+            });
+            this.navigationProperties.forEach(function (np) {
+                // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+                resolveFks(np);
+                // Tries to set - these two may get set later
+                // this.inverse
+                // this.entityType
+                updateCrossEntityRelationship(np);
+            });
+            updateIncomplete(this);
+        };
+
+        function updateIncomplete(entityType) {
+            var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
+            var incompleteMap = incompleteTypeMap[entityType.name];
+            if (core.isEmpty(incompleteMap)) {
+                delete incompleteTypeMap[entityType.name];
+                return;
+            }
+            if (incompleteMap) {
+                core.objectForEach(incompleteMap, function (assocName, np) {
+                    if (!np.entityType) {
+                        if (np.entityTypeName === entityType.name) {
+                            np.entityType = entityType;
+                            delete incompleteMap[assocName];
+                            updateIncomplete(np.parentEntityType);
+                        }
+                    }
+                });
+            }
+
+        }
+
+        function resolveFks(np) {
+            if (np.foreignKeyProperties) return;
+            var fkProps = getFkProps(np);
+            // returns null if can't yet finish
+            if (!fkProps) return;
+
+            fkProps.forEach(function (dp) {
+                dp.relatedNavigationProperty = np;
+                np.parentEntityType.foreignKeyProperties.push(dp);
+                if (np.relatedDataProperties) {
+                    np.relatedDataProperties.push(dp);
+                } else {
+                    np.relatedDataProperties = [dp];
+                }
+            });
+        };
+
+
+
+        // returns null if can't yet finish
+        function getFkProps(np) {
+            var fkNames = np.foreignKeyNames;
+            var isNameOnServer = fkNames.length == 0;
+            if (isNameOnServer) {
+                fkNames = np.foreignKeyNamesOnServer;
+                if (fkNames.length == 0) {
+                    np.foreignKeyProperties = [];
+                    return np.foreignKeyProperties;
+                }
+            }
+            var ok = true;
+            var parentEntityType = np.parentEntityType;
+            var fkProps = fkNames.map(function (fkName) {
+                var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
+                ok = ok && !!fkProp;
+                return fkProp;
+            });
+
+            if (ok) {
+                if (isNameOnServer) {
+                    np.foreignKeyNames = fkProps.map(core.pluck("name"));
+                }
+                np.foreignKeyProperties = fkProps;
+                return fkProps;
+            } else {
+                return null;
+            }
+        }
+
+        function updateCrossEntityRelationship(np) {
+            var metadataStore = np.parentEntityType.metadataStore;
+            var incompleteTypeMap = metadataStore._incompleteTypeMap;
+
+            // ok to not find it yet
+            var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
+            if (targetEntityType) {
+                np.entityType = targetEntityType;
+            }
+
+            var assocMap = incompleteTypeMap[np.entityTypeName];
+            if (!assocMap) {
+                addToIncompleteMap(incompleteTypeMap, np);
+            } else {
+                var inverse = assocMap[np.associationName];
+                if (inverse) {
+                    removeFromIncompleteMap(incompleteTypeMap, np, inverse);
+                } else {
+                    addToIncompleteMap(incompleteTypeMap, np);
+                }
+            }
+        };
+
+        function addToIncompleteMap(incompleteTypeMap, np) {
+            if (!np.entityType) {
+                var assocMap = {};
+                incompleteTypeMap[np.entityTypeName] = assocMap;
+                assocMap[np.associationName] = np;
+            }
+
+            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+            if (!altAssocMap) {
+                altAssocMap = {};
+                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
+            }
+            altAssocMap[np.associationName] = np;
+        }
+
+        function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
+            np.inverse = inverse;
+            var assocMap = incompleteTypeMap[np.entityTypeName];
+
+            delete assocMap[np.associationName];
+            if (core.isEmpty(assocMap)) {
+                delete incompleteTypeMap[np.entityTypeName];
+            }
+            if (!inverse.inverse) {
+                inverse.inverse = np;
+                // not sure if these are needed
+                if (inverse.entityType == null) {
+                    inverse.entityType = np.parentEntityType;
+                }
+                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+                if (altAssocMap) {
+                    delete altAssocMap[np.associationName];
+                    if (core.isEmpty(altAssocMap)) {
+                        delete incompleteTypeMap[np.parentEntityType.name];
+                    }
+                }
+            }
+        }
+        
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
             var trackablePropNames = v_modelLibraryDef.defaultInstance.getTrackablePropertyNames(instance);
@@ -5644,6 +5710,42 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         return ctor;
     })();
+    
+    var ComplexType = (function () {
+        var ctor = function (config) {
+            if (arguments.length > 1) {
+                throw new Error("The ComplexType ctor has a single argument that is a configuration object.");
+            }
+
+            assertConfig(config)
+                .whereParam("shortName").isNonEmptyString()
+                .whereParam("namespace").isString().isOptional().withDefault("")
+                .applyAll(this);
+
+            this.name = qualifyTypeName(this.shortName, this.namespace);
+            this.dataProperties = [];
+        };
+
+        ctor.prototype.addProperty = function (dataProperty) {
+            this.dataProperties.push(dataProperty);
+            dataProperty.parentType = this;
+        };
+
+        ctor.prototype.addValidator = EntityType.prototype.addValidator;
+        ctor.prototype._updatePropertyNames = EntityType.prototype._updatePropertyNames;
+        
+        ctor.prototype._fixup = function () {
+            var that = this;
+            this.dataProperties.forEach(function (property) {
+                that._updatePropertyNames(property);
+            });
+        };
+
+        ctor.prototype._$typeName = "ComplexType";
+
+        return ctor;
+    })();
+
    
     var DataProperty = (function () {
 
@@ -5684,7 +5786,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertConfig(config)
                 .whereParam("name").isString().isOptional()
                 .whereParam("nameOnServer").isString().isOptional()
-                .whereParam("dataType").isEnumOf(DataType).isOptional().withDefault(DataType.String)
+                .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType).withDefault(DataType.String)
+                .whereParam("complexTypeName").isOptional()
                 .whereParam("isNullable").isBoolean().isOptional().withDefault(false)
                 .whereParam("defaultValue").isOptional()
                 .whereParam("isPartOfKey").isBoolean().isOptional()

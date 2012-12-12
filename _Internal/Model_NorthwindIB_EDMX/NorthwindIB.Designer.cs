@@ -30,9 +30,9 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.User), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
-[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Product), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.OrderDetail), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
 
 #endregion
 
@@ -279,22 +279,6 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        public ObjectSet<Customer> Customers
-        {
-            get
-            {
-                if ((_Customers == null))
-                {
-                    _Customers = base.CreateObjectSet<Customer>("Customers");
-                }
-                return _Customers;
-            }
-        }
-        private ObjectSet<Customer> _Customers;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
         public ObjectSet<BonusOrderDetailItem> BonusOrderDetailItems
         {
             get
@@ -307,6 +291,22 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<Customer> Customers
+        {
+            get
+            {
+                if ((_Customers == null))
+                {
+                    _Customers = base.CreateObjectSet<Customer>("Customers");
+                }
+                return _Customers;
+            }
+        }
+        private ObjectSet<Customer> _Customers;
 
         #endregion
 
@@ -409,19 +409,19 @@ namespace Models.NorthwindIB.EDMX
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the Customers EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToCustomers(Customer customer)
-        {
-            base.AddObject("Customers", customer);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the BonusOrderDetailItems EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
         {
             base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the Customers EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToCustomers(Customer customer)
+        {
+            base.AddObject("Customers", customer);
         }
 
         #endregion
