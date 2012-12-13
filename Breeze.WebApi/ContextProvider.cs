@@ -71,11 +71,11 @@ namespace Breeze.WebApi {
     /// </summary>
     /// <param name="entityInfo"></param>
     /// <returns></returns>
-    public virtual bool BeforeSaveEntity(EntityInfo entityInfo) {
+    protected virtual bool BeforeSaveEntity(EntityInfo entityInfo) {
       return true;
     }
 
-    public virtual Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+    protected virtual Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
       return saveMap;
     }
 

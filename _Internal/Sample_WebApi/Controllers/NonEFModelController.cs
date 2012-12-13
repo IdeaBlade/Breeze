@@ -15,11 +15,11 @@ namespace Sample_WebApi.Controllers {
     
     public NonEFModelContext Context = new NonEFModelContext();
 
-    public override bool BeforeSaveEntity(EntityInfo entityInfo) {
+    protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
         return true;
     }
 
-    public override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+    protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
       return saveMap;
     }
     
