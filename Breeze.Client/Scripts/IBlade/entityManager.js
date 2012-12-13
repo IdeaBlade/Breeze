@@ -1664,8 +1664,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
 
-        
-
         // returns a promise
         function executeQueryCore(em, query) {
             try {

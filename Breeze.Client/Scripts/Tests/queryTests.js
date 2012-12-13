@@ -25,6 +25,19 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+
+    test("query with two db fields", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .take(20)
+            .where("employeeId", ">", "orderId");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var count = data.inlineCount;
+
+    });
     
     test("query with two fields", function () {
         var em = newEm();

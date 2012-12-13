@@ -16,7 +16,10 @@ function (core, m_entityAspect) {
         }
         
         var that = this;
+        // need 2 propNames here because of complexTypes;
         var propName = property.name;
+        if (property.parentType)
+        var fullPropName = property.fullName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
