@@ -18,7 +18,7 @@ Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 -------------------------------------------------------
 TRY THE SAMPLE APPLICATION
 
-* Run with debug (F5) of without debug (ctrl-F5)
+* Run with debug (F5) or without debug (ctrl-F5)
 
 * After a pause to build the database, you should see a browser page displaying a list of sample items.
 

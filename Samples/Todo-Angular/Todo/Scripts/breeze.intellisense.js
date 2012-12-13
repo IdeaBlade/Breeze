@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Dec 01 2012 09:49:48 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Dec 11 2012 17:16:39 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -1525,7 +1525,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'where': function() {
     /// <signature>
     ///   <summary>
-    ///   Adds a filter to the query. Can be called multiple times which means to 'and' with any existing Predicate.
+    ///   Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
     ///   </summary>
     ///   <param name="predicate" type="Predicate|property|property path, operator, value" optional="true">Can be either</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1534,7 +1534,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'orderBy': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
+    ///   Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
     ///   </summary>
     ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','. Each property path can optionally end with ' desc' to force a descending sort order.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1543,16 +1543,16 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'orderByDesc': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that orders the results of the query by property name in descending order.
+    ///   Returns a new query that orders the results of the query by property name in descending order.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','.</param>
+    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths separated by ','.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
   'select': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that selects a list of properties from the results of the original query and returns the values of just these properties. This
+    ///   Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This
     ///   will be referred to as a projection. 
     ///   If the result of this selection 'projection' contains entities, these entities will automatically be added to EntityManager's cache and will 
     ///   be made 'observable'.
@@ -1565,7 +1565,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'skip': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that skips the specified number of entities when returning results.
+    ///   Returns a new query that skips the specified number of entities when returning results.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return. If omitted this clears the</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1574,7 +1574,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'top': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that returns only the specified number of entities when returning results. - Same as 'take'.
+    ///   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1583,7 +1583,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'take': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that returns only the specified number of entities when returning results - Same as 'top'
+    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1592,10 +1592,30 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'expand': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
+    ///   Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
     ///   names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
     ///   </summary>
     ///   <param name="propertyPaths" type="String" optional="true">A comma-separated list of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
+    ///   <returns type="breeze.breeze.EntityQuery" ></returns>
+    /// </signature>
+  },
+  'withParameters': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a new query that includes a collection of parameters to pass to the server.
+    ///   </summary>
+    ///   <param name="parameters" type="Object" optional="true">A parameters object where the keys are the parameter names and the values are the parameter values.</param>
+    ///   <returns type="breeze.breeze.EntityQuery" ></returns>
+    /// </signature>
+  },
+  'inlineCount': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+    ///   will be returned with the query results that will contain the number of entities that would have been returned by this
+    ///   query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.
+    ///   </summary>
+    ///   <param name="enabled" type="Boolean=true" optional="true">Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
@@ -1642,6 +1662,9 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   
   /// <field name="takeCount" type="Integer" >The number of entities to 'take' for this query.</field>
   'takeCount': null,
+  
+  /// <field name="parameters" type="Object" >Any additional parameters that were added to the query via the 'withParameters' method. </field>
+  'parameters': null,
   
   /// <field name="queryOptions" type="breeze.breeze.QueryOptions" >The  'QueryOptions' for this query.</field>
   'queryOptions': null,

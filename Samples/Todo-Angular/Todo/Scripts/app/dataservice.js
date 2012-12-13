@@ -1,11 +1,16 @@
 app.dataservice = (function (breeze, logger) {
 
-    var serviceName = 'api/todos'; // route to the Web Api controller
-
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
     
+    var serviceName = 'api/todos'; // route to the same domain Web Api controller
+   
+    // Cross domain service example
+    //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different domain
+    //jQuery.support.cors = true; // enable for cross domain calls
+    
     var manager = new breeze.EntityManager(serviceName);
-
+    var _isSaving = false;
+    
     return {
         getAllTodos: getAllTodos,
         createTodo: createTodo,
@@ -36,13 +41,10 @@ app.dataservice = (function (breeze, logger) {
         return manager.addEntity(newTodo);
     }
 
-    var _isSaving = false;
     function saveChanges(suppressLogIfNothingToSave) {
         if (manager.hasChanges()) {
             if (_isSaving) {
-                setTimeout(function() {
-                   saveChanges();
-                }, 50);
+                setTimeout(saveChanges, 50);
                 return;
             }
             _isSaving = true;

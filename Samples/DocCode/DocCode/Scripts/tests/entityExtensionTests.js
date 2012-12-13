@@ -241,7 +241,39 @@ define(["testFns"], function (testFns) {
             "'fullName' KO computed should return , '{0}'."
                 .format(expected));
     });
+    /*********************************************************
+    * knockout computed property based on collection navigation via constructor
+    *********************************************************/
+    test("add knockout computed property based on collection navigation via constructor", 2,
+        function () {
+        var store = cloneModuleMetadataStore();
 
+        var Employee = function () {
+            this.orderCount = ko.computed(
+                {
+                    read: function () {
+                        return this.Orders().length;
+                    },
+                    // Orders not defined yet
+                    deferEvaluation: true
+                }, this);
+        };
+
+        store.registerEntityTypeCtor("Employee", Employee);
+
+        var employeeType = store.getEntityType("Employee");
+        var emp = employeeType.createEntity();
+
+        equal(emp.orderCount(),0,
+            "should have a zero orderCount");
+
+        var orderType = store.getEntityType("Order");
+        var newOrder = orderType.createEntity();
+        emp.Orders.push(newOrder);
+            
+        equal(emp.orderCount(), 1,
+            "orderCount should be 1 after pushing newOrder");
+        });
    /*********************************************************
    * knockout computed property w/ re-defined mapped dependent properties
    *********************************************************/
@@ -340,6 +372,39 @@ define(["testFns"], function (testFns) {
         ok(propInfo === null, "'foo' should be unknown to the customer type");
 
     });
+    /*********************************************************
+* knockout computed property based on collection navigation via initializer
+*********************************************************/
+    test("add knockout computed property based on collection navigation via initializer", 2,
+        function () {
+            var store = cloneModuleMetadataStore();
+
+            var employeeInitializer = function (employee) {
+                employee.orderCount = ko.computed(
+                    {
+                        read: function () {
+                            return employee.Orders().length;
+                        },
+                        // Orders not defined yet
+                        deferEvaluation: true
+                    });
+            };
+
+            store.registerEntityTypeCtor("Employee", function (){}, employeeInitializer);
+
+            var employeeType = store.getEntityType("Employee");
+            var emp = employeeType.createEntity();
+
+            equal(emp.orderCount(), 0,
+                "should have a zero orderCount");
+
+            var orderType = store.getEntityType("Order");
+            var newOrder = orderType.createEntity();
+            emp.Orders.push(newOrder);
+
+            equal(emp.orderCount(), 1,
+                "orderCount should be 1 after pushing newOrder");
+        });
     /*********************************************************
     * queried entity has new property from post-construction initializer
     *********************************************************/

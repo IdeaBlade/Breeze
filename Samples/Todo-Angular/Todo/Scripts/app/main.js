@@ -1,5 +1,5 @@
 ﻿
-var todoMain = angular.module('todoMain', [])
+app.todoMain = angular.module('todoMain', [])
     .directive('onFocus', function() {
         return {
             restrict: 'A',
@@ -31,14 +31,13 @@ var todoMain = angular.module('todoMain', [])
             });
         };
     });
+ 
 
-   
-
-todoMain.controller('shellVm', function ($scope) {
+app.todoMain.controller('shellVm', function ($scope) {
 
     var removeItem = breeze.core.arrayRemoveItem;
-    var dataservice = app.dataservice;
-    var logger = app.logger;
+    var dataservice = window.app.dataservice;
+    var logger = window.app.logger;
     var suspendItemSave;
 
     $scope.newTodo = "";
@@ -167,28 +166,29 @@ todoMain.controller('shellVm', function ($scope) {
         item.isEditing = false;
 
         // listen for changes with Breeze PropertyChanged event
-        item.entityAspect.propertyChanged.subscribe(function () {
-            if (item.isEditing) return;
-            if (item.propertyChangedPending || suspendItemSave) { return; }
-            // throttle property changed response
-            // allow time for other property changes (if any) to come through
-            
+        item.entityAspect.propertyChanged.subscribe(function() {
+            if (item.isEditing || item.propertyChangedPending || suspendItemSave) {
+                return;
+            }
+            // throttle property changed response to allow time
+            // for other property changes (e.g. "Mark all as complete")
             item.propertyChangedPending = true;
-            setTimeout(function () {
-                if (item.entityAspect.validateEntity()) {
-                    if (item.entityAspect.entityState.isModified()) {
-                        dataservice.saveChanges();
-                    }
-                } else { // errors
-                    handleItemErrors(item);
-                    item.isEditing = true; // go back to editing
-                }
-                item.propertyChangedPending = false;
-            }, 10);
-
+            setTimeout(validateAndSaveItem, 10);
         });
-    }
 
+        function validateAndSaveItem() {
+            if (item.entityAspect.validateEntity()) {
+                if (item.entityAspect.entityState.isModified()) {
+                    dataservice.saveChanges();
+                }
+            } else { // errors
+                handleItemErrors(item);
+                item.isEditing = true; // go back to editing
+            }
+            item.propertyChangedPending = false;
+        }
+    }
+    
     function handleItemErrors(item) {
         if (!item) { return; }
         var errs = item.entityAspect.getValidationErrors();
