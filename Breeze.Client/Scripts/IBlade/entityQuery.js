@@ -1484,13 +1484,21 @@ function (core, m_entityMetadata, m_entityAspect) {
             if (!this._filterQueryOp) {
                 throw new Error("Unknown query operation: " + operator);
             }
-            this._value = value;
+            if (typeof value == 'string' && value.substr(0, 1) === ":") {
+                this._value = FnNode.create(value.substr(1));
+            } else {
+                this._value = value;
+            }
         };
         ctor.prototype = new Predicate({ prototype: true });
 
         ctor.prototype.toOdataFragment = function (entityType) {
             var exprFrag = this._fnNode.toOdataFragment(entityType);
-            var val = formatValue(this._value, this._fnNode);
+            if (this._value instanceof FnNode) {
+                val = this._value.toOdataFragment(entityType);
+            } else {
+                var val = formatValue(this._value, this._fnNode);
+            }
             if (this._filterQueryOp.isFunction) {
                 if (this._filterQueryOp == FilterQueryOp.Contains) {
                     return this._filterQueryOp.operator + "(" + val + "," + exprFrag + ") eq true";
@@ -1504,11 +1512,21 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.toFunction = function (entityType) {            
-            var predFn = getPredicateFn(entityType, this._filterQueryOp, this._value);
-            var exprFn = this._fnNode.fn;
-            return function(entity) {
-                return predFn(makeComparable(exprFn(entity)));
-            };
+            var predFn = getPredicateFn(entityType, this._filterQueryOp);
+            var v1Fn = this._fnNode.fn;
+            
+            if (this._value instanceof FnNode) {
+                var v2Fn = this._value.fn;
+                return function(entity) {
+                    return predFn(v1Fn(entity), v2Fn(entity));
+                };
+            } else {
+                var val = this._value;
+                return function (entity) {
+                    return predFn(v1Fn(entity), val);
+                };
+            }
+            
         };
 
         ctor.prototype.toString = function () {
@@ -1526,60 +1544,111 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         // TODO: still need to handle localQueryComparisonOptions for guids.
         
-        function getPredicateFn(entityType, filterQueryOp, value) {
+        function getPredicateFn(entityType, filterQueryOp) {
             var lqco = entityType.metadataStore.localQueryComparisonOptions;
-            
-            // Date do not compare properly but Date.getTime()'s do.
-            if (value instanceof Date) {
-                value = value.getTime();
-            } 
+            var mc = makeComparable;
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
-                    predFn = function(propValue) {
-                        if (propValue && typeof propValue === 'string') {
-                            return stringEquals(propValue, value, lqco);
+                    predFn = function(v1, v2) {
+                        if (v1 && typeof v1 === 'string') {
+                            return stringEquals(v1, v2, lqco);
                         } else {
-                            return propValue == value;
+                            return mc(v1) == mc(v2);
                         }
                     };
                     break;
                 case FilterQueryOp.NotEquals:
-                    predFn = function (propValue) {
-                        if (propValue && typeof propValue === 'string') {
-                            return !stringEquals(propValue, value, lqco);
+                    predFn = function (v1, v2) {
+                        if (v1 && typeof v1 === 'string') {
+                            return !stringEquals(v1, v2, lqco);
                         } else {
-                            return propValue != value;
+                            return mc(v1) != mc(v2);
                         }
                     };
                     break;
                 case FilterQueryOp.GreaterThan:
-                    predFn = function (propValue) { return propValue > value; };
+                    predFn = function (v1, v2) { return mc(v1) > mc(v2); };
                     break;
                 case FilterQueryOp.GreaterThanOrEqual:
-                    predFn = function (propValue) { return propValue >= value; };
+                    predFn = function (v1, v2) { return mc(v1) >= mc(v2); };
                     break;
                 case FilterQueryOp.LessThan:
-                    predFn = function (propValue) { return propValue < value; };
+                    predFn = function (v1, v2) { return mc(v1) < mc(v2); };
                     break;
                 case FilterQueryOp.LessThanOrEqual:
-                    predFn = function (propValue) { return propValue <= value; };
+                    predFn = function (v1, v2) { return mc(v1) <= mc(v2); };
                     break;
                 case FilterQueryOp.StartsWith:
-                    predFn = function (propValue) { return stringStartsWith(propValue, value, lqco); };
+                    predFn = function (v1, v2) { return stringStartsWith(v1, v2, lqco); };
                     break;
                 case FilterQueryOp.EndsWith:
-                    predFn = function (propValue) { return stringEndsWith(propValue, value, lqco); };
+                    predFn = function (v1, v2) { return stringEndsWith(v1, v2, lqco); };
                     break;
                 case FilterQueryOp.Contains:
-                    predFn = function(propValue) { return stringContains(propValue, value, lqco); };
+                    predFn = function (v1, v2) { return stringContains(v1, v2, lqco); };
                     break;
                 default:
                     throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
-                    
+
             }
             return predFn;
         }
+        
+        //function getPredicateFn(entityType, filterQueryOp, value) {
+        //    var lqco = entityType.metadataStore.localQueryComparisonOptions;
+            
+        //    // Date do not compare properly but Date.getTime()'s do.
+        //    if (value instanceof Date) {
+        //        value = value.getTime();
+        //    } 
+        //    var predFn;
+        //    switch (filterQueryOp) {
+        //        case FilterQueryOp.Equals:
+        //            predFn = function(propValue) {
+        //                if (propValue && typeof propValue === 'string') {
+        //                    return stringEquals(propValue, value, lqco);
+        //                } else {
+        //                    return propValue == value;
+        //                }
+        //            };
+        //            break;
+        //        case FilterQueryOp.NotEquals:
+        //            predFn = function (propValue) {
+        //                if (propValue && typeof propValue === 'string') {
+        //                    return !stringEquals(propValue, value, lqco);
+        //                } else {
+        //                    return propValue != value;
+        //                }
+        //            };
+        //            break;
+        //        case FilterQueryOp.GreaterThan:
+        //            predFn = function (propValue) { return propValue > value; };
+        //            break;
+        //        case FilterQueryOp.GreaterThanOrEqual:
+        //            predFn = function (propValue) { return propValue >= value; };
+        //            break;
+        //        case FilterQueryOp.LessThan:
+        //            predFn = function (propValue) { return propValue < value; };
+        //            break;
+        //        case FilterQueryOp.LessThanOrEqual:
+        //            predFn = function (propValue) { return propValue <= value; };
+        //            break;
+        //        case FilterQueryOp.StartsWith:
+        //            predFn = function (propValue) { return stringStartsWith(propValue, value, lqco); };
+        //            break;
+        //        case FilterQueryOp.EndsWith:
+        //            predFn = function (propValue) { return stringEndsWith(propValue, value, lqco); };
+        //            break;
+        //        case FilterQueryOp.Contains:
+        //            predFn = function(propValue) { return stringContains(propValue, value, lqco); };
+        //            break;
+        //        default:
+        //            throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
+                    
+        //    }
+        //    return predFn;
+        //}
         
         function stringEquals(a, b, lqco) {
             if (b == null) return false;

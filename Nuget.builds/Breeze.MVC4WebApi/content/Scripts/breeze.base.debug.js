@@ -5698,14 +5698,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!hasName) {
                 throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
-            if (this.defaultValue === undefined) {
-                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-            } else if (this.defaultValue === null && !this.isNullable) {
-                throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
+            
+            // == as opposed to === is deliberate here.
+            if (this.defaultValue == null) {
+                if (this.isNullable) {
+                    this.defaultValue = null;
+                } else {
+                    if (this.dataType === DataType.Binary) {
+                        this.defaultValue = "AAAAAAAAJ3U="; // hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
+                    } else {
+                        this.defaultValue = this.dataType.defaultValue;
+                        if (this.defaultValue == null) {
+                            throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
+                        }
+                    }
+                }
             }
         };
-        
-
         
         ctor.prototype._$typeName = "DataProperty";
 
@@ -10493,6 +10502,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         // val = new Date(val);
                         val = core.dateFromIsoString(val);
                     }
+                } else if (dp.dataType == DataType.Binary) {
+                    if (val && val.$value !== undefined) {
+                        val = val.$value; // this will be a byte[] encoded as a string
+                    }
                 }
                 targetEntity.setProperty(dp.name, val);
             });
@@ -10620,7 +10633,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 entity.setProperty(property.name, dt2);
             } else if (property.dataType === DataType.Guid) {
                 entity.setProperty(property.name, core.getUuid());
-            } else if (property.datatype === DataType.Binary) {
+            } else if (property.dataType === DataType.Binary) {
                 // best guess - that this is a timestamp column and is computed on the server during save 
                 // - so no need to set it here.
                 return;
@@ -11251,7 +11264,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.76.3",
+        version: "0.76.4",
         core: core,
         config: a_config
     };

@@ -26,6 +26,23 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("query with two fields", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("requiredDate", "<", ":shippedDate")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            r.forEach(function(r) {
+                var reqDt = r.getProperty("requiredDate");
+                var shipDt = r.getProperty("shippedDate");
+                ok(reqDt.getTime() < shipDt.getTime(), "required dates should be before shipped dates");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("query with parameters", function () {
         var em = newEm();
         var q = EntityQuery.from("Customers")

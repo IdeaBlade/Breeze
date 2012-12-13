@@ -26,6 +26,19 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("local query with two fields", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("requiredDate", "<", ":shippedDate")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("local query with select", function () {
         var em = newEm();
         var query = EntityQuery.from("Customers")
