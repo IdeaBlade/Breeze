@@ -23,11 +23,35 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    test("timestamp", function() {
+        var em = newEm();
+        var query = new EntityQuery("Roles").take(10);
+        stop();
+        var role;
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            var roleType = em.metadataStore.getEntityType("Role");
+            role = roleType.createEntity();
+            role.setProperty("name", "test1");
+            role.setProperty("description", "descr 1");
+            em.addEntity(role);
+            
+            return em.saveChanges();
+        }).then(function(sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            var ts = role.getProperty("ts");
+            ok(ts, "ts should not be empty now");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
     test("nullable int", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
-            .where("rowVersion", "==", 1);
+            .where("rowVersion", "==", 1)
+            .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
@@ -37,7 +61,8 @@ define(["testFns"], function (testFns) {
     test("nullable int == null", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")
-            .where("rowVersion", "==", null);
+            .where("rowVersion", "==", null)
+            .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
@@ -58,7 +83,8 @@ define(["testFns"], function (testFns) {
     test("nullable date == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
-            .where("orderDate", "==", null);
+            .where("orderDate", "==", null)
+            .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0);
@@ -69,7 +95,8 @@ define(["testFns"], function (testFns) {
     test("bool", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
-            .where("isDiscontinued", "==", true );
+            .where("isDiscontinued", "==", true)
+            .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             var products = data.results;
@@ -83,7 +110,8 @@ define(["testFns"], function (testFns) {
     test("nonnullable bool == null", function () {
         var em = newEm();
         var query = new EntityQuery("Products")
-            .where("discontinued", "==", null );
+            .where("discontinued", "==", null)
+            .take(30);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(false);
@@ -109,7 +137,8 @@ define(["testFns"], function (testFns) {
     test("nullable guid == null", function () {
         var em = newEm();
         var query = new EntityQuery("Orders")
-            .where("customerID", "==", null);
+            .where("customerID", "==", null)
+            .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             ok(data.results.length > 0, "should have Alfreds Orders.");

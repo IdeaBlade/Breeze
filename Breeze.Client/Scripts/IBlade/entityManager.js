@@ -1863,6 +1863,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         // val = new Date(val);
                         val = core.dateFromIsoString(val);
                     }
+                } else if (dp.dataType == DataType.Binary) {
+                    if (val && val.$value !== undefined) {
+                        val = val.$value; // this will be a byte[] encoded as a string
+                    }
                 }
                 targetEntity.setProperty(dp.name, val);
             });
@@ -1990,7 +1994,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 entity.setProperty(property.name, dt2);
             } else if (property.dataType === DataType.Guid) {
                 entity.setProperty(property.name, core.getUuid());
-            } else if (property.datatype === DataType.Binary) {
+            } else if (property.dataType === DataType.Binary) {
                 // best guess - that this is a timestamp column and is computed on the server during save 
                 // - so no need to set it here.
                 return;

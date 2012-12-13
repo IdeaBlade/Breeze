@@ -22,6 +22,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public long Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public byte[] Ts { get; set; }
     
         public virtual ICollection<UserRole> UserRoles { get; set; }
     }

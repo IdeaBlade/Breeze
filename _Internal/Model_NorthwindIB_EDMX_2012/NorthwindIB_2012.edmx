@@ -29,6 +29,14 @@
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_BonusProduct">
+            <End Role="Product" EntitySet="Product" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
+          </AssociationSet>
+          <AssociationSet Name="FK_BonusOrderDetailItem_OrderDetail" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_OrderDetail">
+            <End Role="OrderDetail" EntitySet="OrderDetail" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
+          </AssociationSet>
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
             <End Role="Employee" EntitySet="Employee" />
             <End Role="Employee1" EntitySet="Employee" />
@@ -275,6 +283,7 @@
           <Property Name="Id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="Description" Type="nvarchar" MaxLength="2000" />
+          <Property Name="Ts" Type="timestamp" Nullable="false" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="Supplier">
           <Key>
@@ -329,6 +338,32 @@
           <Property Name="UserId" Type="bigint" Nullable="false" />
           <Property Name="RoleId" Type="bigint" Nullable="false" />
         </EntityType>
+        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
+          <End Role="Product" Type="NorthwindIBModel.Store.Product" Multiplicity="1" />
+          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="BonusProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_BonusOrderDetailItem_OrderDetail">
+          <End Role="OrderDetail" Type="NorthwindIBModel.Store.OrderDetail" Multiplicity="1" />
+          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderDetail">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Employee_Employee">
           <End Role="Employee" Type="NorthwindIBModel.Store.Employee" Multiplicity="0..1" />
           <End Role="Employee1" Type="NorthwindIBModel.Store.Employee" Multiplicity="*" />
@@ -525,7 +560,6 @@
           <EntitySet Name="PreviousEmployees" EntityType="NorthwindIBModel.PreviousEmployee" />
           <EntitySet Name="Products" EntityType="NorthwindIBModel.Product" />
           <EntitySet Name="Regions" EntityType="NorthwindIBModel.Region" />
-          <EntitySet Name="Roles" EntityType="NorthwindIBModel.Role" />
           <EntitySet Name="Suppliers" EntityType="NorthwindIBModel.Supplier" />
           <EntitySet Name="Territories" EntityType="NorthwindIBModel.Territory" />
           <EntitySet Name="Users" EntityType="NorthwindIBModel.User" />
@@ -574,10 +608,6 @@
             <End Role="Region" EntitySet="Regions" />
             <End Role="Territory" EntitySet="Territories" />
           </AssociationSet>
-          <AssociationSet Name="FK_UserRole_Role" Association="NorthwindIBModel.FK_UserRole_Role">
-            <End Role="Role" EntitySet="Roles" />
-            <End Role="UserRole" EntitySet="UserRoles" />
-          </AssociationSet>
           <AssociationSet Name="FK_UserRole_User" Association="NorthwindIBModel.FK_UserRole_User">
             <End Role="User" EntitySet="Users" />
             <End Role="UserRole" EntitySet="UserRoles" />
@@ -594,6 +624,15 @@
           <AssociationSet Name="ProductBonusOrderDetailItem" Association="NorthwindIBModel.ProductBonusOrderDetailItem">
             <End Role="Product" EntitySet="Products" />
             <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
+          </AssociationSet>
+          <EntitySet Name="Roles" EntityType="NorthwindIBModel.Role" />
+          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserRole_Role" Association="NorthwindIBModel.FK_UserRole_Role">
+            <End Role="Role" EntitySet="Roles" />
+            <End Role="UserRole" EntitySet="UserRoles" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="Category">
@@ -763,6 +802,7 @@
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Category" Relationship="NorthwindIBModel.FK_Product_Category" FromRole="Product" ToRole="Category" />
           <NavigationProperty Name="Supplier" Relationship="NorthwindIBModel.FK_Product_Supplier" FromRole="Product" ToRole="Supplier" />
+          <NavigationProperty Name="BonusOrderDetailItems" Relationship="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" FromRole="Product" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="Region">
           <Key>
@@ -772,15 +812,6 @@
           <Property Name="RegionDescription" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Territories" Relationship="NorthwindIBModel.FK_Territory_Region" FromRole="Region" ToRole="Territory" />
-        </EntityType>
-        <EntityType Name="Role">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
-          <Property Name="Description" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
-          <NavigationProperty Name="UserRoles" Relationship="NorthwindIBModel.FK_UserRole_Role" FromRole="Role" ToRole="UserRole" />
         </EntityType>
         <EntityType Name="Supplier">
           <Key>
@@ -839,8 +870,8 @@
           <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="UserId" Type="Int64" Nullable="false" />
           <Property Name="RoleId" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="Role" Relationship="NorthwindIBModel.FK_UserRole_Role" FromRole="UserRole" ToRole="Role" />
           <NavigationProperty Name="User" Relationship="NorthwindIBModel.FK_UserRole_User" FromRole="UserRole" ToRole="User" />
+          <NavigationProperty Name="Role" Relationship="NorthwindIBModel.FK_UserRole_Role" FromRole="UserRole" ToRole="Role" />
         </EntityType>
         <Association Name="FK_Product_Category">
           <End Role="Category" Type="NorthwindIBModel.Category" Multiplicity="0..1" />
@@ -974,18 +1005,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_UserRole_Role">
-          <End Role="Role" Type="NorthwindIBModel.Role" Multiplicity="1" />
-          <End Role="UserRole" Type="NorthwindIBModel.UserRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Role">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="UserRole">
-              <PropertyRef Name="RoleId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_UserRole_User">
           <End Role="User" Type="NorthwindIBModel.User" Multiplicity="1" />
           <End Role="UserRole" Type="NorthwindIBModel.UserRole" Multiplicity="*" />
@@ -1013,6 +1032,7 @@
           <Property Type="String" Name="Comment" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="OrderDetail" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
           <NavigationProperty Name="BonusProduct" Relationship="NorthwindIBModel.ProductBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="Product" />
+          <NavigationProperty Name="Product" Relationship="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" FromRole="BonusOrderDetailItem" ToRole="Product" />
         </EntityType>
         <Association Name="OrderDetailBonusOrderDetailItem">
           <End Type="NorthwindIBModel.OrderDetail" Role="OrderDetail" Multiplicity="1" />
@@ -1037,6 +1057,40 @@
             </Principal>
             <Dependent Role="BonusOrderDetailItem">
               <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Role">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int64" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="Name" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Description" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Type="Binary" Name="Ts" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" ConcurrencyMode="Fixed" />
+          <NavigationProperty Name="UserRoles" Relationship="NorthwindIBModel.FK_UserRole_Role" FromRole="Role" ToRole="UserRole" />
+        </EntityType>
+        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
+          <End Type="NorthwindIBModel.Product" Role="Product" Multiplicity="1" />
+          <End Type="NorthwindIBModel.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="BonusProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserRole_Role">
+          <End Type="NorthwindIBModel.Role" Role="Role" Multiplicity="1" />
+          <End Type="NorthwindIBModel.UserRole" Role="UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Role">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserRole">
+              <PropertyRef Name="RoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1212,15 +1266,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Roles">
-            <EntityTypeMapping TypeName="NorthwindIBModel.Role">
-              <MappingFragment StoreEntitySet="Role">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Suppliers">
             <EntityTypeMapping TypeName="NorthwindIBModel.Supplier">
               <MappingFragment StoreEntitySet="Supplier">
@@ -1306,6 +1351,16 @@
               <ScalarProperty Name="OrderID" ColumnName="OrderID" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="Roles">
+            <EntityTypeMapping TypeName="NorthwindIBModel.Role">
+              <MappingFragment StoreEntitySet="Role">
+                <ScalarProperty Name="Ts" ColumnName="Ts" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

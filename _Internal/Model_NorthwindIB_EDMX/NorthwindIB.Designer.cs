@@ -28,11 +28,11 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Territory_Region", "Region", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Region), "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Territory), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Category", "Category", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Category), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
-[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.User), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Product), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.OrderDetail), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 
 #endregion
 
@@ -231,22 +231,6 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        public ObjectSet<Role> Roles
-        {
-            get
-            {
-                if ((_Roles == null))
-                {
-                    _Roles = base.CreateObjectSet<Role>("Roles");
-                }
-                return _Roles;
-            }
-        }
-        private ObjectSet<Role> _Roles;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
         public ObjectSet<User> Users
         {
             get
@@ -307,6 +291,22 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<Role> Roles
+        {
+            get
+            {
+                if ((_Roles == null))
+                {
+                    _Roles = base.CreateObjectSet<Role>("Roles");
+                }
+                return _Roles;
+            }
+        }
+        private ObjectSet<Role> _Roles;
 
         #endregion
 
@@ -385,14 +385,6 @@ namespace Models.NorthwindIB.EDMX
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the Roles EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToRoles(Role role)
-        {
-            base.AddObject("Roles", role);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the Users EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToUsers(User user)
@@ -422,6 +414,14 @@ namespace Models.NorthwindIB.EDMX
         public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
         {
             base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the Roles EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToRoles(Role role)
+        {
+            base.AddObject("Roles", role);
         }
 
         #endregion
@@ -3389,11 +3389,13 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         /// <param name="id">Initial value of the Id property.</param>
         /// <param name="name">Initial value of the Name property.</param>
-        public static Role CreateRole(global::System.Int64 id, global::System.String name)
+        /// <param name="ts">Initial value of the Ts property.</param>
+        public static Role CreateRole(global::System.Int64 id, global::System.String name, global::System.Byte[] ts)
         {
             Role role = new Role();
             role.Id = id;
             role.Name = name;
+            role.Ts = ts;
             return role;
         }
 
@@ -3475,6 +3477,30 @@ namespace Models.NorthwindIB.EDMX
         private global::System.String _Description;
         partial void OnDescriptionChanging(global::System.String value);
         partial void OnDescriptionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Byte[] Ts
+        {
+            get
+            {
+                return StructuralObject.GetValidValue(_Ts);
+            }
+            set
+            {
+                OnTsChanging(value);
+                ReportPropertyChanging("Ts");
+                _Ts = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Ts");
+                OnTsChanged();
+            }
+        }
+        private global::System.Byte[] _Ts;
+        partial void OnTsChanging(global::System.Byte[] value);
+        partial void OnTsChanged();
 
         #endregion
 
@@ -4589,44 +4615,6 @@ namespace Models.NorthwindIB.EDMX
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role")]
-        public Role Role
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<Role> RoleReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
         [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User")]
         public User User
         {
@@ -4655,6 +4643,44 @@ namespace Models.NorthwindIB.EDMX
                 if ((value != null))
                 {
                     ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<User>("Models.NorthwindIB.EDMX.FK_UserRole_User", "User", value);
+                }
+            }
+        }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role")]
+        public Role Role
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<Role> RoleReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Role>("Models.NorthwindIB.EDMX.FK_UserRole_Role", "Role", value);
                 }
             }
         }

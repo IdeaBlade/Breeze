@@ -35,16 +35,16 @@ namespace Sample_WebApi.Controllers {
 #endif
 
 
-    public override bool BeforeSaveEntity(EntityInfo entityInfo) {
-      // prohibit any additions of entities of type 'Role'
-      if (entityInfo.Entity.GetType() == typeof(Role) && entityInfo.EntityState == EntityState.Added) {
+    protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
+      // prohibit any additions of entities of type 'UserRole'
+      if (entityInfo.Entity.GetType() == typeof(User) && entityInfo.EntityState == EntityState.Added) {
         return false;
       } else {
         return true;
       }
     }
 
-    public override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+    protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
       return saveMap;
     }
       
@@ -132,6 +132,11 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public IQueryable<Category> Categories() {
       return ContextProvider.Context.Categories;
+    }
+
+    [HttpGet]
+    public IQueryable<Role> Roles() {
+      return ContextProvider.Context.Roles;
     }
     #endregion
 

@@ -1760,6 +1760,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             if (this.defaultValue === undefined) {
                 this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
+                if (this.defaultValue === null && this.dataType === DataType.Binary && this.maxLength === 8) {
+                    this.defaultValue = "AAAAAAAAJ3U="; // hack for timestamp fields - arbitrary valid 8 byte base64 value.
+                }
             } else if (this.defaultValue === null && !this.isNullable) {
                 throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
             }

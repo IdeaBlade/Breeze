@@ -16,7 +16,6 @@
         <EntityTypeShape EntityType="NorthwindIBModel.PreviousEmployee" Width="1.5" PointX="0.75" PointY="10.75" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Product" Width="1.5" PointX="6" PointY="15.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Region" Width="1.5" PointX="0.75" PointY="1.125" IsExpanded="true" />
-        <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="8.75" PointY="10" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Supplier" Width="1.5" PointX="3.75" PointY="16.625" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Territory" Width="1.5" PointX="3" PointY="2.875" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.User" Width="1.5" PointX="8.75" PointY="13" IsExpanded="true" />
@@ -32,12 +31,14 @@
         <AssociationConnector Association="NorthwindIBModel.FK_OrderDetail_Product" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_Product_Supplier" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_Territory_Region" ManuallyRouted="false" />
-        <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_User" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.EmployeeTerritoryNoPayload" ManuallyRouted="false" />
         <EntityTypeShape EntityType="NorthwindIBModel.BonusOrderDetailItem" Width="2.5" PointX="10.875" PointY="6.875" />
         <AssociationConnector Association="NorthwindIBModel.OrderDetailBonusOrderDetailItem" />
         <AssociationConnector Association="NorthwindIBModel.ProductBonusOrderDetailItem" />
+        <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="10.875" PointY="12.125" />
+        <AssociationConnector Association="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" />
+        <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

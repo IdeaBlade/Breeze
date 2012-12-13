@@ -1323,6 +1323,15 @@ namespace Models.NorthwindIB.CF {
       get;
       set;
     }
+
+    [DataMember]
+    [Column("Ts")]
+    [Required]
+    public byte[] Ts {
+      get;
+      set;
+    }
+
     #endregion Data Properties
 
     #region Navigation properties
