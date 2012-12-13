@@ -1758,17 +1758,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!hasName) {
                 throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
-            if (this.defaultValue === undefined) {
-                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-                if (this.defaultValue === null && this.dataType === DataType.Binary && this.maxLength === 8) {
-                    this.defaultValue = "AAAAAAAAJ3U="; // hack for timestamp fields - arbitrary valid 8 byte base64 value.
+            
+            // == as opposed to === is deliberate here.
+            if (this.defaultValue == null) {
+                if (this.isNullable) {
+                    this.defaultValue = null;
+                } else {
+                    if (this.dataType === DataType.Binary) {
+                        this.defaultValue = "AAAAAAAAJ3U="; // hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
+                    } else {
+                        this.defaultValue = this.dataType.defaultValue;
+                        if (this.defaultValue == null) {
+                            throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
+                        }
+                    }
                 }
-            } else if (this.defaultValue === null && !this.isNullable) {
-                throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
             }
         };
-        
-
         
         ctor.prototype._$typeName = "DataProperty";
 

@@ -1327,6 +1327,7 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [Column("Ts")]
     [Required]
+    [Timestamp]
     public byte[] Ts {
       get;
       set;
