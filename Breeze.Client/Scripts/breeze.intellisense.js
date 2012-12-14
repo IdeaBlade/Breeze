@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Dec 13 2012 19:05:01 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Dec 13 2012 19:41:23 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -200,7 +200,8 @@ intellisense.annotate(breeze.breeze, {
     ///   </summary>
     ///   <param name="property" type="String" optional="true">A property name, a nested property name or an expression involving a property name.</param>
     ///   <param name="operator" type="FilterQueryOp|String" optional="true"></param>
-    ///   <param name="value" type="Object" optional="true"></param>
+    ///   <param name="value" type="Object" optional="true">- This will be treated as either a property expression or a literal depending on context.  In general,           if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.           In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</param>
+    ///   <param name="valueIsLiteral" type="Boolean" optional="true">- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</param>
     /// </signature>
   },
 
@@ -1826,7 +1827,7 @@ intellisense.annotate(breeze.breeze.Predicate, {
     ///   </summary>
     ///   <param name="property" type="String" optional="true">A property name, a nested property name or an expression involving a property name.</param>
     ///   <param name="operator" type="FilterQueryOp|String" optional="true"></param>
-    ///   <param name="value" type="Object" optional="true"></param>
+    ///   <param name="value" type="Object" optional="true">- This will be treated as either a property expression or a literal depending on context.  In general,           if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.           In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</param>
     ///   <param name="valueIsLiteral" type="Boolean" optional="true">- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</param>
     
     /// </signature>

@@ -6393,9 +6393,12 @@ function (core, m_entityMetadata, m_entityAspect) {
 
             - a property name, a property path with '.' as path seperators or a property expression {String}
             - an operator {FilterQueryOp|String} Either a  {{#crossLink "FilterQueryOp"}}{{/crossLink}} or it's string representation. Case is ignored
-            when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
-            - a value    
+                 when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
+            - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
             - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+
    
         @return {EntityQuery}
         @chainable
@@ -7421,14 +7424,17 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method <ctor> Predicate
         @param property {String} A property name, a nested property name or an expression involving a property name.
         @param operator {FilterQueryOp|String}
-        @param value {Object}
+        @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
+        @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
         **/
-        var ctor = function (propertyOrExpr, operator, value) {
+        var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             if (arguments[0].prototype === true) {
                 // used to construct prototype
                 return this;
             }
-            return new SimplePredicate(propertyOrExpr, operator, value);
+            return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
         };
 
         /**  
@@ -7461,7 +7467,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         @static
         @param property {String} A property name, a nested property name or an expression involving a property name.
         @param operator {FilterQueryOp|String}
-        @param value {Object}
+        @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
         @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
         **/
         ctor.create = function (property, operator, value, valueIsLiteral) {

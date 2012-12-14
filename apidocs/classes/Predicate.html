@@ -179,7 +179,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1253"><code>entityQuery.js:1253</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1256"><code>entityQuery.js:1256</code></a>
         </div>
     
 
@@ -358,6 +358,12 @@ method that would modify a Predicate actually returns a new Predicate.</p>
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code class="optional">[valueIsLiteral]</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -387,7 +393,7 @@ method that would modify a Predicate actually returns a new Predicate.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1259"><code>entityQuery.js:1259</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1262"><code>entityQuery.js:1262</code></a>
         
         </p>
 
@@ -446,7 +452,29 @@ method that would modify a Predicate actually returns a new Predicate.</p>
                     
 
                     <div class="param-description">
-                         
+                        <ul>
+<li>This will be treated as either a property expression or a literal depending on context.  In general, 
+     if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+     In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[valueIsLiteral]</code>
+                        <span class="type">Boolean</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</li>
+</ul>
                     </div>
 
                     
@@ -518,7 +546,7 @@ var query = new EntityQuery("Customers").where(p2);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1392"><code>entityQuery.js:1392</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1400"><code>entityQuery.js:1400</code></a>
         
         </p>
 
@@ -630,7 +658,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1323"><code>entityQuery.js:1323</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1331"><code>entityQuery.js:1331</code></a>
         
         </p>
 
@@ -756,7 +784,7 @@ var newPred = Predicate.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1296"><code>entityQuery.js:1296</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1302"><code>entityQuery.js:1302</code></a>
         
         </p>
 
@@ -815,7 +843,11 @@ var newPred = Predicate.and(preds);
                     
 
                     <div class="param-description">
-                         
+                        <ul>
+<li>This will be treated as either a property expression or a literal depending on context.  In general, 
+     if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+     In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
+</ul>
                     </div>
 
                     
@@ -909,7 +941,7 @@ var p1 = Predicate.create(predArgs);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1281"><code>entityQuery.js:1281</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1287"><code>entityQuery.js:1287</code></a>
         
         </p>
 
@@ -1010,7 +1042,7 @@ if (Predicate.isPredicate(p1)) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1373"><code>entityQuery.js:1373</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1381"><code>entityQuery.js:1381</code></a>
         
         </p>
 
@@ -1103,7 +1135,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1442"><code>entityQuery.js:1442</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1450"><code>entityQuery.js:1450</code></a>
         
         </p>
 
@@ -1186,7 +1218,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1348"><code>entityQuery.js:1348</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1356"><code>entityQuery.js:1356</code></a>
         
         </p>
 
@@ -1292,7 +1324,7 @@ var newPred = Predicate.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1417"><code>entityQuery.js:1417</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1425"><code>entityQuery.js:1425</code></a>
         
         </p>
 
@@ -1396,7 +1428,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1462"><code>entityQuery.js:1462</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1470"><code>entityQuery.js:1470</code></a>
         
         </p>
 
@@ -1466,7 +1498,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1468"><code>entityQuery.js:1468</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1476"><code>entityQuery.js:1476</code></a>
         
         </p>
 
@@ -1542,7 +1574,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1474"><code>entityQuery.js:1474</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l1482"><code>entityQuery.js:1482</code></a>
         
         </p>
 

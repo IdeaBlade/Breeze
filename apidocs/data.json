@@ -507,7 +507,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1128,
+            "line": 1131,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -522,7 +522,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityQuery.js",
-            "line": 1253,
+            "line": 1256,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
         },
         "Enum": {
@@ -4649,7 +4649,7 @@
             "params": [
                 {
                     "name": "predicate",
-                    "description": "Can be either\n\n- a single {{#crossLink \"Predicate\"}}{{/crossLink}}\n\n- or the parameters to create a 'simple' Predicate\n\n    - a property name, a property path with '.' as path seperators or a property expression {String}\n    - an operator {FilterQueryOp|String} Either a  {{#crossLink \"FilterQueryOp\"}}{{/crossLink}} or it's string representation. Case is ignored\n    when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.\n    - a value    \n    - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.",
+                    "description": "Can be either\n\n- a single {{#crossLink \"Predicate\"}}{{/crossLink}}\n\n- or the parameters to create a 'simple' Predicate\n\n    - a property name, a property path with '.' as path seperators or a property expression {String}\n    - an operator {FilterQueryOp|String} Either a  {{#crossLink \"FilterQueryOp\"}}{{/crossLink}} or it's string representation. Case is ignored\n         when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.\n    - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, \n         if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. \n         In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.\n    - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.",
                     "type": "Predicate|property|property path, operator, value"
                 }
             ],
@@ -4663,7 +4663,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 271,
+            "line": 274,
             "description": "Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.",
             "example": [
                 "\n     var query = new EntityQuery(\"Customers\")\n         .orderBy(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -4691,7 +4691,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 307,
+            "line": 310,
             "description": "Returns a new query that orders the results of the query by property name in descending order.",
             "example": [
                 "\n     var query = new EntityQuery(\"Customers\")\n         .orderByDesc(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -4717,7 +4717,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 333,
+            "line": 336,
             "description": "Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This\nwill be referred to as a projection. \nIf the result of this selection \"projection\" contains entities, these entities will automatically be added to EntityManager's cache and will \nbe made 'observable'.\nAny simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.",
             "example": [
                 "\nSimple data properties can be projected",
@@ -4745,7 +4745,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 373,
+            "line": 376,
             "description": "Returns a new query that skips the specified number of entities when returning results.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n       .where(\"CompanyName\", \"startsWith\", \"C\")\n       .skip(5);"
@@ -4769,7 +4769,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 395,
+            "line": 398,
             "description": "Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .top(5);"
@@ -4793,7 +4793,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 409,
+            "line": 412,
             "description": "Returns a new query that returns only the specified number of entities when returning results - Same as 'top'",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .take(5);"
@@ -4817,7 +4817,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 430,
+            "line": 433,
             "description": "Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property\nnames such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\")\n        .expand(\"Orders\");\nwill return the filtered customers each with its \"Orders\" properties fully resolved.\nMultiple paths may be specified by separating the paths by a ','",
@@ -4843,7 +4843,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 457,
+            "line": 460,
             "description": "Returns a new query that includes a collection of parameters to pass to the server.",
             "example": [
                 "\n    var query = EntityQuery.from(\"EmployeesFilteredByCountryAndBirthdate\")\n        .withParameters({ BirthDate: \"1/1/1960\", Country: \"USA\" });\nwill call the 'EmployeesFilteredByCountryAndBirthdata' method on the server and pass in 2 parameters. This\nquery will be uri encoded as \n\n    {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA\n\nParameters may also be mixed in with other query criteria.",
@@ -4868,7 +4868,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 484,
+            "line": 487,
             "description": "Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property\nwill be returned with the query results that will contain the number of entities that would have been returned by this\nquery with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .take(20)\n        .orderBy(\"CompanyName\")\n        .inlineCount(true);\nwill return the first 20 customers as well as a count of all of the customers in the remote store."
@@ -4892,7 +4892,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 509,
+            "line": 512,
             "description": "Returns a copy of this EntityQuery with the specified {{#crossLink \"EntityManager\"}}{{/crossLink}}, {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n'using' can be used to return a new query with a specified EntityManager.",
@@ -4920,7 +4920,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 536,
+            "line": 539,
             "description": "Executes this query.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -5003,7 +5003,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 597,
+            "line": 600,
             "description": "Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\n    // assume em is an entityManager already filled with order entities;\n    var query = new EntityQuery(\"Orders\").using(em);\n    var orders = query.executeLocally();\n\nNote that calling this method is the same as calling {{#crossLink \"EntityManager/executeQueryLocally\"}}{{/crossLink}}."
@@ -5015,7 +5015,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 609,
+            "line": 612,
             "description": "Static method tht creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful\nto force a requery of selected entities, or to restrict an existing collection of entities according to some filter.",
             "example": [
                 "\n    // assuming 'customers' is an array of 'Customer' entities retrieved earlier.\n    var customersQuery = EntityQuery.fromEntities(customers);\nThe resulting query can, of course, be extended",
@@ -5042,7 +5042,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 650,
+            "line": 653,
             "description": "Creates an EntityQuery for the specified {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    var empType = metadataStore.getEntityType(\"Employee\");\n    var entityKey = new EntityKey(empType, 1);\n    var query = EntityQuery.fromEntityKey(entityKey);\nor",
@@ -5068,7 +5068,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 675,
+            "line": 678,
             "description": "Creates an EntityQuery for the specified entity and {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n    // 'employee' is a previously queried employee\n    var ordersNavProp = employee.entityType.getProperty(\"Orders\");\n    var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);\nwill return a query for the \"Orders\" of the specified 'employee'."
@@ -5098,7 +5098,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1136,
+            "line": 1139,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
@@ -5110,7 +5110,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1143,
+            "line": 1146,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
@@ -5122,7 +5122,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1150,
+            "line": 1153,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
@@ -5134,7 +5134,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1157,
+            "line": 1160,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
@@ -5146,7 +5146,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1164,
+            "line": 1167,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
@@ -5158,7 +5158,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1171,
+            "line": 1174,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
@@ -5170,7 +5170,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1178,
+            "line": 1181,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
@@ -5182,7 +5182,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1186,
+            "line": 1189,
             "itemtype": "property",
             "name": "StartsWith",
             "type": "FilterQueryOp",
@@ -5193,7 +5193,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1192,
+            "line": 1195,
             "itemtype": "property",
             "name": "EndsWith",
             "type": "FilterQueryOp",
@@ -5204,7 +5204,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1259,
+            "line": 1262,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -5225,8 +5225,14 @@
                 },
                 {
                     "name": "value",
-                    "description": "",
+                    "description": "- This will be treated as either a property expression or a literal depending on context.  In general, \n         if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. \n         In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.",
                     "type": "Object"
+                },
+                {
+                    "name": "valueIsLiteral",
+                    "description": "- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.",
+                    "type": "Boolean",
+                    "optional": true
                 }
             ],
             "class": "Predicate",
@@ -5234,7 +5240,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1281,
+            "line": 1287,
             "description": "Returns whether an object is a Predicate",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    if (Predicate.isPredicate(p1)) {\n        // do something\n    }"
@@ -5254,7 +5260,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1296,
+            "line": 1302,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -5277,7 +5283,7 @@
                 },
                 {
                     "name": "value",
-                    "description": "",
+                    "description": "- This will be treated as either a property expression or a literal depending on context.  In general, \n         if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. \n         In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.",
                     "type": "Object"
                 },
                 {
@@ -5292,7 +5298,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1323,
+            "line": 1331,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -5314,7 +5320,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1348,
+            "line": 1356,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -5336,7 +5342,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1373,
+            "line": 1381,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -5358,7 +5364,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1392,
+            "line": 1400,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -5380,7 +5386,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1417,
+            "line": 1425,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -5402,7 +5408,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1442,
+            "line": 1450,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -5416,7 +5422,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1462,
+            "line": 1470,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -5429,7 +5435,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1468,
+            "line": 1476,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -5442,7 +5448,7 @@
         },
         {
             "file": "entityQuery.js",
-            "line": 1474,
+            "line": 1482,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",
