@@ -42,7 +42,7 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
+			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
 		<li>
 			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
 		
@@ -1935,14 +1935,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!hasName) {
                 throw new Error(&quot;A DataProperty must be instantiated with either a &#x27;name&#x27; or a &#x27;nameOnServer&#x27; property&quot;);
             }
-            if (this.defaultValue === undefined) {
-                this.defaultValue = this.isNullable ? null : this.dataType.defaultValue;
-            } else if (this.defaultValue === null &amp;&amp; !this.isNullable) {
-                throw new Error(&quot;A nonnullable DataProperty cannot have a null defaultValue. Name: &quot; + this.name);
+            
+            &#x2F;&#x2F; == as opposed to === is deliberate here.
+            if (this.defaultValue == null) {
+                if (this.isNullable) {
+                    this.defaultValue = null;
+                } else {
+                    if (this.dataType === DataType.Binary) {
+                        this.defaultValue = &quot;AAAAAAAAJ3U=&quot;; &#x2F;&#x2F; hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
+                    } else {
+                        this.defaultValue = this.dataType.defaultValue;
+                        if (this.defaultValue == null) {
+                            throw new Error(&quot;A nonnullable DataProperty cannot have a null defaultValue. Name: &quot; + this.name);
+                        }
+                    }
+                }
             }
         };
-        
-
         
         ctor.prototype._$typeName = &quot;DataProperty&quot;;
 
@@ -2401,7 +2410,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
+			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
 		<li>
 			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>

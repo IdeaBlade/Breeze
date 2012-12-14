@@ -29,7 +29,7 @@ define(["testFns"], function (testFns) {
     test("query with two fields", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders")
-            .where("requiredDate", "<", ":shippedDate")
+            .where("requiredDate", "<", "shippedDate")
             .take(20);
         stop();
         em.executeQuery(q).then(function (data) {
@@ -40,6 +40,51 @@ define(["testFns"], function (testFns) {
                 var shipDt = r.getProperty("shippedDate");
                 ok(reqDt.getTime() < shipDt.getTime(), "required dates should be before shipped dates");
             });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query with two fields & contains", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "firstName")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            r.forEach(function (r) {
+                var lastNm = r.getProperty("lastName");
+                var firstNm = r.getProperty("firstName");
+                ok(lastNm.indexOf(firstNm) >=0, "lastName should start with firstName");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query with two fields & contains literal", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "test")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            
+            var isOk = r.every(function (e) {
+                return e.getProperty("lastName").indexOf("test") >= 0;
+            });
+            ok(isOk, "lastName should start with 'test'");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("query with two fields & contains literal forced", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "firstName", true)
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length == 0, "should be no recs returned");
         }).fail(testFns.handleFail).fin(start);
     });
     

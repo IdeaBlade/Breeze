@@ -42,7 +42,7 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
+			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
 		<li>
 			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
 		
@@ -2040,6 +2040,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         &#x2F;&#x2F; val = new Date(val);
                         val = core.dateFromIsoString(val);
                     }
+                } else if (dp.dataType == DataType.Binary) {
+                    if (val &amp;&amp; val.$value !== undefined) {
+                        val = val.$value; &#x2F;&#x2F; this will be a byte[] encoded as a string
+                    }
                 }
                 targetEntity.setProperty(dp.name, val);
             });
@@ -2167,7 +2171,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 entity.setProperty(property.name, dt2);
             } else if (property.dataType === DataType.Guid) {
                 entity.setProperty(property.name, core.getUuid());
-            } else if (property.datatype === DataType.Binary) {
+            } else if (property.dataType === DataType.Binary) {
                 &#x2F;&#x2F; best guess - that this is a timestamp column and is computed on the server during save 
                 &#x2F;&#x2F; - so no need to set it here.
                 return;
@@ -2814,7 +2818,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://www.ideablade.com/forum/forum_topics.asp?FID=51" target="_blank">Forum</a></li>
+			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
 		<li>
 			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 	</ul>

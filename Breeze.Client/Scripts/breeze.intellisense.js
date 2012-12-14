@@ -1,4 +1,4 @@
-﻿// Generated on: Wed Dec 12 2012 23:51:58 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Dec 13 2012 19:05:01 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -1827,6 +1827,7 @@ intellisense.annotate(breeze.breeze.Predicate, {
     ///   <param name="property" type="String" optional="true">A property name, a nested property name or an expression involving a property name.</param>
     ///   <param name="operator" type="FilterQueryOp|String" optional="true"></param>
     ///   <param name="value" type="Object" optional="true"></param>
+    ///   <param name="valueIsLiteral" type="Boolean" optional="true">- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</param>
     
     /// </signature>
   },

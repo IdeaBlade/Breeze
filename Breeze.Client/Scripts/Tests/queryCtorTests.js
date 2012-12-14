@@ -32,19 +32,19 @@ define(["testFns"], function (testFns) {
     test("predicateBuilder simple toString()", function () {
         var p = new Predicate("Freight", ">", 100);
         var txt = p.toString();
-        equal(txt, "Freight gt 100");
+        equal(txt, "{Freight} gt {100}");
         var p2 = Predicate.create("Freight", "gt", 100);
         var txt2 = p2.toString();
-        equal(txt2, "Freight gt 100");
+        equal(txt2, "{Freight} gt {100}");
         var p3 = new Predicate( "Freight", "==", 100);
         var txt3 = p3.toString();
-        equal(txt3, "Freight eq 100");
+        equal(txt3, "{Freight} eq {100}");
         var p4 = Predicate.create("Freight", "ne", 100);
         var txt4 = p4.toString();
-        equal(txt4, "Freight ne 100");
+        equal(txt4, "{Freight} ne {100}");
         var p5 = new Predicate("CompanyName", "stArtsWiTH", "B");
         var txt5 = p5.toString();
-        equal(txt5, "CompanyName startswith 'B'");
+        equal(txt5, "{CompanyName} startswith {B}");
     });
 
     test("predicateBuilder simple toOdata()", function () {
@@ -106,10 +106,10 @@ define(["testFns"], function (testFns) {
         var p1 = Predicate.create("ShipCity", "stArtsWiTH", "F")
             .and("Size", 'gt', 2000);
         var txt1 = p1.toString();
-        equal(txt1, "(ShipCity startswith 'F') and (Size gt 2000)");
+        equal(txt1, "({ShipCity} startswith {F}) and ({Size} gt {2000})");
         var p2 = p1.not();
         var txt2 = p2.toString();
-        equal(txt2, "not ((ShipCity startswith 'F') and (Size gt 2000))");
+        equal(txt2, "not (({ShipCity} startswith {F}) and ({Size} gt {2000}))");
 
     });
 
