@@ -16,6 +16,7 @@ obj
 Unused
 *.suo
 packages
+.idea
 
 GetFtpCredential.ps1
 
