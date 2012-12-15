@@ -34,6 +34,15 @@ define(["testFns"], function (testFns) {
 
     });
 
+    test("iso date conversion", function() {
+        var dt1 = new Date(Date.now());
+        ok(core.isDate(dt1));
+        var dt1AsString = dt1.toISOString();
+        var dt1a = new Date(Date.parse(dt1AsString));
+        // var dt1a = core.dateFromIsoString(dt1AsString);
+        ok(dt1.getTime() === dt1a.getTime());
+    });
+
     test("regex function matching", function() {
         var entity = new TestEntity();
         var ms = new MetadataStore();

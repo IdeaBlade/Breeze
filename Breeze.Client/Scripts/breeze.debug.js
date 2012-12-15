@@ -567,15 +567,19 @@ define('coreFns',[],function () {
         });
     }
     
-    // assumes no timezone in isoDateString
-    function dateFromIsoString(isoDateString) {
-        return fastDateParse.apply(null, isoDateString.split(/\D/));
-    }
+    // These are no longer used - this is now used instead.
+    // date = new Date(Date.parse(dataAsIsoString))
     
-    // used internally above
-    function fastDateParse(y, m, d, h, i, s, ms){
-        return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
-    }
+    //// assumes no timezone in isoDateString
+    //function dateFromIsoString(isoDateString) {
+    //    return fastDateParse.apply(null, isoDateString.split(/\D/));
+    //}
+    
+    
+    //// used internally above
+    //function fastDateParse(y, m, d, h, i, s, ms){
+    //    return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
+    //}
 
 
     // is functions 
@@ -683,7 +687,7 @@ define('coreFns',[],function () {
         wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
-        dateFromIsoString: dateFromIsoString,
+        // dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,
@@ -3826,7 +3830,7 @@ function (core, m_validate) {
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
     /**
     @property Boolean {DataType}
     @final
@@ -9032,6 +9036,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this;
         };
 
+        // Similar logic - but more performant is performed inside of importEntityGroup.
+        //function dateReviver(key, value) {
+        //    var a;
+        //    if (typeof value === 'string') {
+        //        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+        //        if (a) {
+        //            return new Date(Date.parse(value));
+        //        }
+        //    }
+        //    return value;
+        //};
+        
         /**
         Clears this EntityManager's cache but keeps all other settings. Note that this 
         method is not as fast as creating a new EntityManager via 'new EntityManager'.
@@ -10118,6 +10134,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
+            var dataProperties = dpNames.map(function(dpName) {
+                return entityType.getProperty(dpName);
+            });
             var keyIxs = entityType.keyProperties.map(function (kp) {
                 return dpNames.indexOf(kp.name);
             });
@@ -10144,8 +10163,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (targetEntity) {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (shouldOverwrite || wasUnchanged) {
-                        dpNames.forEach(function (dpName, ix) {
-                            targetEntity.setProperty(dpName, rawEntity[ix]);
+                        dataProperties.forEach(function (dp, ix) {
+                            if (dp.dataType == DataType.DateTime) {
+                                targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                            } else {
+                                targetEntity.setProperty(dp.name, rawEntity[ix]);
+                            }
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         if (wasUnchanged) {
@@ -10162,8 +10185,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     }
                 } else {
                     targetEntity = entityType._createEntity(true);
-                    dpNames.forEach(function (dpName, ix) {
-                        targetEntity.setProperty(dpName, rawEntity[ix]);
+                    dataProperties.forEach(function (dp, ix) {
+                        if (dp.dataType == DataType.DateTime) {
+                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                        } else {
+                            targetEntity.setProperty(dp.name, rawEntity[ix]);
+                        }
                     });
                     if (newTempKeyValue !== undefined) {
                         // fixup pk
@@ -10551,7 +10578,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (!core.isDate(val)) {
                         // Does not work - returns time offset from GMT (i think)
                         // val = new Date(val);
-                        val = core.dateFromIsoString(val);
+                        // this also does not handle time zone
+                        // val = core.dateFromIsoString(val);
+                        val = new Date(Date.parse(val));
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val && val.$value !== undefined) {
@@ -11315,7 +11344,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.77.1",
+        version: "0.77.2",
         core: core,
         config: a_config
     };

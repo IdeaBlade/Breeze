@@ -52,6 +52,35 @@ define(["testFns"], function (testFns) {
             ok(!em.hasChanges());
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("save date", function () {
+        var em = newEm();
+        var q = new EntityQuery("Orders").where("orderDate", '!=', null).take(10);
+        stop();
+        var order, orderDate, newOrderDate;
+        q.using(em).execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be some results");
+            order = r[0];
+            orderDate = order.getProperty("orderDate");
+            ok(core.isDate(orderDate),"is not a date");
+            var day = orderDate.getDate();
+            day = day < 31 ? day + 1 : 1;
+            newOrderDate = new Date(orderDate.getTime());
+            newOrderDate.setDate(day);
+            ok(core.isDate(newOrderDate), "is not a date");
+            order.setProperty("orderDate", newOrderDate);
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(Array.isArray(sr.entities));
+            ok(sr.entities.length == 1);
+            ok(!em.hasChanges());
+            ok(sr.entities[0] === order, "should be same order");
+            var newOrderDate2 = order.getProperty("orderDate");
+            ok(core.isDate(newOrderDate2), "is not a date");
+            ok(orderDate != newOrderDate2);
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("unmapped save", function() {
 

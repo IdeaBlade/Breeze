@@ -267,15 +267,19 @@ define(function () {
         });
     }
     
-    // assumes no timezone in isoDateString
-    function dateFromIsoString(isoDateString) {
-        return fastDateParse.apply(null, isoDateString.split(/\D/));
-    }
+    // These are no longer used - this is now used instead.
+    // date = new Date(Date.parse(dataAsIsoString))
     
-    // used internally above
-    function fastDateParse(y, m, d, h, i, s, ms){
-        return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
-    }
+    //// assumes no timezone in isoDateString
+    //function dateFromIsoString(isoDateString) {
+    //    return fastDateParse.apply(null, isoDateString.split(/\D/));
+    //}
+    
+    
+    //// used internally above
+    //function fastDateParse(y, m, d, h, i, s, ms){
+    //    return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
+    //}
 
 
     // is functions 
@@ -383,7 +387,7 @@ define(function () {
         wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
-        dateFromIsoString: dateFromIsoString,
+        // dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,

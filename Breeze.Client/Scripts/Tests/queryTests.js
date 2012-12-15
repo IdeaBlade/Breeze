@@ -53,8 +53,8 @@ define(["testFns"], function (testFns) {
             var r = data.results;
             ok(r.length > 0);
             r.forEach(function (r) {
-                var lastNm = r.getProperty("lastName");
-                var firstNm = r.getProperty("firstName");
+                var lastNm = r.getProperty("lastName").toLowerCase();
+                var firstNm = r.getProperty("firstName").toLowerCase();
                 ok(lastNm.indexOf(firstNm) >=0, "lastName should start with firstName");
             });
         }).fail(testFns.handleFail).fin(start);
@@ -68,9 +68,9 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            
+            ok(r.length > 0, "should be some employees named 'test'");
             var isOk = r.every(function (e) {
-                return e.getProperty("lastName").indexOf("test") >= 0;
+                return e.getProperty("lastName").toLowerCase().indexOf("test") >= 0;
             });
             ok(isOk, "lastName should start with 'test'");
         }).fail(testFns.handleFail).fin(start);

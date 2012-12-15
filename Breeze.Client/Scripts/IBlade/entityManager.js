@@ -342,6 +342,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this;
         };
 
+        // Similar logic - but more performant is performed inside of importEntityGroup.
+        //function dateReviver(key, value) {
+        //    var a;
+        //    if (typeof value === 'string') {
+        //        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+        //        if (a) {
+        //            return new Date(Date.parse(value));
+        //        }
+        //    }
+        //    return value;
+        //};
+        
         /**
         Clears this EntityManager's cache but keeps all other settings. Note that this 
         method is not as fast as creating a new EntityManager via 'new EntityManager'.
@@ -1428,6 +1440,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
+            var dataProperties = dpNames.map(function(dpName) {
+                return entityType.getProperty(dpName);
+            });
             var keyIxs = entityType.keyProperties.map(function (kp) {
                 return dpNames.indexOf(kp.name);
             });
@@ -1454,8 +1469,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (targetEntity) {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (shouldOverwrite || wasUnchanged) {
-                        dpNames.forEach(function (dpName, ix) {
-                            targetEntity.setProperty(dpName, rawEntity[ix]);
+                        dataProperties.forEach(function (dp, ix) {
+                            if (dp.dataType == DataType.DateTime) {
+                                targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                            } else {
+                                targetEntity.setProperty(dp.name, rawEntity[ix]);
+                            }
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         if (wasUnchanged) {
@@ -1472,8 +1491,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     }
                 } else {
                     targetEntity = entityType._createEntity(true);
-                    dpNames.forEach(function (dpName, ix) {
-                        targetEntity.setProperty(dpName, rawEntity[ix]);
+                    dataProperties.forEach(function (dp, ix) {
+                        if (dp.dataType == DataType.DateTime) {
+                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                        } else {
+                            targetEntity.setProperty(dp.name, rawEntity[ix]);
+                        }
                     });
                     if (newTempKeyValue !== undefined) {
                         // fixup pk
@@ -1861,7 +1884,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (!core.isDate(val)) {
                         // Does not work - returns time offset from GMT (i think)
                         // val = new Date(val);
-                        val = core.dateFromIsoString(val);
+                        // this also does not handle time zone
+                        // val = core.dateFromIsoString(val);
+                        val = new Date(Date.parse(val));
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val && val.$value !== undefined) {

@@ -23,6 +23,32 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+    test("create entity with non-null dates", function() {
+        var em = newEm(); // new empty EntityManager
+        var userType = em.metadataStore.getEntityType("User");
+        var user = userType.createEntity();
+        
+        var crtnDate = user.getProperty("createdDate");
+        var modDate = user.getProperty("modifiedDate");
+        ok(core.isDate(crtnDate), "crtnDate is not a date");
+        ok(core.isDate(modDate), "modDate is not a date");
+        em.addEntity(user);
+        // need to do this after the addEntity call
+        var id = user.getProperty("id");
+        var exported = em.exportEntities();
+        var em2 = newEm();
+        em2.importEntities(exported);
+        var user2 = em2.getEntityByKey("User", id);
+        var crtnDate2 = user2.getProperty("createdDate");
+        var modDate2 = user2.getProperty("modifiedDate");
+        ok(core.isDate(crtnDate2), "crtnDate2 is not a date");
+        ok(core.isDate(modDate2), "modDate2 is not a date");
+        ok(crtnDate2.getTime() == crtnDate.getTime(), "crtn dates are not equal");
+        ok(modDate2.getTime() == modDate.getTime(), "mod dates are not equal");
+    });
+    
+    
 
     test("multipart foreign keys", function() {
         var em = newEm(); // new empty EntityManager
