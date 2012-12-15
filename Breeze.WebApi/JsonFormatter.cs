@@ -20,6 +20,7 @@ namespace Breeze.WebApi {
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
         TypeNameHandling = TypeNameHandling.Objects,
         TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
+        
       };
       
       var formatter = new JsonMediaTypeFormatter();

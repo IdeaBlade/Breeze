@@ -29,7 +29,46 @@ define(["testFns"], function (testFns) {
     test("local query with two fields", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders")
-            .where("requiredDate", "<", ":shippedDate")
+            .where("requiredDate", "<", "shippedDate")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("local query with two fields & contains", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "firstName")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("local query with two fields & contains literal", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "test")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("local query with two fields & contains literal forced", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("lastName", "startsWith", "firstName", true)
             .take(20);
         stop();
         em.executeQuery(q).then(function (data) {

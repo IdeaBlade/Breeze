@@ -77,7 +77,7 @@ function (core, m_validate) {
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
     /**
     @property Boolean {DataType}
     @final

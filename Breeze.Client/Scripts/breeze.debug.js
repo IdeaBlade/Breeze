@@ -567,15 +567,19 @@ define('coreFns',[],function () {
         });
     }
     
-    // assumes no timezone in isoDateString
-    function dateFromIsoString(isoDateString) {
-        return fastDateParse.apply(null, isoDateString.split(/\D/));
-    }
+    // These are no longer used - this is now used instead.
+    // date = new Date(Date.parse(dataAsIsoString))
     
-    // used internally above
-    function fastDateParse(y, m, d, h, i, s, ms){
-        return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
-    }
+    //// assumes no timezone in isoDateString
+    //function dateFromIsoString(isoDateString) {
+    //    return fastDateParse.apply(null, isoDateString.split(/\D/));
+    //}
+    
+    
+    //// used internally above
+    //function fastDateParse(y, m, d, h, i, s, ms){
+    //    return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
+    //}
 
 
     // is functions 
@@ -683,7 +687,7 @@ define('coreFns',[],function () {
         wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
-        dateFromIsoString: dateFromIsoString,
+        // dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,
@@ -3826,7 +3830,7 @@ function (core, m_validate) {
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
     /**
     @property Boolean {DataType}
     @final
@@ -6393,8 +6397,12 @@ function (core, m_entityMetadata, m_entityAspect) {
 
             - a property name, a property path with '.' as path seperators or a property expression {String}
             - an operator {FilterQueryOp|String} Either a  {{#crossLink "FilterQueryOp"}}{{/crossLink}} or it's string representation. Case is ignored
-            when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
-            - a value    
+                 when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
+            - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
+            - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+
    
         @return {EntityQuery}
         @chainable
@@ -7124,8 +7132,11 @@ function (core, m_entityMetadata, m_entityAspect) {
         var RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g ;
         var RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g ;
         
-        var ctor = function(source, tokens) {
+        var ctor = function (source, tokens, entityType) {
             var parts = source.split(":");
+            if (entityType) {
+                this.isValidated = true;
+            }
             if (parts.length == 1) {
                 var value = parts[0].trim();
                 this.value = value;
@@ -7140,40 +7151,58 @@ function (core, m_entityMetadata, m_entityAspect) {
                 } else {
                     var isIdentifier = RX_IDENTIFIER.test(value);
                     if (isIdentifier) {
+                        if (entityType) {
+                            if (entityType.getProperty(value, false) == null) {
+                                // not a real FnNode;
+                                this.isValidated = false;
+                                return;
+                            }
+                        }
                         this.propertyPath = value;
                         this.fn = createPropFunction(value);
                     } else {
+                        if (entityType) {
+                            this.isValidated = false;
+                            return;
+                        }
                         this.fn = function (entity) { return value; };
                         this.dataType = DataType.fromJsType(typeof value);
                     }
                 } 
             } else {
-                this.fnName = parts[0].trim().toLowerCase();
-                var qf = QueryFuncs[this.fnName];
-                this.localFn = qf.fn;
-                this.dataType = qf.dataType;
-                var that = this;
-                this.fn = function(entity) {
-                    var resolvedNodes = that.fnNodes.map(function(fnNode) {
-                        var argVal = fnNode.fn(entity);
-                        return argVal;
+                try {
+                    this.fnName = parts[0].trim().toLowerCase();
+                    var qf = QueryFuncs[this.fnName];
+                    this.localFn = qf.fn;
+                    this.dataType = qf.dataType;
+                    var that = this;
+                    this.fn = function(entity) {
+                        var resolvedNodes = that.fnNodes.map(function(fnNode) {
+                            var argVal = fnNode.fn(entity);
+                            return argVal;
+                        });
+                        var val = that.localFn.apply(null, resolvedNodes);
+                        return val;
+                    };
+                    var argSource = tokens[parts[1]].trim();
+                    if (argSource.substr(0, 1) == "(") {
+                        argSource = argSource.substr(1, argSource.length - 2);
+                    }
+                    var commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
+                    var args = argSource.match(commaMatchStr);
+                    this.fnNodes = args.map(function(a) {
+                        return new FnNode(a, tokens);
                     });
-                    var val = that.localFn.apply(null, resolvedNodes);
-                    return val;
-                };
-                var argSource = tokens[parts[1]].trim();
-                if (argSource.substr(0, 1) == "(") {
-                    argSource = argSource.substr(1, argSource.length - 2);
+                } catch (e) {
+                    this.isValidated = false;
                 }
-                var commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
-                var args = argSource.match(commaMatchStr);
-                this.fnNodes = args.map(function(a) {
-                    return new FnNode(a, tokens);
-                });
             }
         };
 
-        ctor.create = function(source) {
+        ctor.create = function (source, entityType) {
+            if (typeof source !== 'string') {
+                return null;
+            }
             var regex = /\([^()]*\)/ ;
             var m;
             var tokens = [];
@@ -7184,8 +7213,9 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var repl = ":" + i++;
                 source = source.replace(token, repl);
             }
-            var node = new FnNode(source, tokens);
-            return node;
+            var node = new FnNode(source, tokens, entityType);
+            // isValidated may be undefined
+            return node.isValidated === false ? null : node;
         };
 
         ctor.prototype.toString = function() {
@@ -7234,8 +7264,8 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.validate = function(entityType) {
             // will throw if not found;
-            if (this._isValidated) return;            
-            this._isValidated = true;
+            if (this.isValidated !== undefined) return;            
+            this.isValidated = true;
             if (this.propertyPath) {
                 var prop = entityType.getProperty(this.propertyPath, true);
                 if (prop.isDataProperty) {
@@ -7398,14 +7428,17 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method <ctor> Predicate
         @param property {String} A property name, a nested property name or an expression involving a property name.
         @param operator {FilterQueryOp|String}
-        @param value {Object}
+        @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
+        @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
         **/
-        var ctor = function (propertyOrExpr, operator, value) {
+        var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             if (arguments[0].prototype === true) {
                 // used to construct prototype
                 return this;
             }
-            return new SimplePredicate(propertyOrExpr, operator, value);
+            return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
         };
 
         /**  
@@ -7438,13 +7471,17 @@ function (core, m_entityMetadata, m_entityAspect) {
         @static
         @param property {String} A property name, a nested property name or an expression involving a property name.
         @param operator {FilterQueryOp|String}
-        @param value {Object}
+        @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
+                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+                 In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
+        @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
         **/
-        ctor.create = function (property, operator, value) {
+        ctor.create = function (property, operator, value, valueIsLiteral) {
             if (Array.isArray(property)) {
-                return new SimplePredicate(property[0], property[1], property[2]);
+                valueIsLiteral = (property.length === 4) ? property[3] : false;
+                return new SimplePredicate(property[0], property[1], property[2], valueIsLiteral);
             } else {
-                return new SimplePredicate(property, operator, value);
+                return new SimplePredicate(property, operator, value, valueIsLiteral);
             }
         };
 
@@ -7626,50 +7663,56 @@ function (core, m_entityMetadata, m_entityAspect) {
     // Does not need to be exposed.
     var SimplePredicate = (function () {
 
-        var ctor = function (propertyOrExpr, operator, value) {
+        var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             assertParam(propertyOrExpr, "propertyOrExpr").isString().check();
             assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
             assertParam(value, "value").isRequired().check();
+            assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode = FnNode.create(propertyOrExpr);
+            this._fnNode1 = FnNode.create(propertyOrExpr, null);
             this._filterQueryOp = FilterQueryOp.from(operator);
             if (!this._filterQueryOp) {
                 throw new Error("Unknown query operation: " + operator);
             }
-            if (typeof value == 'string' && value.substr(0, 1) === ":") {
-                this._value = FnNode.create(value.substr(1));
-            } else {
-                this._value = value;
-            }
+            this._value = value;
+            this._valueIsLiteral = valueIsLiteral;
         };
+        
         ctor.prototype = new Predicate({ prototype: true });
 
         ctor.prototype.toOdataFragment = function (entityType) {
-            var exprFrag = this._fnNode.toOdataFragment(entityType);
-            if (this._value instanceof FnNode) {
-                val = this._value.toOdataFragment(entityType);
+            var v1Expr = this._fnNode1.toOdataFragment(entityType);
+            var v2Expr;
+            if (this.fnNode2 === undefined && !this._valueIsLiteral) {
+                this.fnNode2 = FnNode.create(this._value, entityType);
+            }
+            if (this.fnNode2) {
+                v2Expr = this.fnNode2.toOdataFragment(entityType);
             } else {
-                var val = formatValue(this._value, this._fnNode);
+                v2Expr = formatValue(this._value, this._fnNode1.dataType);
             }
             if (this._filterQueryOp.isFunction) {
                 if (this._filterQueryOp == FilterQueryOp.Contains) {
-                    return this._filterQueryOp.operator + "(" + val + "," + exprFrag + ") eq true";
+                    return this._filterQueryOp.operator + "(" + v2Expr + "," + v1Expr + ") eq true";
                 } else {
-                    return this._filterQueryOp.operator + "(" + exprFrag + "," + val + ") eq true";
+                    return this._filterQueryOp.operator + "(" + v1Expr + "," + v2Expr + ") eq true";
                 }
                 
             } else {
-                return exprFrag + " " + this._filterQueryOp.operator + " " + val;
+                return v1Expr + " " + this._filterQueryOp.operator + " " + v2Expr;
             }
         };
 
         ctor.prototype.toFunction = function (entityType) {            
             var predFn = getPredicateFn(entityType, this._filterQueryOp);
-            var v1Fn = this._fnNode.fn;
+            var v1Fn = this._fnNode1.fn;
+            if (this.fnNode2 === undefined && !this._valueIsLiteral) {
+                this.fnNode2 = FnNode.create(this._value, entityType);
+            }
             
-            if (this._value instanceof FnNode) {
-                var v2Fn = this._value.fn;
+            if (this.fnNode2) {
+                var v2Fn = this.fnNode2.fn;
                 return function(entity) {
                     return predFn(v1Fn(entity), v2Fn(entity));
                 };
@@ -7683,14 +7726,13 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         ctor.prototype.toString = function () {
-            var val = formatValue(this._value, this._fnNode);
-            return this._fnNode.toString() + " " + this._filterQueryOp.operator + " " + val;
+            return core.formatString("{%1} %2 {%3}", this._propertyOrExpr, this._filterQueryOp.operator, this._value);
         };
 
         ctor.prototype.validate = function (entityType) {
             // throw if not valid
-            this._fnNode.validate(entityType);
-            this.dataType = this._fnNode.dataType;
+            this._fnNode1.validate(entityType);
+            this.dataType = this._fnNode1.dataType;
         };
         
         // internal functions
@@ -7748,61 +7790,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             return predFn;
         }
         
-        //function getPredicateFn(entityType, filterQueryOp, value) {
-        //    var lqco = entityType.metadataStore.localQueryComparisonOptions;
-            
-        //    // Date do not compare properly but Date.getTime()'s do.
-        //    if (value instanceof Date) {
-        //        value = value.getTime();
-        //    } 
-        //    var predFn;
-        //    switch (filterQueryOp) {
-        //        case FilterQueryOp.Equals:
-        //            predFn = function(propValue) {
-        //                if (propValue && typeof propValue === 'string') {
-        //                    return stringEquals(propValue, value, lqco);
-        //                } else {
-        //                    return propValue == value;
-        //                }
-        //            };
-        //            break;
-        //        case FilterQueryOp.NotEquals:
-        //            predFn = function (propValue) {
-        //                if (propValue && typeof propValue === 'string') {
-        //                    return !stringEquals(propValue, value, lqco);
-        //                } else {
-        //                    return propValue != value;
-        //                }
-        //            };
-        //            break;
-        //        case FilterQueryOp.GreaterThan:
-        //            predFn = function (propValue) { return propValue > value; };
-        //            break;
-        //        case FilterQueryOp.GreaterThanOrEqual:
-        //            predFn = function (propValue) { return propValue >= value; };
-        //            break;
-        //        case FilterQueryOp.LessThan:
-        //            predFn = function (propValue) { return propValue < value; };
-        //            break;
-        //        case FilterQueryOp.LessThanOrEqual:
-        //            predFn = function (propValue) { return propValue <= value; };
-        //            break;
-        //        case FilterQueryOp.StartsWith:
-        //            predFn = function (propValue) { return stringStartsWith(propValue, value, lqco); };
-        //            break;
-        //        case FilterQueryOp.EndsWith:
-        //            predFn = function (propValue) { return stringEndsWith(propValue, value, lqco); };
-        //            break;
-        //        case FilterQueryOp.Contains:
-        //            predFn = function(propValue) { return stringContains(propValue, value, lqco); };
-        //            break;
-        //        default:
-        //            throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
-                    
-        //    }
-        //    return predFn;
-        //}
-        
         function stringEquals(a, b, lqco) {
             if (b == null) return false;
             if (typeof b !== 'string') {
@@ -7844,13 +7831,12 @@ function (core, m_entityMetadata, m_entityAspect) {
             return a.indexOf(b) >= 0;
         }
 
-        function formatValue(val, fnNode) {
+        function formatValue(val, dataType) {
             if (val == null) {
                 return null;
             }
             
             var msg;
-            var dataType = fnNode.dataType;
             if (!dataType) {
                 // used for toString calls
                 if (core.isDate(val)) {
@@ -7877,12 +7863,12 @@ function (core, m_entityMetadata, m_entityAspect) {
                 try {
                     return "datetime'" + val.toISOString() + "'";
                 } catch(e) {
-                    msg = core.formatString("'%1' is not a valid dateTime: '%2'", fnNode.toString, val);
+                    msg = core.formatString("'%1' is not a valid dateTime'", val);
                     throw new Error(msg);
                 }
             } else if (dataType === DataType.Guid) {
                 if (!core.isGuid(val)) {
-                    msg = core.formatString("'%1' is not a valid guid: '%2'", fnNode.toString, val);
+                    msg = core.formatString("'%1' is not a valid guid", val);
                     throw new Error(msg);
                 }
                 return "guid'" + val + "'";
@@ -7951,7 +7937,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         ctor.prototype.validate = function (entityType) {
             // will throw if not found;
-            if (this.isValidated) return;
+            if (this._isValidated) return;
             this._predicates.every(function (p) {
                 p.validate(entityType);
             });
@@ -9050,6 +9036,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this;
         };
 
+        // Similar logic - but more performant is performed inside of importEntityGroup.
+        //function dateReviver(key, value) {
+        //    var a;
+        //    if (typeof value === 'string') {
+        //        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+        //        if (a) {
+        //            return new Date(Date.parse(value));
+        //        }
+        //    }
+        //    return value;
+        //};
+        
         /**
         Clears this EntityManager's cache but keeps all other settings. Note that this 
         method is not as fast as creating a new EntityManager via 'new EntityManager'.
@@ -10136,6 +10134,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
+            var dataProperties = dpNames.map(function(dpName) {
+                return entityType.getProperty(dpName);
+            });
             var keyIxs = entityType.keyProperties.map(function (kp) {
                 return dpNames.indexOf(kp.name);
             });
@@ -10162,8 +10163,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (targetEntity) {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (shouldOverwrite || wasUnchanged) {
-                        dpNames.forEach(function (dpName, ix) {
-                            targetEntity.setProperty(dpName, rawEntity[ix]);
+                        dataProperties.forEach(function (dp, ix) {
+                            if (dp.dataType == DataType.DateTime) {
+                                targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                            } else {
+                                targetEntity.setProperty(dp.name, rawEntity[ix]);
+                            }
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         if (wasUnchanged) {
@@ -10180,8 +10185,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     }
                 } else {
                     targetEntity = entityType._createEntity(true);
-                    dpNames.forEach(function (dpName, ix) {
-                        targetEntity.setProperty(dpName, rawEntity[ix]);
+                    dataProperties.forEach(function (dp, ix) {
+                        if (dp.dataType == DataType.DateTime) {
+                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                        } else {
+                            targetEntity.setProperty(dp.name, rawEntity[ix]);
+                        }
                     });
                     if (newTempKeyValue !== undefined) {
                         // fixup pk
@@ -10569,7 +10578,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (!core.isDate(val)) {
                         // Does not work - returns time offset from GMT (i think)
                         // val = new Date(val);
-                        val = core.dateFromIsoString(val);
+                        // this also does not handle time zone
+                        // val = core.dateFromIsoString(val);
+                        val = new Date(Date.parse(val));
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val && val.$value !== undefined) {
@@ -11333,7 +11344,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.76.4",
+        version: "0.77.2",
         core: core,
         config: a_config
     };
