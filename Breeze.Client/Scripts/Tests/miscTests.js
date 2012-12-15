@@ -33,6 +33,16 @@ define(["testFns"], function (testFns) {
         ok(aPerson instanceof Person);
 
     });
+    
+    test("date comparison", function () {
+        var dt1 = new Date();
+        var dt2 = new Date(dt1.getTime());
+        ok(dt1 != dt2);
+        ok(dt1 !== dt2);
+        ok(dt1 >= dt2);
+        ok(dt1 <= dt2);
+        
+    });
 
     test("iso date conversion", function() {
         var dt1 = new Date(Date.now());

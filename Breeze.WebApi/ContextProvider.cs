@@ -47,8 +47,9 @@ namespace Breeze.WebApi {
         saveMap.Add(entityType, entityInfos);
       });
       saveMap = BeforeSaveEntities(saveMap);
+      
       var keyMappings = SaveChangesCore(saveMap);
-
+      
       var entities = saveMap.SelectMany(kvp => kvp.Value.Select(entityInfo => entityInfo.Entity)).ToList();
 
       return new SaveResult() { Entities = entities, KeyMappings = keyMappings };

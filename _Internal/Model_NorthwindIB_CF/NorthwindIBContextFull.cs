@@ -201,6 +201,23 @@ namespace Models.NorthwindIB.CF {
   }
   #endregion Category class
 
+  [AttributeUsage(AttributeTargets.Property)]
+  public class CustomValidator : ValidationAttribute {
+    public override Boolean IsValid(Object value) {
+      try {
+        string val = (string) value;
+        if (!string.IsNullOrEmpty(val) && val.StartsWith("Error")) {
+          ErrorMessage = "{0} equal the word 'Error'";
+          return false;
+        }
+        return true;
+      } catch (Exception e) {
+        var x = e;
+        return false;
+      }
+    }
+  }
+
   #region Customer class
 
   /// <summary>The auto-generated Customer class. </summary>
@@ -283,6 +300,7 @@ namespace Models.NorthwindIB.CF {
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Customer_Region")]
     [MaxLength(15)]
+    [CustomValidator]
     public string Region {
       get; set;
     }

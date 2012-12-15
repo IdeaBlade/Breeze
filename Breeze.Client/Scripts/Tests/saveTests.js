@@ -52,6 +52,28 @@ define(["testFns"], function (testFns) {
             ok(!em.hasChanges());
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("save custom data annotation validation", function() {
+        var em = newEm();
+        var q = new EntityQuery("Customers").take(1);
+        stop();
+        var cust1;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1);
+            cust1 = data.results[0];
+            var region = cust1.getProperty("region");
+            var newRegion = region == "Error" ? "Error again" : "Error";
+            cust1.setProperty("region", newRegion);
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(false, "shouldn't get here");
+            
+        }).fail(function(error) {
+            ok(error.message.indexOf("the word 'Error'") > 0);
+        }).fin(start);
+
+
+    });
     
     test("save date", function () {
         var em = newEm();
