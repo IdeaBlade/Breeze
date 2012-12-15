@@ -59,7 +59,8 @@ define(function (require) {
             handleSaveValidationError(error);
             return;
         }
-        if (detail && detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
+        if (detail && detail.ExceptionType &&
+            detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
             // Concurrency error 
             reason =
                 "Another user, perhaps the server, may have deleted one or all of the todos.";
