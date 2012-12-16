@@ -262,6 +262,7 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets or sets the ContactName. </summary>
     [DataMember]
     [Column("ContactName")]
+    [CustomValidator]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Customer_ContactName")]
     [MaxLength(30)]
     public string ContactName {
@@ -300,7 +301,6 @@ namespace Models.NorthwindIB.CF {
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Customer_Region")]
     [MaxLength(15)]
-    [CustomValidator]
     public string Region {
       get; set;
     }

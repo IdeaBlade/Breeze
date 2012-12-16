@@ -14,6 +14,7 @@ using System.Collections.Generic;
 
 #if CODEFIRST_PROVIDER
 using Models.NorthwindIB.CF;
+using System.ComponentModel.DataAnnotations;
 #elif DATABASEFIRST_OLD
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW

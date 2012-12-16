@@ -53,7 +53,10 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save custom data annotation validation", function() {
+    test("save custom data annotation validation", function () {
+        // This test will fail currently with the DATABASEFIRST_OLD define. 
+        // This is because ObjectContext.SaveChanges() does not automatically validate 
+        // entities. It must be done manually.
         var em = newEm();
         var q = new EntityQuery("Customers").take(1);
         stop();
@@ -61,9 +64,9 @@ define(["testFns"], function (testFns) {
         q.using(em).execute().then(function (data) {
             ok(data.results.length === 1);
             cust1 = data.results[0];
-            var region = cust1.getProperty("region");
+            var region = cust1.getProperty("contactName");
             var newRegion = region == "Error" ? "Error again" : "Error";
-            cust1.setProperty("region", newRegion);
+            cust1.setProperty("contactName", newRegion);
             return em.saveChanges();
         }).then(function (sr) {
             ok(false, "shouldn't get here");
