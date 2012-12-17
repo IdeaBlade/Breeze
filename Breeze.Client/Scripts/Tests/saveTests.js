@@ -39,7 +39,7 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     };
-
+    
     test("noop", function() {
         var em = newEm();
         var q = new EntityQuery("Customers");
@@ -50,6 +50,27 @@ define(["testFns"], function (testFns) {
             ok(Array.isArray(sr.entities));
             ok(sr.entities.length == 0);
             ok(!em.hasChanges());
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save data with millseconds - IE bug", function() {
+        var em = newEm();
+        var dt = new Date(Date.parse("2012-12-17T13:35:15.690Z"));
+        var ms = dt.getUTCMilliseconds();
+        ok(ms === 690);
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        q.using(em).execute().then(function(data) {
+            order = data.results[0];
+            order.setProperty("shippedDate", dt);
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var sameOrder = sr.entities[0];
+            ok(order === sameOrder, "should be the sameOrder");
+            var sameDt = sameOrder.getProperty("shippedDate");
+            ok(dt.getTime() === sameDt.getTime(), "should be the same date");
         }).fail(testFns.handleFail).fin(start);
     });
 

@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Web.Http.Controllers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Breeze.WebApi {
 
@@ -20,8 +21,12 @@ namespace Breeze.WebApi {
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
         TypeNameHandling = TypeNameHandling.Objects,
         TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
-        
       };
+      // Hack is for the issue described in this post:
+      // http://stackoverflow.com/questions/11789114/internet-explorer-json-net-javascript-date-and-milliseconds-issue
+      jsonSerializerSettings.Converters.Add(new IsoDateTimeConverter {
+        DateTimeFormat = "yyyy-MM-dd\\THH:mm:ss.fffK"
+      });
       
       var formatter = new JsonMediaTypeFormatter();
       formatter.SerializerSettings = jsonSerializerSettings;
