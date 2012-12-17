@@ -936,7 +936,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         /**
         Attempts to fetch an entity from the server by its key with
-        an option to check the local cache first. 
+        an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+        will be used to merge any server side entity returned by this method.
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities. 
             var employeeType = em1.metadataStore.getEntityType("Employee");
@@ -985,10 +986,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var entityKey = tpl.entityKey;
             var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
             var entity;
+            var isDeleted = false;
             if (checkLocalCacheFirst) {
                 entity = this.getEntityByKey(entityKey);
+                isDeleted = entity && entity.entityAspect.entityState.isDeleted();
+                if (isDeleted) {
+                    entity = null;
+                    if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
+                        isDeleted = false;
+                    }
+                }
             } 
-            if (entity) {
+            if (entity || isDeleted) {
                 return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
             } else {
                 return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {

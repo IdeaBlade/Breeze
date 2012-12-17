@@ -775,7 +775,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l436"><code>entityManager.js:436</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l448"><code>entityManager.js:448</code></a>
         
         </p>
 
@@ -903,7 +903,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l457"><code>entityManager.js:457</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l469"><code>entityManager.js:469</code></a>
         
         </p>
 
@@ -1021,7 +1021,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l345"><code>entityManager.js:345</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l357"><code>entityManager.js:357</code></a>
         
         </p>
 
@@ -1092,7 +1092,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l415"><code>entityManager.js:415</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l427"><code>entityManager.js:427</code></a>
         
         </p>
 
@@ -1185,7 +1185,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l506"><code>entityManager.js:506</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l518"><code>entityManager.js:518</code></a>
         
         </p>
 
@@ -1316,7 +1316,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l590"><code>entityManager.js:590</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l602"><code>entityManager.js:602</code></a>
         
         </p>
 
@@ -1619,7 +1619,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l678"><code>entityManager.js:678</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l690"><code>entityManager.js:690</code></a>
         
         </p>
 
@@ -1892,7 +1892,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l925"><code>entityManager.js:925</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l937"><code>entityManager.js:937</code></a>
         
         </p>
 
@@ -1904,7 +1904,8 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
 
     <div class="description">
         <p>Attempts to fetch an entity from the server by its key with
-an option to check the local cache first.</p>
+an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+will be used to merge any server side entity returned by this method.</p>
     </div>
 
     
@@ -2054,7 +2055,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l949"><code>entityManager.js:949</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l962"><code>entityManager.js:962</code></a>
         
         </p>
 
@@ -2201,7 +2202,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l539"><code>entityManager.js:539</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l551"><code>entityManager.js:551</code></a>
         
         </p>
 
@@ -2391,7 +2392,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l989"><code>entityManager.js:989</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1010"><code>entityManager.js:1010</code></a>
         
         </p>
 
@@ -2510,7 +2511,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1006"><code>entityManager.js:1006</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1027"><code>entityManager.js:1027</code></a>
         
         </p>
 
@@ -2644,7 +2645,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1109"><code>entityManager.js:1109</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1130"><code>entityManager.js:1130</code></a>
         
         </p>
 
@@ -2778,7 +2779,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1162"><code>entityManager.js:1162</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1183"><code>entityManager.js:1183</code></a>
         
         </p>
 
@@ -2934,7 +2935,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l890"><code>entityManager.js:890</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l902"><code>entityManager.js:902</code></a>
         
         </p>
 
@@ -3064,7 +3065,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l902"><code>entityManager.js:902</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l914"><code>entityManager.js:914</code></a>
         
         </p>
 
@@ -3181,7 +3182,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1047"><code>entityManager.js:1047</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1068"><code>entityManager.js:1068</code></a>
         
         </p>
 
@@ -3626,7 +3627,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1139"><code>entityManager.js:1139</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1160"><code>entityManager.js:1160</code></a>
         
         </p>
 
@@ -3738,7 +3739,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l747"><code>entityManager.js:747</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l759"><code>entityManager.js:759</code></a>
         
         </p>
 
@@ -4027,7 +4028,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l370"><code>entityManager.js:370</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l382"><code>entityManager.js:382</code></a>
         
         </p>
 
@@ -4696,7 +4697,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1083"><code>entityManager.js:1083</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1104"><code>entityManager.js:1104</code></a>
         
         </p>
 

@@ -80,7 +80,7 @@ define(["testFns"], function (testFns) {
         var query = new EntityQuery("Customers")
             .where("companyName", "startsWith", "C")
             .orderBy("companyName")
-            .select("companyName, orders");
+            .select(["companyName", "orders"]);
         if (!testFns.DEBUG_WEBAPI) {
             query = query.expand("orders");
         }        

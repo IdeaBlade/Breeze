@@ -188,14 +188,19 @@ define(["testFns"], function (testFns) {
             return em.fetchEntityByKey("Customer", alfredsID, true);
         }).then(function (data2) {
             var alfred2 = data2.entity;
-            ok(alfred2, "alfred2 should have been found");
-            ok(alfred === alfred2, "should be the same entity");
+            ok(alfred2 == null, "alfred2 should not have been found");
             ok(data2.fromCache === true, "should have been from cache");
-            return em.fetchEntityByKey(data2.entityKey);
+            return em.fetchEntityByKey(data2.entityKey, true);
         }).then(function (data3) {
             var alfred3 = data3.entity;
-            ok(alfred3 === alfred, "alfred3 should = alfred");
-            ok(data3.fromCache === false, "should not have been from cache");
+            ok(alfred3 === null, "alfred3 should = alfred");
+            ok(data3.fromCache === true, "should not have been from cache");
+            em.queryOptions.mergeStrategy = MergeStrategy.OverwriteChanges;
+            return em.fetchEntityByKey(data3.entityKey, true);
+        }).then(function (data4) {
+            var alfred4 = data4.entity;
+            ok(alfred4 === alfred, "alfred3 should = alfred");
+            ok(data4.fromCache === false, "should not have been from cache");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -578,6 +583,30 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("post create init with no ctor", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+
+        var dt = new Date();
+        var empInitializer = function (emp) {
+            
+            emp.setProperty("hireDate", dt);
+
+            emp.foo = "Foo " + emp.getProperty("hireDate").toString();
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Employee", null, empInitializer);
+
+        var query = EntityQuery.from("Employees").top(1);
+
+        stop(); // going async
+        em.executeQuery(query).then(function (data) {
+            var emp = data.results[0];
+            ok(emp.foo, "foo property should exist");
+            var sameDt = emp.getProperty("hireDate");
+            ok(dt.getTime() === sameDt.getTime());
+
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     
     test("date property is a DateTime", function () {
@@ -1057,7 +1086,7 @@ define(["testFns"], function (testFns) {
 
         var query = new EntityQuery("Orders");
 
-        query = query.expand("customer, employee")
+        query = query.expand(["customer", "employee"])
             .take(20);
         stop();
         em.executeQuery(query).then(function (data) {
@@ -1151,7 +1180,7 @@ define(["testFns"], function (testFns) {
 
         var query = new EntityQuery()
             .from("Products")
-            .orderBy("category.categoryName desc, productName")
+            .orderBy(["category.categoryName desc", "productName"])
             .expand("category");
 
         stop();

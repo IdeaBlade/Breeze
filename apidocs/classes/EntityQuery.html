@@ -604,7 +604,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l539"><code>entityQuery.js:539</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l536"><code>entityQuery.js:536</code></a>
         
         </p>
 
@@ -867,7 +867,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l600"><code>entityQuery.js:600</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l597"><code>entityQuery.js:597</code></a>
         
         </p>
 
@@ -950,7 +950,7 @@ var orders = query.executeLocally();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l433"><code>entityQuery.js:433</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l431"><code>entityQuery.js:431</code></a>
         
         </p>
 
@@ -974,13 +974,13 @@ names such that a graph of entities may be retrieved with a single request. Any 
                 <li class="param">
                     
                         <code class="param-name">propertyPaths</code>
-                        <span class="type">String</span>
+                        <span class="type">String | Array of String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>A comma-separated list of navigation property names. Each Navigation Property name can be followed
+                        <p>A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
 by a '.' and another navigation property name to enable identifying a multi-level relationship</p>
                     </div>
 
@@ -1316,7 +1316,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l612"><code>entityQuery.js:612</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l609"><code>entityQuery.js:609</code></a>
         
         </p>
 
@@ -1445,7 +1445,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l653"><code>entityQuery.js:653</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l650"><code>entityQuery.js:650</code></a>
         
         </p>
 
@@ -1574,7 +1574,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l678"><code>entityQuery.js:678</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l675"><code>entityQuery.js:675</code></a>
         
         </p>
 
@@ -1707,7 +1707,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l487"><code>entityQuery.js:487</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l484"><code>entityQuery.js:484</code></a>
         
         </p>
 
@@ -1851,13 +1851,13 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
                 <li class="param">
                     
                         <code class="param-name">propertyPaths</code>
-                        <span class="type">String</span>
+                        <span class="type">String | Array of String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>A list of property paths seperated by ','. Each property path can optionally end with " desc" to force a descending sort order.</p>
+                        <p>A comma-separated (',') string of property paths or an array of property paths. Each property path can optionally end with " desc" to force a descending sort order.</p>
                     </div>
 
                     
@@ -1959,7 +1959,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l310"><code>entityQuery.js:310</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l309"><code>entityQuery.js:309</code></a>
         
         </p>
 
@@ -1982,13 +1982,13 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
                 <li class="param">
                     
                         <code class="param-name">propertyPaths</code>
-                        <span class="type">String</span>
+                        <span class="type">String | Array of String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>A list of property paths separated by ','.</p>
+                        <p>A comma-separated (',') string of property paths or an array of property paths.</p>
                     </div>
 
                     
@@ -2082,7 +2082,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l336"><code>entityQuery.js:336</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l334"><code>entityQuery.js:334</code></a>
         
         </p>
 
@@ -2109,13 +2109,13 @@ Any simple properties, i.e. strings, numbers or dates within a projection will n
                 <li class="param">
                     
                         <code class="param-name">propertyPaths</code>
-                        <span class="type">String</span>
+                        <span class="type">String | Array of String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>A list of property paths seperated by ','.</p>
+                        <p>A comma-separated (',') string of property paths or an array of property paths.</p>
                     </div>
 
                     
@@ -2219,7 +2219,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l376"><code>entityQuery.js:376</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l374"><code>entityQuery.js:374</code></a>
         
         </p>
 
@@ -2335,7 +2335,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l412"><code>entityQuery.js:412</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l410"><code>entityQuery.js:410</code></a>
         
         </p>
 
@@ -2450,7 +2450,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l398"><code>entityQuery.js:398</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l396"><code>entityQuery.js:396</code></a>
         
         </p>
 
@@ -2565,7 +2565,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l512"><code>entityQuery.js:512</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l509"><code>entityQuery.js:509</code></a>
         
         </p>
 
@@ -2844,7 +2844,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l460"><code>entityQuery.js:460</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l457"><code>entityQuery.js:457</code></a>
         
         </p>
 
