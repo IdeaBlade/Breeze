@@ -1966,12 +1966,18 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
             
+            if (this.complexTypeName) {
+                this.isComplexProperty = true;
+            }
+            
             // == as opposed to === is deliberate here.
             if (this.defaultValue == null) {
                 if (this.isNullable) {
                     this.defaultValue = null;
                 } else {
-                    if (this.dataType === DataType.Binary) {
+                    if (this.isComplexProperty) {
+                        // what to do?
+                    } else if (this.dataType === DataType.Binary) {
                         this.defaultValue = "AAAAAAAAJ3U="; // hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
                     } else {
                         this.defaultValue = this.dataType.defaultValue;

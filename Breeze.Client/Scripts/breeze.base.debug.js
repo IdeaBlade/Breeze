@@ -4215,7 +4215,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
-            this._complexTypeMap = {} // key is qualified complexType name - value is complexType
+            this._complexTypeMap = {}; // key is qualified complexType name - value is complexType
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -5913,12 +5913,18 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
             
+            if (this.complexTypeName) {
+                this.isComplexProperty = true;
+            }
+            
             // == as opposed to === is deliberate here.
             if (this.defaultValue == null) {
                 if (this.isNullable) {
                     this.defaultValue = null;
                 } else {
-                    if (this.dataType === DataType.Binary) {
+                    if (this.isComplexProperty) {
+                        // what to do?
+                    } else if (this.dataType === DataType.Binary) {
                         this.defaultValue = "AAAAAAAAJ3U="; // hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
                     } else {
                         this.defaultValue = this.dataType.defaultValue;

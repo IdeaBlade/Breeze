@@ -821,16 +821,12 @@
           <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
           <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
           <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
-          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
-          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
-          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
-          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
-          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
           <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
           <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
           <Property Name="HomePage" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Products" Relationship="NorthwindIBModel.FK_Product_Supplier" FromRole="Supplier" ToRole="Product" />
+          <Property Name="Location" Type="NorthwindIBModel.Location" Nullable="false" />
         </EntityType>
         <EntityType Name="Territory">
           <Key>
@@ -1094,6 +1090,13 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <ComplexType Name="Location">
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
+        </ComplexType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1273,15 +1276,17 @@
                 <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
                 <ScalarProperty Name="ContactName" ColumnName="ContactName" />
                 <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
-                <ScalarProperty Name="Address" ColumnName="Address" />
-                <ScalarProperty Name="City" ColumnName="City" />
-                <ScalarProperty Name="Region" ColumnName="Region" />
-                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
-                <ScalarProperty Name="Country" ColumnName="Country" />
                 <ScalarProperty Name="Phone" ColumnName="Phone" />
                 <ScalarProperty Name="Fax" ColumnName="Fax" />
                 <ScalarProperty Name="HomePage" ColumnName="HomePage" />
                 <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
+                <ComplexProperty Name="Location">
+                  <ScalarProperty Name="Country" ColumnName="Country" />
+                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                  <ScalarProperty Name="Region" ColumnName="Region" />
+                  <ScalarProperty Name="City" ColumnName="City" />
+                  <ScalarProperty Name="Address" ColumnName="Address" />
+                </ComplexProperty>
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -1,7 +1,7 @@
 ﻿// Only one of the next 3 should be uncommented.
-#define CODEFIRST_PROVIDER 
+// #define CODEFIRST_PROVIDER 
 // #define DATABASEFIRST_OLD
-// #define DATABASEFIRST_NEW
+#define DATABASEFIRST_NEW
 
 using System;
 using System.Net;
@@ -107,17 +107,21 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Country == country);
     }
 
-    // [Queryable]
     [HttpGet]
     public IQueryable<OrderDetail> OrderDetails() {
       return ContextProvider.Context.OrderDetails;
     }
 
-    // [Queryable]
     [HttpGet]
     public IQueryable<Product> Products() {
       return ContextProvider.Context.Products;
     }
+
+    [HttpGet]
+    public IQueryable<Supplier> Suppliers() {
+      return ContextProvider.Context.Suppliers;
+    }
+
 
     [HttpGet]
     public IQueryable<Region> Regions() {

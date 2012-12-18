@@ -20,7 +20,6 @@ namespace Models.NorthwindIB.EDMX_2012
             this.EmployeeTerritories = new HashSet<EmployeeTerritory>();
             this.Orders = new HashSet<Order>();
             this.Territories = new HashSet<Territory>();
-            this.Location = new Location();
         }
     
         public int EmployeeID { get; set; }
@@ -30,6 +29,11 @@ namespace Models.NorthwindIB.EDMX_2012
         public string TitleOfCourtesy { get; set; }
         public Nullable<System.DateTime> BirthDate { get; set; }
         public Nullable<System.DateTime> HireDate { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string Region { get; set; }
+        public string PostalCode { get; set; }
+        public string Country { get; set; }
         public string HomePhone { get; set; }
         public string Extension { get; set; }
         public byte[] Photo { get; set; }
@@ -37,8 +41,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public string PhotoPath { get; set; }
         public Nullable<int> ReportsToEmployeeID { get; set; }
         public int RowVersion { get; set; }
-    
-        public Location Location { get; set; }
     
         public virtual ICollection<Employee> DirectReports { get; set; }
         public virtual Employee Manager { get; set; }

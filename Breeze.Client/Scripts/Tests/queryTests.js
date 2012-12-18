@@ -27,6 +27,20 @@ define(["testFns"], function (testFns) {
     });
 
 
+    test("query complex", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+        
+    stop();
+    em.executeQuery(q).then(function (data) {
+        var r = data.results;
+        ok(r.length > 0);
+        
+    }).fail(testFns.handleFail).fin(start);
+});
+    
+
     
     test("query with two fields", function () {
         var em = newEm();
