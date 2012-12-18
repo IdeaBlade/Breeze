@@ -2,12 +2,10 @@ define(function (require) {
 
     var breeze = require('breeze');
     var serviceName = 'api/todos'; // route to the Web Api controller
-        
-    // *** Cross domain service example  ***
-    // serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different domain
-    // jQuery.support.cors = true; // enable for cross domain calls
-    // var ajaxImpl = breeze.config.getAdapterInstance("ajax");
-    // ajaxImpl.defaultSettings = {headers: {"Accept": "application/json"}};
+  
+    // *** Cross origin service example  ***
+    //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
+    // jQuery.support.cors = true; // enable for cross origin calls in IE10
     
     var manager = new breeze.EntityManager(serviceName);
 
