@@ -4505,7 +4505,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             // registered above.
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
-        @param entityCtor {Function}  The constructor for this EntityType.
+        @param entityCtor {Function}  The constructor for this EntityType; may be null if all you want to do is set the next parameter. 
         @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
         and populated with any initial values.
             
@@ -4514,8 +4514,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
         ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor, initializationFn) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
-            assertParam(entityCtor, "entityCtor").isFunction().check();
+            assertParam(entityCtor, "entityCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
+            if (!entityCtor) {
+                entityCtor = function() {
+                };
+            }
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
             var typeName;
             if (qualifiedTypeName) {
@@ -6454,14 +6458,13 @@ function (core, m_entityMetadata, m_entityAspect) {
              var query = new EntityQuery("Customers")
                 .orderBy("Region desc, CompanyName desc");
         @method orderBy
-        @param propertyPaths {String} A list of property paths seperated by ','. Each property path can optionally end with " desc" to force a descending sort order.
+        @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths. Each property path can optionally end with " desc" to force a descending sort order.
         @return {EntityQuery}
         @chainable
         **/
         ctor.prototype.orderBy = function (propertyPaths) {
-            core.assertParam(propertyPaths, "propertyNames").isString();
             // deliberately don't pass in isDesc
-            return orderByCore(this, propertyPaths);
+            return orderByCore(this, normalizePropertyPaths(propertyPaths));
         };
 
         /**
@@ -6481,13 +6484,12 @@ function (core, m_entityMetadata, m_entityAspect) {
                 .orderByDesc("Category.CategoryName");
 
         @method orderByDesc
-        @param propertyPaths {String} A list of property paths separated by ','.
+        @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
         @return {EntityQuery}
         @chainable
         **/
         ctor.prototype.orderByDesc = function (propertyPaths) {
-            core.assertParam(propertyPaths, "propertyNames").isString();
-            return orderByCore(this, propertyPaths, true);
+            return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
         };
         
         /**
@@ -6521,14 +6523,14 @@ function (core, m_entityMetadata, m_entityAspect) {
                 .where("Customer.CompanyName", "startsWith", "C")         
                 .select("Customer.CompanyName, Customer, OrderDate");
         @method select
-        @param propertyPaths {String} A list of property paths seperated by ','.
+        @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
         @return {EntityQuery}
         @chainable
         **/
         ctor.prototype.select = function (propertyPaths) {
-            core.assertParam(propertyPaths, "propertyPaths").isString();
-            return selectCore(this, propertyPaths);
+            return selectCore(this, normalizePropertyPaths(propertyPaths));
         };
+
 
         /**
         Returns a new query that skips the specified number of entities when returning results.
@@ -6604,14 +6606,13 @@ function (core, m_entityMetadata, m_entityAspect) {
             var query = new EntityQuery("Orders")
                 .expand("Customer, OrderDetails, OrderDetails.Product")
         @method expand
-        @param propertyPaths {String} A comma-separated list of navigation property names. Each Navigation Property name can be followed
+        @param propertyPaths {String|Array of String} A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
         by a '.' and another navigation property name to enable identifying a multi-level relationship
         @return {EntityQuery}
         @chainable
         **/
         ctor.prototype.expand = function (propertyPaths) {
-            assertParam(propertyPaths, "propertyPaths").isString().check();
-            return expandCore(this, propertyPaths);
+            return expandCore(this, normalizePropertyPaths(propertyPaths));
         };
 
         /**
@@ -7008,6 +7009,19 @@ function (core, m_entityMetadata, m_entityAspect) {
 //                return undefined;
 //            }
         }
+        
+        function normalizePropertyPaths(propertyPaths) {
+            assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
+            if (typeof propertyPaths === 'string') {
+                propertyPaths = propertyPaths.split(",");
+            }
+
+            propertyPaths = propertyPaths.map(function (pp) {
+                return pp.trim();
+            });
+            return propertyPaths;
+        }
+
 
         function buildPredicate(entity) {
             var entityType = entity.entityType;
@@ -7995,8 +8009,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         
         /*
         @method <ctor> OrderByClause
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
-        parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
+        @param propertyPaths {String|Array or String} A ',' delimited string of 'propertyPaths' or an array of property path string. Each 'propertyPath'
+        should be a valid property name or property path for the EntityType of the query associated with this clause. 
         @param [isDesc=false] {Boolean}
         */
         var ctor = function (propertyPaths, isDesc) {
@@ -8018,22 +8032,18 @@ function (core, m_entityMetadata, m_entityAspect) {
             var obc = OrderByClause.create("Company.CompanyName, LastName", true);
         @method create 
         @static
-        @param propertyPaths {String} A ',' delimited string of 'propertyPaths'. Each substring of the 'propertyPaths' 
+        @param propertyPaths {Array of String} An array of 'propertyPaths'. Each 'propertyPaths' 
         parameter should be a valid property name or property path for the EntityType of the query associated with this clause. 
         @param [isDesc=false] {Boolean}
         */
         ctor.create = function (propertyPaths, isDesc) {
-            if (typeof (propertyPaths) !== 'string') {
-                throw new Error("The propertyPaths parameter must be a string.");
-            }
-            var pathStrings = propertyPaths.split(",");
-            if (pathStrings.length > 1) {
-                var clauses = pathStrings.map(function (pp) {
+            if (propertyPaths.length > 1) {
+                var clauses = propertyPaths.map(function (pp) {
                     return new SimpleOrderByClause(pp, isDesc);
                 });
                 return new CompositeOrderByClause(clauses);
             } else {
-                return new SimpleOrderByClause(pathStrings[0], isDesc);
+                return new SimpleOrderByClause(propertyPaths[0], isDesc);
             }
         };
 
@@ -8192,12 +8202,8 @@ function (core, m_entityMetadata, m_entityAspect) {
     var SelectClause = (function () {
         
         var ctor = function (propertyPaths) {
-            assertParam(propertyPaths, "propertyPaths").isString().check();
             this.propertyPaths = propertyPaths;
-            this._pathStrings = propertyPaths.split(",").map(function(pp) {
-                return pp.trim();
-            });
-            this._pathNames = this._pathStrings.map(function(pp) {
+            this._pathNames = propertyPaths.map(function(pp) {
                 return pp.replace(".", "_");
             });
         };
@@ -8207,13 +8213,13 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return;
             } // can't validate yet
             // will throw an exception on bad propertyPath
-            this._pathStrings.forEach(function(path) {
+            this.propertyPaths.forEach(function(path) {
                 entityType.getProperty(path, true);
             });
         };
 
         ctor.prototype.toOdataFragment = function(entityType) {
-             var frag = this._pathStrings.map(function(pp) {
+            var frag = this.propertyPaths.map(function (pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
@@ -8223,7 +8229,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             var that = this;
             return function (entity) {
                 var result = {};
-                that._pathStrings.forEach(function (path, i) {
+                that.propertyPaths.forEach(function (path, i) {
                     result[that._pathNames[i]] = getPropertyPathValue(entity, path);
                 });
                 return result;
@@ -8236,11 +8242,9 @@ function (core, m_entityMetadata, m_entityAspect) {
      // Not exposed
     var ExpandClause = (function () {
         
+        // propertyPaths is an array of strings.
         var ctor = function (propertyPaths) {
             this.propertyPaths = propertyPaths;
-            this._pathStrings = propertyPaths.split(",").map(function(pp) {
-                return pp.trim();
-            });
         };
        
 //        // TODO:
@@ -8249,7 +8253,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 //        };
 
         ctor.prototype.toOdataFragment = function(entityType) {
-            var frag = this._pathStrings.map(function(pp) {
+            var frag = this.propertyPaths.map(function(pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(",");
             return frag;
@@ -9630,7 +9634,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         /**
         Attempts to fetch an entity from the server by its key with
-        an option to check the local cache first. 
+        an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+        will be used to merge any server side entity returned by this method.
         @example
             // assume em1 is an EntityManager containing a number of preexisting entities. 
             var employeeType = em1.metadataStore.getEntityType("Employee");
@@ -9679,10 +9684,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var entityKey = tpl.entityKey;
             var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
             var entity;
+            var isDeleted = false;
             if (checkLocalCacheFirst) {
                 entity = this.getEntityByKey(entityKey);
+                isDeleted = entity && entity.entityAspect.entityState.isDeleted();
+                if (isDeleted) {
+                    entity = null;
+                    if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
+                        isDeleted = false;
+                    }
+                }
             } 
-            if (entity) {
+            if (entity || isDeleted) {
                 return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
             } else {
                 return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
@@ -11344,7 +11357,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.77.2",
+        version: "0.78.2",
         core: core,
         config: a_config
     };

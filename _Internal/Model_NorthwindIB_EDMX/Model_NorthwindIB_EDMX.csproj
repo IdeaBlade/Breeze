@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Customer.extended.cs" />
     <Compile Include="NorthwindIB.Designer.cs">
       <DependentUpon>NorthwindIB.edmx</DependentUpon>
       <AutoGen>True</AutoGen>

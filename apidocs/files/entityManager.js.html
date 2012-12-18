@@ -519,6 +519,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return this;
         };
 
+        &#x2F;&#x2F; Similar logic - but more performant is performed inside of importEntityGroup.
+        &#x2F;&#x2F;function dateReviver(key, value) {
+        &#x2F;&#x2F;    var a;
+        &#x2F;&#x2F;    if (typeof value === &#x27;string&#x27;) {
+        &#x2F;&#x2F;        a = &#x2F;^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$&#x2F;.exec(value);
+        &#x2F;&#x2F;        if (a) {
+        &#x2F;&#x2F;            return new Date(Date.parse(value));
+        &#x2F;&#x2F;        }
+        &#x2F;&#x2F;    }
+        &#x2F;&#x2F;    return value;
+        &#x2F;&#x2F;};
+        
         &#x2F;**
         Clears this EntityManager&#x27;s cache but keeps all other settings. Note that this 
         method is not as fast as creating a new EntityManager via &#x27;new EntityManager&#x27;.
@@ -1101,7 +1113,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         &#x2F;**
         Attempts to fetch an entity from the server by its key with
-        an option to check the local cache first. 
+        an option to check the local cache first. Note the this EntityManager&#x27;s queryOptions.mergeStrategy 
+        will be used to merge any server side entity returned by this method.
         @example
             &#x2F;&#x2F; assume em1 is an EntityManager containing a number of preexisting entities. 
             var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
@@ -1150,10 +1163,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var entityKey = tpl.entityKey;
             var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
             var entity;
+            var isDeleted = false;
             if (checkLocalCacheFirst) {
                 entity = this.getEntityByKey(entityKey);
+                isDeleted = entity &amp;&amp; entity.entityAspect.entityState.isDeleted();
+                if (isDeleted) {
+                    entity = null;
+                    if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
+                        isDeleted = false;
+                    }
+                }
             } 
-            if (entity) {
+            if (entity || isDeleted) {
                 return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
             } else {
                 return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
@@ -1605,6 +1626,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
             var targetEntity = null;
             var dpNames = jsonGroup.dataPropertyNames;
+            var dataProperties = dpNames.map(function(dpName) {
+                return entityType.getProperty(dpName);
+            });
             var keyIxs = entityType.keyProperties.map(function (kp) {
                 return dpNames.indexOf(kp.name);
             });
@@ -1631,8 +1655,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (targetEntity) {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (shouldOverwrite || wasUnchanged) {
-                        dpNames.forEach(function (dpName, ix) {
-                            targetEntity.setProperty(dpName, rawEntity[ix]);
+                        dataProperties.forEach(function (dp, ix) {
+                            if (dp.dataType == DataType.DateTime) {
+                                targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                            } else {
+                                targetEntity.setProperty(dp.name, rawEntity[ix]);
+                            }
                         });
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         if (wasUnchanged) {
@@ -1649,8 +1677,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     }
                 } else {
                     targetEntity = entityType._createEntity(true);
-                    dpNames.forEach(function (dpName, ix) {
-                        targetEntity.setProperty(dpName, rawEntity[ix]);
+                    dataProperties.forEach(function (dp, ix) {
+                        if (dp.dataType == DataType.DateTime) {
+                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
+                        } else {
+                            targetEntity.setProperty(dp.name, rawEntity[ix]);
+                        }
                     });
                     if (newTempKeyValue !== undefined) {
                         &#x2F;&#x2F; fixup pk
@@ -2038,7 +2070,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (!core.isDate(val)) {
                         &#x2F;&#x2F; Does not work - returns time offset from GMT (i think)
                         &#x2F;&#x2F; val = new Date(val);
-                        val = core.dateFromIsoString(val);
+                        &#x2F;&#x2F; this also does not handle time zone
+                        &#x2F;&#x2F; val = core.dateFromIsoString(val);
+                        val = new Date(Date.parse(val));
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val &amp;&amp; val.$value !== undefined) {

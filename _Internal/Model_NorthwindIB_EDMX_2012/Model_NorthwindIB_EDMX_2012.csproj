@@ -59,6 +59,7 @@
     <Compile Include="Customer.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
+    <Compile Include="Customer.extended.cs" />
     <Compile Include="Employee.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>

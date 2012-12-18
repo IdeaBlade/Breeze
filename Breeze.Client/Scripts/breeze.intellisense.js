@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Dec 14 2012 17:38:54 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Mon Dec 17 2012 14:42:51 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -804,7 +804,8 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     /// <signature>
     ///   <summary>
     ///   Attempts to fetch an entity from the server by its key with
-    ///   an option to check the local cache first.
+    ///   an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+    ///   will be used to merge any server side entity returned by this method.
     ///   </summary>
     ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
@@ -1212,7 +1213,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Metadata discovery.
     ///   </summary>
     ///   <param name="entityTypeName" type="String" optional="true">The name of the EntityType</param>
-    ///   <param name="entityCtor" type="Function" optional="true">The constructor for this EntityType.</param>
+    ///   <param name="entityCtor" type="Function" optional="true">The constructor for this EntityType; may be null if all you want to do is set the next parameter.</param>
     ///   <param name="initializationFn" type="Function" optional="true">A function or the name of a function on the entity that is to be executed immediately after the entity has been created and populated with any initial values.      initializationFn(entity)</param>
     
     /// </signature>
@@ -1537,7 +1538,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   <summary>
     ///   Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','. Each property path can optionally end with ' desc' to force a descending sort order.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths. Each property path can optionally end with ' desc' to force a descending sort order.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
@@ -1546,7 +1547,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   <summary>
     ///   Returns a new query that orders the results of the query by property name in descending order.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths separated by ','.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
@@ -1559,7 +1560,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   be made 'observable'.
     ///   Any simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
@@ -1596,7 +1597,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
     ///   names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A comma-separated list of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },

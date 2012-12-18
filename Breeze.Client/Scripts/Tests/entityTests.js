@@ -17,6 +17,7 @@ define(["testFns"], function (testFns) {
     
     module("entity", {
         setup: function () {
+            breeze.DataType.DateTime.defaultValue = new Date(2000, 0, 1);
             testFns.setup();
         },
         teardown: function () {
@@ -27,8 +28,9 @@ define(["testFns"], function (testFns) {
     test("create entity with non-null dates", function() {
         var em = newEm(); // new empty EntityManager
         var userType = em.metadataStore.getEntityType("User");
-        var user = userType.createEntity();
         
+        var user = userType.createEntity();
+
         var crtnDate = user.getProperty("createdDate");
         var modDate = user.getProperty("modifiedDate");
         ok(core.isDate(crtnDate), "crtnDate is not a date");

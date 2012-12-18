@@ -738,7 +738,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             &#x2F;&#x2F; registered above.
         @method registerEntityTypeCtor
         @param entityTypeName {String} The name of the EntityType
-        @param entityCtor {Function}  The constructor for this EntityType.
+        @param entityCtor {Function}  The constructor for this EntityType; may be null if all you want to do is set the next parameter. 
         @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
         and populated with any initial values.
             
@@ -747,8 +747,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **&#x2F;
         ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor, initializationFn) {
             assertParam(entityTypeName, &quot;entityTypeName&quot;).isString().check();
-            assertParam(entityCtor, &quot;entityCtor&quot;).isFunction().check();
+            assertParam(entityCtor, &quot;entityCtor&quot;).isFunction().isOptional().check();
             assertParam(initializationFn, &quot;initializationFn&quot;).isOptional().isFunction().or().isString().check();
+            if (!entityCtor) {
+                entityCtor = function() {
+                };
+            }
             var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
             var typeName;
             if (qualifiedTypeName) {

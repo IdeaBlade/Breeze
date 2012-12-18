@@ -39,7 +39,7 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     };
-
+    
     test("noop", function() {
         var em = newEm();
         var q = new EntityQuery("Customers");
@@ -51,6 +51,52 @@ define(["testFns"], function (testFns) {
             ok(sr.entities.length == 0);
             ok(!em.hasChanges());
         }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save data with millseconds - IE bug", function() {
+        var em = newEm();
+        var dt = new Date(Date.parse("2012-12-17T13:35:15.690Z"));
+        var ms = dt.getUTCMilliseconds();
+        ok(ms === 690);
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        q.using(em).execute().then(function(data) {
+            order = data.results[0];
+            order.setProperty("shippedDate", dt);
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var sameOrder = sr.entities[0];
+            ok(order === sameOrder, "should be the sameOrder");
+            var sameDt = sameOrder.getProperty("shippedDate");
+            ok(dt.getTime() === sameDt.getTime(), "should be the same date");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save custom data annotation validation", function () {
+        // This test will fail currently with the DATABASEFIRST_OLD define. 
+        // This is because ObjectContext.SaveChanges() does not automatically validate 
+        // entities. It must be done manually.
+        var em = newEm();
+        var q = new EntityQuery("Customers").take(1);
+        stop();
+        var cust1;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1);
+            cust1 = data.results[0];
+            var region = cust1.getProperty("contactName");
+            var newRegion = region == "Error" ? "Error again" : "Error";
+            cust1.setProperty("contactName", newRegion);
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(false, "shouldn't get here");
+            
+        }).fail(function(error) {
+            ok(error.message.indexOf("the word 'Error'") > 0);
+        }).fin(start);
+
+
     });
     
     test("save date", function () {

@@ -254,7 +254,7 @@ function (core, m_validate) {
     @final
     @static
     **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: Date.now() });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
     &#x2F;**
     @property Boolean {DataType}
     @final
