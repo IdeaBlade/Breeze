@@ -101,7 +101,7 @@
           <Key>
             <PropertyRef Name="CustomerID" />
           </Key>
-          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CustomerID" Type="uniqueidentifier" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="CustomerID_OLD" Type="nchar" MaxLength="5" />
           <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
           <Property Name="ContactName" Type="nvarchar" MaxLength="30" />
@@ -492,6 +492,11 @@
             <End Role="User" EntitySet="Users" />
             <End Role="UserRole" EntitySet="UserRoles" />
           </AssociationSet>
+          <EntitySet Name="Customers" EntityType="Models.NorthwindIB.EDMX.Customer" />
+          <AssociationSet Name="FK_Order_Customer" Association="Models.NorthwindIB.EDMX.FK_Order_Customer">
+            <End Role="Customer" EntitySet="Customers" />
+            <End Role="Order" EntitySet="Orders" />
+          </AssociationSet>
           <EntitySet Name="BonusOrderDetailItems" EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" />
           <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct">
             <End Role="Product" EntitySet="Products" />
@@ -520,10 +525,14 @@
           <Property Name="ShippedDate" Type="DateTime" Precision="3" />
           <Property Name="Freight" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="ShipName" Type="String" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ShipAddress" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCity" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipRegion" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipPostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCountry" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" ConcurrencyMode="Fixed" />
           <NavigationProperty Name="Employee" Relationship="Models.NorthwindIB.EDMX.FK_Order_Employee" FromRole="Order" ToRole="Employee" />
           <NavigationProperty Name="OrderDetails" Relationship="Models.NorthwindIB.EDMX.FK_OrderDetail_Order" FromRole="Order" ToRole="OrderDetail" />
-          <Property Name="ShipLocation" Type="Models.NorthwindIB.EDMX.Location" Nullable="false" />
           <NavigationProperty Name="Customer" Relationship="Models.NorthwindIB.EDMX.FK_Order_Customer" FromRole="Order" ToRole="Customer" />
         </EntityType>
         <EntityType Name="Employee">
@@ -537,6 +546,11 @@
           <Property Type="String" Name="TitleOfCourtesy" MaxLength="25" FixedLength="false" Unicode="true" />
           <Property Type="DateTime" Name="BirthDate" Precision="3" />
           <Property Type="DateTime" Name="HireDate" Precision="3" />
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="HomePhone" MaxLength="24" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Extension" MaxLength="4" FixedLength="false" Unicode="true" />
           <Property Type="Binary" Name="Photo" MaxLength="Max" FixedLength="false" />
@@ -548,7 +562,6 @@
           <NavigationProperty Name="Manager" Relationship="Models.NorthwindIB.EDMX.FK_Employee_Employee" FromRole="Employee1" ToRole="Employee" />
           <NavigationProperty Name="EmployeeTerritories" Relationship="Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee" FromRole="Employee" ToRole="EmployeeTerritory" />
           <NavigationProperty Name="Orders" Relationship="Models.NorthwindIB.EDMX.FK_Order_Employee" FromRole="Employee" ToRole="Order" />
-          <Property Name="Location" Type="Models.NorthwindIB.EDMX.Location" Nullable="false" />
         </EntityType>
         <EntityType Name="EmployeeTerritory">
           <Key>
@@ -721,12 +734,16 @@
           <Property Type="String" Name="CompanyName" Nullable="false" MaxLength="40" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="ContactName" MaxLength="30" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="ContactTitle" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Phone" MaxLength="24" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Fax" MaxLength="24" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="HomePage" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Type="Int32" Name="RowVersion" Nullable="false" />
           <NavigationProperty Name="Products" Relationship="Models.NorthwindIB.EDMX.FK_Product_Supplier" FromRole="Supplier" ToRole="Product" />
-          <Property Name="Location" Type="Models.NorthwindIB.EDMX.Location" Nullable="false" />
         </EntityType>
         <Association Name="FK_Product_Category">
           <End Type="Models.NorthwindIB.EDMX.Category" Role="Category" Multiplicity="0..1" />
@@ -790,6 +807,37 @@
             </Principal>
             <Dependent Role="UserRole">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Customer">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Type="Guid" Name="CustomerID" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="CustomerID_OLD" MaxLength="5" FixedLength="true" Unicode="true" />
+          <Property Type="String" Name="CompanyName" Nullable="false" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="ContactName" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="ContactTitle" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Phone" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Fax" MaxLength="24" FixedLength="false" Unicode="true" />
+          <Property Type="Int32" Name="RowVersion" ConcurrencyMode="Fixed" />
+          <NavigationProperty Name="Orders" Relationship="Models.NorthwindIB.EDMX.FK_Order_Customer" FromRole="Customer" ToRole="Order" />
+        </EntityType>
+        <Association Name="FK_Order_Customer">
+          <End Type="Models.NorthwindIB.EDMX.Customer" Role="Customer" Multiplicity="0..1" />
+          <End Type="Models.NorthwindIB.EDMX.Order" Role="Order" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customer">
+              <PropertyRef Name="CustomerID" />
+            </Principal>
+            <Dependent Role="Order">
+              <PropertyRef Name="CustomerID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -868,14 +916,12 @@
             <ScalarProperty Name="ShippedDate" ColumnName="ShippedDate" />
             <ScalarProperty Name="Freight" ColumnName="Freight" />
             <ScalarProperty Name="ShipName" ColumnName="ShipName" />
+            <ScalarProperty Name="ShipAddress" ColumnName="ShipAddress" />
+            <ScalarProperty Name="ShipCity" ColumnName="ShipCity" />
+            <ScalarProperty Name="ShipRegion" ColumnName="ShipRegion" />
+            <ScalarProperty Name="ShipPostalCode" ColumnName="ShipPostalCode" />
+            <ScalarProperty Name="ShipCountry" ColumnName="ShipCountry" />
             <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
-                <ComplexProperty Name="ShipLocation">
-                  <ScalarProperty Name="Country" ColumnName="ShipCountry" />
-                  <ScalarProperty Name="PostalCode" ColumnName="ShipPostalCode" />
-                  <ScalarProperty Name="Region" ColumnName="ShipRegion" />
-                  <ScalarProperty Name="City" ColumnName="ShipCity" />
-                  <ScalarProperty Name="Address" ColumnName="ShipAddress" />
-                </ComplexProperty>
           </MappingFragment></EntityTypeMapping></EntitySetMapping>
           <EntitySetMapping Name="Employees">
             <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Employee">
@@ -887,6 +933,11 @@
                 <ScalarProperty Name="Photo" ColumnName="Photo" />
                 <ScalarProperty Name="Extension" ColumnName="Extension" />
                 <ScalarProperty Name="HomePhone" ColumnName="HomePhone" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
                 <ScalarProperty Name="HireDate" ColumnName="HireDate" />
                 <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
                 <ScalarProperty Name="TitleOfCourtesy" ColumnName="TitleOfCourtesy" />
@@ -894,13 +945,6 @@
                 <ScalarProperty Name="FirstName" ColumnName="FirstName" />
                 <ScalarProperty Name="LastName" ColumnName="LastName" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
-                <ComplexProperty Name="Location">
-                  <ScalarProperty Name="Country" ColumnName="Country" />
-                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
-                  <ScalarProperty Name="Region" ColumnName="Region" />
-                  <ScalarProperty Name="City" ColumnName="City" />
-                  <ScalarProperty Name="Address" ColumnName="Address" />
-                </ComplexProperty>
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -981,17 +1025,15 @@
                 <ScalarProperty Name="HomePage" ColumnName="HomePage" />
                 <ScalarProperty Name="Fax" ColumnName="Fax" />
                 <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
                 <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
                 <ScalarProperty Name="ContactName" ColumnName="ContactName" />
                 <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
                 <ScalarProperty Name="SupplierID" ColumnName="SupplierID" />
-                <ComplexProperty Name="Location">
-                  <ScalarProperty Name="Country" ColumnName="Country" />
-                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
-                  <ScalarProperty Name="Region" ColumnName="Region" />
-                  <ScalarProperty Name="City" ColumnName="City" />
-                  <ScalarProperty Name="Address" ColumnName="Address" />
-                </ComplexProperty>
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1023,6 +1065,25 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Customers">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Customer">
+              <MappingFragment StoreEntitySet="Customer">
+                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
+                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="CustomerID_OLD" ColumnName="CustomerID_OLD" />
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="BonusOrderDetailItems">
             <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.BonusOrderDetailItem">
               <MappingFragment StoreEntitySet="BonusOrderDetailItem">
@@ -1031,27 +1092,6 @@
                 <ScalarProperty Name="BonusProductID" ColumnName="BonusProductID" />
                 <ScalarProperty Name="ProductID" ColumnName="ProductID" />
                 <ScalarProperty Name="OrderID" ColumnName="OrderID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Customers">
-            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Customer">
-              <MappingFragment StoreEntitySet="Customer">
-                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
-                <ScalarProperty Name="Fax" ColumnName="Fax" />
-                <ScalarProperty Name="Phone" ColumnName="Phone" />
-                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
-                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
-                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
-                <ScalarProperty Name="CustomerID_OLD" ColumnName="CustomerID_OLD" />
-                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
-                <ComplexProperty Name="Location">
-                  <ScalarProperty Name="Country" ColumnName="Country" />
-                  <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
-                  <ScalarProperty Name="Region" ColumnName="Region" />
-                  <ScalarProperty Name="City" ColumnName="City" />
-                  <ScalarProperty Name="Address" ColumnName="Address" />
-                </ComplexProperty>
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1140,6 +1180,8 @@
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.User" Width="1.5" PointX="6.75" PointY="20" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.UserRole" Width="1.5" PointX="9" PointY="7.875" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_UserRole_User" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Customer" Width="1.5" PointX="1.25" PointY="12.875" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_Order_Customer" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Width="1.5" PointX="11.125" PointY="5.375" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail" />
