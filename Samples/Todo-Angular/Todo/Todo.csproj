@@ -134,6 +134,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
