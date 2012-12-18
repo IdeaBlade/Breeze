@@ -3529,7 +3529,10 @@ function (core, m_entityAspect) {
         }
         
         var that = this;
+        // need 2 propNames here because of complexTypes;
         var propName = property.name;
+        if (property.parentType)
+        var fullPropName = property.fullName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
@@ -3612,6 +3615,7 @@ function (core, m_entityAspect) {
                         }
                     }
                 } else {
+                     // To get here - the newValue is either null or undefined;
                      if (inverseProp) {
                         if (inverseProp.isScalar) {
                             // navigation property change - undo old relation
@@ -3654,10 +3658,8 @@ function (core, m_entityAspect) {
                 }
 
             } else {
-              
-                // updating a dataProperty
+                // To get here it must be a DataProperty  
                 if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
-                    
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
                         if (p == property) {
@@ -3684,6 +3686,7 @@ function (core, m_entityAspect) {
                         aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
+                
                 // update corresponding nav property if attached.
                 if (property.relatedNavigationProperty && entityManager) {
                     var relatedNavProp = property.relatedNavigationProperty;
@@ -4507,7 +4510,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(interceptor, "interceptor").isFunction().isOptional().check();
             // TODO: think about adding this to the MetadataStore.
             var entityType = new EntityType(this);
-            entityType._setEntityCtor(entityCtor, interceptor);
+            entityType._setCtor(entityCtor, interceptor);
         };
 
         /**
@@ -4549,7 +4552,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (qualifiedTypeName) {
                 var entityType = this._entityTypeMap[qualifiedTypeName];
                 if (entityType) {
-                    entityType._setEntityCtor(entityCtor);
+                    entityType._setCtor(entityCtor);
                 }
                 typeName = qualifiedTypeName;
             } else {
@@ -4596,18 +4599,31 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
             assertParam(entityTypeName, "entityTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-            var qualTypeName = getQualifiedTypeName(this, entityTypeName, false);
-            var entityType = this._entityTypeMap[qualTypeName];
-            if (!entityType) {
-                if (okIfNotFound) return null;
-                throw new Error("Unable to locate an 'EntityType' by the name: " + entityTypeName);
-            }
-            if (entityType.length) {
-                var entityTypeNames = entityType.join(",");
-                throw new Error("There are multiple entity types with this 'shortName': " + entityTypeNames);
-            }
-            return entityType;
+            return getTypeFromMap(this, this._entityTypeMap, entityTypeName, okIfNotFound);
         };
+        
+        /**
+        Returns an  {{#crossLink "EntityType"}}{{/crossLink}} given its name.
+        @example
+            // assume em1 is a preexisting EntityManager
+            var odType = em1.metadataStore.getComplexType("OrderDetail");
+        or to throw an error if the type is not found
+        @example
+            var badType = em1.metadataStore.getComplexType("Foo", false);
+            // badType will not get set and an exception will be thrown.
+        @method getComplexType
+        @param complexTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
+        that same short name an exception will be thrown. 
+        @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified ComplexType is not found.
+        @return {EntityType} The ComplexType or 'undefined' if not not found.
+        **/
+        ctor.prototype.getComplexType = function (complexTypeName, okIfNotFound) {
+            assertParam(complexTypeName, "complexTypeName").isString().check();
+            assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
+            return getTypeFromMap(this, this._complexTypeMap, complexTypeName, okIfNotFound);
+        };
+
+        
 
         /**
         Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s in this MetadataStore.
@@ -4618,16 +4634,47 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Array of EntityType}
         **/
         ctor.prototype.getEntityTypes = function () {
-            var entityTypes = [];
-            for (var key in this._entityTypeMap) {
-                var value = this._entityTypeMap[key];
+            return getTypesFromMap(this._entityTypeMap);
+        };
+        
+        /**
+        Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s in this MetadataStore.
+        @example
+            // assume em1 is a preexisting EntityManager
+            var allTypes = em1.metadataStore.getComplexTypes();
+        @method getComplexTypes
+        @return {Array of ComplexType}
+        **/
+        ctor.prototype.getComplexTypes = function () {
+            return getTypesFromMap(this._complexTypeMap);
+        };
+        
+        function getTypeFromMap(metadataStore, typeMap, typeName, okIfNotFound) {
+            
+            var qualTypeName = getQualifiedTypeName(metadataStore, typeName, false);
+            var type = typeMap[qualTypeName];
+            if (!type) {
+                if (okIfNotFound) return null;
+                throw new Error("Unable to locate an 'Type' by the name: " + typeName);
+            }
+            if (type.length) {
+                var typeNames = type.join(",");
+                throw new Error("There are multiple types with this 'shortName': " + typeNames);
+            }
+            return type;
+        };
+        
+        function getTypesFromMap(typeMap) {
+            var types = [];
+            for (var key in typeMap) {
+                var value = typeMap[key];
                 // skip 'shortName' entries
                 if (key === value.name) {
-                    entityTypes.push(this._entityTypeMap[key]);
+                    types.push(typeMap[key]);
                 }
             }
-            return entityTypes;
-        };
+            return types;
+        }
 
         ctor.prototype.getIncompleteNavigationProperties = function() {
             return core.objectMapToArray(this._entityTypeMap, function(key, value) {
@@ -4713,6 +4760,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         });
                     });
                 }
+                // process complextypes before entity types.
+                if (schema.complexType) {
+                    toArray(schema.complexType).forEach(function (ct) {
+                        var complexType = convertFromODataComplexType(ct, schema, that);
+                    });
+                }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
                         var entityType = convertFromODataEntityType(et, schema, that);
@@ -4722,17 +4775,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         if (entityCtor) {
                              // next line is in case the entityType was originally registered with a shortname.
                              entityCtor.prototype._$typeName = entityType.name; 
-                             entityType._setEntityCtor(entityCtor);
+                             entityType._setCtor(entityCtor);
                              that._entityTypeMap[entityType.name] = entityType;
                         }
                             
                     });
                 }
-                if (schema.complexType) {
-                    toArray(schema.complexType).forEach(function (ct) {
-                        var complexType = convertFromODataComplexType(ct, schema, that);
-                    });
-                }
+
             });
             var badNavProps = this.getIncompleteNavigationProperties();
             if (badNavProps.length > 0) {
@@ -4742,11 +4791,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         
 
-        function getQualifiedTypeName(metadataStore, entityTypeName, throwIfNotFound) {
-            if (isQualifiedTypeName(entityTypeName)) return entityTypeName;
-            var result = metadataStore._shortNameMap[entityTypeName];
+        function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
+            if (isQualifiedTypeName(structTypeName)) return structTypeName;
+            var result = metadataStore._shortNameMap[structTypeName];
             if (!result && throwIfNotFound) {
-                throw new Error("Unable to locate 'entityTypeName' of: " + entityTypeName);
+                throw new Error("Unable to locate 'entityTypeName' of: " + structTypeName);
             }
             return result;
         }
@@ -4760,11 +4809,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
-                convertFromOdataDataProperty(entityType, prop, keyNamesOnServer);
+                convertFromODataDataProperty(entityType, prop, schema, keyNamesOnServer);
             });
             
             toArray(odataEntityType.navigationProperty).forEach(function (prop) {
-                convertFromOdataNavProperty(entityType, prop, schema);
+                convertFromODataNavProperty(entityType, prop, schema);
             });
             metadataStore.addEntityType(entityType);
             return entityType;
@@ -4779,20 +4828,20 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             });
             
             toArray(odataComplexType.property).forEach(function (prop) {
-                convertFromOdataDataProperty(complexType, prop, null);
+                convertFromODataDataProperty(complexType, prop, schema);
             });
             
             metadataStore.addComplexType(complexType);
             return complexType;
         }
 
-        function convertFromOdataDataProperty(parentType, odataProperty, keyNamesOnServer) {
+        function convertFromODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
             var dp;
             var typeParts = odataProperty.type.split(".");
             if (typeParts.length == 2) {
                 dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
             } else {
-                dp = convertFromODataComplexProperty(parentType, odataProperty);
+                dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
             }
             parentType.addProperty(dp);
             addValidators(dp);
@@ -4825,25 +4874,29 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return dp;
         }
         
-        function convertFromODataComplexProperty(parentType, odataProperty, keyNamesOnServer) {
+        function convertFromODataComplexProperty(parentType, odataProperty, schema) {
             
             var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-            var complexTypeName = odataProperty.type.split("Edm.")[1];
+            // var complexTypeName = odataProperty.type.split("Edm.")[1];
+            var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 complexTypeName: complexTypeName,
-                isNullable: false,
+                isNullable: isNullable,
             });
+            
             return dp;
         }
 
         function addValidators(dataProperty) {
-
+            if (dataProperty.isComplexProperty) return;
+            
             var typeValidator;
             if (!dataProperty.isNullable) {
                 dataProperty.validators.push(Validator.required());
             }
+
             if (dataProperty.dataType === DataType.String) {
                 if (dataProperty.maxLength) {
                     var validatorArgs = { maxLength: dataProperty.maxLength };
@@ -4859,7 +4912,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         }
 
-        function convertFromOdataNavProperty(entityType, odataProperty, schema) {
+        function convertFromODataNavProperty(entityType, odataProperty, schema) {
             var association = getAssociation(odataProperty, schema);
             var toEnd = core.arrayFirst(association.end, function (assocEnd) {
                 return assocEnd.role === odataProperty.toRole;
@@ -5232,30 +5285,32 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Function} The constructor for this EntityType.
         **/
         ctor.prototype.getEntityCtor = function () {
-            if (this._entityCtor) return this._entityCtor;
+            if (this._ctor) return this._ctor;
             var typeRegistry = this.metadataStore._typeRegistry;
-            var entityCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
-            if (!entityCtor) {
+            var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
+            if (!aCtor) {
                 var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
                 if (createCtor) {
-                    entityCtor = createCtor(this);
+                    aCtor = createCtor(this);
                 } else {
-                    entityCtor = function() {
+                    aCtor = function() {
                     };
                 }
             }
-            this._setEntityCtor(entityCtor);
-            return entityCtor;
+            this._setCtor(aCtor);
+            return aCtor;
         };
 
         // May make public later.
-        ctor.prototype._setEntityCtor = function (entityCtor, interceptor) {
-            var instance = new entityCtor();
+        ctor.prototype._setCtor = function (aCtor, interceptor) {
+            var instance = new aCtor();
 
-            // insure that all of the properties are on the 'template' instance before watching the class.
-            calcUnmappedProperties(this, instance);
+            if (this._$typeName == "EntityType") {
+                // insure that all of the properties are on the 'template' instance before watching the class.
+                calcUnmappedProperties(this, instance);
+            }
 
-            var proto = entityCtor.prototype;
+            var proto = aCtor.prototype;
             proto.entityType = this;
 
             if (interceptor) {
@@ -5266,7 +5321,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             v_modelLibraryDef.defaultInstance.initializeEntityPrototype(proto);
 
-            this._entityCtor = entityCtor;
+            this._ctor = aCtor;
         };
 
         /**
@@ -5387,9 +5442,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             throwIfNotFound = throwIfNotFound || false;
             var propertyNames = (Array.isArray(propertyPath)) ? propertyPath : propertyPath.trim().split('.');
             var propertyName = propertyNames[0];
+            var prop = core.arrayFirst(this.getProperties(), core.propEq("name", propertyName));
             if (propertyNames.length === 1) {
-                var prop = core.arrayFirst(this.getProperties(), core.propEq("name", propertyName));
-
                 if (prop) {
                     return prop;
                 } else if (throwIfNotFound) {
@@ -5398,17 +5452,22 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     return null;
                 }
             } else {
-                var navProp = this.getNavigationProperty(propertyName);
-                if (!navProp) {
+                if (prop) {
+                    propertyNames.shift();
+                    // dataType is line below will be a complexType
+                    var nextParentType = prop.isNavigationProperty ? prop.entityType : prop.dataType;
+                    if (nextParentType) {
+                        return nextParentType.getProperty(propertyNames, throwIfNotFound);
+                    } else {
+                        throw new Error("should not get here - unknown property type for: " + prop.name);
+                    }
+                } else {
                     if (throwIfNotFound) {
-                        throw new Error("unable to locate navigation property: " + propertyName + " on entityType: " + this.name);
+                        throw new Error("unable to locate property: " + propertyName + " on type: " + this.name);
                     } else {
                         return null;
                     }
                 }
-                propertyNames.shift();
-                var nextEntityType = navProp.entityType;
-                return nextEntityType.getProperty(propertyNames, throwIfNotFound);
             }
         };
 
@@ -5481,7 +5540,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return result;
         };
 
-        ctor.prototype._updatePropertyNames = function (property) {
+        ctor.prototype._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;
             var serverName = property.nameOnServer;
             var clientName, testName;
@@ -5500,6 +5559,25 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
                 }
                 property.nameOnServer = serverName;
+            }
+            
+            if (property.isComplexProperty) {
+                // Not ok to not find it. - all complex types should be resolved before they are ref'd.
+                var targetComplexType = this.metadataStore.getComplexType(property.complexTypeName, false);
+                if (targetComplexType) {
+                    property.dataType = targetComplexType;
+                    property.defaultValue = property.isNullable ? null : targetComplexType.createComplexObject();
+                } else {
+                    throw new Error("Unable to resolve ComplexType with the name: " + property.complexTypeName + " for the property: " + property.name);
+                }
+            } else if (property.isNavigationProperty) {
+                // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+                resolveFks(property);
+                // Tries to set - these two may get set later
+                // this.inverse
+                // this.entityType
+                updateCrossEntityRelationship(property);
+                
             }
         };
 
@@ -5528,7 +5606,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype._addDataProperty = function (dp) {
 
             this.dataProperties.push(dp);
-
+            
             if (dp.isPartOfKey) {
                 this.keyProperties.push(dp);
             };
@@ -5555,15 +5633,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype._fixup = function () {
             var that = this;
             this.getProperties().forEach(function (property) {
-                that._updatePropertyNames(property);
-            });
-            this.navigationProperties.forEach(function (np) {
-                // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-                resolveFks(np);
-                // Tries to set - these two may get set later
-                // this.inverse
-                // this.entityType
-                updateCrossEntityRelationship(np);
+                that._updateProperty(property);
             });
             updateIncomplete(this);
         };
@@ -5734,18 +5804,51 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.dataProperties = [];
         };
 
+        
+        ctor.prototype.createComplexObject = function (initialValues) {
+            var aCtor = this.getCtor();
+            var co = aCtor();
+            if (initialValues) {
+                core.objectForEach(initialValues, function (key, value) {
+                    co.setProperty(key, value);
+                });
+            }
+            return co;
+        };
+
         ctor.prototype.addProperty = function (dataProperty) {
+            assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
+            if (this.metadataStore && !property.isUnmapped) {
+                throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
+            }
+            if (dataProperty.parentType) {
+                if (property.parentType !== this) {
+                    throw new Error("This dataProperty has already been added to " + property.parentType.name);
+                } else {
+                    return this;
+                }
+            }
+
             this.dataProperties.push(dataProperty);
             dataProperty.parentType = this;
+            return this;
+        };
+        
+        ctor.prototype.getProperties = function () {
+            return this.dataProperties;
         };
 
         ctor.prototype.addValidator = EntityType.prototype.addValidator;
-        ctor.prototype._updatePropertyNames = EntityType.prototype._updatePropertyNames;
+        ctor.prototype.getProperty = EntityType.prototype.getProperty;
+        ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
+        // note the name change.
+        ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;
+        ctor.prototype._setCtor = EntityType.prototype._setCtor;
         
         ctor.prototype._fixup = function () {
             var that = this;
             this.dataProperties.forEach(function (property) {
-                that._updatePropertyNames(property);
+                that._updateProperty(property);
             });
         };
 
@@ -5794,7 +5897,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertConfig(config)
                 .whereParam("name").isString().isOptional()
                 .whereParam("nameOnServer").isString().isOptional()
-                .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType).withDefault(DataType.String)
+                .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
                 .whereParam("complexTypeName").isOptional()
                 .whereParam("isNullable").isBoolean().isOptional().withDefault(false)
                 .whereParam("defaultValue").isOptional()
@@ -10465,8 +10568,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
 
-        
-
         // returns a promise
         function executeQueryCore(em, query) {
             try {
@@ -12260,21 +12361,24 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         bbGet = Backbone.Model.prototype.get;
     };
 
-    ctor.prototype.createCtor = function(entityType) {
+    // may be an entityType or a complexType
+    ctor.prototype.createCtor = function(structuralType) {
         var defaults = { };
-        entityType.dataProperties.forEach(function(dp) {
+        structuralType.dataProperties.forEach(function (dp) {
             defaults[dp.name] = dp.defaultValue;
         });
         var modelCtor = Backbone.Model.extend({
             defaults: defaults,
-            initialize: function() {
-                var that = this;
-                entityType.navigationProperties.forEach(function(np) {
-                    if (!np.isScalar) {
-                        var val = breeze.makeRelationArray([], that, np);
-                        Backbone.Model.prototype.set.call(that, np.name, val);
-                    }
-                });
+            initialize: function () {
+                if (structuralType.navigationProperties) {
+                    var that = this;
+                    structuralType.navigationProperties.forEach(function (np) {
+                        if (!np.isScalar) {
+                            var val = breeze.makeRelationArray([], that, np);
+                            Backbone.Model.prototype.set.call(that, np.name, val);
+                        }
+                    });
+                }
             }
         });
         return modelCtor;
