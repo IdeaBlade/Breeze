@@ -4,10 +4,12 @@ app.dataservice = (function (breeze, logger) {
     
     var serviceName = 'api/todos'; // route to the same domain Web Api controller
    
-    // Cross domain service example
-    //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different domain
-    //jQuery.support.cors = true; // enable for cross domain calls
-    
+    // *** Cross domain service example  ***
+    // var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different domain
+    // jQuery.support.cors = true; // enable for cross domain calls
+    // var ajaxImpl = breeze.config.getAdapterInstance("ajax");
+    // ajaxImpl.defaultSettings = {headers: {"Accept": "application/json"}};
+
     var manager = new breeze.EntityManager(serviceName);
     var _isSaving = false;
     
