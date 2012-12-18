@@ -17,6 +17,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public Order()
         {
             this.OrderDetails = new HashSet<OrderDetail>();
+            this.ShipLocation = new Location();
         }
     
         public int OrderID { get; set; }
@@ -27,16 +28,13 @@ namespace Models.NorthwindIB.EDMX_2012
         public Nullable<System.DateTime> ShippedDate { get; set; }
         public Nullable<decimal> Freight { get; set; }
         public string ShipName { get; set; }
-        public string ShipAddress { get; set; }
-        public string ShipCity { get; set; }
-        public string ShipRegion { get; set; }
-        public string ShipPostalCode { get; set; }
-        public string ShipCountry { get; set; }
         public int RowVersion { get; set; }
     
-        public virtual Customer Customer { get; set; }
+        public Location ShipLocation { get; set; }
+    
         public virtual Employee Employee { get; set; }
         public virtual InternationalOrder InternationalOrder { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual Customer Customer { get; set; }
     }
 }
