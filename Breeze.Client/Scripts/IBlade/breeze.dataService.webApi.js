@@ -112,6 +112,7 @@
         ajaxImpl.ajax({
             url: url,
             type: "POST",
+            dataType: 'json',
             contentType: "application/json",
             data: saveBundleStringified,
             success: function(data, textStatus, jqXHR) {
