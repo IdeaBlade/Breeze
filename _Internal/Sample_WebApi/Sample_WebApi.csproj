@@ -229,6 +229,10 @@
       <Link>Scripts\Tests\classRewriteTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\complexTypeTests.js">
+      <Link>Scripts\Tests\complexTypeTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\entityManagerTests.js">
       <Link>Scripts\Tests\entityManagerTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

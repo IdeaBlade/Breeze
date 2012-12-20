@@ -2383,6 +2383,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         MetadataStore: MetadataStore,
         DataService: DataService,
         EntityType: EntityType,
+        ComplexType: ComplexType,
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
         DataType: DataType,

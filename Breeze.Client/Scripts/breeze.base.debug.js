@@ -4618,13 +4618,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
-                if (createCtor) {
-                    aCtor = createCtor(this);
-                } else {
-                    aCtor = function () {
-                    };
-                }
+                aCtor = function () {
+                };
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -6422,6 +6417,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         MetadataStore: MetadataStore,
         DataService: DataService,
         EntityType: EntityType,
+        ComplexType: ComplexType,
         DataProperty: DataProperty,
         NavigationProperty: NavigationProperty,
         DataType: DataType,

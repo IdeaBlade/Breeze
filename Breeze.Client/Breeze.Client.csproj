@@ -44,6 +44,7 @@
     <Content Include="Scripts\IBlade\build.full.js" />
     <Content Include="Scripts\IBlade\config.js" />
     <Content Include="Scripts\IBlade\promise.js" />
+    <Content Include="Scripts\Tests\complexTypeTests.js" />
     <Content Include="Scripts\Tests\queryNonEFTests.js" />
     <Content Include="Scripts\Tests\querySelectTests.js" />
     <Content Include="Scripts\Tests\queryLocalTests.js" />
