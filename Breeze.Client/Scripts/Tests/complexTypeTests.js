@@ -96,6 +96,28 @@ define(["testFns"], function (testFns) {
 
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("assign complex property with null", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var supplier0 = r[0];
+            var location0 = supplier0.getProperty("location");
+            try {
+                supplier0.setProperty("location", null);
+                ok(false, "shouldn't get here");
+            } catch(e) {
+                ok(e.message.toLowerCase().indexOf("complextype") >= 0, "message should mention complexType");
+            }
+
+
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     return testFns;
 
