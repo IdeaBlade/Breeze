@@ -3421,14 +3421,14 @@ function (core, a_config, m_validate) {
         };
 
         ctor.prototype._postInitialize = function() {
-            var entity = this.entity;
-            var entityCtor = entity.entityType.getEntityCtor();
-            var initFn = entityCtor._$initializationFn;
+            var co = this.complexObject;
+            var aCtor = co.complexType.getCtor();
+            var initFn = aCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
-                    entity[initFn](entity);
+                    co[initFn](co);
                 } else {
-                    entityCtor._$initializationFn(entity);
+                    aCtor._$initializationFn(co);
                 }
             }
         };
@@ -4618,8 +4618,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
+                if (createCtor) {
+                    aCtor = createCtor(this);
+                } else {
+                    aCtor = function () {
+                    };
+                }
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -5610,7 +5615,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
                 if (targetComplexType && targetComplexType instanceof ComplexType) {
                     property.dataType = targetComplexType;
-                    property.defaultValue = property.isNullable ? null : targetComplexType.createComplexObject();
+                    property.defaultValue = null;
                 } else {
                     throw new Error("Unable to resolve ComplexType with the name: " + property.complexTypeName + " for the property: " + property.name);
                 }

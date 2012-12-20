@@ -3421,14 +3421,14 @@ function (core, a_config, m_validate) {
         };
 
         ctor.prototype._postInitialize = function() {
-            var entity = this.entity;
-            var entityCtor = entity.entityType.getEntityCtor();
-            var initFn = entityCtor._$initializationFn;
+            var co = this.complexObject;
+            var aCtor = co.complexType.getCtor();
+            var initFn = aCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
-                    entity[initFn](entity);
+                    co[initFn](co);
                 } else {
-                    entityCtor._$initializationFn(entity);
+                    aCtor._$initializationFn(co);
                 }
             }
         };
@@ -4618,8 +4618,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
+                if (createCtor) {
+                    aCtor = createCtor(this);
+                } else {
+                    aCtor = function () {
+                    };
+                }
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -5610,7 +5615,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
                 if (targetComplexType && targetComplexType instanceof ComplexType) {
                     property.dataType = targetComplexType;
-                    property.defaultValue = property.isNullable ? null : targetComplexType.createComplexObject();
+                    property.defaultValue = null;
                 } else {
                     throw new Error("Unable to resolve ComplexType with the name: " + property.complexTypeName + " for the property: " + property.name);
                 }
@@ -12272,6 +12277,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 }(function(breeze) {
     
     var core = breeze.core;
+    var ComplexAspect = breeze.ComplexAspect;
 
     var ko;
 
@@ -12336,7 +12342,8 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         // force unmapped properties to the end
-        entity.entityType.getProperties().sort(function (p1, p2) {
+        var stype = entity.entityType || entity.complexType;
+        stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
             return v1 - v2;
@@ -12354,7 +12361,12 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
             } else {
                 // if not
                 if (prop.isDataProperty) {
-                    if (val === undefined) {
+                    if (prop.isComplexProperty) {
+                        var coCtor = prop.dataType.getCtor();
+                        var co = new coCtor();
+                        new ComplexAspect(co, entity, prop.name, false);
+                        val = co;
+                    } else if (val === undefined) {
                         val = prop.defaultValue;
                     }
                     koObj = ko.observable(val);
@@ -12427,6 +12439,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 }(function(breeze) {
     
     var core = breeze.core;
+    var ComplexAspect = breeze.ComplexAspect;
 
     var Backbone;
     var _;
@@ -12492,11 +12505,13 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         proto.set = function(key, value, options) {
             // call Backbone validate first - we need this because if it fails we don't want to call the Breeze interceptor.
             // if valid then call Breeze interceptor which will call Backbone's internal set
-            if (!this.entityAspect) {
+            var aspect = this.entityAspect || this.complexAspect;
+            if (!aspect) {
                 return bbSet.call(this, key, value, options);
             }
             var attrs, prop, propName;
             var that = this;
+            var stype = this.entityType || this.complexType;
             // Handle both `"key", value` and `{key: value}` -style arguments.
             if (_.isObject(key) || key == null) {
                 attrs = key;
@@ -12505,7 +12520,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 // TODO: suppress validate here
                 for (propName in attrs) {
                     if (hasOwnProperty.call(attrs, propName)) {
-                        prop = this.entityType.getProperty(propName);
+                        prop = stype.getProperty(propName);
                         if (prop == null) {
                             throw new Error("Unknown property: " + key);
                         }
@@ -12524,7 +12539,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 options || (options = { });
                 if (!this._validate(attrs, options)) return false;
                 // TODO: suppress validate here
-                prop = this.entityType.getProperty(key);
+                prop = stype.getProperty(key);
                 if (prop == null) {
                     throw new Error("Unknown property: " + key);
                 }
@@ -12550,13 +12565,18 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     // called when the entityAspect is first created for an entity
     ctor.prototype.startTracking = function(entity, proto) {
         if (!(entity instanceof Backbone.Model)) {
-            throw Error("This entity is not an Backbone.Model instance");
+            throw new Error("This entity is not an Backbone.Model instance");
         }
-        var entityType = entity.entityType;
+        var stype = entity.entityType || entity.complexType;
         var attributes = entity.attributes;
         // Update so that every data and navigation property has a value. 
-        entityType.dataProperties.forEach(function(dp) {
-            if (dp.name in attributes) {
+        stype.dataProperties.forEach(function (dp) {
+            if (dp.isComplexProperty) {
+                var coCtor = dp.dataType.getCtor();
+                var co = new coCtor();
+                new ComplexAspect(co, entity, dp.name, false);
+                bbSet.call(entity, dp.name, co);
+            } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
                     bbSet.call(entity, dp.name, dp.defaultValue);
                 }
@@ -12564,37 +12584,40 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 bbSet.call(entity, dp.name, dp.defaultValue);
             }
         });
-        entityType.navigationProperties.forEach(function(np) {
-            var msg;
-            if (np.name in attributes) {
-                var val = bbGet.call(entity, np.name);
-                if (np.isScalar) {
-                    if (val && !val.entityType) {
-                        msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
-                            np.name, entity.entityType.name);
-                        throw new Error(msg);
-                    }
-                } else {
-                    if (val) {
-                        if (!val.parentEntity) {
-                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+        
+        if (stype.navigationProperties) {
+            stype.navigationProperties.forEach(function(np) {
+                var msg;
+                if (np.name in attributes) {
+                    var val = bbGet.call(entity, np.name);
+                    if (np.isScalar) {
+                        if (val && !val.entityType) {
+                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
                                 np.name, entity.entityType.name);
                             throw new Error(msg);
                         }
+                    } else {
+                        if (val) {
+                            if (!val.parentEntity) {
+                                msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+                                    np.name, entity.entityType.name);
+                                throw new Error(msg);
+                            }
+                        } else {
+                            val = breeze.makeRelationArray([], entity, np);
+                            bbSet.call(entity, np.name, val);
+                        }
+                    }
+                } else {
+                    if (np.isScalar) {
+                        bbSet.call(entity, np.name, null);
                     } else {
                         val = breeze.makeRelationArray([], entity, np);
                         bbSet.call(entity, np.name, val);
                     }
                 }
-            } else {
-                if (np.isScalar) {
-                    bbSet.call(entity, np.name, null);
-                } else {
-                    val = breeze.makeRelationArray([], entity, np);
-                    bbSet.call(entity, np.name, val);
-                }
-            }
-        });
+            });
+        }
     };
 
     breeze.config.registerAdapter("modelLibrary", ctor);

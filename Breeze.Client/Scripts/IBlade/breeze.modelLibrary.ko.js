@@ -13,6 +13,7 @@
 }(function(breeze) {
     
     var core = breeze.core;
+    var ComplexAspect = breeze.ComplexAspect;
 
     var ko;
 
@@ -77,7 +78,8 @@
     ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         // force unmapped properties to the end
-        entity.entityType.getProperties().sort(function (p1, p2) {
+        var stype = entity.entityType || entity.complexType;
+        stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
             return v1 - v2;
@@ -95,7 +97,12 @@
             } else {
                 // if not
                 if (prop.isDataProperty) {
-                    if (val === undefined) {
+                    if (prop.isComplexProperty) {
+                        var coCtor = prop.dataType.getCtor();
+                        var co = new coCtor();
+                        new ComplexAspect(co, entity, prop.name, false);
+                        val = co;
+                    } else if (val === undefined) {
                         val = prop.defaultValue;
                     }
                     koObj = ko.observable(val);

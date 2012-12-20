@@ -1576,7 +1576,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
                 if (targetComplexType && targetComplexType instanceof ComplexType) {
                     property.dataType = targetComplexType;
-                    property.defaultValue = property.isNullable ? null : targetComplexType.createComplexObject();
+                    property.defaultValue = null;
                 } else {
                     throw new Error("Unable to resolve ComplexType with the name: " + property.complexTypeName + " for the property: " + property.name);
                 }

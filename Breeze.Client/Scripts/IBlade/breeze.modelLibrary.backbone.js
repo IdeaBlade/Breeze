@@ -13,6 +13,7 @@
 }(function(breeze) {
     
     var core = breeze.core;
+    var ComplexAspect = breeze.ComplexAspect;
 
     var Backbone;
     var _;
@@ -78,11 +79,13 @@
         proto.set = function(key, value, options) {
             // call Backbone validate first - we need this because if it fails we don't want to call the Breeze interceptor.
             // if valid then call Breeze interceptor which will call Backbone's internal set
-            if (!this.entityAspect) {
+            var aspect = this.entityAspect || this.complexAspect;
+            if (!aspect) {
                 return bbSet.call(this, key, value, options);
             }
             var attrs, prop, propName;
             var that = this;
+            var stype = this.entityType || this.complexType;
             // Handle both `"key", value` and `{key: value}` -style arguments.
             if (_.isObject(key) || key == null) {
                 attrs = key;
@@ -91,7 +94,7 @@
                 // TODO: suppress validate here
                 for (propName in attrs) {
                     if (hasOwnProperty.call(attrs, propName)) {
-                        prop = this.entityType.getProperty(propName);
+                        prop = stype.getProperty(propName);
                         if (prop == null) {
                             throw new Error("Unknown property: " + key);
                         }
@@ -110,7 +113,7 @@
                 options || (options = { });
                 if (!this._validate(attrs, options)) return false;
                 // TODO: suppress validate here
-                prop = this.entityType.getProperty(key);
+                prop = stype.getProperty(key);
                 if (prop == null) {
                     throw new Error("Unknown property: " + key);
                 }
@@ -136,13 +139,18 @@
     // called when the entityAspect is first created for an entity
     ctor.prototype.startTracking = function(entity, proto) {
         if (!(entity instanceof Backbone.Model)) {
-            throw Error("This entity is not an Backbone.Model instance");
+            throw new Error("This entity is not an Backbone.Model instance");
         }
-        var entityType = entity.entityType;
+        var stype = entity.entityType || entity.complexType;
         var attributes = entity.attributes;
         // Update so that every data and navigation property has a value. 
-        entityType.dataProperties.forEach(function(dp) {
-            if (dp.name in attributes) {
+        stype.dataProperties.forEach(function (dp) {
+            if (dp.isComplexProperty) {
+                var coCtor = dp.dataType.getCtor();
+                var co = new coCtor();
+                new ComplexAspect(co, entity, dp.name, false);
+                bbSet.call(entity, dp.name, co);
+            } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
                     bbSet.call(entity, dp.name, dp.defaultValue);
                 }
@@ -150,37 +158,40 @@
                 bbSet.call(entity, dp.name, dp.defaultValue);
             }
         });
-        entityType.navigationProperties.forEach(function(np) {
-            var msg;
-            if (np.name in attributes) {
-                var val = bbGet.call(entity, np.name);
-                if (np.isScalar) {
-                    if (val && !val.entityType) {
-                        msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
-                            np.name, entity.entityType.name);
-                        throw new Error(msg);
-                    }
-                } else {
-                    if (val) {
-                        if (!val.parentEntity) {
-                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+        
+        if (stype.navigationProperties) {
+            stype.navigationProperties.forEach(function(np) {
+                var msg;
+                if (np.name in attributes) {
+                    var val = bbGet.call(entity, np.name);
+                    if (np.isScalar) {
+                        if (val && !val.entityType) {
+                            msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or another entity",
                                 np.name, entity.entityType.name);
                             throw new Error(msg);
                         }
+                    } else {
+                        if (val) {
+                            if (!val.parentEntity) {
+                                msg = core.formatString("The value of the '%1' property for entityType: '%2' must be either null or a Breeze relation array",
+                                    np.name, entity.entityType.name);
+                                throw new Error(msg);
+                            }
+                        } else {
+                            val = breeze.makeRelationArray([], entity, np);
+                            bbSet.call(entity, np.name, val);
+                        }
+                    }
+                } else {
+                    if (np.isScalar) {
+                        bbSet.call(entity, np.name, null);
                     } else {
                         val = breeze.makeRelationArray([], entity, np);
                         bbSet.call(entity, np.name, val);
                     }
                 }
-            } else {
-                if (np.isScalar) {
-                    bbSet.call(entity, np.name, null);
-                } else {
-                    val = breeze.makeRelationArray([], entity, np);
-                    bbSet.call(entity, np.name, val);
-                }
-            }
-        });
+            });
+        }
     };
 
     breeze.config.registerAdapter("modelLibrary", ctor);
