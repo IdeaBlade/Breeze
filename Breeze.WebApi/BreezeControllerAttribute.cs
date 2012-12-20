@@ -19,13 +19,8 @@ namespace Breeze.WebApi
             // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
             settings.Services.Replace(typeof(IFilterProvider), _filterProvider);
 
-            // remove the XML formatter because can't format controller output as XML
-            var xmlFormatter = settings.Formatters.XmlFormatter;
-            settings.Formatters.Remove(xmlFormatter);
-
-            // replace the global JSON formatter with the Breeze version
-            var jsonFormatter = settings.Formatters.JsonFormatter;
-            settings.Formatters.Remove(jsonFormatter);
+            // remove all formatters and add only the Breeze JsonFormatter
+            settings.Formatters.Clear(); 
             settings.Formatters.Add(_jsonFormatter);
         }
 
