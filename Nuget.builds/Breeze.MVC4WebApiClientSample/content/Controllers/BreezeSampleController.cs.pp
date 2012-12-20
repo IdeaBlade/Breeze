@@ -7,7 +7,7 @@ using Breeze.WebApi;
 using $rootnamespace$.Models;
 namespace $rootnamespace$.Controllers {
   
-    [JsonFormatter, ODataActionFilter]
+    [BreezeController]
     public class BreezeSampleController : ApiController {
 
         readonly EFContextProvider<BreezeSampleContext> _contextProvider =
