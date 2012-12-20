@@ -51,6 +51,7 @@ namespace Sample_WebApi.Controllers {
       
   }
 
+  [BreezeController]
   public class NorthwindIBModelController : ApiController {
 
 
