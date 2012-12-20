@@ -43,7 +43,7 @@ define(["testFns"], function (testFns) {
         var dataService = core.config.getAdapterInstance("dataService");
         dataService.fetchMetadata(store, testFns.serviceName, function () {
 
-            var typeMap = store._entityTypeMap;
+            var typeMap = store._structuralTypeMap;
             var types = objectValues(typeMap);
             ok(types.length > 0);
             var custType = store.getEntityType("Customer");
@@ -86,12 +86,12 @@ define(["testFns"], function (testFns) {
         };
         var dataService = core.config.getAdapterInstance("dataService");
         dataService.fetchMetadata(store, testFns.serviceName, function () {
-            typeMap = store._entityTypeMap;
+            typeMap = store._structuralTypeMap;
             ok(true, "should get here");
             sc.start();
         }, errFn);
         dataService.fetchMetadata(store, testFns.serviceName, function () {
-            typeMap = store._entityTypeMap;
+            typeMap = store._structuralTypeMap;
             ok(true, "should also get here");
             sc.start();
         }, errFn);

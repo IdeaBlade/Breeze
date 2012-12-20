@@ -821,8 +821,76 @@ function (core, a_config, m_validate) {
 
         return ctor;
 
-    } ();
+    }();
 
+    var ComplexAspect = function() {
+        /**
+        An ComplexAspect instance is associated with every attached complexObject and is accessed via the complexObject's 'complexAspect' property. 
+        
+        
+        @class ComplexAspect
+        **/
+        var ctor = function(complexObject, parent, parentProperty, deferInitialization) {
+            if (!complexObject) {
+                throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
+            }
+            if (complexObject.complexAspect) {
+                return complexObject.complexAspect;
+            }
+            // if called without new
+            if (!(this instanceof ComplexAspect)) {
+                return new ComplexAspect(complexObject, deferInitialization);
+            }
+
+            // entityType should already be on the entity from 'watch'
+            this.complexObject = complexObject;
+            complexObject.complexAspect = this;
+
+            // TODO: keep public or not?
+            this.parent = parent;
+            this.parentProperty = parentProperty;
+            this.originalValues = {};
+            // get the final parent's entityAspect.
+            var nextParent = parent;
+            while (nextParent.complexType) {
+                nextParent = nextParent.complexType.parent;
+            }
+            this.entityAspect = nextParent.entityAspect;
+
+            var complexType = complexObject.complexType;
+            if (!complexType) {
+                var typeName = complexObject.prototype._$typeName;
+                if (!typeName) {
+                    throw new Error("This entity is not registered as a valid ComplexType");
+                } else {
+                    throw new Error("Metadata for this complexType has not yet been resolved: " + typeName);
+                }
+            }
+            var complexCtor = complexType.getCtor();
+            v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
+            if (!deferInitialization) {
+                this._postInitialize();
+            }
+
+        };
+
+        ctor.prototype._postInitialize = function() {
+            var co = this.complexObject;
+            var aCtor = co.complexType.getCtor();
+            var initFn = aCtor._$initializationFn;
+            if (initFn) {
+                if (typeof initFn === "string") {
+                    co[initFn](co);
+                } else {
+                    aCtor._$initializationFn(co);
+                }
+            }
+        };
+
+        return ctor;
+
+    }();
+    
     var EntityKey = (function () {
 
         var ENTITY_KEY_DELIMITER = ":::";
@@ -957,6 +1025,7 @@ function (core, a_config, m_validate) {
 
     return {
         EntityAspect: EntityAspect,
+        ComplexAspect: ComplexAspect,
         EntityState: EntityState,
         EntityAction: EntityAction,
         EntityKey: EntityKey

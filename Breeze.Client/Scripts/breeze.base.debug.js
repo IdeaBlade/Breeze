@@ -3367,8 +3367,76 @@ function (core, a_config, m_validate) {
 
         return ctor;
 
-    } ();
+    }();
 
+    var ComplexAspect = function() {
+        /**
+        An ComplexAspect instance is associated with every attached complexObject and is accessed via the complexObject's 'complexAspect' property. 
+        
+        
+        @class ComplexAspect
+        **/
+        var ctor = function(complexObject, parent, parentProperty, deferInitialization) {
+            if (!complexObject) {
+                throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
+            }
+            if (complexObject.complexAspect) {
+                return complexObject.complexAspect;
+            }
+            // if called without new
+            if (!(this instanceof ComplexAspect)) {
+                return new ComplexAspect(complexObject, deferInitialization);
+            }
+
+            // entityType should already be on the entity from 'watch'
+            this.complexObject = complexObject;
+            complexObject.complexAspect = this;
+
+            // TODO: keep public or not?
+            this.parent = parent;
+            this.parentProperty = parentProperty;
+            this.originalValues = {};
+            // get the final parent's entityAspect.
+            var nextParent = parent;
+            while (nextParent.complexType) {
+                nextParent = nextParent.complexType.parent;
+            }
+            this.entityAspect = nextParent.entityAspect;
+
+            var complexType = complexObject.complexType;
+            if (!complexType) {
+                var typeName = complexObject.prototype._$typeName;
+                if (!typeName) {
+                    throw new Error("This entity is not registered as a valid ComplexType");
+                } else {
+                    throw new Error("Metadata for this complexType has not yet been resolved: " + typeName);
+                }
+            }
+            var complexCtor = complexType.getCtor();
+            v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
+            if (!deferInitialization) {
+                this._postInitialize();
+            }
+
+        };
+
+        ctor.prototype._postInitialize = function() {
+            var entity = this.entity;
+            var entityCtor = entity.entityType.getEntityCtor();
+            var initFn = entityCtor._$initializationFn;
+            if (initFn) {
+                if (typeof initFn === "string") {
+                    entity[initFn](entity);
+                } else {
+                    entityCtor._$initializationFn(entity);
+                }
+            }
+        };
+
+        return ctor;
+
+    }();
+    
     var EntityKey = (function () {
 
         var ENTITY_KEY_DELIMITER = ":::";
@@ -3503,6 +3571,7 @@ function (core, a_config, m_validate) {
 
     return {
         EntityAspect: EntityAspect,
+        ComplexAspect: ComplexAspect,
         EntityState: EntityState,
         EntityAction: EntityAction,
         EntityKey: EntityKey
@@ -3531,15 +3600,20 @@ function (core, m_entityAspect) {
         var that = this;
         // need 2 propNames here because of complexTypes;
         var propName = property.name;
-        if (property.parentType)
-        var fullPropName = property.fullName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
-        // var aspect = new EntityAspect(this);
+        // var entityAspect = new EntityAspect(this);
 
-        var aspect = this.entityAspect;
-        if (aspect._inProcess && aspect._inProcess === property) {
+        var entityAspect = this.entityAspect;
+        var localAspect;
+        if (entityAspect) {
+            localAspect = entityAspect;
+        } else {
+            localAspect = this.complexAspect;
+            entityAspect = localAspect.entityAspect;
+        }
+        if (entityAspect._inProcess && entityAspect._inProcess === property) {
             // recursion avoided.
             return;
         }
@@ -3548,17 +3622,17 @@ function (core, m_entityAspect) {
         // NOTE: this may not be needed because of the newValue === oldValue test above.
         // to avoid recursion.
         // We could use core.using here but decided not to for perf reasons - this method runs a lot.
-        // i.e core.using(aspect, "_inProcess", property, function() {...
-        aspect._inProcess = property;
+        // i.e core.using(entityAspect, "_inProcess", property, function() {...
+        entityAspect._inProcess = property;
         try {
 
-            var entityManager = aspect.entityManager;
+            var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
-            if (aspect.entityState.isUnchangedOrModified()) {
-                if (!aspect.originalValues[propName] && property.isDataProperty) {
+            if (entityAspect.entityState.isUnchangedOrModified()) {
+                if (!localAspect.originalValues[propName] && property.isDataProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
-                    aspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
                 }
             }
 
@@ -3585,7 +3659,7 @@ function (core, m_entityAspect) {
                         if (newValue.entityAspect && newValue.entityAspect.entityManager) {
                             entityManager = newValue.entityAspect.entityManager;
                             var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
-                            entityManager.attachEntity(aspect.entity, newState);
+                            entityManager.attachEntity(entityAspect.entity, newState);
                         }
                     }
                     
@@ -3639,16 +3713,16 @@ function (core, m_entityAspect) {
              
                 rawAccessorFn(newValue);
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
-                        aspect.setModified();
+                    if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                        entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
                 // update fk data property
                 if (property.relatedDataProperties) {
-                    if (!aspect.entityState.isDeleted()) {
+                    if (!entityAspect.entityState.isDeleted()) {
                         var inverseKeyProps = property.entityType.keyProperties;
                         inverseKeyProps.forEach(function(keyProp, i ) {
                             var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
@@ -3657,8 +3731,21 @@ function (core, m_entityAspect) {
                     }
                 }
 
+            } else if (property.isComplexProperty) {
+                // To get here it must be a ComplexProperty  
+                var dataType = property.dataType; // this will be a complexType
+                if (!oldValue) {
+                    var ctor = dataType.getCtor();
+                    oldValue = new ctor();
+                    rawAccessorFn(oldValue);
+                }
+                dataType.dataProperties.forEach(function(dp) {
+                    var pn = dp.name;
+                    var nv = newValue.getProperty(pn);
+                    oldValue.setProperty(pn, nv);
+                });
             } else {
-                // To get here it must be a DataProperty  
+                // To get here it must be a (nonComplex) DataProperty  
                 if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
@@ -3679,11 +3766,11 @@ function (core, m_entityAspect) {
                 rawAccessorFn(newValue);
                   // NOTE: next few lines are the same as above but not refactored for perf reasons.
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
-                        aspect.setModified();
+                    if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                        entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
                 
@@ -3707,8 +3794,8 @@ function (core, m_entityAspect) {
 
                 if (property.isPartOfKey) {
                     // propogate pk change to all related entities;
-                    if (oldValue && !aspect.entityState.isDetached()) {
-                        aspect.primaryKeyWasChanged = true;
+                    if (oldValue && !entityAspect.entityState.isDetached()) {
+                        entityAspect.primaryKeyWasChanged = true;
                         
                     }
                     this.entityType.navigationProperties.forEach(function(np) {
@@ -3729,7 +3816,7 @@ function (core, m_entityAspect) {
                         }
                     });
                     // insure that cached key is updated.
-                    aspect.getKey(true);
+                    entityAspect.getKey(true);
                 }
             }
 
@@ -3738,15 +3825,15 @@ function (core, m_entityAspect) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if ( (!entityManager.isLoading) && (!entityManager.isRejectingChanges)) {
-                    aspect.propertyChanged.publish(propChangedArgs);
+                    entityAspect.propertyChanged.publish(propChangedArgs);
                     // don't fire entityChanged event if propertyChanged is suppressed.
                     entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
                 }
             } else {
-                aspect.propertyChanged.publish(propChangedArgs);
+                entityAspect.propertyChanged.publish(propChangedArgs);
             }
         } finally {
-             aspect._inProcess = null;
+             entityAspect._inProcess = null;
         }
     }
     
@@ -4214,8 +4301,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.dataServices = []; // array of dataServices;
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
-            this._entityTypeMap = {}; // key is qualified entitytype name - value is entityType.
-            this._complexTypeMap = {}; // key is qualified complexType name - value is complexType
+            this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -4247,46 +4333,33 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
         been added to the MetadataStore.
         @method addEntityType
-        @param entityType {EntityType} The EntityType to add
+        @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        ctor.prototype.addEntityType = function(entityType) {
-            entityType.metadataStore = this;
+        ctor.prototype.addEntityType = function(structuralType) {
+            structuralType.metadataStore = this;
             // don't register anon types
-            if (!entityType.isAnonymous) {
-                this._entityTypeMap[entityType.name] = entityType;
-                this._shortNameMap[entityType.shortName] = entityType.name;
+            if (!structuralType.isAnonymous) {
+                this._structuralTypeMap[structuralType.name] = structuralType;
+                this._shortNameMap[structuralType.shortName] = structuralType.name;
+                
                 // in case resourceName was registered before this point
-                var resourceName = this._entityTypeResourceMap[entityType.name];
-                if (resourceName) {
-                    entityType.defaultResourceName = resourceName;
+                if (structuralType instanceof EntityType) {
+                    var resourceName = this._entityTypeResourceMap[structuralType.name];
+                    if (resourceName) {
+                        structuralType.defaultResourceName = resourceName;
+                    }
                 }
             }
-            entityType._fixup();
+            structuralType._fixup();
                                   
-            entityType.getProperties().forEach(function(property) {
+            structuralType.getProperties().forEach(function (property) {
                 if (!property.isUnmapped) {
-                    entityType._mappedPropertiesCount++;
+                    structuralType._mappedPropertiesCount++;
                 }
             });
 
         };
         
-        /**
-        Adds an ComplexType to this MetadataStore.  No additional properties may be added to the ComplexType after its has
-        been added to the MetadataStore.
-        @method addComplexType
-        @param complexType {ComplexType} The ComplexType to add
-        **/
-        ctor.prototype.addComplexType = function (complexType) {
-            complexType.metadataStore = this;
-            // don't register anon types
-            this._complexTypeMap[complexType.name] = complexType;
-            this._shortNameMap[complexType.shortName] = complexType.name;
-            
-            complexType._fixup();
-
-        };
-
         
         /**
         The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
@@ -4311,6 +4384,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
         ctor.prototype.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
+                if (key === "metadataStore") return null;
                 if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
@@ -4359,13 +4433,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
                 }
             }
-            var entityTypeMap = {};
+            var structuralTypeMap = {};
             var that = this;
-            core.objectForEach(json._entityTypeMap, function (key, value) {
-                var et = EntityType.fromJSON(value, that);
-                entityTypeMap[key] = et;
+            core.objectForEach(json._structuralTypeMap, function (key, value) {
+                structuralTypeMap[key] = that._structuralTypeFromJson(value);
             });
-            json._entityTypeMap = entityTypeMap;
+            // TODO: don't think that this next line is needed
+            json._structuralTypeMap = structuralTypeMap;
             core.extend(this, json);
             return this;
         };
@@ -4531,37 +4605,37 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             // any queries or EntityType.create calls from this point on will call the Customer constructor
             // registered above.
         @method registerEntityTypeCtor
-        @param entityTypeName {String} The name of the EntityType
-        @param entityCtor {Function}  The constructor for this EntityType; may be null if all you want to do is set the next parameter. 
+        @param structuralTypeName {String} The name of the EntityType o0r ComplexType.
+        @param aCtor {Function}  The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter. 
         @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
         and populated with any initial values.
             
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
         **/
-        ctor.prototype.registerEntityTypeCtor = function (entityTypeName, entityCtor, initializationFn) {
-            assertParam(entityTypeName, "entityTypeName").isString().check();
-            assertParam(entityCtor, "entityCtor").isFunction().isOptional().check();
+        ctor.prototype.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+            assertParam(structuralTypeName, "structuralTypeName").isString().check();
+            assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
-            if (!entityCtor) {
-                entityCtor = function() {
+            if (!aCtor) {
+                aCtor = function () {
                 };
             }
-            var qualifiedTypeName = getQualifiedTypeName(this, entityTypeName, false);
+            var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
             if (qualifiedTypeName) {
-                var entityType = this._entityTypeMap[qualifiedTypeName];
-                if (entityType) {
-                    entityType._setCtor(entityCtor);
+                var stype = this._structuralTypeMap[qualifiedTypeName];
+                if (stype) {
+                    stype._setCtor(aCtor);
                 }
                 typeName = qualifiedTypeName;
             } else {
-                typeName = entityTypeName;
+                typeName = structuralTypeName;
             }
-            entityCtor.prototype._$typeName = typeName;
-            this._typeRegistry[typeName] = entityCtor;
+            aCtor.prototype._$typeName = typeName;
+            this._typeRegistry[typeName] = aCtor;
             if (initializationFn) {
-                entityCtor._$initializationFn = initializationFn;
+                aCtor._$initializationFn = initializationFn;
             }
         };
       
@@ -4582,7 +4656,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
 
         /**
-        Returns an  {{#crossLink "EntityType"}}{{/crossLink}} given its name.
+        Returns an  {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "CompleType"}}{{/crossLink}} given its name.
         @example
             // assume em1 is a preexisting EntityManager
             var odType = em1.metadataStore.getEntityType("OrderDetail");
@@ -4591,39 +4665,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var badType = em1.metadataStore.getEntityType("Foo", false);
             // badType will not get set and an exception will be thrown.
         @method getEntityType
-        @param entityTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
+        @param structuralTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. 
         @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
-        @return {EntityType} The EntityType or 'undefined' if not not found.
+        @return {EntityType|ComplexType} The EntityType. ComplexType or 'undefined' if not not found.
         **/
-        ctor.prototype.getEntityType = function (entityTypeName, okIfNotFound) {
-            assertParam(entityTypeName, "entityTypeName").isString().check();
+        ctor.prototype.getEntityType = function (structuralTypeName, okIfNotFound) {
+            assertParam(structuralTypeName, "structuralTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-            return getTypeFromMap(this, this._entityTypeMap, entityTypeName, okIfNotFound);
+            return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
         };
-        
-        /**
-        Returns an  {{#crossLink "EntityType"}}{{/crossLink}} given its name.
-        @example
-            // assume em1 is a preexisting EntityManager
-            var odType = em1.metadataStore.getComplexType("OrderDetail");
-        or to throw an error if the type is not found
-        @example
-            var badType = em1.metadataStore.getComplexType("Foo", false);
-            // badType will not get set and an exception will be thrown.
-        @method getComplexType
-        @param complexTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
-        that same short name an exception will be thrown. 
-        @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified ComplexType is not found.
-        @return {EntityType} The ComplexType or 'undefined' if not not found.
-        **/
-        ctor.prototype.getComplexType = function (complexTypeName, okIfNotFound) {
-            assertParam(complexTypeName, "complexTypeName").isString().check();
-            assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-            return getTypeFromMap(this, this._complexTypeMap, complexTypeName, okIfNotFound);
-        };
-
-        
 
         /**
         Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s in this MetadataStore.
@@ -4634,20 +4685,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Array of EntityType}
         **/
         ctor.prototype.getEntityTypes = function () {
-            return getTypesFromMap(this._entityTypeMap);
+            return getTypesFromMap(this._structuralTypeMap);
         };
         
-        /**
-        Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s in this MetadataStore.
-        @example
-            // assume em1 is a preexisting EntityManager
-            var allTypes = em1.metadataStore.getComplexTypes();
-        @method getComplexTypes
-        @return {Array of ComplexType}
-        **/
-        ctor.prototype.getComplexTypes = function () {
-            return getTypesFromMap(this._complexTypeMap);
-        };
         
         function getTypeFromMap(metadataStore, typeMap, typeName, okIfNotFound) {
             
@@ -4677,7 +4717,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         }
 
         ctor.prototype.getIncompleteNavigationProperties = function() {
-            return core.objectMapToArray(this._entityTypeMap, function(key, value) {
+            return core.objectMapToArray(this._structuralTypeMap, function (key, value) {
+                if (value instanceof ComplexType) return null;
                 var badProps = value.navigationProperties.filter(function(np) {
                     return !np.entityType;
                 });
@@ -4732,7 +4773,35 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         // protected methods
 
-       
+        ctor.prototype._structuralTypeFromJson = function(json) {
+            var stype = this.getEntityType(json.name, true);
+            if (stype) return stype;
+            var config = {
+                shortName: json.shortName,
+                namespace: json.namespace,
+            };
+            var isEntityType = !!json.navigationProperties;
+            stype = isEntityType ? new EntityType(config) : new ComplexType(config);
+
+            json.validators = json.validators.map(function(v) {
+                return Validator.fromJSON(v);
+            });
+
+            json.dataProperties = json.dataProperties.map(function(dp) {
+                return DataProperty.fromJSON(dp, stype);
+            });
+
+            if (isEntityType) {
+                json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
+                json.navigationProperties = json.navigationProperties.map(function(dp) {
+                    return NavigationProperty.fromJSON(dp, stype);
+                });
+            }
+            stype = core.extend(stype, json);
+            this.addEntityType(stype);
+            return stype;
+        };
+        
         ctor.prototype._checkEntityType = function(entity) {
             if (entity.entityType) return;
             var typeName = entity.prototype._$typeName;
@@ -4745,10 +4814,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
        
-        ctor.prototype._registerComplexType = function (complexType) {
-
-        };
-
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
             var that = this;
             toArray(schemas).forEach(function (schema) {
@@ -4764,21 +4829,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 if (schema.complexType) {
                     toArray(schema.complexType).forEach(function (ct) {
                         var complexType = convertFromODataComplexType(ct, schema, that);
+                        checkTypeRegistry(that, complexType);
                     });
                 }
                 if (schema.entityType) {
                     toArray(schema.entityType).forEach(function (et) {
                         var entityType = convertFromODataEntityType(et, schema, that);
-
-                        // check if this entityTypeName, short version or qualified version has a registered ctor.
-                        var entityCtor = that._typeRegistry[entityType.name] || that._typeRegistry[entityType.shortName];
-                        if (entityCtor) {
-                             // next line is in case the entityType was originally registered with a shortname.
-                             entityCtor.prototype._$typeName = entityType.name; 
-                             entityType._setCtor(entityCtor);
-                             that._entityTypeMap[entityType.name] = entityType;
-                        }
-                            
+                        checkTypeRegistry(that, entityType);
+                           
                     });
                 }
 
@@ -4789,7 +4847,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        
+        function checkTypeRegistry(metadataStore, structuralType) {
+            // check if this structural type's name, short version or qualified version has a registered ctor.
+            var typeCtor = metadataStore._typeRegistry[structuralType.name] || metadataStore._typeRegistry[structuralType.shortName];
+            if (typeCtor) {
+                // next line is in case the entityType was originally registered with a shortname.
+                typeCtor.prototype._$typeName = structuralType.name;
+                structuralType._setCtor(typeCtor);
+                metadataStore._structuralTypeMap[structuralType.name] = structuralType;
+            }
+        }
 
         function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
             if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -4831,7 +4898,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 convertFromODataDataProperty(complexType, prop, schema);
             });
             
-            metadataStore.addComplexType(complexType);
+            metadataStore.addEntityType(complexType);
             return complexType;
         }
 
@@ -4890,12 +4957,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         }
 
         function addValidators(dataProperty) {
-            if (dataProperty.isComplexProperty) return;
-            
             var typeValidator;
             if (!dataProperty.isNullable) {
                 dataProperty.validators.push(Validator.required());
             }
+
+            if (dataProperty.isComplexProperty) return;
 
             if (dataProperty.dataType === DataType.String) {
                 if (dataProperty.maxLength) {
@@ -5304,14 +5371,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         // May make public later.
         ctor.prototype._setCtor = function (aCtor, interceptor) {
             var instance = new aCtor();
-
+            var proto = aCtor.prototype;
+            
             if (this._$typeName == "EntityType") {
                 // insure that all of the properties are on the 'template' instance before watching the class.
                 calcUnmappedProperties(this, instance);
+                proto.entityType = this;
+            } else {
+                proto.complexType = this;
             }
-
-            var proto = aCtor.prototype;
-            proto.entityType = this;
 
             if (interceptor) {
                 proto._$interceptor = interceptor;
@@ -5493,31 +5561,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         };
 
-        // TODO: haven't yet handled _entityCtor.
-        ctor.fromJSON = function (json, metadataStore) {
-            var et = metadataStore.getEntityType(json.name, true);
-            if (et) return et;
-            et = new EntityType({
-                shortName: json.shortName,
-                namespace: json.namespace,
-            });
-                
-            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
-            json.dataProperties = json.dataProperties.map(function (dp) {
-                return DataProperty.fromJSON(dp, et);
-            });
-            json.navigationProperties = json.navigationProperties.map(function (dp) {
-                return NavigationProperty.fromJSON(dp, et);
-            });
-            et = core.extend(et, json);
-            metadataStore.addEntityType(et);
-            return et;
-        };
-        
-
+        // fromJSON is handled by metadataStore._structuralTypeFromJson;
         
         ctor.prototype._clientPropertyPathToServer = function (propertyPath) {
             var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
@@ -5563,8 +5607,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
             if (property.isComplexProperty) {
                 // Not ok to not find it. - all complex types should be resolved before they are ref'd.
-                var targetComplexType = this.metadataStore.getComplexType(property.complexTypeName, false);
-                if (targetComplexType) {
+                var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
+                if (targetComplexType && targetComplexType instanceof ComplexType) {
                     property.dataType = targetComplexType;
                     property.defaultValue = property.isNullable ? null : targetComplexType.createComplexObject();
                 } else {
@@ -5802,6 +5846,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             this.name = qualifyTypeName(this.shortName, this.namespace);
             this.dataProperties = [];
+            this.validators = [];
         };
 
         
@@ -5845,6 +5890,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;
         ctor.prototype._setCtor = EntityType.prototype._setCtor;
         
+        ctor.prototype.toJSON = function () {
+            return {
+                name: this.name,
+                shortName: this.shortName,
+                namespace: this.namespace,
+                dataProperties: this.dataProperties,
+                validators: this.validators
+            };
+        };
+       
         ctor.prototype._fixup = function () {
             var that = this;
             this.dataProperties.forEach(function (property) {
@@ -6031,6 +6086,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 name: this.name,
                 nameOnServer: this.nameOnServer,
                 dataType: this.dataType.name,
+                complexTypeName: this.complexTypeName,
                 isNullable: this.isNullable,
                 isUnmapped: this.isUnmapped,
                 concurrencyMode: this.concurrencyMode,
@@ -6038,7 +6094,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 fixedLength: this.fixedLength,
                 defaultValue: this.defaultValue,
                 validators: this.validators,
-                isPartOfKey: this.isPartOfKey
+                isPartOfKey: this.isPartOfKey,
+                
             };
         };
 
@@ -10809,8 +10866,17 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (val && val.$value !== undefined) {
                         val = val.$value; // this will be a byte[] encoded as a string
                     }
+                } else if (dp.isComplexProperty) {
+                    var coVal = targetEntity.getProperty(dp.name);
+                    dp.dataType.dataProperties.forEach(function (cdp) {
+                        // recursive call
+                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                    });
                 }
-                targetEntity.setProperty(dp.name, val);
+
+                if (!dp.isComplexProperty) {
+                    targetEntity.setProperty(dp.name, val);
+                }
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {

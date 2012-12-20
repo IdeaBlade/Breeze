@@ -1899,8 +1899,17 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (val && val.$value !== undefined) {
                         val = val.$value; // this will be a byte[] encoded as a string
                     }
+                } else if (dp.isComplexProperty) {
+                    var coVal = targetEntity.getProperty(dp.name);
+                    dp.dataType.dataProperties.forEach(function (cdp) {
+                        // recursive call
+                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                    });
                 }
-                targetEntity.setProperty(dp.name, val);
+
+                if (!dp.isComplexProperty) {
+                    targetEntity.setProperty(dp.name, val);
+                }
             });
             entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {

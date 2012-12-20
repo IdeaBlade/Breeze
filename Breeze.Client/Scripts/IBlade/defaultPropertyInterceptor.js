@@ -18,15 +18,20 @@ function (core, m_entityAspect) {
         var that = this;
         // need 2 propNames here because of complexTypes;
         var propName = property.name;
-        if (property.parentType)
-        var fullPropName = property.fullName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
-        // var aspect = new EntityAspect(this);
+        // var entityAspect = new EntityAspect(this);
 
-        var aspect = this.entityAspect;
-        if (aspect._inProcess && aspect._inProcess === property) {
+        var entityAspect = this.entityAspect;
+        var localAspect;
+        if (entityAspect) {
+            localAspect = entityAspect;
+        } else {
+            localAspect = this.complexAspect;
+            entityAspect = localAspect.entityAspect;
+        }
+        if (entityAspect._inProcess && entityAspect._inProcess === property) {
             // recursion avoided.
             return;
         }
@@ -35,17 +40,17 @@ function (core, m_entityAspect) {
         // NOTE: this may not be needed because of the newValue === oldValue test above.
         // to avoid recursion.
         // We could use core.using here but decided not to for perf reasons - this method runs a lot.
-        // i.e core.using(aspect, "_inProcess", property, function() {...
-        aspect._inProcess = property;
+        // i.e core.using(entityAspect, "_inProcess", property, function() {...
+        entityAspect._inProcess = property;
         try {
 
-            var entityManager = aspect.entityManager;
+            var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
-            if (aspect.entityState.isUnchangedOrModified()) {
-                if (!aspect.originalValues[propName] && property.isDataProperty) {
+            if (entityAspect.entityState.isUnchangedOrModified()) {
+                if (!localAspect.originalValues[propName] && property.isDataProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
-                    aspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
                 }
             }
 
@@ -72,7 +77,7 @@ function (core, m_entityAspect) {
                         if (newValue.entityAspect && newValue.entityAspect.entityManager) {
                             entityManager = newValue.entityAspect.entityManager;
                             var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
-                            entityManager.attachEntity(aspect.entity, newState);
+                            entityManager.attachEntity(entityAspect.entity, newState);
                         }
                     }
                     
@@ -126,16 +131,16 @@ function (core, m_entityAspect) {
              
                 rawAccessorFn(newValue);
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
-                        aspect.setModified();
+                    if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                        entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
                 // update fk data property
                 if (property.relatedDataProperties) {
-                    if (!aspect.entityState.isDeleted()) {
+                    if (!entityAspect.entityState.isDeleted()) {
                         var inverseKeyProps = property.entityType.keyProperties;
                         inverseKeyProps.forEach(function(keyProp, i ) {
                             var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
@@ -144,8 +149,21 @@ function (core, m_entityAspect) {
                     }
                 }
 
+            } else if (property.isComplexProperty) {
+                // To get here it must be a ComplexProperty  
+                var dataType = property.dataType; // this will be a complexType
+                if (!oldValue) {
+                    var ctor = dataType.getCtor();
+                    oldValue = new ctor();
+                    rawAccessorFn(oldValue);
+                }
+                dataType.dataProperties.forEach(function(dp) {
+                    var pn = dp.name;
+                    var nv = newValue.getProperty(pn);
+                    oldValue.setProperty(pn, nv);
+                });
             } else {
-                // To get here it must be a DataProperty  
+                // To get here it must be a (nonComplex) DataProperty  
                 if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
                     var keyProps = this.entityType.keyProperties;
                     var values = keyProps.map(function(p) {
@@ -166,11 +184,11 @@ function (core, m_entityAspect) {
                 rawAccessorFn(newValue);
                   // NOTE: next few lines are the same as above but not refactored for perf reasons.
                 if (entityManager && !entityManager.isLoading) {
-                    if (aspect.entityState.isUnchanged() && !property.isUnmapped) {
-                        aspect.setModified();
+                    if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                        entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        aspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
                     }
                 }
                 
@@ -194,8 +212,8 @@ function (core, m_entityAspect) {
 
                 if (property.isPartOfKey) {
                     // propogate pk change to all related entities;
-                    if (oldValue && !aspect.entityState.isDetached()) {
-                        aspect.primaryKeyWasChanged = true;
+                    if (oldValue && !entityAspect.entityState.isDetached()) {
+                        entityAspect.primaryKeyWasChanged = true;
                         
                     }
                     this.entityType.navigationProperties.forEach(function(np) {
@@ -216,7 +234,7 @@ function (core, m_entityAspect) {
                         }
                     });
                     // insure that cached key is updated.
-                    aspect.getKey(true);
+                    entityAspect.getKey(true);
                 }
             }
 
@@ -225,15 +243,15 @@ function (core, m_entityAspect) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if ( (!entityManager.isLoading) && (!entityManager.isRejectingChanges)) {
-                    aspect.propertyChanged.publish(propChangedArgs);
+                    entityAspect.propertyChanged.publish(propChangedArgs);
                     // don't fire entityChanged event if propertyChanged is suppressed.
                     entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
                 }
             } else {
-                aspect.propertyChanged.publish(propChangedArgs);
+                entityAspect.propertyChanged.publish(propChangedArgs);
             }
         } finally {
-             aspect._inProcess = null;
+             entityAspect._inProcess = null;
         }
     }
     

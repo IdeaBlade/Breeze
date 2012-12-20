@@ -13,7 +13,8 @@
 }(function(breeze) {
     
     var core = breeze.core;
-
+    var ComplexAspect = breeze.ComplexAspect;
+    
     var ctor = function() {
         this.name = "backingStore";
     };
@@ -91,29 +92,36 @@
 
     };
 
-    ctor.prototype.startTracking = function (entity, proto) {
+    // stob: structural object - entity or complexObject
+    ctor.prototype.startTracking = function (stob, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
-        var bs = movePropsToBackingStore(entity);
-
-        // assign default values to the entity
-        entity.entityType.getProperties().forEach(function(prop) {
+        var bs = movePropsToBackingStore(stob);
+        var that = this;
+        // assign default values to the stob
+        var stype = stob.entityType || stob.complexType;
+        stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
-            var val = entity[propName];
+            var val = stob[propName];
 
             if (prop.isDataProperty) {
-                if (val === undefined) {
+                if (prop.isComplexProperty) {
+                    var coCtor = prop.dataType.getCtor();
+                    var co = new coCtor();
+                    new ComplexAspect(co, stob, prop.name, false);
+                    bs[propName] = co;
+                } else if (val === undefined) {
                     bs[propName] = prop.defaultValue;
                 }
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
-                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an stob ctor.: " + prop.Name);
                 }
                 if (prop.isScalar) {
-                    // TODO: change this to nullEntity later.
+                    // TODO: change this to nullstob later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = breeze.makeRelationArray([], entity, prop);
+                    bs[propName] = breeze.makeRelationArray([], stob, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
@@ -125,7 +133,8 @@
     // private methods
 
     function movePropDefsToProto(proto) {
-        proto.entityType.getProperties().forEach(function(prop) {
+        var stype = proto.entityType || proto.complexType;
+        stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!proto[propName]) {
                 Object.defineProperty(proto, propName, makePropDescription(prop));
@@ -142,7 +151,8 @@
         if (!instance._backingStore) {
             instance._backingStore = { };
         }
-        proto.entityType.getProperties().forEach(function(prop) {
+        var stype = proto.entityType || proto.complexType;
+        stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!instance.hasOwnProperty(propName)) return;
             var value = instance[propName];
