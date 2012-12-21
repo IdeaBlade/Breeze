@@ -92,11 +92,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect) {
 
 
     function getPropEntry(that, keyProp, createIfMissing) {
-        var key = keyProp.name + ".." + keyProp.parentEntityType.name;
+        var key = keyProp.name + ".." + keyProp.parentType.name;
         var propEntry = that._tempIdMap[key];
         if (!propEntry) {
             if (createIfMissing) {
-                propEntry = { entityType: keyProp.parentEntityType, propertyName: keyProp.name, keyMap: {} };
+                propEntry = { entityType: keyProp.parentType, propertyName: keyProp.name, keyMap: {} };
                 that._tempIdMap[key] = propEntry;
             }
         }

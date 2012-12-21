@@ -150,6 +150,9 @@ function (core, m_entityAspect) {
                 }
 
             } else if (property.isComplexProperty) {
+                if (!newValue) {
+                    throw new Error(core.formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+                }
                 // To get here it must be a ComplexProperty  
                 var dataType = property.dataType; // this will be a complexType
                 if (!oldValue) {

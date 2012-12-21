@@ -1965,7 +1965,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var value1 = getPropertyPathValue(entity1, propertyPath);
                 var value2 = getPropertyPathValue(entity2, propertyPath);
                 if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
-                    if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
+                    if (!that.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
                         value1 = (value1 || "").toLowerCase();
                         value2 = (value2 || "").toLowerCase();
                     }

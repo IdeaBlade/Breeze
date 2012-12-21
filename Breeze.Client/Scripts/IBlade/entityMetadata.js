@@ -1261,15 +1261,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
-            if (property.parentEntityType) {
-                if (property.parentEntityType !== this) {
-                    throw new Error("This dataProperty has already been added to " + property.parentEntityType.name);
+            if (property.parentType) {
+                if (property.parentType !== this) {
+                    throw new Error("This dataProperty has already been added to " + property.parentType.name);
                 } else {
                     return this;
                 }
             }
             property.parentType = this;
-            property.parentEntityType = this;
             if (property.isDataProperty) {
                 this._addDataProperty(property);
             } else {
@@ -1599,7 +1598,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.prototype._checkNavProperty = function (navigationProperty) {
             if (navigationProperty.isNavigationProperty) {
-                if (navigationProperty.parentEntityType != this) {
+                if (navigationProperty.parentType != this) {
                     throw new Error(core.formatString("The navigationProperty '%1' is not a property of entity type '%2'",
                             navigationProperty.name, this.name));
                 }
@@ -1661,7 +1660,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         if (np.entityTypeName === entityType.name) {
                             np.entityType = entityType;
                             delete incompleteMap[assocName];
-                            updateIncomplete(np.parentEntityType);
+                            updateIncomplete(np.parentType);
                         }
                     }
                 });
@@ -1677,7 +1676,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             fkProps.forEach(function (dp) {
                 dp.relatedNavigationProperty = np;
-                np.parentEntityType.foreignKeyProperties.push(dp);
+                np.parentType.foreignKeyProperties.push(dp);
                 if (np.relatedDataProperties) {
                     np.relatedDataProperties.push(dp);
                 } else {
@@ -1700,7 +1699,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
             }
             var ok = true;
-            var parentEntityType = np.parentEntityType;
+            var parentEntityType = np.parentType;
             var fkProps = fkNames.map(function (fkName) {
                 var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
                 ok = ok && !!fkProp;
@@ -1719,7 +1718,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         }
 
         function updateCrossEntityRelationship(np) {
-            var metadataStore = np.parentEntityType.metadataStore;
+            var metadataStore = np.parentType.metadataStore;
             var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
             // ok to not find it yet
@@ -1748,10 +1747,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 assocMap[np.associationName] = np;
             }
 
-            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+            var altAssocMap = incompleteTypeMap[np.parentType.name];
             if (!altAssocMap) {
                 altAssocMap = {};
-                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
+                incompleteTypeMap[np.parentType.name] = altAssocMap;
             }
             altAssocMap[np.associationName] = np;
         }
@@ -1768,13 +1767,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 inverse.inverse = np;
                 // not sure if these are needed
                 if (inverse.entityType == null) {
-                    inverse.entityType = np.parentEntityType;
+                    inverse.entityType = np.parentType;
                 }
-                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+                var altAssocMap = incompleteTypeMap[np.parentType.name];
                 if (altAssocMap) {
                     delete altAssocMap[np.associationName];
                     if (core.isEmpty(altAssocMap)) {
-                        delete incompleteTypeMap[np.parentEntityType.name];
+                        delete incompleteTypeMap[np.parentType.name];
                     }
                 }
             }
@@ -1813,12 +1812,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.name = qualifyTypeName(this.shortName, this.namespace);
             this.dataProperties = [];
             this.validators = [];
+            this.concurrencyProperties = [];
+            this.unmappedProperties = [];
         };
 
         
         ctor.prototype.createComplexObject = function (initialValues) {
             var aCtor = this.getCtor();
-            var co = aCtor();
+            var co = new aCtor();
             if (initialValues) {
                 core.objectForEach(initialValues, function (key, value) {
                     co.setProperty(key, value);
@@ -1826,6 +1827,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             return co;
         };
+        
+        //ctor.prototype.createEntity = function (initialValues) {
+        //    if (initialValues) {
+        //        var entity = this._createEntity(true);
+        //        core.objectForEach(initialValues, function (key, value) {
+        //            entity.setProperty(key, value);
+        //        });
+        //        entity.entityAspect._postInitialize();
+        //        return entity;
+        //    } else {
+        //        return this._createEntity(false);
+        //    }
+
+        //};
+
+        //ctor.prototype._createEntity = function (deferInitialization) {
+        //    var entityCtor = this.getEntityCtor();
+        //    var instance = new entityCtor();
+        //    new EntityAspect(instance, deferInitialization);
+        //    return instance;
+        //};
+
 
         ctor.prototype.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
@@ -1833,15 +1856,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
             if (dataProperty.parentType) {
-                if (property.parentType !== this) {
+                if (dataProperty.parentType !== this) {
                     throw new Error("This dataProperty has already been added to " + property.parentType.name);
                 } else {
                     return this;
                 }
             }
+            this._addDataProperty(dataProperty);
 
-            this.dataProperties.push(dataProperty);
-            dataProperty.parentType = this;
             return this;
         };
         
@@ -1851,6 +1873,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.prototype.addValidator = EntityType.prototype.addValidator;
         ctor.prototype.getProperty = EntityType.prototype.getProperty;
+        ctor.prototype._addDataProperty = EntityType.prototype._addDataProperty;
         ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
         // note the name change.
         ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;

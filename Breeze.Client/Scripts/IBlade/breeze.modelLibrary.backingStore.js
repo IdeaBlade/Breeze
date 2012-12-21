@@ -50,6 +50,7 @@
             return this;
         };
 
+        //// called after any create during a query;
         // this method cannot be called while a 'defineProperty' accessor is executing
         // because of IE bug 
         proto.initializeFrom = function(rawEntity) {

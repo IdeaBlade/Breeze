@@ -345,10 +345,9 @@ function (core, a_config, m_validate) {
             var initFn = entityCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
-                    entity[initFn](entity);
-                } else {
-                    entityCtor._$initializationFn(entity);
+                    initFn = entity[initFn];
                 }
+                initFn(entity);
             }
         };
 

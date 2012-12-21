@@ -130,10 +130,6 @@
 
         };
 
-        //// called after any create during a query;
-        //proto.initializeFrom = function (rawEntity) {
-        //};
-
     };
 
     // called when the entityAspect is first created for an entity

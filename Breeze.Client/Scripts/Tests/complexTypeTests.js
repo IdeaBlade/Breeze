@@ -118,6 +118,32 @@ define(["testFns"], function (testFns) {
 
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("create a complex tye instance and assign it", function () {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        var newLocation = locationType.createComplexObject();
+        newLocation.setProperty("city", "bar");
+        
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var supplier0 = r[0];
+            var location0 = supplier0.getProperty("location");
+            try {
+                supplier0.setProperty("location", null);
+                ok(false, "shouldn't get here");
+            } catch (e) {
+                ok(e.message.toLowerCase().indexOf("complextype") >= 0, "message should mention complexType");
+            }
+
+
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     return testFns;
 
