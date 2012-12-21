@@ -1025,26 +1025,24 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     
     /*********************************************************/
-    test("'Users' query returns objects of type 'UserPartial'", 4, function () {
+    test("'Users' query returns objects of type 'UserPartial'", 3, function () {
 
         var query = EntityQuery.from("Users").top(1);
         var em = newEm();
         
         verifyQuery(em, query,"users",
-            assertResultIsNotAnEntity);
+            assertUserPartialIsNotAnEntity);
         
-        function assertResultIsNotAnEntity(data) {
-            var user = data.results[0];
-            ok(user.entityType === undefined,
-                "'user' result should not have an entityType");
-            ok(user.Password === undefined,
-                "'user' result should not have a 'Password' property");
-            ok(user.UserRoles === undefined,
-                "'user' result should not have a 'UserRoles' property");
-        }
     });
+    function assertUserPartialIsNotAnEntity(data) {
+        var user = data.results[0];
+        ok(user.entityType === undefined,
+            "'user' result should not have an entityType");
+        ok(user.Password === undefined,
+            "'user' result should not have a 'Password' property");
+    }
     /*********************************************************/
-    test("'GetUserById' query returns 'UserPartial' with roles", 6, function () {
+    test("'GetUserById' query returns 'UserPartial' with roles", 4, function () {
 
         var query = EntityQuery
             .from("GetUserById")
@@ -1053,28 +1051,13 @@ define(["testFns"], function (testFns) {
         var em = newEm();
 
         verifyQuery(em, query, "GetUserById",
-            assertResultIsNotAnEntity,
-            assertResultHasUserRoles);
-
-        function assertResultIsNotAnEntity(data) {
+            assertUserPartialIsNotAnEntity,
+            assertResultHasRoleNames);
+        
+        function assertResultHasRoleNames(data) {
             var user = data.results[0];
-            ok(user.entityType === undefined,
-                "'user' result should not have an entityType");
-            ok(user.Password === undefined,
-                "'user' result should not have a 'Password' property");
-        }
-        function assertResultHasUserRoles(data) {
-            var user = data.results[0];
-            ok(user.UserRoles.length > 0,
-                "'user' result should have at least one role");
-            
-            var firstUserRole = user.UserRoles[0];
-            ok(firstUserRole.entityType !== undefined,
-                "the 1st UserRole should be an entity");
-            
-            var rolestate = firstUserRole.entityAspect.entityState;
-            equal(rolestate, breeze.EntityState.Unchanged,
-              "the 1st UserRole should be in cache in an 'Unchanged' state");
+            ok(user.RoleNames.length > 0,
+                "'user' result has role names: "+user.RoleNames);
         }
     });
     

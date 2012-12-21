@@ -1,5 +1,4 @@
 using System;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.Http;
 
@@ -122,17 +121,6 @@ namespace DocCode.Controllers
         // Todo: move this logic into a custom EFContextProvider
         return _contextProvider.Context.Users
             .Where(user => user.Id == id)
-            .Select(user => new 
-            {
-                user.Id,
-                user.UserName,
-                user.FirstName,
-                user.LastName,
-                user.Email,
-                user.UserRoles,
-                Roles = user.UserRoles.Select(ur => ur.Role),
-            })
-            .ToList()
             .Select(user => new UserPartial
             {
                 Id = user.Id,
@@ -140,8 +128,7 @@ namespace DocCode.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                UserRoles = user.UserRoles,
-                RoleNames = string.Join(",", user.Roles.Select(role => role.Name))
+                Roles = user.UserRoles.Select(ur => ur.Role)
             })
             .FirstOrDefault();
     }
