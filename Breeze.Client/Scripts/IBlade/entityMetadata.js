@@ -13,6 +13,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
     var EntityAspect = m_entityAspect.EntityAspect;
+    var ComplexAspect = m_entityAspect.ComplexAspect;
     var Validator = m_validate.Validator;
 
     var Q = core.requireLib("Q", "See https://github.com/kriskowal/q ");
@@ -1290,7 +1291,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function (initialValues, deferInitialization) {
+        ctor.prototype.createEntity = function (initialValues) {
             var instance = this._createEntityCore();
             
             if (initialValues) {
@@ -1298,9 +1299,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     instance.setProperty(key, value);
                 });
             }
-            if (!deferInitialization) {
-                instance.entityAspect._postInitialize();
-            }
+            
+            instance.entityAspect._postInitialize();
             return instance;
         };
 
@@ -1816,39 +1816,34 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.unmappedProperties = [];
         };
 
-        
-        ctor.prototype.createComplexObject = function (initialValues) {
-            var aCtor = this.getCtor();
-            var co = new aCtor();
+        /**
+        Creates a new non-attached instance of this ComplexType.
+        @method createInstance
+        @param initialValues {Object} Configuration object containing initial values for the instance. 
+        **/
+        ctor.prototype.createInstance = function (initialValues) {
+            var instance = this._createInstanceCore();
+
             if (initialValues) {
                 core.objectForEach(initialValues, function (key, value) {
-                    co.setProperty(key, value);
+                    instance.setProperty(key, value);
                 });
             }
-            return co;
+
+            instance.complexAspect._postInitialize();
+            return instance;
+        };
+
+        ctor.prototype._createInstanceCore = function (parent, parentProperty ) {
+            var aCtor = this.getCtor();
+            var instance = new aCtor();
+            new ComplexAspect(instance, parent, parentProperty);
+            if (parent) {
+                instance.complexAspect._postInitialize();
+            }
+            return instance;
         };
         
-        //ctor.prototype.createEntity = function (initialValues) {
-        //    if (initialValues) {
-        //        var entity = this._createEntity(true);
-        //        core.objectForEach(initialValues, function (key, value) {
-        //            entity.setProperty(key, value);
-        //        });
-        //        entity.entityAspect._postInitialize();
-        //        return entity;
-        //    } else {
-        //        return this._createEntity(false);
-        //    }
-
-        //};
-
-        //ctor.prototype._createEntity = function (deferInitialization) {
-        //    var entityCtor = this.getEntityCtor();
-        //    var instance = new entityCtor();
-        //    new EntityAspect(instance, deferInitialization);
-        //    return instance;
-        //};
-
 
         ctor.prototype.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();

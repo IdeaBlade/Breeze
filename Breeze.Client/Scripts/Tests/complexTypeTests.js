@@ -122,7 +122,7 @@ define(["testFns"], function (testFns) {
     test("create a complex tye instance and assign it", function () {
         var em = newEm();
         var locationType = em.metadataStore.getEntityType("Location");
-        var newLocation = locationType.createComplexObject();
+        var newLocation = locationType.createInstance();
         newLocation.setProperty("city", "bar");
         
         var q = EntityQuery.from("Suppliers")

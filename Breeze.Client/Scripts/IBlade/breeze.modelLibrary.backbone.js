@@ -142,9 +142,7 @@
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
             if (dp.isComplexProperty) {
-                var coCtor = dp.dataType.getCtor();
-                var co = new coCtor();
-                new ComplexAspect(co, entity, dp.name, false);
+                var co = dp.dataType._createInstanceCore(entity, dp.name);
                 bbSet.call(entity, dp.name, co);
             } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {

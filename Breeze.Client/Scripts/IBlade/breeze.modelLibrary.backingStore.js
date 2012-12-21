@@ -93,36 +93,34 @@
 
     };
 
-    // stob: structural object - entity or complexObject
-    ctor.prototype.startTracking = function (stob, proto) {
+    // entity is either an entity or a complexObject
+    ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
-        var bs = movePropsToBackingStore(stob);
+        var bs = movePropsToBackingStore(entity);
         var that = this;
-        // assign default values to the stob
-        var stype = stob.entityType || stob.complexType;
+        // assign default values to the entity
+        var stype = entity.entityType || entity.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
-            var val = stob[propName];
+            var val = entity[propName];
 
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    var coCtor = prop.dataType.getCtor();
-                    var co = new coCtor();
-                    new ComplexAspect(co, stob, prop.name, false);
+                    var co = prop.dataType._createInstanceCore(entity, prop.name);
                     bs[propName] = co;
                 } else if (val === undefined) {
                     bs[propName] = prop.defaultValue;
                 }
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
-                    throw new Error("Cannot assign a navigation property in an stob ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
                 }
                 if (prop.isScalar) {
                     // TODO: change this to nullstob later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = breeze.makeRelationArray([], stob, prop);
+                    bs[propName] = breeze.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);

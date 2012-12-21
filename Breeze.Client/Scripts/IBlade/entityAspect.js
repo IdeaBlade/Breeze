@@ -825,7 +825,7 @@ function (core, a_config, m_validate) {
         
         @class ComplexAspect
         **/
-        var ctor = function(complexObject, parent, parentProperty, deferInitialization) {
+        var ctor = function(complexObject, parent, parentProperty) {
             if (!complexObject) {
                 throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
             }
@@ -834,7 +834,7 @@ function (core, a_config, m_validate) {
             }
             // if called without new
             if (!(this instanceof ComplexAspect)) {
-                return new ComplexAspect(complexObject, deferInitialization);
+                return new ComplexAspect(complexObject, parent, parentProperty);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -842,15 +842,20 @@ function (core, a_config, m_validate) {
             complexObject.complexAspect = this;
 
             // TODO: keep public or not?
-            this.parent = parent;
-            this.parentProperty = parentProperty;
             this.originalValues = {};
-            // get the final parent's entityAspect.
-            var nextParent = parent;
-            while (nextParent.complexType) {
-                nextParent = nextParent.complexType.parent;
+
+            // if a standalone complexObject
+            if (parent) {
+                this.parent = parent;
+                this.parentProperty = parentProperty;
+
+                // get the final parent's entityAspect.
+                var nextParent = parent;
+                while (nextParent.complexType) {
+                    nextParent = nextParent.complexType.parent;
+                }
+                this.entityAspect = nextParent.entityAspect;
             }
-            this.entityAspect = nextParent.entityAspect;
 
             var complexType = complexObject.complexType;
             if (!complexType) {
@@ -863,9 +868,6 @@ function (core, a_config, m_validate) {
             }
             var complexCtor = complexType.getCtor();
             v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
-            if (!deferInitialization) {
-                this._postInitialize();
-            }
 
         };
 

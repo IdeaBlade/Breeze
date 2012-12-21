@@ -98,10 +98,7 @@
                 // if not
                 if (prop.isDataProperty) {
                     if (prop.isComplexProperty) {
-                        var coCtor = prop.dataType.getCtor();
-                        var co = new coCtor();
-                        new ComplexAspect(co, entity, prop.name, false);
-                        val = co;
+                        val = prop.dataType._createInstanceCore(entity, prop.name);
                     } else if (val === undefined) {
                         val = prop.defaultValue;
                     }

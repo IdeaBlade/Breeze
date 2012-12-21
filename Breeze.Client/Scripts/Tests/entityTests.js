@@ -645,10 +645,11 @@ define(["testFns"], function (testFns) {
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after reject changes");
     }
 
-    function checkDefaultValues(entityType) {
-        var props = entityType.getProperties();
-        ok(props.length, "No data properties for entityType: " + entityType.name);
-        var entity = entityType.createEntity();
+    function checkDefaultValues(structType) {
+        var props = structType.getProperties();
+        ok(props.length, "No data properties for structType: " + structType.name);
+        var fn = structType.createEntity || structType.createInstance;
+        var entity = fn.apply(structType);
         props.forEach(function (p) {
             var v = entity.getProperty(p.name);
             if (p.isUnmapped) {
@@ -657,15 +658,15 @@ define(["testFns"], function (testFns) {
                 
                 if (p.isNullable) {
                     ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
-                        entityType.name, p.name, v));
+                        structType.name, p.name, v));
                 } else {
                     ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
-                        entityType.name, p.name, v, p.defaultValue));
+                        structType.name, p.name, v, p.defaultValue));
                 }
             } else {
                 if (p.isScalar) {
                     ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
-                        entityType.name, p.name, v));
+                        structType.name, p.name, v));
                 } else {
                     ok(v.arrayChanged, "value should be a relation array");
                 }
