@@ -297,7 +297,7 @@ function (core, a_config, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity, deferInitialization) {
+        var ctor = function (entity) {
             if (!entity) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
             }
@@ -306,7 +306,7 @@ function (core, a_config, m_validate) {
             }
             // if called without new
             if (!(this instanceof EntityAspect)) {
-                return new EntityAspect(entity, deferInitialization);
+                return new EntityAspect(entity);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -333,10 +333,6 @@ function (core, a_config, m_validate) {
             }
             var entityCtor = entityType.getEntityCtor();
             v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
-            if (!deferInitialization) {
-                this._postInitialize();
-            }
-
         };
 
         ctor.prototype._postInitialize = function () {

@@ -1290,24 +1290,24 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function (initialValues) {
-            if (initialValues) {
-                var entity = this._createEntity(true);
-                core.objectForEach(initialValues, function(key, value) {
-                    entity.setProperty(key, value);
-                });
-                entity.entityAspect._postInitialize();
-                return entity;
-            } else {
-                return this._createEntity(false);
-            }
+        ctor.prototype.createEntity = function (initialValues, deferInitialization) {
+            var instance = this._createEntityCore();
             
+            if (initialValues) {
+                core.objectForEach(initialValues, function(key, value) {
+                    instance.setProperty(key, value);
+                });
+            }
+            if (!deferInitialization) {
+                instance.entityAspect._postInitialize();
+            }
+            return instance;
         };
 
-        ctor.prototype._createEntity = function(deferInitialization) {
-            var entityCtor = this.getEntityCtor();
-            var instance = new entityCtor();
-            new EntityAspect(instance, deferInitialization);
+        ctor.prototype._createEntityCore = function() {
+            var aCtor = this.getEntityCtor();
+            var instance = new aCtor();
+            new EntityAspect(instance);
             return instance;
         };
 

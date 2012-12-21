@@ -486,7 +486,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (entity.entityType.metadataStore != this.metadataStore) {
                 throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
             }
-            var aspect = new EntityAspect(entity);
+            var aspect = entity.entityAspect;
+            if (!aspect) {
+                aspect = new EntityAspect(entity);
+                aspect._postInitialize(entity);
+            }
             var manager = aspect.entityManager;
             if (manager) {
                 if (manager == this) {
@@ -1499,7 +1503,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         targetEntity = null;
                     }
                 } else {
-                    targetEntity = entityType._createEntity(true);
+                    targetEntity = entityType._createEntityCore();
                     dataProperties.forEach(function (dp, ix) {
                         if (dp.dataType == DataType.DateTime) {
                             targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
@@ -1790,7 +1794,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 }
 
             } else {
-                targetEntity = entityType._createEntity(true);
+                targetEntity = entityType._createEntityCore();
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by modelLibrary impl.
                     targetEntity.initializeFrom(rawEntity);
