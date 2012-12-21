@@ -1791,6 +1791,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
+                    // we still need to merge related entities even if top level entity wasn't modified.
+                    entityType.navigationProperties.forEach(function (np) {
+                        if (np.isScalar) {
+                            mergeRelatedEntityCore(rawEntity, np, queryContext);
+                        } else {
+                            mergeRelatedEntitiesCore(rawEntity, np, queryContext);
+                        }
+                    });
                 }
 
             } else {
@@ -1808,16 +1816,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-        // function isSelectQuery(query) {
-        //    if (query == null) {
-        //        return false;
-        //    } else if (typeof query === 'string') {
-        //        return query.indexOf("$select") >= 0;
-        //    } else {
-        //        return !!query.selectClause;
-        //    }
-        //}
-        
+       
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
@@ -1931,13 +1930,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         }
 
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
-            if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
-            if (deferred) {
-                return;
-            }
-            var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            //var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
+            //if (!relatedRawEntity) return;
+            //var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
+            //if (deferred) {
+            //    return;
+            //}
+            //var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext);
+            if (relatedEntity == null) return;
             if (typeof relatedEntity === 'function') {
                 queryContext.deferredFns.push(function() {
                     relatedEntity = relatedEntity();
@@ -1946,6 +1947,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             } else {
                 updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
             }
+        }
+        
+        function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
+            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
+            if (!relatedRawEntity) return null;
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
+            if (deferred) return null;
+            var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            return relatedEntity;
         }
         
         function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
@@ -1967,34 +1977,70 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var propName = navigationProperty.name;
-            var relatedEntities = targetEntity.getProperty(propName);
+        //function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
+        //    var propName = navigationProperty.name;
 
+        //    var inverseProperty = navigationProperty.inverse;
+        //    if (!inverseProperty) return;
+        //    var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
+
+        //    if (!relatedRawEntities) return;
+        //    var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
+        //    if (deferred) {
+        //        return;
+        //    }
+        //    if (!Array.isArray(relatedRawEntities)) return;
+        //    var relatedEntities = targetEntity.getProperty(propName);
+        //    relatedEntities.wasLoaded = true;
+        //    relatedRawEntities.forEach(function (relatedRawEntity) {
+        //        var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+        //        if (typeof relatedEntity === 'function') {
+        //            queryContext.deferredFns.push(function() {
+        //                relatedEntity = relatedEntity();
+        //                updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+        //            });
+        //        } else {
+        //            updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+        //        }
+        //    });
+        //};
+        
+        function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
+            var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
+            if (relatedEntities == null) return;
+            
             var inverseProperty = navigationProperty.inverse;
             if (!inverseProperty) return;
-            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
-
-            if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
-            if (deferred) {
-                return;
-            }
-            if (!Array.isArray(relatedRawEntities)) return;
-            relatedEntities.wasLoaded = true;
-            relatedRawEntities.forEach(function (relatedRawEntity) {
-                var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
+            originalRelatedEntities.wasLoaded = true;
+            relatedEntities.forEach(function (relatedEntity) {
                 if (typeof relatedEntity === 'function') {
                     queryContext.deferredFns.push(function() {
                         relatedEntity = relatedEntity();
-                        updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                        updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                     });
                 } else {
-                    updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                    updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                 }
             });
         };
-        
+
+        function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
+            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
+            if (!relatedRawEntities) return null;
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
+            if (deferred) return null;
+
+            // Don't think it's needed.
+            // if (!Array.isArray(relatedRawEntities)) return null;
+
+            var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
+                return mergeEntity(relatedRawEntity, queryContext);
+            });
+            return relatedEntities;
+
+        }
+
         function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
             if (!relatedEntity) return;
             // check if the related entity is already hooked up

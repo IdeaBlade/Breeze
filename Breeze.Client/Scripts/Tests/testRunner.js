@@ -24,7 +24,7 @@ require([
       "metadataTests",
       "entityManagerTests",
       "entityTests",
-      "complexTypeTests",
+      // "complexTypeTests",
       "queryTests",
       "queryCtorTests",
       "queryNonEFTests",

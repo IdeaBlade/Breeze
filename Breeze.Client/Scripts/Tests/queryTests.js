@@ -56,7 +56,7 @@ define(["testFns"], function (testFns) {
             r.forEach(function (r) {
                 var lastNm = r.getProperty("lastName").toLowerCase();
                 var firstNm = r.getProperty("firstName").toLowerCase();
-                ok(lastNm.indexOf(firstNm) >=0, "lastName should start with firstName");
+                ok(lastNm.indexOf(firstNm) >=0, "lastName should start with firstName - check the database first this may be a test data bug");
             });
         }).fail(testFns.handleFail).fin(start);
     });

@@ -655,8 +655,10 @@ define(["testFns"], function (testFns) {
             if (p.isUnmapped) {
                 // do nothing
             } else if (p.isDataProperty) {
-                
-                if (p.isNullable) {
+                if (p.isComplexProperty) {
+                    ok(v !== null, core.formatString("'%1': prop: '%2' - was null",
+                        structType.name, p.name ));
+                } else if (p.isNullable) {
                     ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
                         structType.name, p.name, v));
                 } else {

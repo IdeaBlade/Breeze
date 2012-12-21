@@ -910,14 +910,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         function convertFromODataComplexProperty(parentType, odataProperty, schema) {
             
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+            // Complex properties are never nullable ( per EF specs)
+            // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             // var complexTypeName = odataProperty.type.split("Edm.")[1];
             var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 complexTypeName: complexTypeName,
-                isNullable: isNullable,
+                isNullable: false,
             });
             
             return dp;
