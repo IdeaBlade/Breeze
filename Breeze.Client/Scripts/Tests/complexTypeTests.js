@@ -134,17 +134,38 @@ define(["testFns"], function (testFns) {
             ok(r.length > 0);
             var supplier0 = r[0];
             var location0 = supplier0.getProperty("location");
-            try {
-                supplier0.setProperty("location", null);
-                ok(false, "shouldn't get here");
-            } catch (e) {
-                ok(e.message.toLowerCase().indexOf("complextype") >= 0, "message should mention complexType");
-            }
-
-
+            supplier0.setProperty("location", newLocation);
+            ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
+            ok(location0 != newLocation, "locations should not be the same object");
+            
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("create a complex type instance with custom constructor", function () {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        em.metadataStore.registerEntityTypeCtor("Location", function() {
+            this.xtraName = "test";
+        });
+        var newLocation = locationType.createInstance();
+        newLocation.setProperty("city", "bar");
+
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var supplier0 = r[0];
+            var location0 = supplier0.getProperty("location");
+            supplier0.setProperty("location", newLocation);
+            ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
+            ok(location0 != newLocation, "locations should not be the same object");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     return testFns;
 
 });

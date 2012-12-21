@@ -298,21 +298,22 @@ function (core, a_config, m_validate) {
         @class EntityAspect
         **/
         var ctor = function (entity) {
-            if (!entity) {
+            if (entity === null) {
+                var nullInstance = EntityAspect._nullInstance;
+                if (nullInstance) return nullInstance;
+                EntityAspect._nullInstance = this;
+            } else if (entity === undefined) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
-            }
-            if (entity.entityAspect) {
+            } else if (entity.entityAspect) {
                 return entity.entityAspect;
             }
+            
             // if called without new
             if (!(this instanceof EntityAspect)) {
                 return new EntityAspect(entity);
             }
 
-            // entityType should already be on the entity from 'watch'
             this.entity = entity;
-            entity.entityAspect = this;
-
             // TODO: keep public or not?
             this.entityGroup = null;
             this.entityManager = null;
@@ -322,17 +323,23 @@ function (core, a_config, m_validate) {
             this._validationErrors = {};
             this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
             this.propertyChanged = new Event("propertyChanged_entityAspect", this);
-            var entityType = entity.entityType;
-            if (!entityType) {
-                var typeName = entity.prototype._$typeName;
-                if (!typeName) {
-                    throw new Error("This entity is not registered as a valid EntityType");
-                } else {
-                    throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
+            // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
+            
+            if (entity != null) {
+                entity.entityAspect = this;
+                // entityType should already be on the entity from 'watch'    
+                var entityType = entity.entityType;
+                if (!entityType) {
+                    var typeName = entity.prototype._$typeName;
+                    if (!typeName) {
+                        throw new Error("This entity is not registered as a valid EntityType");
+                    } else {
+                        throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
+                    }
                 }
+                var entityCtor = entityType.getEntityCtor();
+                v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             }
-            var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
         };
 
         ctor.prototype._postInitialize = function () {
@@ -845,7 +852,9 @@ function (core, a_config, m_validate) {
             this.originalValues = {};
 
             // if a standalone complexObject
-            if (parent) {
+            if (parent == null) {
+                this.entityAspect = new EntityAspect(null);
+            } else {
                 this.parent = parent;
                 this.parentProperty = parentProperty;
 
