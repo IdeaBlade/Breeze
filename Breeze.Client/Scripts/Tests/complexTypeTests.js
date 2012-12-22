@@ -445,6 +445,40 @@ define(["testFns"], function (testFns) {
 
     });
     
+    test("validate property", function () {
+        var em = newEm();
+        var supplierType = em.metadataStore.getEntityType("Supplier");
+        var supplier1 = supplierType.createEntity();
+        em.attachEntity(supplier1);
+        var errs;
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        supplier1.setProperty("companyName", s);
+        supplier1.entityAspect.clearValidationErrors();
+        supplier1.entityAspect.validateProperty("companyName");
+        errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 1, "should be 1 error");
+        
+        var location = supplier1.getProperty("location");
+        location.setProperty("city", s);
+        supplier1.entityAspect.clearValidationErrors();
+        supplier1.entityAspect.validateProperty("location.city");
+        errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 1, "should be 1 error");
+        
+        supplier1.entityAspect.clearValidationErrors();
+        supplier1.entityAspect.validateProperty("location");
+        errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 1, "should be 1 error");
+
+        location.setProperty("city", "much shorter");
+        supplier1.entityAspect.clearValidationErrors();
+        supplier1.entityAspect.validateProperty("location.city");
+        errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 0, "should be no errors");
+
+    });
+    
     function clearAndRevalidate(entity, count) {
         var errs = entity.entityAspect.getValidationErrors();
         ok(errs.length == count, "should be " + count + " errors"); 

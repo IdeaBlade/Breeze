@@ -638,7 +638,7 @@ function (core, a_config, m_validate) {
         }
     
 
-    /**
+        /**
         Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
         all of the validators on the specified property.  This call is also made automatically anytime a property
@@ -652,19 +652,26 @@ function (core, a_config, m_validate) {
             var isOk = order.entityAspect.validateProperty(OrderDateProperty); 
         @method validateProperty
         @param property {DataProperty|NavigationProperty|String} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
-        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate or a string with the name of the property.
+        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate or a string with the name of the property or a property path with
+        the path to a property of a complex object.
         @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
         @return {Boolean} Whether the entity passed validation.
         **/
         ctor.prototype.validateProperty = function (property, context) {
-            assertParam(property, "property").isString().or().isEntityProperty().check();
-            if (typeof (property) === 'string') {
-                property = this.entity.entityType.getProperty(property, true);
+            var value = this.getPropertyValue(property); // performs validations
+            if (value.complexAspect) {
+                return validateTarget(value);
             }
-
-            var value = this.entity.getProperty(property.name);
             context = context || {};
-            context.property = property;
+            context.entity = this.entity;
+            if (typeof(property) === 'string') {
+                context.property = this.entity.entityType.getProperty(property, true);
+                context.propertyName = property;
+            } else {
+                context.property = property;
+                context.propertyName = property.name;
+            }
+            
             return this._validateProperty(value, context);
         };
 
@@ -776,6 +783,28 @@ function (core, a_config, m_validate) {
                 return that.entity.getProperty(fkn);
             });
             return new EntityKey(navigationProperty.entityType, fkValues);
+        };
+
+        ctor.prototype.getPropertyValue = function (property) {
+            assertParam(property, "property").isString().or().isEntityProperty().check();
+            var value;
+            if (typeof (property) === 'string') {
+                var propNames = property.trim().split(".");
+                var propName = propNames.shift();
+                value = this.entity;
+                value = value.getProperty(propName);
+                while (propNames.length > 0) {
+                    propName = propNames.shift();
+                    value = value.getProperty(propName);
+                }
+            } else {
+                if (!(property.parentType instanceof EntityType)) {
+                    throw new Error("The validateProperty method does not accept a 'property' parameter whose parentType is a ComplexType; " +
+                        "Pass a 'property path' string as the 'property' paramter instead ");
+                }
+                value = this.entity.getProperty(property.name);
+            }
+            return value;
         };
 
         // internal methods
