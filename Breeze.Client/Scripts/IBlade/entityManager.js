@@ -2156,19 +2156,26 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return rawObject;
         }
         
-        function unwrapOriginalValues(entity, metadataStore) {
-            var entityType = entity.entityType;
+        function unwrapOriginalValues(target, metadataStore) {
+            var stype = target.entityType || target.complexType;
+            var aspect = target.entityAspect || target.complexAspect;
             var fn = metadataStore.namingConvention.clientPropertyNameToServer;
             var result = {};
-            core.objectForEach(entity.entityAspect.originalValues, function (propName, value) {
-                var prop = entityType.getProperty(propName);
-                if (prop.isComplexProperty) {
-                    value = unwrapInstance(value);
-                }
+            core.objectForEach(aspect.originalValues, function (propName, value) {
+                var prop = stype.getProperty(propName);
                 result[fn(propName, prop)] = value;
+            });
+            stype.complexProperties.forEach(function(cp) {
+                var nextTarget = target.getProperty(cp.name);
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+                if (!core.isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
             });
             return result;
         };
+        
+        
 
 
         function UnattachedChildrenMap() {

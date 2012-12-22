@@ -281,7 +281,7 @@ function (core, a_config, m_validate) {
         return EntityAction;
     })();
 
-    var EntityAspect = function () {
+    var EntityAspect = function() {
         /**
         An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
         
@@ -297,7 +297,7 @@ function (core, a_config, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity) {
+        var ctor = function(entity) {
             if (entity === null) {
                 var nullInstance = EntityAspect._nullInstance;
                 if (nullInstance) return nullInstance;
@@ -307,7 +307,7 @@ function (core, a_config, m_validate) {
             } else if (entity.entityAspect) {
                 return entity.entityAspect;
             }
-            
+
             // if called without new
             if (!(this instanceof EntityAspect)) {
                 return new EntityAspect(entity);
@@ -324,7 +324,7 @@ function (core, a_config, m_validate) {
             this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
             this.propertyChanged = new Event("propertyChanged_entityAspect", this);
             // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
-            
+
             if (entity != null) {
                 entity.entityAspect = this;
                 // entityType should already be on the entity from 'watch'    
@@ -342,7 +342,7 @@ function (core, a_config, m_validate) {
             }
         };
 
-        ctor.prototype._postInitialize = function () {
+        ctor.prototype._postInitialize = function() {
             var entity = this.entity;
             var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
@@ -378,8 +378,8 @@ function (core, a_config, m_validate) {
         __readOnly__
         @property entityState {EntityState}
         **/
-        
-          /**
+
+        /**
         Whether this entity is in the process of being saved.
 
         __readOnly__
@@ -445,12 +445,12 @@ function (core, a_config, m_validate) {
         @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
-        ctor.prototype.getKey = function (forceRefresh) {
+        ctor.prototype.getKey = function(forceRefresh) {
             forceRefresh = core.assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
                 var keyProps = entityType.keyProperties;
-                var values = keyProps.map(function (p) {
+                var values = keyProps.map(function(p) {
                     return this.entity.getProperty(p.name);
                 }, this);
                 this._entityKey = new EntityKey(entityType, values);
@@ -467,7 +467,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method acceptChanges
         **/
-        ctor.prototype.acceptChanges = function () {
+        ctor.prototype.acceptChanges = function() {
             var em = this.entityManager;
             if (this.entityState.isDeleted()) {
                 em.detachEntity(this.entity);
@@ -486,7 +486,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
         @method rejectChanges
         **/
-        ctor.prototype.rejectChanges = function () {
+        ctor.prototype.rejectChanges = function() {
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
@@ -501,14 +501,14 @@ function (core, a_config, m_validate) {
             } else {
                 if (this.entityState.isDeleted()) {
                     this.entityManager._linkRelatedEntities(entity);
-                } 
+                }
                 this.setUnchanged();
                 // propertyChanged propertyName is null because more than one property may have changed.
                 this.propertyChanged.publish({ entity: entity, propertyName: null });
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
-        
+
         function rejectChangesCore(target) {
             var aspect = target.entityAspect || target.complexAspect;
             var stype = target.entityType || target.complexType;
@@ -516,7 +516,7 @@ function (core, a_config, m_validate) {
             for (var propName in originalValues) {
                 target.setProperty(propName, originalValues[propName]);
             }
-            stype.complexProperties.forEach(function (cp) {
+            stype.complexProperties.forEach(function(cp) {
                 var nextTarget = target.getProperty(cp.name);
                 rejectChangesCore(nextTarget);
             });
@@ -530,7 +530,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method setUnchanged
         **/
-        ctor.prototype.setUnchanged = function () {
+        ctor.prototype.setUnchanged = function() {
             clearOriginalValues(this.entity);
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
@@ -541,12 +541,12 @@ function (core, a_config, m_validate) {
             var aspect = target.entityAspect || target.complexAspect;
             aspect.originalValues = {};
             var stype = target.entityType || target.complexType;
-            stype.complexProperties.forEach(function (cp) {
+            stype.complexProperties.forEach(function(cp) {
                 var nextTarget = target.getProperty(cp.name);
                 clearOriginalValues(nextTarget);
             });
         }
-        
+
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
         //        ctor.prototype.setAdded = function () {
         //            this.originalValues = {};
@@ -564,7 +564,7 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Modified' state. 
         @method setModified
         **/
-        ctor.prototype.setModified = function () {
+        ctor.prototype.setModified = function() {
             this.entityState = EntityState.Modified;
             this.entityManager._notifyStateChange(this.entity, true);
         };
@@ -578,7 +578,7 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
         @method setDeleted
         **/
-        ctor.prototype.setDeleted = function () {
+        ctor.prototype.setDeleted = function() {
             if (this.entityState.isAdded()) {
                 this.entityManager.detachEntity(this.entity);
             } else {
@@ -603,12 +603,12 @@ function (core, a_config, m_validate) {
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateEntity = function () {
+        ctor.prototype.validateEntity = function() {
             var ok = true;
             var entityType = this.entity.entityType;
-            this._processValidationOpAndPublish(function (that) {
+            this._processValidationOpAndPublish(function(that) {
                 // property level first
-                entityType.getProperties().forEach(function (p) {
+                entityType.getProperties().forEach(function(p) {
                     var value = that.entity.getProperty(p.name);
                     if (p.validators.length > 0) {
                         var context = { entity: that.entity, property: p };
@@ -616,7 +616,7 @@ function (core, a_config, m_validate) {
                     }
                 });
                 // then entity level
-                entityType.validators.forEach(function (validator) {
+                entityType.validators.forEach(function(validator) {
                     ok = validate(that, validator, that.entity) && ok;
                 });
             });
@@ -624,7 +624,12 @@ function (core, a_config, m_validate) {
             return ok;
         };
 
-        /**
+        function _validateCo(co) {
+            
+        }
+    
+
+    /**
         Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
         all of the validators on the specified property.  This call is also made automatically anytime a property
@@ -710,6 +715,21 @@ function (core, a_config, m_validate) {
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
                 that._removeValidationError(validator, property.name);
+            });
+        };
+
+        /**
+        Removes all of the validation errors for a specified entity
+        @method clearValidationErrors
+        **/
+        ctor.prototype.clearValidationErrors = function () {
+            this._processValidationOpAndPublish(function (that) {
+                core.objectForEach(that._validationErrors, function(key, valError) {
+                    if (valError) {
+                        delete that._validationErrors[key];
+                        that._pendingValidationResult.removed.push(valError);
+                    }
+                });
             });
         };
 

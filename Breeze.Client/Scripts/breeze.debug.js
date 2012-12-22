@@ -1897,7 +1897,7 @@ function (core, a_config) {
         var rootContext = {
             displayName: function (context) {
                 if (context.property) {
-                    return context.property.displayName || context.property.name;
+                    return context.property.displayName || context.propertyName || context.property.name;
                 } else {
                     return "Value";
                 }
@@ -2061,16 +2061,11 @@ function (core, a_config) {
             this.currentContext = currentContext;
             if (!this.valFn(value, currentContext)) {
                 currentContext.value = value;
-                var valContext = {
-                    property: currentContext.property,
-                    value: value
-                };
-                return new ValidationError(this, valContext, this.getMessage());
+                return new ValidationError(this, currentContext, this.getMessage());
             }
             return null;
         };
-
-
+        
         // context.value is not avail unless validate was called first.
 
         /**
@@ -2497,10 +2492,14 @@ function (core, a_config) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
 
             this.validator = validator;
-            this.context = context || {};
-            this.property = context ? context.property : null;
+            context = context || {};
+            this.context = context;
+            this.property = context.property;
+            if (this.property) {
+                this.propertyName = context.propertyName || context.property.name;
+            }
             this.errorMessage = errorMessage;
-            this.key = ValidationError.getKey(validator, this.property);
+            this.key = ValidationError.getKey(validator, this.propertyName);
         };
         
         /**
@@ -2525,14 +2524,21 @@ function (core, a_config) {
         **/
         
         /**
+        The property name associated with this ValidationError. This will be a "property path" for any properties of a complex object.
+
+        __readOnly__
+        @property propertyName {String}
+        **/
+        
+        /**
         The error message associated with the ValidationError.
 
         __readOnly__
         @property errorMessage {string}
         **/
 
-        ctor.getKey = function (validator, property) {
-            return (property ? property.name : "") + ":" + validator.name;
+        ctor.getKey = function (validator, propertyPath) {
+            return (propertyPath || "") + ":" + validator.name;
         };
 
         return ctor;
@@ -2827,7 +2833,7 @@ function (core, a_config, m_validate) {
         return EntityAction;
     })();
 
-    var EntityAspect = function () {
+    var EntityAspect = function() {
         /**
         An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
         
@@ -2843,22 +2849,23 @@ function (core, a_config, m_validate) {
             var currentState = aspect.entityState;
         @class EntityAspect
         **/
-        var ctor = function (entity, deferInitialization) {
-            if (!entity) {
+        var ctor = function(entity) {
+            if (entity === null) {
+                var nullInstance = EntityAspect._nullInstance;
+                if (nullInstance) return nullInstance;
+                EntityAspect._nullInstance = this;
+            } else if (entity === undefined) {
                 throw new Error("The EntityAspect ctor requires an entity as its only argument.");
-            }
-            if (entity.entityAspect) {
+            } else if (entity.entityAspect) {
                 return entity.entityAspect;
             }
+
             // if called without new
             if (!(this instanceof EntityAspect)) {
-                return new EntityAspect(entity, deferInitialization);
+                return new EntityAspect(entity);
             }
 
-            // entityType should already be on the entity from 'watch'
             this.entity = entity;
-            entity.entityAspect = this;
-
             // TODO: keep public or not?
             this.entityGroup = null;
             this.entityManager = null;
@@ -2868,33 +2875,34 @@ function (core, a_config, m_validate) {
             this._validationErrors = {};
             this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
             this.propertyChanged = new Event("propertyChanged_entityAspect", this);
-            var entityType = entity.entityType;
-            if (!entityType) {
-                var typeName = entity.prototype._$typeName;
-                if (!typeName) {
-                    throw new Error("This entity is not registered as a valid EntityType");
-                } else {
-                    throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
-                }
-            }
-            var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
-            if (!deferInitialization) {
-                this._postInitialize();
-            }
+            // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
+            if (entity != null) {
+                entity.entityAspect = this;
+                // entityType should already be on the entity from 'watch'    
+                var entityType = entity.entityType;
+                if (!entityType) {
+                    var typeName = entity.prototype._$typeName;
+                    if (!typeName) {
+                        throw new Error("This entity is not registered as a valid EntityType");
+                    } else {
+                        throw new Error("Metadata for this entityType has not yet been resolved: " + typeName);
+                    }
+                }
+                var entityCtor = entityType.getEntityCtor();
+                v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
+            }
         };
 
-        ctor.prototype._postInitialize = function () {
+        ctor.prototype._postInitialize = function() {
             var entity = this.entity;
             var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
             if (initFn) {
                 if (typeof initFn === "string") {
-                    entity[initFn](entity);
-                } else {
-                    entityCtor._$initializationFn(entity);
+                    initFn = entity[initFn];
                 }
+                initFn(entity);
             }
         };
 
@@ -2922,8 +2930,8 @@ function (core, a_config, m_validate) {
         __readOnly__
         @property entityState {EntityState}
         **/
-        
-          /**
+
+        /**
         Whether this entity is in the process of being saved.
 
         __readOnly__
@@ -2953,7 +2961,8 @@ function (core, a_config, m_validate) {
         @event propertyChanged 
         @param entity {Entity} The entity whose property is changing.
         @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
-        queries, imports and saves that require a merge. The remaining parameters will not exist in this case either.
+        queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
+        for any properties of a complex type.
         @param oldValue {Object} The old value of this property before the change.
         @param newValue {Object} The new value of this property after the change.
         @readOnly
@@ -2988,12 +2997,12 @@ function (core, a_config, m_validate) {
         @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
-        ctor.prototype.getKey = function (forceRefresh) {
+        ctor.prototype.getKey = function(forceRefresh) {
             forceRefresh = core.assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
                 var keyProps = entityType.keyProperties;
-                var values = keyProps.map(function (p) {
+                var values = keyProps.map(function(p) {
                     return this.entity.getProperty(p.name);
                 }, this);
                 this._entityKey = new EntityKey(entityType, values);
@@ -3010,7 +3019,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method acceptChanges
         **/
-        ctor.prototype.acceptChanges = function () {
+        ctor.prototype.acceptChanges = function() {
             var em = this.entityManager;
             if (this.entityState.isDeleted()) {
                 em.detachEntity(this.entity);
@@ -3029,15 +3038,12 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
         @method rejectChanges
         **/
-        ctor.prototype.rejectChanges = function () {
-            var originalValues = this.originalValues;
+        ctor.prototype.rejectChanges = function() {
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
             core.using(entityManager, "isRejectingChanges", true, function() {
-                for (var propName in originalValues) {
-                    entity.setProperty(propName, originalValues[propName]);
-                }
+                rejectChangesCore(entity);
             });
             if (this.entityState.isAdded()) {
                 // next line is needed becuase the following line will cause this.entityManager -> null;
@@ -3047,13 +3053,26 @@ function (core, a_config, m_validate) {
             } else {
                 if (this.entityState.isDeleted()) {
                     this.entityManager._linkRelatedEntities(entity);
-                } 
+                }
                 this.setUnchanged();
                 // propertyChanged propertyName is null because more than one property may have changed.
                 this.propertyChanged.publish({ entity: entity, propertyName: null });
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
+
+        function rejectChangesCore(target) {
+            var aspect = target.entityAspect || target.complexAspect;
+            var stype = target.entityType || target.complexType;
+            var originalValues = aspect.originalValues;
+            for (var propName in originalValues) {
+                target.setProperty(propName, originalValues[propName]);
+            }
+            stype.complexProperties.forEach(function(cp) {
+                var nextTarget = target.getProperty(cp.name);
+                rejectChangesCore(nextTarget);
+            });
+        }
 
         /**
         Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
@@ -3063,12 +3082,22 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method setUnchanged
         **/
-        ctor.prototype.setUnchanged = function () {
-            this.originalValues = {};
+        ctor.prototype.setUnchanged = function() {
+            clearOriginalValues(this.entity);
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
             this.entityManager._notifyStateChange(this.entity, false);
         };
+
+        function clearOriginalValues(target) {
+            var aspect = target.entityAspect || target.complexAspect;
+            aspect.originalValues = {};
+            var stype = target.entityType || target.complexType;
+            stype.complexProperties.forEach(function(cp) {
+                var nextTarget = target.getProperty(cp.name);
+                clearOriginalValues(nextTarget);
+            });
+        }
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
         //        ctor.prototype.setAdded = function () {
@@ -3087,7 +3116,7 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Modified' state. 
         @method setModified
         **/
-        ctor.prototype.setModified = function () {
+        ctor.prototype.setModified = function() {
             this.entityState = EntityState.Modified;
             this.entityManager._notifyStateChange(this.entity, true);
         };
@@ -3101,7 +3130,7 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
         @method setDeleted
         **/
-        ctor.prototype.setDeleted = function () {
+        ctor.prototype.setDeleted = function() {
             if (this.entityState.isAdded()) {
                 this.entityManager.detachEntity(this.entity);
             } else {
@@ -3126,19 +3155,20 @@ function (core, a_config, m_validate) {
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateEntity = function () {
+        ctor.prototype.validateEntity = function() {
             var ok = true;
             var entityType = this.entity.entityType;
-            this._processValidationOpAndPublish(function (that) {
+            this._processValidationOpAndPublish(function(that) {
                 // property level first
-                entityType.getProperties().forEach(function (p) {
+                entityType.getProperties().forEach(function(p) {
                     var value = that.entity.getProperty(p.name);
                     if (p.validators.length > 0) {
-                        ok = that._validateProperty(p, value) && ok;
+                        var context = { entity: that.entity, property: p };
+                        ok = that._validateProperty(value, context) && ok;
                     }
                 });
                 // then entity level
-                entityType.validators.forEach(function (validator) {
+                entityType.validators.forEach(function(validator) {
                     ok = validate(that, validator, that.entity) && ok;
                 });
             });
@@ -3146,7 +3176,12 @@ function (core, a_config, m_validate) {
             return ok;
         };
 
-        /**
+        function _validateCo(co) {
+            
+        }
+    
+
+    /**
         Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
         all of the validators on the specified property.  This call is also made automatically anytime a property
@@ -3171,7 +3206,9 @@ function (core, a_config, m_validate) {
             }
 
             var value = this.entity.getProperty(property.name);
-            return this._validateProperty(property, value, context);
+            context = context || {};
+            context.property = property;
+            return this._validateProperty(value, context);
         };
 
         /**
@@ -3229,7 +3266,22 @@ function (core, a_config, m_validate) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
-                that._removeValidationError(validator, property);
+                that._removeValidationError(validator, property.name);
+            });
+        };
+
+        /**
+        Removes all of the validation errors for a specified entity
+        @method clearValidationErrors
+        **/
+        ctor.prototype.clearValidationErrors = function () {
+            this._processValidationOpAndPublish(function (that) {
+                core.objectForEach(that._validationErrors, function(key, valError) {
+                    if (valError) {
+                        delete that._validationErrors[key];
+                        that._pendingValidationResult.removed.push(valError);
+                    }
+                });
             });
         };
 
@@ -3308,15 +3360,10 @@ function (core, a_config, m_validate) {
         };
 
         // called from defaultInterceptor.
-        ctor.prototype._validateProperty = function (property, value, context) {
+        ctor.prototype._validateProperty = function (value, context) {
             var ok = true;
             this._processValidationOpAndPublish(function (that) {
-                if (context) {
-                    context.property = property;
-                } else {
-                    context = { property: property };
-                }
-                property.validators.forEach(function (validator) {
+                context.property.validators.forEach(function (validator) {
                     ok = ok && validate(that, validator, value, context);
                 });
             });
@@ -3345,8 +3392,8 @@ function (core, a_config, m_validate) {
             this._pendingValidationResult.added.push(validationError);
         };
 
-        ctor.prototype._removeValidationError = function (validator, property) {
-            var key = ValidationError.getKey(validator, property);
+        ctor.prototype._removeValidationError = function (validator, propertyPath) {
+            var key = ValidationError.getKey(validator, propertyPath);
             var valError = this._validationErrors[key];
             if (valError) {
                 delete this._validationErrors[key];
@@ -3360,7 +3407,7 @@ function (core, a_config, m_validate) {
                 aspect._addValidationError(ve);
                 return false;
             } else {
-                aspect._removeValidationError(validator, context ? context.property: null);
+                aspect._removeValidationError(validator, context ? context.propertyName: null);
                 return true;
             }
         }
@@ -3376,7 +3423,7 @@ function (core, a_config, m_validate) {
         
         @class ComplexAspect
         **/
-        var ctor = function(complexObject, parent, parentProperty, deferInitialization) {
+        var ctor = function(complexObject, parent, parentProperty) {
             if (!complexObject) {
                 throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
             }
@@ -3385,7 +3432,7 @@ function (core, a_config, m_validate) {
             }
             // if called without new
             if (!(this instanceof ComplexAspect)) {
-                return new ComplexAspect(complexObject, deferInitialization);
+                return new ComplexAspect(complexObject, parent, parentProperty);
             }
 
             // entityType should already be on the entity from 'watch'
@@ -3393,15 +3440,22 @@ function (core, a_config, m_validate) {
             complexObject.complexAspect = this;
 
             // TODO: keep public or not?
-            this.parent = parent;
-            this.parentProperty = parentProperty;
             this.originalValues = {};
-            // get the final parent's entityAspect.
-            var nextParent = parent;
-            while (nextParent.complexType) {
-                nextParent = nextParent.complexType.parent;
+
+            // if a standalone complexObject
+            if (parent == null) {
+                this.entityAspect = new EntityAspect(null);
+            } else {
+                this.parent = parent;
+                this.parentProperty = parentProperty;
+
+                // get the final parent's entityAspect.
+                var nextParent = parent;
+                while (nextParent.complexType) {
+                    nextParent = nextParent.complexType.parent;
+                }
+                this.entityAspect = nextParent.entityAspect;
             }
-            this.entityAspect = nextParent.entityAspect;
 
             var complexType = complexObject.complexType;
             if (!complexType) {
@@ -3414,9 +3468,6 @@ function (core, a_config, m_validate) {
             }
             var complexCtor = complexType.getCtor();
             v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
-            if (!deferInitialization) {
-                this._postInitialize();
-            }
 
         };
 
@@ -3600,23 +3651,39 @@ function (core, m_entityAspect) {
         var that = this;
         // need 2 propNames here because of complexTypes;
         var propName = property.name;
+        var propPath = propName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
         // var entityAspect = new EntityAspect(this);
 
         var entityAspect = this.entityAspect;
-        var localAspect;
+        var localAspect, parentEntity;
+        
         if (entityAspect) {
+            parentEntity = this
             localAspect = entityAspect;
         } else {
             localAspect = this.complexAspect;
             entityAspect = localAspect.entityAspect;
+            // if complexType is standalong - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+            if (localAspect.parent) {
+                var nextAspect = localAspect;
+                do {
+                    propPath = nextAspect.parentProperty + "." + propPath;
+                    nextAspect = nextAspect.parent.complexAspect;
+                } while (nextAspect);
+            }
         }
+        
         if (entityAspect._inProcess && entityAspect._inProcess === property) {
             // recursion avoided.
             return;
         }
+        
+        // entityAspect.entity used because of complexTypes
+        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject, entity: parentEntity
+        var entity = entityAspect.entity;
 
         // TODO: we actually need to handle multiple properties in process. not just one
         // NOTE: this may not be needed because of the newValue === oldValue test above.
@@ -3629,7 +3696,7 @@ function (core, m_entityAspect) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty) {
+                if (!localAspect.originalValues[propName] && property.isDataProperty && !property.isComplexProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
                     localAspect.originalValues[propName] = oldValue || property.defaultValue;
@@ -3717,7 +3784,8 @@ function (core, m_entityAspect) {
                         entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(newValue,
+                            { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
                     }
                 }
                 // update fk data property
@@ -3732,6 +3800,9 @@ function (core, m_entityAspect) {
                 }
 
             } else if (property.isComplexProperty) {
+                if (!newValue) {
+                    throw new Error(core.formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+                }
                 // To get here it must be a ComplexProperty  
                 var dataType = property.dataType; // this will be a complexType
                 if (!oldValue) {
@@ -3770,7 +3841,9 @@ function (core, m_entityAspect) {
                         entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(newValue,
+                            { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+
                     }
                 }
                 
@@ -3819,15 +3892,15 @@ function (core, m_entityAspect) {
                     entityAspect.getKey(true);
                 }
             }
-
-            var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
+            
+            var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if ( (!entityManager.isLoading) && (!entityManager.isRejectingChanges)) {
                     entityAspect.propertyChanged.publish(propChangedArgs);
                     // don't fire entityChanged event if propertyChanged is suppressed.
-                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
+                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: entity, args: propChangedArgs });
                 }
             } else {
                 entityAspect.propertyChanged.publish(propChangedArgs);
@@ -4047,6 +4120,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
     var EntityAspect = m_entityAspect.EntityAspect;
+    var ComplexAspect = m_entityAspect.ComplexAspect;
     var Validator = m_validate.Validator;
 
     var Q = core.requireLib("Q", "See https://github.com/kriskowal/q ");
@@ -4231,10 +4305,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         });
         
         /**
-       The default value whenever NamingConventions are not specified.
-       @property defaultInstance {NamingConvention}
-       @static
-       **/
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
         ctor.defaultInstance = ctor.none;
         
         /**
@@ -4943,14 +5017,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         function convertFromODataComplexProperty(parentType, odataProperty, schema) {
             
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+            // Complex properties are never nullable ( per EF specs)
+            // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
             // var complexTypeName = odataProperty.type.split("Edm.")[1];
             var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
             // can't set the name until we go thru namingConventions and these need the dp.
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 complexTypeName: complexTypeName,
-                isNullable: isNullable,
+                isNullable: false,
             });
             
             return dp;
@@ -5147,6 +5222,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
             this.dataProperties = [];
             this.navigationProperties = [];
+            this.complexProperties = [];
             this.keyProperties = [];
             this.foreignKeyProperties = [];
             this.concurrencyProperties = [];
@@ -5176,6 +5252,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         __readOnly__
         @property navigationProperties {Array of NavigationProperty} 
+        **/
+        
+        /**
+        The DataProperties for this EntityType that contain instances of a ComplexType (see {{#crossLink "ComplexType"}}{{/crossLink}}).
+
+        __readOnly__
+        @property complexProperties {Array of DataProperty} 
         **/
             
         /**
@@ -5295,15 +5378,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
-            if (property.parentEntityType) {
-                if (property.parentEntityType !== this) {
-                    throw new Error("This dataProperty has already been added to " + property.parentEntityType.name);
+            if (property.parentType) {
+                if (property.parentType !== this) {
+                    throw new Error("This dataProperty has already been added to " + property.parentType.name);
                 } else {
                     return this;
                 }
             }
             property.parentType = this;
-            property.parentEntityType = this;
             if (property.isDataProperty) {
                 this._addDataProperty(property);
             } else {
@@ -5326,23 +5408,22 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {Entity} The new entity.
         **/
         ctor.prototype.createEntity = function (initialValues) {
+            var instance = this._createEntityCore();
+            
             if (initialValues) {
-                var entity = this._createEntity(true);
                 core.objectForEach(initialValues, function(key, value) {
-                    entity.setProperty(key, value);
+                    instance.setProperty(key, value);
                 });
-                entity.entityAspect._postInitialize();
-                return entity;
-            } else {
-                return this._createEntity(false);
             }
             
+            instance.entityAspect._postInitialize();
+            return instance;
         };
 
-        ctor.prototype._createEntity = function(deferInitialization) {
-            var entityCtor = this.getEntityCtor();
-            var instance = new entityCtor();
-            new EntityAspect(instance, deferInitialization);
+        ctor.prototype._createEntityCore = function() {
+            var aCtor = this.getEntityCtor();
+            var instance = new aCtor();
+            new EntityAspect(instance);
             return instance;
         };
 
@@ -5378,6 +5459,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 calcUnmappedProperties(this, instance);
                 proto.entityType = this;
             } else {
+                calcUnmappedProperties(this, instance);
                 proto.complexType = this;
             }
 
@@ -5573,17 +5655,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return serverPropPath;
         };
 
-        ctor.prototype._clientObjectToServer = function (clientObject) {
-            var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
-            var result = {};
-            var that = this;
-            core.objectForEach(clientObject, function (propName, value) {
-                var prop = that.getProperty(propName);
-                result[fn(propName, prop)] = value;
-            });
-            return result;
-        };
-
         ctor.prototype._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;
             var serverName = property.nameOnServer;
@@ -5633,7 +5704,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.prototype._checkNavProperty = function (navigationProperty) {
             if (navigationProperty.isNavigationProperty) {
-                if (navigationProperty.parentEntityType != this) {
+                if (navigationProperty.parentType != this) {
                     throw new Error(core.formatString("The navigationProperty '%1' is not a property of entity type '%2'",
                             navigationProperty.name, this.name));
                 }
@@ -5654,6 +5725,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (dp.isPartOfKey) {
                 this.keyProperties.push(dp);
             };
+            
+            if (dp.isComplexProperty) {
+                this.complexProperties.push(dp);
+            }
 
             if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
                 this.concurrencyProperties.push(dp);
@@ -5695,7 +5770,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         if (np.entityTypeName === entityType.name) {
                             np.entityType = entityType;
                             delete incompleteMap[assocName];
-                            updateIncomplete(np.parentEntityType);
+                            updateIncomplete(np.parentType);
                         }
                     }
                 });
@@ -5711,7 +5786,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             fkProps.forEach(function (dp) {
                 dp.relatedNavigationProperty = np;
-                np.parentEntityType.foreignKeyProperties.push(dp);
+                np.parentType.foreignKeyProperties.push(dp);
                 if (np.relatedDataProperties) {
                     np.relatedDataProperties.push(dp);
                 } else {
@@ -5734,7 +5809,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
             }
             var ok = true;
-            var parentEntityType = np.parentEntityType;
+            var parentEntityType = np.parentType;
             var fkProps = fkNames.map(function (fkName) {
                 var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
                 ok = ok && !!fkProp;
@@ -5753,7 +5828,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         }
 
         function updateCrossEntityRelationship(np) {
-            var metadataStore = np.parentEntityType.metadataStore;
+            var metadataStore = np.parentType.metadataStore;
             var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
             // ok to not find it yet
@@ -5782,10 +5857,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 assocMap[np.associationName] = np;
             }
 
-            var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+            var altAssocMap = incompleteTypeMap[np.parentType.name];
             if (!altAssocMap) {
                 altAssocMap = {};
-                incompleteTypeMap[np.parentEntityType.name] = altAssocMap;
+                incompleteTypeMap[np.parentType.name] = altAssocMap;
             }
             altAssocMap[np.associationName] = np;
         }
@@ -5802,13 +5877,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 inverse.inverse = np;
                 // not sure if these are needed
                 if (inverse.entityType == null) {
-                    inverse.entityType = np.parentEntityType;
+                    inverse.entityType = np.parentType;
                 }
-                var altAssocMap = incompleteTypeMap[np.parentEntityType.name];
+                var altAssocMap = incompleteTypeMap[np.parentType.name];
                 if (altAssocMap) {
                     delete altAssocMap[np.associationName];
                     if (core.isEmpty(altAssocMap)) {
-                        delete incompleteTypeMap[np.parentEntityType.name];
+                        delete incompleteTypeMap[np.parentType.name];
                     }
                 }
             }
@@ -5846,45 +5921,68 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             this.name = qualifyTypeName(this.shortName, this.namespace);
             this.dataProperties = [];
+            this.complexProperties = [];
             this.validators = [];
+            this.concurrencyProperties = [];
+            this.unmappedProperties = [];
         };
 
-        
-        ctor.prototype.createComplexObject = function (initialValues) {
-            var aCtor = this.getCtor();
-            var co = aCtor();
+        /**
+        Creates a new non-attached instance of this ComplexType.
+        @method createInstance
+        @param initialValues {Object} Configuration object containing initial values for the instance. 
+        **/
+        ctor.prototype.createInstance = function (initialValues) {
+            var instance = this._createInstanceCore();
+
             if (initialValues) {
                 core.objectForEach(initialValues, function (key, value) {
-                    co.setProperty(key, value);
+                    instance.setProperty(key, value);
                 });
             }
-            return co;
+
+            instance.complexAspect._postInitialize();
+            return instance;
         };
+
+        ctor.prototype._createInstanceCore = function (parent, parentProperty ) {
+            var aCtor = this.getCtor();
+            var instance = new aCtor();
+            new ComplexAspect(instance, parent, parentProperty);
+            if (parent) {
+                instance.complexAspect._postInitialize();
+            }
+            return instance;
+        };
+        
 
         ctor.prototype.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
-            if (this.metadataStore && !property.isUnmapped) {
+            if (this.metadataStore && ! dataProperty.isUnmapped) {
                 throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
             if (dataProperty.parentType) {
-                if (property.parentType !== this) {
+                if (dataProperty.parentType !== this) {
                     throw new Error("This dataProperty has already been added to " + property.parentType.name);
                 } else {
                     return this;
                 }
             }
+            this._addDataProperty(dataProperty);
 
-            this.dataProperties.push(dataProperty);
-            dataProperty.parentType = this;
             return this;
         };
         
         ctor.prototype.getProperties = function () {
             return this.dataProperties;
         };
+        
+        
 
         ctor.prototype.addValidator = EntityType.prototype.addValidator;
         ctor.prototype.getProperty = EntityType.prototype.getProperty;
+        ctor.prototype.getPropertyNames = EntityType.prototype.getPropertyNames;
+        ctor.prototype._addDataProperty = EntityType.prototype._addDataProperty;
         ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
         // note the name change.
         ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;
@@ -8396,7 +8494,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 var value1 = getPropertyPathValue(entity1, propertyPath);
                 var value2 = getPropertyPathValue(entity2, propertyPath);
                 if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
-                    if (!that.lastProperty.parentEntityType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
+                    if (!that.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
                         value1 = (value1 || "").toLowerCase();
                         value2 = (value2 || "").toLowerCase();
                     }
@@ -8924,11 +9022,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect) {
 
 
     function getPropEntry(that, keyProp, createIfMissing) {
-        var key = keyProp.name + ".." + keyProp.parentEntityType.name;
+        var key = keyProp.name + ".." + keyProp.parentType.name;
         var propEntry = that._tempIdMap[key];
         if (!propEntry) {
             if (createIfMissing) {
-                propEntry = { entityType: keyProp.parentEntityType, propertyName: keyProp.name, keyMap: {} };
+                propEntry = { entityType: keyProp.parentType, propertyName: keyProp.name, keyMap: {} };
                 that._tempIdMap[key] = propEntry;
             }
         }
@@ -9454,7 +9552,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (entity.entityType.metadataStore != this.metadataStore) {
                 throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
             }
-            var aspect = new EntityAspect(entity);
+            var aspect = entity.entityAspect;
+            if (!aspect) {
+                aspect = new EntityAspect(entity);
+                aspect._postInitialize(entity);
+            }
             var manager = aspect.entityManager;
             if (manager) {
                 if (manager == this) {
@@ -10467,7 +10569,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         targetEntity = null;
                     }
                 } else {
-                    targetEntity = entityType._createEntity(true);
+                    targetEntity = entityType._createEntityCore();
                     dataProperties.forEach(function (dp, ix) {
                         if (dp.dataType == DataType.DateTime) {
                             targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
@@ -10755,10 +10857,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 } else {
                     // also called by setPropertiesEntity
                     updateCurrentRef(queryContext, targetEntity);
+                    // we still need to merge related entities even if top level entity wasn't modified.
+                    entityType.navigationProperties.forEach(function (np) {
+                        if (np.isScalar) {
+                            mergeRelatedEntityCore(rawEntity, np, queryContext);
+                        } else {
+                            mergeRelatedEntitiesCore(rawEntity, np, queryContext);
+                        }
+                    });
                 }
 
             } else {
-                targetEntity = entityType._createEntity(true);
+                targetEntity = entityType._createEntityCore();
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by modelLibrary impl.
                     targetEntity.initializeFrom(rawEntity);
@@ -10772,16 +10882,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-        // function isSelectQuery(query) {
-        //    if (query == null) {
-        //        return false;
-        //    } else if (typeof query === 'string') {
-        //        return query.indexOf("$select") >= 0;
-        //    } else {
-        //        return !!query.selectClause;
-        //    }
-        //}
-        
+       
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
@@ -10895,13 +10996,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         }
 
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
-            if (!relatedRawEntity) return;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
-            if (deferred) {
-                return;
-            }
-            var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            //var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
+            //if (!relatedRawEntity) return;
+            //var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
+            //if (deferred) {
+            //    return;
+            //}
+            //var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext);
+            if (relatedEntity == null) return;
             if (typeof relatedEntity === 'function') {
                 queryContext.deferredFns.push(function() {
                     relatedEntity = relatedEntity();
@@ -10910,6 +11013,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             } else {
                 updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
             }
+        }
+        
+        function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
+            var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
+            if (!relatedRawEntity) return null;
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
+            if (deferred) return null;
+            var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            return relatedEntity;
         }
         
         function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
@@ -10931,34 +11043,70 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
-            var propName = navigationProperty.name;
-            var relatedEntities = targetEntity.getProperty(propName);
+        //function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
+        //    var propName = navigationProperty.name;
 
+        //    var inverseProperty = navigationProperty.inverse;
+        //    if (!inverseProperty) return;
+        //    var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
+
+        //    if (!relatedRawEntities) return;
+        //    var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
+        //    if (deferred) {
+        //        return;
+        //    }
+        //    if (!Array.isArray(relatedRawEntities)) return;
+        //    var relatedEntities = targetEntity.getProperty(propName);
+        //    relatedEntities.wasLoaded = true;
+        //    relatedRawEntities.forEach(function (relatedRawEntity) {
+        //        var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+        //        if (typeof relatedEntity === 'function') {
+        //            queryContext.deferredFns.push(function() {
+        //                relatedEntity = relatedEntity();
+        //                updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+        //            });
+        //        } else {
+        //            updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+        //        }
+        //    });
+        //};
+        
+        function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
+            var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
+            if (relatedEntities == null) return;
+            
             var inverseProperty = navigationProperty.inverse;
             if (!inverseProperty) return;
-            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
-
-            if (!relatedRawEntities) return;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
-            if (deferred) {
-                return;
-            }
-            if (!Array.isArray(relatedRawEntities)) return;
-            relatedEntities.wasLoaded = true;
-            relatedRawEntities.forEach(function (relatedRawEntity) {
-                var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
+            originalRelatedEntities.wasLoaded = true;
+            relatedEntities.forEach(function (relatedEntity) {
                 if (typeof relatedEntity === 'function') {
                     queryContext.deferredFns.push(function() {
                         relatedEntity = relatedEntity();
-                        updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                        updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                     });
                 } else {
-                    updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
+                    updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                 }
             });
         };
-        
+
+        function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
+            var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
+            if (!relatedRawEntities) return null;
+            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
+            if (deferred) return null;
+
+            // Don't think it's needed.
+            // if (!Array.isArray(relatedRawEntities)) return null;
+
+            var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
+                return mergeEntity(relatedRawEntity, queryContext);
+            });
+            return relatedEntities;
+
+        }
+
         function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
             if (!relatedEntity) return;
             // check if the related entity is already hooked up
@@ -11039,10 +11187,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         function unwrapEntities(entities, metadataStore) {
             var rawEntities = entities.map(function(e) {
-                var rawEntity = { };
-                e.entityType.dataProperties.forEach(function(dp) {
-                    rawEntity[dp.nameOnServer] = e.getProperty(dp.name);
-                });
+                var rawEntity = unwrapInstance(e);
+
                 var autoGeneratedKey = null;
                 if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
                     autoGeneratedKey = {
@@ -11051,7 +11197,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     };
                 }
                 
-                var originalValuesOnServer = e.entityType._clientObjectToServer(e.entityAspect.originalValues);
+                var originalValuesOnServer = unwrapOriginalValues(e, metadataStore);
                 rawEntity.entityAspect = {
                     entityTypeName: e.entityType.name,
                     entityState: e.entityAspect.entityState.name,
@@ -11062,6 +11208,41 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
             return rawEntities;
         }
+        
+        function unwrapInstance(structObj) {
+            var rawObject = {};
+            var stype = structObj.entityType || structObj.complexType;
+            stype.dataProperties.forEach(function (dp) {
+                if (dp.isComplexProperty) {
+                    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name));
+                } else {
+                    rawObject[dp.nameOnServer] = structObj.getProperty(dp.name);
+                }
+            });
+            return rawObject;
+        }
+        
+        function unwrapOriginalValues(target, metadataStore) {
+            var stype = target.entityType || target.complexType;
+            var aspect = target.entityAspect || target.complexAspect;
+            var fn = metadataStore.namingConvention.clientPropertyNameToServer;
+            var result = {};
+            core.objectForEach(aspect.originalValues, function (propName, value) {
+                var prop = stype.getProperty(propName);
+                result[fn(propName, prop)] = value;
+            });
+            stype.complexProperties.forEach(function(cp) {
+                var nextTarget = target.getProperty(cp.name);
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+                if (!core.isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            });
+            return result;
+        };
+        
+        
+
 
         function UnattachedChildrenMap() {
             // key is EntityKey.toString(), value is array of { navigationProperty, children }
@@ -12102,6 +12283,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
             return this;
         };
 
+        //// called after any create during a query;
         // this method cannot be called while a 'defineProperty' accessor is executing
         // because of IE bug 
         proto.initializeFrom = function(rawEntity) {
@@ -12144,36 +12326,34 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 
     };
 
-    // stob: structural object - entity or complexObject
-    ctor.prototype.startTracking = function (stob, proto) {
+    // entity is either an entity or a complexObject
+    ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
-        var bs = movePropsToBackingStore(stob);
+        var bs = movePropsToBackingStore(entity);
         var that = this;
-        // assign default values to the stob
-        var stype = stob.entityType || stob.complexType;
+        // assign default values to the entity
+        var stype = entity.entityType || entity.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
-            var val = stob[propName];
+            var val = entity[propName];
 
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    var coCtor = prop.dataType.getCtor();
-                    var co = new coCtor();
-                    new ComplexAspect(co, stob, prop.name, false);
+                    var co = prop.dataType._createInstanceCore(entity, prop.name);
                     bs[propName] = co;
                 } else if (val === undefined) {
                     bs[propName] = prop.defaultValue;
                 }
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
-                    throw new Error("Cannot assign a navigation property in an stob ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
                 }
                 if (prop.isScalar) {
                     // TODO: change this to nullstob later.
                     bs[propName] = null;
                 } else {
-                    bs[propName] = breeze.makeRelationArray([], stob, prop);
+                    bs[propName] = breeze.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
@@ -12358,10 +12538,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 // if not
                 if (prop.isDataProperty) {
                     if (prop.isComplexProperty) {
-                        var coCtor = prop.dataType.getCtor();
-                        var co = new coCtor();
-                        new ComplexAspect(co, entity, prop.name, false);
-                        val = co;
+                        val = prop.dataType._createInstanceCore(entity, prop.name);
                     } else if (val === undefined) {
                         val = prop.defaultValue;
                     }
@@ -12552,10 +12729,6 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 
         };
 
-        //// called after any create during a query;
-        //proto.initializeFrom = function (rawEntity) {
-        //};
-
     };
 
     // called when the entityAspect is first created for an entity
@@ -12568,9 +12741,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
             if (dp.isComplexProperty) {
-                var coCtor = dp.dataType.getCtor();
-                var co = new coCtor();
-                new ComplexAspect(co, entity, dp.name, false);
+                var co = dp.dataType._createInstanceCore(entity, dp.name);
                 bbSet.call(entity, dp.name, co);
             } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {

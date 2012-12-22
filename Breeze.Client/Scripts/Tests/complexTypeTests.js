@@ -241,14 +241,15 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("save changes", function() {
+    test("save changes - modified - only cp", function() {
         var em = newEm();
         var locationType = em.metadataStore.getEntityType("Location");
         var q = EntityQuery.from("Suppliers")
             .where("companyName", "startsWith", "P");
 
         stop();
-        var val = "foo-" + Date.now().toString().substr(5)
+        var val = "foo-" + Date.now().toString().substr(5);
+        var oldVal;
         var companyName;
         em.executeQuery(q).then(function(data) {
             var r = data.results;
@@ -256,9 +257,9 @@ define(["testFns"], function (testFns) {
             var supplier0 = r[0];
             companyName = supplier0.getProperty("companyName");
             var location0 = supplier0.getProperty("location");
-            
+            oldVal = location0.getProperty("city");
             location0.setProperty("city", val);
-            
+            ok(val != oldVal, "city values should not match here");
             return em.saveChanges();
         }).then(function(sr) {
             var saved = sr.entities;
@@ -274,6 +275,117 @@ define(["testFns"], function (testFns) {
             ok(supplier2.getProperty("companyName") == companyName, "companyNames should match");
             var val2 = supplier2.getProperty("location").getProperty("city");
             ok(val2 == val, "values should be the same");
+            
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save changes - modified - both cp and non-cp", function () {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        var newCity = "foo-" + Date.now().toString().substr(5);
+        
+        var newCompanyName;
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be at least one record");
+            var supplier0 = r[0];
+            var companyName = supplier0.getProperty("companyName");
+            newCompanyName = testFns.morphString(companyName);
+            supplier0.setProperty("companyName", newCompanyName);
+            
+            var location0 = supplier0.getProperty("location");
+            var oldCity = location0.getProperty("city");
+            location0.setProperty("city", newCity);
+            ok(newCity != oldCity, "city values should not match here");
+            return em.saveChanges();
+        }).then(function (sr) {
+            var saved = sr.entities;
+            ok(saved.length === 1, "should have saved one record");
+            var q2 = EntityQuery.from("Suppliers")
+                .where("location.city", "==", newCity);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function (data2) {
+            var results = data2.results;
+            ok(results.length === 1, "should have requeried 1 record");
+            var supplier2 = results[0];
+            ok(supplier2.getProperty("companyName") == newCompanyName, "companyNames should match");
+            var city2 = supplier2.getProperty("location").getProperty("city");
+            ok(city2 == newCity, "values should be the same");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save changes - modified - no cp", function () {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        var newCompanyName;
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be at least one record");
+            var supplier0 = r[0];
+            var companyName = supplier0.getProperty("companyName");
+            newCompanyName = testFns.morphString(companyName);
+            
+            supplier0.setProperty("companyName", newCompanyName);
+            return em.saveChanges();
+        }).then(function (sr) {
+            var saved = sr.entities;
+            ok(saved.length === 1, "should have saved one record");
+            var q2 = EntityQuery.from("Suppliers")
+                .where("companyName", "==", newCompanyName);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function (data2) {
+            var results = data2.results;
+            ok(results.length === 1, "should have requeried 1 record");
+            var supplier2 = results[0];
+            ok(supplier2.getProperty("companyName") == newCompanyName, "companyNames should match");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save changes - added", function () {
+        var em = newEm();
+        var supplierType = em.metadataStore.getEntityType("Supplier");
+        var locationType = em.metadataStore.getEntityType("Location");
+        var companyName = "Test-" + Date.now().toString().substr(5);
+        var supplier = supplierType.createEntity({
+            companyName: companyName
+        });
+        var location = supplier.getProperty("location");
+        location.setProperty("region", "USA");
+        location.setProperty("address", "123 Main St.");
+        location.setProperty("city", "anywhere");
+        em.addEntity(supplier);
+
+        stop();
+        
+        em.saveChanges().then(function (sr) {
+            var saved = sr.entities;
+            ok(saved.length === 1, "should have saved one record");
+            var q2 = EntityQuery.from("Suppliers")
+                .where("location.city", "==", "anyWhere")
+                .where("companyName", "==", companyName);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function (data2) {
+            var results = data2.results;
+            ok(results.length === 1, "should have requeried 1 record");
+            var supplier2 = results[0];
+            ok(supplier2.getProperty("companyName") == companyName, "companyNames should match");
+            var city2 = supplier2.getProperty("location").getProperty("city");
+            ok(city2 == "anywhere", "cities should be the same");
+            var location2 = supplier2.getProperty("location");
+            ok(location2.getProperty("address") === "123 Main St.", "address should have been saved");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -312,6 +424,38 @@ define(["testFns"], function (testFns) {
         ok(errs.length == 1, "should be 1 error"); // on companyName
 
     });
+    
+    test("validate Entity", function () {
+        var em = newEm();
+        var supplierType = em.metadataStore.getEntityType("Supplier");
+        var supplier1 = supplierType.createEntity();
+        em.attachEntity(supplier1);
+        var errs;
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        supplier1.setProperty("companyName", s);
+        clearAndRevalidate(supplier1, 1); // companyName
+        
+        var location = supplier1.getProperty("location");
+        location.setProperty("city", s);
+        clearAndRevalidate(supplier1, 2); // companyName, city
+
+        location.setProperty("city", "much shorter");
+        clearAndRevalidate(supplier1, 1); // companyName
+
+    });
+    
+    function clearAndRevalidate(entity, count) {
+        var errs = entity.entityAspect.getValidationErrors();
+        ok(errs.length == count, "should be " + count + " errors"); 
+        entity.entityAspect.clearValidationErrors();
+        errs = entity.entityAspect.getValidationErrors();
+        ok(errs.length == 0, "should be no errors");
+        entity.entityAspect.validateEntity();
+        errs = entity.entityAspect.getValidationErrors();
+        ok(errs.length == count, "should be " + count + " errors");
+    }
+
     return testFns;
 
 });
