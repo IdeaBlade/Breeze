@@ -1,6 +1,6 @@
 ﻿// Only one of the next 3 should be uncommented.
-// #define CODEFIRST_PROVIDER 
-#define DATABASEFIRST_OLD
+#define CODEFIRST_PROVIDER 
+// #define DATABASEFIRST_OLD
 // #define DATABASEFIRST_NEW
 
 using System;

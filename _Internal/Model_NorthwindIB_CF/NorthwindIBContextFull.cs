@@ -1418,55 +1418,61 @@ namespace Models.NorthwindIB.CF {
       set;
     }
 
-    /// <summary>Gets or sets the Address. </summary>
     [DataMember]
-    [Column("Address")]
-    // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Supplier_Address")]
-    [MaxLength(60)]
-    public string Address {
+    public Location Location {
       get;
       set;
     }
 
-    /// <summary>Gets or sets the City. </summary>
-    [DataMember]
-    [Column("City")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_City")]
-    [MaxLength(15)]
-    public string City {
-      get;
-      set;
-    }
+    ///// <summary>Gets or sets the Address. </summary>
+    //[DataMember]
+    //[Column("Address")]
+    //// [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Supplier_Address")]
+    //[MaxLength(60)]
+    //public string Address {
+    //  get;
+    //  set;
+    //}
 
-    /// <summary>Gets or sets the Region. </summary>
-    [DataMember]
-    [Column("Region")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Region")]
-    [MaxLength(15)]
-    public string Region {
-      get;
-      set;
-    }
+    ///// <summary>Gets or sets the City. </summary>
+    //[DataMember]
+    //[Column("City")]
+    //// [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_City")]
+    //[MaxLength(15)]
+    //public string City {
+    //  get;
+    //  set;
+    //}
 
-    /// <summary>Gets or sets the PostalCode. </summary>
-    [DataMember]
-    [Column("PostalCode")]
-    // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Supplier_PostalCode")]
-    [MaxLength(10)]
-    public string PostalCode {
-      get;
-      set;
-    }
+    ///// <summary>Gets or sets the Region. </summary>
+    //[DataMember]
+    //[Column("Region")]
+    //// [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Region")]
+    //[MaxLength(15)]
+    //public string Region {
+    //  get;
+    //  set;
+    //}
 
-    /// <summary>Gets or sets the Country. </summary>
-    [DataMember]
-    [Column("Country")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Country")]
-    [MaxLength(15)]
-    public string Country {
-      get;
-      set;
-    }
+    ///// <summary>Gets or sets the PostalCode. </summary>
+    //[DataMember]
+    //[Column("PostalCode")]
+    //// [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Supplier_PostalCode")]
+    //[MaxLength(10)]
+    //public string PostalCode {
+    //  get;
+    //  set;
+    //}
+
+    ///// <summary>Gets or sets the Country. </summary>
+    //[DataMember]
+    //[Column("Country")]
+    //// [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Country")]
+    //[MaxLength(15)]
+    //public string Country {
+    //  get;
+    //  set;
+    //}
 
     /// <summary>Gets or sets the Phone. </summary>
     [DataMember]
@@ -1518,6 +1524,59 @@ namespace Models.NorthwindIB.CF {
     #endregion Navigation properties
   }
   #endregion Supplier class
+
+  [ComplexType]
+  public partial class Location {
+    /// <summary>Gets or sets the Address. </summary>
+    [DataMember]
+    [Column("Address")]
+    // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Supplier_Address")]
+    [MaxLength(60)]
+    public string Address {
+      get;
+      set;
+    }
+
+    /// <summary>Gets or sets the City. </summary>
+    [DataMember]
+    [Column("City")]
+    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_City")]
+    [MaxLength(15)]
+    public string City {
+      get;
+      set;
+    }
+
+    /// <summary>Gets or sets the Region. </summary>
+    [DataMember]
+    [Column("Region")]
+    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Region")]
+    [MaxLength(15)]
+    public string Region {
+      get;
+      set;
+    }
+
+    /// <summary>Gets or sets the PostalCode. </summary>
+    [DataMember]
+    [Column("PostalCode")]
+    // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Supplier_PostalCode")]
+    [MaxLength(10)]
+    public string PostalCode {
+      get;
+      set;
+    }
+
+    /// <summary>Gets or sets the Country. </summary>
+    [DataMember]
+    [Column("Country")]
+    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Country")]
+    [MaxLength(15)]
+    public string Country {
+      get;
+      set;
+    }
+  }
 
   #region Territory class
 

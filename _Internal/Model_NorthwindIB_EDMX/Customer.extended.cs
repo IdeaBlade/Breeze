@@ -25,20 +25,21 @@ namespace Models.NorthwindIB.EDMX {
 
   [MetadataType(typeof(CustomerMetaData))]
   public partial class Customer {
-    
-  }
+
+    public class CustomerMetaData {
 
 
-  public class CustomerMetaData {
+      [CustomValidator]
+      public string ContactName {
+        get;
+        set;
+      }
 
-    
-    [CustomValidator]
-    public string ContactName {
-      get;
-      set;
+
+
     }
-
-
-
   }
+
+
+  
 }
