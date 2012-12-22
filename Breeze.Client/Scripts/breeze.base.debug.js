@@ -3155,33 +3155,42 @@ function (core, a_config, m_validate) {
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateEntity = function() {
-            var ok = true;
-            var entityType = this.entity.entityType;
+        ctor.prototype.validateEntity = function () {
+            var ok =true;
             this._processValidationOpAndPublish(function(that) {
-                // property level first
-                entityType.getProperties().forEach(function(p) {
-                    var value = that.entity.getProperty(p.name);
-                    if (p.validators.length > 0) {
-                        var context = { entity: that.entity, property: p };
-                        ok = that._validateProperty(value, context) && ok;
-                    }
-                });
-                // then entity level
-                entityType.validators.forEach(function(validator) {
-                    ok = validate(that, validator, that.entity) && ok;
-                });
+                ok = validateTarget(that.entity);
             });
-
             return ok;
         };
 
-        function _validateCo(co) {
+        function validateTarget(target) {
+            var ok = true;
+            var stype = target.entityType || target.complexType;
+            var aspect = target.entityAspect || target.complexAspect;
+            var entityAspect = target.entityAspect || target.complexAspect.entityAspect;
             
+            stype.getProperties().forEach(function (p) {
+                var value = target.getProperty(p.name);
+                var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
+                if (p.validators.length > 0) {
+                    var context = { entity: entityAspect.entity, property: p, propertyName: propName };
+                    ok = entityAspect._validateProperty(value, context) && ok;
+                }
+                if (p.isComplexProperty) {
+                    ok = validateTarget(value) && ok;
+                }
+            });
+            
+
+            // then entity level
+            stype.validators.forEach(function (validator) {
+                ok = validate(entityAspect, validator, aspect.entity) && ok;
+            });
+            return ok;
         }
     
 
-    /**
+        /**
         Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
         {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
         all of the validators on the specified property.  This call is also made automatically anytime a property
@@ -3194,20 +3203,27 @@ function (core, a_config, m_validate) {
             var orderDateProperty = order.entityType.getProperty("OrderDate");
             var isOk = order.entityAspect.validateProperty(OrderDateProperty); 
         @method validateProperty
-        @param property {DataProperty|NavigationProperty} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
-        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate.
+        @param property {DataProperty|NavigationProperty|String} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
+        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate or a string with the name of the property or a property path with
+        the path to a property of a complex object.
         @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
         @return {Boolean} Whether the entity passed validation.
         **/
         ctor.prototype.validateProperty = function (property, context) {
-            assertParam(property, "property").isString().or().isEntityProperty().check();
-            if (typeof (property) === 'string') {
-                property = this.entity.entityType.getProperty(property, true);
+            var value = this.getPropertyValue(property); // performs validations
+            if (value.complexAspect) {
+                return validateTarget(value);
             }
-
-            var value = this.entity.getProperty(property.name);
             context = context || {};
-            context.property = property;
+            context.entity = this.entity;
+            if (typeof(property) === 'string') {
+                context.property = this.entity.entityType.getProperty(property, true);
+                context.propertyName = property;
+            } else {
+                context.property = property;
+                context.propertyName = property.name;
+            }
+            
             return this._validateProperty(value, context);
         };
 
@@ -3319,6 +3335,28 @@ function (core, a_config, m_validate) {
                 return that.entity.getProperty(fkn);
             });
             return new EntityKey(navigationProperty.entityType, fkValues);
+        };
+
+        ctor.prototype.getPropertyValue = function (property) {
+            assertParam(property, "property").isString().or().isEntityProperty().check();
+            var value;
+            if (typeof (property) === 'string') {
+                var propNames = property.trim().split(".");
+                var propName = propNames.shift();
+                value = this.entity;
+                value = value.getProperty(propName);
+                while (propNames.length > 0) {
+                    propName = propNames.shift();
+                    value = value.getProperty(propName);
+                }
+            } else {
+                if (!(property.parentType instanceof EntityType)) {
+                    throw new Error("The validateProperty method does not accept a 'property' parameter whose parentType is a ComplexType; " +
+                        "Pass a 'property path' string as the 'property' paramter instead ");
+                }
+                value = this.entity.getProperty(property.name);
+            }
+            return value;
         };
 
         // internal methods
@@ -3448,10 +3486,11 @@ function (core, a_config, m_validate) {
             } else {
                 this.parent = parent;
                 this.parentProperty = parentProperty;
-
+                this.propertyPath = parentProperty;
                 // get the final parent's entityAspect.
                 var nextParent = parent;
                 while (nextParent.complexType) {
+                    this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
                     nextParent = nextParent.complexType.parent;
                 }
                 this.entityAspect = nextParent.entityAspect;
@@ -3651,29 +3690,25 @@ function (core, m_entityAspect) {
         var that = this;
         // need 2 propNames here because of complexTypes;
         var propName = property.name;
-        var propPath = propName;
+        var propPath;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
         // var entityAspect = new EntityAspect(this);
 
         var entityAspect = this.entityAspect;
-        var localAspect, parentEntity;
+        var localAspect;
         
         if (entityAspect) {
-            parentEntity = this
             localAspect = entityAspect;
+            propPath = propName;
         } else {
             localAspect = this.complexAspect;
             entityAspect = localAspect.entityAspect;
-            // if complexType is standalong - i.e. doesn't have a pareent - don't try to calc a fullPropName;
-            if (localAspect.parent) {
-                var nextAspect = localAspect;
-                do {
-                    propPath = nextAspect.parentProperty + "." + propPath;
-                    nextAspect = nextAspect.parent.complexAspect;
-                } while (nextAspect);
-            }
+            // if complexType is standalone - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+            propPath = (localAspect.parent) ?
+                localAspect.propertyPath + "." + propName :
+                propName;
         }
         
         if (entityAspect._inProcess && entityAspect._inProcess === property) {
@@ -3682,7 +3717,7 @@ function (core, m_entityAspect) {
         }
         
         // entityAspect.entity used because of complexTypes
-        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject, entity: parentEntity
+        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject and entity: entity
         var entity = entityAspect.entity;
 
         // TODO: we actually need to handle multiple properties in process. not just one
