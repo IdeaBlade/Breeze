@@ -29,6 +29,7 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Category", "Category", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Category), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.User), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Product), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.OrderDetail), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
@@ -262,22 +263,6 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        public ObjectSet<BonusOrderDetailItem> BonusOrderDetailItems
-        {
-            get
-            {
-                if ((_BonusOrderDetailItems == null))
-                {
-                    _BonusOrderDetailItems = base.CreateObjectSet<BonusOrderDetailItem>("BonusOrderDetailItems");
-                }
-                return _BonusOrderDetailItems;
-            }
-        }
-        private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
         public ObjectSet<Customer> Customers
         {
             get
@@ -290,6 +275,22 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<Customer> _Customers;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<BonusOrderDetailItem> BonusOrderDetailItems
+        {
+            get
+            {
+                if ((_BonusOrderDetailItems == null))
+                {
+                    _BonusOrderDetailItems = base.CreateObjectSet<BonusOrderDetailItem>("BonusOrderDetailItems");
+                }
+                return _BonusOrderDetailItems;
+            }
+        }
+        private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -400,19 +401,19 @@ namespace Models.NorthwindIB.EDMX
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the BonusOrderDetailItems EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
-        {
-            base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the Customers EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToCustomers(Customer customer)
         {
             base.AddObject("Customers", customer);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the BonusOrderDetailItems EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
+        {
+            base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
         }
     
         /// <summary>
@@ -868,13 +869,11 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         /// <param name="customerID">Initial value of the CustomerID property.</param>
         /// <param name="companyName">Initial value of the CompanyName property.</param>
-        /// <param name="location">Initial value of the Location property.</param>
-        public static Customer CreateCustomer(global::System.Guid customerID, global::System.String companyName, Location location)
+        public static Customer CreateCustomer(global::System.Guid customerID, global::System.String companyName)
         {
             Customer customer = new Customer();
             customer.CustomerID = customerID;
             customer.CompanyName = companyName;
-            customer.Location = StructuralObject.VerifyComplexObjectIsNotNull(location, "Location");
             return customer;
         }
 
@@ -1010,6 +1009,126 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
+        public global::System.String Address
+        {
+            get
+            {
+                return _Address;
+            }
+            set
+            {
+                OnAddressChanging(value);
+                ReportPropertyChanging("Address");
+                _Address = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Address");
+                OnAddressChanged();
+            }
+        }
+        private global::System.String _Address;
+        partial void OnAddressChanging(global::System.String value);
+        partial void OnAddressChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String City
+        {
+            get
+            {
+                return _City;
+            }
+            set
+            {
+                OnCityChanging(value);
+                ReportPropertyChanging("City");
+                _City = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("City");
+                OnCityChanged();
+            }
+        }
+        private global::System.String _City;
+        partial void OnCityChanging(global::System.String value);
+        partial void OnCityChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Region
+        {
+            get
+            {
+                return _Region;
+            }
+            set
+            {
+                OnRegionChanging(value);
+                ReportPropertyChanging("Region");
+                _Region = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Region");
+                OnRegionChanged();
+            }
+        }
+        private global::System.String _Region;
+        partial void OnRegionChanging(global::System.String value);
+        partial void OnRegionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String PostalCode
+        {
+            get
+            {
+                return _PostalCode;
+            }
+            set
+            {
+                OnPostalCodeChanging(value);
+                ReportPropertyChanging("PostalCode");
+                _PostalCode = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("PostalCode");
+                OnPostalCodeChanged();
+            }
+        }
+        private global::System.String _PostalCode;
+        partial void OnPostalCodeChanging(global::System.String value);
+        partial void OnPostalCodeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Country
+        {
+            get
+            {
+                return _Country;
+            }
+            set
+            {
+                OnCountryChanging(value);
+                ReportPropertyChanging("Country");
+                _Country = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Country");
+                OnCountryChanged();
+            }
+        }
+        private global::System.String _Country;
+        partial void OnCountryChanging(global::System.String value);
+        partial void OnCountryChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
         public global::System.String Phone
         {
             get
@@ -1079,41 +1198,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Complex Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmComplexPropertyAttribute()]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        [XmlElement(IsNullable=true)]
-        [SoapElement(IsNullable=true)]
-        [DataMemberAttribute()]
-        public Location Location
-        {
-            get
-            {
-                _Location = GetValidValue(_Location, "Location", false, _LocationInitialized);
-                _LocationInitialized = true;
-                return _Location;
-            }
-            set
-            {
-                OnLocationChanging(value);
-                ReportPropertyChanging("Location");
-                _Location = SetValidValue(_Location, value, "Location");
-                _LocationInitialized = true;
-                ReportPropertyChanged("Location");
-                OnLocationChanged();
-            }
-        }
-        private Location _Location;
-        private bool _LocationInitialized;
-        partial void OnLocationChanging(Location value);
-        partial void OnLocationChanged();
-
-        #endregion
-
     
         #region Navigation Properties
     
@@ -1160,15 +1244,13 @@ namespace Models.NorthwindIB.EDMX
         /// <param name="lastName">Initial value of the LastName property.</param>
         /// <param name="firstName">Initial value of the FirstName property.</param>
         /// <param name="rowVersion">Initial value of the RowVersion property.</param>
-        /// <param name="location">Initial value of the Location property.</param>
-        public static Employee CreateEmployee(global::System.Int32 employeeID, global::System.String lastName, global::System.String firstName, global::System.Int32 rowVersion, Location location)
+        public static Employee CreateEmployee(global::System.Int32 employeeID, global::System.String lastName, global::System.String firstName, global::System.Int32 rowVersion)
         {
             Employee employee = new Employee();
             employee.EmployeeID = employeeID;
             employee.LastName = lastName;
             employee.FirstName = firstName;
             employee.RowVersion = rowVersion;
-            employee.Location = StructuralObject.VerifyComplexObjectIsNotNull(location, "Location");
             return employee;
         }
 
@@ -1352,6 +1434,126 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
+        public global::System.String Address
+        {
+            get
+            {
+                return _Address;
+            }
+            set
+            {
+                OnAddressChanging(value);
+                ReportPropertyChanging("Address");
+                _Address = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Address");
+                OnAddressChanged();
+            }
+        }
+        private global::System.String _Address;
+        partial void OnAddressChanging(global::System.String value);
+        partial void OnAddressChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String City
+        {
+            get
+            {
+                return _City;
+            }
+            set
+            {
+                OnCityChanging(value);
+                ReportPropertyChanging("City");
+                _City = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("City");
+                OnCityChanged();
+            }
+        }
+        private global::System.String _City;
+        partial void OnCityChanging(global::System.String value);
+        partial void OnCityChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Region
+        {
+            get
+            {
+                return _Region;
+            }
+            set
+            {
+                OnRegionChanging(value);
+                ReportPropertyChanging("Region");
+                _Region = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Region");
+                OnRegionChanged();
+            }
+        }
+        private global::System.String _Region;
+        partial void OnRegionChanging(global::System.String value);
+        partial void OnRegionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String PostalCode
+        {
+            get
+            {
+                return _PostalCode;
+            }
+            set
+            {
+                OnPostalCodeChanging(value);
+                ReportPropertyChanging("PostalCode");
+                _PostalCode = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("PostalCode");
+                OnPostalCodeChanged();
+            }
+        }
+        private global::System.String _PostalCode;
+        partial void OnPostalCodeChanging(global::System.String value);
+        partial void OnPostalCodeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Country
+        {
+            get
+            {
+                return _Country;
+            }
+            set
+            {
+                OnCountryChanging(value);
+                ReportPropertyChanging("Country");
+                _Country = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("Country");
+                OnCountryChanged();
+            }
+        }
+        private global::System.String _Country;
+        partial void OnCountryChanging(global::System.String value);
+        partial void OnCountryChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
         public global::System.String HomePhone
         {
             get
@@ -1514,41 +1716,6 @@ namespace Models.NorthwindIB.EDMX
         private global::System.Int32 _RowVersion;
         partial void OnRowVersionChanging(global::System.Int32 value);
         partial void OnRowVersionChanged();
-
-        #endregion
-
-        #region Complex Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmComplexPropertyAttribute()]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        [XmlElement(IsNullable=true)]
-        [SoapElement(IsNullable=true)]
-        [DataMemberAttribute()]
-        public Location Location
-        {
-            get
-            {
-                _Location = GetValidValue(_Location, "Location", false, _LocationInitialized);
-                _LocationInitialized = true;
-                return _Location;
-            }
-            set
-            {
-                OnLocationChanging(value);
-                ReportPropertyChanging("Location");
-                _Location = SetValidValue(_Location, value, "Location");
-                _LocationInitialized = true;
-                ReportPropertyChanged("Location");
-                OnLocationChanged();
-            }
-        }
-        private Location _Location;
-        private bool _LocationInitialized;
-        partial void OnLocationChanging(Location value);
-        partial void OnLocationChanged();
 
         #endregion
 
@@ -1893,13 +2060,11 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         /// <param name="orderID">Initial value of the OrderID property.</param>
         /// <param name="rowVersion">Initial value of the RowVersion property.</param>
-        /// <param name="shipLocation">Initial value of the ShipLocation property.</param>
-        public static Order CreateOrder(global::System.Int32 orderID, global::System.Int32 rowVersion, Location shipLocation)
+        public static Order CreateOrder(global::System.Int32 orderID, global::System.Int32 rowVersion)
         {
             Order order = new Order();
             order.OrderID = orderID;
             order.RowVersion = rowVersion;
-            order.ShipLocation = StructuralObject.VerifyComplexObjectIsNotNull(shipLocation, "ShipLocation");
             return order;
         }
 
@@ -2105,6 +2270,126 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String ShipAddress
+        {
+            get
+            {
+                return _ShipAddress;
+            }
+            set
+            {
+                OnShipAddressChanging(value);
+                ReportPropertyChanging("ShipAddress");
+                _ShipAddress = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("ShipAddress");
+                OnShipAddressChanged();
+            }
+        }
+        private global::System.String _ShipAddress;
+        partial void OnShipAddressChanging(global::System.String value);
+        partial void OnShipAddressChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String ShipCity
+        {
+            get
+            {
+                return _ShipCity;
+            }
+            set
+            {
+                OnShipCityChanging(value);
+                ReportPropertyChanging("ShipCity");
+                _ShipCity = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("ShipCity");
+                OnShipCityChanged();
+            }
+        }
+        private global::System.String _ShipCity;
+        partial void OnShipCityChanging(global::System.String value);
+        partial void OnShipCityChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String ShipRegion
+        {
+            get
+            {
+                return _ShipRegion;
+            }
+            set
+            {
+                OnShipRegionChanging(value);
+                ReportPropertyChanging("ShipRegion");
+                _ShipRegion = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("ShipRegion");
+                OnShipRegionChanged();
+            }
+        }
+        private global::System.String _ShipRegion;
+        partial void OnShipRegionChanging(global::System.String value);
+        partial void OnShipRegionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String ShipPostalCode
+        {
+            get
+            {
+                return _ShipPostalCode;
+            }
+            set
+            {
+                OnShipPostalCodeChanging(value);
+                ReportPropertyChanging("ShipPostalCode");
+                _ShipPostalCode = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("ShipPostalCode");
+                OnShipPostalCodeChanged();
+            }
+        }
+        private global::System.String _ShipPostalCode;
+        partial void OnShipPostalCodeChanging(global::System.String value);
+        partial void OnShipPostalCodeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String ShipCountry
+        {
+            get
+            {
+                return _ShipCountry;
+            }
+            set
+            {
+                OnShipCountryChanging(value);
+                ReportPropertyChanging("ShipCountry");
+                _ShipCountry = StructuralObject.SetValidValue(value, true);
+                ReportPropertyChanged("ShipCountry");
+                OnShipCountryChanged();
+            }
+        }
+        private global::System.String _ShipCountry;
+        partial void OnShipCountryChanging(global::System.String value);
+        partial void OnShipCountryChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
         public global::System.Int32 RowVersion
@@ -2125,41 +2410,6 @@ namespace Models.NorthwindIB.EDMX
         private global::System.Int32 _RowVersion;
         partial void OnRowVersionChanging(global::System.Int32 value);
         partial void OnRowVersionChanged();
-
-        #endregion
-
-        #region Complex Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmComplexPropertyAttribute()]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        [XmlElement(IsNullable=true)]
-        [SoapElement(IsNullable=true)]
-        [DataMemberAttribute()]
-        public Location ShipLocation
-        {
-            get
-            {
-                _ShipLocation = GetValidValue(_ShipLocation, "ShipLocation", false, _ShipLocationInitialized);
-                _ShipLocationInitialized = true;
-                return _ShipLocation;
-            }
-            set
-            {
-                OnShipLocationChanging(value);
-                ReportPropertyChanging("ShipLocation");
-                _ShipLocation = SetValidValue(_ShipLocation, value, "ShipLocation");
-                _ShipLocationInitialized = true;
-                ReportPropertyChanged("ShipLocation");
-                OnShipLocationChanged();
-            }
-        }
-        private Location _ShipLocation;
-        private bool _ShipLocationInitialized;
-        partial void OnShipLocationChanging(Location value);
-        partial void OnShipLocationChanged();
 
         #endregion
 
