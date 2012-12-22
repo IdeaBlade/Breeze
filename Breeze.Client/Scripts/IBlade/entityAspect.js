@@ -603,47 +603,36 @@ function (core, a_config, m_validate) {
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateEntity = function() {
-            var ok = true;
-            var entityType = this.entity.entityType;
+        ctor.prototype.validateEntity = function () {
+            var ok =true;
             this._processValidationOpAndPublish(function(that) {
-                // property level first
-                entityType.getProperties().forEach(function(p) {
-                    var value = that.entity.getProperty(p.name);
-                    if (p.validators.length > 0) {
-                        var context = { entity: that.entity, property: p };
-                        ok = that._validateProperty(value, context) && ok;
-                    }
-                });
-                // then entity level
-                entityType.validators.forEach(function(validator) {
-                    ok = validate(that, validator, that.entity) && ok;
-                });
+                ok = validateTarget(that.entity);
             });
-
             return ok;
         };
 
-        function _validateTarget(target) {
+        function validateTarget(target) {
             var ok = true;
             var stype = target.entityType || target.complexType;
             var aspect = target.entityAspect || target.complexAspect;
+            var entityAspect = target.entityAspect || target.complexAspect.entityAspect;
             
             stype.getProperties().forEach(function (p) {
                 var value = target.getProperty(p.name);
+                var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
                 if (p.validators.length > 0) {
-                    var context = { entity: aspect.entity, property: p };
-                    ok = aspect._validateProperty(value, context) && ok;
+                    var context = { entity: entityAspect.entity, property: p, propertyName: propName };
+                    ok = entityAspect._validateProperty(value, context) && ok;
                 }
                 if (p.isComplexProperty) {
-                    ok = _validateTarget(value) && ok;
+                    ok = validateTarget(value) && ok;
                 }
             });
             
 
             // then entity level
             stype.validators.forEach(function (validator) {
-                ok = validate(aspect, validator, aspect.entity) && ok;
+                ok = validate(entityAspect, validator, aspect.entity) && ok;
             });
             return ok;
         }
@@ -662,8 +651,8 @@ function (core, a_config, m_validate) {
             var orderDateProperty = order.entityType.getProperty("OrderDate");
             var isOk = order.entityAspect.validateProperty(OrderDateProperty); 
         @method validateProperty
-        @param property {DataProperty|NavigationProperty} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
-        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate.
+        @param property {DataProperty|NavigationProperty|String} The {{#crossLink "DataProperty"}}{{/crossLink}} or 
+        {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate or a string with the name of the property.
         @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
         @return {Boolean} Whether the entity passed validation.
         **/
