@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DocCode.Controllers
 {
-  [JsonFormatter, ODataActionFilter]
+  [BreezeController]
   public class NorthwindController : ApiController {
 
     readonly EFContextProvider<NorthwindContext> _contextProvider =
@@ -93,6 +93,44 @@ namespace DocCode.Controllers
     [HttpGet]
     public IQueryable<Territory> Territories() {
       return _contextProvider.Context.Territories;
+    }
+
+    // Demonstrate a "View Entity" a selection of "safe" entity properties
+    // UserPartial is not in Metadata and won't be client cached unless
+    // you define metadata for it on the Breeze client
+    [HttpGet]
+    public IQueryable<UserPartial> Users()
+    {
+        // Todo: move this logic into a custom EFContextProvider
+        return _contextProvider.Context.Users
+            .Select(user => new UserPartial
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                    // Even though this works, sending every user's roles seems unwise
+                    // Roles = user.UserRoles.Select(ur => ur.Role)
+                });
+    }
+    // Useful when need ONE user and its roles
+    // Could further restrict to the authenticated user
+    [HttpGet]
+    public UserPartial GetUserById(int id)
+    {
+        // Todo: move this logic into a custom EFContextProvider
+        return _contextProvider.Context.Users
+            .Where(user => user.Id == id)
+            .Select(user => new UserPartial
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Roles = user.UserRoles.Select(ur => ur.Role)
+            })
+            .FirstOrDefault();
     }
 
     /*********************************************************

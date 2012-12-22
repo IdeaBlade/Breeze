@@ -1011,7 +1011,57 @@ define(["testFns"], function (testFns) {
         }
 
     });
+
+    /*********************************************************
+    * PROJECTION: 
+    * The next set of tests demo serverside projection for "security".
+    * The Users query on the server actually projects into the
+    * 'UserPartial' class which only has "safe" properties of the User type.
+    * Properties like "Password" are excluded.
+    * 'UserPartial' is NOT in server metadata
+    *
+    * See also metadataTests for example of adding 'UserPartial'
+    * to client metadataStore ... and then querying them into cache
+    *********************************************************/
     
+    /*********************************************************/
+    test("'Users' query returns objects of type 'UserPartial'", 3, function () {
+
+        var query = EntityQuery.from("Users").top(1);
+        var em = newEm();
+        
+        verifyQuery(em, query,"users",
+            assertUserPartialIsNotAnEntity);
+        
+    });
+    function assertUserPartialIsNotAnEntity(data) {
+        var user = data.results[0];
+        ok(user.entityType === undefined,
+            "'user' result should not have an entityType");
+        ok(user.Password === undefined,
+            "'user' result should not have a 'Password' property");
+    }
+    /*********************************************************/
+    test("'GetUserById' query returns 'UserPartial' with roles", 4, function () {
+
+        var query = EntityQuery
+            .from("GetUserById")
+            .withParameters({ Id: 3 }); // id=3 has two UserRoles
+        
+        var em = newEm();
+
+        verifyQuery(em, query, "GetUserById",
+            assertUserPartialIsNotAnEntity,
+            assertResultHasRoleNames);
+        
+        function assertResultHasRoleNames(data) {
+            var user = data.results[0];
+            ok(user.RoleNames.length > 0,
+                "'user' result has role names: "+user.RoleNames);
+        }
+    });
+    
+
     /*** LOCAL QUERY EXECUTION ***/
 
     module("queryTests (local)", testFns.getModuleOptions(newEm));

@@ -9,11 +9,11 @@ define(["testFns"], function (testFns) {
 
     var breeze = testFns.breeze;
     var MetadataStore = breeze.MetadataStore;
-    
 
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
     var handleFail = testFns.handleFail;
+    var verifyQuery = testFns.verifyQuery;
 
     // types for testing
     var customerType;
@@ -140,6 +140,62 @@ define(["testFns"], function (testFns) {
             }
         });
 
+    /*********************************************************
+    * Can add type to metadataStore
+    *********************************************************/
+    test("can add 'UserPartial' type to metadataStore", 5, function () {
+
+        var em = new breeze.EntityManager(northwindService);
+        var metastore = em.metadataStore;
+
+        defineUserPartialType(metastore);
+
+        var userPartialType = metastore.getEntityType('UserPartial');
+        ok(userPartialType !== null,
+            "'UserPartial' type should be in metadata");
+
+        var query = breeze.EntityQuery
+            .from("GetUserById")
+            .withParameters({ Id: 3 }); // id=3 has two UserRoles
+
+        verifyQuery(em, query, "GetUserById",
+            assertResultsAreEntitiesInCache);
+
+        function assertResultsAreEntitiesInCache(data) {
+            var user = data.results[0];
+            equal(user.entityType, userPartialType,
+                "1st result should be an 'UserPartial' entity type");
+
+            var state = user.entityAspect.entityState;
+            equal(state, breeze.EntityState.Unchanged,
+              "the 'UserPartial' result should be in cache in an 'Unchanged' state");
+
+            ok(user.Password === undefined, // it is NOT the same as the User type
+                "result should not have a 'Password' property");
+        }
+
+    });
+    
+    /** test helpers **/
+    function defineUserPartialType(store) {
+        var type = new breeze.EntityType({
+            shortName: 'UserPartial',
+            namespace: 'DocCode.Models'
+        });
+        var id = new breeze.DataProperty({
+            nameOnServer: 'Id',
+            dataType: breeze.DataType.Int32,
+            isPartOfKey: true,
+        });
+        type.addProperty(id);
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'FirstName' }));
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'LastName' }));
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'Email' }));
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'RoleNames' }));
+        // How do I add a property for UserRoles?
+        // How do I add a property for RoleNames?
+        store.addEntityType(type);
+    }
 
     /*** NamingConvention Tests ***/
     
