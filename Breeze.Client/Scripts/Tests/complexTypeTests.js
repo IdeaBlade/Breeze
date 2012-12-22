@@ -218,6 +218,43 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
+    test("save changes", function() {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        var val = "foo-" + Date.now().toString().substr(5)
+        var companyName;
+        em.executeQuery(q).then(function(data) {
+            var r = data.results;
+            ok(r.length > 0, "should be at least one record");
+            var supplier0 = r[0];
+            companyName = supplier0.getProperty("companyName");
+            var location0 = supplier0.getProperty("location");
+            
+            location0.setProperty("city", val);
+            
+            return em.saveChanges();
+        }).then(function(sr) {
+            var saved = sr.entities;
+            ok(saved.length === 1, "should have saved one record");
+            var q2 = EntityQuery.from("Suppliers")
+                .where("location.city", "==", val);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function(data2) {
+            var results = data2.results;
+            ok(results.length === 1, "should have requeried 1 record");
+            var supplier2 = results[0];
+            ok(supplier2.getProperty("companyName") == companyName, "companyNames should match");
+            var val2 = supplier2.getProperty("location").getProperty("city");
+            ok(val2 == val, "values should be the same");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    
     return testFns;
 
 });

@@ -198,10 +198,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         });
         
         /**
-       The default value whenever NamingConventions are not specified.
-       @property defaultInstance {NamingConvention}
-       @static
-       **/
+        The default value whenever NamingConventions are not specified.
+        @property defaultInstance {NamingConvention}
+        @static
+        **/
         ctor.defaultInstance = ctor.none;
         
         /**
@@ -1540,16 +1540,19 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return serverPropPath;
         };
 
-        ctor.prototype._clientObjectToServer = function (clientObject) {
-            var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
-            var result = {};
-            var that = this;
-            core.objectForEach(clientObject, function (propName, value) {
-                var prop = that.getProperty(propName);
-                result[fn(propName, prop)] = value;
-            });
-            return result;
-        };
+        //ctor.prototype._clientObjectToServer = function (clientObject, complexObjectFn) {
+        //    var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
+        //    var result = {};
+        //    var that = this;
+        //    core.objectForEach(clientObject, function (propName, value) {
+        //        var prop = that.getProperty(propName);
+        //        if (value.complexAspect) {
+        //            value = complexObjectFn(value);
+        //        }
+        //        result[fn(propName, prop)] = value;
+        //    });
+        //    return result;
+        //};
 
         ctor.prototype._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;

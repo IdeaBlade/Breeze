@@ -280,22 +280,24 @@ namespace Breeze.WebApi {
 
         try {
           entry.SetModifiedProperty(propertyName);
-          // only really need to perform updating original values on key properties
-          // and a complex object cannot be a key.
-          // if (!(originalValue is IComplexObject)) {
-          var ordinal = originalValuesRecord.GetOrdinal(propertyName);
-          var fieldType = originalValuesRecord.GetFieldType(ordinal);
-          var originalValueConverted = ConvertValue(originalValue, fieldType);
-          
-          if (originalValueConverted == null) {
-            // bug - hack because of bug in EF - see 
-            // http://social.msdn.microsoft.com/Forums/nl/adodotnetentityframework/thread/cba1c425-bf82-4182-8dfb-f8da0572e5da
-            var temp = entry.CurrentValues[ordinal];
-            entry.CurrentValues.SetDBNull(ordinal);
-            entry.ApplyOriginalValues(entry.Entity);
-            entry.CurrentValues.SetValue(ordinal, temp);
+          if (originalValue is JObject) {
+            // only really need to perform updating original values on key properties
+            // and a complex object cannot be a key.
           } else {
-            originalValuesRecord.SetValue(ordinal, originalValueConverted);
+            var ordinal = originalValuesRecord.GetOrdinal(propertyName);
+            var fieldType = originalValuesRecord.GetFieldType(ordinal);
+            var originalValueConverted = ConvertValue(originalValue, fieldType);
+
+            if (originalValueConverted == null) {
+              // bug - hack because of bug in EF - see 
+              // http://social.msdn.microsoft.com/Forums/nl/adodotnetentityframework/thread/cba1c425-bf82-4182-8dfb-f8da0572e5da
+              var temp = entry.CurrentValues[ordinal];
+              entry.CurrentValues.SetDBNull(ordinal);
+              entry.ApplyOriginalValues(entry.Entity);
+              entry.CurrentValues.SetValue(ordinal, temp);
+            } else {
+              originalValuesRecord.SetValue(ordinal, originalValueConverted);
+            }
           }
         } catch (Exception e) {
           // this can happen for "custom" data entity properties.
@@ -354,6 +356,9 @@ namespace Breeze.WebApi {
       
       if (typeof (IConvertible).IsAssignableFrom(toType)) {
         result = Convert.ChangeType(val, toType, System.Threading.Thread.CurrentThread.CurrentCulture);
+      } else if (val is JObject) {
+        var serializer = new JsonSerializer();
+        result = serializer.Deserialize(new JTokenReader((JObject) val), toType);
       } else {
         // Guids fail above - try this
         TypeConverter typeConverter = TypeDescriptor.GetConverter(toType);
