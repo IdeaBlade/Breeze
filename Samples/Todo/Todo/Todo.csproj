@@ -43,14 +43,14 @@
   <ItemGroup>
     <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.6\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.78.2\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.64.6\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.78.2\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
+    <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">

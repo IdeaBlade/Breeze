@@ -639,6 +639,65 @@ define(["testFns"], function (testFns) {
                 }
             }}
     }
+        
+    /*********************************************************
+    * Changing a part of a date doesn't trigger property changed
+    * contrast with "Changing the whole date does trigger property changed"
+    *********************************************************/
+    test("Changing a part of a date doesn't trigger property changed", 3, function() {
+       
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        order.setProperty("OrderDate", new Date(2013, 1, 1));
+        order.setProperty("OrderID", 42);
+        em.attachEntity(order); // unmodified state
+        
+        var orderDate = order.getProperty("OrderDate");
+        var originalDate = new Date(orderDate); // clone it
+        var newDay = orderDate.getDate() + 1;
+        orderDate.setDate(newDay);
+        
+        // the date parts are not observable
+        // therefore, although the entity's order date has changed
+        // the entity doesn't know about it and remains in unmodified state.
+        var afterDate = order.getProperty("OrderDate");
+
+        notStrictEqual(afterDate, originalDate, "the OrderDate should have changed");
+        equal(afterDate.getDate(), newDay,
+            "the day of the OrderDate should have changed");
+
+        var entityStateName = order.entityAspect.entityState;
+        equal(entityStateName, "Unchanged", "the entitystate should be 'Unchanged'");
+    });
+    /*********************************************************
+    * Changing the whole date does trigger property changed
+    * contrast with "Changing a part of a date doesn't trigger property changed"
+    *********************************************************/
+    test("Changing the whole date does trigger property changed", 2, function () {
+
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        order.setProperty("OrderDate", new Date(2013, 1, 1));
+        order.setProperty("OrderID", 42);
+        em.attachEntity(order); // unmodified state
+
+        var orderDate = order.getProperty("OrderDate");
+        var newDay = orderDate.getDate() + 1;
+        orderDate.setDate(newDay);
+
+        // set the date with a **clone** of the altered date
+        order.setProperty("OrderDate", new Date(orderDate));
+
+        var afterDate = order.getProperty("OrderDate");
+        equal(afterDate.getDate(), newDay,
+            "the day of the OrderDate should have changed");
+
+        var entityStateName = order.entityAspect.entityState;
+        equal(entityStateName, "Modified", "the entitystate should be 'Modified'");
+    });
+
     /*********************************************************
     * TEST HELPERS
     *********************************************************/
