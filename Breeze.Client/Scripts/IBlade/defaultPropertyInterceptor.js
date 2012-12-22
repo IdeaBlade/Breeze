@@ -18,29 +18,25 @@ function (core, m_entityAspect) {
         var that = this;
         // need 2 propNames here because of complexTypes;
         var propName = property.name;
-        var propPath = propName;
+        var propPath;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
         // var entityAspect = new EntityAspect(this);
 
         var entityAspect = this.entityAspect;
-        var localAspect, parentEntity;
+        var localAspect;
         
         if (entityAspect) {
-            parentEntity = this
             localAspect = entityAspect;
+            propPath = propName;
         } else {
             localAspect = this.complexAspect;
             entityAspect = localAspect.entityAspect;
-            // if complexType is standalong - i.e. doesn't have a pareent - don't try to calc a fullPropName;
-            if (localAspect.parent) {
-                var nextAspect = localAspect;
-                do {
-                    propPath = nextAspect.parentProperty + "." + propPath;
-                    nextAspect = nextAspect.parent.complexAspect;
-                } while (nextAspect);
-            }
+            // if complexType is standalone - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+            propPath = (localAspect.parent) ?
+                localAspect.propertyPath + "." + propName :
+                propName;
         }
         
         if (entityAspect._inProcess && entityAspect._inProcess === property) {
@@ -49,7 +45,7 @@ function (core, m_entityAspect) {
         }
         
         // entityAspect.entity used because of complexTypes
-        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject, entity: parentEntity
+        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject and entity: entity
         var entity = entityAspect.entity;
 
         // TODO: we actually need to handle multiple properties in process. not just one

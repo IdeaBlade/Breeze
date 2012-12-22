@@ -624,8 +624,28 @@ function (core, a_config, m_validate) {
             return ok;
         };
 
-        function _validateCo(co) {
+        function _validateTarget(target) {
+            var ok = true;
+            var stype = target.entityType || target.complexType;
+            var aspect = target.entityAspect || target.complexAspect;
             
+            stype.getProperties().forEach(function (p) {
+                var value = target.getProperty(p.name);
+                if (p.validators.length > 0) {
+                    var context = { entity: aspect.entity, property: p };
+                    ok = aspect._validateProperty(value, context) && ok;
+                }
+                if (p.isComplexProperty) {
+                    ok = _validateTarget(value) && ok;
+                }
+            });
+            
+
+            // then entity level
+            stype.validators.forEach(function (validator) {
+                ok = validate(aspect, validator, aspect.entity) && ok;
+            });
+            return ok;
         }
     
 
@@ -896,10 +916,11 @@ function (core, a_config, m_validate) {
             } else {
                 this.parent = parent;
                 this.parentProperty = parentProperty;
-
+                this.propertyPath = parentProperty;
                 // get the final parent's entityAspect.
                 var nextParent = parent;
                 while (nextParent.complexType) {
+                    this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
                     nextParent = nextParent.complexType.parent;
                 }
                 this.entityAspect = nextParent.entityAspect;
