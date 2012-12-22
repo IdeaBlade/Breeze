@@ -168,6 +168,28 @@ define(["testFns"], function (testFns) {
 
         }).fail(testFns.handleFail).fin(start);
     });
+    
+    test("rejectChanges", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            var supplier0 = r[0];
+            var location0 = supplier0.getProperty("location");
+            var origCity = location0.getProperty("city");
+            location0.setProperty("city", "aargh");
+            supplier0.entityAspect.rejectChanges();
+            var sameCity = location0.getProperty("city");
+            ok(origCity === sameCity, 'cities should be the same');
+
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("property change event tracking", function() {
         var em = newEm();
@@ -201,16 +223,17 @@ define(["testFns"], function (testFns) {
             // 6 = 5 properties + 1 for parent
             ok(propertyChangedArgs.length === 6, "should have been 6 change events"); 
             ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-            ok(lastPcArgs.propertyName === "location");
+            ok(lastPcArgs.property.name === "location");
             // 7 = 6 + 1 entityState change
             ok(entityChangedArgs.length === 7, "should have been 7 change events");
             ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-            ok(lastEcArgs.args.propertyName === "location");
+            ok(lastEcArgs.args.property.name === "location");
             
             location0.setProperty("city", "newCity");
             // + 1
             ok(propertyChangedArgs.length === 7, "should have been 7 change events");
             ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
+            ok(lastPcArgs.property.name === "city");
             ok(lastPcArgs.propertyName === "location.city");
             ok(entityChangedArgs.length === 8, "should have been 8 change events");
             ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
@@ -276,14 +299,14 @@ define(["testFns"], function (testFns) {
         var location = supplier1.getProperty("location");
         location.setProperty("city", s);
         ok(lastNotification.added, "last notification should have been 'added'");
-        ok(lastNotification.added[0].property.name === "location.city");
+        ok(lastNotification.added[0].propertyName === "location.city", "should have added 'location.city");
         ok(notificationCount === 2, "should have been 1 notification");
         var errs = supplier1.entityAspect.getValidationErrors();
         ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
 
         location.setProperty("city", "much shorter");
         ok(lastNotification.removed, "last notification should have been 'removed'");
-        ok(lastNotification.removed[0].property.name === "location.city");
+        ok(lastNotification.removed[0].propertyName === "location.city", "should have removed 'location.city'");
         ok(notificationCount === 3, "should have been 2 notifications");
         errs = supplier1.entityAspect.getValidationErrors();
         ok(errs.length == 1, "should be 1 error"); // on companyName

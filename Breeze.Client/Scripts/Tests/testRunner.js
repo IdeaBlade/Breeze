@@ -19,7 +19,7 @@ require([
       //"paramTests",
       //"miscTests",
       //"koSpecificTests",
-      // "attachTests",
+      //"attachTests",
       //"classRewriteTests",
       //"metadataTests",
       //"entityManagerTests",

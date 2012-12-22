@@ -17,8 +17,8 @@ function (core, m_entityAspect) {
         
         var that = this;
         // need 2 propNames here because of complexTypes;
-        var localPropName = property.name;
-        var fullPropName = localPropName;
+        var propName = property.name;
+        var propPath = propName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
@@ -37,7 +37,7 @@ function (core, m_entityAspect) {
             if (localAspect.parent) {
                 var nextAspect = localAspect;
                 do {
-                    fullPropName = nextAspect.parentProperty + "." + fullPropName;
+                    propPath = nextAspect.parentProperty + "." + propPath;
                     nextAspect = nextAspect.parent.complexAspect;
                 } while (nextAspect);
             }
@@ -63,10 +63,10 @@ function (core, m_entityAspect) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[localPropName] && property.isDataProperty) {
+                if (!localAspect.originalValues[propName] && property.isDataProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
-                    localAspect.originalValues[localPropName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
                 }
             }
 
@@ -151,7 +151,8 @@ function (core, m_entityAspect) {
                         entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(newValue,
+                            { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
                     }
                 }
                 // update fk data property
@@ -207,7 +208,9 @@ function (core, m_entityAspect) {
                         entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        entityAspect._validateProperty(property, newValue, { entity: entity, oldValue: oldValue });
+                        entityAspect._validateProperty(newValue,
+                            { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+
                     }
                 }
                 
@@ -257,7 +260,7 @@ function (core, m_entityAspect) {
                 }
             }
             
-            var propChangedArgs = { entity: entity, propertyName: fullPropName, oldValue: oldValue, newValue: newValue };
+            var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.

@@ -409,7 +409,8 @@ function (core, a_config, m_validate) {
         @event propertyChanged 
         @param entity {Entity} The entity whose property is changing.
         @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
-        queries, imports and saves that require a merge. The remaining parameters will not exist in this case either.
+        queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
+        for any properties of a complex type.
         @param oldValue {Object} The old value of this property before the change.
         @param newValue {Object} The new value of this property after the change.
         @readOnly
@@ -590,7 +591,8 @@ function (core, a_config, m_validate) {
                 entityType.getProperties().forEach(function (p) {
                     var value = that.entity.getProperty(p.name);
                     if (p.validators.length > 0) {
-                        ok = that._validateProperty(p, value) && ok;
+                        var context = { entity: that.entity, property: p };
+                        ok = that._validateProperty(value, context) && ok;
                     }
                 });
                 // then entity level
@@ -627,7 +629,9 @@ function (core, a_config, m_validate) {
             }
 
             var value = this.entity.getProperty(property.name);
-            return this._validateProperty(property, value, context);
+            context = context || {};
+            context.property = property;
+            return this._validateProperty(value, context);
         };
 
         /**
@@ -685,7 +689,7 @@ function (core, a_config, m_validate) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
-                that._removeValidationError(validator, property);
+                that._removeValidationError(validator, property.name);
             });
         };
 
@@ -764,15 +768,10 @@ function (core, a_config, m_validate) {
         };
 
         // called from defaultInterceptor.
-        ctor.prototype._validateProperty = function (property, value, context) {
+        ctor.prototype._validateProperty = function (value, context) {
             var ok = true;
             this._processValidationOpAndPublish(function (that) {
-                if (context) {
-                    context.property = property;
-                } else {
-                    context = { property: property };
-                }
-                property.validators.forEach(function (validator) {
+                context.property.validators.forEach(function (validator) {
                     ok = ok && validate(that, validator, value, context);
                 });
             });
@@ -801,8 +800,8 @@ function (core, a_config, m_validate) {
             this._pendingValidationResult.added.push(validationError);
         };
 
-        ctor.prototype._removeValidationError = function (validator, property) {
-            var key = ValidationError.getKey(validator, property);
+        ctor.prototype._removeValidationError = function (validator, propertyPath) {
+            var key = ValidationError.getKey(validator, propertyPath);
             var valError = this._validationErrors[key];
             if (valError) {
                 delete this._validationErrors[key];
@@ -816,7 +815,7 @@ function (core, a_config, m_validate) {
                 aspect._addValidationError(ve);
                 return false;
             } else {
-                aspect._removeValidationError(validator, context ? context.property: null);
+                aspect._removeValidationError(validator, context ? context.propertyName: null);
                 return true;
             }
         }

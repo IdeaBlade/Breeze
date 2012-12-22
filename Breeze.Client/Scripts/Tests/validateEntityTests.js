@@ -178,8 +178,8 @@ define(["testFns"], function (testFns) {
         s = s + s + s + s + s + s + s + s + s + s + s + s;
         cust1.setProperty("companyName", s);
         ok(lastNotification.added, "last notification should have been 'added'");
-        ok(lastNotification.added[0].property.name === "companyName");
-        ok(lastNotification.removed[0].property.name === "companyName");
+        ok(lastNotification.added[0].property.name === "companyName", "companyName should have been added"); // maxLength
+        ok(lastNotification.removed[0].property.name === "companyName", "companyName should have been removed"); // required
         ok(notificationCount === 1, "should have been 1 notification");
         cust1.setProperty("companyName", "much shorter");
         ok(lastNotification.removed, "last notification should have been 'removed'");

@@ -22,7 +22,7 @@ function (core, a_config) {
         var rootContext = {
             displayName: function (context) {
                 if (context.property) {
-                    return context.property.displayName || context.property.name;
+                    return context.property.displayName || context.propertyName || context.property.name;
                 } else {
                     return "Value";
                 }
@@ -186,16 +186,11 @@ function (core, a_config) {
             this.currentContext = currentContext;
             if (!this.valFn(value, currentContext)) {
                 currentContext.value = value;
-                var valContext = {
-                    property: currentContext.property,
-                    value: value
-                };
-                return new ValidationError(this, valContext, this.getMessage());
+                return new ValidationError(this, currentContext, this.getMessage());
             }
             return null;
         };
-
-
+        
         // context.value is not avail unless validate was called first.
 
         /**
@@ -622,10 +617,14 @@ function (core, a_config) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
 
             this.validator = validator;
-            this.context = context || {};
-            this.property = context ? context.property : null;
+            context = context || {};
+            this.context = context;
+            this.property = context.property;
+            if (this.property) {
+                this.propertyName = context.propertyName || context.property.name;
+            }
             this.errorMessage = errorMessage;
-            this.key = ValidationError.getKey(validator, this.property);
+            this.key = ValidationError.getKey(validator, this.propertyName);
         };
         
         /**
@@ -650,14 +649,21 @@ function (core, a_config) {
         **/
         
         /**
+        The property name associated with this ValidationError. This will be a "property path" for any properties of a complex object.
+
+        __readOnly__
+        @property propertyName {String}
+        **/
+        
+        /**
         The error message associated with the ValidationError.
 
         __readOnly__
         @property errorMessage {string}
         **/
 
-        ctor.getKey = function (validator, property) {
-            return (property ? property.name : "") + ":" + validator.name;
+        ctor.getKey = function (validator, propertyPath) {
+            return (propertyPath || "") + ":" + validator.name;
         };
 
         return ctor;
