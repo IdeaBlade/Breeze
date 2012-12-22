@@ -17,20 +17,32 @@ function (core, m_entityAspect) {
         
         var that = this;
         // need 2 propNames here because of complexTypes;
-        var propName = property.name;
+        var localPropName = property.name;
+        var fullPropName = localPropName;
 
         // CANNOT DO NEXT LINE because it has the possibility of creating a new property
         // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
         // var entityAspect = new EntityAspect(this);
 
         var entityAspect = this.entityAspect;
-        var localAspect;
+        var localAspect, parentEntity;
+        
         if (entityAspect) {
+            parentEntity = this
             localAspect = entityAspect;
         } else {
             localAspect = this.complexAspect;
             entityAspect = localAspect.entityAspect;
+            // if complexType is standalong - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+            if (localAspect.parent) {
+                var nextAspect = localAspect;
+                do {
+                    fullPropName = nextAspect.parentProperty + "." + fullPropName;
+                    nextAspect = nextAspect.parent.complexAspect;
+                } while (nextAspect);
+            }
         }
+        
         if (entityAspect._inProcess && entityAspect._inProcess === property) {
             // recursion avoided.
             return;
@@ -47,10 +59,10 @@ function (core, m_entityAspect) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty) {
+                if (!localAspect.originalValues[localPropName] && property.isDataProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
-                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[localPropName] = oldValue || property.defaultValue;
                 }
             }
 
@@ -240,15 +252,16 @@ function (core, m_entityAspect) {
                     entityAspect.getKey(true);
                 }
             }
-
-            var propChangedArgs = { entity: this, propertyName: propName, oldValue: oldValue, newValue: newValue };
+            // entityAspect.entity used because of complexTypes
+            var entity = entityAspect.entity;
+            var propChangedArgs = { entity: entity, propertyName: fullPropName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
                 // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
                 if ( (!entityManager.isLoading) && (!entityManager.isRejectingChanges)) {
                     entityAspect.propertyChanged.publish(propChangedArgs);
                     // don't fire entityChanged event if propertyChanged is suppressed.
-                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: this, args: propChangedArgs });
+                    entityManager.entityChanged.publish({ entityAction: EntityAction.PropertyChange, entity: entity, args: propChangedArgs });
                 }
             } else {
                 entityAspect.propertyChanged.publish(propChangedArgs);

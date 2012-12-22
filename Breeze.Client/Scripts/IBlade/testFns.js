@@ -333,6 +333,31 @@ define(["breeze.full"], function (breeze) {
             };
         }
     };
+    
+    models.Location = function () {
+        var init = function (entity) {
+            ok(entity.complexType.shortName === "Location", "complexType should be 'Location'");
+
+        };
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+                this.extraName = ko.observable("xtra");
+                this.init = init;
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    extraName: "xtra"
+                },
+                init: init
+            });
+        } else {
+            return function () {
+                this.extraName = "xtra";
+                this.init = init;
+            };
+        }
+    };
 
     testFns.breeze = breeze;
     testFns.setDataService(BREEZE_DataService);

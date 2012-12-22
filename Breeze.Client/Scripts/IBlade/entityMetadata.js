@@ -1344,6 +1344,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 calcUnmappedProperties(this, instance);
                 proto.entityType = this;
             } else {
+                calcUnmappedProperties(this, instance);
                 proto.complexType = this;
             }
 
@@ -1848,7 +1849,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.prototype.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
-            if (this.metadataStore && !property.isUnmapped) {
+            if (this.metadataStore && ! dataProperty.isUnmapped) {
                 throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
             if (dataProperty.parentType) {
@@ -1866,9 +1867,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         ctor.prototype.getProperties = function () {
             return this.dataProperties;
         };
+        
+        
 
         ctor.prototype.addValidator = EntityType.prototype.addValidator;
         ctor.prototype.getProperty = EntityType.prototype.getProperty;
+        ctor.prototype.getPropertyNames = EntityType.prototype.getPropertyNames;
         ctor.prototype._addDataProperty = EntityType.prototype._addDataProperty;
         ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
         // note the name change.

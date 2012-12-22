@@ -164,6 +164,9 @@ define(["testFns"], function (testFns) {
 
         var product = productType.createEntity();
         ok(product.getProperty("isObsolete") === true);
+
+        product.setProperty("isObsolete", false);
+        ok(product.getProperty("isObsolete") === false);
     });
     
     test("post create init 2", function () {
