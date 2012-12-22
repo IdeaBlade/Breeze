@@ -47,6 +47,10 @@ function (core, m_entityAspect) {
             // recursion avoided.
             return;
         }
+        
+        // entityAspect.entity used because of complexTypes
+        // 'this' != entity when 'this' is a complexObject; in that case this: complexObject, entity: parentEntity
+        var entity = entityAspect.entity;
 
         // TODO: we actually need to handle multiple properties in process. not just one
         // NOTE: this may not be needed because of the newValue === oldValue test above.
@@ -203,7 +207,7 @@ function (core, m_entityAspect) {
                         entityAspect.setModified();
                     }
                     if (entityManager.validationOptions.validateOnPropertyChange) {
-                        entityAspect._validateProperty(property, newValue, { entity: this, oldValue: oldValue });
+                        entityAspect._validateProperty(property, newValue, { entity: entity, oldValue: oldValue });
                     }
                 }
                 
@@ -252,8 +256,7 @@ function (core, m_entityAspect) {
                     entityAspect.getKey(true);
                 }
             }
-            // entityAspect.entity used because of complexTypes
-            var entity = entityAspect.entity;
+            
             var propChangedArgs = { entity: entity, propertyName: fullPropName, oldValue: oldValue, newValue: newValue };
             if (entityManager) {
                 // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.

@@ -63,7 +63,8 @@ define(["testFns"], function (testFns) {
             var custs = sr.entities;
             ok(custs.length == 2);
             custs[0].entityAspect.setDeleted();
-            custs[1].setProperty("companyName", "foo");
+            var newName = testFns.morphString(custs[1].getProperty("companyName"));
+            custs[1].setProperty("companyName", newName);
             return em.saveChanges();
         }).then(function(sr) {
             ok(sr.entities.length == 2);
@@ -533,7 +534,7 @@ define(["testFns"], function (testFns) {
         var q = new EntityQuery().from("Employees").take(2);
         stop();
         var em2;
-        em.executeQuery(q, function (data) {
+        em.executeQuery(q, function(data) {
             ok(data.results.length == 2, "results.length should be 2");
             var exportedEm = em.exportEntities();
             em2 = newEm();
@@ -551,9 +552,7 @@ define(["testFns"], function (testFns) {
             var emp1x = order1x.getProperty("employee");
             ok(emp1x, "should have found an employee");
             ok(emp1x.getProperty("lastName") === "bar", "LastName should be 'bar'");
-        }).then(function (data3) {
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
    test("persist entityManager partial", function () {
@@ -576,26 +575,24 @@ define(["testFns"], function (testFns) {
         var q = new EntityQuery().from("Customers").take(2);
         stop();
         var em2;
-        em.executeQuery(q, function (data) {
-            ok(data.results.length == 2, "results.length should be 2");
-            var cust2 = data.results[0];
-            var exportedEm = em.exportEntities([order1, cust1, cust2]);
-            em2 = newEm();
-            em2.importEntities(exportedEm);
-            var r2 = em2.executeQueryLocally(q);
-            ok(r2.length === 2, "should return 2 records");
-            var addedOrders = em2.getChanges(orderType, EntityState.Added);
-            ok(addedOrders.length === 1, "should be 1 added order");
-            var addedCusts = em2.getChanges(custType, EntityState.Added);
-            ok(addedCusts.length === 1, "should be 1 added customer");
-            var order1x = addedOrders[0];
-            var cust1x = order1x.getProperty("customer");
-            ok(cust1x, "should have found a customer");
-            ok(cust1x.getProperty("companyName") === "foo", "CompanyName should be 'foo'");
-        }).then(function (data3) {
-            start();
-        }).fail(testFns.handleFail);
-    });
+       em.executeQuery(q, function(data) {
+           ok(data.results.length == 2, "results.length should be 2");
+           var cust2 = data.results[0];
+           var exportedEm = em.exportEntities([order1, cust1, cust2]);
+           em2 = newEm();
+           em2.importEntities(exportedEm);
+           var r2 = em2.executeQueryLocally(q);
+           ok(r2.length === 2, "should return 2 records");
+           var addedOrders = em2.getChanges(orderType, EntityState.Added);
+           ok(addedOrders.length === 1, "should be 1 added order");
+           var addedCusts = em2.getChanges(custType, EntityState.Added);
+           ok(addedCusts.length === 1, "should be 1 added customer");
+           var order1x = addedOrders[0];
+           var cust1x = order1x.getProperty("customer");
+           ok(cust1x, "should have found a customer");
+           ok(cust1x.getProperty("companyName") === "foo", "CompanyName should be 'foo'");
+       }).fail(testFns.handleFail).fin(start);
+   });
     
    test("importEntities  can safely merge and preserve or overwrite pending changes", 4, function () {
            // D#2207

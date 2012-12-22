@@ -254,7 +254,41 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    
+    test("validationErrorsChanged event", function () {
+        var em = newEm();
+        var supplierType = em.metadataStore.getEntityType("Supplier");
+        var supplier1 = supplierType.createEntity();
+        em.attachEntity(supplier1);
+        var lastNotification;
+        var notificationCount = 0;
+        supplier1.entityAspect.validationErrorsChanged.subscribe(function (args) {
+            lastNotification = args;
+            notificationCount++;
+        });
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        supplier1.setProperty("companyName", s);
+        ok(lastNotification.added, "last notification should have been 'added'");
+        ok(lastNotification.added[0].property.name === "companyName");
+        ok(lastNotification.removed[0].property.name === "companyName");
+        ok(notificationCount === 1, "should have been 1 notification");
+        
+        var location = supplier1.getProperty("location");
+        location.setProperty("city", s);
+        ok(lastNotification.added, "last notification should have been 'added'");
+        ok(lastNotification.added[0].property.name === "location.city");
+        ok(notificationCount === 2, "should have been 1 notification");
+        var errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
+
+        location.setProperty("city", "much shorter");
+        ok(lastNotification.removed, "last notification should have been 'removed'");
+        ok(lastNotification.removed[0].property.name === "location.city");
+        ok(notificationCount === 3, "should have been 2 notifications");
+        errs = supplier1.entityAspect.getValidationErrors();
+        ok(errs.length == 1, "should be 1 error"); // on companyName
+
+    });
     return testFns;
 
 });
