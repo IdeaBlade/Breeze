@@ -1115,6 +1115,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
             this.dataProperties = [];
             this.navigationProperties = [];
+            this.complexProperties = [];
             this.keyProperties = [];
             this.foreignKeyProperties = [];
             this.concurrencyProperties = [];
@@ -1144,6 +1145,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         __readOnly__
         @property navigationProperties {Array of NavigationProperty} 
+        **/
+        
+        /**
+        The DataProperties for this EntityType that contain instances of a ComplexType (see {{#crossLink "ComplexType"}}{{/crossLink}}).
+
+        __readOnly__
+        @property complexProperties {Array of DataProperty} 
         **/
             
         /**
@@ -1540,20 +1548,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return serverPropPath;
         };
 
-        //ctor.prototype._clientObjectToServer = function (clientObject, complexObjectFn) {
-        //    var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
-        //    var result = {};
-        //    var that = this;
-        //    core.objectForEach(clientObject, function (propName, value) {
-        //        var prop = that.getProperty(propName);
-        //        if (value.complexAspect) {
-        //            value = complexObjectFn(value);
-        //        }
-        //        result[fn(propName, prop)] = value;
-        //    });
-        //    return result;
-        //};
-
         ctor.prototype._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;
             var serverName = property.nameOnServer;
@@ -1624,6 +1618,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (dp.isPartOfKey) {
                 this.keyProperties.push(dp);
             };
+            
+            if (dp.isComplexProperty) {
+                this.complexProperties.push(dp);
+            }
 
             if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
                 this.concurrencyProperties.push(dp);
@@ -1816,6 +1814,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             this.name = qualifyTypeName(this.shortName, this.namespace);
             this.dataProperties = [];
+            this.complexProperties = [];
             this.validators = [];
             this.concurrencyProperties = [];
             this.unmappedProperties = [];

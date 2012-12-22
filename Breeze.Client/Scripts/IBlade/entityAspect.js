@@ -487,14 +487,11 @@ function (core, a_config, m_validate) {
         @method rejectChanges
         **/
         ctor.prototype.rejectChanges = function () {
-            var originalValues = this.originalValues;
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
             core.using(entityManager, "isRejectingChanges", true, function() {
-                for (var propName in originalValues) {
-                    entity.setProperty(propName, originalValues[propName]);
-                }
+                rejectChangesCore(entity);
             });
             if (this.entityState.isAdded()) {
                 // next line is needed becuase the following line will cause this.entityManager -> null;
@@ -511,6 +508,19 @@ function (core, a_config, m_validate) {
                 this.entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
             }
         };
+        
+        function rejectChangesCore(target) {
+            var aspect = target.entityAspect || target.complexAspect;
+            var stype = target.entityType || target.complexType;
+            var originalValues = aspect.originalValues;
+            for (var propName in originalValues) {
+                target.setProperty(propName, originalValues[propName]);
+            }
+            stype.complexProperties.forEach(function (cp) {
+                var nextTarget = target.getProperty(cp.name);
+                rejectChangesCore(nextTarget);
+            });
+        }
 
         /**
         Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
@@ -521,12 +531,22 @@ function (core, a_config, m_validate) {
         @method setUnchanged
         **/
         ctor.prototype.setUnchanged = function () {
-            this.originalValues = {};
+            clearOriginalValues(this.entity);
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
             this.entityManager._notifyStateChange(this.entity, false);
         };
 
+        function clearOriginalValues(target) {
+            var aspect = target.entityAspect || target.complexAspect;
+            aspect.originalValues = {};
+            var stype = target.entityType || target.complexType;
+            stype.complexProperties.forEach(function (cp) {
+                var nextTarget = target.getProperty(cp.name);
+                clearOriginalValues(nextTarget);
+            });
+        }
+        
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
         //        ctor.prototype.setAdded = function () {
         //            this.originalValues = {};

@@ -63,7 +63,7 @@ function (core, m_entityAspect) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty) {
+                if (!localAspect.originalValues[propName] && property.isDataProperty && !property.isComplexProperty) {
                     // the || property.defaultValue is to insure that undefined -> null; 
                     // otherwise this entry will be skipped during serialization
                     localAspect.originalValues[propName] = oldValue || property.defaultValue;
