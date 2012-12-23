@@ -27,6 +27,44 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("Remove a rule", 2, function () {
+
+        var em = newEm();
+
+        var alwaysWrong = new Validator(
+            "alwaysWrong",
+            function () { return false; },
+            { message: "You are always wrong!" }
+        );
+
+        var custType = em.metadataStore.getEntityType("Customer");
+        var custValidators = custType.validators;
+
+        // add alwaysWrong to the entity (not to a property)
+        custValidators.push(alwaysWrong);
+
+        var cust = custType.createEntity({ companyName: "Presumed Guilty" });
+
+        // Attach triggers entity validation by default
+        em.attachEntity(cust);
+
+        var errs = cust.entityAspect.getValidationErrors();
+        ok(errs.length !== 0, "should have 1 error" );
+
+        // remove validation rule
+        custValidators.splice(custValidators.indexOf(alwaysWrong), 1);
+
+        // Clear out the "alwaysWrong" error
+        // Must do manually because that rule is now gone
+        // and, therefore, can't cleanup after itself
+        cust.entityAspect.removeValidationError(alwaysWrong);
+
+        cust.entityAspect.validateEntity(); // re-validate
+
+        errs = cust.entityAspect.getValidationErrors();
+        ok(errs.length === 0, "should have no errors");
+    });
+    
     test("Attached employee validation errors raised when properties set to bad values", function () {
 
         var em = newEm();  // new empty EntityManager

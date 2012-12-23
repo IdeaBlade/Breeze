@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>DataType - The Breeze API</title>
+    <title>ComplexType - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -177,7 +177,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>DataType Class</h1>
+                        <h1>ComplexType Class</h1>
 <div class="box meta">
     
 
@@ -185,7 +185,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;dataType.js.html#l11"><code>dataType.js:11</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1871"><code>entityMetadata.js:1871</code></a>
         </div>
     
 
@@ -201,7 +201,7 @@
 
 
 <div class="box intro">
-    <p>DataType is an 'Enum' containing all of the supported data types.</p>
+    <p>Container for all of the metadata about a specific type of Complex object.</p>
 </div>
 
 
@@ -231,10 +231,43 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
-                                <a href="#method_fromEdmDataType">fromEdmDataType</a>
+                                <a href="#method_&lt;ctor&gt; ComplexType">&lt;ctor&gt; ComplexType</a>
 
                                 
-                                    <span class="flag static">static</span>
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_addValidator">addValidator</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_createInstance">createInstance</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_getCtor">getCtor</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_getProperty">getProperty</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_getPropertyNames">getPropertyNames</a>
+
                                 
                                 
                             </li>
@@ -250,132 +283,50 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
-                                <a href="#property_Binary">Binary</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Boolean">Boolean</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Byte">Byte</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_DateTime">DateTime</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Decimal">Decimal</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_defaultValue">defaultValue</a>
+                                <a href="#property_complexProperties">complexProperties</a>
 
                                 
                                 
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_Double">Double</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Guid">Guid</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Int16">Int16</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Int32">Int32</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_Int64">Int64</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_isNumeric">isNumeric</a>
+                                <a href="#property_dataProperties">dataProperties</a>
 
                                 
                                 
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_Single">Single</a>
+                                <a href="#property_name">name</a>
 
-                                
-                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_String">String</a>
+                                <a href="#property_namespace">namespace</a>
 
-                                
-                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_Undefined">Undefined</a>
+                                <a href="#property_shortName">shortName</a>
 
                                 
-                                    <span class="flag static">static</span>
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_unmappedProperties">unmappedProperties</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_validators">validators</a>
+
                                 
                                 
                             </li>
@@ -394,8 +345,8 @@
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_fromEdmDataType" class="method item">
-    <h3 class="name"><code>fromEdmDataType</code></h3>
+                    <div id="method_&lt;ctor&gt; ComplexType" class="method item">
+    <h3 class="name"><code>&lt;ctor&gt; ComplexType</code></h3>
 
     
         <div class="args">
@@ -403,7 +354,7 @@
             
                 <li class="arg">
                     
-                        <code>typeName</code>
+                        <code>config</code>
                     
                 </li>
             
@@ -412,10 +363,6 @@
     
 
     
-        <span class="returns-inline">
-            <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-        </span>
-    
 
     
 
@@ -423,8 +370,6 @@
 
     
 
-    
-        <span class="flag static">static</span>
     
 
     
@@ -442,7 +387,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l116"><code>dataType.js:116</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1876"><code>entityMetadata.js:1876</code></a>
         
         </p>
 
@@ -453,7 +398,7 @@
     </div>
 
     <div class="description">
-        <p>Returns the DataType for a specified EDM type name.</p>
+        
     </div>
 
     
@@ -464,14 +409,167 @@
             
                 <li class="param">
                     
-                        <code class="param-name">typeName</code>
-                        <span class="type">String</span>
+                        <code class="param-name">config</code>
+                        <span class="type">Object</span>
                     
 
                     
 
                     <div class="param-description">
-                         
+                        <p>Configuration settings</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">shortName</code>
+                                    <span class="type">String</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[namespace=&quot;&quot;]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var complexType = new ComplexType( {
+    shortName: "address",
+    namespace: "myAppNamespace"
+ });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_addValidator" class="method item">
+    <h3 class="name"><code>addValidator</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>validator</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[property]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2008"><code>entityMetadata.js:2008</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>See  EntityType.addValidator</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">validator</code>
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Validator to add.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[property]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Property to add this validator to.  If omitted, the validator is assumed to be an
+entity level validator and is added to the EntityType's 'validators'.</p>
                     </div>
 
                     
@@ -482,18 +580,254 @@
     
 
     
-        <div class="returns">
-            <h4>Returns:</h4>
 
-            <div class="returns-description">
+    
+</div>
+
                 
+                    <div id="method_createInstance" class="method item">
+    <h3 class="name"><code>createInstance</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
                     
-                        <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>:
+                        <code>initialValues</code>
                     
-                    A DataType.
-                
-            </div>
+                </li>
+            
+            </ul><span class="paren">)</span>
         </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1958"><code>entityMetadata.js:1958</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Creates a new non-attached instance of this ComplexType.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">initialValues</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Configuration object containing initial values for the instance.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="method_getCtor" class="method item">
+    <h3 class="name"><code>getCtor</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2026"><code>entityMetadata.js:2026</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>See  EntityType.getEntityCtor</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="method_getProperty" class="method item">
+    <h3 class="name"><code>getProperty</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2016"><code>entityMetadata.js:2016</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>See  EntityType.getProperty</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="method_getPropertyNames" class="method item">
+    <h3 class="name"><code>getPropertyNames</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2021"><code>entityMetadata.js:2021</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>See  EntityType.getPropertyNames</p>
+    </div>
+
+    
+
     
 
     
@@ -508,20 +842,16 @@
                 <h2 class="off-left">Properties</h2>
 
                 
-                    <div id="property_Binary" class="property item">
-    <h3 class="name"><code>Binary</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
+                    <div id="property_complexProperties" class="property item">
+    <h3 class="name"><code>complexProperties</code></h3>
+    <span class="type">Array of DataProperty</span>
 
     
 
     
 
     
-        <span class="flag final">final</span>
-    
 
-    
-        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -535,7 +865,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l99"><code>dataType.js:99</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1913"><code>entityMetadata.js:1913</code></a>
         
         </p>
 
@@ -545,7 +875,9 @@
     </div>
 
     <div class="description">
-        
+        <p>The DataProperties for this ComplexType that contain instances of a ComplexType (see <a href="..\classes\ComplexType.html" class="crosslink">ComplexType</a>).</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -556,20 +888,16 @@
 </div>
 
                 
-                    <div id="property_Boolean" class="property item">
-    <h3 class="name"><code>Boolean</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
+                    <div id="property_dataProperties" class="property item">
+    <h3 class="name"><code>dataProperties</code></h3>
+    <span class="type">Array of DataProperty</span>
 
     
 
     
 
     
-        <span class="flag final">final</span>
-    
 
-    
-        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -583,7 +911,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l81"><code>dataType.js:81</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1906"><code>entityMetadata.js:1906</code></a>
         
         </p>
 
@@ -593,7 +921,9 @@
     </div>
 
     <div class="description">
-        
+        <p>The DataProperties (see <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</a>) associated with this ComplexType.</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -604,20 +934,16 @@
 </div>
 
                 
-                    <div id="property_Byte" class="property item">
-    <h3 class="name"><code>Byte</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
+                    <div id="property_name" class="property item">
+    <h3 class="name"><code>name</code></h3>
+    <span class="type">String</span>
 
     
 
     
 
     
-        <span class="flag final">final</span>
-    
 
-    
-        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -631,7 +957,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l93"><code>dataType.js:93</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1928"><code>entityMetadata.js:1928</code></a>
         
         </p>
 
@@ -641,7 +967,9 @@
     </div>
 
     <div class="description">
-        
+        <p>The fully qualifed name of this ComplexType.</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -652,20 +980,16 @@
 </div>
 
                 
-                    <div id="property_DateTime" class="property item">
-    <h3 class="name"><code>DateTime</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
+                    <div id="property_namespace" class="property item">
+    <h3 class="name"><code>namespace</code></h3>
+    <span class="type">String</span>
 
     
 
     
 
     
-        <span class="flag final">final</span>
-    
 
-    
-        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -679,7 +1003,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l75"><code>dataType.js:75</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1942"><code>entityMetadata.js:1942</code></a>
         
         </p>
 
@@ -689,7 +1013,9 @@
     </div>
 
     <div class="description">
-        
+        <p>The namespace for this ComplexType.</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -700,20 +1026,16 @@
 </div>
 
                 
-                    <div id="property_Decimal" class="property item">
-    <h3 class="name"><code>Decimal</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
+                    <div id="property_shortName" class="property item">
+    <h3 class="name"><code>shortName</code></h3>
+    <span class="type">String</span>
 
     
 
     
 
     
-        <span class="flag final">final</span>
-    
 
-    
-        <span class="flag static">static</span>
     
 
     <div class="meta">
@@ -727,7 +1049,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l57"><code>dataType.js:57</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1935"><code>entityMetadata.js:1935</code></a>
         
         </p>
 
@@ -737,7 +1059,9 @@
     </div>
 
     <div class="description">
-        
+        <p>The short, unqualified, name for this ComplexType.</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -748,9 +1072,9 @@
 </div>
 
                 
-                    <div id="property_defaultValue" class="property item">
-    <h3 class="name"><code>defaultValue</code></h3>
-    <span class="type">Any</span>
+                    <div id="property_unmappedProperties" class="property item">
+    <h3 class="name"><code>unmappedProperties</code></h3>
+    <span class="type">Array of DataProperty</span>
 
     
 
@@ -771,7 +1095,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l18"><code>dataType.js:18</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1920"><code>entityMetadata.js:1920</code></a>
         
         </p>
 
@@ -781,7 +1105,10 @@
     </div>
 
     <div class="description">
-        <p>The default value of this DataType.</p>
+        <p>The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing
+properties.</p>
+
+<p><strong>readOnly</strong></p>
     </div>
 
     
@@ -792,249 +1119,9 @@
 </div>
 
                 
-                    <div id="property_Double" class="property item">
-    <h3 class="name"><code>Double</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l63"><code>dataType.js:63</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Guid" class="property item">
-    <h3 class="name"><code>Guid</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l87"><code>dataType.js:87</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Int16" class="property item">
-    <h3 class="name"><code>Int16</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l51"><code>dataType.js:51</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Int32" class="property item">
-    <h3 class="name"><code>Int32</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l45"><code>dataType.js:45</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Int64" class="property item">
-    <h3 class="name"><code>Int64</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l39"><code>dataType.js:39</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_isNumeric" class="property item">
-    <h3 class="name"><code>isNumeric</code></h3>
-    <span class="type">Boolean</span>
+                    <div id="property_validators" class="property item">
+    <h3 class="name"><code>validators</code></h3>
+    <span class="type">Array of Validator</span>
 
     
 
@@ -1055,7 +1142,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l23"><code>dataType.js:23</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l1949"><code>entityMetadata.js:1949</code></a>
         
         </p>
 
@@ -1065,151 +1152,10 @@
     </div>
 
     <div class="description">
-        <p>Whether this is a 'numeric' DataType.</p>
-    </div>
+        <p>The entity level validators associated with this ComplexType. Validators can be added and
+removed from this collection.</p>
 
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Single" class="property item">
-    <h3 class="name"><code>Single</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l69"><code>dataType.js:69</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_String" class="property item">
-    <h3 class="name"><code>String</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l33"><code>dataType.js:33</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_Undefined" class="property item">
-    <h3 class="name"><code>Undefined</code></h3>
-    <span class="type"><a href="..\classes\DataType.html" class="crosslink">DataType</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;dataType.js.html#l105"><code>dataType.js:105</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        
+<p><strong>readOnly</strong></p>
     </div>
 
     

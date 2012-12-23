@@ -3282,7 +3282,7 @@ function (core, a_config, m_validate) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
-                that._removeValidationError(validator, property.name);
+                that._removeValidationError(validator, property && property.name);
             });
         };
 
@@ -3455,10 +3455,19 @@ function (core, a_config, m_validate) {
     }();
 
     var ComplexAspect = function() {
+        
         /**
-        An ComplexAspect instance is associated with every attached complexObject and is accessed via the complexObject's 'complexAspect' property. 
-        
-        
+        An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
+     
+        The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
+
+        A ComplexAspect will almost never need to be constructed directly. You will usually get an ComplexAspect by accessing
+        an entities 'complexAspect' property.  This property will be automatically attached when an complex object is created as part of an
+        entity via either a query, import or EntityManager.createEntity call.
+     
+            // assume address is a complex property on the 'Customer' type
+            var aspect = aCustomer.address.complexAspect;
+            // aCustomer === aspect.parent;
         @class ComplexAspect
         **/
         var ctor = function(complexObject, parent, parentProperty) {
@@ -3509,6 +3518,49 @@ function (core, a_config, m_validate) {
             v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
 
         };
+        
+        /**
+        The complex object that this aspect is associated with.
+
+        __readOnly__
+        @property complexObject {Entity} 
+        **/
+        
+        /**
+        The parent object that to which this aspect belongs; this will either be an entity or another complex object.
+
+        __readOnly__
+        @property parent {Entity|ComplexObject} 
+        **/
+
+        /**
+        The {{#crossLink "DataProperty"}}{{/crossLink}} on the 'parent' that contains this complex object.
+
+        __readOnly__
+        @property parentProperty {DataProperty}
+        **/
+        
+        /**
+        The EntityAspect for the top level entity tht contains this complex object.
+
+        __readOnly__
+        @property entityAspect {String}
+        **/
+        
+        /**
+        The 'property path' from the top level entity that contains this complex object to this object.
+
+        __readOnly__
+        @property propertyPath {String}
+        **/
+        
+        /**
+        The 'original values' of this complex object where they are different from the 'current values'. 
+        This is a map where the key is a property name and the value is the 'original value' of the property.
+
+        __readOnly__
+        @property originalValues {Object}
+        **/
 
         ctor.prototype._postInitialize = function() {
             var co = this.complexObject;
@@ -4162,41 +4214,43 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
     // TODO: still need to handle inheritence here.
 
-    /**
-    A LocalQueryComparisonOptions instance is used to specify the "comparison rules" used when performing "local queries" in order 
-    to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
-    manner in which your remote service interprets certain comparison operations.
+    var LocalQueryComparisonOptions = (function () {
 
-    The default LocalQueryComparisonOptions stipulates 'caseInsensitive" queries with ANSI SQL rules regarding comparisons of unequal
-    length strings. 
+        /**
+        A LocalQueryComparisonOptions instance is used to specify the "comparison rules" used when performing "local queries" in order 
+        to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+        manner in which your remote service interprets certain comparison operations.
+    
+        The default LocalQueryComparisonOptions stipulates 'caseInsensitive" queries with ANSI SQL rules regarding comparisons of unequal
+        length strings. 
+    
+        @class LocalQueryComparisonOptions
+        **/
 
-    @class LocalQueryComparisonOptions
-    **/
+        /**
+        LocalQueryComparisonOptions constructor
+        @example
+            // create a 'caseSensitive - non SQL' instance.
+            var lqco = new LocalQueryComparisonOptions({
+                name: "caseSensitive-nonSQL"
+                isCaseSensitive: true;
+                usesSql92CompliantStringComparison: false;
+            });
+            // either apply it globally
+            lqco.setAsDefault();
+            // or to a specific MetadataStore
+            var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
+            var em = new EntityManager( { metadataStore: ms });
+    
+        @method <ctor> LocalQueryComparisonOptions
+        @param config {Object}
+        @param [config.name] {String}
+        @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a "caseSensitive" manner. Default is 'false'
+        @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
+           of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
+           inequality predicates, and not with operations like 'startsWith', 'endsWith' or 'contains'.  Default is true.
+        **/
 
-    /**
-    LocalQueryComparisonOptions constructor
-    @example
-        // create a 'caseSensitive - non SQL' instance.
-        var lqco = new LocalQueryComparisonOptions({
-            name: "caseSensitive-nonSQL"
-            isCaseSensitive: true;
-            usesSql92CompliantStringComparison: false;
-        });
-        // either apply it globally
-        lqco.setAsDefault();
-        // or to a specific MetadataStore
-        var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
-        var em = new EntityManager( { metadataStore: ms });
-
-    @method <ctor> LocalQueryComparisonOptions
-    @param config {Object}
-    @param [config.name] {String}
-    @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a "caseSensitive" manner. Default is 'false'
-    @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
-       of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
-       inequality predicates, and not with operations like 'startsWith', 'endsWith' or 'contains'.  Default is true.
-    **/
-    var LocalQueryComparisonOptions = (function() {
         var ctor = function (config) {
             assertConfig(config || {})
                 .whereParam("name").isOptional().isString()
@@ -4247,37 +4301,38 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         return ctor;
     })();
-
-    /**
-    A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
-    will translate property names between the server and the javascript client. 
-
-    The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
-
-    @class NamingConvention
-    **/
+    
+    var NamingConvention = (function () {
+        /**
+        A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
+        will translate property names between the server and the javascript client. 
+    
+        The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
+    
+        @class NamingConvention
+        **/
         
-    /**
-    NamingConvention constructor
-    @example
-        // A naming convention that converts the first character of every property name to uppercase on the server
-        // and lowercase on the client.
-        var namingConv = new NamingConvention({
-            serverPropertyNameToClient: function(serverPropertyName) {
-                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-            },
-            clientPropertyNameToServer: function(clientPropertyName) {
-                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-            }            
-        });
+        /**
+        NamingConvention constructor
+
+        @example
+            // A naming convention that converts the first character of every property name to uppercase on the server
+            // and lowercase on the client.
+            var namingConv = new NamingConvention({
+                serverPropertyNameToClient: function(serverPropertyName) {
+                    return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
+                },
+                clientPropertyNameToServer: function(clientPropertyName) {
+                    return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
+                }            
+            });
         var ms = new MetadataStore({ namingConvention: namingConv });
         var em = new EntityManager( { metadataStore: ms });
-    @method <ctor> NamingConvention
-    @param config {Object}
-    @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
-    @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
-    **/
-    var NamingConvention = (function() {
+        @method <ctor> NamingConvention
+        @param config {Object}
+        @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
+        @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
+        **/
         var ctor = function(config) {
             assertConfig(config || {})
                 .whereParam("name").isOptional().isString()
@@ -5184,7 +5239,49 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         return ctor;
     })();
 
-    var DataService = function() {
+    var DataService = function () {
+        
+        /**
+        A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
+        and whether the service has server side metadata.  
+
+        You can construct an EntityManager with either a serviceName or a DataService instance, if you use a serviceName then a DataService 
+        is constructed for you.  (It can also be set via the EntityManager.setProperties method).
+
+        The same applies to the MetadataStore.fetchMetadata method, i.e. it takes either a serviceName or a DataService instance.
+
+        Each metadataStore contains a list of DataServices, each accessible via its ‘serviceName’. 
+        ( see MetadataStore.getDataService and MetadataStore.addDataService).  The ‘addDataService’ method is called internally 
+        anytime a MetadataStore.fetchMetadata call occurs with a new dataService ( or service name).
+        @class DataService
+        **/
+
+        /**
+        DataService constructor
+
+        @example
+            // 
+            var dataService = new DataService({
+                serviceName: altServiceName,
+                hasServerMetadata: false
+            });
+
+            var metadataStore = new MetadataStore({
+                namingConvention: NamingConvention.camelCase
+            });
+
+            return new EntityManager({
+                dataService: dataService,
+                metadataStore: metadataStore
+            });
+            
+        @method <ctor> DataService
+        @param config {Object}
+        @param config.serviceName {String} The name of the service. 
+        @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
+        @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
+        **/
+        
         var ctor = function(config) {
             if (arguments.length != 1) {
                 throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
@@ -5198,6 +5295,27 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
             
         };
+        
+        /**
+        The serviceName for this DataService.
+
+        __readOnly__
+        @property serviceName {String}
+        **/
+        
+        /**
+        The adapter name for the dataServiceAdapter to be used with this service.
+
+        __readOnly__
+        @property adapterName {String}
+        **/
+
+        /**
+        Whether the server can provide metadata for this service.
+
+        __readOnly__
+        @property hasServerMetadata {Boolean}
+        **/
 
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
@@ -5944,6 +6062,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     })();
     
     var ComplexType = (function () {
+        /**
+        Container for all of the metadata about a specific type of Complex object.
+        @class ComplexType
+        **/
+        
+        /** 
+        @example                    
+            var complexType = new ComplexType( {
+                shortName: "address",
+                namespace: "myAppNamespace"
+             });
+        @method <ctor> ComplexType
+        @param config {Object} Configuration settings
+        @param config.shortName {String}
+        @param [config.namespace=""] {String}
+        **/
+
         var ctor = function (config) {
             if (arguments.length > 1) {
                 throw new Error("The ComplexType ctor has a single argument that is a configuration object.");
@@ -5961,6 +6096,58 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.concurrencyProperties = [];
             this.unmappedProperties = [];
         };
+        
+        /**
+        The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this ComplexType.
+
+        __readOnly__
+        @property dataProperties {Array of DataProperty} 
+        **/
+
+        /**
+        The DataProperties for this ComplexType that contain instances of a ComplexType (see {{#crossLink "ComplexType"}}{{/crossLink}}).
+
+        __readOnly__
+        @property complexProperties {Array of DataProperty} 
+        **/
+
+        /**
+        The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing
+        properties.
+
+        __readOnly__
+        @property unmappedProperties {Array of DataProperty} 
+        **/
+
+        /**
+        The fully qualifed name of this ComplexType.
+
+        __readOnly__
+        @property name {String} 
+        **/
+
+        /**
+        The short, unqualified, name for this ComplexType.
+
+        __readOnly__
+        @property shortName {String} 
+        **/
+
+        /**
+        The namespace for this ComplexType.
+
+        __readOnly__
+        @property namespace {String} 
+        **/
+        
+        /**
+        The entity level validators associated with this ComplexType. Validators can be added and
+        removed from this collection.
+
+        __readOnly__
+        @property validators {Array of Validator} 
+        **/
+
 
         /**
         Creates a new non-attached instance of this ComplexType.
@@ -6010,9 +6197,30 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         ctor.prototype.getProperties = function () {
             return this.dataProperties;
-        };
+        };       
+
+        /**
+        See  {{#crossLink "EntityType.addValidator"}}{{/crossLink}}
+        @method addValidator
+        @param validator {Validator} Validator to add.
+        @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
+        entity level validator and is added to the EntityType's 'validators'.
+        **/
         
+        /**
+        See  {{#crossLink "EntityType.getProperty"}}{{/crossLink}}
+        @method getProperty
+        **/
         
+        /**
+        See  {{#crossLink "EntityType.getPropertyNames"}}{{/crossLink}}
+        @method getPropertyNames
+        **/
+        
+        /**
+        See  {{#crossLink "EntityType.getEntityCtor"}}{{/crossLink}}
+        @method getCtor
+        **/
 
         ctor.prototype.addValidator = EntityType.prototype.addValidator;
         ctor.prototype.getProperty = EntityType.prototype.getProperty;
@@ -6044,8 +6252,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         return ctor;
     })();
-
-   
+    
     var DataProperty = (function () {
 
         /**
@@ -11850,7 +12057,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.78.3",
+        version: "0.80.1",
         core: core,
         config: a_config
     };

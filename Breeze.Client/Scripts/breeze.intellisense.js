@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Dec 20 2012 14:50:17 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Dec 22 2012 16:44:38 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -38,6 +38,16 @@ intellisense.annotate(breeze.breeze, {
     /// <signature>
     ///   <summary>
     ///   An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
+    ///   </summary>
+    /// </signature>
+  },
+
+  'ComplexAspect': function() {
+    /// <signature>
+    ///   <summary>
+    ///   An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
+    ///        
+    ///   The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
     ///   </summary>
     /// </signature>
   },
@@ -110,6 +120,9 @@ intellisense.annotate(breeze.breeze, {
     ///   A LocalQueryComparisonOptions instance is used to specify the 'comparison rules' used when performing 'local queries' in order 
     ///   to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
     ///   manner in which your remote service interprets certain comparison operations.
+    ///       
+    ///   The default LocalQueryComparisonOptions stipulates 'caseInsensitive' queries with ANSI SQL rules regarding comparisons of unequal
+    ///   length strings.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     /// </signature>
@@ -120,6 +133,8 @@ intellisense.annotate(breeze.breeze, {
     ///   <summary>
     ///   A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
     ///   will translate property names between the server and the javascript client. 
+    ///       
+    ///   The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     /// </signature>
@@ -136,12 +151,31 @@ intellisense.annotate(breeze.breeze, {
     /// </signature>
   },
 
+  'DataService': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
+    ///   and whether the service has server side metadata.  
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
   'EntityType': function() {
     /// <signature>
     ///   <summary>
     ///   Container for all of the metadata about a specific type of Entity.
     ///   </summary>
     ///   <param name="config" type="Object|MetadataStore" optional="true">Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.</param>
+    /// </signature>
+  },
+
+  'ComplexType': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Container for all of the metadata about a specific type of Complex object.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true">Configuration settings</param>
     /// </signature>
   },
 
@@ -563,7 +597,7 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
     ///   all of the validators on the specified property.  This call is also made automatically anytime a property
     ///   of an entity is changed.
     ///   </summary>
-    ///   <param name="property" type="DataProperty|NavigationProperty" optional="true">The  'DataProperty' or   'NavigationProperty' to validate.</param>
+    ///   <param name="property" type="DataProperty|NavigationProperty|String" optional="true">The  'DataProperty' or   'NavigationProperty' to validate or a string with the name of the property or a property path with the path to a property of a complex object.</param>
     ///   <param name="context" type="Object" optional="true">A context object used to pass additional information to each   'Validator'</param>
     ///   <returns type="Boolean" >Whether the entity passed validation.</returns>
     /// </signature>
@@ -596,6 +630,14 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
     
     /// </signature>
   },
+  'clearValidationErrors': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Removes all of the validation errors for a specified entity
+    ///   </summary>
+    
+    /// </signature>
+  },
   'loadNavigationProperty': function() {
     /// <signature>
     ///   <summary>
@@ -625,6 +667,33 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
   
 });
 intellisense.annotate(breeze.breeze.EntityAspect, {
+  
+  
+});
+
+intellisense.annotate(breeze.breeze.ComplexAspect.prototype, {
+  
+  
+  /// <field name="complexObject" type="Entity" >The complex object that this aspect is associated with.</field>
+  'complexObject': null,
+  
+  /// <field name="parent" type="Entity|ComplexObject" >The parent object that to which this aspect belongs; this will either be an entity or another complex object.</field>
+  'parent': null,
+  
+  /// <field name="parentProperty" type="breeze.breeze.DataProperty" >The  'DataProperty' on the 'parent' that contains this complex object.</field>
+  'parentProperty': null,
+  
+  /// <field name="entityAspect" type="String" >The EntityAspect for the top level entity tht contains this complex object.</field>
+  'entityAspect': null,
+  
+  /// <field name="propertyPath" type="String" >The 'property path' from the top level entity that contains this complex object to this object.</field>
+  'propertyPath': null,
+  
+  /// <field name="originalValues" type="Object" >The 'original values' of this complex object where they are different from the 'current values'.  This is a map where the key is a property name and the value is the 'original value' of the property.</field>
+  'originalValues': null,
+  
+});
+intellisense.annotate(breeze.breeze.ComplexAspect, {
   
   
 });
@@ -886,7 +955,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   /// <field name="serviceName" type="String" >The service name associated with this EntityManager.</field>
   'serviceName': null,
   
-  /// <field name="dataService" type="DataService" >The DataService name associated with this EntityManager.</field>
+  /// <field name="dataService" type="breeze.breeze.DataService" >The DataService name associated with this EntityManager.</field>
   'dataService': null,
   
   /// <field name="metadataStore" type="breeze.breeze.MetadataStore" >The  'MetadataStore' associated with this EntityManager. </field>
@@ -1130,7 +1199,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
     ///   in the MetadataStore an exception will be thrown.
     ///   </summary>
-    ///   <param name="dataService" type="DataService" optional="true">The DataService to add</param>
+    ///   <param name="dataService" type="breeze.breeze.DataService" optional="true">The DataService to add</param>
     
     /// </signature>
   },
@@ -1140,7 +1209,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
     ///   been added to the MetadataStore.
     ///   </summary>
-    ///   <param name="entityType" type="breeze.breeze.EntityType" optional="true">The EntityType to add</param>
+    ///   <param name="structuralType" type="EntityType|ComplexType" optional="true">The EntityType or ComplexType to add</param>
     
     /// </signature>
   },
@@ -1212,8 +1281,8 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   This call may be made before or after the corresponding EntityType has been discovered via
     ///   Metadata discovery.
     ///   </summary>
-    ///   <param name="entityTypeName" type="String" optional="true">The name of the EntityType</param>
-    ///   <param name="entityCtor" type="Function" optional="true">The constructor for this EntityType; may be null if all you want to do is set the next parameter.</param>
+    ///   <param name="structuralTypeName" type="String" optional="true">The name of the EntityType o0r ComplexType.</param>
+    ///   <param name="aCtor" type="Function" optional="true">The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter.</param>
     ///   <param name="initializationFn" type="Function" optional="true">A function or the name of a function on the entity that is to be executed immediately after the entity has been created and populated with any initial values.      initializationFn(entity)</param>
     
     /// </signature>
@@ -1229,11 +1298,11 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   'getEntityType': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns an   'EntityType' given its name.
+    ///   Returns an   'EntityType' or a  'CompleType' given its name.
     ///   </summary>
-    ///   <param name="entityTypeName" type="String" optional="true">Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown.</param>
+    ///   <param name="structuralTypeName" type="String" optional="true">Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown.</param>
     ///   <param name="okIfNotFound" type="Boolean" optional="true">Whether to throw an error if the specified EntityType is not found.</param>
-    ///   <returns type="breeze.breeze.EntityType" >The EntityType or 'undefined' if not not found.</returns>
+    ///   <returns type="EntityType|ComplexType" >The EntityType. ComplexType or 'undefined' if not not found.</returns>
     /// </signature>
   },
   'getEntityTypes': function() {
@@ -1260,6 +1329,24 @@ intellisense.annotate(breeze.breeze.MetadataStore, {
     ///   <returns type="breeze.breeze.MetadataStore >A new MetadataStore.</returns>
     /// </signature>
   },
+  
+});
+
+intellisense.annotate(breeze.breeze.DataService.prototype, {
+  
+  
+  /// <field name="serviceName" type="String" >The serviceName for this DataService.</field>
+  'serviceName': null,
+  
+  /// <field name="adapterName" type="String" >The adapter name for the dataServiceAdapter to be used with this service.</field>
+  'adapterName': null,
+  
+  /// <field name="hasServerMetadata" type="Boolean" >Whether the server can provide metadata for this service.</field>
+  'hasServerMetadata': null,
+  
+});
+intellisense.annotate(breeze.breeze.DataService, {
+  
   
 });
 
@@ -1372,6 +1459,9 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   /// <field name="navigationProperties" type="Array" elementType="breeze.breeze.NavigationProperty" >The NavigationProperties  (see  'NavigationProperty') associated with this EntityType.</field>
   'navigationProperties': null,
   
+  /// <field name="complexProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties for this EntityType that contain instances of a ComplexType (see  'ComplexType').</field>
+  'complexProperties': null,
+  
   /// <field name="keyProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties associated with this EntityType that make up it's  'EntityKey'.</field>
   'keyProperties': null,
   
@@ -1404,6 +1494,79 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   
 });
 intellisense.annotate(breeze.breeze.EntityType, {
+  
+  
+});
+
+intellisense.annotate(breeze.breeze.ComplexType.prototype, {
+  
+  'createInstance': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates a new non-attached instance of this ComplexType.
+    ///   </summary>
+    ///   <param name="initialValues" type="Object" optional="true">Configuration object containing initial values for the instance.</param>
+    
+    /// </signature>
+  },
+  'addValidator': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.addValidator'
+    ///   </summary>
+    ///   <param name="validator" type="breeze.breeze.Validator" optional="true">Validator to add.</param>
+    ///   <param name="property" type="" optional="true">Property to add this validator to.  If omitted, the validator is assumed to be an entity level validator and is added to the EntityType's 'validators'.</param>
+    
+    /// </signature>
+  },
+  'getProperty': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getProperty'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'getPropertyNames': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getPropertyNames'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'getCtor': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getEntityCtor'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  
+  /// <field name="dataProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties (see  'DataProperty') associated with this ComplexType.</field>
+  'dataProperties': null,
+  
+  /// <field name="complexProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties for this ComplexType that contain instances of a ComplexType (see  'ComplexType').</field>
+  'complexProperties': null,
+  
+  /// <field name="unmappedProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing properties.</field>
+  'unmappedProperties': null,
+  
+  /// <field name="name" type="String" >The fully qualifed name of this ComplexType.</field>
+  'name': null,
+  
+  /// <field name="shortName" type="String" >The short, unqualified, name for this ComplexType.</field>
+  'shortName': null,
+  
+  /// <field name="namespace" type="String" >The namespace for this ComplexType.</field>
+  'namespace': null,
+  
+  /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The entity level validators associated with this ComplexType. Validators can be added and removed from this collection.</field>
+  'validators': null,
+  
+});
+intellisense.annotate(breeze.breeze.ComplexType, {
   
   
 });
@@ -2041,6 +2204,9 @@ intellisense.annotate(breeze.breeze.ValidationError.prototype, {
   
   /// <field name="property" type="DataProperty|NavigationProperty" >The DataProperty or NavigationProperty associated with this ValidationError.</field>
   'property': null,
+  
+  /// <field name="propertyName" type="String" >The property name associated with this ValidationError. This will be a 'property path' for any properties of a complex object.</field>
+  'propertyName': null,
   
   /// <field name="errorMessage" type="String" >The error message associated with the ValidationError.</field>
   'errorMessage': null,

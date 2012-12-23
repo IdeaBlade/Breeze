@@ -730,7 +730,7 @@ function (core, a_config, m_validate) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
-                that._removeValidationError(validator, property.name);
+                that._removeValidationError(validator, property && property.name);
             });
         };
 
@@ -903,10 +903,19 @@ function (core, a_config, m_validate) {
     }();
 
     var ComplexAspect = function() {
+        
         /**
-        An ComplexAspect instance is associated with every attached complexObject and is accessed via the complexObject's 'complexAspect' property. 
-        
-        
+        An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
+     
+        The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
+
+        A ComplexAspect will almost never need to be constructed directly. You will usually get an ComplexAspect by accessing
+        an entities 'complexAspect' property.  This property will be automatically attached when an complex object is created as part of an
+        entity via either a query, import or EntityManager.createEntity call.
+     
+            // assume address is a complex property on the 'Customer' type
+            var aspect = aCustomer.address.complexAspect;
+            // aCustomer === aspect.parent;
         @class ComplexAspect
         **/
         var ctor = function(complexObject, parent, parentProperty) {
@@ -957,6 +966,49 @@ function (core, a_config, m_validate) {
             v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
 
         };
+        
+        /**
+        The complex object that this aspect is associated with.
+
+        __readOnly__
+        @property complexObject {Entity} 
+        **/
+        
+        /**
+        The parent object that to which this aspect belongs; this will either be an entity or another complex object.
+
+        __readOnly__
+        @property parent {Entity|ComplexObject} 
+        **/
+
+        /**
+        The {{#crossLink "DataProperty"}}{{/crossLink}} on the 'parent' that contains this complex object.
+
+        __readOnly__
+        @property parentProperty {DataProperty}
+        **/
+        
+        /**
+        The EntityAspect for the top level entity tht contains this complex object.
+
+        __readOnly__
+        @property entityAspect {String}
+        **/
+        
+        /**
+        The 'property path' from the top level entity that contains this complex object to this object.
+
+        __readOnly__
+        @property propertyPath {String}
+        **/
+        
+        /**
+        The 'original values' of this complex object where they are different from the 'current values'. 
+        This is a map where the key is a property name and the value is the 'original value' of the property.
+
+        __readOnly__
+        @property originalValues {Object}
+        **/
 
         ctor.prototype._postInitialize = function() {
             var co = this.complexObject;

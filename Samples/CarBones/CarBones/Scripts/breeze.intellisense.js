@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Nov 24 2012 16:25:29 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Dec 22 2012 16:44:38 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -38,6 +38,16 @@ intellisense.annotate(breeze.breeze, {
     /// <signature>
     ///   <summary>
     ///   An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
+    ///   </summary>
+    /// </signature>
+  },
+
+  'ComplexAspect': function() {
+    /// <signature>
+    ///   <summary>
+    ///   An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
+    ///        
+    ///   The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
     ///   </summary>
     /// </signature>
   },
@@ -110,6 +120,9 @@ intellisense.annotate(breeze.breeze, {
     ///   A LocalQueryComparisonOptions instance is used to specify the 'comparison rules' used when performing 'local queries' in order 
     ///   to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
     ///   manner in which your remote service interprets certain comparison operations.
+    ///       
+    ///   The default LocalQueryComparisonOptions stipulates 'caseInsensitive' queries with ANSI SQL rules regarding comparisons of unequal
+    ///   length strings.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     /// </signature>
@@ -120,6 +133,8 @@ intellisense.annotate(breeze.breeze, {
     ///   <summary>
     ///   A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
     ///   will translate property names between the server and the javascript client. 
+    ///       
+    ///   The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
     /// </signature>
@@ -136,12 +151,31 @@ intellisense.annotate(breeze.breeze, {
     /// </signature>
   },
 
+  'DataService': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
+    ///   and whether the service has server side metadata.  
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
   'EntityType': function() {
     /// <signature>
     ///   <summary>
     ///   Container for all of the metadata about a specific type of Entity.
     ///   </summary>
     ///   <param name="config" type="Object|MetadataStore" optional="true">Configuration settings or a MetadataStore.  If this parameter is just a MetadataStore then what will be created is an 'anonymous' type that will never be communicated to or from the server. It is purely for client side use and will be given an automatically generated name. Normally, however, you will use a configuration object.</param>
+    /// </signature>
+  },
+
+  'ComplexType': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Container for all of the metadata about a specific type of Complex object.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true">Configuration settings</param>
     /// </signature>
   },
 
@@ -200,7 +234,8 @@ intellisense.annotate(breeze.breeze, {
     ///   </summary>
     ///   <param name="property" type="String" optional="true">A property name, a nested property name or an expression involving a property name.</param>
     ///   <param name="operator" type="FilterQueryOp|String" optional="true"></param>
-    ///   <param name="value" type="Object" optional="true"></param>
+    ///   <param name="value" type="Object" optional="true">- This will be treated as either a property expression or a literal depending on context.  In general,           if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.           In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</param>
+    ///   <param name="valueIsLiteral" type="Boolean" optional="true">- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</param>
     /// </signature>
   },
 
@@ -562,7 +597,7 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
     ///   all of the validators on the specified property.  This call is also made automatically anytime a property
     ///   of an entity is changed.
     ///   </summary>
-    ///   <param name="property" type="DataProperty|NavigationProperty" optional="true">The  'DataProperty' or   'NavigationProperty' to validate.</param>
+    ///   <param name="property" type="DataProperty|NavigationProperty|String" optional="true">The  'DataProperty' or   'NavigationProperty' to validate or a string with the name of the property or a property path with the path to a property of a complex object.</param>
     ///   <param name="context" type="Object" optional="true">A context object used to pass additional information to each   'Validator'</param>
     ///   <returns type="Boolean" >Whether the entity passed validation.</returns>
     /// </signature>
@@ -595,6 +630,14 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
     
     /// </signature>
   },
+  'clearValidationErrors': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Removes all of the validation errors for a specified entity
+    ///   </summary>
+    
+    /// </signature>
+  },
   'loadNavigationProperty': function() {
     /// <signature>
     ///   <summary>
@@ -624,6 +667,33 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
   
 });
 intellisense.annotate(breeze.breeze.EntityAspect, {
+  
+  
+});
+
+intellisense.annotate(breeze.breeze.ComplexAspect.prototype, {
+  
+  
+  /// <field name="complexObject" type="Entity" >The complex object that this aspect is associated with.</field>
+  'complexObject': null,
+  
+  /// <field name="parent" type="Entity|ComplexObject" >The parent object that to which this aspect belongs; this will either be an entity or another complex object.</field>
+  'parent': null,
+  
+  /// <field name="parentProperty" type="breeze.breeze.DataProperty" >The  'DataProperty' on the 'parent' that contains this complex object.</field>
+  'parentProperty': null,
+  
+  /// <field name="entityAspect" type="String" >The EntityAspect for the top level entity tht contains this complex object.</field>
+  'entityAspect': null,
+  
+  /// <field name="propertyPath" type="String" >The 'property path' from the top level entity that contains this complex object to this object.</field>
+  'propertyPath': null,
+  
+  /// <field name="originalValues" type="Object" >The 'original values' of this complex object where they are different from the 'current values'.  This is a map where the key is a property name and the value is the 'original value' of the property.</field>
+  'originalValues': null,
+  
+});
+intellisense.annotate(breeze.breeze.ComplexAspect, {
   
   
 });
@@ -744,7 +814,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
-    ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    ///   <returns type="breeze.breeze.Promise" >Promise </returns>
     /// </signature>
   },
   'executeQuery': function() {
@@ -778,6 +848,49 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
     ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    /// </signature>
+  },
+  'getEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its key.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'getEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its   'EntityKey'.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'fetchEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its key with
+    ///   an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+    ///   will be used to merge any server side entity returned by this method.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
+    /// </signature>
+  },
+  'fetchEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its  'EntityKey' with
+    ///   an option to check the local cache first.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
     /// </signature>
   },
   'findEntityByKey': function() {
@@ -842,7 +955,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   /// <field name="serviceName" type="String" >The service name associated with this EntityManager.</field>
   'serviceName': null,
   
-  /// <field name="dataService" type="DataService" >The DataService name associated with this EntityManager.</field>
+  /// <field name="dataService" type="breeze.breeze.DataService" >The DataService name associated with this EntityManager.</field>
   'dataService': null,
   
   /// <field name="metadataStore" type="breeze.breeze.MetadataStore" >The  'MetadataStore' associated with this EntityManager. </field>
@@ -1086,7 +1199,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
     ///   in the MetadataStore an exception will be thrown.
     ///   </summary>
-    ///   <param name="dataService" type="DataService" optional="true">The DataService to add</param>
+    ///   <param name="dataService" type="breeze.breeze.DataService" optional="true">The DataService to add</param>
     
     /// </signature>
   },
@@ -1096,7 +1209,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
     ///   been added to the MetadataStore.
     ///   </summary>
-    ///   <param name="entityType" type="breeze.breeze.EntityType" optional="true">The EntityType to add</param>
+    ///   <param name="structuralType" type="EntityType|ComplexType" optional="true">The EntityType or ComplexType to add</param>
     
     /// </signature>
   },
@@ -1168,8 +1281,8 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   This call may be made before or after the corresponding EntityType has been discovered via
     ///   Metadata discovery.
     ///   </summary>
-    ///   <param name="entityTypeName" type="String" optional="true">The name of the EntityType</param>
-    ///   <param name="entityCtor" type="Function" optional="true">The constructor for this EntityType.</param>
+    ///   <param name="structuralTypeName" type="String" optional="true">The name of the EntityType o0r ComplexType.</param>
+    ///   <param name="aCtor" type="Function" optional="true">The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter.</param>
     ///   <param name="initializationFn" type="Function" optional="true">A function or the name of a function on the entity that is to be executed immediately after the entity has been created and populated with any initial values.      initializationFn(entity)</param>
     
     /// </signature>
@@ -1185,11 +1298,11 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   'getEntityType': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns an   'EntityType' given its name.
+    ///   Returns an   'EntityType' or a  'CompleType' given its name.
     ///   </summary>
-    ///   <param name="entityTypeName" type="String" optional="true">Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown.</param>
+    ///   <param name="structuralTypeName" type="String" optional="true">Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown.</param>
     ///   <param name="okIfNotFound" type="Boolean" optional="true">Whether to throw an error if the specified EntityType is not found.</param>
-    ///   <returns type="breeze.breeze.EntityType" >The EntityType or 'undefined' if not not found.</returns>
+    ///   <returns type="EntityType|ComplexType" >The EntityType. ComplexType or 'undefined' if not not found.</returns>
     /// </signature>
   },
   'getEntityTypes': function() {
@@ -1216,6 +1329,24 @@ intellisense.annotate(breeze.breeze.MetadataStore, {
     ///   <returns type="breeze.breeze.MetadataStore >A new MetadataStore.</returns>
     /// </signature>
   },
+  
+});
+
+intellisense.annotate(breeze.breeze.DataService.prototype, {
+  
+  
+  /// <field name="serviceName" type="String" >The serviceName for this DataService.</field>
+  'serviceName': null,
+  
+  /// <field name="adapterName" type="String" >The adapter name for the dataServiceAdapter to be used with this service.</field>
+  'adapterName': null,
+  
+  /// <field name="hasServerMetadata" type="Boolean" >Whether the server can provide metadata for this service.</field>
+  'hasServerMetadata': null,
+  
+});
+intellisense.annotate(breeze.breeze.DataService, {
+  
   
 });
 
@@ -1328,6 +1459,9 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   /// <field name="navigationProperties" type="Array" elementType="breeze.breeze.NavigationProperty" >The NavigationProperties  (see  'NavigationProperty') associated with this EntityType.</field>
   'navigationProperties': null,
   
+  /// <field name="complexProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties for this EntityType that contain instances of a ComplexType (see  'ComplexType').</field>
+  'complexProperties': null,
+  
   /// <field name="keyProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties associated with this EntityType that make up it's  'EntityKey'.</field>
   'keyProperties': null,
   
@@ -1360,6 +1494,79 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   
 });
 intellisense.annotate(breeze.breeze.EntityType, {
+  
+  
+});
+
+intellisense.annotate(breeze.breeze.ComplexType.prototype, {
+  
+  'createInstance': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates a new non-attached instance of this ComplexType.
+    ///   </summary>
+    ///   <param name="initialValues" type="Object" optional="true">Configuration object containing initial values for the instance.</param>
+    
+    /// </signature>
+  },
+  'addValidator': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.addValidator'
+    ///   </summary>
+    ///   <param name="validator" type="breeze.breeze.Validator" optional="true">Validator to add.</param>
+    ///   <param name="property" type="" optional="true">Property to add this validator to.  If omitted, the validator is assumed to be an entity level validator and is added to the EntityType's 'validators'.</param>
+    
+    /// </signature>
+  },
+  'getProperty': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getProperty'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'getPropertyNames': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getPropertyNames'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'getCtor': function() {
+    /// <signature>
+    ///   <summary>
+    ///   See   'EntityType.getEntityCtor'
+    ///   </summary>
+    
+    /// </signature>
+  },
+  
+  /// <field name="dataProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties (see  'DataProperty') associated with this ComplexType.</field>
+  'dataProperties': null,
+  
+  /// <field name="complexProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties for this ComplexType that contain instances of a ComplexType (see  'ComplexType').</field>
+  'complexProperties': null,
+  
+  /// <field name="unmappedProperties" type="Array" elementType="breeze.breeze.DataProperty" >The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing properties.</field>
+  'unmappedProperties': null,
+  
+  /// <field name="name" type="String" >The fully qualifed name of this ComplexType.</field>
+  'name': null,
+  
+  /// <field name="shortName" type="String" >The short, unqualified, name for this ComplexType.</field>
+  'shortName': null,
+  
+  /// <field name="namespace" type="String" >The namespace for this ComplexType.</field>
+  'namespace': null,
+  
+  /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The entity level validators associated with this ComplexType. Validators can be added and removed from this collection.</field>
+  'validators': null,
+  
+});
+intellisense.annotate(breeze.breeze.ComplexType, {
   
   
 });
@@ -1483,7 +1690,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'where': function() {
     /// <signature>
     ///   <summary>
-    ///   Adds a filter to the query. Can be called multiple times which means to 'and' with any existing Predicate.
+    ///   Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
     ///   </summary>
     ///   <param name="predicate" type="Predicate|property|property path, operator, value" optional="true">Can be either</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1492,38 +1699,38 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'orderBy': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
+    ///   Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','. Each property path can optionally end with ' desc' to force a descending sort order.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths. Each property path can optionally end with ' desc' to force a descending sort order.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
   'orderByDesc': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that orders the results of the query by property name in descending order.
+    ///   Returns a new query that orders the results of the query by property name in descending order.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
   'select': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that selects a list of properties from the results of the original query and returns the values of just these properties. This
+    ///   Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This
     ///   will be referred to as a projection. 
     ///   If the result of this selection 'projection' contains entities, these entities will automatically be added to EntityManager's cache and will 
     ///   be made 'observable'.
     ///   Any simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A list of property paths seperated by ','.</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated (',') string of property paths or an array of property paths.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
   'skip': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that skips the specified number of entities when returning results.
+    ///   Returns a new query that skips the specified number of entities when returning results.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return. If omitted this clears the</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1532,7 +1739,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'top': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that returns only the specified number of entities when returning results. - Same as 'take'.
+    ///   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1541,7 +1748,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'take': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that returns only the specified number of entities when returning results - Same as 'top'
+    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1550,10 +1757,30 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'expand': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
+    ///   Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
     ///   names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
     ///   </summary>
-    ///   <param name="propertyPaths" type="String" optional="true">A comma-separated list of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
+    ///   <param name="propertyPaths" type="String|Array of String" optional="true">A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed by a '.' and another navigation property name to enable identifying a multi-level relationship</param>
+    ///   <returns type="breeze.breeze.EntityQuery" ></returns>
+    /// </signature>
+  },
+  'withParameters': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a new query that includes a collection of parameters to pass to the server.
+    ///   </summary>
+    ///   <param name="parameters" type="Object" optional="true">A parameters object where the keys are the parameter names and the values are the parameter values.</param>
+    ///   <returns type="breeze.breeze.EntityQuery" ></returns>
+    /// </signature>
+  },
+  'inlineCount': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
+    ///   will be returned with the query results that will contain the number of entities that would have been returned by this
+    ///   query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.
+    ///   </summary>
+    ///   <param name="enabled" type="Boolean=true" optional="true">Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
@@ -1580,7 +1807,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'executeLocally': function() {
     /// <signature>
     ///   <summary>
-    ///   Executes this query against the local cahce.  This method requires that an EntityManager have been previously specified via the 'using' method.
+    ///   Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the 'using' method.
     ///   </summary>
     
     /// </signature>
@@ -1600,6 +1827,9 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   
   /// <field name="takeCount" type="Integer" >The number of entities to 'take' for this query.</field>
   'takeCount': null,
+  
+  /// <field name="parameters" type="Object" >Any additional parameters that were added to the query via the 'withParameters' method. </field>
+  'parameters': null,
   
   /// <field name="queryOptions" type="breeze.breeze.QueryOptions" >The  'QueryOptions' for this query.</field>
   'queryOptions': null,
@@ -1761,7 +1991,8 @@ intellisense.annotate(breeze.breeze.Predicate, {
     ///   </summary>
     ///   <param name="property" type="String" optional="true">A property name, a nested property name or an expression involving a property name.</param>
     ///   <param name="operator" type="FilterQueryOp|String" optional="true"></param>
-    ///   <param name="value" type="Object" optional="true"></param>
+    ///   <param name="value" type="Object" optional="true">- This will be treated as either a property expression or a literal depending on context.  In general,           if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.           In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</param>
+    ///   <param name="valueIsLiteral" type="Boolean" optional="true">- Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</param>
     
     /// </signature>
   },
@@ -1973,6 +2204,9 @@ intellisense.annotate(breeze.breeze.ValidationError.prototype, {
   
   /// <field name="property" type="DataProperty|NavigationProperty" >The DataProperty or NavigationProperty associated with this ValidationError.</field>
   'property': null,
+  
+  /// <field name="propertyName" type="String" >The property name associated with this ValidationError. This will be a 'property path' for any properties of a complex object.</field>
+  'propertyName': null,
   
   /// <field name="errorMessage" type="String" >The error message associated with the ValidationError.</field>
   'errorMessage': null,
