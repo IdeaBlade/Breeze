@@ -2269,7 +2269,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         Either this or the &#x27;name&#x27; above must be specified. Whichever one is specified the other will be computed using
         the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
         @param [config.dataType=DataType.String] {DataType}
-        @param [config.isNullable=false] {Boolean}
+        @param [config.isNullable=true] {Boolean}
         @param [config.isPartOfKey=false] {Boolean}
         @param [config.isUnmapped=false] {Boolean}
         @param [config.concurrencyMode] {String}
@@ -2283,7 +2283,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam(&quot;nameOnServer&quot;).isString().isOptional()
                 .whereParam(&quot;dataType&quot;).isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
                 .whereParam(&quot;complexTypeName&quot;).isOptional()
-                .whereParam(&quot;isNullable&quot;).isBoolean().isOptional().withDefault(false)
+                .whereParam(&quot;isNullable&quot;).isBoolean().isOptional().withDefault(true)
                 .whereParam(&quot;defaultValue&quot;).isOptional()
                 .whereParam(&quot;isPartOfKey&quot;).isBoolean().isOptional()
                 .whereParam(&quot;isUnmapped&quot;).isBoolean().isOptional()
@@ -2299,6 +2299,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
             if (this.complexTypeName) {
                 this.isComplexProperty = true;
+            } else if (!this.dataType) {
+                this.dataType = DataType.String;
             }
             
             &#x2F;&#x2F; == as opposed to === is deliberate here.
@@ -2307,7 +2309,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     this.defaultValue = null;
                 } else {
                     if (this.isComplexProperty) {
-                        &#x2F;&#x2F; what to do?
+                        &#x2F;&#x2F; what to do? - shouldn&#x27;t happen from EF - but otherwise ???
                     } else if (this.dataType === DataType.Binary) {
                         this.defaultValue = &quot;AAAAAAAAJ3U=&quot;; &#x2F;&#x2F; hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
                     } else {
