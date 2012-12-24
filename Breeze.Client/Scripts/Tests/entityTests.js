@@ -11,7 +11,7 @@ define(["testFns"], function (testFns) {
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
     var EntityKey = breeze.EntityKey;
-
+    var DataType = breeze.DataType;
     var newEm = testFns.newEm;
     var newMs = testFns.newMs;
     
@@ -23,6 +23,44 @@ define(["testFns"], function (testFns) {
         teardown: function () {
 
         }
+    });
+    
+    test("datatype coercion - null strings to empty strings", function () {
+        var em = newEm(); // new empty EntityManager
+        var oldFn = DataType.String.parse;
+        var newFn = function(source, sourceTypeName) {
+            if (source == null) {
+                return "";
+            } else if (sourceTypeName === "string") {
+                return source.trim();
+            } else {
+                return oldFn(source, sourceTypeName);
+            }
+        };
+        DataType.String.parse = newFn;
+        try {
+            var aType = em.metadataStore.getEntityType("Customer");
+            // OrderID, UnitPrice, Discount
+            var inst = aType.createEntity();
+            var val;
+            inst.setProperty("companyName", null);
+            val = inst.getProperty("companyName");
+            ok(val === "");
+
+            inst.setProperty("companyName", undefined);
+            val = inst.getProperty("companyName");
+            ok(val === "");
+            
+            inst.setProperty("companyName", "    now is the time    ");
+            val = inst.getProperty("companyName");
+            ok(val === "now is the time");
+        } finally {
+            DataType.String.parse = oldFn;
+        }
+        
+
+
+
     });
 
     test("datatype coercion - date", function() {
