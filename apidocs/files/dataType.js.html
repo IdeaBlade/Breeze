@@ -182,15 +182,13 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-define([&quot;core&quot;, &quot;validate&quot;],
-function (core, m_validate) {
+define([&quot;core&quot;],
+function (core) {
     &#x2F;**
     @module breeze
     **&#x2F;
 
     var Enum = core.Enum;
-    var Validator = m_validate.Validator;
-
     &#x2F;**
     DataType is an &#x27;Enum&#x27; containing all of the supported data types.
 
@@ -209,64 +207,110 @@ function (core, m_validate) {
     **&#x2F;
 
     var dataTypeMethods = {
+        &#x2F;&#x2F; default
+    };
 
+    var coerceToString = function (source, sourceTypeName) {
+        return (source == null) ? source : source.toString();
+    };
+
+    var coerceToInt = function (source, sourceTypeName) {
+        if (sourceTypeName === &quot;string&quot;) {
+            var val = parseInt(source, 10);
+            return isNaN(val) ? source : val;
+        } else if (sourceTypeName === &quot;number&quot;) {
+            return Math.round(source);
+        }
+        &#x2F;&#x2F; do we want to coerce floats -&gt; ints
+        return source;
+    };
+
+    var coerceToFloat = function (source, sourceTypeName) {
+        if (sourceTypeName === &quot;string&quot;) {
+            var val = parseFloat(source);
+            return isNaN(val) ? source : val;
+        }
+        return source;
+    };
+
+    var coerceToDate = function (source, sourceTypeName) {
+        if (sourceTypeName === &quot;string&quot; || sourceTypeName === &quot;number&quot;) {
+            var val = new Date(source);
+            return core.isDate(val) ? val : source;
+        }
+        return source;
+    };
+
+    var coerceToBool = function (source, sourceTypeName) {
+        if (sourceTypeName === &quot;string&quot;) {
+            var src = source.trim().toLowerCase();
+            if (src === &#x27;false&#x27;) {
+                return false;
+            } else if (src === &quot;true&quot;) {
+                return true;
+            } else {
+                return source;
+            }
+        } 
+        return source;
     };
 
     var DataType = new Enum(&quot;DataType&quot;, dataTypeMethods);
+    
     &#x2F;**
     @property String {DataType}
     @final
     @static
     **&#x2F;
-    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot; });
+    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString });
     &#x2F;**
     @property Int64 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     &#x2F;**
     @property Int32 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true , isInteger: true });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     &#x2F;**
     @property Int16 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     &#x2F;**
     @property Decimal {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     &#x2F;**
     @property Double {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     &#x2F;**
     @property Single {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     &#x2F;**
     @property DateTime {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     &#x2F;**
     @property Boolean {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
     &#x2F;**
     @property Guid {DataType}
     @final
@@ -292,9 +336,6 @@ function (core, m_validate) {
     **&#x2F;
     DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
     DataType.seal();
-    DataType.getSymbols().forEach(function (sym) {
-        sym.validatorCtor = getValidatorCtor(sym);
-    });
 
     &#x2F;**
     Returns the DataType for a specified EDM type name.
@@ -321,7 +362,7 @@ function (core, m_validate) {
         }
         return dt;
     };
-    
+
     DataType.fromJsType = function (typeName) {
         switch (typeName) {
             case &quot;string&quot;:
@@ -334,37 +375,6 @@ function (core, m_validate) {
         return null;
     };
 
-    function getValidatorCtor(symbol) {
-        switch (symbol) {
-            case DataType.String:
-                return Validator.string;
-            case DataType.Int64:
-                return Validator.int64;
-            case DataType.Int32:
-                return Validator.int32;
-            case DataType.Int16:
-                return Validator.int16;
-            case DataType.Decimal:
-                return Validator.number;
-            case DataType.Double:
-                return Validator.number;
-            case DataType.Single:
-                return Validator.number;
-            case DataType.DateTime:
-                return Validator.date;
-            case DataType.Boolean:
-                return Validator.bool;
-            case DataType.Guid:
-                return Validator.guid;
-            case DataType.Byte:
-                return Validator.byte;
-            case DataType.Binary:
-                &#x2F;&#x2F; TODO: don&#x27;t quite know how to validate this yet.
-                return Validator.none;
-            case DataType.Undefined:
-                return Validator.none;
-        }
-    };
 
 
     return DataType;

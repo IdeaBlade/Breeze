@@ -59,8 +59,15 @@ function (core) {
     };
 
     var coerceToBool = function (source, sourceTypeName) {
-        if (sourceTypeName === "string" || sourceTypeName === "number") {
-            return !!source;
+        if (sourceTypeName === "string") {
+            var src = source.trim().toLowerCase();
+            if (src === 'false') {
+                return false;
+            } else if (src === "true") {
+                return true;
+            } else {
+                return source;
+            }
         } 
         return source;
     };

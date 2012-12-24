@@ -194,13 +194,6 @@ define(["testFns"], function (testFns) {
         cust1.setProperty("rowVersion", 3);
         ok(valErrorsChanged.removed[0].property.name === "rowVersion");
 
-        cust1.setProperty("rowVersion", "asdf");
-        ok(valErrorsChanged.added[0].property.name === "rowVersion");
-        valErrorsChanged = null;
-        cust1.setProperty("rowVersion", "33");
-        ok(valErrorsChanged === null);
-
-
     });
 
     test("validationErrorsChanged event", function () {

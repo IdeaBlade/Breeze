@@ -613,7 +613,9 @@ define(["testFns"], function (testFns) {
 
         todo.IsDone(true); // ok. no problem
 
-        todo.IsDone("true"); // 2. Wrong data type
+        todo.IsDone("true"); // still ok with coercion
+        
+        todo.IsDone("xxx"); // 2. Wrong data type
 
         todo.Id(null); // 3. Id is the pk; automatically required
 

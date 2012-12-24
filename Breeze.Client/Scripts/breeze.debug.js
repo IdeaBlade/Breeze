@@ -595,7 +595,7 @@ define('coreFns',[],function () {
     }
 
     function isDate(o) {
-        return classof(o) === "date";
+        return classof(o) === "date" && !isNaN(o.getTime());
     }
 
     function isFunction(o) {
@@ -1873,8 +1873,209 @@ function (core) {
     return a_config;
 });
 
-define('validate',["core", "config"],
-function (core, a_config) {
+
+define('dataType',["core"],
+function (core) {
+    /**
+    @module breeze
+    **/
+
+    var Enum = core.Enum;
+    /**
+    DataType is an 'Enum' containing all of the supported data types.
+
+    @class DataType
+    @static
+    **/
+
+    /**
+    The default value of this DataType.
+    @property defaultValue {any}
+    **/
+
+    /**
+    Whether this is a 'numeric' DataType. 
+    @property isNumeric {Boolean}
+    **/
+
+    var dataTypeMethods = {
+        // default
+    };
+
+    var coerceToString = function (source, sourceTypeName) {
+        return (source == null) ? source : source.toString();
+    };
+
+    var coerceToInt = function (source, sourceTypeName) {
+        if (sourceTypeName === "string") {
+            var val = parseInt(source, 10);
+            return isNaN(val) ? source : val;
+        } else if (sourceTypeName === "number") {
+            return Math.round(source);
+        }
+        // do we want to coerce floats -> ints
+        return source;
+    };
+
+    var coerceToFloat = function (source, sourceTypeName) {
+        if (sourceTypeName === "string") {
+            var val = parseFloat(source);
+            return isNaN(val) ? source : val;
+        }
+        return source;
+    };
+
+    var coerceToDate = function (source, sourceTypeName) {
+        if (sourceTypeName === "string" || sourceTypeName === "number") {
+            var val = new Date(source);
+            return core.isDate(val) ? val : source;
+        }
+        return source;
+    };
+
+    var coerceToBool = function (source, sourceTypeName) {
+        if (sourceTypeName === "string") {
+            var src = source.trim().toLowerCase();
+            if (src === 'false') {
+                return false;
+            } else if (src === "true") {
+                return true;
+            } else {
+                return source;
+            }
+        } 
+        return source;
+    };
+
+    var DataType = new Enum("DataType", dataTypeMethods);
+    
+    /**
+    @property String {DataType}
+    @final
+    @static
+    **/
+    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString });
+    /**
+    @property Int64 {DataType}
+    @final
+    @static
+    **/
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    /**
+    @property Int32 {DataType}
+    @final
+    @static
+    **/
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    /**
+    @property Int16 {DataType}
+    @final
+    @static
+    **/
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    /**
+    @property Decimal {DataType}
+    @final
+    @static
+    **/
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    /**
+    @property Double {DataType}
+    @final
+    @static
+    **/
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    /**
+    @property Single {DataType}
+    @final
+    @static
+    **/
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    /**
+    @property DateTime {DataType}
+    @final
+    @static
+    **/
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
+    /**
+    @property Boolean {DataType}
+    @final
+    @static
+    **/
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
+    /**
+    @property Guid {DataType}
+    @final
+    @static
+    **/
+    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
+    /**
+    @property Byte {DataType}
+    @final
+    @static
+    **/
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
+    /**
+    @property Binary {DataType}
+    @final
+    @static
+    **/
+    DataType.Binary = DataType.addSymbol({ defaultValue: null });
+    /**
+    @property Undefined {DataType}
+    @final
+    @static
+    **/
+    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
+    DataType.seal();
+
+    /**
+    Returns the DataType for a specified EDM type name.
+    @method fromEdmDataType
+    @static
+    @param typeName {String}
+    @return {DataType} A DataType.
+    **/
+    DataType.fromEdmDataType = function (typeName) {
+        // if OData style
+        var dt;
+        var parts = typeName.split("Edm.");
+        if (parts.length > 1) {
+            if (parts[1] === "image") {
+                // hack
+                dt = DataType.Byte;
+            } else {
+                dt = DataType.fromName(parts[1]);
+            }
+        }
+
+        if (!dt) {
+            throw new Error("Unable to recognize DataType for: " + typeName);
+        }
+        return dt;
+    };
+
+    DataType.fromJsType = function (typeName) {
+        switch (typeName) {
+            case "string":
+                return DataType.String;
+            case "boolean":
+                return DataType.Boolean;
+            case "number":
+                return DataType.Int32;
+        }
+        return null;
+    };
+
+
+
+    return DataType;
+
+});
+
+
+define('validate',["core", "config", "dataType"],
+function (core, a_config, DataType) {
     
     /**
     @module breeze
@@ -2542,7 +2743,44 @@ function (core, a_config) {
         };
 
         return ctor;
-    } ();
+    }();
+    
+    DataType.getSymbols().forEach(function (sym) {
+        sym.validatorCtor = getValidatorCtor(sym);
+    });
+
+    function getValidatorCtor(symbol) {
+        switch (symbol) {
+            case DataType.String:
+                return Validator.string;
+            case DataType.Int64:
+                return Validator.int64;
+            case DataType.Int32:
+                return Validator.int32;
+            case DataType.Int16:
+                return Validator.int16;
+            case DataType.Decimal:
+                return Validator.number;
+            case DataType.Double:
+                return Validator.number;
+            case DataType.Single:
+                return Validator.number;
+            case DataType.DateTime:
+                return Validator.date;
+            case DataType.Boolean:
+                return Validator.bool;
+            case DataType.Guid:
+                return Validator.guid;
+            case DataType.Byte:
+                return Validator.byte;
+            case DataType.Binary:
+                // TODO: don't quite know how to validate this yet.
+                return Validator.none;
+            case DataType.Undefined:
+                return Validator.none;
+        }
+    };
+
 
     return {
         Validator: Validator,
@@ -3723,17 +3961,24 @@ function (core, a_config, m_validate) {
 });
 
 
-define('defaultPropertyInterceptor',["core", "entityAspect"],
-function (core, m_entityAspect) {
+define('defaultPropertyInterceptor',["core", "entityAspect", "dataType"],
+function (core, m_entityAspect, DataType) {
 
     var EntityKey = m_entityAspect.EntityKey;
     var EntityState = m_entityAspect.EntityState;
     var EntityAction = m_entityAspect.EntityAction;
+    var EntityAspect = m_entityAspect.EntityAspect;
 
     function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         // 'this' is the entity itself in this context.
 
         var oldValue = rawAccessorFn();
+        var dataType = property.dataType;
+        if (dataType && dataType.parse) {
+            // attempts to coerce a value to the correct type - if this fails return the value unchanged
+            newValue = dataType.parse(newValue, typeof newValue);
+        }
+
         // exit if no change
         if (newValue === oldValue) {
             return;
@@ -3891,7 +4136,7 @@ function (core, m_entityAspect) {
                     throw new Error(core.formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
                 }
                 // To get here it must be a ComplexProperty  
-                var dataType = property.dataType; // this will be a complexType
+                // 'dataType' will be a complexType
                 if (!oldValue) {
                     var ctor = dataType.getCtor();
                     oldValue = new ctor();
@@ -3997,200 +4242,10 @@ function (core, m_entityAspect) {
         }
     }
     
+           
     return defaultPropertyInterceptor;
 
 });
-
-
-define('dataType',["core", "validate"],
-function (core, m_validate) {
-    /**
-    @module breeze
-    **/
-
-    var Enum = core.Enum;
-    var Validator = m_validate.Validator;
-
-    /**
-    DataType is an 'Enum' containing all of the supported data types.
-
-    @class DataType
-    @static
-    **/
-
-    /**
-    The default value of this DataType.
-    @property defaultValue {any}
-    **/
-
-    /**
-    Whether this is a 'numeric' DataType. 
-    @property isNumeric {Boolean}
-    **/
-
-    var dataTypeMethods = {
-
-    };
-
-    var DataType = new Enum("DataType", dataTypeMethods);
-    /**
-    @property String {DataType}
-    @final
-    @static
-    **/
-    DataType.String = DataType.addSymbol({ defaultValue: "" });
-    /**
-    @property Int64 {DataType}
-    @final
-    @static
-    **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
-    /**
-    @property Int32 {DataType}
-    @final
-    @static
-    **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true , isInteger: true });
-    /**
-    @property Int16 {DataType}
-    @final
-    @static
-    **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
-    /**
-    @property Decimal {DataType}
-    @final
-    @static
-    **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
-    /**
-    @property Double {DataType}
-    @final
-    @static
-    **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
-    /**
-    @property Single {DataType}
-    @final
-    @static
-    **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
-    /**
-    @property DateTime {DataType}
-    @final
-    @static
-    **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
-    /**
-    @property Boolean {DataType}
-    @final
-    @static
-    **/
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false });
-    /**
-    @property Guid {DataType}
-    @final
-    @static
-    **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
-    /**
-    @property Byte {DataType}
-    @final
-    @static
-    **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
-    /**
-    @property Binary {DataType}
-    @final
-    @static
-    **/
-    DataType.Binary = DataType.addSymbol({ defaultValue: null });
-    /**
-    @property Undefined {DataType}
-    @final
-    @static
-    **/
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
-    DataType.seal();
-    DataType.getSymbols().forEach(function (sym) {
-        sym.validatorCtor = getValidatorCtor(sym);
-    });
-
-    /**
-    Returns the DataType for a specified EDM type name.
-    @method fromEdmDataType
-    @static
-    @param typeName {String}
-    @return {DataType} A DataType.
-    **/
-    DataType.fromEdmDataType = function (typeName) {
-        // if OData style
-        var dt;
-        var parts = typeName.split("Edm.");
-        if (parts.length > 1) {
-            if (parts[1] === "image") {
-                // hack
-                dt = DataType.Byte;
-            } else {
-                dt = DataType.fromName(parts[1]);
-            }
-        }
-
-        if (!dt) {
-            throw new Error("Unable to recognize DataType for: " + typeName);
-        }
-        return dt;
-    };
-    
-    DataType.fromJsType = function (typeName) {
-        switch (typeName) {
-            case "string":
-                return DataType.String;
-            case "boolean":
-                return DataType.Boolean;
-            case "number":
-                return DataType.Int32;
-        }
-        return null;
-    };
-
-    function getValidatorCtor(symbol) {
-        switch (symbol) {
-            case DataType.String:
-                return Validator.string;
-            case DataType.Int64:
-                return Validator.int64;
-            case DataType.Int32:
-                return Validator.int32;
-            case DataType.Int16:
-                return Validator.int16;
-            case DataType.Decimal:
-                return Validator.number;
-            case DataType.Double:
-                return Validator.number;
-            case DataType.Single:
-                return Validator.number;
-            case DataType.DateTime:
-                return Validator.date;
-            case DataType.Boolean:
-                return Validator.bool;
-            case DataType.Guid:
-                return Validator.guid;
-            case DataType.Byte:
-                return Validator.byte;
-            case DataType.Binary:
-                // TODO: don't quite know how to validate this yet.
-                return Validator.none;
-            case DataType.Undefined:
-                return Validator.none;
-        }
-    };
-
-
-    return DataType;
-
-});
-
 
 
 define('entityMetadata',["core", "config", "dataType", "entityAspect", "validate", "defaultPropertyInterceptor"],
@@ -5342,7 +5397,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         /** 
         @example                    
             var entityType = new EntityType( {
-                name: "person",
+                shortName: "person",
                 namespace: "myAppNamespace"
              });
         @method <ctor> EntityType
@@ -12059,7 +12114,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.80.1",
+        version: "0.80.2",
         core: core,
         config: a_config
     };

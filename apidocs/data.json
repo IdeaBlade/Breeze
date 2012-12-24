@@ -240,7 +240,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "dataType.js",
-            "line": 11,
+            "line": 9,
             "description": "DataType is an 'Enum' containing all of the supported data types.",
             "static": 1
         },
@@ -870,7 +870,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 18,
+            "line": 16,
             "description": "The default value of this DataType.",
             "itemtype": "property",
             "name": "defaultValue",
@@ -880,7 +880,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 23,
+            "line": 21,
             "description": "Whether this is a 'numeric' DataType.",
             "itemtype": "property",
             "name": "isNumeric",
@@ -890,7 +890,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 33,
+            "line": 77,
             "itemtype": "property",
             "name": "String",
             "type": "DataType",
@@ -901,7 +901,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 39,
+            "line": 83,
             "itemtype": "property",
             "name": "Int64",
             "type": "DataType",
@@ -912,7 +912,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 45,
+            "line": 89,
             "itemtype": "property",
             "name": "Int32",
             "type": "DataType",
@@ -923,7 +923,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 51,
+            "line": 95,
             "itemtype": "property",
             "name": "Int16",
             "type": "DataType",
@@ -934,7 +934,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 57,
+            "line": 101,
             "itemtype": "property",
             "name": "Decimal",
             "type": "DataType",
@@ -945,7 +945,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 63,
+            "line": 107,
             "itemtype": "property",
             "name": "Double",
             "type": "DataType",
@@ -956,7 +956,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 69,
+            "line": 113,
             "itemtype": "property",
             "name": "Single",
             "type": "DataType",
@@ -967,7 +967,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 75,
+            "line": 119,
             "itemtype": "property",
             "name": "DateTime",
             "type": "DataType",
@@ -978,7 +978,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 81,
+            "line": 125,
             "itemtype": "property",
             "name": "Boolean",
             "type": "DataType",
@@ -989,7 +989,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 87,
+            "line": 131,
             "itemtype": "property",
             "name": "Guid",
             "type": "DataType",
@@ -1000,7 +1000,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 93,
+            "line": 137,
             "itemtype": "property",
             "name": "Byte",
             "type": "DataType",
@@ -1011,7 +1011,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 99,
+            "line": 143,
             "itemtype": "property",
             "name": "Binary",
             "type": "DataType",
@@ -1022,7 +1022,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 105,
+            "line": 149,
             "itemtype": "property",
             "name": "Undefined",
             "type": "DataType",
@@ -1033,7 +1033,7 @@
         },
         {
             "file": "dataType.js",
-            "line": 116,
+            "line": 157,
             "description": "Returns the DataType for a specified EDM type name.",
             "itemtype": "method",
             "name": "fromEdmDataType",
@@ -3851,7 +3851,7 @@
             "file": "entityMetadata.js",
             "line": 1148,
             "example": [
-                "                    \n    var entityType = new EntityType( {\n        name: \"person\",\n        namespace: \"myAppNamespace\"\n     });"
+                "                    \n    var entityType = new EntityType( {\n        shortName: \"person\",\n        namespace: \"myAppNamespace\"\n     });"
             ],
             "itemtype": "method",
             "name": "<ctor> EntityType",
