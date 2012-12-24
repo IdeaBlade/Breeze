@@ -40,6 +40,67 @@ define(["testFns"], function (testFns) {
 
     });
     
+    test("datatype coercion - integer", function () {
+        var em = newEm(); // new empty EntityManager
+        var odType = em.metadataStore.getEntityType("OrderDetail");
+        // OrderID, UnitPrice, Discount
+        var od = odType.createEntity();
+        var val;
+        od.setProperty("orderID", "3.4");
+        val = od.getProperty("orderID");
+        ok(val === 3);
+
+        od.setProperty("orderID", 3.4);
+        val = od.getProperty("orderID");
+        ok(val === 3);
+        
+
+
+    });
+    
+    test("datatype coercion - decimal", function () {
+        var em = newEm(); // new empty EntityManager
+        var odType = em.metadataStore.getEntityType("OrderDetail");
+        // OrderID, UnitPrice, Discount
+        var od = odType.createEntity();
+        var val;
+        od.setProperty("unitPrice", "3.4");
+        val = od.getProperty("unitPrice");
+        ok(val === 3.4);
+        
+        od.setProperty("unitPrice", "3");
+        val = od.getProperty("unitPrice");
+        ok(val === 3);
+
+        od.setProperty("unitPrice", 3.4);
+        val = od.getProperty("unitPrice");
+        ok(val === 3.4);
+
+    });
+    
+    test("datatype coercion - float", function () {
+        var em = newEm(); // new empty EntityManager
+        var odType = em.metadataStore.getEntityType("OrderDetail");
+        // OrderID, UnitPrice, Discount
+        var od = odType.createEntity();
+        var val;
+        od.setProperty("discount", "3.4");
+        val = od.getProperty("discount");
+        ok(val === 3.4);
+
+        od.setProperty("discount", "3");
+        val = od.getProperty("discount");
+        ok(val === 3);
+
+        od.setProperty("discount", 3.4);
+        val = od.getProperty("discount");
+        ok(val === 3.4);
+
+    });
+
+
+
+    
     test("create entity with non-null dates", function() {
         var em = newEm(); // new empty EntityManager
         var userType = em.metadataStore.getEntityType("User");

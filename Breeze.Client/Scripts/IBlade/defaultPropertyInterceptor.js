@@ -12,7 +12,7 @@ function (core, m_entityAspect, DataType) {
 
         var oldValue = rawAccessorFn();
         var dataType = property.dataType;
-        if (dataType && dataType.parse && newValue != null) {
+        if (dataType && dataType.parse) {
             // attempts to coerce a value to the correct type - if this fails return the value unchanged
             newValue = dataType.parse(newValue, typeof newValue);
         }

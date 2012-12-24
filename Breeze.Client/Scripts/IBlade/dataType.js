@@ -27,14 +27,16 @@ function (core) {
         // default
     };
 
-    var coerceToString = function(source, sourceTypeName) {
-        return source.toString();
+    var coerceToString = function (source, sourceTypeName) {
+        return (source == null) ? source : source.toString();
     };
 
     var coerceToInt = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
             var val = parseInt(source, 10);
             return isNaN(val) ? source : val;
+        } else if (sourceTypeName === "number") {
+            return Math.round(source);
         }
         // do we want to coerce floats -> ints
         return source;
