@@ -1,13 +1,11 @@
 ﻿
-define(["core", "validate"],
-function (core, m_validate) {
+define(["core"],
+function (core) {
     /**
     @module breeze
     **/
 
     var Enum = core.Enum;
-    var Validator = m_validate.Validator;
-
     /**
     DataType is an 'Enum' containing all of the supported data types.
 
@@ -26,64 +24,101 @@ function (core, m_validate) {
     **/
 
     var dataTypeMethods = {
+        // default
+    };
 
+    var coerceToString = function(source, sourceTypeName) {
+        return source.toString();
+    };
+
+    var coerceToInt = function (source, sourceTypeName) {
+        if (sourceTypeName === "string") {
+            var val = parseInt(source, 10);
+            return isNaN(val) ? source : val;
+        }
+        // do we want to coerce floats -> ints
+        return source;
+    };
+
+    var coerceToFloat = function (source, sourceTypeName) {
+        if (sourceTypeName === "string") {
+            var val = parseFloat(source);
+            return isNaN(val) ? source : val;
+        }
+        return source;
+    };
+
+    var coerceToDate = function (source, sourceTypeName) {
+        if (sourceTypeName === "string" || sourceTypeName === "number") {
+            var val = Date(source);
+            return core.isDate(val) ? val : source;
+        }
+        return source;
+    };
+
+    var coerceToBool = function (source, sourceTypeName) {
+        if (sourceTypeName === "string" || sourceTypeName === "number") {
+            return !!source;
+        } 
+        return source;
     };
 
     var DataType = new Enum("DataType", dataTypeMethods);
+    
     /**
     @property String {DataType}
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "" });
+    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true , isInteger: true });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     /**
     @property Decimal {DataType}
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900,0,1) });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
     @property Boolean {DataType}
     @final
     @static
     **/
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
     /**
     @property Guid {DataType}
     @final
@@ -109,9 +144,6 @@ function (core, m_validate) {
     **/
     DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
     DataType.seal();
-    DataType.getSymbols().forEach(function (sym) {
-        sym.validatorCtor = getValidatorCtor(sym);
-    });
 
     /**
     Returns the DataType for a specified EDM type name.
@@ -138,7 +170,7 @@ function (core, m_validate) {
         }
         return dt;
     };
-    
+
     DataType.fromJsType = function (typeName) {
         switch (typeName) {
             case "string":
@@ -151,37 +183,6 @@ function (core, m_validate) {
         return null;
     };
 
-    function getValidatorCtor(symbol) {
-        switch (symbol) {
-            case DataType.String:
-                return Validator.string;
-            case DataType.Int64:
-                return Validator.int64;
-            case DataType.Int32:
-                return Validator.int32;
-            case DataType.Int16:
-                return Validator.int16;
-            case DataType.Decimal:
-                return Validator.number;
-            case DataType.Double:
-                return Validator.number;
-            case DataType.Single:
-                return Validator.number;
-            case DataType.DateTime:
-                return Validator.date;
-            case DataType.Boolean:
-                return Validator.bool;
-            case DataType.Guid:
-                return Validator.guid;
-            case DataType.Byte:
-                return Validator.byte;
-            case DataType.Binary:
-                // TODO: don't quite know how to validate this yet.
-                return Validator.none;
-            case DataType.Undefined:
-                return Validator.none;
-        }
-    };
 
 
     return DataType;

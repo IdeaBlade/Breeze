@@ -295,7 +295,7 @@ define(function () {
     }
 
     function isDate(o) {
-        return classof(o) === "date";
+        return classof(o) === "date" && !isNaN(o.getTime());
     }
 
     function isFunction(o) {

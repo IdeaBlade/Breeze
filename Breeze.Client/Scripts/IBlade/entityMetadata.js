@@ -1148,7 +1148,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         /** 
         @example                    
             var entityType = new EntityType( {
-                name: "person",
+                shortName: "person",
                 namespace: "myAppNamespace"
              });
         @method <ctor> EntityType

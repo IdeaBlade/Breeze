@@ -184,8 +184,10 @@ define(["testFns"], function (testFns) {
             ok(args.entity === cust1,"args.entity property should be set");
             valErrorsChanged = args;
         });
+        
         cust1.setProperty("companyName", 222);
-        ok(valErrorsChanged.added[0].property.name === "companyName");
+        // no longer a bug with DataType.parseString addition
+        //ok(valErrorsChanged.added[0].property.name === "companyName");
 
         cust1.setProperty("rowVersion", 3.2);
         ok(valErrorsChanged.added[0].property.name === "rowVersion");
@@ -193,7 +195,8 @@ define(["testFns"], function (testFns) {
         ok(valErrorsChanged.removed[0].property.name === "rowVersion");
 
         cust1.setProperty("rowVersion", "33");
-        ok(valErrorsChanged.added[0].property.name === "rowVersion");
+        // no longer a bug with DataType.parseString addition
+        // ok(valErrorsChanged.added[0].property.name === "rowVersion");
         valErrorsChanged = null;
         cust1.setProperty("rowVersion", "33");
         ok(valErrorsChanged === null);

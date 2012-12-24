@@ -1,15 +1,22 @@
 ﻿
-define(["core", "entityAspect"],
-function (core, m_entityAspect) {
+define(["core", "entityAspect", "dataType"],
+function (core, m_entityAspect, DataType) {
 
     var EntityKey = m_entityAspect.EntityKey;
     var EntityState = m_entityAspect.EntityState;
     var EntityAction = m_entityAspect.EntityAction;
+    var EntityAspect = m_entityAspect.EntityAspect;
 
     function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         // 'this' is the entity itself in this context.
 
         var oldValue = rawAccessorFn();
+        var dataType = property.dataType;
+        if (dataType && dataType.parse && newValue != null) {
+            // attempts to coerce a value to the correct type - if this fails return the value unchanged
+            newValue = dataType.parse(newValue, typeof newValue);
+        }
+
         // exit if no change
         if (newValue === oldValue) {
             return;
@@ -167,7 +174,7 @@ function (core, m_entityAspect) {
                     throw new Error(core.formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
                 }
                 // To get here it must be a ComplexProperty  
-                var dataType = property.dataType; // this will be a complexType
+                // 'dataType' will be a complexType
                 if (!oldValue) {
                     var ctor = dataType.getCtor();
                     oldValue = new ctor();
@@ -273,6 +280,7 @@ function (core, m_entityAspect) {
         }
     }
     
+           
     return defaultPropertyInterceptor;
 
 });

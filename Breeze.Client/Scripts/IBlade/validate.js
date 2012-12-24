@@ -1,5 +1,5 @@
-﻿define(["core", "config"],
-function (core, a_config) {
+﻿define(["core", "config", "dataType"],
+function (core, a_config, DataType) {
     "use strict";
     /**
     @module breeze
@@ -667,7 +667,44 @@ function (core, a_config) {
         };
 
         return ctor;
-    } ();
+    }();
+    
+    DataType.getSymbols().forEach(function (sym) {
+        sym.validatorCtor = getValidatorCtor(sym);
+    });
+
+    function getValidatorCtor(symbol) {
+        switch (symbol) {
+            case DataType.String:
+                return Validator.string;
+            case DataType.Int64:
+                return Validator.int64;
+            case DataType.Int32:
+                return Validator.int32;
+            case DataType.Int16:
+                return Validator.int16;
+            case DataType.Decimal:
+                return Validator.number;
+            case DataType.Double:
+                return Validator.number;
+            case DataType.Single:
+                return Validator.number;
+            case DataType.DateTime:
+                return Validator.date;
+            case DataType.Boolean:
+                return Validator.bool;
+            case DataType.Guid:
+                return Validator.guid;
+            case DataType.Byte:
+                return Validator.byte;
+            case DataType.Binary:
+                // TODO: don't quite know how to validate this yet.
+                return Validator.none;
+            case DataType.Undefined:
+                return Validator.none;
+        }
+    };
+
 
     return {
         Validator: Validator,
