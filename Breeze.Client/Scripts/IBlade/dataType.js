@@ -50,7 +50,7 @@ function (core) {
 
     var coerceToDate = function (source, sourceTypeName) {
         if (sourceTypeName === "string" || sourceTypeName === "number") {
-            var val = Date(source);
+            var val = new Date(source);
             return core.isDate(val) ? val : source;
         }
         return source;

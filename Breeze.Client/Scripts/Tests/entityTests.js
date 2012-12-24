@@ -24,6 +24,21 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("datatype coercion - date", function() {
+        var em = newEm(); // new empty EntityManager
+        var userType = em.metadataStore.getEntityType("User");
+
+        var user = userType.createEntity();
+        var dt = new Date(2000, 2, 15); // 2 => 3 below because date ctor is 0 origin on months.
+        user.setProperty("createdDate", "3/15/2000");
+        var sameDt = user.getProperty("createdDate");
+        ok(dt.getTime() === sameDt.getTime());
+        user.setProperty("modifiedDate", dt.getTime());
+        var sameDt2 = user.getProperty("modifiedDate");
+        ok(dt.getTime() === sameDt2.getTime());
+
+    });
     
     test("create entity with non-null dates", function() {
         var em = newEm(); // new empty EntityManager
