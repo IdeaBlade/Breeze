@@ -25,16 +25,39 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    // TODO: finish this
+    //test("datatype coercion - boolean - custom conversion", function () {
+    //    var em = newEm(); // new empty EntityManager
+    //    var oldFn = DataType.Boolean.parse;
+    //    var newFn = function(source, sourceTypeName) {
+            
+    //        if (sourceTypeName === "string") {
+    //            var src = source.trim().toLowerCase();
+    //            if (src === 'false') {
+    //                return false;
+    //            } else if (src === "true") {
+    //                return true;
+    //            } else {
+    //                return source;
+    //            }
+    //        } else {
+    //            return oldFn(source, sourceTypeName);
+    //        }
+    //    };
+    //    DataType.Boolean.parse = newFn;
+        
+    //});
+    
     test("datatype coercion - null strings to empty strings", function () {
         var em = newEm(); // new empty EntityManager
         var oldFn = DataType.String.parse;
-        var newFn = function(source, sourceTypeName) {
+        var newFn = function (source, sourceTypeName) {
             if (source == null) {
                 return "";
             } else if (sourceTypeName === "string") {
                 return source.trim();
             } else {
-                return oldFn(source, sourceTypeName);
+                return source.toString();
             }
         };
         DataType.String.parse = newFn;
@@ -50,18 +73,15 @@ define(["testFns"], function (testFns) {
             inst.setProperty("companyName", undefined);
             val = inst.getProperty("companyName");
             ok(val === "");
-            
+
             inst.setProperty("companyName", "    now is the time    ");
             val = inst.getProperty("companyName");
             ok(val === "now is the time");
         } finally {
             DataType.String.parse = oldFn;
         }
-        
-
-
-
     });
+
 
     test("datatype coercion - date", function() {
         var em = newEm(); // new empty EntityManager
