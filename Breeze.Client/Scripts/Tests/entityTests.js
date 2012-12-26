@@ -24,6 +24,28 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("null foriegn key", function() {
+        var em = newEm();
+        var productType = em.metadataStore.getEntityType("Product");
+        var product = productType.createEntity();
+        em.attachEntity(product);
+        product.setProperty('supplierID', null);
+        var errs = product.entityAspect.getValidationErrors();
+        var q = EntityQuery.from("Products").take(1);
+        em.executeQuery(q).then(function(data) {
+            var products = data.results;
+            product = products[0];
+            product.setProperty('supplierID', null);
+            errs = product.entityAspect.getValidationErrors();
+        });
+        ok(true);
+
+        //Set product's SupplierID value to null
+        //Set product's Supplier to null
+        //Set product's SupplierID to 0
+
+    });
     
     // TODO: finish this
     //test("datatype coercion - boolean - custom conversion", function () {
