@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="BreezeControllerAttribute.cs" />
     <Compile Include="ContextProvider.cs" />
+    <Compile Include="BreezeConfig.cs" />
     <Compile Include="ProjectionExpression.cs" />
     <Compile Include="DynamicGenericTypeBuilder.cs" />
     <Compile Include="DynamicTypeInfo.cs" />

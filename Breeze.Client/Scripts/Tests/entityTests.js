@@ -24,6 +24,29 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+    test("set foreign key property to null", function () {
+        var productQuery = new EntityQuery("Products").take(1)
+            .expand("supplier");
+
+        stop();
+        var em = newEm();
+        em.executeQuery(productQuery)
+            .then(assertProductSetSupplierIDToNull)
+            .fail(testFns.handleFail)
+            .fin(start);
+    });
+
+    function assertProductSetSupplierIDToNull(data) {
+        var products = data.results;
+        var firstProduct = products[0];
+
+        ok(firstProduct.getProperty("supplierID"), "SupplierID should not be null" );
+
+        firstProduct.setProperty("supplierID", null);
+
+        ok(firstProduct.getProperty("supplierID") == null, "is SupplierID null?");
+    }
 
     test("null foriegn key", function() {
         var em = newEm();

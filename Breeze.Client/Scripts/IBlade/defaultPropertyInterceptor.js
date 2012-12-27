@@ -46,21 +46,26 @@ function (core, m_entityAspect, DataType) {
                 propName;
         }
         
-        if (entityAspect._inProcess && entityAspect._inProcess === property) {
-            // recursion avoided.
-            return;
+        
+        // Note that we need to handle multiple properties in process. not just one
+        // NOTE: this may not be needed because of the newValue === oldValue test above.
+        // to avoid recursion. ( except in the case of null propagation with fks where null -> 0 in some cases.)
+        var inProcess = entityAspect._inProcess;
+        if (inProcess) {
+            // check for recursion
+            if (inProcess.indexOf(property) >= 0) return;
+            inProcess.push(property);
+        } else {
+            inProcess =  [property];
+            entityAspect._inProcess = inProcess;
         }
         
         // entityAspect.entity used because of complexTypes
         // 'this' != entity when 'this' is a complexObject; in that case this: complexObject and entity: entity
         var entity = entityAspect.entity;
 
-        // TODO: we actually need to handle multiple properties in process. not just one
-        // NOTE: this may not be needed because of the newValue === oldValue test above.
-        // to avoid recursion.
         // We could use core.using here but decided not to for perf reasons - this method runs a lot.
-        // i.e core.using(entityAspect, "_inProcess", property, function() {...
-        entityAspect._inProcess = property;
+        // i.e core.using(entityAspect, "_inProcess", property, function() {...        
         try {
 
             var entityManager = entityAspect.entityManager;
@@ -276,7 +281,7 @@ function (core, m_entityAspect, DataType) {
                 entityAspect.propertyChanged.publish(propChangedArgs);
             }
         } finally {
-             entityAspect._inProcess = null;
+            inProcess.pop();
         }
     }
     

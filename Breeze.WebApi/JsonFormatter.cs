@@ -15,23 +15,7 @@ namespace Breeze.WebApi {
   public class JsonFormatter {
 
     public static JsonMediaTypeFormatter Create() {
-      var jsonSerializerSettings = new JsonSerializerSettings() {
-        NullValueHandling = NullValueHandling.Ignore,
-        PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-        TypeNameHandling = TypeNameHandling.Objects,
-        TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
-      };
-
-      // Default is DateTimeZoneHandling.RoundtripKind - you can change that here.
-      // jsonSerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-
-      // Hack is for the issue described in this post:
-      // http://stackoverflow.com/questions/11789114/internet-explorer-json-net-javascript-date-and-milliseconds-issue
-      jsonSerializerSettings.Converters.Add(new IsoDateTimeConverter {
-        DateTimeFormat = "yyyy-MM-dd\\THH:mm:ss.fffK"
-      });
-
+      var jsonSerializerSettings = BreezeConfig.Instance.GetJsonSerializerSettings();
       
       var formatter = new JsonMediaTypeFormatter();
       formatter.SerializerSettings = jsonSerializerSettings;

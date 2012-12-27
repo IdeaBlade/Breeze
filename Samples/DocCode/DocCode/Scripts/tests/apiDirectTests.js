@@ -32,6 +32,8 @@ define(["testFns"], function (testFns) {
             .fail(testFns.handleFail)
             .fin(start);
     });
+    
+   
 
     /*********************************************************
     * reset the Todos Db
