@@ -1,4 +1,5 @@
 using System.Web.Http;
+using Breeze.WebApi;
 
 [assembly: WebActivator.PreApplicationStartMethod(
     typeof(Todo.App_Start.BreezeWebApiConfig), "RegisterBreezePreStart")]
@@ -13,6 +14,10 @@ namespace Todo.App_Start {
   public static class BreezeWebApiConfig {
 
     public static void RegisterBreezePreStart() {
+
+      // CORS enabled on this server
+      GlobalConfiguration.Configuration.MessageHandlers.Add(new BreezeSimpleCorsHandler());
+
       GlobalConfiguration.Configuration.Routes.MapHttpRoute(
           name: "BreezeApi",
           routeTemplate: "api/{controller}/{action}"
