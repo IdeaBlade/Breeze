@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Todo")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Todo with Knockout Sample")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IdeaBlade")]
 [assembly: AssemblyProduct("Todo")]
-[assembly: AssemblyCopyright("Copyright © IdeaBlade 2012")]
+[assembly: AssemblyCopyright("Copyright IdeaBlade ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fefd5552-ab00-42ad-86c5-82784644bea4")]
+[assembly: Guid("0122a021-4b01-4a23-b0be-e0bb5bd914c9")]
 
 // Version information for an assembly consists of the following four values:
 //

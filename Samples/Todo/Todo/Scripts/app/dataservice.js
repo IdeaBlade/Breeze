@@ -1,26 +1,24 @@
-define(function (require) {
+app.dataservice = (function (breeze, logger) {
 
-    var breeze = require('breeze');
-    var serviceName = 'api/todos'; // route to the Web Api controller
-  
+    var serviceName = 'api/todos'; // route to the same origin Web Api controller
+
     // *** Cross origin service example  ***
     //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
-    // jQuery.support.cors = true; // enable for cross origin calls in IE10
-    
-    var manager = new breeze.EntityManager(serviceName);
+    //jQuery.support.cors = true; // enable for cross origin calls in IE10
 
-    var logger = require('logger');
+    var manager = new breeze.EntityManager(serviceName);
+    var _isSaving = false;
 
     return {
         getAllTodos: getAllTodos,
         createTodo: createTodo,
         saveChanges: saveChanges,
         purge: purge,
-        reset: reset
+        reset: reset,
     };
 
     /*** implementation details ***/
- 
+
     //#region main application operations
     function getAllTodos(includeArchived) {
         var query = breeze.EntityQuery
@@ -30,7 +28,6 @@ define(function (require) {
         if (!includeArchived) { // exclude archived Todos
             // add filter clause limiting results to non-archived Todos
             query = query.where("IsArchived", "==", false);
-            //query = query.where("IsArchived", breeze.FilterQueryOp.Equals, false);
         }
 
         return manager.executeQuery(query);
@@ -41,25 +38,33 @@ define(function (require) {
         var newTodo = todoType.createEntity();
         return manager.addEntity(newTodo);
     }
-   
-    function saveChanges() {
+
+    function saveChanges(suppressLogIfNothingToSave) {
         if (manager.hasChanges()) {
+            if (_isSaving) {
+                setTimeout(saveChanges, 50);
+                return;
+            }
+            _isSaving = true;
             manager.saveChanges()
                 .then(saveSucceeded)
                 .fail(saveFailed);
-        } else {
+        } else if (!suppressLogIfNothingToSave) {
             logger.info("Nothing to save");
         };
     }
+
     function saveSucceeded(saveResult) {
+        _isSaving = false;
         logger.success("# of Todos saved = " + saveResult.entities.length);
         logger.log(saveResult);
     }
-    
+
     function saveFailed(error) {
+        _isSaving = false;
         var reason = error.message;
         var detail = error.detail;
-        
+
         if (reason === "Validation error") {
             handleSaveValidationError(error);
             return;
@@ -76,7 +81,7 @@ define(function (require) {
             "Failed to save changes. " + reason +
             " You may have to restart the app.");
     };
-    
+
     function handleSaveValidationError(error) {
         var message = "Not saved due to validation error";
         try { // fish out the first error
@@ -85,9 +90,9 @@ define(function (require) {
         } catch (e) { /* eat it for now */ }
         logger.error(message);
     }
-    
+
     //#endregion
-    
+
     //#region demo operations
     function purge(callback) {
         // Todo: breeze should support commands to the controller
@@ -108,4 +113,4 @@ define(function (require) {
     }
     //#endregion
 
-});
+})(breeze, app.logger);

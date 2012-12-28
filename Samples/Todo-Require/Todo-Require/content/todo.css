@@ -25,14 +25,15 @@ header {
     text-align: center;
 }
 
-header h1 {
+header h1,h2 {
     font-size: 4em;
     text-shadow:rgba(0, 0, 0, .5) 2.5px 2.5px 2px;
 }
+header h2 { font-size: 2em;}
 
 header input {
     font-size: 3em;
-    margin: 1em 0 1em 0;
+    margin: 0.25em 0 0.5em 0;
     padding: 8px;
 }
 
@@ -47,7 +48,7 @@ section {
 
 section .mark-all {
     position: relative;
-    top: -45px;
+    top: -15px;
 }
 
 section .mark-all label {
@@ -153,7 +154,9 @@ footer a {
     header h1 {
         font-size: 2.5em;
     }
-    
+    header h2 {
+        font-size: 1.5em;
+    }   
     header input {
         font-size: 1.5em;
         padding: 4px;
@@ -167,7 +170,7 @@ footer a {
     
     section .mark-all {
         position: relative;
-        top: -25px;
+        top: -10px;
     }
     
     section .mark-all label {

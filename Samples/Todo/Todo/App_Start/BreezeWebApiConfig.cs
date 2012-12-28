@@ -1,5 +1,4 @@
 using System.Web.Http;
-using Breeze.WebApi;
 
 [assembly: WebActivator.PreApplicationStartMethod(
     typeof(Todo.App_Start.BreezeWebApiConfig), "RegisterBreezePreStart")]
@@ -18,8 +17,6 @@ namespace Todo.App_Start {
           name: "BreezeApi",
           routeTemplate: "api/{controller}/{action}"
       );
-      GlobalConfiguration.Configuration.MessageHandlers.Add(new BreezeSimpleCorsHandler());
-
     }
   }
 }
