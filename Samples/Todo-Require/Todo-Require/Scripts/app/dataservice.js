@@ -1,6 +1,7 @@
 define(function (require) {
-
     var breeze = require('breeze');
+    var logger = require('logger');
+    
     var serviceName = 'api/todos'; // route to the Web Api controller
   
     // *** Cross origin service example  ***
@@ -8,8 +9,7 @@ define(function (require) {
     // jQuery.support.cors = true; // enable for cross origin calls in IE10
     
     var manager = new breeze.EntityManager(serviceName);
-
-    var logger = require('logger');
+    var _isSaving = false;
 
     return {
         getAllTodos: getAllTodos,
@@ -41,16 +41,22 @@ define(function (require) {
         var newTodo = todoType.createEntity();
         return manager.addEntity(newTodo);
     }
-   
-    function saveChanges() {
+    
+    function saveChanges(suppressLogIfNothingToSave) {
         if (manager.hasChanges()) {
+            if (_isSaving) {
+                setTimeout(saveChanges, 50);
+                return;
+            }
+            _isSaving = true;
             manager.saveChanges()
                 .then(saveSucceeded)
                 .fail(saveFailed);
-        } else {
+        } else if (!suppressLogIfNothingToSave) {
             logger.info("Nothing to save");
         };
     }
+
     function saveSucceeded(saveResult) {
         logger.success("# of Todos saved = " + saveResult.entities.length);
         logger.log(saveResult);
