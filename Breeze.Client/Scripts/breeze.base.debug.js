@@ -12173,7 +12173,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.80.4",
+        version: "0.80.5",
         core: core,
         config: a_config
     };
