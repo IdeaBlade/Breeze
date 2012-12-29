@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Breeze.WebApi {
       get {
         lock (__lock) {
           if (__instance == null) {
-            var typeCandidates = BreezeConfig.ProbeAssemblies.Value.SelectMany(a => a.GetTypes());
+            var typeCandidates = BreezeConfig.ProbeAssemblies.Value.SelectMany(a => GetTypes(a));
             var types = typeCandidates.Where(t => typeof (BreezeConfig).IsAssignableFrom(t) && !t.IsAbstract).ToList();
 
             if (types.Count == 0) {
@@ -68,6 +69,7 @@ namespace Breeze.WebApi {
       // http://stackoverflow.com/questions/11789114/internet-explorer-json-net-javascript-date-and-milliseconds-issue
       jsonSerializerSettings.Converters.Add(new IsoDateTimeConverter {
         DateTimeFormat = "yyyy-MM-dd\\THH:mm:ss.fffK"
+        // DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK"
       });
 
       return jsonSerializerSettings;
@@ -89,6 +91,22 @@ namespace Breeze.WebApi {
       }
       var productName = attr.Product;
       return FrameworkProductNames.Any(nm => productName.StartsWith(nm));
+    }
+
+    protected static IEnumerable<Type> GetTypes(Assembly assembly) {
+
+      try {
+        return assembly.GetTypes();
+      } catch (Exception ex) {
+        string msg = string.Empty;
+        if (ex is System.Reflection.ReflectionTypeLoadException) {
+          msg = ((ReflectionTypeLoadException)ex).LoaderExceptions.ToAggregateString(". ");
+        }
+        Trace.WriteLine("Breeze probing: Unable to execute Assembly.GetTypes() for "
+          + assembly.ToString() + "." + msg);
+
+        return new Type[] { };
+      }
     }
 
     protected static readonly List<String> FrameworkProductNames = new List<String> {

@@ -399,6 +399,8 @@ define(function () {
         stringEndsWith: stringEndsWith,
         formatString: formatString
     };
+    
+
 
 });
 

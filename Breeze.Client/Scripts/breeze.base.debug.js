@@ -699,6 +699,8 @@ define('coreFns',[],function () {
         stringEndsWith: stringEndsWith,
         formatString: formatString
     };
+    
+
 
 });
 
@@ -844,32 +846,32 @@ define('enum',["coreFns"], function (core) {
         this.getSymbols().forEach(function (sym) { return sym.getName(); });
     };
 
-    // TODO: remove or rethink this.
-    Enum.prototype.combineSymbols = function () {
-        var proto = this._symbolPrototype;
-        var newSymbol = Object.create(proto);
-        newSymbol._symbols = Array.prototype.slice.call(arguments);
+    //// TODO: remove or rethink this.
+    //Enum.prototype.combineSymbols = function () {
+    //    var proto = this._symbolPrototype;
+    //    var newSymbol = Object.create(proto);
+    //    newSymbol._symbols = Array.prototype.slice.call(arguments);
 
-        Object.keys(proto).forEach(function (key) {
-            var result;
-            var oldMethod = proto[key];
-            if (core.isFunction(oldMethod)) {
-                var newMethod = function () {
+    //    Object.keys(proto).forEach(function (key) {
+    //        var result;
+    //        var oldMethod = proto[key];
+    //        if (core.isFunction(oldMethod)) {
+    //            var newMethod = function () {
 
-                    if (this._symbols) {
-                        result = this._symbols.map(function (sym) {
-                            return oldMethod.apply(sym);
-                        });
-                    } else {
-                        result = oldMethod.apply(this);
-                    }
-                    return result;
-                };
-                proto[key] = newMethod;
-            }
-        });
-        return newSymbol;
-    };
+    //                if (this._symbols) {
+    //                    result = this._symbols.map(function (sym) {
+    //                        return oldMethod.apply(sym);
+    //                    });
+    //                } else {
+    //                    result = oldMethod.apply(this);
+    //                }
+    //                return result;
+    //            };
+    //            proto[key] = newMethod;
+    //        }
+    //    });
+    //    return newSymbol;
+    //};
 
     /**
     Returns all of the symbols contained within this Enum.
@@ -890,11 +892,20 @@ define('enum',["coreFns"], function (core) {
         var symbols = DayOfWeek.getNames();
     @method getNames
     @return {Array of String} All of the names of the symbols contained within this Enum.
-    **/       
-    Enum.prototype.getNames = function () {
-        return Object.keys(this).filter(
-            function (key) { return key != "name" && key.substr(0, 1) !== "_"; }
-        );
+    **/
+    Enum.prototype.getNames = function() {
+        var result = [];
+        for (var key in this) {
+            if (hasOwnProperty.call(this, key)) {
+                if (key != "name" && key.substr(0, 1) !== "_" && !core.isFunction(this[key])) {
+                    result.push(key);
+                }
+            }
+        }
+        return result;
+        //return Object.keys(this).filter(
+        //    function (key) { return key != "name" && key.substr(0, 1) !== "_"; }
+        //);
     };
 
     /**
@@ -1926,7 +1937,10 @@ function (core) {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
-        if (sourceTypeName === "string" || sourceTypeName === "number") {
+        if (sourceTypeName === "string") {
+            var val = new Date(Date.parse(source));
+            return core.isDate(val) ? val : source;
+        } else if (sourceTypeName === "number") {
             var val = new Date(source);
             return core.isDate(val) ? val : source;
         }
@@ -1948,6 +1962,7 @@ function (core) {
     };
 
     var DataType = new Enum("DataType", dataTypeMethods);
+    
     
     /**
     @property String {DataType}
@@ -2066,8 +2081,32 @@ function (core) {
         }
         return null;
     };
+    
+    var _localTimeRegex = /.\d{3}$/;
 
+    DataType.parseDateAsUTC = function (source) {
+        if (typeof source === 'string') {
+            // convert to UTC string if no time zone specifier.
+            var isLocalTime = _localTimeRegex.test(source);
+            source = isLocalTime ? source + 'Z' : source;
+        }
+        source = new Date(Date.parse(source));
+        return source;
+    };
 
+    // NOT YET NEEDED --------------------------------------------------
+    // var _utcOffsetMs = (new Date()).getTimezoneOffset() * 60000;
+    
+    //DataType.parseDateAsLocal = function (source) {
+    //    var dt = DataType.parseDatesAsUTC(source);
+    //    if (core.isDate(dt)) {
+    //        dt = new Date(dt.getTime() + _utcOffsetMs);
+    //    }
+    //    return dt;
+    //};
+    // -----------------------------------------------------------------
+
+    DataType.parseDateFromServer = DataType.parseDateAsUTC;
 
     return DataType;
 
@@ -9393,7 +9432,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
     var EntityAction = m_entityAspect.EntityAction;
 
     var EntityQuery = m_entityQuery.EntityQuery;
-
+    
     var Q = core.requireLib("Q", "see https://github.com/kriskowal/q");
     
     // TODO: think about dif between find and get.
@@ -11252,7 +11291,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return result;
         }
         
-
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
             var entityType = targetEntity.entityType;
@@ -11262,11 +11300,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime && val) {
                     if (!core.isDate(val)) {
-                        // Does not work - returns time offset from GMT (i think)
-                        // val = new Date(val);
-                        // this also does not handle time zone
-                        // val = core.dateFromIsoString(val);
-                        val = new Date(Date.parse(val));
+                        val = DataType.parseDateFromServer(val);
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val && val.$value !== undefined) {
@@ -11291,6 +11325,26 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     mergeRelatedEntities(np, targetEntity, rawEntity, queryContext);
                 }
             });
+        }
+        
+        function parseDateHandleUtc(value) {
+            if (!core.isDate(value)) {
+                // Does not work - returns time offset from GMT (i think)
+                // val = new Date(val);
+                // this also does not handle time zone
+                // val = core.dateFromIsoString(val);
+                
+                // need for this is because different browsers interpret a lack of timezone
+                // specifier as meaning different things. So here we will always interpret a missing timezone
+                // as a UTC.
+                if (typeof value === 'string') {
+                    // convert to UTC string if no time zone specifier.
+                    var isLocalTime = LocalTime_Regex.test(value);
+                    value = isLocalTime ? value + 'Z' : value;
+                } 
+                value  = new Date(Date.parse(value));
+            }
+            return value;
         }
 
         function updateCurrentRef(queryContext, targetEntity) {
@@ -12119,7 +12173,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.80.3",
+        version: "0.80.4",
         core: core,
         config: a_config
     };

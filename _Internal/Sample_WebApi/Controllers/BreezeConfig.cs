@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 
 namespace Sample_WebApi {
-
+#if CustomConfig
   public class CustomBreezeConfig : BreezeConfig {
 
     /// <summary>
@@ -15,4 +15,5 @@ namespace Sample_WebApi {
     }
 
   }
+#endif
 }

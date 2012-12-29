@@ -51,7 +51,10 @@ function (core) {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
-        if (sourceTypeName === "string" || sourceTypeName === "number") {
+        if (sourceTypeName === "string") {
+            var val = new Date(Date.parse(source));
+            return core.isDate(val) ? val : source;
+        } else if (sourceTypeName === "number") {
             var val = new Date(source);
             return core.isDate(val) ? val : source;
         }
@@ -73,6 +76,7 @@ function (core) {
     };
 
     var DataType = new Enum("DataType", dataTypeMethods);
+    
     
     /**
     @property String {DataType}
@@ -191,8 +195,32 @@ function (core) {
         }
         return null;
     };
+    
+    var _localTimeRegex = /.\d{3}$/;
 
+    DataType.parseDateAsUTC = function (source) {
+        if (typeof source === 'string') {
+            // convert to UTC string if no time zone specifier.
+            var isLocalTime = _localTimeRegex.test(source);
+            source = isLocalTime ? source + 'Z' : source;
+        }
+        source = new Date(Date.parse(source));
+        return source;
+    };
 
+    // NOT YET NEEDED --------------------------------------------------
+    // var _utcOffsetMs = (new Date()).getTimezoneOffset() * 60000;
+    
+    //DataType.parseDateAsLocal = function (source) {
+    //    var dt = DataType.parseDatesAsUTC(source);
+    //    if (core.isDate(dt)) {
+    //        dt = new Date(dt.getTime() + _utcOffsetMs);
+    //    }
+    //    return dt;
+    //};
+    // -----------------------------------------------------------------
+
+    DataType.parseDateFromServer = DataType.parseDateAsUTC;
 
     return DataType;
 
