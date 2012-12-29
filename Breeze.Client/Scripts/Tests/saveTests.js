@@ -53,9 +53,12 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save data with millseconds - IE bug", function() {
+    test("save data with millseconds - UTC time - IE bug", function() {
         var em = newEm();
         var dt = new Date(Date.parse("2012-12-17T13:35:15.690Z"));
+        var offset = dt.getTimezoneOffset() * 60000;
+        var dt1 = new Date(dt.getTime() - offset);
+        var dt2 = new Date(dt.getTime() + offset);
         var ms = dt.getUTCMilliseconds();
         ok(ms === 690);
         var q = new EntityQuery("Orders").take(1);
@@ -71,6 +74,42 @@ define(["testFns"], function (testFns) {
             ok(order === sameOrder, "should be the sameOrder");
             var sameDt = sameOrder.getProperty("shippedDate");
             ok(dt.getTime() === sameDt.getTime(), "should be the same date");
+            var em2 = newEm();
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em2).execute();
+        }).then(function (data2) {
+            var order2 = data2.results[0];
+            var sameDt2 = order2.getProperty("shippedDate");
+            ok(dt.getTime() === sameDt2.getTime(), "should be the same date: " +dt.toString() + " != " + sameDt2.toString());
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save data with millseconds - local time", function () {
+        var em = newEm();
+        // Date.parse("2012-12-17T13:35:15.690");
+        var dt = new Date(2012, 11, 17, 13, 35, 15, 690); // local time
+        var ms = dt.getMilliseconds();
+        ok(ms === 690);
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            order.setProperty("shippedDate", dt);
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var sameOrder = sr.entities[0];
+            ok(order === sameOrder, "should be the sameOrder");
+            var sameDt = sameOrder.getProperty("shippedDate");
+            ok(dt.getTime() === sameDt.getTime(), "should be the same date");
+            var em2 = newEm();
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em2).execute();
+        }).then(function (data2) {
+            var order2 = data2.results[0];
+            var sameDt2 = order2.getProperty("shippedDate");
+            ok(dt.getTime() === sameDt2.getTime(), "should be the same date: " + dt.toString() + " != " + sameDt2.toString());
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -124,6 +163,7 @@ define(["testFns"], function (testFns) {
             ok(sr.entities[0] === order, "should be same order");
             var newOrderDate2 = order.getProperty("orderDate");
             ok(core.isDate(newOrderDate2), "is not a date");
+            ok(newOrderDate.getTime() == newOrderDate2.getTime());
             ok(orderDate != newOrderDate2);
         }).fail(testFns.handleFail).fin(start);
     });

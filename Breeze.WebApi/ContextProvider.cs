@@ -34,8 +34,8 @@ namespace Breeze.WebApi {
       var dynSaveBundle = (dynamic)saveBundle;
       var entitiesArray = (JArray)dynSaveBundle.entities;
       var saveOptions = dynSaveBundle.saveOptions;
-      var serialierSettings = BreezeConfig.Instance.GetJsonSerializerSettings();
-      var jsonSerializer = JsonSerializer.Create(serialierSettings);
+      var serializerSettings = BreezeConfig.Instance.GetJsonSerializerSettings();
+      var jsonSerializer = JsonSerializer.Create(serializerSettings);
       var jObjects = entitiesArray.Select(jt => (dynamic)jt).ToList();
 
       var groups = jObjects.GroupBy(jo => (String)jo.entityAspect.entityTypeName).ToList();
