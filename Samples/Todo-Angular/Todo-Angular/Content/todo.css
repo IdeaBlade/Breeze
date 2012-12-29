@@ -3,6 +3,8 @@
     font-family: "Segoe UI",Arial,Helvetica,sans-serif;
 }
 
+.ng-cloak { display: none; }
+
 #applicationHost {
     position: absolute;
     left: 50%;
