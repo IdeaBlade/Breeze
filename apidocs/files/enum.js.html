@@ -322,32 +322,32 @@ define([&quot;coreFns&quot;], function (core) {
         this.getSymbols().forEach(function (sym) { return sym.getName(); });
     };
 
-    &#x2F;&#x2F; TODO: remove or rethink this.
-    Enum.prototype.combineSymbols = function () {
-        var proto = this._symbolPrototype;
-        var newSymbol = Object.create(proto);
-        newSymbol._symbols = Array.prototype.slice.call(arguments);
+    &#x2F;&#x2F;&#x2F;&#x2F; TODO: remove or rethink this.
+    &#x2F;&#x2F;Enum.prototype.combineSymbols = function () {
+    &#x2F;&#x2F;    var proto = this._symbolPrototype;
+    &#x2F;&#x2F;    var newSymbol = Object.create(proto);
+    &#x2F;&#x2F;    newSymbol._symbols = Array.prototype.slice.call(arguments);
 
-        Object.keys(proto).forEach(function (key) {
-            var result;
-            var oldMethod = proto[key];
-            if (core.isFunction(oldMethod)) {
-                var newMethod = function () {
+    &#x2F;&#x2F;    Object.keys(proto).forEach(function (key) {
+    &#x2F;&#x2F;        var result;
+    &#x2F;&#x2F;        var oldMethod = proto[key];
+    &#x2F;&#x2F;        if (core.isFunction(oldMethod)) {
+    &#x2F;&#x2F;            var newMethod = function () {
 
-                    if (this._symbols) {
-                        result = this._symbols.map(function (sym) {
-                            return oldMethod.apply(sym);
-                        });
-                    } else {
-                        result = oldMethod.apply(this);
-                    }
-                    return result;
-                };
-                proto[key] = newMethod;
-            }
-        });
-        return newSymbol;
-    };
+    &#x2F;&#x2F;                if (this._symbols) {
+    &#x2F;&#x2F;                    result = this._symbols.map(function (sym) {
+    &#x2F;&#x2F;                        return oldMethod.apply(sym);
+    &#x2F;&#x2F;                    });
+    &#x2F;&#x2F;                } else {
+    &#x2F;&#x2F;                    result = oldMethod.apply(this);
+    &#x2F;&#x2F;                }
+    &#x2F;&#x2F;                return result;
+    &#x2F;&#x2F;            };
+    &#x2F;&#x2F;            proto[key] = newMethod;
+    &#x2F;&#x2F;        }
+    &#x2F;&#x2F;    });
+    &#x2F;&#x2F;    return newSymbol;
+    &#x2F;&#x2F;};
 
     &#x2F;**
     Returns all of the symbols contained within this Enum.
@@ -368,11 +368,20 @@ define([&quot;coreFns&quot;], function (core) {
         var symbols = DayOfWeek.getNames();
     @method getNames
     @return {Array of String} All of the names of the symbols contained within this Enum.
-    **&#x2F;       
-    Enum.prototype.getNames = function () {
-        return Object.keys(this).filter(
-            function (key) { return key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot;; }
-        );
+    **&#x2F;
+    Enum.prototype.getNames = function() {
+        var result = [];
+        for (var key in this) {
+            if (hasOwnProperty.call(this, key)) {
+                if (key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot; &amp;&amp; !core.isFunction(this[key])) {
+                    result.push(key);
+                }
+            }
+        }
+        return result;
+        &#x2F;&#x2F;return Object.keys(this).filter(
+        &#x2F;&#x2F;    function (key) { return key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot;; }
+        &#x2F;&#x2F;);
     };
 
     &#x2F;**

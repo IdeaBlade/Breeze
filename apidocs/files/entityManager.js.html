@@ -206,7 +206,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
     var EntityAction = m_entityAspect.EntityAction;
 
     var EntityQuery = m_entityQuery.EntityQuery;
-
+    
     var Q = core.requireLib(&quot;Q&quot;, &quot;see https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q&quot;);
     
     &#x2F;&#x2F; TODO: think about dif between find and get.
@@ -2065,7 +2065,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return result;
         }
         
-
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity);
             var entityType = targetEntity.entityType;
@@ -2075,11 +2074,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var val = rawEntity[dp.nameOnServer];
                 if (dp.dataType === DataType.DateTime &amp;&amp; val) {
                     if (!core.isDate(val)) {
-                        &#x2F;&#x2F; Does not work - returns time offset from GMT (i think)
-                        &#x2F;&#x2F; val = new Date(val);
-                        &#x2F;&#x2F; this also does not handle time zone
-                        &#x2F;&#x2F; val = core.dateFromIsoString(val);
-                        val = new Date(Date.parse(val));
+                        val = DataType.parseDateFromServer(val);
                     }
                 } else if (dp.dataType == DataType.Binary) {
                     if (val &amp;&amp; val.$value !== undefined) {
@@ -2104,6 +2099,26 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     mergeRelatedEntities(np, targetEntity, rawEntity, queryContext);
                 }
             });
+        }
+        
+        function parseDateHandleUtc(value) {
+            if (!core.isDate(value)) {
+                &#x2F;&#x2F; Does not work - returns time offset from GMT (i think)
+                &#x2F;&#x2F; val = new Date(val);
+                &#x2F;&#x2F; this also does not handle time zone
+                &#x2F;&#x2F; val = core.dateFromIsoString(val);
+                
+                &#x2F;&#x2F; need for this is because different browsers interpret a lack of timezone
+                &#x2F;&#x2F; specifier as meaning different things. So here we will always interpret a missing timezone
+                &#x2F;&#x2F; as a UTC.
+                if (typeof value === &#x27;string&#x27;) {
+                    &#x2F;&#x2F; convert to UTC string if no time zone specifier.
+                    var isLocalTime = LocalTime_Regex.test(value);
+                    value = isLocalTime ? value + &#x27;Z&#x27; : value;
+                } 
+                value  = new Date(Date.parse(value));
+            }
+            return value;
         }
 
         function updateCurrentRef(queryContext, targetEntity) {
