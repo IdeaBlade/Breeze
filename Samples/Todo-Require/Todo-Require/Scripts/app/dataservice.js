@@ -51,7 +51,8 @@ define(function (require) {
             _isSaving = true;
             manager.saveChanges()
                 .then(saveSucceeded)
-                .fail(saveFailed);
+                .fail(saveFailed)
+                .fin(saveFinished);
         } else if (!suppressLogIfNothingToSave) {
             logger.info("Nothing to save");
         };
@@ -82,6 +83,8 @@ define(function (require) {
             "Failed to save changes. " + reason +
             " You may have to restart the app.");
     };
+    
+    function saveFinished() { _isSaving = false; }
     
     function handleSaveValidationError(error) {
         var message = "Not saved due to validation error";
