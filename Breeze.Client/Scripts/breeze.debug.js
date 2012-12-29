@@ -11327,26 +11327,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
         
-        function parseDateHandleUtc(value) {
-            if (!core.isDate(value)) {
-                // Does not work - returns time offset from GMT (i think)
-                // val = new Date(val);
-                // this also does not handle time zone
-                // val = core.dateFromIsoString(val);
-                
-                // need for this is because different browsers interpret a lack of timezone
-                // specifier as meaning different things. So here we will always interpret a missing timezone
-                // as a UTC.
-                if (typeof value === 'string') {
-                    // convert to UTC string if no time zone specifier.
-                    var isLocalTime = LocalTime_Regex.test(value);
-                    value = isLocalTime ? value + 'Z' : value;
-                } 
-                value  = new Date(Date.parse(value));
-            }
-            return value;
-        }
-
         function updateCurrentRef(queryContext, targetEntity) {
             if (queryContext.refId !== undefined) {
                 queryContext.refMap[queryContext.refId] = targetEntity;
@@ -12173,7 +12153,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.80.5",
+        version: "0.81.1",
         core: core,
         config: a_config
     };
