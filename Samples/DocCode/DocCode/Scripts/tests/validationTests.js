@@ -93,7 +93,7 @@ define(["testFns"], function (testFns) {
     test("Attached employee validation errors raised when properties set to bad values", function () {
 
         var em = newEm();  // new empty EntityManager
-        var empType = getEmployeeType(em); ;
+        var empType = getEmployeeType(em);
 
         var employee = empType.createEntity(); // created but not attached
         employee.FirstName("John");
@@ -142,6 +142,96 @@ define(["testFns"], function (testFns) {
         if (removedCount > 0) {
             ok(true, "removed error: " + removedMessages.join(", "));
         }
+    }
+    /*********************************************************
+    * Trigger KO computed property with validationErrorsChanged
+    *********************************************************/
+    test("Trigger KO computed property with validationErrorsChanged", function () {
+
+        var em = newEm();  // new empty EntityManager
+        var empType = getEmployeeType(em);
+        
+        var validationErrors = []; // for testing
+
+        var employee = empType.createEntity(); // created but not attached
+        employee.FirstName("John");
+        employee.LastName("Doe");
+
+        addhasValidationErrorsProperty(employee);
+
+        // enter the cache as 'Unchanged'
+        em.attachEntity(employee);
+
+        // Start monitoring hasValidationErrors
+        employee.hasValidationErrors.subscribe(hasValidationErrorsChanged);
+        
+        employee.LastName(null); // 1. LastName is required
+        assertLastErrMessageIs("'LastName' is required");
+        
+        employee.BirthDate(new Date()); // ok date
+
+        employee.BirthDate(null); // ok. no problem; it's nullable
+
+        employee.BirthDate("today"); // 2. Nice try! Wrong data type
+        assertLastErrMessageIs("'BirthDate' must be a date");
+
+        employee.EmployeeID(null); // 3. Id is the pk; automatically required
+
+        employee.LastName( // 4. adds "too long"; removes "required", 
+            "IamTheGreatestAndDontYouForgetIt");
+        assertLastErrMessageIs("'LastName' must be a string with less than");
+
+        // removes errors one at a time
+        // therefore should raise 'hasValidationErrors' 3x
+        employee.entityAspect.rejectChanges(); // (5, 6, 7) remove ID, Date, LastName errs 
+        
+        equal(validationErrors.length, 7,
+        "'hasValidationErrors' should have been raised 7 times");
+
+        ok(!employee.hasValidationErrors(),
+            "'hasValidationErrors' should be false after rejectChanges");
+
+        expect(5);
+        
+        function hasValidationErrorsChanged() {
+            // Test assumes that Breeze pushes new errors on to the end
+            // This is undocumented behavior and should not be assumed
+            var errors = employee.entityAspect.getValidationErrors();
+            validationErrors.push(
+                errors.length ? errors[errors.length - 1] : null);
+        }
+
+        function assertLastErrMessageIs(expectedMessage) {
+            var lastErrMessage = validationErrors[validationErrors.length - 1].errorMessage;
+            ok(lastErrMessage.startsWith(expectedMessage),
+                "errorMessage should begin \"" + expectedMessage +
+                 "\" and is \""+ lastErrMessage + "\".");
+        }
+    });
+
+    // You might add to your entities to listen for changes 
+    // to validation error state.
+    // Best to call in a registered type initializer.
+    function addhasValidationErrorsProperty(entity) {
+       
+        var prop = ko.observable(false);
+        
+        var onChange = function () {
+            var hasError = entity.entityAspect.getValidationErrors().length > 0;        
+            if (prop() === hasError) {
+                // collection changed even though entity net error state is unchanged
+                prop.valueHasMutated(); // force notification
+            } else {
+                prop(hasError); // change the value and notify
+            }
+        };
+        
+        onChange();             // check now ...
+        entity.entityAspect // ... and when errors collection changes
+            .validationErrorsChanged.subscribe(onChange);
+        
+        // observable property is wired up; now add it to the entity
+        entity.hasValidationErrors = prop;
     }
 
     /*********************************************************
