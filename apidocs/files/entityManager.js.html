@@ -2101,26 +2101,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
         
-        function parseDateHandleUtc(value) {
-            if (!core.isDate(value)) {
-                &#x2F;&#x2F; Does not work - returns time offset from GMT (i think)
-                &#x2F;&#x2F; val = new Date(val);
-                &#x2F;&#x2F; this also does not handle time zone
-                &#x2F;&#x2F; val = core.dateFromIsoString(val);
-                
-                &#x2F;&#x2F; need for this is because different browsers interpret a lack of timezone
-                &#x2F;&#x2F; specifier as meaning different things. So here we will always interpret a missing timezone
-                &#x2F;&#x2F; as a UTC.
-                if (typeof value === &#x27;string&#x27;) {
-                    &#x2F;&#x2F; convert to UTC string if no time zone specifier.
-                    var isLocalTime = LocalTime_Regex.test(value);
-                    value = isLocalTime ? value + &#x27;Z&#x27; : value;
-                } 
-                value  = new Date(Date.parse(value));
-            }
-            return value;
-        }
-
         function updateCurrentRef(queryContext, targetEntity) {
             if (queryContext.refId !== undefined) {
                 queryContext.refMap[queryContext.refId] = targetEntity;

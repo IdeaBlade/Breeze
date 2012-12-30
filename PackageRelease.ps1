@@ -90,11 +90,12 @@ if (test-path $zipFile) {
 sz a -tzip "$zipFile" "$destDir\*"    
 
 #create basic plus... release folder structure and zip it
-prepareSample $srcDir $destDir "DocCode"       "Todos.sdf"
-prepareSample $srcDir $destDir "Todo"          "*.sdf"
-prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf"
-prepareSample $srcDir $destDir "BreezyDevices" "*.mdf,*.ldf"
-prepareSample $srcDir $destDir "CarBones"      "*.mdf,*.ldf"
+prepareSample $srcDir $destDir "DocCode"       "Todos.sdf, *.suo"
+prepareSample $srcDir $destDir "Todo"          "*.sdf, *.suo"
+prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf, *.suo"
+prepareSample $srcDir $destDir "Todo-Require"  "*.sdf, *.suo"
+prepareSample $srcDir $destDir "BreezyDevices" "*.mdf, *.ldf, *.suo"
+prepareSample $srcDir $destDir "CarBones"      "*.mdf, *.ldf, *.suo"
 
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = "$srcDir\breeze-runtime-plus-$versionNum.zip"
