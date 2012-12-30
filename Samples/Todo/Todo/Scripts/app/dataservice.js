@@ -4,7 +4,6 @@ app.dataservice = (function (breeze, logger) {
 
     // *** Cross origin service example  ***
     //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
-    //jQuery.support.cors = true; // enable for cross origin calls in IE10
 
     var manager = new breeze.EntityManager(serviceName);
     var _isSaving = false;

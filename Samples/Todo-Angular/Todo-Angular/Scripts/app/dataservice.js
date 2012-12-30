@@ -5,8 +5,7 @@ app.dataservice = (function (breeze, logger) {
     var serviceName = 'api/todos'; // route to the same origin Web Api controller
    
     // *** Cross origin service example  ***
-     //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
-     //jQuery.support.cors = true; // enable for cross origin calls in IE10
+    //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
 
     var manager = new breeze.EntityManager(serviceName);
     var _isSaving = false;
