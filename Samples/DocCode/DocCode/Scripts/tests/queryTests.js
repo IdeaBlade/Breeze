@@ -757,7 +757,50 @@ define(["testFns"], function (testFns) {
         if (count > out.length) { out.push("..."); }
         ok(true, "Got {0} products: {1}".format(count, out.join(", ")));
     }
+    /*********************************************************
+    * inlineCount of paged products
+    *********************************************************/
+    test("inlineCount of paged products", 2, function () {
+        
+        // Filtered query
+        var productQuery = EntityQuery.from("Products")
+            .where("ProductName", "startsWith", "C");
+        
+        // Paging of that filtered query ... with inlineCount
+        var pagedQuery = productQuery
+            .orderBy("ProductName")
+            .skip(5)
+            .take(5)
+            .inlineCount();
+     
+        var productCount, pagedCount, inlineCount;
+        var em = newEm();
+        stop(); // going async
+        
+        // run both queries in parallel
+        var promiseProduct =
+            em.executeQuery(productQuery)
+                .then(function(data) {
+                     productCount = data.results.length;
+                });
 
+        var promisePaged =
+            em.executeQuery(pagedQuery)
+                .then(function (data) {
+                    pagedCount = data.results.length;
+                    inlineCount = data.inlineCount;
+                });
+        
+        Q.all([promiseProduct, promisePaged])
+            .then(function() {
+                ok(inlineCount,
+                    "'data' from paged query should have 'inlineCount'");
+                equal(inlineCount, productCount,
+                    "'inlineCount' should equal product count");
+            })
+            .fail(function (error) {debugger;})
+            .fin(start);
+    });
     /*** PROJECTION ***/
 
     module("queryTests (projections)", testFns.getModuleOptions(newEm));
