@@ -12,24 +12,32 @@ namespace ToDoNoEF.Models {
     // not to mark type as beforefieldinit
     static ToDoContext() { }
 
-    public static ToDoContext Instance { get { return __instance; } }
+    public static ToDoContext Instance {
+      get {
+        if (!__instance._initialized) {
+          __instance.PopulateWithSampleData();
+          __instance._initialized = true;
+        }
+        return __instance;
+      }
+    }
 
     public const string FakeUserName = "FakeUser";
 
     public ToDoContext() {
-      PopulateWithSampleData();
+      
     }
 
     public List<ToDoList> ToDoLists {
       get {
-        lock (__instance) {
+        lock (__lock) {
           return _toDoLists;
         }
       }
     }
 
     public List<KeyMapping> SaveChanges(Dictionary<Type, List<EntityInfo>> saveMap) {
-      lock (__instance) {
+      lock (__lock) {
         KeyMappings.Clear();
         SaveToDoLists(saveMap);
         SaveToDoItems(saveMap);
@@ -51,7 +59,7 @@ namespace ToDoNoEF.Models {
         } else if (ei.EntityState == EntityState.Modified) {
           ModifyToDoList(toDoList);
         } else if (ei.EntityState == EntityState.Deleted) {
-          RemoveToDoList(toDoList);
+          DeleteToDoList(toDoList);
         }
       }
     }
@@ -68,7 +76,7 @@ namespace ToDoNoEF.Models {
         } else if (ei.EntityState == EntityState.Modified) {
           ModifyToDoItem(toDoItem);
         } else if (ei.EntityState == EntityState.Deleted) {
-          RemoveToDoItem(toDoItem);
+          DeleteToDoItem(toDoItem);
         }
       }
     }
@@ -78,7 +86,7 @@ namespace ToDoNoEF.Models {
     }
 
     private void AddToDoList(ToDoList list) {
-      if (list.ToDoListId < 0) {
+      if (list.ToDoListId <= 0) {
         list.ToDoListId = AddMapping(typeof(ToDoList), list.ToDoListId);
       }
       ToDoLists.Add(list);
@@ -90,13 +98,13 @@ namespace ToDoNoEF.Models {
       toDoList.UserId = list.UserId;
     }
 
-    private void RemoveToDoList(ToDoList list) {
+    private void DeleteToDoList(ToDoList list) {
       var toDoList = FindToDoList(list.ToDoListId);
       ToDoLists.Remove(toDoList);
     }
 
     private void AddToDoItem(ToDoItem item) {
-      if (item.ToDoItemId < 0) {
+      if (item.ToDoItemId <= 0) {
         item.ToDoItemId = AddMapping(typeof(ToDoItem), item.ToDoItemId);
       }
       if (item.ToDoListId < 0) {
@@ -112,7 +120,7 @@ namespace ToDoNoEF.Models {
       toDoList.ReplaceItem(item);
     }
 
-    private void RemoveToDoItem(ToDoItem item) {
+    private void DeleteToDoItem(ToDoItem item) {
       var toDoList = FindToDoList(item.ToDoListId, true);
       // if we delete a list ; by the time we get to the items the list is no longer there.
       if (toDoList != null) {
@@ -151,18 +159,21 @@ namespace ToDoNoEF.Models {
       var newList = new ToDoList();
       newList.Title = "Before work";
       newList.UserId = FakeUserName;
-
-      //var newItem = new ToDoItem() { ToDoItemId = -1, Title = "Make coffee", IsDone = false };
-      //AddToDoItem(newItem);
-      //newItem = new ToDoItem() { ToDoItemId = -1, Title = "Turn heater off", IsDone = false};
-      //AddToDoItem(newItem);
-
-      _toDoLists.Add(newList);
+      
+      AddToDoList(newList);
+      var listId = newList.ToDoListId;
+      var newItem = new ToDoItem() { ToDoListId = listId, Title ="Make coffee", IsDone = false };
+      AddToDoItem(newItem);
+      newItem = new ToDoItem() { ToDoListId = listId, Title = "Turn heater off", IsDone = false };
+      AddToDoItem(newItem);
     }
 
     #endregion
 
+    private static Object __lock = new Object();
     private static readonly ToDoContext __instance = new ToDoContext();
+
+    private bool _initialized = false;
     private List<ToDoList> _toDoLists = new List<ToDoList>();
     private List<KeyMapping> _keyMappings = new List<KeyMapping>();
   }

@@ -109,7 +109,7 @@ window.todoApp.datacontext = (function (breeze) {
     }
  
     // Private Members
-    function getToDoLists(todoListsObservable, errorObservable) {
+    function getToDoLists(toDoListsObservable, errorObservable) {
         return breeze.EntityQuery
             .from("ToDoLists")    // .expand("ToDos")
             .using(manager).execute()
@@ -117,47 +117,45 @@ window.todoApp.datacontext = (function (breeze) {
             .fail(getFailed);
 
         function getSucceeded(data) {
-            todoListsObservable(data.results);
+            toDoListsObservable(data.results);
         }
 
         function getFailed(error) {
-            errorObservable("Error retrieving todo lists: " + error.message);
+            errorObservable("Error retrieving toDo lists: " + error.message);
         }
     }
     
     function createToDoItem() {
         var item = metadataStore.getEntityType("ToDoItem").createEntity();
-        // manager.generateTempKeyValue(item);
         manager.addEntity(item);
         return item;
     }
     
     function createToDoList() {
         var list = metadataStore.getEntityType("ToDoList").createEntity();
-        // manager.generateTempKeyValue(list);
         manager.addEntity(list);
         return list;
     }
     
-    function saveNewToDoItem(todoItem) {
-        return saveEntity(todoItem);
+    function saveNewToDoItem(toDoItem) {
+        return saveEntity(manager.addEntity(toDoItem));
     }
     
-    function saveNewToDoList(todoList) {
-        return saveEntity(todoList);
+    function saveNewToDoList(toDoList) {
+        return saveEntity(manager.addEntity(toDoList));
     }
     
-    function deleteToDoItem(todoItem) {
-        todoItem.entityAspect.setDeleted();
-        return saveEntity(todoItem);
+    function deleteToDoItem(toDoItem) {
+        toDoItem.entityAspect.setDeleted();
+        return saveEntity(toDoItem);
     }
     
-    function deleteToDoList(todoList) {       
+    function deleteToDoList(toDoList) {       
         // breeze doesn't cascade delete so we have to do it
-        var todoItems = todoList.ToDos().slice(); // iterate over copy
-        todoItems.forEach(function(entity) { entity.entityAspect.setDeleted(); });
-        todoList.entityAspect.setDeleted();
-        return saveEntity(todoList);
+        var toDoItems = toDoList.ToDos().slice(); // iterate over copy
+        toDoItems.forEach(function(entity) { entity.entityAspect.setDeleted(); });
+        toDoList.entityAspect.setDeleted();
+        return saveEntity(toDoList);
     }
     
     function saveEntity(masterEntity) {
