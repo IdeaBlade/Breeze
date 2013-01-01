@@ -24,7 +24,7 @@
     }
 
     .todoList header input, .todoList header input:focus,
-    .todoList ul input, .todoList ul input:focus, .addTodo {
+    .todoList ul input, .todoList ul input:focus, .addToDo {
         font-family: 'Bradley Hand ITC';
         outline: none;
     }
@@ -43,14 +43,14 @@
         margin: 0;
     }
 
-    .addTodo {
+    .addToDo {
         padding: 0;
         margin-left: 25px;
         display: block;
         color: #999;
     }
 
-    .todoList input[type=text], .addTodo {
+    .todoList input[type=text], .addToDo {
         width: 200px;
         border: none;
         background: none;

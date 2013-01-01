@@ -2,14 +2,14 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Todos without EF</title>
+        <title>ToDos without EF</title>
         <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
         <meta name="viewport" content="width=device-width" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
 
         <!-- App css -->
         <link href="Content/Site.css" rel="stylesheet" />
-        <link href="Content/TodoList.css" rel="stylesheet" />
+        <link href="Content/ToDoList.css" rel="stylesheet" />
 
         <script src="Scripts/modernizr-2.6.2.js"></script>
 
@@ -32,12 +32,12 @@
             <div id="userSettings">
                 Hello, Fake User
             </div>
-            <p>My Todo List</p>
+            <p>My ToDo List</p>
         </header>
         <div id="body">
             <div id="main-content">
                 <p class="error" data-bind="text: error"></p>
-                <button data-bind="click: addTodoList">Add Todo list</button>
+                <button data-bind="click: addToDoList">Add ToDo list</button>
 
                 <section id="lists" data-bind="foreach: todoLists, visible: todoLists().length > 0">
                     <article class="todoList">
@@ -47,19 +47,19 @@
                             </form>
                         </header>
 
-                        <a href="#" class="deletelist" data-bind="click: $parent.deleteTodoList">X</a>
+                        <a href="#" class="deletelist" data-bind="click: $parent.deleteToDoList">X</a>
 
-                        <ul data-bind="foreach: Todos">
+                        <ul data-bind="foreach: ToDos">
                             <li>
                                 <input type="checkbox" data-bind="checked: IsDone" />
                                 <input type="text" data-bind="value: Title, disable: IsDone, blurOnEnter: true" />
-                                <a href="#" data-bind="click: $parent.deleteTodo">X</a>
+                                <a href="#" data-bind="click: $parent.deleteToDo">X</a>
                                 <p class="error" data-bind="visible: ErrorMessage, text: ErrorMessage"></p>
                             </li>
                         </ul>
 
-                        <form data-bind="submit: addTodo">
-                            <input class="addTodo" type="text" data-bind="value: NewTodoTitle, placeholder: 'Type here to add', blurOnEnter: true, event: { blur: addTodo }" />
+                        <form data-bind="submit: addToDo">
+                            <input class="addToDo" type="text" data-bind="value: NewToDoTitle, placeholder: 'Type here to add', blurOnEnter: true, event: { blur: addToDo }" />
                         </form>
 
                         <p class="error" data-bind="visible: ErrorMessage, text: ErrorMessage"></p>
@@ -69,7 +69,7 @@
         </div>
         <footer>
             <p>Learn more about <a href="http://go.microsoft.com/fwlink/?LinkId=273732">Single Page Applications</a></p>
-            <p>&copy; 2013 - My Todo Application</p>
+            <p>&copy; 2013 - My ToDo Application</p>
         </footer>
 
         <!-- 3rd party libraries -->
