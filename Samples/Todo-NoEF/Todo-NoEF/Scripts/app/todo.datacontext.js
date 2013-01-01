@@ -21,6 +21,8 @@ window.todoApp.datacontext = (function (breeze) {
     
     addClientMetadata(metadataStore);
 
+    var saveIsPending = false;
+
     var datacontext = {
             name: "Breeze",
             metadataStore: metadataStore,
@@ -159,12 +161,19 @@ window.todoApp.datacontext = (function (breeze) {
     }
     
     function saveEntity(masterEntity) {
+        if (saveIsPending) return null;
         masterEntity.ErrorMessage(null);
-        return manager.saveChanges().fail(saveFailed);
+        saveIsPending = true;
+        return manager.saveChanges().then(saveCompleted).fail(saveFailed);
+        
+        function saveCompleted() {
+            saveIsPending = false;
+        }
 
         function saveFailed(error) {
             setSaveErrorMessage();
             manager.rejectChanges();
+            saveIsPending = false;
             throw error; // for benefit of caller
         }
 
