@@ -25,6 +25,9 @@ namespace ToDoNoEF.Models {
 
     public string UserId { get; private set; }
 
+    /// <summary>
+    /// Not currently called.
+    /// </summary>
     public IQueryable<ToDoItem> ToDos {
       get {
         return Context.ToDoLists
@@ -34,6 +37,9 @@ namespace ToDoNoEF.Models {
       }
     }
 
+    /// <summary>
+    /// This could just as well be an IEnumerable.
+    /// </summary
     public IQueryable<ToDoList> ToDoLists {
       get {
         return Context.ToDoLists
