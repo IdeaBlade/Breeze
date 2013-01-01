@@ -85,7 +85,7 @@
     }
 
     function queryFailed(error) {
-        logger.error(error, "Query failed");
+        logger.error(error.message, "Query failed");
     }
 
     function extendItem(item) {
