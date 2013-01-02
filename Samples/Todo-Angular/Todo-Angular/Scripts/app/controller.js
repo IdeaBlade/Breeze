@@ -1,5 +1,5 @@
 ﻿
-app.todoMain = angular.module('todoMain', [])
+app.todoMain = angular.module('TodoMain', [])
     .directive('onFocus', function() {
         return {
             restrict: 'A',
@@ -33,7 +33,7 @@ app.todoMain = angular.module('todoMain', [])
     });
  
 
-app.todoMain.controller('shellVm', function ($scope) {
+app.todoMain.controller('TodoCtrl', function ($scope) {
 
     var removeItem = breeze.core.arrayRemoveItem;
     var dataservice = window.app.dataservice;
