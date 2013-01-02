@@ -107,8 +107,8 @@
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\main.js" />
-    <Content Include="Scripts\app\shell.html" />
-    <Content Include="Scripts\app\shellViewModel.js" />
+    <Content Include="Scripts\app\view.html" />
+    <Content Include="Scripts\app\viewModel.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.js" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />

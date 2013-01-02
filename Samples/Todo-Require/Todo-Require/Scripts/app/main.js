@@ -12,12 +12,12 @@ define(['logger', 'text', 'breeze'], function(logger) {
 
     logger.info('Breeze Todo is booting');
 
-    require(['shellViewModel', 'text!shell.html'],
+    require(['viewModel', 'text!view.html'],
         
-        function(shellViewModel, shellHtml) {
-            var shellView = jQuery(shellHtml);
-            ko.applyBindings(shellViewModel, shellView.get(0));
-            jQuery("#applicationHost").append(shellView);
+        function(viewModel, viewHtml) {
+            var $view = jQuery(viewHtml);
+            ko.applyBindings(viewModel, $view.get(0));
+            jQuery("#applicationHost").append($view);
             
     });
 });

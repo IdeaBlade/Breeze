@@ -95,21 +95,25 @@
 
         // listen for changes with Breeze PropertyChanged event
         item.entityAspect.propertyChanged.subscribe(function () {
-            if (item.propertyChangedPending || suspendItemSave) { return; }
+            if (item.propertyChangedPending || suspendItemSave) {
+                 return;
+            }
             // throttle property changed response
             // allow time for other property changes (if any) to come through
             item.propertyChangedPending = true;
-            setTimeout(function () {
-                if (item.entityAspect.validateEntity()) {
-                    if (item.entityAspect.entityState.isModified()) {
-                        dataservice.saveChanges();
+            setTimeout(validateAndSaveModifiedItem, 10);
+            
+            function validateAndSaveModifiedItem() {
+                if (item.entityAspect.entityState.isModified()) {
+                    if (item.entityAspect.validateEntity()) {
+                        dataservice.saveChanges(); 
+                    } else { // errors
+                        handleItemErrors(item);
+                        item.isEditing(true); // go back to editing
                     }
-                } else { // errors
-                    handleItemErrors(item);
-                    item.isEditing(true); // go back to editing
                 }
                 item.propertyChangedPending = false;
-            }, 10);
+            }
 
         });
     }
