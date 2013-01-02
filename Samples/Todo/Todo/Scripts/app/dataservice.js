@@ -99,6 +99,7 @@ app.dataservice = (function (breeze, logger) {
         // Simplified: fails silently
         $.post(serviceName + '/purge', function () {
             logger.success("database purged.");
+            manager.clear();
             if (callback) callback();
         });
     }
@@ -108,6 +109,7 @@ app.dataservice = (function (breeze, logger) {
         // Simplified: fails silently
         $.post(serviceName + '/reset', function () {
             logger.success("database reset.");
+            manager.clear();
             if (callback) callback();
         });
     }
