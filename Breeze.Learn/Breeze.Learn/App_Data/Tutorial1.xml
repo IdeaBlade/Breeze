@@ -293,7 +293,7 @@ to
 
 and press **Run**.
 
-We should now only see customers with company names that start with "C" that are also in cities whose names contain "er".
+We should now only see customers with company names that start with "S" that are also in cities whose names contain "er".
 ]]>
       </Instructions>
       <StartingJavascript>
