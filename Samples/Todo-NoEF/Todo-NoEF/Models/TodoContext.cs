@@ -174,8 +174,7 @@ namespace ToDoNoEF.Models {
 
     private bool _initialized = false;
     private List<ToDoList> _toDoLists = new List<ToDoList>();
-
-    private static List<KeyMapping> _keyMappings = new List<KeyMapping>();
+    private List<KeyMapping> _keyMappings = new List<KeyMapping>();
   }
 
   public sealed class IdGenerator {
