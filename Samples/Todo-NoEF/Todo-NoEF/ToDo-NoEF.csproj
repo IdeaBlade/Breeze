@@ -176,9 +176,11 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="Controllers\TodoController.cs" />
+    <Compile Include="Models\TodoContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\TodoContextProvider.cs" />
     <Compile Include="Models\TodoItem.cs" />
-    <Compile Include="Models\TodoContext.cs" />
     <Compile Include="Models\TodoList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -208,7 +210,7 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerPort>4908</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://localhost:54139/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
