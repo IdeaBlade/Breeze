@@ -2,38 +2,38 @@
 (function (ko, datacontext) {
 
     var store = datacontext.metadataStore;
-    store.registerEntityTypeCtor("TodoItem", function () { }, TodoItemInitializer);
-    store.registerEntityTypeCtor("TodoList", TodoList, TodoListInitializer);
+    store.registerEntityTypeCtor("ToDoItem", function () { }, ToDoItemInitializer);
+    store.registerEntityTypeCtor("ToDoList", ToDoList, ToDoListInitializer);
 
-    function TodoItemInitializer(todoItem) {
+    function ToDoItemInitializer(todoItem) {
         todoItem.ErrorMessage = ko.observable();
     }
     
-    function TodoListInitializer(todoList) {
+    function ToDoListInitializer(todoList) {
         todoList.ErrorMessage = ko.observable();
         todoList.IsEditingListTitle = ko.observable(false);
-        todoList.NewTodoTitle = ko.observable();
+        todoList.NewToDoTitle = ko.observable();
     }
     
-    function TodoList() {
+    function ToDoList() {
         var self = this;
         self.Title = "My todos";       // defaults
         self.UserId = "to be replaced";
     }
 
-    TodoList.prototype.addTodo = function() {
+    ToDoList.prototype.addToDo = function() {
         var self = this;
-        if (self.NewTodoTitle()) { // need a title to save
-            var todoItem = datacontext.createTodoItem();
-            todoItem.Title(self.NewTodoTitle());
-            todoItem.TodoList(self);
-            datacontext.saveNewTodoItem(todoItem);
-            self.NewTodoTitle("");
+        if (self.NewToDoTitle()) { // need a title to save
+            var todoItem = datacontext.createToDoItem();
+            todoItem.Title(self.NewToDoTitle());
+            todoItem.ToDoList(self);
+            datacontext.saveNewToDoItem(todoItem);
+            self.NewToDoTitle("");
         }
     };
     
-    TodoList.prototype.deleteTodo = function () {
-        return datacontext.deleteTodoItem(this); // "this" is the todoItem
+    ToDoList.prototype.deleteToDo = function () {
+        return datacontext.deleteToDoItem(this); // "this" is the todoItem
     };
     
 })(ko, todoApp.datacontext);

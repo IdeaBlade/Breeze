@@ -1,21 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TodoNoEF.Models
-{
-    /// <summary>
-    /// Todo item entity
-    /// </summary>
-    public class TodoItem
-    {
-        public int TodoItemId { get; set; }
+namespace ToDoNoEF.Models {
+  /// <summary>
+  /// ToDo item entity
+  /// </summary>
+  public class ToDoItem {
+    public int ToDoItemId { get; set; }
 
-        [Required]
-        public string Title { get; set; }
-        public bool IsDone { get; set; }
+    [Required]
+    public string Title { get; set; }
+    public bool IsDone { get; set; }
 
-        [ForeignKey("TodoList")]
-        public int TodoListId { get; set; }
-        public virtual TodoList TodoList { get; set; }
-    }
+    [ForeignKey("ToDoList")]
+    public int ToDoListId { get; set; }
+    public virtual ToDoList ToDoList { get; set; }
+  }
 }

@@ -1,40 +1,40 @@
 ﻿window.todoApp.todoListViewModel = (function (ko, datacontext) {
     var todoLists = ko.observableArray(),
         error = ko.observable(),
-        addTodoList = function () {
-            var todoList = datacontext.createTodoList();
+        addToDoList = function () {
+            var todoList = datacontext.createToDoList();
             todoList.IsEditingListTitle(true);
-            datacontext.saveNewTodoList(todoList)
+            datacontext.saveNewToDoList(todoList)
                 .then(addSucceeded)
                 .fail(addFailed);
 
             function addSucceeded() {
-                showTodoList(todoList);
+                showToDoList(todoList);
             }
             function addFailed() {
-                error("Save of new TodoList failed");
+                error("Save of new ToDoList failed");
             }
         },
-        showTodoList = function (todoList) {
-            todoLists.unshift(todoList); // Insert new TodoList at the front
+        showToDoList = function (todoList) {
+            todoLists.unshift(todoList); // Insert new ToDoList at the front
         },
-        deleteTodoList = function (todoList) {
+        deleteToDoList = function (todoList) {
             todoLists.remove(todoList);
-            datacontext.deleteTodoList(todoList)
+            datacontext.deleteToDoList(todoList)
                 .fail(deleteFailed);
 
             function deleteFailed() {
-                showTodoList(todoList); // re-show the restored list
+                showToDoList(todoList); // re-show the restored list
             }
         };
 
-    datacontext.getTodoLists(todoLists, error); // load TodoLists
+    datacontext.getToDoLists(todoLists, error); // load ToDoLists
 
     return {
         todoLists: todoLists,
         error: error,
-        addTodoList: addTodoList,
-        deleteTodoList: deleteTodoList
+        addToDoList: addToDoList,
+        deleteToDoList: deleteToDoList
     };
 
 })(ko, todoApp.datacontext);
