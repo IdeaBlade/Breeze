@@ -1,12 +1,12 @@
-namespace Todo_Angular.Controllers
-{
-    using System;
-    using System.Linq;
-    using System.Web.Http;
-    using Breeze.WebApi;
-    using Models;
-    using Newtonsoft.Json.Linq;
+using System;
+using System.Linq;
+using System.Web.Http;
+using Breeze.WebApi;
+using Todo.Models;
+using Newtonsoft.Json.Linq;
 
+namespace Todo.Controllers
+{
     [BreezeController]
     public class TodosController : ApiController {
 

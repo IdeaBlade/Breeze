@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 
-namespace Todo_Require.Models
+namespace Todo.Models
 {
     // DEMONSTRATION/DEVELOPMENT ONLY
     public class TodoDatabaseInitializer:

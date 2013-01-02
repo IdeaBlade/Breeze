@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Todo_Require")]
+[assembly: AssemblyTitle("Todo-Require")]
 [assembly: AssemblyDescription("Todo/KO version using RequireJS modularity")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IdeaBlade")]
-[assembly: AssemblyProduct("Todo_Require")]
-[assembly: AssemblyCopyright("Copyright IdeaBlade ©  2012")]
+[assembly: AssemblyProduct("Todo-Require")]
+[assembly: AssemblyCopyright("Copyright IdeaBlade ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

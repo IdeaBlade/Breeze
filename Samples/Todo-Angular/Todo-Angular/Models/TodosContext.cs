@@ -1,4 +1,4 @@
-﻿namespace Todo_Angular.Models
+﻿namespace Todo.Models
 {
     using System.Data.Entity;
 
