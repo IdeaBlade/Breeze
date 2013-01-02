@@ -74,7 +74,7 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     $scope.completeEdit = function(item) {
         if (item) {
             item.isEditing = false;
-            dataservice.saveChanges(true);
+            validateAndSaveModifiedItem(item);
         }
     };
     
@@ -173,20 +173,20 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
             // throttle property changed response to allow time
             // for other property changes (e.g. "Mark all as complete")
             item.propertyChangedPending = true;
-            setTimeout(validateAndSaveItem, 10);
+            setTimeout(function () { validateAndSaveModifiedItem(item); }, 10);               
         });
-
-        function validateAndSaveItem() {
+    }
+    
+    function validateAndSaveModifiedItem(item) {
+        if (item.entityAspect.entityState.isModified()) {
             if (item.entityAspect.validateEntity()) {
-                if (item.entityAspect.entityState.isModified()) {
-                    dataservice.saveChanges();
-                }
+                dataservice.saveChanges();
             } else { // errors
                 handleItemErrors(item);
                 item.isEditing = true; // go back to editing
             }
-            item.propertyChangedPending = false;
         }
+        item.propertyChangedPending = false;
     }
     
     function handleItemErrors(item) {
