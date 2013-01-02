@@ -38,10 +38,12 @@ namespace ToDoNoEF.Models {
 
     public List<KeyMapping> SaveChanges(Dictionary<Type, List<EntityInfo>> saveMap) {
       lock (__lock) {
-        __keyMappings = new List<KeyMapping>();
+        _keyMappings.Clear();
         SaveToDoLists(saveMap);
         SaveToDoItems(saveMap);
-        return __keyMappings;
+        // ToList effectively copies the _keyMappings so that an incoming SaveChanges call doesn't clear the 
+        // keyMappings before the previous version has completed serializing. 
+        return _keyMappings.ToList(); 
       }
     }
 
@@ -81,9 +83,6 @@ namespace ToDoNoEF.Models {
       }
     }
 
-    
-    
-    
 
     private void AddToDoList(ToDoList list) {
       if (list.ToDoListId <= 0) {
@@ -130,7 +129,7 @@ namespace ToDoNoEF.Models {
 
     private Int32 AddMapping(Type type, Int32 tempId) {
       var newId = IdGenerator.Instance.GetNextId(type);
-      __keyMappings.Add(new KeyMapping() {
+      _keyMappings.Add(new KeyMapping() {
         EntityTypeName = type.FullName,
         RealValue = newId,
         TempValue = tempId
@@ -148,7 +147,7 @@ namespace ToDoNoEF.Models {
     }
 
     private Int32 FindRealId(Type type, Int32 tempId) {
-      var mapping = __keyMappings.FirstOrDefault(km => km.EntityTypeName == type.FullName && tempId == (Int32)km.TempValue);
+      var mapping = _keyMappings.FirstOrDefault(km => km.EntityTypeName == type.FullName && tempId == (Int32)km.TempValue);
       if (mapping == null) {
         throw new Exception("Unable to locate mapping for temporary key: " + type.FullName + "-" + tempId.ToString());
       }
@@ -176,8 +175,7 @@ namespace ToDoNoEF.Models {
     private bool _initialized = false;
     private List<ToDoList> _toDoLists = new List<ToDoList>();
 
-    [ThreadStatic] 
-    private static List<KeyMapping> __keyMappings = new List<KeyMapping>();
+    private static List<KeyMapping> _keyMappings = new List<KeyMapping>();
   }
 
   public sealed class IdGenerator {
