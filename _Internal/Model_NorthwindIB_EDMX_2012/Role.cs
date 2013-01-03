@@ -23,6 +23,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public string Name { get; set; }
         public string Description { get; set; }
         public byte[] Ts { get; set; }
+        public Nullable<Models.NorthwindIB.RoleType> RoleType { get; set; }
     
         public virtual ICollection<UserRole> UserRoles { get; set; }
     }

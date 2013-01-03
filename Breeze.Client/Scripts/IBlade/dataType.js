@@ -168,13 +168,16 @@ function (core) {
     DataType.fromEdmDataType = function (typeName) {
         // if OData style
         var dt;
-        var parts = typeName.split("Edm.");
+        var parts = typeName.split(".");
         if (parts.length > 1) {
             if (parts[1] === "image") {
                 // hack
                 dt = DataType.Byte;
-            } else {
+            } else if (parts.length == 2) {
                 dt = DataType.fromName(parts[1]);
+            } else {
+                // enum
+                dt = DataType.Int32;
             }
         }
 

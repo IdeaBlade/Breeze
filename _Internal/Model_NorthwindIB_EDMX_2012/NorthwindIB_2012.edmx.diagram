@@ -8,7 +8,7 @@
         <EntityTypeShape EntityType="NorthwindIBModel.Category" Width="1.5" PointX="3.75" PointY="13.75" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Customer" Width="1.5" PointX="3.75" PointY="9.25" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Employee" Width="1.5" PointX="0.75" PointY="4.25" IsExpanded="true" />
-        <EntityTypeShape EntityType="NorthwindIBModel.EmployeeTerritory" Width="1.5" PointX="3" PointY="6" IsExpanded="true" />
+        <EntityTypeShape EntityType="NorthwindIBModel.EmployeeTerritory" Width="2.125" PointX="3" PointY="6" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.InternationalOrder" Width="1.5" PointX="8.25" PointY="6.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.NextId" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Order" Width="1.5" PointX="6" PointY="4.875" IsExpanded="true" />
@@ -19,7 +19,7 @@
         <EntityTypeShape EntityType="NorthwindIBModel.Supplier" Width="1.5" PointX="3.75" PointY="16.625" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Territory" Width="1.5" PointX="3" PointY="2.875" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.User" Width="1.5" PointX="8.75" PointY="13" IsExpanded="true" />
-        <EntityTypeShape EntityType="NorthwindIBModel.UserRole" Width="1.5" PointX="11" PointY="9.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NorthwindIBModel.UserRole" Width="1.5" PointX="11" PointY="9.625" IsExpanded="true" />
         <AssociationConnector Association="NorthwindIBModel.FK_Product_Category" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_Order_Customer" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_Employee_Employee" ManuallyRouted="false" />
@@ -33,11 +33,7 @@
         <AssociationConnector Association="NorthwindIBModel.FK_Territory_Region" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_User" ManuallyRouted="false" />
         <AssociationConnector Association="NorthwindIBModel.EmployeeTerritoryNoPayload" ManuallyRouted="false" />
-        <EntityTypeShape EntityType="NorthwindIBModel.BonusOrderDetailItem" Width="2.5" PointX="10.875" PointY="6.875" />
-        <AssociationConnector Association="NorthwindIBModel.OrderDetailBonusOrderDetailItem" />
-        <AssociationConnector Association="NorthwindIBModel.ProductBonusOrderDetailItem" />
-        <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="10.875" PointY="12.125" />
-        <AssociationConnector Association="NorthwindIBModel.FK_BonusOrderDetailItem_BonusProduct" />
+        <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="11.125" PointY="15.75" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" />
       </Diagram>
     </edmx:Diagrams>

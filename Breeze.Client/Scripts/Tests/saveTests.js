@@ -475,15 +475,38 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         stop();
-        em.saveChanges(null, null, function(saveResult) {
+        em.saveChanges().then(function(saveResult) {
             zzz.cust1.entityAspect.setDeleted();
-            em.saveChanges(null, null, function(sr) {
+            em.saveChanges().then(function(sr) {
                 ok(false, "shouldn't get here");
-            }).fail(function (error) {
+            }).fail(function(error) {
                 ok(em.hasChanges());
                 ok(error instanceof Error, "should be an error");
                 ok(error.message.indexOf("FOREIGN KEY") >= 0, "message should contain 'FOREIGN KEY'");
             });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("delete parent, then clear", function () {
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        stop();
+        em.saveChanges().then(function(saveResult) {
+            ok(!em.hasChanges());
+            zzz.cust1.entityAspect.setDeleted();
+            zzz.order1.entityAspect.setDeleted();
+            zzz.order2.entityAspect.setDeleted();
+            ok(zzz.order1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
+            ok(zzz.cust1.entityAspect.entityState.isDeleted(), "should be marked as deleted");
+            ok(em.hasChanges());
+            return em.saveChanges();
+        }).then(function (sr) {
+            try {
+                em.clear();
+                
+            } catch(e) {
+                ok(false, "clear should not fail: " + e);
+            }
         }).fail(testFns.handleFail).fin(start);
     });
 
