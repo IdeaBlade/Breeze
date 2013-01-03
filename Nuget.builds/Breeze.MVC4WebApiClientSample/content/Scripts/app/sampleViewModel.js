@@ -1,18 +1,14 @@
 /// <reference path="..\breeze.debug.js" />
 
 (function (root) {
-    var breeze = root.breeze,
-        ko = root.ko,
-        logger = root.app.logger;
-
-    // define Breeze namespace
-    var entityModel = breeze.entityModel;
+        var ko = root.ko,
+            logger = root.app.logger;
 
     // service name is route to the Web API controller
     var serviceName = 'api/BreezeSample';
 
     // manager is the service gateway and cache holder
-    var manager = new entityModel.EntityManager(serviceName);
+    var manager = new breeze.EntityManager(serviceName);
 
     // define the viewmodel
     var vm = {
@@ -31,7 +27,7 @@
     // bind view to the viewmodel
     ko.applyBindings(vm);
 
-    /* Private functions */
+    //#region private functions
 
     // get Todos asynchronously
     // returning a promise to wait for     
@@ -39,7 +35,7 @@
 
         logger.info("querying Todos");
 
-        var query = entityModel.EntityQuery.from("Todos");
+        var query = breeze.EntityQuery.from("Todos");
 
         if (!vm.includeDone()) {
             query = query.where("IsDone", "==", false);
@@ -50,14 +46,10 @@
             .then(querySucceeded)
             .fail(queryFailed);
 
-        // clear observable array and load the results 
+        // reload vm.todos with the results 
         function querySucceeded(data) {
             logger.success("queried Todos");
-            vm.todos.removeAll();
-            var todos = data.results;
-            todos.forEach(function (todo) {
-                vm.todos.push(todo);
-            });
+            vm.todos(data.results);
             vm.show(true); // show the view
         }
     };
@@ -75,5 +67,6 @@
     function saveFailed(error) {
         logger.error("Save failed: " + error.message);
     }
+    //#endregion
 
 }(window));
