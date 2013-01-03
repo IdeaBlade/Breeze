@@ -19,15 +19,15 @@ namespace Breeze.WebApi {
   [AttributeUsage(AttributeTargets.Class)]
   public class BreezeControllerAttribute : Attribute, IControllerConfiguration {
 
-
     /// <summary>
     /// Initialize the Breeze controller with a single <see cref="MediaTypeFormatter"/> for JSON
     /// and a single <see cref="IFilterProvider"/> for Breeze OData support
     /// </summary>
     public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
       lock (__lock) {
-        
-        // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
+        // Remove the Web API's "QueryFilterProvider" 
+        // and any previously added Breeze ODataActionFilterProvider.
+        // Add the value from BreezeFilterProvider()
         settings.Services.RemoveAll(typeof (IFilterProvider),
                                     f => (f.GetType().Name == "QueryFilterProvider")
                                          || (f is ODataActionFilterProvider));
@@ -39,23 +39,6 @@ namespace Breeze.WebApi {
         
       }
     }
-
-    //public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
-    //  lock (locker) {
-    //    if (isInitialized) return;
-
-    //    // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
-    //    settings.Services.RemoveAll(typeof(IFilterProvider),
-    //        f => f.GetType().Name == "QueryFilterProvider");
-    //    settings.Services.Add(typeof(IFilterProvider), BreezeFilterProvider());
-
-    //    // remove all formatters and add only the Breeze JsonFormatter
-    //    settings.Formatters.Clear();
-    //    settings.Formatters.Add(BreezeJsonFormatter());
-
-    //    isInitialized = true;
-    //  }
-    //}
 
     /// <summary>
     /// Return the <see cref="IFilterProvider"/> for a Breeze Controller
