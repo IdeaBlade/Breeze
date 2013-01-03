@@ -8,9 +8,8 @@
     </header>
 
     <section>
-
-        <div class="mark-all">
-            <!-- ko if: itemsLeftMessage() || archiveCompletedMessage() -->
+        <div class="mark-all" >
+            <!-- ko if: items().length -->
             <input id="markAll" type="checkbox" data-bind="checked: markAllCompleted">
             <label for="markAll">Mark all as complete </label>
             <!-- /ko -->
@@ -23,7 +22,7 @@
                 <div data-bind="visible: !isEditing()">
                     <input type="checkbox" data-bind="checked: IsDone" />
                     <label data-bind="text: Description, click: $parent.edit, css: { done: IsDone, archived: IsArchived }"></label>
-                    <a href="#" data-bind="click: function(){ $parent.removeItem($data) }">X</a> 
+                    <a href="#" data-bind="click: $parent.removeItem">X</a> 
                 </div>
                 <div data-bind="visible: isEditing">
                     <form data-bind="event: { submit: $parent.completeEdit }">
@@ -38,17 +37,8 @@
         </div>
     </section>
     
-    <!-- ko if:  itemsLeftMessage() || archiveCompletedMessage()-->
-    <footer>
-                
-        <!-- ko if: itemsLeftMessage -->
-        <div data-bind="text: itemsLeftMessage"></div>
-        <!-- /ko -->
-
-        <!-- ko if: archiveCompletedMessage -->
-        <a href="#" data-bind="click: archiveCompletedItems, text: archiveCompletedMessage"></a>
-        <!-- /ko -->
-
+    <footer>              
+        <div data-bind="visible: itemsLeftMessage, text: itemsLeftMessage"></div>
+        <a href="#" data-bind="visible: archiveCompletedMessage, click: archiveCompletedItems, text: archiveCompletedMessage"></a>
     </footer>
-    <!-- /ko -->
 </div>

@@ -101,7 +101,6 @@
     <Content Include="Index.html" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="content\reset.css" />
-    <Content Include="content\toastr-responsive.css" />
     <Content Include="content\toastr.css" />
     <Content Include="content\todo.css" />
     <Content Include="Scripts\app\dataservice.js" />
