@@ -48,14 +48,14 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
         var item = dataservice.createTodo();
 
         item.IsDone = false;
-        item.Description = this.newTodo;
+        item.Description = $scope.newTodo;
         item.CreatedAt = new Date();
 
         if (item.entityAspect.validateEntity()) {
             extendItem(item);
-            this.items.push(item);
+            $scope.items.push(item);
             dataservice.saveChanges();
-            this.newTodo = "";
+            $scope.newTodo = "";
         } else {
             handleItemErrors(item);
         }
@@ -67,10 +67,6 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
         }
     };
 
-    $scope.debug = function (item) {
-        var z = item.IsDone;
-    };
-    
     $scope.completeEdit = function(item) {
         if (item) {
             item.isEditing = false;
@@ -79,7 +75,7 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     };
     
     $scope.removeItem = function(item) {
-        removeItem(this.items, item);
+        removeItem($scope.items, item);
         item.entityAspect.setDeleted();
         dataservice.saveChanges();
     };
@@ -88,23 +84,22 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
         var state = getStateOfItems();
         suspendItemSave = true;
         state.itemsDone.forEach(function(item) {
-            if (!this.includeArchived) {
-                removeItem(this.items, item);
+            if (!$scope.includeArchived) {
+                removeItem($scope.items, item);
             }
             item.IsArchived = true;
-        }, this);
+        });
         suspendItemSave = false;
         dataservice.saveChanges();
     };
     
     $scope.purge = function() {
-        return dataservice.purge(this.getAllTodos);
+        return dataservice.purge($scope.getAllTodos);
     };
 
     $scope.reset = function() {
-        return dataservice.reset(this.getAllTodos);
+        return dataservice.reset($scope.getAllTodos);
     };
-
 
     $scope.archiveCompletedMessage = function() {
         var count = getStateOfItems().itemsDoneCount;
@@ -119,24 +114,23 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
         if (count > 0) {
             return count + " item" + (count > 1 ? "s" : "") + " left";
         }
-
         return null;
     };
 
     $scope.toggleCompleted = function () {
-        this.markAllCompleted(!this.allCompleted);
+        $scope.markAllCompleted(!$scope.allCompleted);
     };
 
     $scope.markAllCompleted = function(value) {
         suspendItemSave = true;
-        this.items.forEach(function(item) {
+        $scope.items.forEach(function(item) {
             item.IsDone = value;
         });
         suspendItemSave = false;
         dataservice.saveChanges();
     };
 
-    $scope.getAllTodos = function() {
+    $scope.getAllTodos = function () {
         dataservice.getAllTodos($scope.includeArchived)
             .then(querySucceeded)
             .fail(queryFailed);
@@ -144,6 +138,7 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
 
     $scope.getAllTodos();
 
+    //#region private functions
     function querySucceeded(data) {
         $scope.items = [];
         data.results.forEach(function (item) {
@@ -214,7 +209,7 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
             }
         });
 
-        $scope.allCompleted = itemsLeft.length === 0 && itemsDone.length > 0;
+        $scope.allCompleted = itemsLeft.length === 0 && $scope.items.length > 0;
 
         return {
             itemsDone: itemsDone,
@@ -223,6 +218,5 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
             itemsLeftCount: itemsLeft.length
         };
     }
-
+    //#endregion
 });
-

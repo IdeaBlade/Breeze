@@ -8,7 +8,6 @@
     <title>Breeze Todos with AngularJs</title>
     <link rel="stylesheet" href="Content/reset.css" />
     <link rel="stylesheet" href="Content/toastr.css" />
-    <link rel="stylesheet" href="Content/toastr-responsive.css" />
     <link rel="stylesheet" href="Content/todo.css" />
 </head>
 <body>
@@ -24,8 +23,10 @@
 
         <section>
             <div class="mark-all">
-                <input id="markAll" type="checkbox" data-ng-model="allCompleted" data-ng-click="toggleCompleted()" />
-                <label for="markAll">Mark all as complete </label>
+                <span data-ng-show="items.length">
+                    <input id="markAll" type="checkbox" data-ng-model="allCompleted" data-ng-click="toggleCompleted()" />
+                    <label for="markAll">Mark all as complete </label>
+                </span>
 
                 <input id="includeArchived" type="checkbox" data-ng-model="includeArchived" data-ng-click="getAllTodos()" />
                 <label for="includeArchived" class="archived">Show archived</label>
@@ -53,7 +54,6 @@
                 <a href="#" data-ng-click="reset()">Reset</a>
             </div>
         </section>
-
 
         <footer>
             <div data-ng-show="itemsLeftMessage()">{{itemsLeftMessage()}}</div>
