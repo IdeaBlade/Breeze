@@ -14,12 +14,15 @@ namespace Breeze.WebApi
     /// <remarks>
     /// Clears all <see cref="MediaTypeFormatter"/>s and 
     /// adds the Breeze formatter for JSON content.
-    /// Clears all <see cref="IFilterProvider"/>s and
-    /// adds the Breeze filter provider for OData query processing
+    /// Removes the competing ASP.NET Web API's QueryFilterProvider if present. 
+    /// Adds <see cref="BreezeFilterProvider"/> for OData query processing
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class)]
     public class BreezeControllerAttribute : Attribute, IControllerConfiguration
     {
+        private static readonly object locker = new object();
+        private static bool isInitialized;
+
         // These instances are stateless and threadsafe so can use static versions for all controller instances
         private static readonly IFilterProvider DefaultBreezeFilterProvider = new ODataActionFilterProvider();
         private static readonly MediaTypeFormatter DefaultBreezeJsonFormatter = JsonFormatter.Create();
@@ -30,12 +33,21 @@ namespace Breeze.WebApi
         /// </summary>
         public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor)
         {
-            // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
-            settings.Services.Replace(typeof(IFilterProvider), BreezeFilterProvider());
+            lock (locker)
+            {
+                if (isInitialized) return;
 
-            // remove all formatters and add only the Breeze JsonFormatter
-            settings.Formatters.Clear();
-            settings.Formatters.Add(BreezeJsonFormatter());
+                // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
+                settings.Services.RemoveAll(typeof(IFilterProvider),
+                    f => f.GetType().Name == "QueryFilterProvider");
+                settings.Services.Add(typeof(IFilterProvider), BreezeFilterProvider());
+
+                // remove all formatters and add only the Breeze JsonFormatter
+                settings.Formatters.Clear();
+                settings.Formatters.Add(BreezeJsonFormatter());
+
+                isInitialized = true;
+            }
         }
 
         /// <summary>
