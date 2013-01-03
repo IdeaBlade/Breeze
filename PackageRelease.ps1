@@ -94,6 +94,7 @@ prepareSample $srcDir $destDir "DocCode"       "Todos.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo"          "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Require"  "*.sdf, *.suo"
+prepareSample $srcDir $destDir "Todo-NoEF"     "*.suo"
 prepareSample $srcDir $destDir "BreezyDevices" "*.mdf, *.ldf, *.suo"
 prepareSample $srcDir $destDir "CarBones"      "*.mdf, *.ldf, *.suo"
 

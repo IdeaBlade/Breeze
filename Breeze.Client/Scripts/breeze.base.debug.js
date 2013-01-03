@@ -2054,13 +2054,16 @@ function (core) {
     DataType.fromEdmDataType = function (typeName) {
         // if OData style
         var dt;
-        var parts = typeName.split("Edm.");
+        var parts = typeName.split(".");
         if (parts.length > 1) {
             if (parts[1] === "image") {
                 // hack
                 dt = DataType.Byte;
-            } else {
+            } else if (parts.length == 2) {
                 dt = DataType.fromName(parts[1]);
+            } else {
+                // enum
+                dt = DataType.Int32;
             }
         }
 
@@ -4565,6 +4568,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
+            this._enumTypeMap = {};
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -5088,6 +5092,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         });
                     });
                 }
+                if (schema.enumType) {
+                    toArray(schema.enumType).forEach(function(ent) {
+                        that._enumTypeMap[ent.name] = ent;
+                    });
+                }
                 // process complextypes before entity types.
                 if (schema.complexType) {
                     toArray(schema.complexType).forEach(function (ct) {
@@ -5164,6 +5173,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             metadataStore.addEntityType(complexType);
             return complexType;
         }
+        
 
         function convertFromODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
             var dp;
@@ -5171,12 +5181,25 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (typeParts.length == 2) {
                 dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
             } else {
-                dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
+                if (isEnumType(odataProperty, schema)) {
+                    dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+                } else {
+                    dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
+                }
             }
             parentType.addProperty(dp);
             addValidators(dp);
 
             return dp;
+        }
+        
+        function isEnumType(odataProperty, schema) {
+            if (!schema.enumType) return false;
+            var enumTypes = toArray(schema.enumType);
+            var baseTypeName = odataProperty.type.replace("Edm." + schema.namespace + ".", "");
+            return enumTypes.some(function(enumType) {
+                return enumType.name === baseTypeName;
+            });
         }
 
         function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
@@ -11719,11 +11742,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // just for the entityManager clear method - the entityGroup will be in an inconsistent state
         // after this op, which is ok because it will be thrown away.
         ctor.prototype._clear = function() {
-            this._entities.forEach(function(entity) {
-                var aspect = entity.entityAspect;
-                aspect.entityState = EntityState.Detached;
-                aspect.entityGroup = null;
-                aspect.entityManager = null;
+            this._entities.forEach(function (entity) {
+                if (entity != null) {
+                    var aspect = entity.entityAspect;
+                    aspect.entityState = EntityState.Detached;
+                    aspect.entityGroup = null;
+                    aspect.entityManager = null;
+                }
             });
         };
 
@@ -11749,7 +11774,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
         
         function getFilter(entityStates) {
-            var filter;
             if (!entityStates) {
                 return function (e) {
                     return !!e;
@@ -12153,7 +12177,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.81.1",
+        version: "0.81.2",
         core: core,
         config: a_config
     };

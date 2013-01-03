@@ -47,6 +47,68 @@ define(["testFns"], function (testFns) {
 
     });
     
+    test("enums", function () {
+        var em = newEm();
+        var query = new EntityQuery("Roles").where("roleType", "==", 1);
+        var roleType = em.metadataStore.getEntityType("Role");
+        stop();
+        var role;
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            ok(results.length > 1, "more than one entity should have been queried");
+            role = roleType.createEntity();
+            role.setProperty("name", "test1");
+            role.setProperty("description", "descr 1");
+            role.setProperty("roleType", 2);
+            em.addEntity(role);
+            return em.saveChanges();
+        }).then(function(sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1, "only one entity should have been saved");
+            role = ents[0];
+            var rt = role.getProperty("roleType");
+            ok(rt === 2, "roleType should = 2");
+            var q = EntityQuery.fromEntities(ents);
+            var em2 = newEm();
+            return em2.executeQuery(q);
+        }).then(function (data2) {
+            var r = data2.results;
+            ok(r.length === 1, "only one entity should have been queried");
+            role = r[0];
+            var rt = role.getProperty("roleType");
+            ok(rt === 2, "roleType should = 2");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
+    test("enums null", function () {
+        var em = newEm();
+        var roleType = em.metadataStore.getEntityType("Role");
+        var role = roleType.createEntity();
+        role.setProperty("name", "test1");
+        role.setProperty("description", "descr 1");
+        role.setProperty("roleType", null);
+        em.addEntity(role);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            role = ents[0];
+            var rt = role.getProperty("roleType");
+            ok(rt == null, "roleType should be null");
+            var q = EntityQuery.fromEntities(ents);
+            q = q.where("roleType", "==", null);
+            var em2 = newEm();
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var r = data.results;
+            ok(r.length === 1, "only one entity should have been queried");
+            role = r[0];
+            var rt = role.getProperty("roleType");
+            ok(rt == null, "roleType should = null");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("nullable int", function () {
         var em = newEm();
         var query = new EntityQuery("Customers")

@@ -272,6 +272,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
+            this._enumTypeMap = {};
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -795,6 +796,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         });
                     });
                 }
+                if (schema.enumType) {
+                    toArray(schema.enumType).forEach(function(ent) {
+                        that._enumTypeMap[ent.name] = ent;
+                    });
+                }
                 // process complextypes before entity types.
                 if (schema.complexType) {
                     toArray(schema.complexType).forEach(function (ct) {
@@ -871,6 +877,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             metadataStore.addEntityType(complexType);
             return complexType;
         }
+        
 
         function convertFromODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
             var dp;
@@ -878,12 +885,25 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (typeParts.length == 2) {
                 dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
             } else {
-                dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
+                if (isEnumType(odataProperty, schema)) {
+                    dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+                } else {
+                    dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
+                }
             }
             parentType.addProperty(dp);
             addValidators(dp);
 
             return dp;
+        }
+        
+        function isEnumType(odataProperty, schema) {
+            if (!schema.enumType) return false;
+            var enumTypes = toArray(schema.enumType);
+            var baseTypeName = odataProperty.type.replace("Edm." + schema.namespace + ".", "");
+            return enumTypes.some(function(enumType) {
+                return enumType.name === baseTypeName;
+            });
         }
 
         function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {

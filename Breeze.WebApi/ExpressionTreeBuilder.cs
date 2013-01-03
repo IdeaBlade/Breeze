@@ -222,7 +222,7 @@ namespace Breeze.WebApi {
           ConvertExpr(ref rightExpr, ref leftExpr);
         } else if (rightType == typeof (String)) {
           ConvertExpr(ref leftExpr, ref rightExpr);
-        } else if (TypeFns.IsNumericType(leftType) && TypeFns.IsNumericType(rightType)) {
+        } else if ((TypeFns.IsNumericType(leftType) || TypeFns.IsEnumType(leftType)) && (TypeFns.IsNumericType(rightType) || TypeFns.IsEnumType(rightType))) {
           var leftIx = NumericTypes.IndexOf(leftType);
           var rightIx = NumericTypes.IndexOf(rightType);
           if (leftIx < rightIx) {
@@ -233,7 +233,8 @@ namespace Breeze.WebApi {
         } else if (leftType == typeof(Guid) 
           || leftType == typeof(DateTime) 
           || leftType == typeof(Boolean) 
-          || TypeFns.IsNumericType(leftType)) {
+          || TypeFns.IsNumericType(leftType)
+          || TypeFns.IsEnumType(leftType)) {
            ConvertExpr(ref rightExpr, ref leftExpr);
         } else {
           throw new Exception("Unable to perform operation: " + operatorName + "on types:"

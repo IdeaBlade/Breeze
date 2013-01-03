@@ -2310,11 +2310,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // just for the entityManager clear method - the entityGroup will be in an inconsistent state
         // after this op, which is ok because it will be thrown away.
         ctor.prototype._clear = function() {
-            this._entities.forEach(function(entity) {
-                var aspect = entity.entityAspect;
-                aspect.entityState = EntityState.Detached;
-                aspect.entityGroup = null;
-                aspect.entityManager = null;
+            this._entities.forEach(function (entity) {
+                if (entity != null) {
+                    var aspect = entity.entityAspect;
+                    aspect.entityState = EntityState.Detached;
+                    aspect.entityGroup = null;
+                    aspect.entityManager = null;
+                }
             });
         };
 
@@ -2340,7 +2342,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
         
         function getFilter(entityStates) {
-            var filter;
             if (!entityStates) {
                 return function (e) {
                     return !!e;
