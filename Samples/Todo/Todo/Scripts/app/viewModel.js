@@ -1,91 +1,95 @@
-﻿app.viewModel = (function (breeze, logger, dataservice) {
+﻿app.viewModel = (function (logger, dataservice) {
 
-    var suspendItemSave;
+    var suspendItemSave = false;
 
-    var shellVm = {
+    var vm = {
         newTodo: ko.observable(""),
-        items: ko.observableArray([]),
-        addItem: addItem,
-        edit: function (item) {
-            if (item) { item.isEditing(true); }
-        },
-        completeEdit: function (item) {
-            if (item) { item.isEditing(false); }
-        },
-        removeItem: function (item) {
-            this.items.remove(item);
-            item.entityAspect.setDeleted();
-            dataservice.saveChanges();
-        },
+        items: ko.observableArray(),
         includeArchived: ko.observable(false),
+        addItem: addItem,
+        edit: edit,
+        completeEdit: completeEdit, 
+        removeItem: removeItem,
         archiveCompletedItems: archiveCompletedItems,
         purge: purge,
         reset: reset
     };
 
-    shellVm.includeArchived.subscribe(getAllTodos);
+    initVm();
     
-    /* Add ko.computed properties */
-    
-    shellVm.archiveCompletedMessage = ko.computed(function () {
-        var count = getStateOfItems().itemsDoneCount;
-        if (count > 0) {
-            return "Archive " + count + " completed item" + (count > 1 ? "s" : "");
-        }
-        return null;
-    }, shellVm);
+    return vm; // done with setup; return module variable
 
-    shellVm.itemsLeftMessage = ko.computed(function () {
-        var count = getStateOfItems().itemsLeftCount;
-        if (count > 0) {
-            return count + " item" + (count > 1 ? "s" : "") + " left";
-        }
+    //#region private functions
+    function initVm() {
+        vm.includeArchived.subscribe(getAllTodos);
+        addComputeds();
+        getAllTodos();
+    }
+    function addComputeds() {
+        vm.archiveCompletedMessage = ko.computed(function () {
+            var count = getStateOfItems().itemsDoneCount;
+            if (count > 0) {
+                return "Archive " + count + " completed item" + (count > 1 ? "s" : "");
+            }
+            return null;
+        });
 
-        return null;
-    }, shellVm);
+        vm.itemsLeftMessage = ko.computed(function () {
+            var count = getStateOfItems().itemsLeftCount;
+            if (count > 0) {
+                return count + " item" + (count > 1 ? "s" : "") + " left";
+            }
+            return null;
+        });
 
-    shellVm.markAllCompleted = ko.computed({
-        read: function () {
-            var state = getStateOfItems();
-            return state.itemsLeftCount === 0 && shellVm.items().length > 0;
-        },
-        write: function (value) {
-            suspendItemSave = true;
-            shellVm.items().forEach(function (item) {
-                item.IsDone(value);
-            });
-            suspendItemSave = false;
-            dataservice.saveChanges();
-        },
-        owner: shellVm
-    });
-   
-    getAllTodos(); // Start the query 
-
-    return shellVm; // done with setup; return module variable
-
-    /*** Supporting private functions ***/
-
+        vm.markAllCompleted = ko.computed({
+            read: function () {
+                var state = getStateOfItems();
+                return state.itemsLeftCount === 0 && vm.items().length > 0;
+            },
+            write: function (value) {
+                suspendItemSave = true;
+                vm.items().forEach(function (item) {
+                    item.IsDone(value);
+                });
+                suspendItemSave = false;
+                dataservice.saveChanges();
+            }
+        });
+    }
     function getAllTodos() {
-        dataservice.getAllTodos(shellVm.includeArchived())
+        dataservice.getAllTodos(vm.includeArchived())
             .then(querySucceeded)
             .fail(queryFailed);
     }
-
     function querySucceeded(data) {
-        shellVm.items([]);
+        vm.items([]);
         data.results.forEach(function (item) {
             extendItem(item);
-            shellVm.items.push(item);
+            vm.items.push(item);
         });
         logger.info("Fetched Todos " +
-            (shellVm.includeArchived() ? "including archived" : "excluding archived"));
+            (vm.includeArchived() ? "including archived" : "excluding archived"));
     }
-
     function queryFailed(error) {
         logger.error(error.message, "Query failed");
     }
+    function addItem() {
+        var item = dataservice.createTodo();
 
+        item.IsDone(vm.markAllCompleted());
+        item.Description(vm.newTodo());
+        item.CreatedAt(new Date());
+
+        if (item.entityAspect.validateEntity()) {
+            extendItem(item);
+            vm.items.push(item);
+            dataservice.saveChanges();
+            vm.newTodo("");
+        } else {
+            handleItemErrors(item);
+        }
+    }
     function extendItem(item) {
         if (item.isEditing) return; // already extended
 
@@ -113,7 +117,6 @@
 
         });
     }
-
     function handleItemErrors(item) {
         if (!item) { return; }
         var errs = item.entityAspect.getValidationErrors();
@@ -125,41 +128,33 @@
         logger.error(firstErr.errorMessage);
         item.entityAspect.rejectChanges(); // harsh for demo 
     }
-    
-    function addItem() {
-        var item = dataservice.createTodo();
-
-        item.IsDone(this.markAllCompleted());
-        item.Description(this.newTodo());
-        item.CreatedAt(new Date());
-
-        if (item.entityAspect.validateEntity()) {
-            extendItem(item);
-            this.items.push(item);
-            dataservice.saveChanges();
-            this.newTodo("");
-        } else {
-            handleItemErrors(item);
-        }
+    function edit(item) {
+        if (item) { item.isEditing(true); }
     }
-    
+    function completeEdit(item){
+        if (item) { item.isEditing(false); }
+    }
+    function removeItem (item) {
+        vm.items.remove(item);
+        item.entityAspect.setDeleted();
+        dataservice.saveChanges();
+    }       
     function archiveCompletedItems () {
         var state = getStateOfItems();
         suspendItemSave = true;
         state.itemsDone.forEach(function (item) {
-            if (!shellVm.includeArchived()) {
-                this.items.remove(item);
+            if (!vm.includeArchived()) {
+                vm.items.remove(item);
             }
             item.IsArchived(true);
-        }, this);
+        });
         suspendItemSave = false;
         dataservice.saveChanges();
-    }
-    
+    }   
     function getStateOfItems() {
         var itemsDone = [], itemsLeft = [];
 
-        shellVm.items().forEach(function (item) {
+        vm.items().forEach(function (item) {
             if (item.IsDone()) {
                 if (!item.IsArchived()) {
                     itemsDone.push(item); // only unarchived items                
@@ -176,15 +171,15 @@
             itemsLeftCount: itemsLeft.length
         };
     }
-
     function purge() {
         return dataservice.purge(getAllTodos);
     }
-
     function reset() {
         return dataservice.reset(getAllTodos);
-    }
-})(breeze, app.logger, app.dataservice);
+    }   
+    //#endregion    
+
+})(app.logger, app.dataservice);
 
 // Bind viewModel to view in index.html
 ko.applyBindings(app.viewModel);
