@@ -44,16 +44,16 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Breeze.WebApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.78.3\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.82.1\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.78.3\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.82.1\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
