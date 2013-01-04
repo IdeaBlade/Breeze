@@ -30,9 +30,9 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Product_Supplier", "Supplier", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Supplier), "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Product), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.User), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
-[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Product), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
-[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.OrderDetail), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "OrderDetailBonusOrderDetailItem", "OrderDetail", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.OrderDetail), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "ProductBonusOrderDetailItem", "Product", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Product), "BonusOrderDetailItem", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.BonusOrderDetailItem), true)]
 
 #endregion
 
@@ -279,22 +279,6 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        public ObjectSet<BonusOrderDetailItem> BonusOrderDetailItems
-        {
-            get
-            {
-                if ((_BonusOrderDetailItems == null))
-                {
-                    _BonusOrderDetailItems = base.CreateObjectSet<BonusOrderDetailItem>("BonusOrderDetailItems");
-                }
-                return _BonusOrderDetailItems;
-            }
-        }
-        private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
         public ObjectSet<Role> Roles
         {
             get
@@ -307,6 +291,22 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<Role> _Roles;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<BonusOrderDetailItem> BonusOrderDetailItems
+        {
+            get
+            {
+                if ((_BonusOrderDetailItems == null))
+                {
+                    _BonusOrderDetailItems = base.CreateObjectSet<BonusOrderDetailItem>("BonusOrderDetailItems");
+                }
+                return _BonusOrderDetailItems;
+            }
+        }
+        private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
 
         #endregion
 
@@ -409,19 +409,19 @@ namespace Models.NorthwindIB.EDMX
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the BonusOrderDetailItems EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
-        {
-            base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the Roles EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToRoles(Role role)
         {
             base.AddObject("Roles", role);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the BonusOrderDetailItems EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
+        {
+            base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
         }
 
         #endregion
@@ -445,119 +445,19 @@ namespace Models.NorthwindIB.EDMX
         /// <summary>
         /// Create a new BonusOrderDetailItem object.
         /// </summary>
-        /// <param name="orderID">Initial value of the OrderID property.</param>
-        /// <param name="productID">Initial value of the ProductID property.</param>
-        /// <param name="bonusProductID">Initial value of the BonusProductID property.</param>
         /// <param name="bonusOrderDetailItemID">Initial value of the BonusOrderDetailItemID property.</param>
-        public static BonusOrderDetailItem CreateBonusOrderDetailItem(global::System.Int32 orderID, global::System.Int32 productID, global::System.Int32 bonusProductID, global::System.Guid bonusOrderDetailItemID)
+        /// <param name="comment">Initial value of the Comment property.</param>
+        public static BonusOrderDetailItem CreateBonusOrderDetailItem(global::System.Guid bonusOrderDetailItemID, global::System.String comment)
         {
             BonusOrderDetailItem bonusOrderDetailItem = new BonusOrderDetailItem();
-            bonusOrderDetailItem.OrderID = orderID;
-            bonusOrderDetailItem.ProductID = productID;
-            bonusOrderDetailItem.BonusProductID = bonusProductID;
             bonusOrderDetailItem.BonusOrderDetailItemID = bonusOrderDetailItemID;
+            bonusOrderDetailItem.Comment = comment;
             return bonusOrderDetailItem;
         }
 
         #endregion
 
         #region Primitive Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 OrderID
-        {
-            get
-            {
-                return _OrderID;
-            }
-            set
-            {
-                OnOrderIDChanging(value);
-                ReportPropertyChanging("OrderID");
-                _OrderID = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("OrderID");
-                OnOrderIDChanged();
-            }
-        }
-        private global::System.Int32 _OrderID;
-        partial void OnOrderIDChanging(global::System.Int32 value);
-        partial void OnOrderIDChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 ProductID
-        {
-            get
-            {
-                return _ProductID;
-            }
-            set
-            {
-                OnProductIDChanging(value);
-                ReportPropertyChanging("ProductID");
-                _ProductID = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("ProductID");
-                OnProductIDChanged();
-            }
-        }
-        private global::System.Int32 _ProductID;
-        partial void OnProductIDChanging(global::System.Int32 value);
-        partial void OnProductIDChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 BonusProductID
-        {
-            get
-            {
-                return _BonusProductID;
-            }
-            set
-            {
-                OnBonusProductIDChanging(value);
-                ReportPropertyChanging("BonusProductID");
-                _BonusProductID = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("BonusProductID");
-                OnBonusProductIDChanged();
-            }
-        }
-        private global::System.Int32 _BonusProductID;
-        partial void OnBonusProductIDChanging(global::System.Int32 value);
-        partial void OnBonusProductIDChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
-        [DataMemberAttribute()]
-        public global::System.String Comment
-        {
-            get
-            {
-                return _Comment;
-            }
-            set
-            {
-                OnCommentChanging(value);
-                ReportPropertyChanging("Comment");
-                _Comment = StructuralObject.SetValidValue(value, true);
-                ReportPropertyChanged("Comment");
-                OnCommentChanged();
-            }
-        }
-        private global::System.String _Comment;
-        partial void OnCommentChanging(global::System.String value);
-        partial void OnCommentChanged();
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -585,6 +485,102 @@ namespace Models.NorthwindIB.EDMX
         private global::System.Guid _BonusOrderDetailItemID;
         partial void OnBonusOrderDetailItemIDChanging(global::System.Guid value);
         partial void OnBonusOrderDetailItemIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.Int32> OrderID
+        {
+            get
+            {
+                return _OrderID;
+            }
+            set
+            {
+                OnOrderIDChanging(value);
+                ReportPropertyChanging("OrderID");
+                _OrderID = StructuralObject.SetValidValue(value);
+                ReportPropertyChanged("OrderID");
+                OnOrderIDChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _OrderID;
+        partial void OnOrderIDChanging(Nullable<global::System.Int32> value);
+        partial void OnOrderIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.Int32> ProductID
+        {
+            get
+            {
+                return _ProductID;
+            }
+            set
+            {
+                OnProductIDChanging(value);
+                ReportPropertyChanging("ProductID");
+                _ProductID = StructuralObject.SetValidValue(value);
+                ReportPropertyChanged("ProductID");
+                OnProductIDChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _ProductID;
+        partial void OnProductIDChanging(Nullable<global::System.Int32> value);
+        partial void OnProductIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.Int32> BonusProductID
+        {
+            get
+            {
+                return _BonusProductID;
+            }
+            set
+            {
+                OnBonusProductIDChanging(value);
+                ReportPropertyChanging("BonusProductID");
+                _BonusProductID = StructuralObject.SetValidValue(value);
+                ReportPropertyChanged("BonusProductID");
+                OnBonusProductIDChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _BonusProductID;
+        partial void OnBonusProductIDChanging(Nullable<global::System.Int32> value);
+        partial void OnBonusProductIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String Comment
+        {
+            get
+            {
+                return _Comment;
+            }
+            set
+            {
+                OnCommentChanging(value);
+                ReportPropertyChanging("Comment");
+                _Comment = StructuralObject.SetValidValue(value, false);
+                ReportPropertyChanged("Comment");
+                OnCommentChanged();
+            }
+        }
+        private global::System.String _Comment;
+        partial void OnCommentChanging(global::System.String value);
+        partial void OnCommentChanged();
 
         #endregion
 
@@ -597,54 +593,16 @@ namespace Models.NorthwindIB.EDMX
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "Product")]
-        public Product BonusProduct
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "Product").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "Product").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<Product> BonusProductReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "Product");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Product>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "Product", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "OrderDetail")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "OrderDetailBonusOrderDetailItem", "OrderDetail")]
         public OrderDetail OrderDetail
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "OrderDetail").Value;
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "OrderDetail").Value;
             }
             set
             {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "OrderDetail").Value = value;
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "OrderDetail").Value = value;
             }
         }
         /// <summary>
@@ -656,13 +614,51 @@ namespace Models.NorthwindIB.EDMX
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "OrderDetail");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "OrderDetail");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "OrderDetail", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<OrderDetail>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "OrderDetail", value);
+                }
+            }
+        }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "ProductBonusOrderDetailItem", "Product")]
+        public Product Product
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem", "Product").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem", "Product").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<Product> ProductReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Product>("Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem", "Product");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Product>("Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem", "Product", value);
                 }
             }
         }
@@ -2790,18 +2786,18 @@ namespace Models.NorthwindIB.EDMX
         [XmlIgnoreAttribute()]
         [SoapIgnoreAttribute()]
         [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_OrderDetail", "BonusOrderDetailItem")]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "OrderDetailBonusOrderDetailItem", "BonusOrderDetailItem")]
         public EntityCollection<BonusOrderDetailItem> BonusOrderDetailItems
         {
             get
             {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "BonusOrderDetailItem");
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "BonusOrderDetailItem");
             }
             set
             {
                 if ((value != null))
                 {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail", "BonusOrderDetailItem", value);
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem", "BonusOrderDetailItem", value);
                 }
             }
         }
@@ -3212,28 +3208,6 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_BonusOrderDetailItem_BonusProduct", "BonusOrderDetailItem")]
-        public EntityCollection<BonusOrderDetailItem> BonusOrderDetailItems
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "BonusOrderDetailItem");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<BonusOrderDetailItem>("Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct", "BonusOrderDetailItem", value);
-                }
-            }
-        }
 
         #endregion
 
@@ -3501,6 +3475,30 @@ namespace Models.NorthwindIB.EDMX
         private global::System.Byte[] _Ts;
         partial void OnTsChanging(global::System.Byte[] value);
         partial void OnTsChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.Int32> RoleType
+        {
+            get
+            {
+                return _RoleType;
+            }
+            set
+            {
+                OnRoleTypeChanging(value);
+                ReportPropertyChanging("RoleType");
+                _RoleType = StructuralObject.SetValidValue(value);
+                ReportPropertyChanged("RoleType");
+                OnRoleTypeChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _RoleType;
+        partial void OnRoleTypeChanging(Nullable<global::System.Int32> value);
+        partial void OnRoleTypeChanged();
 
         #endregion
 

@@ -14,11 +14,12 @@ namespace Sample_WebApi {
       FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
       RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-      // Use breeze's configuration of Json.Net JsonFormatter instead of the default
-      GlobalConfiguration.Configuration.Formatters.Insert(0, Breeze.WebApi.JsonFormatter.Create());
+      // No longer needed and in fact will break this app.
+      //// Use breeze's configuration of Json.Net JsonFormatter instead of the default
+      //GlobalConfiguration.Configuration.Formatters.Insert(0, Breeze.WebApi.JsonFormatter.Create());
 
-      // Translate incoming query string into EF queries
-      GlobalConfiguration.Configuration.Filters.Add(new Breeze.WebApi.ODataActionFilter());
+      //// Translate incoming query string into EF queries
+      //GlobalConfiguration.Configuration.Filters.Add(new Breeze.WebApi.ODataActionFilter());
 
     }
 

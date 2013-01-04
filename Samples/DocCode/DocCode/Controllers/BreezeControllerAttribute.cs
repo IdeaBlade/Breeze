@@ -17,7 +17,18 @@ namespace Breeze.WebApi {
   /// Adds <see cref="BreezeFilterProvider"/> for OData query processing
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
-  public class BreezeControllerAttribute : Attribute, IControllerConfiguration {
+  public class BreezeController2Attribute : Attribute, IControllerConfiguration {
+
+    //public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
+    //   // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
+    //  settings.Services.Replace(typeof(IFilterProvider), BreezeFilterProvider());
+
+    //   // remove all formatters and add only the Breeze JsonFormatter
+    //  settings.Formatters.Clear();
+    //  settings.Formatters.Add(BreezeJsonFormatter());
+
+      
+    //}
 
     /// <summary>
     /// Initialize the Breeze controller with a single <see cref="MediaTypeFormatter"/> for JSON
@@ -38,6 +49,25 @@ namespace Breeze.WebApi {
 
       }
     }
+
+    //private static Object locker =  new Object();
+    //private static bool isInitialized;
+    //public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
+    //  lock (locker) {
+    //    if (isInitialized) return;
+
+    //     //replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
+    //    settings.Services.RemoveAll(typeof(IFilterProvider),
+    //        f => f.GetType().Name == "QueryFilterProvider");
+    //    settings.Services.Add(typeof(IFilterProvider), BreezeFilterProvider());
+
+    //     //remove all formatters and add only the Breeze JsonFormatter
+    //    settings.Formatters.Clear();
+    //    settings.Formatters.Add(BreezeJsonFormatter());
+
+    //    isInitialized = true;
+    //  }
+    //}
 
     /// <summary>
     /// Return the <see cref="IFilterProvider"/> for a Breeze Controller
@@ -85,13 +115,12 @@ namespace Breeze.WebApi {
       }
     }
 
-    private static object __lock = new object();
+    private static  object __lock = new object();
 
 
     // These instances are stateless and threadsafe so can use static versions for all controller instances
     private static readonly IFilterProvider DefaultBreezeFilterProvider = new ODataActionFilterProvider();
     private static readonly MediaTypeFormatter DefaultBreezeJsonFormatter = JsonFormatter.Create();
   }
-
 
 }

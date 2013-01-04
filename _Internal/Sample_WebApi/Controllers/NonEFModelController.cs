@@ -32,6 +32,7 @@ namespace Sample_WebApi.Controllers {
     }
   }
 
+  [BreezeController]
   public class NonEFModelController : ApiController {
 
 

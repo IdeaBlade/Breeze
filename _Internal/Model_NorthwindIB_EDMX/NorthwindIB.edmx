@@ -20,14 +20,6 @@
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
-          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_BonusProduct">
-            <End Role="Product" EntitySet="Product" />
-            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
-          </AssociationSet>
-          <AssociationSet Name="FK_BonusOrderDetailItem_OrderDetail" Association="NorthwindIBModel.Store.FK_BonusOrderDetailItem_OrderDetail">
-            <End Role="OrderDetail" EntitySet="OrderDetail" />
-            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItem" />
-          </AssociationSet>
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
             <End Role="Employee" EntitySet="Employee" />
             <End Role="Employee1" EntitySet="Employee" />
@@ -81,11 +73,11 @@
           <Key>
             <PropertyRef Name="BonusOrderDetailItemID" />
           </Key>
-          <Property Name="OrderID" Type="int" Nullable="false" />
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="BonusProductID" Type="int" Nullable="false" />
-          <Property Name="Comment" Type="nvarchar(max)" />
           <Property Name="BonusOrderDetailItemID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderID" Type="int" />
+          <Property Name="ProductID" Type="int" />
+          <Property Name="BonusProductID" Type="int" />
+          <Property Name="Comment" Type="nvarchar(max)" Nullable="false" />
         </EntityType>
         <EntityType Name="Category">
           <Key>
@@ -212,6 +204,7 @@
           <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="Description" Type="nvarchar" MaxLength="2000" />
           <Property Name="Ts" Type="timestamp" Nullable="false" StoreGeneratedPattern="Computed" />
+          <Property Name="RoleType" Type="int" />
         </EntityType>
         <EntityType Name="Supplier">
           <Key>
@@ -266,32 +259,6 @@
           <Property Name="UserId" Type="bigint" Nullable="false" />
           <Property Name="RoleId" Type="bigint" Nullable="false" />
         </EntityType>
-        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
-          <End Role="Product" Type="NorthwindIBModel.Store.Product" Multiplicity="1" />
-          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Product">
-              <PropertyRef Name="ProductID" />
-            </Principal>
-            <Dependent Role="BonusOrderDetailItem">
-              <PropertyRef Name="BonusProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_BonusOrderDetailItem_OrderDetail">
-          <End Role="OrderDetail" Type="NorthwindIBModel.Store.OrderDetail" Multiplicity="1" />
-          <End Role="BonusOrderDetailItem" Type="NorthwindIBModel.Store.BonusOrderDetailItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderDetail">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Principal>
-            <Dependent Role="BonusOrderDetailItem">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Employee_Employee">
           <End Role="Employee" Type="NorthwindIBModel.Store.Employee" Multiplicity="0..1" />
           <End Role="Employee1" Type="NorthwindIBModel.Store.Employee" Multiplicity="*" />
@@ -497,19 +464,19 @@
             <End Role="Customer" EntitySet="Customers" />
             <End Role="Order" EntitySet="Orders" />
           </AssociationSet>
-          <EntitySet Name="BonusOrderDetailItems" EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" />
-          <AssociationSet Name="FK_BonusOrderDetailItem_BonusProduct" Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct">
-            <End Role="Product" EntitySet="Products" />
-            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_BonusOrderDetailItem_OrderDetail" Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail">
-            <End Role="OrderDetail" EntitySet="OrderDetails" />
-            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
-          </AssociationSet>
           <EntitySet Name="Roles" EntityType="Models.NorthwindIB.EDMX.Role" />
           <AssociationSet Name="FK_UserRole_Role" Association="Models.NorthwindIB.EDMX.FK_UserRole_Role">
             <End Role="Role" EntitySet="Roles" />
             <End Role="UserRole" EntitySet="UserRoles" />
+          </AssociationSet>
+          <EntitySet Name="BonusOrderDetailItems" EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" />
+          <AssociationSet Name="OrderDetailBonusOrderDetailItem" Association="Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem">
+            <End Role="OrderDetail" EntitySet="OrderDetails" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
+          </AssociationSet>
+          <AssociationSet Name="ProductBonusOrderDetailItem" Association="Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="Order">
@@ -587,7 +554,7 @@
           <Property Type="Int32" Name="RowVersion" Nullable="false" ConcurrencyMode="Fixed" />
           <NavigationProperty Name="Order" Relationship="Models.NorthwindIB.EDMX.FK_OrderDetail_Order" FromRole="OrderDetail" ToRole="Order" />
           <NavigationProperty Name="Product" Relationship="Models.NorthwindIB.EDMX.FK_OrderDetail_Product" FromRole="OrderDetail" ToRole="Product" />
-          <NavigationProperty Name="BonusOrderDetailItems" Relationship="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail" FromRole="OrderDetail" ToRole="BonusOrderDetailItem" />
+          <NavigationProperty Name="BonusOrderDetailItems" Relationship="Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem" FromRole="OrderDetail" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="Product">
           <Key>
@@ -607,7 +574,6 @@
           <Property Type="Int32" Name="RowVersion" Nullable="false" />
           <NavigationProperty Name="Category" Relationship="Models.NorthwindIB.EDMX.FK_Product_Category" FromRole="Product" ToRole="Category" />
           <NavigationProperty Name="Supplier" Relationship="Models.NorthwindIB.EDMX.FK_Product_Supplier" FromRole="Product" ToRole="Supplier" />
-          <NavigationProperty Name="BonusOrderDetailItems" Relationship="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct" FromRole="Product" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="Region">
           <Key>
@@ -837,44 +803,13 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="BonusOrderDetailItem">
-          <Key>
-            <PropertyRef Name="BonusOrderDetailItemID" />
-          </Key>
-          <Property Type="Int32" Name="OrderID" Nullable="false" />
-          <Property Type="Int32" Name="ProductID" Nullable="false" />
-          <Property Type="Int32" Name="BonusProductID" Nullable="false" />
-          <Property Type="String" Name="Comment" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Type="Guid" Name="BonusOrderDetailItemID" Nullable="false" />
-          <NavigationProperty Name="BonusProduct" Relationship="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct" FromRole="BonusOrderDetailItem" ToRole="Product" />
-          <NavigationProperty Name="OrderDetail" Relationship="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
-        </EntityType>
-        <Association Name="FK_BonusOrderDetailItem_BonusProduct">
-          <End Type="Models.NorthwindIB.EDMX.Product" Role="Product" Multiplicity="1" />
-          <End Type="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Product">
-              <PropertyRef Name="ProductID" />
-            </Principal>
-            <Dependent Role="BonusOrderDetailItem">
-              <PropertyRef Name="BonusProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_BonusOrderDetailItem_OrderDetail">
-          <End Type="Models.NorthwindIB.EDMX.OrderDetail" Role="OrderDetail" Multiplicity="1" />
-          <End Type="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderDetail">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Principal>
-            <Dependent Role="BonusOrderDetailItem">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
+        <ComplexType Name="Location">
+          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
+        </ComplexType>
         <EntityType Name="Role">
           <Key>
             <PropertyRef Name="Id" />
@@ -882,7 +817,8 @@
           <Property Type="Int64" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Type="String" Name="Name" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Description" MaxLength="2000" FixedLength="false" Unicode="true" />
-          <Property Type="Binary" Name="Ts" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" ConcurrencyMode="Fixed" />
+          <Property Type="Binary" Name="Ts" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" />
+          <Property Type="Int32" Name="RoleType" />
           <NavigationProperty Name="UserRoles" Relationship="Models.NorthwindIB.EDMX.FK_UserRole_Role" FromRole="Role" ToRole="UserRole" />
         </EntityType>
         <Association Name="FK_UserRole_Role">
@@ -897,13 +833,44 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <ComplexType Name="Location">
-          <Property Type="String" Name="Address" MaxLength="60" FixedLength="false" Unicode="true" />
-          <Property Type="String" Name="City" MaxLength="15" FixedLength="false" Unicode="true" />
-          <Property Type="String" Name="Region" MaxLength="15" FixedLength="false" Unicode="true" />
-          <Property Type="String" Name="PostalCode" MaxLength="10" FixedLength="false" Unicode="true" />
-          <Property Type="String" Name="Country" MaxLength="15" FixedLength="false" Unicode="true" />
-        </ComplexType>
+        <EntityType Name="BonusOrderDetailItem">
+          <Key>
+            <PropertyRef Name="BonusOrderDetailItemID" />
+          </Key>
+          <Property Type="Guid" Name="BonusOrderDetailItemID" Nullable="false" />
+          <Property Type="Int32" Name="OrderID" />
+          <Property Type="Int32" Name="ProductID" />
+          <Property Type="Int32" Name="BonusProductID" />
+          <Property Type="String" Name="Comment" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="OrderDetail" Relationship="Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
+          <NavigationProperty Name="Product" Relationship="Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="Product" />
+        </EntityType>
+        <Association Name="OrderDetailBonusOrderDetailItem">
+          <End Type="Models.NorthwindIB.EDMX.OrderDetail" Role="OrderDetail" Multiplicity="0..1" />
+          <End Type="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderDetail">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="ProductBonusOrderDetailItem">
+          <End Type="Models.NorthwindIB.EDMX.Product" Role="Product" Multiplicity="0..1" />
+          <End Type="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1089,24 +1056,25 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="BonusOrderDetailItems">
-            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.BonusOrderDetailItem">
-              <MappingFragment StoreEntitySet="BonusOrderDetailItem">
-                <ScalarProperty Name="BonusOrderDetailItemID" ColumnName="BonusOrderDetailItemID" />
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="BonusProductID" ColumnName="BonusProductID" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Roles">
             <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Role">
               <MappingFragment StoreEntitySet="Role">
+                <ScalarProperty Name="RoleType" ColumnName="RoleType" />
                 <ScalarProperty Name="Ts" ColumnName="Ts" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="BonusOrderDetailItems">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.BonusOrderDetailItem">
+              <MappingFragment StoreEntitySet="BonusOrderDetailItem">
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="BonusProductID" ColumnName="BonusProductID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="BonusOrderDetailItemID" ColumnName="BonusOrderDetailItemID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1133,8 +1101,8 @@
       <Diagram Name="NorthwindIB">
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Order" Width="1.5" PointX="3.5" PointY="2.625" Height="3.9033007812499996" IsExpanded="true" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Employee" Width="2" PointX="0.75" PointY="2.125" Height="5.4417122395833308" />
-        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.EmployeeTerritory" Width="1.5" PointX="6.5" PointY="3.75" Height="2.1725878906250005" />
-        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.OrderDetail" Width="1.5" PointX="8.75" PointY="3.5" Height="2.5571907552083322" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.EmployeeTerritory" Width="1.5" PointX="6" PointY="2.625" Height="2.1725878906250005" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.OrderDetail" Width="1.5" PointX="8.25" PointY="1.5" Height="2.5571907552083322" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Product" Width="1.5" PointX="6.5" PointY="14.875" Height="3.5186979166666674" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Region" Width="1.5" PointX="2" PointY="9.875" Height="1.7879850260416674" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Territory" Width="1.5" PointX="4.25" PointY="9.75" Height="2.1725878906249996" />
@@ -1187,11 +1155,11 @@
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_UserRole_User" />
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Customer" Width="1.5" PointX="1.25" PointY="12.875" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_Order_Customer" />
-        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Width="1.5" PointX="11.125" PointY="5.375" />
-        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_BonusProduct" />
-        <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_BonusOrderDetailItem_OrderDetail" />
-        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Role" Width="1.5" PointX="9" PointY="10.25" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.Role" Width="1.5" PointX="10.625" PointY="11.25" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.FK_UserRole_Role" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Width="2.875" PointX="11.125" PointY="3.375" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem" />
+        <AssociationConnector Association="Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem" />
       </Diagram>
     </Diagrams>
   </Designer>

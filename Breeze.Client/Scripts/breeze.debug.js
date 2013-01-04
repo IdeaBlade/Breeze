@@ -4568,7 +4568,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
             this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
             this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
-            this._enumTypeMap = {};
             this._shortNameMap = {}; // key is shortName, value is qualified name
             this._id = __id++;
             this._typeRegistry = {};
@@ -5092,11 +5091,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                         });
                     });
                 }
-                if (schema.enumType) {
-                    toArray(schema.enumType).forEach(function(ent) {
-                        that._enumTypeMap[ent.name] = ent;
-                    });
-                }
+               
                 // process complextypes before entity types.
                 if (schema.complexType) {
                     toArray(schema.complexType).forEach(function (ct) {
@@ -5183,6 +5178,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             } else {
                 if (isEnumType(odataProperty, schema)) {
                     dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+                    dp.enumType = odataProperty.type;
                 } else {
                     dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
                 }
