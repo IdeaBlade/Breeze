@@ -46,7 +46,7 @@ If you're using Visual Studio 2012:
 
 ### Support
 
-Ask questions in our [community forum](http://www.ideablade.com/forum/default.asp?C=9&title=breeze) and get answers from support engineers, MVPs, and developers just like you.
+Ask questions at [Stack Overflow](http://stackoverflow.com/questions/tagged/breeze?sort=newest) and get answers from support engineers, MVPs, and developers just like you.
 
 ### Email
 
