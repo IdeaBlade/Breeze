@@ -25,8 +25,9 @@ namespace Breeze.WebApi {
     /// </summary>
     public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
       lock (__lock) {
-
-        // replace the Web API's QueryActionFilterProvider with Breeze ODataActionFilter
+        // Remove the Web API's "QueryFilterProvider" 
+        // and any previously added Breeze ODataActionFilterProvider.
+        // Add the value from BreezeFilterProvider()
         settings.Services.RemoveAll(typeof(IFilterProvider),
                                     f => (f.GetType().Name == "QueryFilterProvider")
                                          || (f is ODataActionFilterProvider));
@@ -92,6 +93,5 @@ namespace Breeze.WebApi {
     private static readonly IFilterProvider DefaultBreezeFilterProvider = new ODataActionFilterProvider();
     private static readonly MediaTypeFormatter DefaultBreezeJsonFormatter = JsonFormatter.Create();
   }
-
 
 }
