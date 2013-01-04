@@ -118,7 +118,7 @@ define(["testFns"], function (testFns) {
         // This is because ObjectContext.SaveChanges() does not automatically validate 
         // entities. It must be done manually.
         var em = newEm();
-        var q = new EntityQuery("Customers").take(1);
+        var q = new EntityQuery("Customers").skip(20).take(1).orderBy("contactName");
         stop();
         var cust1;
         q.using(em).execute().then(function (data) {
