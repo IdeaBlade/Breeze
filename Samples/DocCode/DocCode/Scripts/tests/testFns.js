@@ -34,6 +34,7 @@ define(["breeze"], function (breeze) {
         ensureIsEm: ensureIsEm,
 
         assertIsSorted: assertIsSorted,
+        getValidationErrMsgs: getValidationErrMsgs,
         morphString: morphString,
         morphStringProp: morphStringProp,
 
@@ -328,7 +329,15 @@ define(["breeze"], function (breeze) {
 
         return deferred.promise;
     }
-
+    /*********************************************************
+    * Return an entity's validation error messages as a string
+    *********************************************************/
+    function getValidationErrMsgs(entity) {
+        var errs = entity.entityAspect.getValidationErrors();
+        return errs.length ?
+            errs.map(function (err) { return err.errorMessage; }).join(", ") :
+            "no errors";
+    }
     /*********************************************************
     * Result display fns
     *********************************************************/
