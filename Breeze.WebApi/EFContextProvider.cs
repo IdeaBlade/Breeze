@@ -40,7 +40,7 @@ namespace Breeze.WebApi {
     public T Context {
       get {
         if (_context == null) {
-          _context = new T();
+          _context = CreateContext();
           // Disable lazy loading and proxy creation as this messes up the data service.
           if (typeof(ObjectContext).IsAssignableFrom(typeof(T))) {
             var objCtx = (ObjectContext)(Object)_context;
@@ -53,6 +53,10 @@ namespace Breeze.WebApi {
         }
         return _context;
       }
+    }
+
+    protected virtual T CreateContext() {
+      return new T();
     }
 
     public ObjectContext ObjectContext {

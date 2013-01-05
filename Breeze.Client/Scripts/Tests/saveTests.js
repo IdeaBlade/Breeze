@@ -39,6 +39,52 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     };
+
+    test("bigsave", function() {
+        var em = newEm();
+        var recentArgs;
+        em.hasChanges.subscribe(function(args) {
+            recentArgs = args;
+        });
+        for (var i = 0; i < 20; i++) {
+            var zzz = createParentAndChildren(em);    
+        }
+        ok(recentArgs.hasChanges === true);
+        
+        stop();
+        var startMs = Date.now();
+        var endMs;
+        em.saveChanges().then(function(sr) {
+            var r = sr.entities;
+            ok(r.length == 80, "Length: "+ r.length);
+            endMs = Date.now();
+            var elapsed = (endMs - startMs) / 1000;
+            ok(elapsed, "Elapsed time: " + elapsed);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("bigsave many children", function () {
+        var em = newEm();
+        var recentArgs;
+        em.hasChanges.subscribe(function (args) {
+            recentArgs = args;
+        });
+        for (var i = 0; i < 5; i++) {
+            var zzz = createParentAndManyChildren(em);
+        }
+        ok(recentArgs.hasChanges === true);
+
+        stop();
+        var startMs = Date.now();
+        var endMs;
+        em.saveChanges().then(function (sr) {
+            var r = sr.entities;
+            ok(r.length > 100, "Length: " + r.length);
+            endMs = Date.now();
+            var elapsed = (endMs - startMs) / 1000;
+            ok(elapsed, "Elapsed time: " + elapsed);
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("noop", function() {
         var em = newEm();
@@ -789,8 +835,11 @@ define(["testFns"], function (testFns) {
 
     test("cleanup  test data", function() {
         var em = newEm();
-        var q = EntityQuery.from("CustomersAndOrders")
-            .where("companyName", FilterQueryOp.StartsWith, "Test");
+        var p = breeze.Predicate.create("companyName", FilterQueryOp.StartsWith, "Test")
+            .or("companyName", FilterQueryOp.StartsWith, "foo");
+        var q = EntityQuery.from("CustomersAndOrders").where(p);
+        //var q = EntityQuery.from("CustomersAndOrders")
+        //    .where("companyName", FilterQueryOp.StartsWith, "Test");
         stop();
         em.executeQuery(q).then(function(data) {
             data.results.forEach(function(cust) {
@@ -840,7 +889,25 @@ define(["testFns"], function (testFns) {
             order2: order2,
             keyValues: keyValues
         };
-    }
+     }
+    
+     function createParentAndManyChildren(em) {
+         var metadataStore = testFns.metadataStore;
+         var custType = metadataStore.getEntityType("Customer");
+         var orderType = metadataStore.getEntityType("Order");
+         var cust1 = custType.createEntity();
+         cust1.setProperty("companyName", "Test_js_1");
+         cust1.setProperty("city", "Oakland");
+         cust1.setProperty("rowVersion", 13);
+         cust1.setProperty("fax", "510 999-9999");
+         em.addEntity(cust1);
+         var orders = cust1.getProperty("orders");
+         for (var i = 1; i < 50; i++) {
+             var order1 = orderType.createEntity();
+             order1.setProperty("shipRegion", "foo-region");
+             orders.push(order1);
+         }
+     }
 
     function createRegion(em, descr) {
         var regionType = testFns.metadataStore.getEntityType("Region");
