@@ -60,6 +60,7 @@
                 if (!schema) {
                     // if from DbContext 
                     schema = metadata.conceptualModels.schema;
+                    schema.cSpaceOSpaceMapping = metadata.conceptualModels.cSpaceOSpaceMapping;
                     if (!schema) {
                         if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                         return;

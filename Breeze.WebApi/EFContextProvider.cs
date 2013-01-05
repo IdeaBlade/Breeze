@@ -10,14 +10,13 @@ using System.Data.Entity.Validation;
 using System.Data.EntityClient;
 using System.Data.Metadata.Edm;
 using System.Data.Objects;
-
+using System.Data.Objects.DataClasses;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -426,10 +425,15 @@ namespace Breeze.WebApi {
           throw;
         }
       }
-
+     
       var ns = xele.Name.Namespace;
       var conceptualModel = xele.Descendants(ns + "ConceptualModels").First();
       var xDoc = XDocument.Load(conceptualModel.CreateReader());
+
+      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+      var objectContext = ((IObjectContextAdapter)dbContext).ObjectContext;
+      AddCSpaceOSpaceMapping(xDoc, objectContext);
+
       return xDoc;
     }
 
@@ -484,17 +488,40 @@ namespace Breeze.WebApi {
                               " or a resource that ends with: " + normalizedResourceName);
         }
       }
-      XDocument xdoc;
+      XDocument xDoc;
       using (var mmxStream = ocAssembly.GetManifestResourceStream(manifestResourceName)) {
-        xdoc = XDocument.Load(mmxStream);
+        xDoc = XDocument.Load(mmxStream);
       }
-      // This is needed because the raw edmx has a different namespace than the CLR.
-      xdoc.Root.SetAttributeValue("ClrNamespace", ocNamespace);
-      
-      return xdoc;
+      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+      AddCSpaceOSpaceMapping(xDoc, objectContext);
+      return xDoc;
+    }
+
+    private void AddCSpaceOSpaceMapping(XDocument xDoc, ObjectContext oc) {
+      var tpls = GetCSpaceOSpaceMapping(oc);
+      var ocMapping = JsonConvert.SerializeObject(tpls);
+      xDoc.Root.SetAttributeValue("CSpaceOSpaceMapping", ocMapping);
     }
   
-    
+    private List<Tuple<String, String>> GetCSpaceOSpaceMapping(ObjectContext oc) {
+      var metadataWs = oc.MetadataWorkspace;
+      var cspaceTypes = metadataWs.GetItems<StructuralType>(DataSpace.CSpace);
+      ForceOSpaceLoad(oc);
+      var tpls = cspaceTypes
+          .Where(st => !(st is AssociationType))
+          .Select(st => {
+            var ost = metadataWs.GetObjectSpaceType(st);
+            return Tuple.Create(st.FullName, ost.FullName);
+          })
+          .ToList();
+      return tpls;
+    }
+
+    private void ForceOSpaceLoad(ObjectContext oc) {
+      var metadataWs = oc.MetadataWorkspace;
+      var asm = oc.GetType().Assembly;
+      metadataWs.LoadFromAssembly(asm);
+    }
 
     private String CsdlToJson(XDocument xDoc) {
 
