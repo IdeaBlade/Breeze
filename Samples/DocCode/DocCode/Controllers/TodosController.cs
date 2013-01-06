@@ -6,7 +6,7 @@ namespace Todo.Controllers {
     using Models;
     using Newtonsoft.Json.Linq;
 
-    [BreezeController2]
+    [BreezeController]
     public class TodosController : ApiController {
 
         readonly EFContextProvider<TodosContext> _contextProvider = 
