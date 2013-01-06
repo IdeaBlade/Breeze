@@ -1,4 +1,4 @@
-﻿define(['../toastr'],function (toastr) {
+﻿define(['../toastr'], function (toastr) {
 
     // This logger wraps the toastr logger and also logs to console
     // toastr.js is library by John Papa that shows messages in pop up toast.

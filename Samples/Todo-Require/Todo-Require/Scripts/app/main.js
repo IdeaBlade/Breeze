@@ -1,8 +1,8 @@
 ﻿(function (root) {
     
     requirejs.config({      
-         paths: { // well-know paths to selected scripts
-             'breeze': '../breeze.debug', // debug version of breeze
+         paths: { // well-known paths to selected scripts
+             'breeze': '../breeze.debug', // load debug version of breeze
          }
      });
 
