@@ -1,6 +1,4 @@
-define(function (require) {
-    var breeze = require('breeze');
-    var logger = require('logger');
+define(['ko', '../breeze', 'logger'], function (ko, breeze, logger) {
     
     var serviceName = 'api/todos'; // route to the Web Api controller
   
