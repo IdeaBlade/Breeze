@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DocCode.Controllers
 {
-  [BreezeController2]
+  [BreezeController]
   public class NorthwindController : ApiController {
 
     readonly EFContextProvider<NorthwindContext> _contextProvider =

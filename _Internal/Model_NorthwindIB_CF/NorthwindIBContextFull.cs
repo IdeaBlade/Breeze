@@ -18,6 +18,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.ComponentModel.DataAnnotations.Schema;
 // using System.ComponentModel.DataAnnotations.Schema;
+using Foo;
 
 namespace Models.NorthwindIB.CF {
 
@@ -36,9 +37,9 @@ namespace Models.NorthwindIB.CF {
       }
       return context;
     }
-  
+
     // Use the constructor to target a specific named connection string
-    public NorthwindIBContext_CF() : 
+    public NorthwindIBContext_CF() :
       base(nameOrConnectionString: "NorthwindIBContext_CF") {
       // Disable proxy creation as this messes up the data service.
       this.Configuration.ProxyCreationEnabled = false;
@@ -55,79 +56,41 @@ namespace Models.NorthwindIB.CF {
 
     #region DbSets
 
-    public DbSet<Category> Categories {
-      get;
-      set;
-    }
+    public DbSet<Category> Categories { get; set; }
 
-    public DbSet<Customer> Customers {
-      get; set;
-    }
+    public DbSet<Customer> Customers { get; set; }
 
-    public DbSet<Employee> Employees {
-      get; set;
-    }
+    public DbSet<Employee> Employees { get; set; }
 
-    public DbSet<EmployeeTerritory> EmployeeTerritories {
-      get;
-      set;
-    }
+    public DbSet<EmployeeTerritory> EmployeeTerritories { get; set; }
 
-    public DbSet<Order> Orders {
-      get; set;
-    }
+    public DbSet<Order> Orders { get; set; }
 
-    public DbSet<OrderDetail> OrderDetails {
-      get; set;
-    }
+    public DbSet<OrderDetail> OrderDetails { get; set; }
 
-    public DbSet<PreviousEmployee> PreviousEmployees {
-      get;
-      set;
-    }
+    public DbSet<PreviousEmployee> PreviousEmployees { get; set; }
 
-    public DbSet<Product> Products {
-      get;
-      set;
-    }
+    public DbSet<Product> Products { get; set; }
 
-    public DbSet<Region> Regions {
-      get;
-      set;
-    }
+    public DbSet<Region> Regions { get; set; }
 
-    public DbSet<Role> Roles {
-      get;
-      set;
-    }
+    public DbSet<Role> Roles { get; set; }
 
-    public DbSet<Supplier> Suppliers {
-      get;
-      set;
-    }
+    public DbSet<Supplier> Suppliers { get; set; }
 
-    public DbSet<Territory> Territories {
-      get;
-      set;
-    }
+    public DbSet<Territory> Territories { get; set; }
 
-    public DbSet<User> Users {
-      get;
-      set;
-    }
+    public DbSet<User> Users { get; set; }
 
-    public DbSet<UserRole> UserRoles {
-      get;
-      set;
-    }
+    public DbSet<UserRole> UserRoles { get; set; }
 
-    public DbSet<InternationalOrder> InternationalOrders {
-      get;
-      set;
-    }
+    public DbSet<InternationalOrder> InternationalOrders { get; set; }
+
     #endregion EntityQueries
   }
+}
 
+namespace Foo {
 
   #region Category class
 
@@ -145,45 +108,31 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("CategoryID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Category_CategoryID")]
-    public int CategoryID {
-      get;
-      set;
-    }
+    public int CategoryID { get; set; }
 
     /// <summary>Gets or sets the CategoryName. </summary>
     [DataMember]
     [Column("CategoryName")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=true, ErrorMessageResourceName="Category_CategoryName")]
-    public string CategoryName {
-      get;
-      set;
-    }
+    public string CategoryName { get; set; }
 
     /// <summary>Gets or sets the Description. </summary>
     [DataMember]
     [Column("Description")]
-    public string Description {
-      get;
-      set;
-    }
+    public string Description { get; set; }
 
     /// <summary>Gets or sets the Picture. </summary>
     [DataMember]
     [Column("Picture")]
-    public byte[] Picture {
-      get;
-      set;
-    }
+    public byte[] Picture { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Category_RowVersion")]
     [DefaultValue(2)]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -191,21 +140,20 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the Products. </summary>
     [DataMember]
     [InverseProperty("Category")]
-    public ICollection<Product> Products {
-      get;
-      set;
-    }
+    public ICollection<Product> Products { get; set; }
+
     #endregion Navigation properties
 
 
   }
+
   #endregion Category class
 
   [AttributeUsage(AttributeTargets.Property)]
   public class CustomValidator : ValidationAttribute {
     public override Boolean IsValid(Object value) {
       try {
-        string val = (string) value;
+        string val = (string)value;
         if (!string.IsNullOrEmpty(val) && val.StartsWith("Error")) {
           ErrorMessage = "{0} equal the word 'Error'";
           return false;
@@ -224,8 +172,8 @@ namespace Models.NorthwindIB.CF {
   /// <LongDescription>
   /// test long doc
   /// </LongDescription>
-  [DataContract(IsReference=true)]
-  [Table("Customer", Schema="dbo")]
+  [DataContract(IsReference = true)]
+  [Table("Customer", Schema = "dbo")]
   public partial class Customer {
 
     #region Data Properties
@@ -236,18 +184,14 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("CustomerID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Customer_CustomerID")]
-    public System.Guid CustomerID {
-      get; set;
-    }
+    public System.Guid CustomerID { get; set; }
 
     /// <summary>Gets or sets the CustomerID_OLD. </summary>
     [DataMember]
     [Column("CustomerID_OLD")]
     // [IbVal.StringLengthVerifier(MaxValue=5, IsRequired=false, ErrorMessageResourceName="Customer_CustomerID_OLD")]
     [MaxLength(5)]
-    public string CustomerID_OLD {
-      get; set;
-    }
+    public string CustomerID_OLD { get; set; }
 
     /// <summary>Gets or sets the CompanyName. </summary>
     [DataMember]
@@ -255,9 +199,7 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=40, IsRequired=true, ErrorMessageResourceName="Customer_CompanyName")]
     [MaxLength(40)]
     [Required]
-    public string CompanyName {
-      get; set;
-    }
+    public string CompanyName { get; set; }
 
     /// <summary>Gets or sets the ContactName. </summary>
     [DataMember]
@@ -265,90 +207,71 @@ namespace Models.NorthwindIB.CF {
     [CustomValidator]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Customer_ContactName")]
     [MaxLength(30)]
-    public string ContactName {
-      get; set;
-    }
+    public string ContactName { get; set; }
 
     /// <summary>Gets or sets the ContactTitle. </summary>
     [DataMember]
     [Column("ContactTitle")]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Customer_ContactTitle")]
     [MaxLength(30)]
-    public string ContactTitle {
-      get; set;
-    }
+    public string ContactTitle { get; set; }
 
     /// <summary>Gets or sets the Address. </summary>
     [DataMember]
     [Column("Address")]
     // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Customer_Address")]
     [MaxLength(60)]
-    public string Address {
-      get; set;
-    }
+    public string Address { get; set; }
 
     /// <summary>Gets or sets the City. </summary>
     [DataMember]
     [Column("City")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Customer_City")]
     [MaxLength(15)]
-    public string City {
-      get; set;
-    }
+    public string City { get; set; }
 
     /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Customer_Region")]
     [MaxLength(15)]
-    public string Region {
-      get; set;
-    }
+    public string Region { get; set; }
 
     /// <summary>Gets or sets the PostalCode. </summary>
     [DataMember]
     [Column("PostalCode")]
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Customer_PostalCode")]
     [MaxLength(10)]
-    public string PostalCode {
-      get; set;
-    }
+    public string PostalCode { get; set; }
 
     /// <summary>Gets or sets the Country. </summary>
     [DataMember]
     [Column("Country")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Customer_Country")]
     [MaxLength(15)]
-    public string Country {
-      get; set;
-    }
+    public string Country { get; set; }
 
     /// <summary>Gets or sets the Phone. </summary>
     [DataMember]
     [Column("Phone")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Customer_Phone")]
     [MaxLength(24)]
-    public string Phone {
-      get; set;
-    }
+    public string Phone { get; set; }
 
     /// <summary>Gets or sets the Fax. </summary>
     [DataMember]
     [Column("Fax")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Customer_Fax")]
     [MaxLength(24)]
-    public string Fax {
-      get; set;
-    }
+    public string Fax { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     // [IbEm.ConcurrencyStrategy(IbEm.ConcurrencyStrategy.AutoIncrement)]
     [Column("RowVersion")]
     [ConcurrencyCheck]
-    public System.Nullable<int> RowVersion {
-      get; set;
-    }
+    public System.Nullable<int> RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -356,20 +279,20 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the Orders. </summary>
     [DataMember]
     [InverseProperty("Customer")]
-    public ICollection<Order> Orders {
-      get; set;
-    }
+    public ICollection<Order> Orders { get; set; }
+
     #endregion Navigation properties
 
-    
+
   }
+
   #endregion Customer class
 
   #region Employee class
 
   /// <summary>The auto-generated Employee class. </summary>
-  [DataContract(IsReference=true)]
-  [Table("Employee", Schema="dbo")]
+  [DataContract(IsReference = true)]
+  [Table("Employee", Schema = "dbo")]
   public partial class Employee {
 
     #region Data Properties
@@ -380,9 +303,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("EmployeeID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Employee_EmployeeID")]
-    public int EmployeeID {
-      get; set;
-    }
+    public int EmployeeID { get; set; }
 
     /// <summary>Gets or sets the LastName. </summary>
     [DataMember]
@@ -390,9 +311,7 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=true, ErrorMessageResourceName="Employee_LastName")]
     [MaxLength(30)]
     [Required]
-    public string LastName {
-      get; set;
-    }
+    public string LastName { get; set; }
 
     /// <summary>Gets or sets the FirstName. </summary>
     [DataMember]
@@ -400,143 +319,110 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=true, ErrorMessageResourceName="Employee_FirstName")]
     [MaxLength(30)]
     [Required]
-    public string FirstName {
-      get; set;
-    }
+    public string FirstName { get; set; }
 
     /// <summary>Gets or sets the Title. </summary>
     [DataMember]
     [Column("Title")]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Employee_Title")]
     [MaxLength(30)]
-    public string Title {
-      get; set;
-    }
+    public string Title { get; set; }
 
     /// <summary>Gets or sets the TitleOfCourtesy. </summary>
     [DataMember]
     [Column("TitleOfCourtesy")]
     // [IbVal.StringLengthVerifier(MaxValue=25, IsRequired=false, ErrorMessageResourceName="Employee_TitleOfCourtesy")]
-    [MaxLength(25)]    
-    public string TitleOfCourtesy {
-      get; set;
-    }
+    [MaxLength(25)]
+    public string TitleOfCourtesy { get; set; }
 
     /// <summary>Gets or sets the BirthDate. </summary>
     [DataMember]
     [Column("BirthDate")]
-    public System.Nullable<System.DateTime> BirthDate {
-      get; set;
-    }
+    public System.Nullable<System.DateTime> BirthDate { get; set; }
 
     /// <summary>Gets or sets the HireDate. </summary>
     [DataMember]
     [Column("HireDate")]
-    public System.Nullable<System.DateTime> HireDate {
-      get; set;
-    }
+    public System.Nullable<System.DateTime> HireDate { get; set; }
 
     /// <summary>Gets or sets the Address. </summary>
     [DataMember]
     [Column("Address")]
     // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Employee_Address")]
     [MaxLength(60)]
-    public string Address {
-      get; set;
-    }
+    public string Address { get; set; }
 
     /// <summary>Gets or sets the City. </summary>
     [DataMember]
     [Column("City")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_City")]
     [MaxLength(15)]
-    public string City {
-      get; set;
-    }
+    public string City { get; set; }
 
     /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_Region")]
     [MaxLength(15)]
-    public string Region {
-      get; set;
-    }
+    public string Region { get; set; }
 
     /// <summary>Gets or sets the PostalCode. </summary>
     [DataMember]
     [Column("PostalCode")]
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Employee_PostalCode")]
     [MaxLength(10)]
-    public string PostalCode {
-      get; set;
-    }
+    public string PostalCode { get; set; }
 
     /// <summary>Gets or sets the Country. </summary>
     [DataMember]
     [Column("Country")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_Country")]
     [MaxLength(15)]
-    public string Country {
-      get; set;
-    }
+    public string Country { get; set; }
 
     /// <summary>Gets or sets the HomePhone. </summary>
     [DataMember]
     [Column("HomePhone")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Employee_HomePhone")]
     [MaxLength(24)]
-    public string HomePhone {
-      get; set;
-    }
+    public string HomePhone { get; set; }
 
     /// <summary>Gets or sets the Extension. </summary>
     [DataMember]
     [Column("Extension")]
     // [IbVal.StringLengthVerifier(MaxValue=4, IsRequired=false, ErrorMessageResourceName="Employee_Extension")]
     [MaxLength(4)]
-    public string Extension {
-      get; set;
-    }
+    public string Extension { get; set; }
 
     /// <summary>Gets or sets the Photo. </summary>
     [DataMember]
     [Column("Photo")]
-    public byte[] Photo {
-      get; set;
-    }
+    public byte[] Photo { get; set; }
 
     /// <summary>Gets or sets the Notes. </summary>
     [DataMember]
     [Column("Notes")]
-    public string Notes {
-      get; set;
-    }
+    public string Notes { get; set; }
 
     /// <summary>Gets or sets the PhotoPath. </summary>
     [DataMember]
     [Column("PhotoPath")]
     // [IbVal.StringLengthVerifier(MaxValue=255, IsRequired=false, ErrorMessageResourceName="Employee_PhotoPath")]
     [MaxLength(255)]
-    public string PhotoPath {
-      get; set;
-    }
+    public string PhotoPath { get; set; }
 
     /// <summary>Gets or sets the ReportsToEmployeeID. </summary>
     [DataMember]
     // [ForeignKey("Manager")]
     [Column("ReportsToEmployeeID")]
-    public System.Nullable<int> ReportsToEmployeeID {
-      get; set;
-    }
+    public System.Nullable<int> ReportsToEmployeeID { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Employee_RowVersion")]
-    public int RowVersion {
-      get; set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -544,43 +430,33 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the DirectReports. </summary>
     [DataMember]
     [InverseProperty("Manager")]
-    public ICollection<Employee> DirectReports {
-      get; set;
-    }
+    public ICollection<Employee> DirectReports { get; set; }
 
     /// <summary>Gets or sets the Manager. </summary>
     [DataMember]
     [ForeignKey("ReportsToEmployeeID")]
     [InverseProperty("DirectReports")]
-    public Employee Manager {
-      get; set;
-    }
+    public Employee Manager { get; set; }
 
     /// <summary>Gets the EmployeeTerritories. </summary>
     [DataMember]
     [InverseProperty("Employee")]
-    public ICollection<EmployeeTerritory> EmployeeTerritories {
-      get;
-      set;
-    }
+    public ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
 
     /// <summary>Gets the Orders. </summary>
     [DataMember]
     [InverseProperty("Employee")]
-    public ICollection<Order> Orders {
-      get; set;
-    }
+    public ICollection<Order> Orders { get; set; }
 
     /// <summary>Gets the Territories. </summary>
     [DataMember]
     [InverseProperty("Employees")]
-    public ICollection<Territory> Territories {
-      get;
-      set;
-    }
+    public ICollection<Territory> Territories { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Employee class
 
   #region EmployeeTerritory class
@@ -598,39 +474,28 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("ID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="EmployeeTerritory_ID")]
-    public int ID {
-      get;
-      set;
-    }
+    public int ID { get; set; }
 
     /// <summary>Gets or sets the EmployeeID. </summary>
     [DataMember]
     //[ForeignKey("Employee")]
     [Column("EmployeeID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="EmployeeTerritory_EmployeeID")]
-    public int EmployeeID {
-      get;
-      set;
-    }
+    public int EmployeeID { get; set; }
 
     /// <summary>Gets or sets the TerritoryID. </summary>
     [DataMember]
     // [ForeignKey("Territory")]
     [Column("TerritoryID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="EmployeeTerritory_TerritoryID")]
-    public int TerritoryID {
-      get;
-      set;
-    }
+    public int TerritoryID { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="EmployeeTerritory_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -639,29 +504,25 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("EmployeeID")]
     [InverseProperty("EmployeeTerritories")]
-    public Employee Employee {
-      get;
-      set;
-    }
+    public Employee Employee { get; set; }
 
     /// <summary>Gets or sets the Territory. </summary>
     [DataMember]
     [ForeignKey("TerritoryID")]
     [InverseProperty("EmployeeTerritories")]
-    public Territory Territory {
-      get;
-      set;
-    }
+    public Territory Territory { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion EmployeeTerritory class
 
   #region Order class
 
   /// <summary>The auto-generated Order class. </summary>
-  [DataContract(IsReference=true)]
-  [Table("Order", Schema="dbo")]
+  [DataContract(IsReference = true)]
+  [Table("Order", Schema = "dbo")]
   public partial class Order {
 
     #region Data Properties
@@ -672,115 +533,88 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("OrderID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Order_OrderID")]
-    public int OrderID {
-      get; set;
-    }
+    public int OrderID { get; set; }
 
     /// <summary>Gets or sets the CustomerID. </summary>
     [DataMember]
     // [ForeignKey("Customer")]
     [Column("CustomerID")]
-    public System.Nullable<System.Guid> CustomerID {
-      get; set;
-    }
+    public System.Nullable<System.Guid> CustomerID { get; set; }
 
     /// <summary>Gets or sets the EmployeeID. </summary>
     [DataMember]
     // [ForeignKey("Employee")]
     [Column("EmployeeID")]
-    public System.Nullable<int> EmployeeID {
-      get; set;
-    }
+    public System.Nullable<int> EmployeeID { get; set; }
 
     /// <summary>Gets or sets the OrderDate. </summary>
     [DataMember]
     [Column("OrderDate")]
-    public System.Nullable<System.DateTime> OrderDate {
-      get; set;
-    }
+    public System.Nullable<System.DateTime> OrderDate { get; set; }
 
     /// <summary>Gets or sets the RequiredDate. </summary>
     [DataMember]
     [Column("RequiredDate")]
-    public System.Nullable<System.DateTime> RequiredDate {
-      get; set;
-    }
+    public System.Nullable<System.DateTime> RequiredDate { get; set; }
 
     /// <summary>Gets or sets the ShippedDate. </summary>
     [DataMember]
     [Column("ShippedDate")]
-    public System.Nullable<System.DateTime> ShippedDate {
-      get; set;
-    }
+    public System.Nullable<System.DateTime> ShippedDate { get; set; }
 
     /// <summary>Gets or sets the Freight. </summary>
     [DataMember]
     [Column("Freight")]
-    public System.Nullable<decimal> Freight {
-      get; set;
-    }
+    public System.Nullable<decimal> Freight { get; set; }
 
     /// <summary>Gets or sets the ShipName. </summary>
     [DataMember]
     [Column("ShipName")]
     // [IbVal.StringLengthVerifier(MaxValue=40, IsRequired=false, ErrorMessageResourceName="Order_ShipName")]
     [MaxLength(40)]
-    public string ShipName {
-      get; set;
-    }
+    public string ShipName { get; set; }
 
     /// <summary>Gets or sets the ShipAddress. </summary>
     [DataMember]
     [Column("ShipAddress")]
     // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Order_ShipAddress")]
     [MaxLength(60)]
-    public string ShipAddress {
-      get; set;
-    }
+    public string ShipAddress { get; set; }
 
     /// <summary>Gets or sets the ShipCity. </summary>
     [DataMember]
     [Column("ShipCity")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Order_ShipCity")]
     [MaxLength(15)]
-    public string ShipCity {
-      get; set;
-    }
+    public string ShipCity { get; set; }
 
     /// <summary>Gets or sets the ShipRegion. </summary>
     [DataMember]
     [Column("ShipRegion")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Order_ShipRegion")]
     [MaxLength(15)]
-    public string ShipRegion {
-      get; set;
-    }
+    public string ShipRegion { get; set; }
 
     /// <summary>Gets or sets the ShipPostalCode. </summary>
     [DataMember]
     [Column("ShipPostalCode")]
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Order_ShipPostalCode")]
     [MaxLength(10)]
-    public string ShipPostalCode {
-      get; set;
-    }
+    public string ShipPostalCode { get; set; }
 
     /// <summary>Gets or sets the ShipCountry. </summary>
     [DataMember]
     [Column("ShipCountry")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Order_ShipCountry")]
     [MaxLength(15)]
-    public string ShipCountry {
-      get; set;
-    }
+    public string ShipCountry { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Order_RowVersion")]
-    public int RowVersion {
-      get; set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -789,42 +623,35 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("CustomerID")]
     [InverseProperty("Orders")]
-    public Customer Customer {
-      get; set;
-    }
+    public Customer Customer { get; set; }
 
     /// <summary>Gets or sets the Employee. </summary>
     [DataMember]
     [ForeignKey("EmployeeID")]
     [InverseProperty("Orders")]
-    public Employee Employee {
-      get; set;
-    }
+    public Employee Employee { get; set; }
 
     /// <summary>Gets the OrderDetails. </summary>
     [DataMember]
     [InverseProperty("Order")]
-    public ICollection<OrderDetail> OrderDetails {
-      get; set;
-    }
+    public ICollection<OrderDetail> OrderDetails { get; set; }
 
     /// <summary>Gets or sets the InternationalOrder. </summary>
     [DataMember]
     [InverseProperty("Order")]
-    public InternationalOrder InternationalOrder {
-      get;
-      set;
-    }
+    public InternationalOrder InternationalOrder { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Order class
 
   #region OrderDetail class
 
   /// <summary>The auto-generated OrderDetail class. </summary>
-  [DataContract(IsReference=true)]
-  [Table("OrderDetail", Schema="dbo")]
+  [DataContract(IsReference = true)]
+  [Table("OrderDetail", Schema = "dbo")]
   public partial class OrderDetail {
 
     #region Data Properties
@@ -834,54 +661,43 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     // [ForeignKey("Order")]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    [Column("OrderID", Order=0)]
+    [Column("OrderID", Order = 0)]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_OrderID")]
-    public int OrderID {
-      get; set;
-    }
+    public int OrderID { get; set; }
 
     /// <summary>Gets or sets the ProductID. </summary>
     [Key]
     [DataMember]
     // [ForeignKey("Product")]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    [Column("ProductID", Order=1)]
+    [Column("ProductID", Order = 1)]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_ProductID")]
-    public int ProductID {
-      get; set;
-    }
+    public int ProductID { get; set; }
 
     /// <summary>Gets or sets the UnitPrice. </summary>
     [DataMember]
     [Column("UnitPrice")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_UnitPrice")]
-    public decimal UnitPrice {
-      get; set;
-    }
+    public decimal UnitPrice { get; set; }
 
     /// <summary>Gets or sets the Quantity. </summary>
     [DataMember]
     [Column("Quantity")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_Quantity")]
-    public short Quantity {
-      get; set;
-    }
+    public short Quantity { get; set; }
 
     /// <summary>Gets or sets the Discount. </summary>
     [DataMember]
     [Column("Discount")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_Discount")]
-    public float Discount {
-      get; set;
-    }
+    public float Discount { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="OrderDetail_RowVersion")]
-    public int RowVersion {
-      get; set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -890,22 +706,18 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("OrderID")]
     [InverseProperty("OrderDetails")]
-    public Order Order {
-      get; set;
-    }
+    public Order Order { get; set; }
 
     /// <summary>Gets or sets the Product. </summary>
     [DataMember]
     [ForeignKey("ProductID")]
     // [InverseProperty("OrderDetails")]
-    public Product Product {
-      get;
-      set;
-    }
+    public Product Product { get; set; }
 
     #endregion Navigation properties
 
   }
+
   #endregion OrderDetail class
 
   #region PreviousEmployee class
@@ -923,10 +735,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column("EmployeeID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="PreviousEmployee_EmployeeID")]
-    public int EmployeeID {
-      get;
-      set;
-    }
+    public int EmployeeID { get; set; }
 
     /// <summary>Gets or sets the LastName. </summary>
     [DataMember]
@@ -934,10 +743,7 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=20, IsRequired=true, ErrorMessageResourceName="PreviousEmployee_LastName")]
     [MaxLength(20)]
     [Required]
-    public string LastName {
-      get;
-      set;
-    }
+    public string LastName { get; set; }
 
     /// <summary>Gets or sets the FirstName. </summary>
     [DataMember]
@@ -945,156 +751,111 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=true, ErrorMessageResourceName="PreviousEmployee_FirstName")]
     [MaxLength(10)]
     [Required]
-    public string FirstName {
-      get;
-      set;
-    }
+    public string FirstName { get; set; }
 
     /// <summary>Gets or sets the Title. </summary>
     [DataMember]
     [Column("Title")]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_Title")]
     [MaxLength(30)]
-    public string Title {
-      get;
-      set;
-    }
+    public string Title { get; set; }
 
     /// <summary>Gets or sets the TitleOfCourtesy. </summary>
     [DataMember]
     [Column("TitleOfCourtesy")]
     // [IbVal.StringLengthVerifier(MaxValue=25, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_TitleOfCourtesy")]
     [MaxLength(25)]
-    public string TitleOfCourtesy {
-      get;
-      set;
-    }
+    public string TitleOfCourtesy { get; set; }
 
     /// <summary>Gets or sets the BirthDate. </summary>
     [DataMember]
     [Column("BirthDate")]
-    public System.Nullable<System.DateTime> BirthDate {
-      get;
-      set;
-    }
+    public System.Nullable<System.DateTime> BirthDate { get; set; }
 
     /// <summary>Gets or sets the HireDate. </summary>
     [DataMember]
     [Column("HireDate")]
-    public System.Nullable<System.DateTime> HireDate {
-      get;
-      set;
-    }
+    public System.Nullable<System.DateTime> HireDate { get; set; }
 
     /// <summary>Gets or sets the Address. </summary>
     [DataMember]
     [Column("Address")]
     // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_Address")]
-    public string Address {
-      get;
-      set;
-    }
+    public string Address { get; set; }
 
     /// <summary>Gets or sets the City. </summary>
     [DataMember]
     [Column("City")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_City")]
     [MaxLength(15)]
-    public string City {
-      get;
-      set;
-    }
+    public string City { get; set; }
 
     /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_Region")]
     [MaxLength(15)]
-    public string Region {
-      get;
-      set;
-    }
+    public string Region { get; set; }
 
     /// <summary>Gets or sets the PostalCode. </summary>
     [DataMember]
     [Column("PostalCode")]
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_PostalCode")]
     [MaxLength(10)]
-    public string PostalCode {
-      get;
-      set;
-    }
+    public string PostalCode { get; set; }
 
     /// <summary>Gets or sets the Country. </summary>
     [DataMember]
     [Column("Country")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_Country")]
     [MaxLength(15)]
-    public string Country {
-      get;
-      set;
-    }
+    public string Country { get; set; }
 
     /// <summary>Gets or sets the HomePhone. </summary>
     [DataMember]
     [Column("HomePhone")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_HomePhone")]
     [MaxLength(24)]
-    public string HomePhone {
-      get;
-      set;
-    }
+    public string HomePhone { get; set; }
 
     /// <summary>Gets or sets the Extension. </summary>
     [DataMember]
     [Column("Extension")]
     // [IbVal.StringLengthVerifier(MaxValue=4, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_Extension")]
     [MaxLength(4)]
-    public string Extension {
-      get;
-      set;
-    }
+    public string Extension { get; set; }
 
     /// <summary>Gets or sets the Photo. </summary>
     [DataMember]
     [Column("Photo")]
-    public byte[] Photo {
-      get;
-      set;
-    }
+    public byte[] Photo { get; set; }
 
     /// <summary>Gets or sets the Notes. </summary>
     [DataMember]
     [Column("Notes")]
-    public string Notes {
-      get;
-      set;
-    }
+    public string Notes { get; set; }
 
     /// <summary>Gets or sets the PhotoPath. </summary>
     [DataMember]
     [Column("PhotoPath")]
     // [IbVal.StringLengthVerifier(MaxValue=255, IsRequired=false, ErrorMessageResourceName="PreviousEmployee_PhotoPath")]
     [MaxLength(255)]
-    public string PhotoPath {
-      get;
-      set;
-    }
+    public string PhotoPath { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="PreviousEmployee_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
+
     #endregion Navigation properties
 
   }
+
   #endregion PreviousEmployee class
 
   #region Product class
@@ -1112,106 +873,71 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("ProductID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Product_ProductID")]
-    public int ProductID {
-      get;
-      set;
-    }
+    public int ProductID { get; set; }
 
     /// <summary>Gets or sets the ProductName. </summary>
     [DataMember]
     [Column("ProductName")]
     // [IbVal.StringLengthVerifier(MaxValue=40, IsRequired=true, ErrorMessageResourceName="Product_ProductName")]
     [MaxLength(40)]
-    public string ProductName {
-      get;
-      set;
-    }
+    public string ProductName { get; set; }
 
     /// <summary>Gets or sets the SupplierID. </summary>
     [DataMember]
     //[ForeignKey("Supplier")]
     [Column("SupplierID")]
-    public System.Nullable<int> SupplierID {
-      get;
-      set;
-    }
+    public System.Nullable<int> SupplierID { get; set; }
 
     /// <summary>Gets or sets the CategoryID. </summary>
     [DataMember]
     // [ForeignKey("Category")]
     [Column("CategoryID")]
-    public System.Nullable<int> CategoryID {
-      get;
-      set;
-    }
+    public System.Nullable<int> CategoryID { get; set; }
 
     /// <summary>Gets or sets the QuantityPerUnit. </summary>
     [DataMember]
     [Column("QuantityPerUnit")]
     // [IbVal.StringLengthVerifier(MaxValue=20, IsRequired=false, ErrorMessageResourceName="Product_QuantityPerUnit")]
-    public string QuantityPerUnit {
-      get;
-      set;
-    }
+    public string QuantityPerUnit { get; set; }
 
     /// <summary>Gets or sets the UnitPrice. </summary>
     [DataMember]
     [Column("UnitPrice")]
-    public System.Nullable<decimal> UnitPrice {
-      get;
-      set;
-    }
+    public System.Nullable<decimal> UnitPrice { get; set; }
 
     /// <summary>Gets or sets the UnitsInStock. </summary>
     [DataMember]
     [Column("UnitsInStock")]
-    public System.Nullable<short> UnitsInStock {
-      get;
-      set;
-    }
+    public System.Nullable<short> UnitsInStock { get; set; }
 
     /// <summary>Gets or sets the UnitsOnOrder. </summary>
     [DataMember]
     [Column("UnitsOnOrder")]
-    public System.Nullable<short> UnitsOnOrder {
-      get;
-      set;
-    }
+    public System.Nullable<short> UnitsOnOrder { get; set; }
 
     /// <summary>Gets or sets the ReorderLevel. </summary>
     [DataMember]
     [Column("ReorderLevel")]
-    public System.Nullable<short> ReorderLevel {
-      get;
-      set;
-    }
+    public System.Nullable<short> ReorderLevel { get; set; }
 
     /// <summary>Gets or sets the Discontinued. </summary>
     [DataMember]
     [Column("Discontinued")]
     [DefaultValue(false)]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Product_Discontinued")]
-    public bool Discontinued {
-      get;
-      set;
-    }
+    public bool Discontinued { get; set; }
 
     /// <summary>Gets or sets the DiscontinuedDate. </summary>
     [DataMember]
     [Column("DiscontinuedDate")]
-    public System.Nullable<System.DateTime> DiscontinuedDate {
-      get;
-      set;
-    }
+    public System.Nullable<System.DateTime> DiscontinuedDate { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Product_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1220,10 +946,7 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("CategoryID")]
     [InverseProperty("Products")]
-    public Category Category {
-      get;
-      set;
-    }
+    public Category Category { get; set; }
 
     ///// <summary>Gets the OrderDetails. </summary>
     //[DataMember]
@@ -1237,13 +960,12 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("SupplierID")]
     [InverseProperty("Products")]
-    public Supplier Supplier {
-      get;
-      set;
-    }
+    public Supplier Supplier { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Product class
 
   #region Region class
@@ -1261,10 +983,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column("RegionID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Region_RegionID")]
-    public int RegionID {
-      get;
-      set;
-    }
+    public int RegionID { get; set; }
 
     /// <summary>Gets or sets the RegionDescription. </summary>
     [DataMember]
@@ -1272,19 +991,14 @@ namespace Models.NorthwindIB.CF {
     [MaxLength(50)]
     [Required]
     // [IbVal.StringLengthVerifier(MaxValue=50, IsRequired=true, ErrorMessageResourceName="Region_RegionDescription")]
-    public string RegionDescription {
-      get;
-      set;
-    }
+    public string RegionDescription { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Region_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1292,13 +1006,12 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the Territories. </summary>
     [DataMember]
     [InverseProperty("Region")]
-    public ICollection<Territory> Territories {
-      get;
-      set;
-    }
+    public ICollection<Territory> Territories { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Region class
 
   #region Role class
@@ -1316,10 +1029,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("Id")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Role_Id")]
-    public long Id {
-      get;
-      set;
-    }
+    public long Id { get; set; }
 
     /// <summary>Gets or sets the Name. </summary>
     [DataMember]
@@ -1327,29 +1037,20 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=50, IsRequired=true, ErrorMessageResourceName="Role_Name")]
     [MaxLength(50)]
     [Required]
-    public string Name {
-      get;
-      set;
-    }
+    public string Name { get; set; }
 
     /// <summary>Gets or sets the Description. </summary>
     [DataMember]
     [Column("Description")]
     // [IbVal.StringLengthVerifier(MaxValue=2000, IsRequired=false, ErrorMessageResourceName="Role_Description")]
     [MaxLength(2000)]
-    public string Description {
-      get;
-      set;
-    }
+    public string Description { get; set; }
 
     [DataMember]
     [Column("Ts")]
     [Required]
     [Timestamp]
-    public byte[] Ts {
-      get;
-      set;
-    }
+    public byte[] Ts { get; set; }
 
     #endregion Data Properties
 
@@ -1358,13 +1059,12 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the UserRoles. </summary>
     [DataMember]
     [InverseProperty("Role")]
-    public ICollection<UserRole> UserRoles {
-      get;
-      set;
-    }
+    public ICollection<UserRole> UserRoles { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Role class
 
   #region Supplier class
@@ -1382,10 +1082,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("SupplierID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Supplier_SupplierID")]
-    public int SupplierID {
-      get;
-      set;
-    }
+    public int SupplierID { get; set; }
 
     /// <summary>Gets or sets the CompanyName. </summary>
     [DataMember]
@@ -1393,36 +1090,24 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=40, IsRequired=true, ErrorMessageResourceName="Supplier_CompanyName")]
     [MaxLength(40)]
     [Required]
-    public string CompanyName {
-      get;
-      set;
-    }
+    public string CompanyName { get; set; }
 
     /// <summary>Gets or sets the ContactName. </summary>
     [DataMember]
     [Column("ContactName")]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Supplier_ContactName")]
     [MaxLength(30)]
-    public string ContactName {
-      get;
-      set;
-    }
+    public string ContactName { get; set; }
 
     /// <summary>Gets or sets the ContactTitle. </summary>
     [DataMember]
     [Column("ContactTitle")]
     // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Supplier_ContactTitle")]
     [MaxLength(30)]
-    public string ContactTitle {
-      get;
-      set;
-    }
+    public string ContactTitle { get; set; }
 
     [DataMember]
-    public Location Location {
-      get;
-      set;
-    }
+    public Location Location { get; set; }
 
     ///// <summary>Gets or sets the Address. </summary>
     //[DataMember]
@@ -1479,37 +1164,26 @@ namespace Models.NorthwindIB.CF {
     [Column("Phone")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Supplier_Phone")]
     [MaxLength(24)]
-    public string Phone {
-      get;
-      set;
-    }
+    public string Phone { get; set; }
 
     /// <summary>Gets or sets the Fax. </summary>
     [DataMember]
     [Column("Fax")]
     // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Supplier_Fax")]
     [MaxLength(24)]
-    public string Fax {
-      get;
-      set;
-    }
+    public string Fax { get; set; }
 
     /// <summary>Gets or sets the HomePage. </summary>
     [DataMember]
     [Column("HomePage")]
-    public string HomePage {
-      get;
-      set;
-    }
+    public string HomePage { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Supplier_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1517,12 +1191,11 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the Products. </summary>
     [DataMember]
     [InverseProperty("Supplier")]
-    public ICollection<Product> Products {
-      get;
-      set;
-    }
+    public ICollection<Product> Products { get; set; }
+
     #endregion Navigation properties
   }
+
   #endregion Supplier class
 
   [ComplexType]
@@ -1532,50 +1205,35 @@ namespace Models.NorthwindIB.CF {
     [Column("Address")]
     // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Supplier_Address")]
     [MaxLength(60)]
-    public string Address {
-      get;
-      set;
-    }
+    public string Address { get; set; }
 
     /// <summary>Gets or sets the City. </summary>
     [DataMember]
     [Column("City")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_City")]
     [MaxLength(15)]
-    public string City {
-      get;
-      set;
-    }
+    public string City { get; set; }
 
     /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [Column("Region")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Region")]
     [MaxLength(15)]
-    public string Region {
-      get;
-      set;
-    }
+    public string Region { get; set; }
 
     /// <summary>Gets or sets the PostalCode. </summary>
     [DataMember]
     [Column("PostalCode")]
     // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Supplier_PostalCode")]
     [MaxLength(10)]
-    public string PostalCode {
-      get;
-      set;
-    }
+    public string PostalCode { get; set; }
 
     /// <summary>Gets or sets the Country. </summary>
     [DataMember]
     [Column("Country")]
     // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Supplier_Country")]
     [MaxLength(15)]
-    public string Country {
-      get;
-      set;
-    }
+    public string Country { get; set; }
   }
 
   #region Territory class
@@ -1593,10 +1251,7 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column("TerritoryID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Territory_TerritoryID")]
-    public int TerritoryID {
-      get;
-      set;
-    }
+    public int TerritoryID { get; set; }
 
     /// <summary>Gets or sets the TerritoryDescription. </summary>
     [DataMember]
@@ -1604,29 +1259,21 @@ namespace Models.NorthwindIB.CF {
     // [IbVal.StringLengthVerifier(MaxValue=50, IsRequired=true, ErrorMessageResourceName="Territory_TerritoryDescription")]
     [MaxLength(50)]
     [Required]
-    public string TerritoryDescription {
-      get;
-      set;
-    }
+    public string TerritoryDescription { get; set; }
 
     /// <summary>Gets or sets the RegionID. </summary>
     [DataMember]
     // [ForeignKey("Region")]
     [Column("RegionID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Territory_RegionID")]
-    public int RegionID {
-      get;
-      set;
-    }
+    public int RegionID { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Territory_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1634,30 +1281,23 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the EmployeeTerritories. </summary>
     [DataMember]
     [InverseProperty("Territory")]
-    public ICollection<EmployeeTerritory> EmployeeTerritories {
-      get;
-      set;
-    }
+    public ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
 
     /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [ForeignKey("RegionID")]
     [InverseProperty("Territories")]
-    public Region Region {
-      get;
-      set;
-    }
+    public Region Region { get; set; }
 
     /// <summary>Gets the Employees. </summary>
     [DataMember]
     [InverseProperty("Territories")]
-    public ICollection<Employee> Employees {
-      get;
-      set;
-    }
+    public ICollection<Employee> Employees { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion Territory class
 
   #region User class
@@ -1675,116 +1315,80 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("Id")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_Id")]
-    public long Id {
-      get;
-      set;
-    }
+    public long Id { get; set; }
 
     /// <summary>Gets or sets the UserName. </summary>
     [DataMember]
     [Column("UserName")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_UserName")]
     [MaxLength(100)]
-    public string UserName {
-      get;
-      set;
-    }
+    public string UserName { get; set; }
 
     /// <summary>Gets or sets the UserPassword. </summary>
     [DataMember]
     [Column("UserPassword")]
     // [IbVal.StringLengthVerifier(MaxValue=200, IsRequired=false, ErrorMessageResourceName="User_UserPassword")]
     [MaxLength(200)]
-    public string UserPassword {
-      get;
-      set;
-    }
+    public string UserPassword { get; set; }
 
     /// <summary>Gets or sets the FirstName. </summary>
     [DataMember]
     [Column("FirstName")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_FirstName")]
     [MaxLength(100)]
-    public string FirstName {
-      get;
-      set;
-    }
+    public string FirstName { get; set; }
 
     /// <summary>Gets or sets the LastName. </summary>
     [DataMember]
     [Column("LastName")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_LastName")]
     [MaxLength(100)]
-    public string LastName {
-      get;
-      set;
-    }
+    public string LastName { get; set; }
 
     /// <summary>Gets or sets the Email. </summary>
     [DataMember]
     [Column("Email")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_Email")]
     [MaxLength(100)]
-    public string Email {
-      get;
-      set;
-    }
+    public string Email { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_RowVersion")]
-    public decimal RowVersion {
-      get;
-      set;
-    }
+    public decimal RowVersion { get; set; }
 
     /// <summary>Gets or sets the CreatedBy. </summary>
     [DataMember]
     [Column("CreatedBy")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_CreatedBy")]
     [MaxLength(100)]
-    public string CreatedBy {
-      get;
-      set;
-    }
+    public string CreatedBy { get; set; }
 
     /// <summary>Gets or sets the CreatedByUserId. </summary>
     [DataMember]
     [Column("CreatedByUserId")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_CreatedByUserId")]
-    public long CreatedByUserId {
-      get;
-      set;
-    }
+    public long CreatedByUserId { get; set; }
 
     /// <summary>Gets or sets the CreatedDate. </summary>
     [DataMember]
     [Column("CreatedDate")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_CreatedDate")]
-    public System.DateTime CreatedDate {
-      get;
-      set;
-    }
+    public System.DateTime CreatedDate { get; set; }
 
     /// <summary>Gets or sets the ModifiedBy. </summary>
     [DataMember]
     [Column("ModifiedBy")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="User_ModifiedBy")]
     [MaxLength(100)]
-    public string ModifiedBy {
-      get;
-      set;
-    }
+    public string ModifiedBy { get; set; }
 
     /// <summary>Gets or sets the ModifiedByUserId. </summary>
     [DataMember]
     [Column("ModifiedByUserId")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_ModifiedByUserId")]
-    public long ModifiedByUserId {
-      get;
-      set;
-    }
+    public long ModifiedByUserId { get; set; }
 
     /// <summary>Gets or sets the ModifiedDate. </summary>
     [DataMember]
@@ -1792,10 +1396,8 @@ namespace Models.NorthwindIB.CF {
     [Column("ModifiedDate")]
     [ConcurrencyCheck]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="User_ModifiedDate")]
-    public System.DateTime ModifiedDate {
-      get;
-      set;
-    }
+    public System.DateTime ModifiedDate { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1803,13 +1405,12 @@ namespace Models.NorthwindIB.CF {
     /// <summary>Gets the UserRoles. </summary>
     [DataMember]
     [InverseProperty("User")]
-    public ICollection<UserRole> UserRoles {
-      get;
-      set;
-    }
+    public ICollection<UserRole> UserRoles { get; set; }
+
     #endregion Navigation properties
 
     #region EntityPropertyNames
+
     public partial class EntityPropertyNames {
       public const String Id = "Id";
       public const String UserName = "UserName";
@@ -1826,8 +1427,10 @@ namespace Models.NorthwindIB.CF {
       public const String ModifiedDate = "ModifiedDate";
       public const String UserRoles = "UserRoles";
     }
+
     #endregion EntityPropertyNames
   }
+
   #endregion User class
 
   #region UserRole class
@@ -1845,30 +1448,22 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("ID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="UserRole_ID")]
-    public long ID {
-      get;
-      set;
-    }
+    public long ID { get; set; }
 
     /// <summary>Gets or sets the UserId. </summary>
     [DataMember]
     // [ForeignKey("User")]
     [Column("UserId")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="UserRole_UserId")]
-    public long UserId {
-      get;
-      set;
-    }
+    public long UserId { get; set; }
 
     /// <summary>Gets or sets the RoleId. </summary>
     [DataMember]
     // [ForeignKey("Role")]
     [Column("RoleId")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="UserRole_RoleId")]
-    public long RoleId {
-      get;
-      set;
-    }
+    public long RoleId { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1877,22 +1472,18 @@ namespace Models.NorthwindIB.CF {
     [DataMember]
     [ForeignKey("RoleId")]
     [InverseProperty("UserRoles")]
-    public Role Role {
-      get;
-      set;
-    }
+    public Role Role { get; set; }
 
     /// <summary>Gets or sets the User. </summary>
     [DataMember]
     [ForeignKey("UserId")]
     [InverseProperty("UserRoles")]
-    public User User {
-      get;
-      set;
-    }
+    public User User { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion UserRole class
 
   #region InternationalOrder class
@@ -1911,38 +1502,27 @@ namespace Models.NorthwindIB.CF {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column("OrderID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="InternationalOrder_OrderID")]
-    public int OrderID {
-      get;
-      set;
-    }
+    public int OrderID { get; set; }
 
     /// <summary>Gets or sets the CustomsDescription. </summary>
     [DataMember]
     [Column("CustomsDescription")]
     // [IbVal.StringLengthVerifier(MaxValue=100, IsRequired=true, ErrorMessageResourceName="InternationalOrder_CustomsDescription")]
     [MaxLength(100)]
-    public string CustomsDescription {
-      get;
-      set;
-    }
+    public string CustomsDescription { get; set; }
 
     /// <summary>Gets or sets the ExciseTax. </summary>
     [DataMember]
     [Column("ExciseTax")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="InternationalOrder_ExciseTax")]
-    public decimal ExciseTax {
-      get;
-      set;
-    }
+    public decimal ExciseTax { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="InternationalOrder_RowVersion")]
-    public int RowVersion {
-      get;
-      set;
-    }
+    public int RowVersion { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties
@@ -1952,12 +1532,11 @@ namespace Models.NorthwindIB.CF {
     [ForeignKey("OrderID")]
     [InverseProperty("InternationalOrder")]
     [Required]
-    public Order Order {
-      get;
-      set;
-    }
+    public Order Order { get; set; }
+
     #endregion Navigation properties
 
   }
+
   #endregion InternationalOrder class
 }

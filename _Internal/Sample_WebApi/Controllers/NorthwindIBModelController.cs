@@ -1,7 +1,7 @@
 ﻿// Only one of the next 3 should be uncommented.
-//#define CODEFIRST_PROVIDER 
+#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
+//#define DATABASEFIRST_NEW
 
 using System;
 using System.Net;
@@ -14,6 +14,7 @@ using System.Collections.Generic;
 
 #if CODEFIRST_PROVIDER
 using Models.NorthwindIB.CF;
+using Foo;
 using System.ComponentModel.DataAnnotations;
 #elif DATABASEFIRST_OLD
 using Models.NorthwindIB.EDMX;
