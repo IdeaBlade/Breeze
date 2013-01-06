@@ -457,7 +457,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -476,7 +476,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnBonusOrderDetailItemIDChanging(value);
                     ReportPropertyChanging("BonusOrderDetailItemID");
-                    _BonusOrderDetailItemID = StructuralObject.SetValidValue(value);
+                    _BonusOrderDetailItemID = StructuralObject.SetValidValue(value, "BonusOrderDetailItemID");
                     ReportPropertyChanged("BonusOrderDetailItemID");
                     OnBonusOrderDetailItemIDChanged();
                 }
@@ -501,7 +501,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnOrderIDChanging(value);
                 ReportPropertyChanging("OrderID");
-                _OrderID = StructuralObject.SetValidValue(value);
+                _OrderID = StructuralObject.SetValidValue(value, "OrderID");
                 ReportPropertyChanged("OrderID");
                 OnOrderIDChanged();
             }
@@ -525,7 +525,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnProductIDChanging(value);
                 ReportPropertyChanging("ProductID");
-                _ProductID = StructuralObject.SetValidValue(value);
+                _ProductID = StructuralObject.SetValidValue(value, "ProductID");
                 ReportPropertyChanged("ProductID");
                 OnProductIDChanged();
             }
@@ -549,7 +549,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnBonusProductIDChanging(value);
                 ReportPropertyChanging("BonusProductID");
-                _BonusProductID = StructuralObject.SetValidValue(value);
+                _BonusProductID = StructuralObject.SetValidValue(value, "BonusProductID");
                 ReportPropertyChanged("BonusProductID");
                 OnBonusProductIDChanged();
             }
@@ -573,7 +573,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCommentChanging(value);
                 ReportPropertyChanging("Comment");
-                _Comment = StructuralObject.SetValidValue(value, false);
+                _Comment = StructuralObject.SetValidValue(value, false, "Comment");
                 ReportPropertyChanged("Comment");
                 OnCommentChanged();
             }
@@ -584,7 +584,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -694,7 +693,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -713,7 +712,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnCategoryIDChanging(value);
                     ReportPropertyChanging("CategoryID");
-                    _CategoryID = StructuralObject.SetValidValue(value);
+                    _CategoryID = StructuralObject.SetValidValue(value, "CategoryID");
                     ReportPropertyChanged("CategoryID");
                     OnCategoryIDChanged();
                 }
@@ -738,7 +737,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCategoryNameChanging(value);
                 ReportPropertyChanging("CategoryName");
-                _CategoryName = StructuralObject.SetValidValue(value, false);
+                _CategoryName = StructuralObject.SetValidValue(value, false, "CategoryName");
                 ReportPropertyChanged("CategoryName");
                 OnCategoryNameChanged();
             }
@@ -762,7 +761,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnDescriptionChanging(value);
                 ReportPropertyChanging("Description");
-                _Description = StructuralObject.SetValidValue(value, true);
+                _Description = StructuralObject.SetValidValue(value, true, "Description");
                 ReportPropertyChanged("Description");
                 OnDescriptionChanged();
             }
@@ -786,7 +785,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPictureChanging(value);
                 ReportPropertyChanging("Picture");
-                _Picture = StructuralObject.SetValidValue(value, true);
+                _Picture = StructuralObject.SetValidValue(value, true, "Picture");
                 ReportPropertyChanged("Picture");
                 OnPictureChanged();
             }
@@ -810,7 +809,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -821,7 +820,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -875,7 +873,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -894,7 +892,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnCustomerIDChanging(value);
                     ReportPropertyChanging("CustomerID");
-                    _CustomerID = StructuralObject.SetValidValue(value);
+                    _CustomerID = StructuralObject.SetValidValue(value, "CustomerID");
                     ReportPropertyChanged("CustomerID");
                     OnCustomerIDChanged();
                 }
@@ -919,7 +917,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCustomerID_OLDChanging(value);
                 ReportPropertyChanging("CustomerID_OLD");
-                _CustomerID_OLD = StructuralObject.SetValidValue(value, true);
+                _CustomerID_OLD = StructuralObject.SetValidValue(value, true, "CustomerID_OLD");
                 ReportPropertyChanged("CustomerID_OLD");
                 OnCustomerID_OLDChanged();
             }
@@ -943,7 +941,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCompanyNameChanging(value);
                 ReportPropertyChanging("CompanyName");
-                _CompanyName = StructuralObject.SetValidValue(value, false);
+                _CompanyName = StructuralObject.SetValidValue(value, false, "CompanyName");
                 ReportPropertyChanged("CompanyName");
                 OnCompanyNameChanged();
             }
@@ -967,7 +965,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnContactNameChanging(value);
                 ReportPropertyChanging("ContactName");
-                _ContactName = StructuralObject.SetValidValue(value, true);
+                _ContactName = StructuralObject.SetValidValue(value, true, "ContactName");
                 ReportPropertyChanged("ContactName");
                 OnContactNameChanged();
             }
@@ -991,7 +989,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnContactTitleChanging(value);
                 ReportPropertyChanging("ContactTitle");
-                _ContactTitle = StructuralObject.SetValidValue(value, true);
+                _ContactTitle = StructuralObject.SetValidValue(value, true, "ContactTitle");
                 ReportPropertyChanged("ContactTitle");
                 OnContactTitleChanged();
             }
@@ -1015,7 +1013,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnAddressChanging(value);
                 ReportPropertyChanging("Address");
-                _Address = StructuralObject.SetValidValue(value, true);
+                _Address = StructuralObject.SetValidValue(value, true, "Address");
                 ReportPropertyChanged("Address");
                 OnAddressChanged();
             }
@@ -1039,7 +1037,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCityChanging(value);
                 ReportPropertyChanging("City");
-                _City = StructuralObject.SetValidValue(value, true);
+                _City = StructuralObject.SetValidValue(value, true, "City");
                 ReportPropertyChanged("City");
                 OnCityChanged();
             }
@@ -1063,7 +1061,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRegionChanging(value);
                 ReportPropertyChanging("Region");
-                _Region = StructuralObject.SetValidValue(value, true);
+                _Region = StructuralObject.SetValidValue(value, true, "Region");
                 ReportPropertyChanged("Region");
                 OnRegionChanged();
             }
@@ -1087,7 +1085,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPostalCodeChanging(value);
                 ReportPropertyChanging("PostalCode");
-                _PostalCode = StructuralObject.SetValidValue(value, true);
+                _PostalCode = StructuralObject.SetValidValue(value, true, "PostalCode");
                 ReportPropertyChanged("PostalCode");
                 OnPostalCodeChanged();
             }
@@ -1111,7 +1109,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCountryChanging(value);
                 ReportPropertyChanging("Country");
-                _Country = StructuralObject.SetValidValue(value, true);
+                _Country = StructuralObject.SetValidValue(value, true, "Country");
                 ReportPropertyChanged("Country");
                 OnCountryChanged();
             }
@@ -1135,7 +1133,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPhoneChanging(value);
                 ReportPropertyChanging("Phone");
-                _Phone = StructuralObject.SetValidValue(value, true);
+                _Phone = StructuralObject.SetValidValue(value, true, "Phone");
                 ReportPropertyChanged("Phone");
                 OnPhoneChanged();
             }
@@ -1159,7 +1157,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnFaxChanging(value);
                 ReportPropertyChanging("Fax");
-                _Fax = StructuralObject.SetValidValue(value, true);
+                _Fax = StructuralObject.SetValidValue(value, true, "Fax");
                 ReportPropertyChanged("Fax");
                 OnFaxChanged();
             }
@@ -1183,7 +1181,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -1194,7 +1192,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1252,7 +1249,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1271,7 +1268,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnEmployeeIDChanging(value);
                     ReportPropertyChanging("EmployeeID");
-                    _EmployeeID = StructuralObject.SetValidValue(value);
+                    _EmployeeID = StructuralObject.SetValidValue(value, "EmployeeID");
                     ReportPropertyChanged("EmployeeID");
                     OnEmployeeIDChanged();
                 }
@@ -1296,7 +1293,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnLastNameChanging(value);
                 ReportPropertyChanging("LastName");
-                _LastName = StructuralObject.SetValidValue(value, false);
+                _LastName = StructuralObject.SetValidValue(value, false, "LastName");
                 ReportPropertyChanged("LastName");
                 OnLastNameChanged();
             }
@@ -1320,7 +1317,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnFirstNameChanging(value);
                 ReportPropertyChanging("FirstName");
-                _FirstName = StructuralObject.SetValidValue(value, false);
+                _FirstName = StructuralObject.SetValidValue(value, false, "FirstName");
                 ReportPropertyChanged("FirstName");
                 OnFirstNameChanged();
             }
@@ -1344,7 +1341,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnTitleChanging(value);
                 ReportPropertyChanging("Title");
-                _Title = StructuralObject.SetValidValue(value, true);
+                _Title = StructuralObject.SetValidValue(value, true, "Title");
                 ReportPropertyChanged("Title");
                 OnTitleChanged();
             }
@@ -1368,7 +1365,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnTitleOfCourtesyChanging(value);
                 ReportPropertyChanging("TitleOfCourtesy");
-                _TitleOfCourtesy = StructuralObject.SetValidValue(value, true);
+                _TitleOfCourtesy = StructuralObject.SetValidValue(value, true, "TitleOfCourtesy");
                 ReportPropertyChanged("TitleOfCourtesy");
                 OnTitleOfCourtesyChanged();
             }
@@ -1392,7 +1389,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnBirthDateChanging(value);
                 ReportPropertyChanging("BirthDate");
-                _BirthDate = StructuralObject.SetValidValue(value);
+                _BirthDate = StructuralObject.SetValidValue(value, "BirthDate");
                 ReportPropertyChanged("BirthDate");
                 OnBirthDateChanged();
             }
@@ -1416,7 +1413,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnHireDateChanging(value);
                 ReportPropertyChanging("HireDate");
-                _HireDate = StructuralObject.SetValidValue(value);
+                _HireDate = StructuralObject.SetValidValue(value, "HireDate");
                 ReportPropertyChanged("HireDate");
                 OnHireDateChanged();
             }
@@ -1440,7 +1437,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnAddressChanging(value);
                 ReportPropertyChanging("Address");
-                _Address = StructuralObject.SetValidValue(value, true);
+                _Address = StructuralObject.SetValidValue(value, true, "Address");
                 ReportPropertyChanged("Address");
                 OnAddressChanged();
             }
@@ -1464,7 +1461,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCityChanging(value);
                 ReportPropertyChanging("City");
-                _City = StructuralObject.SetValidValue(value, true);
+                _City = StructuralObject.SetValidValue(value, true, "City");
                 ReportPropertyChanged("City");
                 OnCityChanged();
             }
@@ -1488,7 +1485,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRegionChanging(value);
                 ReportPropertyChanging("Region");
-                _Region = StructuralObject.SetValidValue(value, true);
+                _Region = StructuralObject.SetValidValue(value, true, "Region");
                 ReportPropertyChanged("Region");
                 OnRegionChanged();
             }
@@ -1512,7 +1509,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPostalCodeChanging(value);
                 ReportPropertyChanging("PostalCode");
-                _PostalCode = StructuralObject.SetValidValue(value, true);
+                _PostalCode = StructuralObject.SetValidValue(value, true, "PostalCode");
                 ReportPropertyChanged("PostalCode");
                 OnPostalCodeChanged();
             }
@@ -1536,7 +1533,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCountryChanging(value);
                 ReportPropertyChanging("Country");
-                _Country = StructuralObject.SetValidValue(value, true);
+                _Country = StructuralObject.SetValidValue(value, true, "Country");
                 ReportPropertyChanged("Country");
                 OnCountryChanged();
             }
@@ -1560,7 +1557,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnHomePhoneChanging(value);
                 ReportPropertyChanging("HomePhone");
-                _HomePhone = StructuralObject.SetValidValue(value, true);
+                _HomePhone = StructuralObject.SetValidValue(value, true, "HomePhone");
                 ReportPropertyChanged("HomePhone");
                 OnHomePhoneChanged();
             }
@@ -1584,7 +1581,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnExtensionChanging(value);
                 ReportPropertyChanging("Extension");
-                _Extension = StructuralObject.SetValidValue(value, true);
+                _Extension = StructuralObject.SetValidValue(value, true, "Extension");
                 ReportPropertyChanged("Extension");
                 OnExtensionChanged();
             }
@@ -1608,7 +1605,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPhotoChanging(value);
                 ReportPropertyChanging("Photo");
-                _Photo = StructuralObject.SetValidValue(value, true);
+                _Photo = StructuralObject.SetValidValue(value, true, "Photo");
                 ReportPropertyChanged("Photo");
                 OnPhotoChanged();
             }
@@ -1632,7 +1629,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnNotesChanging(value);
                 ReportPropertyChanging("Notes");
-                _Notes = StructuralObject.SetValidValue(value, true);
+                _Notes = StructuralObject.SetValidValue(value, true, "Notes");
                 ReportPropertyChanged("Notes");
                 OnNotesChanged();
             }
@@ -1656,7 +1653,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPhotoPathChanging(value);
                 ReportPropertyChanging("PhotoPath");
-                _PhotoPath = StructuralObject.SetValidValue(value, true);
+                _PhotoPath = StructuralObject.SetValidValue(value, true, "PhotoPath");
                 ReportPropertyChanged("PhotoPath");
                 OnPhotoPathChanged();
             }
@@ -1680,7 +1677,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnReportsToEmployeeIDChanging(value);
                 ReportPropertyChanging("ReportsToEmployeeID");
-                _ReportsToEmployeeID = StructuralObject.SetValidValue(value);
+                _ReportsToEmployeeID = StructuralObject.SetValidValue(value, "ReportsToEmployeeID");
                 ReportPropertyChanged("ReportsToEmployeeID");
                 OnReportsToEmployeeIDChanged();
             }
@@ -1704,7 +1701,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -1715,7 +1712,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1855,7 +1851,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1874,7 +1870,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnIDChanging(value);
                     ReportPropertyChanging("ID");
-                    _ID = StructuralObject.SetValidValue(value);
+                    _ID = StructuralObject.SetValidValue(value, "ID");
                     ReportPropertyChanged("ID");
                     OnIDChanged();
                 }
@@ -1899,7 +1895,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnEmployeeIDChanging(value);
                 ReportPropertyChanging("EmployeeID");
-                _EmployeeID = StructuralObject.SetValidValue(value);
+                _EmployeeID = StructuralObject.SetValidValue(value, "EmployeeID");
                 ReportPropertyChanged("EmployeeID");
                 OnEmployeeIDChanged();
             }
@@ -1923,7 +1919,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnTerritoryIDChanging(value);
                 ReportPropertyChanging("TerritoryID");
-                _TerritoryID = StructuralObject.SetValidValue(value);
+                _TerritoryID = StructuralObject.SetValidValue(value, "TerritoryID");
                 ReportPropertyChanged("TerritoryID");
                 OnTerritoryIDChanged();
             }
@@ -1947,7 +1943,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -1958,7 +1954,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2066,7 +2061,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2085,7 +2080,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnOrderIDChanging(value);
                     ReportPropertyChanging("OrderID");
-                    _OrderID = StructuralObject.SetValidValue(value);
+                    _OrderID = StructuralObject.SetValidValue(value, "OrderID");
                     ReportPropertyChanged("OrderID");
                     OnOrderIDChanged();
                 }
@@ -2110,7 +2105,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCustomerIDChanging(value);
                 ReportPropertyChanging("CustomerID");
-                _CustomerID = StructuralObject.SetValidValue(value);
+                _CustomerID = StructuralObject.SetValidValue(value, "CustomerID");
                 ReportPropertyChanged("CustomerID");
                 OnCustomerIDChanged();
             }
@@ -2134,7 +2129,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnEmployeeIDChanging(value);
                 ReportPropertyChanging("EmployeeID");
-                _EmployeeID = StructuralObject.SetValidValue(value);
+                _EmployeeID = StructuralObject.SetValidValue(value, "EmployeeID");
                 ReportPropertyChanged("EmployeeID");
                 OnEmployeeIDChanged();
             }
@@ -2158,7 +2153,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnOrderDateChanging(value);
                 ReportPropertyChanging("OrderDate");
-                _OrderDate = StructuralObject.SetValidValue(value);
+                _OrderDate = StructuralObject.SetValidValue(value, "OrderDate");
                 ReportPropertyChanged("OrderDate");
                 OnOrderDateChanged();
             }
@@ -2182,7 +2177,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRequiredDateChanging(value);
                 ReportPropertyChanging("RequiredDate");
-                _RequiredDate = StructuralObject.SetValidValue(value);
+                _RequiredDate = StructuralObject.SetValidValue(value, "RequiredDate");
                 ReportPropertyChanged("RequiredDate");
                 OnRequiredDateChanged();
             }
@@ -2206,7 +2201,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShippedDateChanging(value);
                 ReportPropertyChanging("ShippedDate");
-                _ShippedDate = StructuralObject.SetValidValue(value);
+                _ShippedDate = StructuralObject.SetValidValue(value, "ShippedDate");
                 ReportPropertyChanged("ShippedDate");
                 OnShippedDateChanged();
             }
@@ -2230,7 +2225,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnFreightChanging(value);
                 ReportPropertyChanging("Freight");
-                _Freight = StructuralObject.SetValidValue(value);
+                _Freight = StructuralObject.SetValidValue(value, "Freight");
                 ReportPropertyChanged("Freight");
                 OnFreightChanged();
             }
@@ -2254,7 +2249,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipNameChanging(value);
                 ReportPropertyChanging("ShipName");
-                _ShipName = StructuralObject.SetValidValue(value, true);
+                _ShipName = StructuralObject.SetValidValue(value, true, "ShipName");
                 ReportPropertyChanged("ShipName");
                 OnShipNameChanged();
             }
@@ -2278,7 +2273,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipAddressChanging(value);
                 ReportPropertyChanging("ShipAddress");
-                _ShipAddress = StructuralObject.SetValidValue(value, true);
+                _ShipAddress = StructuralObject.SetValidValue(value, true, "ShipAddress");
                 ReportPropertyChanged("ShipAddress");
                 OnShipAddressChanged();
             }
@@ -2302,7 +2297,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipCityChanging(value);
                 ReportPropertyChanging("ShipCity");
-                _ShipCity = StructuralObject.SetValidValue(value, true);
+                _ShipCity = StructuralObject.SetValidValue(value, true, "ShipCity");
                 ReportPropertyChanged("ShipCity");
                 OnShipCityChanged();
             }
@@ -2326,7 +2321,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipRegionChanging(value);
                 ReportPropertyChanging("ShipRegion");
-                _ShipRegion = StructuralObject.SetValidValue(value, true);
+                _ShipRegion = StructuralObject.SetValidValue(value, true, "ShipRegion");
                 ReportPropertyChanged("ShipRegion");
                 OnShipRegionChanged();
             }
@@ -2350,7 +2345,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipPostalCodeChanging(value);
                 ReportPropertyChanging("ShipPostalCode");
-                _ShipPostalCode = StructuralObject.SetValidValue(value, true);
+                _ShipPostalCode = StructuralObject.SetValidValue(value, true, "ShipPostalCode");
                 ReportPropertyChanged("ShipPostalCode");
                 OnShipPostalCodeChanged();
             }
@@ -2374,7 +2369,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnShipCountryChanging(value);
                 ReportPropertyChanging("ShipCountry");
-                _ShipCountry = StructuralObject.SetValidValue(value, true);
+                _ShipCountry = StructuralObject.SetValidValue(value, true, "ShipCountry");
                 ReportPropertyChanged("ShipCountry");
                 OnShipCountryChanged();
             }
@@ -2398,7 +2393,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -2409,7 +2404,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2547,7 +2541,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2566,7 +2560,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnOrderIDChanging(value);
                     ReportPropertyChanging("OrderID");
-                    _OrderID = StructuralObject.SetValidValue(value);
+                    _OrderID = StructuralObject.SetValidValue(value, "OrderID");
                     ReportPropertyChanged("OrderID");
                     OnOrderIDChanged();
                 }
@@ -2593,7 +2587,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnProductIDChanging(value);
                     ReportPropertyChanging("ProductID");
-                    _ProductID = StructuralObject.SetValidValue(value);
+                    _ProductID = StructuralObject.SetValidValue(value, "ProductID");
                     ReportPropertyChanged("ProductID");
                     OnProductIDChanged();
                 }
@@ -2618,7 +2612,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUnitPriceChanging(value);
                 ReportPropertyChanging("UnitPrice");
-                _UnitPrice = StructuralObject.SetValidValue(value);
+                _UnitPrice = StructuralObject.SetValidValue(value, "UnitPrice");
                 ReportPropertyChanged("UnitPrice");
                 OnUnitPriceChanged();
             }
@@ -2642,7 +2636,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnQuantityChanging(value);
                 ReportPropertyChanging("Quantity");
-                _Quantity = StructuralObject.SetValidValue(value);
+                _Quantity = StructuralObject.SetValidValue(value, "Quantity");
                 ReportPropertyChanged("Quantity");
                 OnQuantityChanged();
             }
@@ -2666,7 +2660,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnDiscountChanging(value);
                 ReportPropertyChanging("Discount");
-                _Discount = StructuralObject.SetValidValue(value);
+                _Discount = StructuralObject.SetValidValue(value, "Discount");
                 ReportPropertyChanged("Discount");
                 OnDiscountChanged();
             }
@@ -2690,7 +2684,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -2701,7 +2695,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2835,7 +2828,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2854,7 +2847,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnProductIDChanging(value);
                     ReportPropertyChanging("ProductID");
-                    _ProductID = StructuralObject.SetValidValue(value);
+                    _ProductID = StructuralObject.SetValidValue(value, "ProductID");
                     ReportPropertyChanged("ProductID");
                     OnProductIDChanged();
                 }
@@ -2879,7 +2872,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnProductNameChanging(value);
                 ReportPropertyChanging("ProductName");
-                _ProductName = StructuralObject.SetValidValue(value, false);
+                _ProductName = StructuralObject.SetValidValue(value, false, "ProductName");
                 ReportPropertyChanged("ProductName");
                 OnProductNameChanged();
             }
@@ -2903,7 +2896,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnSupplierIDChanging(value);
                 ReportPropertyChanging("SupplierID");
-                _SupplierID = StructuralObject.SetValidValue(value);
+                _SupplierID = StructuralObject.SetValidValue(value, "SupplierID");
                 ReportPropertyChanged("SupplierID");
                 OnSupplierIDChanged();
             }
@@ -2927,7 +2920,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCategoryIDChanging(value);
                 ReportPropertyChanging("CategoryID");
-                _CategoryID = StructuralObject.SetValidValue(value);
+                _CategoryID = StructuralObject.SetValidValue(value, "CategoryID");
                 ReportPropertyChanged("CategoryID");
                 OnCategoryIDChanged();
             }
@@ -2951,7 +2944,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnQuantityPerUnitChanging(value);
                 ReportPropertyChanging("QuantityPerUnit");
-                _QuantityPerUnit = StructuralObject.SetValidValue(value, true);
+                _QuantityPerUnit = StructuralObject.SetValidValue(value, true, "QuantityPerUnit");
                 ReportPropertyChanged("QuantityPerUnit");
                 OnQuantityPerUnitChanged();
             }
@@ -2975,7 +2968,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUnitPriceChanging(value);
                 ReportPropertyChanging("UnitPrice");
-                _UnitPrice = StructuralObject.SetValidValue(value);
+                _UnitPrice = StructuralObject.SetValidValue(value, "UnitPrice");
                 ReportPropertyChanged("UnitPrice");
                 OnUnitPriceChanged();
             }
@@ -2999,7 +2992,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUnitsInStockChanging(value);
                 ReportPropertyChanging("UnitsInStock");
-                _UnitsInStock = StructuralObject.SetValidValue(value);
+                _UnitsInStock = StructuralObject.SetValidValue(value, "UnitsInStock");
                 ReportPropertyChanged("UnitsInStock");
                 OnUnitsInStockChanged();
             }
@@ -3023,7 +3016,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUnitsOnOrderChanging(value);
                 ReportPropertyChanging("UnitsOnOrder");
-                _UnitsOnOrder = StructuralObject.SetValidValue(value);
+                _UnitsOnOrder = StructuralObject.SetValidValue(value, "UnitsOnOrder");
                 ReportPropertyChanged("UnitsOnOrder");
                 OnUnitsOnOrderChanged();
             }
@@ -3047,7 +3040,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnReorderLevelChanging(value);
                 ReportPropertyChanging("ReorderLevel");
-                _ReorderLevel = StructuralObject.SetValidValue(value);
+                _ReorderLevel = StructuralObject.SetValidValue(value, "ReorderLevel");
                 ReportPropertyChanged("ReorderLevel");
                 OnReorderLevelChanged();
             }
@@ -3071,7 +3064,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnDiscontinuedChanging(value);
                 ReportPropertyChanging("Discontinued");
-                _Discontinued = StructuralObject.SetValidValue(value);
+                _Discontinued = StructuralObject.SetValidValue(value, "Discontinued");
                 ReportPropertyChanged("Discontinued");
                 OnDiscontinuedChanged();
             }
@@ -3095,7 +3088,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnDiscontinuedDateChanging(value);
                 ReportPropertyChanging("DiscontinuedDate");
-                _DiscontinuedDate = StructuralObject.SetValidValue(value);
+                _DiscontinuedDate = StructuralObject.SetValidValue(value, "DiscontinuedDate");
                 ReportPropertyChanged("DiscontinuedDate");
                 OnDiscontinuedDateChanged();
             }
@@ -3119,7 +3112,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -3130,7 +3123,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3240,7 +3232,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3259,7 +3251,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnRegionIDChanging(value);
                     ReportPropertyChanging("RegionID");
-                    _RegionID = StructuralObject.SetValidValue(value);
+                    _RegionID = StructuralObject.SetValidValue(value, "RegionID");
                     ReportPropertyChanged("RegionID");
                     OnRegionIDChanged();
                 }
@@ -3284,7 +3276,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRegionDescriptionChanging(value);
                 ReportPropertyChanging("RegionDescription");
-                _RegionDescription = StructuralObject.SetValidValue(value, false);
+                _RegionDescription = StructuralObject.SetValidValue(value, false, "RegionDescription");
                 ReportPropertyChanged("RegionDescription");
                 OnRegionDescriptionChanged();
             }
@@ -3308,7 +3300,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -3319,7 +3311,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3375,7 +3366,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3394,7 +3385,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3419,7 +3410,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnNameChanging(value);
                 ReportPropertyChanging("Name");
-                _Name = StructuralObject.SetValidValue(value, false);
+                _Name = StructuralObject.SetValidValue(value, false, "Name");
                 ReportPropertyChanged("Name");
                 OnNameChanged();
             }
@@ -3443,7 +3434,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnDescriptionChanging(value);
                 ReportPropertyChanging("Description");
-                _Description = StructuralObject.SetValidValue(value, true);
+                _Description = StructuralObject.SetValidValue(value, true, "Description");
                 ReportPropertyChanged("Description");
                 OnDescriptionChanged();
             }
@@ -3467,7 +3458,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnTsChanging(value);
                 ReportPropertyChanging("Ts");
-                _Ts = StructuralObject.SetValidValue(value, true);
+                _Ts = StructuralObject.SetValidValue(value, true, "Ts");
                 ReportPropertyChanged("Ts");
                 OnTsChanged();
             }
@@ -3491,7 +3482,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRoleTypeChanging(value);
                 ReportPropertyChanging("RoleType");
-                _RoleType = StructuralObject.SetValidValue(value);
+                _RoleType = StructuralObject.SetValidValue(value, "RoleType");
                 ReportPropertyChanged("RoleType");
                 OnRoleTypeChanged();
             }
@@ -3502,7 +3493,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3560,7 +3550,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3579,7 +3569,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnSupplierIDChanging(value);
                     ReportPropertyChanging("SupplierID");
-                    _SupplierID = StructuralObject.SetValidValue(value);
+                    _SupplierID = StructuralObject.SetValidValue(value, "SupplierID");
                     ReportPropertyChanged("SupplierID");
                     OnSupplierIDChanged();
                 }
@@ -3604,7 +3594,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCompanyNameChanging(value);
                 ReportPropertyChanging("CompanyName");
-                _CompanyName = StructuralObject.SetValidValue(value, false);
+                _CompanyName = StructuralObject.SetValidValue(value, false, "CompanyName");
                 ReportPropertyChanged("CompanyName");
                 OnCompanyNameChanged();
             }
@@ -3628,7 +3618,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnContactNameChanging(value);
                 ReportPropertyChanging("ContactName");
-                _ContactName = StructuralObject.SetValidValue(value, true);
+                _ContactName = StructuralObject.SetValidValue(value, true, "ContactName");
                 ReportPropertyChanged("ContactName");
                 OnContactNameChanged();
             }
@@ -3652,7 +3642,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnContactTitleChanging(value);
                 ReportPropertyChanging("ContactTitle");
-                _ContactTitle = StructuralObject.SetValidValue(value, true);
+                _ContactTitle = StructuralObject.SetValidValue(value, true, "ContactTitle");
                 ReportPropertyChanged("ContactTitle");
                 OnContactTitleChanged();
             }
@@ -3676,7 +3666,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPhoneChanging(value);
                 ReportPropertyChanging("Phone");
-                _Phone = StructuralObject.SetValidValue(value, true);
+                _Phone = StructuralObject.SetValidValue(value, true, "Phone");
                 ReportPropertyChanged("Phone");
                 OnPhoneChanged();
             }
@@ -3700,7 +3690,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnFaxChanging(value);
                 ReportPropertyChanging("Fax");
-                _Fax = StructuralObject.SetValidValue(value, true);
+                _Fax = StructuralObject.SetValidValue(value, true, "Fax");
                 ReportPropertyChanged("Fax");
                 OnFaxChanged();
             }
@@ -3724,7 +3714,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnHomePageChanging(value);
                 ReportPropertyChanging("HomePage");
-                _HomePage = StructuralObject.SetValidValue(value, true);
+                _HomePage = StructuralObject.SetValidValue(value, true, "HomePage");
                 ReportPropertyChanged("HomePage");
                 OnHomePageChanged();
             }
@@ -3748,7 +3738,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -3794,7 +3784,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3852,7 +3841,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3871,7 +3860,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnTerritoryIDChanging(value);
                     ReportPropertyChanging("TerritoryID");
-                    _TerritoryID = StructuralObject.SetValidValue(value);
+                    _TerritoryID = StructuralObject.SetValidValue(value, "TerritoryID");
                     ReportPropertyChanged("TerritoryID");
                     OnTerritoryIDChanged();
                 }
@@ -3896,7 +3885,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnTerritoryDescriptionChanging(value);
                 ReportPropertyChanging("TerritoryDescription");
-                _TerritoryDescription = StructuralObject.SetValidValue(value, false);
+                _TerritoryDescription = StructuralObject.SetValidValue(value, false, "TerritoryDescription");
                 ReportPropertyChanged("TerritoryDescription");
                 OnTerritoryDescriptionChanged();
             }
@@ -3920,7 +3909,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRegionIDChanging(value);
                 ReportPropertyChanging("RegionID");
-                _RegionID = StructuralObject.SetValidValue(value);
+                _RegionID = StructuralObject.SetValidValue(value, "RegionID");
                 ReportPropertyChanged("RegionID");
                 OnRegionIDChanged();
             }
@@ -3944,7 +3933,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -3955,7 +3944,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -4067,7 +4055,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -4086,7 +4074,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -4111,7 +4099,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUserNameChanging(value);
                 ReportPropertyChanging("UserName");
-                _UserName = StructuralObject.SetValidValue(value, false);
+                _UserName = StructuralObject.SetValidValue(value, false, "UserName");
                 ReportPropertyChanged("UserName");
                 OnUserNameChanged();
             }
@@ -4135,7 +4123,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUserPasswordChanging(value);
                 ReportPropertyChanging("UserPassword");
-                _UserPassword = StructuralObject.SetValidValue(value, true);
+                _UserPassword = StructuralObject.SetValidValue(value, true, "UserPassword");
                 ReportPropertyChanged("UserPassword");
                 OnUserPasswordChanged();
             }
@@ -4159,7 +4147,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnFirstNameChanging(value);
                 ReportPropertyChanging("FirstName");
-                _FirstName = StructuralObject.SetValidValue(value, false);
+                _FirstName = StructuralObject.SetValidValue(value, false, "FirstName");
                 ReportPropertyChanged("FirstName");
                 OnFirstNameChanged();
             }
@@ -4183,7 +4171,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnLastNameChanging(value);
                 ReportPropertyChanging("LastName");
-                _LastName = StructuralObject.SetValidValue(value, false);
+                _LastName = StructuralObject.SetValidValue(value, false, "LastName");
                 ReportPropertyChanged("LastName");
                 OnLastNameChanged();
             }
@@ -4207,7 +4195,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnEmailChanging(value);
                 ReportPropertyChanging("Email");
-                _Email = StructuralObject.SetValidValue(value, false);
+                _Email = StructuralObject.SetValidValue(value, false, "Email");
                 ReportPropertyChanged("Email");
                 OnEmailChanged();
             }
@@ -4231,7 +4219,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRowVersionChanging(value);
                 ReportPropertyChanging("RowVersion");
-                _RowVersion = StructuralObject.SetValidValue(value);
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
                 ReportPropertyChanged("RowVersion");
                 OnRowVersionChanged();
             }
@@ -4255,7 +4243,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCreatedByChanging(value);
                 ReportPropertyChanging("CreatedBy");
-                _CreatedBy = StructuralObject.SetValidValue(value, false);
+                _CreatedBy = StructuralObject.SetValidValue(value, false, "CreatedBy");
                 ReportPropertyChanged("CreatedBy");
                 OnCreatedByChanged();
             }
@@ -4279,7 +4267,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCreatedByUserIdChanging(value);
                 ReportPropertyChanging("CreatedByUserId");
-                _CreatedByUserId = StructuralObject.SetValidValue(value);
+                _CreatedByUserId = StructuralObject.SetValidValue(value, "CreatedByUserId");
                 ReportPropertyChanged("CreatedByUserId");
                 OnCreatedByUserIdChanged();
             }
@@ -4303,7 +4291,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCreatedDateChanging(value);
                 ReportPropertyChanging("CreatedDate");
-                _CreatedDate = StructuralObject.SetValidValue(value);
+                _CreatedDate = StructuralObject.SetValidValue(value, "CreatedDate");
                 ReportPropertyChanged("CreatedDate");
                 OnCreatedDateChanged();
             }
@@ -4327,7 +4315,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnModifiedByChanging(value);
                 ReportPropertyChanging("ModifiedBy");
-                _ModifiedBy = StructuralObject.SetValidValue(value, false);
+                _ModifiedBy = StructuralObject.SetValidValue(value, false, "ModifiedBy");
                 ReportPropertyChanged("ModifiedBy");
                 OnModifiedByChanged();
             }
@@ -4351,7 +4339,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnModifiedByUserIdChanging(value);
                 ReportPropertyChanging("ModifiedByUserId");
-                _ModifiedByUserId = StructuralObject.SetValidValue(value);
+                _ModifiedByUserId = StructuralObject.SetValidValue(value, "ModifiedByUserId");
                 ReportPropertyChanged("ModifiedByUserId");
                 OnModifiedByUserIdChanged();
             }
@@ -4375,7 +4363,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnModifiedDateChanging(value);
                 ReportPropertyChanging("ModifiedDate");
-                _ModifiedDate = StructuralObject.SetValidValue(value);
+                _ModifiedDate = StructuralObject.SetValidValue(value, "ModifiedDate");
                 ReportPropertyChanged("ModifiedDate");
                 OnModifiedDateChanged();
             }
@@ -4386,7 +4374,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -4442,7 +4429,7 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -4461,7 +4448,7 @@ namespace Models.NorthwindIB.EDMX
                 {
                     OnIDChanging(value);
                     ReportPropertyChanging("ID");
-                    _ID = StructuralObject.SetValidValue(value);
+                    _ID = StructuralObject.SetValidValue(value, "ID");
                     ReportPropertyChanged("ID");
                     OnIDChanged();
                 }
@@ -4486,7 +4473,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnUserIdChanging(value);
                 ReportPropertyChanging("UserId");
-                _UserId = StructuralObject.SetValidValue(value);
+                _UserId = StructuralObject.SetValidValue(value, "UserId");
                 ReportPropertyChanged("UserId");
                 OnUserIdChanged();
             }
@@ -4510,7 +4497,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRoleIdChanging(value);
                 ReportPropertyChanging("RoleId");
-                _RoleId = StructuralObject.SetValidValue(value);
+                _RoleId = StructuralObject.SetValidValue(value, "RoleId");
                 ReportPropertyChanged("RoleId");
                 OnRoleIdChanged();
             }
@@ -4521,7 +4508,6 @@ namespace Models.NorthwindIB.EDMX
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -4616,7 +4602,7 @@ namespace Models.NorthwindIB.EDMX
     [Serializable()]
     public partial class Location : ComplexObject
     {
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -4633,7 +4619,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnAddressChanging(value);
                 ReportPropertyChanging("Address");
-                _Address = StructuralObject.SetValidValue(value, true);
+                _Address = StructuralObject.SetValidValue(value, true, "Address");
                 ReportPropertyChanged("Address");
                 OnAddressChanged();
             }
@@ -4657,7 +4643,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCityChanging(value);
                 ReportPropertyChanging("City");
-                _City = StructuralObject.SetValidValue(value, true);
+                _City = StructuralObject.SetValidValue(value, true, "City");
                 ReportPropertyChanged("City");
                 OnCityChanged();
             }
@@ -4681,7 +4667,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnRegionChanging(value);
                 ReportPropertyChanging("Region");
-                _Region = StructuralObject.SetValidValue(value, true);
+                _Region = StructuralObject.SetValidValue(value, true, "Region");
                 ReportPropertyChanged("Region");
                 OnRegionChanged();
             }
@@ -4705,7 +4691,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnPostalCodeChanging(value);
                 ReportPropertyChanging("PostalCode");
-                _PostalCode = StructuralObject.SetValidValue(value, true);
+                _PostalCode = StructuralObject.SetValidValue(value, true, "PostalCode");
                 ReportPropertyChanged("PostalCode");
                 OnPostalCodeChanged();
             }
@@ -4729,7 +4715,7 @@ namespace Models.NorthwindIB.EDMX
             {
                 OnCountryChanging(value);
                 ReportPropertyChanging("Country");
-                _Country = StructuralObject.SetValidValue(value, true);
+                _Country = StructuralObject.SetValidValue(value, true, "Country");
                 ReportPropertyChanged("Country");
                 OnCountryChanged();
             }
@@ -4744,5 +4730,4 @@ namespace Models.NorthwindIB.EDMX
 
     #endregion
 
-    
 }

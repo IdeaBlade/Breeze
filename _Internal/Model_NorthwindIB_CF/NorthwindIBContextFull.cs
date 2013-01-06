@@ -1052,6 +1052,10 @@ namespace Foo {
     [Timestamp]
     public byte[] Ts { get; set; }
 
+    [DataMember]
+    [Column("RoleType")]
+    public Nullable<Models.NorthwindIB.RoleType> RoleType { get; set; }
+
     #endregion Data Properties
 
     #region Navigation properties

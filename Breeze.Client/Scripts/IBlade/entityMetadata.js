@@ -904,7 +904,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         function isEnumType(odataProperty, schema) {
             if (!schema.enumType) return false;
             var enumTypes = toArray(schema.enumType);
-            var baseTypeName = odataProperty.type.replace("Edm." + schema.namespace + ".", "");
+            var typeParts = odataProperty.type.split(".");
+            var baseTypeName = typeParts[typeParts.length - 1];
             return enumTypes.some(function(enumType) {
                 return enumType.name === baseTypeName;
             });

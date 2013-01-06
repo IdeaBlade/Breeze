@@ -17,25 +17,25 @@ QUnit.config.urlConfig.push({
 require.config({ baseUrl: "Scripts/Tests" });
 require([
       "paramTests",
-      "miscTests",
-      "koSpecificTests",
-      "attachTests",
-      "classRewriteTests",
-      "metadataTests",
-      "entityManagerTests",
-      "entityTests",
-      "complexTypeTests",
-      "queryTests",
-      "queryCtorTests",
-      "queryNonEFTests",
+      //"miscTests",
+      //"koSpecificTests",
+      //"attachTests",
+      //"classRewriteTests",
+      //"metadataTests",
+      //"entityManagerTests",
+      //"entityTests",
+      //"complexTypeTests",
+      //"queryTests",
+      //"queryCtorTests",
+      //"queryNonEFTests",
       "queryDatatypeTests",
-      "queryLocalTests",
-      "queryNamedTests",
-      "queryRawOdataTests",
-      "querySelectTests",
-      "validateTests",
-      "validateEntityTests",
-      "saveTests"
+      //"queryLocalTests",
+      //"queryNamedTests",
+      //"queryRawOdataTests",
+      //"querySelectTests",
+      //"validateTests",
+      //"validateEntityTests",
+      //"saveTests"
 
 ], function (testFns) {
     
