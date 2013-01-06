@@ -1,4 +1,4 @@
-﻿define(['logger', 'dataservice'], function (logger, dataservice) {
+﻿define(['ko', 'logger', 'dataservice'], function (ko, logger, dataservice) {
 
     var suspendItemSave = false;
 

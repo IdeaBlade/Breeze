@@ -1,23 +1,24 @@
-﻿requirejs.config(
-        {
-            // well-know paths to selected scripts
-            paths: {
-                'breeze': '../breeze.debug', // debug version of breeze
-                'text': '../text',// html loader plugin; see http://requirejs.org/docs/api.html#text
-            }
-        }
-    );
+﻿(function(root) {
+    // Register with require these 3rd party libs 
+    // which are now in the root global namespace
+    define('jquery', function () { return root.jQuery; });
+    define('ko', function () { return root.ko; });
 
-define(['logger', 'text', 'breeze'], function(logger) {
+    //  Launch the app
+    define(['jquery', 'ko', 'logger'], function ($, ko, logger) {
 
-    logger.info('Breeze Todo is booting');
+        logger.info('Breeze Todo is booting');
 
-    require(['viewModel', 'text!view.html'],
+        // '../text' is an html-loader require plugin; 
+        // see http://requirejs.org/docs/api.html#text
+        require(['viewModel', '../text!view.html'],
         
-        function(viewModel, viewHtml) {
-            var $view = jQuery(viewHtml);
-            ko.applyBindings(viewModel, $view.get(0));
-            jQuery("#applicationHost").append($view);
+            function(viewModel, viewHtml) {
+                var $view = jQuery(viewHtml);
+                ko.applyBindings(viewModel, $view.get(0));
+                $("#applicationHost").append($view);
             
+        });
     });
-});
+    
+})(window);
