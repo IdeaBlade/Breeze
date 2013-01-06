@@ -5200,7 +5200,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         function isEnumType(odataProperty, schema) {
             if (!schema.enumType) return false;
             var enumTypes = toArray(schema.enumType);
-            var baseTypeName = odataProperty.type.replace("Edm." + schema.namespace + ".", "");
+            var typeParts = odataProperty.type.split(".");
+            var baseTypeName = typeParts[typeParts.length - 1];
             return enumTypes.some(function(enumType) {
                 return enumType.name === baseTypeName;
             });
@@ -12183,7 +12184,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.83.1",
+        version: "0.83.3",
         core: core,
         config: a_config
     };
