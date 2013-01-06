@@ -5082,7 +5082,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
        
         ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
             var that = this;
+            
             toArray(schemas).forEach(function (schema) {
+                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                var newMap = {};
+                mappings.forEach(function(mapping) {
+                    newMap[mapping[0]] = mapping[1];
+                });
+                schema.cSpaceOSpaceMapping = newMap;
                 if (schema.entityContainer) {
                     toArray(schema.entityContainer).forEach(function (container) {
                         toArray(container.entitySet).forEach(function (entitySet) {
@@ -5136,7 +5143,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
-            var namespace = translateNamespace(schema, schema.namespace);
+            var namespace = getNamespaceFor(shortName, schema);
             var entityType = new EntityType({
                 shortName: shortName,
                 namespace: namespace,
@@ -5152,10 +5159,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             metadataStore.addEntityType(entityType);
             return entityType;
         }
-
+        
+      
         function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
             var shortName = odataComplexType.name;
-            var namespace = translateNamespace(schema, schema.namespace);
+            var namespace = getNamespaceFor(shortName, schema);
             var complexType = new ComplexType({
                 shortName: shortName,
                 namespace: namespace,
@@ -6835,18 +6843,21 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         var entityTypeNameNoAssembly = entityTypeName.split(",")[0];
         var nameParts = entityTypeNameNoAssembly.split(".");
         if (nameParts.length > 1) {
-            var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+            
             var simpleTypeName = nameParts[nameParts.length - 1];
-            var namespace = namespaceParts.join(".");
+            //var namespace = namespaceParts.join(".");
+            //if (schema) {
+            //    if (namespace == schema.alias || namespace == "Edm." + schema.alias) {
+            //        namespace = schema.namespace;
+            //    } else if (core.stringStartsWith(namespace, "Edm.")) {
+            //        namespace = namespace.substr(4);
+            //    }
+            //}
             if (schema) {
-                if (namespace == schema.alias || namespace == "Edm." + schema.alias) {
-                    namespace = schema.namespace;
-                } else if (core.stringStartsWith(namespace, "Edm.")) {
-                    namespace = namespace.substr(4);
-                }
-            }
-            if (schema) {
-                namespace = translateNamespace(schema, namespace);
+                namespace = getNamespaceFor(simpleTypeName, schema);
+            } else {
+                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+                namespace = namespaceParts.join(".");
             }
             return {
                 shortTypeName: simpleTypeName,
@@ -6861,16 +6872,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         }
     }
-
-    // needed for Edmx models where the embedded ns is different from the clr namespace.
-    function translateNamespace(schema, namespace) {
-        var clrNamespace = schema.clrNamespace;
-        if (!clrNamespace) return namespace;
-        if (namespace === schema.namespace) {
-            return clrNamespace;
-        } else {
-            return namespace;
+    
+    function getNamespaceFor(shortName, schema) {
+        var namespace;
+        var mapping = schema.cSpaceOSpaceMapping;
+        if (mapping) {
+            var fullName = mapping[schema.namespace + "." + shortName];
+            namespace = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
         }
+        return namespace || schema.namespace;
     }
 
     return {

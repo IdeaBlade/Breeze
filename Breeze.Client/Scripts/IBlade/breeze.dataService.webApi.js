@@ -55,17 +55,14 @@
                     return;
                 }
                 // setProperties metadataStore    
-                // if from Edmx
+
                 var schema = metadata.schema;
+
                 if (!schema) {
-                    // if from DbContext 
-                    schema = metadata.conceptualModels.schema;
-                    schema.cSpaceOSpaceMapping = metadata.conceptualModels.cSpaceOSpaceMapping;
-                    if (!schema) {
-                        if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
-                        return;
-                    }
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+                    return;
                 }
+
                 metadataStore._parseODataMetadata(serviceName, schema);
                 if (callback) {
                     callback(schema);

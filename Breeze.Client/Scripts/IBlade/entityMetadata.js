@@ -791,7 +791,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
                 var newMap = {};
                 mappings.forEach(function(mapping) {
-                    newMap[mapping.Item1] = mapping.Item2;
+                    newMap[mapping[0]] = mapping[1];
                 });
                 schema.cSpaceOSpaceMapping = newMap;
                 if (schema.entityContainer) {

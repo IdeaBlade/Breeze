@@ -427,8 +427,9 @@ namespace Breeze.WebApi {
       }
      
       var ns = xele.Name.Namespace;
-      var conceptualModel = xele.Descendants(ns + "ConceptualModels").First();
-      var xDoc = XDocument.Load(conceptualModel.CreateReader());
+      var conceptualEle = xele.Descendants(ns + "ConceptualModels").First();
+      var schemaEle = conceptualEle.Elements().First(ele => ele.Name.LocalName == "Schema");
+      var xDoc = XDocument.Load(schemaEle.CreateReader());
 
       // This is needed because the raw edmx has a different namespace than the CLR types that it references.
       var objectContext = ((IObjectContextAdapter)dbContext).ObjectContext;
@@ -503,7 +504,7 @@ namespace Breeze.WebApi {
       xDoc.Root.SetAttributeValue("CSpaceOSpaceMapping", ocMapping);
     }
   
-    private List<Tuple<String, String>> GetCSpaceOSpaceMapping(ObjectContext oc) {
+    private List<String[]> GetCSpaceOSpaceMapping(ObjectContext oc) {
       var metadataWs = oc.MetadataWorkspace;
       var cspaceTypes = metadataWs.GetItems<StructuralType>(DataSpace.CSpace);
       ForceOSpaceLoad(oc);
@@ -511,7 +512,7 @@ namespace Breeze.WebApi {
           .Where(st => !(st is AssociationType))
           .Select(st => {
             var ost = metadataWs.GetObjectSpaceType(st);
-            return Tuple.Create(st.FullName, ost.FullName);
+            return new [] {st.FullName, ost.FullName};
           })
           .ToList();
       return tpls;
