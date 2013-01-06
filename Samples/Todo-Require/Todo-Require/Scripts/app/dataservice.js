@@ -1,4 +1,4 @@
-define(['ko', '../breeze', 'logger'], function (ko, breeze, logger) {
+define(['ko', 'breeze', 'logger'], function (ko, breeze, logger) {
     
     var serviceName = 'api/todos'; // route to the Web Api controller
   
