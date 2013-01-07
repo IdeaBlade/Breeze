@@ -30,7 +30,7 @@ namespace Todo.Controllers
         }
 
         // ~/api/todos/Todos
-        // ~/api/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
+        // ~/api/todos/Todos?$filter=IsArchived eq false&$orderby=CreatedAt 
         [HttpGet]
         public IQueryable<TodoItem> Todos() {
             return _contextProvider.Context.Todos;
