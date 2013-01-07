@@ -305,6 +305,10 @@ define(function () {
     function isGuid(value) {
         return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);
     }
+    
+    function isDuration(value) {
+        return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
+    }
 
     function isEmpty(obj) {
         if (obj === null || obj === undefined) {
@@ -391,6 +395,7 @@ define(function () {
 
         isDate: isDate,
         isGuid: isGuid,
+        isDuration: isDuration,
         isFunction: isFunction,
         isEmpty: isEmpty,
         isNumeric: isNumeric,
