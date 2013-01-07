@@ -16,7 +16,7 @@ QUnit.config.urlConfig.push({
 
 require.config({ baseUrl: "Scripts/Tests" });
 require([
-      "paramTests",
+      //"paramTests",
       //"miscTests",
       //"koSpecificTests",
       //"attachTests",

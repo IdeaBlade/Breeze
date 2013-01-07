@@ -1,7 +1,7 @@
 ﻿// Only one of the next 3 should be uncommented.
-#define CODEFIRST_PROVIDER 
+//#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
-//#define DATABASEFIRST_NEW
+#define DATABASEFIRST_NEW
 
 using System;
 using System.Net;
@@ -144,6 +144,11 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public IQueryable<Role> Roles() {
       return ContextProvider.Context.Roles;
+    }
+
+    [HttpGet]
+    public IQueryable<TimeLimit> TimeLimits() {
+      return ContextProvider.Context.TimeLimits;
     }
     #endregion
 

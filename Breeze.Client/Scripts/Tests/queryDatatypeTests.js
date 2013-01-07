@@ -23,6 +23,41 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+    
+    test("time", function () {
+        var em = newEm();
+        var query = new EntityQuery("TimeLimits").take(10);
+        stop();
+        var tlimit;
+        var duration = "PT7H17M40S";
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            var maxTime = results[0].getProperty("maxTime");
+            ok(maxTime, "maxTime should be defined");
+            var tlimitType = em.metadataStore.getEntityType("TimeLimit");
+            tlimit = tlimitType.createEntity();
+            tlimit.setProperty("maxTime", duration);
+            em.addEntity(tlimit);
+
+            return em.saveChanges();
+        }).then(function(sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            var maxTime = tlimit.getProperty("maxTime");
+            ok(maxTime === duration, "maxTime should = " + duration);
+            var q2 = EntityQuery.fromEntities(tlimit);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function (data2) {
+            var r = data2.results;
+            ok(r.length === 1, "should have only returned 1 rec");
+            var maxTime = tlimit.getProperty("maxTime");
+            ok(maxTime === duration, "maxTime should = " + duration);
+            var minTime = tlimit.getProperty("minTime");
+            ok(minTime == null, "minTime should be null or undefined");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
     test("timestamp", function() {
         var em = newEm();
@@ -46,6 +81,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
 
     });
+    
     
     test("enums", function () {
         var em = newEm();

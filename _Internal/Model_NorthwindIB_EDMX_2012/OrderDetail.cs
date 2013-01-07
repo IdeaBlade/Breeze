@@ -14,6 +14,11 @@ namespace Models.NorthwindIB.EDMX_2012
     
     public partial class OrderDetail
     {
+        public OrderDetail()
+        {
+            this.BonusOrderDetailItems = new HashSet<BonusOrderDetailItem>();
+        }
+    
         public int OrderID { get; set; }
         public int ProductID { get; set; }
         public decimal UnitPrice { get; set; }
@@ -23,5 +28,6 @@ namespace Models.NorthwindIB.EDMX_2012
     
         public virtual Order Order { get; set; }
         public virtual Product Product { get; set; }
+        public virtual ICollection<BonusOrderDetailItem> BonusOrderDetailItems { get; set; }
     }
 }
