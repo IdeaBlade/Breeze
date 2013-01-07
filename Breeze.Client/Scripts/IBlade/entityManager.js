@@ -105,7 +105,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             } else if (config.serviceName) {
                 this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService");
                 this.dataService = new DataService({
-                    serviceName: this.serviceName,
+                    serviceName: this.serviceName
                 });
             } 
 
@@ -386,7 +386,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
              // assume em1 is a previously created EntityManager
              // where we want to change some of its settings.
              em1.setProperties( {
-                serviceName: "api/foo",
+                serviceName: "api/foo"
                 });
         @method setProperties
         @param config {Object}
@@ -413,7 +413,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             } else if (config.serviceName) {
                 this.dataService = new DataService({
-                    serviceName: this.serviceName,
+                    serviceName: this.serviceName
                 });
                 this.serviceName = this.dataService.serviceName;
             }

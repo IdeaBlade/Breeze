@@ -145,6 +145,11 @@ namespace Sample_WebApi.Controllers {
     public IQueryable<Role> Roles() {
       return ContextProvider.Context.Roles;
     }
+
+    [HttpGet]
+    public IQueryable<TimeLimit> TimeLimits() {
+      return ContextProvider.Context.TimeLimits;
+    }
     #endregion
 
     #region named queries

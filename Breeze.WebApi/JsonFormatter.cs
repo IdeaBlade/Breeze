@@ -7,10 +7,13 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Web.Http.Controllers;
+using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Breeze.WebApi {
+
+ 
 
   public class JsonFormatter {
 

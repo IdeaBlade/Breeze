@@ -5084,12 +5084,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var that = this;
             
             toArray(schemas).forEach(function (schema) {
-                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
-                var newMap = {};
-                mappings.forEach(function(mapping) {
-                    newMap[mapping[0]] = mapping[1];
-                });
-                schema.cSpaceOSpaceMapping = newMap;
+                if (schema.cSpaceOSpaceMapping) {
+                    // Web api only - not avail in OData.
+                    var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                    var newMap = {};
+                    mappings.forEach(function(mapping) {
+                        newMap[mapping[0]] = mapping[1];
+                    });
+                    schema.cSpaceOSpaceMapping = newMap;
+                }
                 if (schema.entityContainer) {
                     toArray(schema.entityContainer).forEach(function (container) {
                         toArray(container.entitySet).forEach(function (entitySet) {
@@ -5146,7 +5149,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var namespace = getNamespaceFor(shortName, schema);
             var entityType = new EntityType({
                 shortName: shortName,
-                namespace: namespace,
+                namespace: namespace
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
@@ -5166,7 +5169,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var namespace = getNamespaceFor(shortName, schema);
             var complexType = new ComplexType({
                 shortName: shortName,
-                namespace: namespace,
+                namespace: namespace
             });
             
             toArray(odataComplexType.property).forEach(function (prop) {
@@ -5242,7 +5245,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var dp = new DataProperty({
                 nameOnServer: odataProperty.name,
                 complexTypeName: complexTypeName,
-                isNullable: false,
+                isNullable: false
             });
             
             return dp;
@@ -6603,7 +6606,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             });
             var homeAddressIdProp = new DataProperty( {
                 name: "homeAddressId"
-                dataType: DataType.Integer,
+                dataType: DataType.Integer
             });
             // assuming personEntityType is a newly constructed EntityType
             personEntityType.addProperty(homeAddressProp);
@@ -9544,7 +9547,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             } else if (config.serviceName) {
                 this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService");
                 this.dataService = new DataService({
-                    serviceName: this.serviceName,
+                    serviceName: this.serviceName
                 });
             } 
 
@@ -9825,7 +9828,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
              // assume em1 is a previously created EntityManager
              // where we want to change some of its settings.
              em1.setProperties( {
-                serviceName: "api/foo",
+                serviceName: "api/foo"
                 });
         @method setProperties
         @param config {Object}
@@ -9852,7 +9855,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             } else if (config.serviceName) {
                 this.dataService = new DataService({
-                    serviceName: this.serviceName,
+                    serviceName: this.serviceName
                 });
                 this.serviceName = this.dataService.serviceName;
             }
@@ -12184,7 +12187,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.83.3",
+        version: "0.83.4",
         core: core,
         config: a_config
     };

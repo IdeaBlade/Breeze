@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BonusOrderDetailItem.cs">
+      <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
+    </Compile>
     <Compile Include="Category.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
@@ -113,6 +116,9 @@
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
     <Compile Include="Territory.cs">
+      <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TimeLimit.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
     <Compile Include="User.cs">

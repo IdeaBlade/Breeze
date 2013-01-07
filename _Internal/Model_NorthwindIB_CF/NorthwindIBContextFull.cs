@@ -17,7 +17,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.ComponentModel.DataAnnotations.Schema;
-// using System.ComponentModel.DataAnnotations.Schema;
+
 using Foo;
 
 namespace Models.NorthwindIB.CF {
@@ -85,6 +85,8 @@ namespace Models.NorthwindIB.CF {
     public DbSet<UserRole> UserRoles { get; set; }
 
     public DbSet<InternationalOrder> InternationalOrders { get; set; }
+
+    public DbSet<TimeLimit> TimeLimits { get; set; }
 
     #endregion EntityQueries
   }
@@ -1543,4 +1545,24 @@ namespace Foo {
   }
 
   #endregion InternationalOrder class
+
+  [DataContract(IsReference = true)]
+  [Table("TimeLimit", Schema = "dbo")]
+  public partial class TimeLimit {
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("Id")]
+    public int Id { get; set; }
+
+    [DataMember]
+    [Column("MaxTime")]
+    public System.TimeSpan MaxTime { get; set; }
+
+    [DataMember]
+    [Column("MinTime")]
+    public Nullable<System.TimeSpan> MinTime { get; set; }
+  }
+
+
 }

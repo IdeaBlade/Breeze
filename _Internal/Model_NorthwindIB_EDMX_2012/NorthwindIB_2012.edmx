@@ -6,6 +6,7 @@
     <edmx:StorageModels>
     <Schema Namespace="NorthwindIBModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityContainer Name="NorthwindIBModelStoreContainer">
+          <EntitySet Name="BonusOrderDetailItem" EntityType="NorthwindIBModel.Store.BonusOrderDetailItem" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Category" EntityType="NorthwindIBModel.Store.Category" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Customer" EntityType="NorthwindIBModel.Store.Customer" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Employee" EntityType="NorthwindIBModel.Store.Employee" store:Type="Tables" Schema="dbo" />
@@ -26,6 +27,7 @@
           <EntitySet Name="Role" EntityType="NorthwindIBModel.Store.Role" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Supplier" EntityType="NorthwindIBModel.Store.Supplier" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="TimeLimit" EntityType="NorthwindIBModel.Store.TimeLimit" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
@@ -89,6 +91,16 @@
             <End Role="UserRole" EntitySet="UserRole" />
           </AssociationSet>
         </EntityContainer>
+        <EntityType Name="BonusOrderDetailItem">
+          <Key>
+            <PropertyRef Name="BonusOrderDetailItemID" />
+          </Key>
+          <Property Name="BonusOrderDetailItemID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="OrderID" Type="int" />
+          <Property Name="ProductID" Type="int" />
+          <Property Name="BonusProductID" Type="int" />
+          <Property Name="Comment" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
         <EntityType Name="Category">
           <Key>
             <PropertyRef Name="CategoryID" />
@@ -293,6 +305,14 @@
           <Property Name="TerritoryDescription" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="RegionID" Type="int" Nullable="false" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TimeLimit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="MaxTime" Type="time" Nullable="false" />
+          <Property Name="MinTime" Type="time" />
         </EntityType>
         <EntityType Name="User">
           <Key>
@@ -577,6 +597,12 @@
             <End Role="Role" EntitySet="Roles" />
             <End Role="UserRole" EntitySet="UserRoles" />
           </AssociationSet>
+          <EntitySet Name="BonusOrderDetailItems" EntityType="NorthwindIBModel.BonusOrderDetailItem" />
+          <AssociationSet Name="OrderDetailBonusOrderDetailItem" Association="NorthwindIBModel.OrderDetailBonusOrderDetailItem">
+            <End Role="OrderDetail" EntitySet="OrderDetails" />
+            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
+          </AssociationSet>
+          <EntitySet Name="TimeLimits" EntityType="NorthwindIBModel.TimeLimit" />
         </EntityContainer>
         <EntityType Name="Category">
           <Key>
@@ -702,6 +728,7 @@
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Order" Relationship="NorthwindIBModel.FK_OrderDetail_Order" FromRole="OrderDetail" ToRole="Order" />
           <NavigationProperty Name="Product" Relationship="NorthwindIBModel.FK_OrderDetail_Product" FromRole="OrderDetail" ToRole="Product" />
+          <NavigationProperty Name="BonusOrderDetailItems" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="OrderDetail" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="PreviousEmployee">
           <Key>
@@ -989,6 +1016,39 @@
           </ReferentialConstraint>
         </Association>
         <EnumType Name="RoleType" a:ExternalTypeName="Models.NorthwindIB.RoleType" xmlns:a="http://schemas.microsoft.com/ado/2006/04/codegeneration" />
+        <EntityType Name="BonusOrderDetailItem">
+          <Key>
+            <PropertyRef Name="BonusOrderDetailItemID" />
+          </Key>
+          <Property Type="Guid" Name="BonusOrderDetailItemID" Nullable="false" />
+          <Property Type="Int32" Name="OrderID" />
+          <Property Type="Int32" Name="ProductID" />
+          <Property Type="Int32" Name="BonusProductID" />
+          <Property Type="String" Name="Comment" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="OrderDetail" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
+        </EntityType>
+        <Association Name="OrderDetailBonusOrderDetailItem">
+          <End Type="NorthwindIBModel.OrderDetail" Role="OrderDetail" Multiplicity="0..1" />
+          <End Type="NorthwindIBModel.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderDetail">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="BonusOrderDetailItem">
+              <PropertyRef Name="OrderID" />
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TimeLimit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int32" Name="Id" Nullable="false" a:StoreGeneratedPattern="Identity" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+          <Property Type="Time" Name="MaxTime" Nullable="false" Precision="7" />
+          <Property Type="Time" Name="MinTime" Precision="7" />
+        </EntityType>
 
       </Schema>
     </edmx:ConceptualModels>
@@ -1236,6 +1296,26 @@
                 <ScalarProperty Name="Ts" ColumnName="Ts" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="BonusOrderDetailItems">
+            <EntityTypeMapping TypeName="NorthwindIBModel.BonusOrderDetailItem">
+              <MappingFragment StoreEntitySet="BonusOrderDetailItem">
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="BonusProductID" ColumnName="BonusProductID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="BonusOrderDetailItemID" ColumnName="BonusOrderDetailItemID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TimeLimits">
+            <EntityTypeMapping TypeName="NorthwindIBModel.TimeLimit">
+              <MappingFragment StoreEntitySet="TimeLimit">
+                <ScalarProperty Name="MinTime" ColumnName="MinTime" />
+                <ScalarProperty Name="MaxTime" ColumnName="MaxTime" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

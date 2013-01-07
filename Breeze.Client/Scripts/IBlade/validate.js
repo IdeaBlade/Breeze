@@ -700,6 +700,8 @@ function (core, a_config, DataType) {
             case DataType.Binary:
                 // TODO: don't quite know how to validate this yet.
                 return Validator.none;
+            case DataType.Time:
+                return Validator.none;
             case DataType.Undefined:
                 return Validator.none;
         }
