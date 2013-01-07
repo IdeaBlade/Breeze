@@ -18,7 +18,7 @@
 		<dependencies>
             <dependency id="Microsoft.AspNet.WebApi"/>
             <dependency id="WebActivator" />
-            <dependency id="EntityFramework" version="[4.1,6)" />
+            <dependency id="EntityFramework" version="[4.4,6)" />
 		</dependencies>
     </metadata>
     <files>
