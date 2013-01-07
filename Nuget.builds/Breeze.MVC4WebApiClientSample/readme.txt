@@ -4,7 +4,7 @@ This package installs a simple sample applications that
 a) helps confirm your breeze project is setup properly
 b) demonstrates elementary Breeze application setup
 
-This package depends upon the Breeze.WebApi package which
+This package depends upon the Breeze.MVC4WebApi package which
 adds essential Breeze script files and .NET Web Api libraries to your project.
 
 This readme covers
@@ -80,13 +80,29 @@ You can still view the JSON response by doing the following:
 -------------------------------------------------------
 WHAT THIS PACKAGE ADDED
 
-This package depends upon and extends the "Breeze Web Api" NuGet Package
+This package depends upon and extends the "Breeze MVC4 Web Api" NuGet Package
 by adding a simple HTML/JavaScript application that uses Breeze
 to display, edit, and save changes.
 
-It automatically includes the "Breeze Web Api" NuGet Package if it is not already installed.
+It automatically includes the "Breeze MVC4 Web Api" NuGet Package if it is not already installed.
 
-This specific nuget package added the following files to this project.
+This specific nuget package added the following files to this project,
+shown from "back to front" from the Model on the server to the client.
+
+Sample EF Code First model, DbContext, and initializer
+
+	Models/BreezeSampleTodoItem.cs
+	Models/BreezeSampleContext.cs
+	Models/BreezeSampleDatabaseInitializer.cs
+
+Two Controllers
+
+	Controllers/BreezeSampleController.cs      - the app's Web Api controller
+	Controllers/BreezeSampleShellController.cs - the app's MVC controller
+
+One MVC 4 Shell View
+
+	Views/BreezeSampleShell/index.cshtml
 
 One configuration file
 
@@ -96,30 +112,17 @@ One CSS content file
 
 	Content/breezesample.css
 
-Two MVC 4 Controllers
+Two 3rd party scripts
 
-	Controllers/BreezeSampleController.cs - the app's Web Api controller
-	Controllers/BreezeSampleShellController.cs - the app's MVC controller
-
-Sample EF Code First model, DbContext, and initializer
-
-	Models/BreezeSampleTodoItem.cs
-	Models/BreezeSampleContext.cs
-	Models/BreezeSampleDatabaseInitializer.cs
-
-One MVC 4 Shell View
-
-	Views/BreezeSampleShell/index.cshtml
+	Scripts/app/jquery-1.7.1.min.js
+	Scripts/app/knockout-2.1.0.js
+	
+    [Breeze and Q were added previously by the base package]
 
 Two application scripts
 
 	Scripts/app/logger.js
 	Scripts/app/sampleViewModel.js
-
-Two 3rd party scripts
-
-	Scripts/app/jquery-1.7.1.min.js
-	Scripts/app/knockout-2.1.0.js
 
 -------------------------------------------------------	
 Artifacts added by the "Breeze Web Api" NuGet package

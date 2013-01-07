@@ -2,6 +2,7 @@
 
 (function (root) {
         var ko = root.ko,
+            breeze = root.breeze,
             logger = root.app.logger;
 
     // service name is route to the Web API controller
@@ -54,14 +55,14 @@
         }
     };
 
+    function queryFailed(error) {
+        logger.error("Query failed: " + error.message);
+    }
+
     function saveChanges() {
         return manager.saveChanges()
             .then(function () { logger.success("changes saved"); })
             .fail(saveFailed);
-    }
-
-    function queryFailed(error) {
-        logger.error("Query failed: " + error.message);
     }
 
     function saveFailed(error) {
