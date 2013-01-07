@@ -1,4 +1,11 @@
-﻿(function(root) {
+﻿(function (root) {
+    
+    requirejs.config({      
+         paths: { // well-known paths to selected scripts
+             'breeze': '../breeze.debug', // load debug version of breeze
+         }
+     });
+
     // Register with require these 3rd party libs 
     // which are now in the root global namespace
     define('jquery', function () { return root.jQuery; });

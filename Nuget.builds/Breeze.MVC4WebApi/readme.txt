@@ -16,6 +16,7 @@ Two referenced assemblies
 
 	Breeze.WebApi
 	Irony
+	Entity Framework
 
 Five scripts
 
