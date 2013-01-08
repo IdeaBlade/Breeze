@@ -414,36 +414,49 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("initializer called by importEntities", 5, function () {
         
+        // ARRANGE
+        // Start with clean metadataStore copy; no registrations
         var store = cloneModuleMetadataStore();
 
-        var Employee = function () { };
-
+        // define and register employee initializer
         var employeeInitializer = function (employee) {
             employee.foo = "Foo " + employee.LastName();
             employee.fooComputed = ko.computed(function() {
                 return "Foo " + employee.LastName();
             }, this);
         };
+        store.registerEntityTypeCtor("Employee", null, employeeFooInitializer);
 
-        store.registerEntityTypeCtor("Employee", Employee, employeeInitializer);
-
-        var employeeType = store.getEntityType("Employee");
-        var emp = employeeType.createEntity();
-        emp.EmployeeID(42);
-        emp.LastName("Test");
-
-        // define manager using this metadataStore
+        // define manager using prepared test store
         var em1 = new breeze.EntityManager({
             serviceName: northwindService,
             metadataStore: store
         });
-        var em2 = em1.createEmptyCopy(); 
-
-        // export new employee from em1; import it into em2
+        
+        var emp = createEmployee();
         em1.attachEntity(emp);
         var exportData = em1.exportEntities();
+
+        /* Fails!
+        * Create em2 with with registration only
+        * expecting metadata from import to fill in the entityType gaps
+        * Emulate launching a disconnected app
+        * and loading data from local browser storage */
+
+        var em2 = new breeze.EntityManager(northwindService);
+        em2.metadataStore.registerEntityTypeCtor("Employee", null, employeeFooInitializer);
+        
+        /* Succeed!
+        * Create em2 with copy constructor
+        * In this path, em2 all entityType metadata + registration
+        * Not realistic. */
+        
+        //var em2 = em1.createEmptyCopy(); // has ALL metadata
+        
+        // ACTION
         em2.importEntities(exportData);
         
+        // ASSERT
         var emp2 = em2.findEntityByKey(emp.entityAspect.getKey());
 
         ok(emp2 !== null, "should find imported 'emp' in em2");
@@ -453,10 +466,24 @@ define(["testFns"], function (testFns) {
            "emp from em2 should have expected foo value");
         ok(emp2 && emp2.fooComputed,
           "emp from em2 should have 'fooComputed' observable from initializer");
-        equal(emp2 && emp2.fooComputed(), "Foo Test",
+        equal(emp2 && emp2.fooComputed && emp2.fooComputed(), "Foo Test",
            "emp from em2 should have expected fooComputed value");
-
+        
+        function createEmployee() {
+            var employeeType = store.getEntityType("Employee");
+            var employee = employeeType.createEntity();
+            employee.EmployeeID(42);
+            employee.LastName("Test");
+            return employee;
+        }
     });
+    function employeeFooInitializer (employee) {
+        employee.foo = "Foo " + employee.LastName();
+        employee.fooComputed = ko.computed(function () {
+            return "Foo " + employee.LastName();
+        }, this);
+    };
+
     /*********************************************************
     * Can create employee after registering addhasValidationErrorsProperty initializer
     *********************************************************/
