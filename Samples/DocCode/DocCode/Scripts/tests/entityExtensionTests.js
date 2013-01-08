@@ -437,8 +437,7 @@ define(["testFns"], function (testFns) {
         em1.attachEntity(emp);
         var exportData = em1.exportEntities();
 
-        /* Fails!
-        * Create em2 with with registration only
+        /* Create em2 with with registration only
         * expecting metadata from import to fill in the entityType gaps
         * Emulate launching a disconnected app
         * and loading data from local browser storage */
@@ -446,8 +445,7 @@ define(["testFns"], function (testFns) {
         var em2 = new breeze.EntityManager(northwindService);
         em2.metadataStore.registerEntityTypeCtor("Employee", null, employeeFooInitializer);
         
-        /* Succeed!
-        * Create em2 with copy constructor
+        /* Create em2 with copy constructor
         * In this path, em2 all entityType metadata + registration
         * Not realistic. */
         
