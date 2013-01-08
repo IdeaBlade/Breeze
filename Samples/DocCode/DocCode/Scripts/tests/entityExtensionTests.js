@@ -168,17 +168,21 @@ define(["testFns"], function (testFns) {
 
         // 'CompanyName' is a mapped data property
         var propInfo = customerType.getProperty("CompanyName");
-        ok(propInfo !== null, "'CompanyName' should be known to the customer type");
-        ok(!propInfo.isUnmapped, "'CompanyName' should be a mapped property");
+        ok(propInfo !== null,
+            "'CompanyName' should be known to the customer type");
+        ok(propInfo && !propInfo.isUnmapped,
+            "'CompanyName' should be a mapped property");
         
         // Although defined as a field, Breeze made it a KO property and initialized it
         equal(cust.CompanyName(), "Acme",
             "'CompanyName' should be a KO 'property' returning 'Acme'");
 
         // Breeze preserved the ContactName KO property as a mapped data property
-        var propInfo = customerType.getProperty("ContactName");
-        ok(propInfo !== null, "'ContactName' should be known to the customer type");
-        ok(!propInfo.isUnmapped, "'ContactName' should be a mapped property");
+        propInfo = customerType.getProperty("ContactName");
+        ok(propInfo !== null,
+            "'ContactName' should be known to the customer type");
+        ok(propInfo && !propInfo.isUnmapped,
+            "'ContactName' should be a mapped property");
         equal(cust.ContactName(), "Amy",
             "'ContactName' should be a KO 'property' returning 'Amy'");
     });
@@ -286,7 +290,7 @@ define(["testFns"], function (testFns) {
                 this.LastName = ko.observable("");  // default LastName
                 this.fullName = ko.computed(
                         function () {
-                            return this.FirstName() + " " + this.LastName();
+                            return emp.FirstName() + " " + emp.LastName();
                         }, this);
             };
 
@@ -373,8 +377,8 @@ define(["testFns"], function (testFns) {
 
     });
     /*********************************************************
-* knockout computed property based on collection navigation via initializer
-*********************************************************/
+    * knockout computed property based on collection navigation via initializer
+    *********************************************************/
     test("add knockout computed property based on collection navigation via initializer", 2,
         function () {
             var store = cloneModuleMetadataStore();
@@ -405,6 +409,58 @@ define(["testFns"], function (testFns) {
             equal(emp.orderCount(), 1,
                 "orderCount should be 1 after pushing newOrder");
         });
+    /*********************************************************
+    * initializer called by importEntities
+    *********************************************************/
+    test("initializer called by importEntities", 5, function () {
+        
+        var store = cloneModuleMetadataStore();
+
+        var Employee = function () { };
+
+        var employeeInitializer = function (employee) {
+            employee.foo = "Foo " + employee.LastName();
+            employee.fooComputed = ko.computed(function() {
+                return "Foo " + employee.LastName();
+            }, this);
+        };
+
+        store.registerEntityTypeCtor("Employee", Employee, employeeInitializer);
+
+        var employeeType = store.getEntityType("Employee");
+        var emp = employeeType.createEntity();
+        emp.EmployeeID(42);
+        emp.LastName("Test");
+
+        // define manager using this metadataStore
+        var em1 = new breeze.EntityManager({
+            serviceName: northwindService,
+            metadataStore: store
+        });
+        //var em2 = em1.createEmptyCopy(); // TODO: use this after D#2305 fix
+        var em2 = new breeze.EntityManager({
+            serviceName: northwindService,
+            metadataStore: store
+        });
+
+        // export new employee from em1; import it into em2
+        em1.attachEntity(emp);
+        var exportData = em1.exportEntities();
+        em2.importEntities(exportData);
+        
+        var emp2 = em2.findEntityByKey(emp.entityAspect.getKey());
+
+        ok(emp2 !== null, "should find imported 'emp' in em2");
+        ok(emp2 && emp2.foo,
+            "emp from em2 should have 'foo' property from initializer");
+        equal(emp2 && emp2.foo, "Foo Test",
+           "emp from em2 should have expected foo value");
+        ok(emp2 && emp2.fooComputed,
+          "emp from em2 should have 'fooComputed' observable from initializer");
+        equal(emp2 && emp2.fooComputed(), "Foo Test",
+           "emp from em2 should have expected fooComputed value");
+
+    });
     /*********************************************************
     * Can create employee after registering addhasValidationErrorsProperty initializer
     *********************************************************/
