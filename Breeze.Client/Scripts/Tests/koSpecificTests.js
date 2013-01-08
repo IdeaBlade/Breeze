@@ -39,8 +39,8 @@ define(["testFns"], function (testFns) {
 
         em1.metadataStore.registerEntityTypeCtor("Region", function () {
             this.foo = "foo";
-        }, function () {
-            this.bar = "bar";
+        }, function (entity) {
+            entity.bar = "bar";
         });
         var q = EntityQuery.from("Regions").take(1);
         stop();
