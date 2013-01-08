@@ -12889,6 +12889,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
