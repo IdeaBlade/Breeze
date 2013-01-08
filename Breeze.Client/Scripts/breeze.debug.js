@@ -4728,6 +4728,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var that = this;
             core.objectForEach(json._structuralTypeMap, function (key, value) {
                 structuralTypeMap[key] = that._structuralTypeFromJson(value);
+                checkTypeRegistry(that, structuralTypeMap[key]);
             });
             // TODO: don't think that this next line is needed
             json._structuralTypeMap = structuralTypeMap;
