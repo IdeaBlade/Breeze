@@ -290,7 +290,7 @@ define(["testFns"], function (testFns) {
                 this.LastName = ko.observable("");  // default LastName
                 this.fullName = ko.computed(
                         function () {
-                            return emp.FirstName() + " " + emp.LastName();
+                            return this.FirstName() + " " + this.LastName();
                         }, this);
             };
 
@@ -437,11 +437,7 @@ define(["testFns"], function (testFns) {
             serviceName: northwindService,
             metadataStore: store
         });
-        //var em2 = em1.createEmptyCopy(); // TODO: use this after D#2305 fix
-        var em2 = new breeze.EntityManager({
-            serviceName: northwindService,
-            metadataStore: store
-        });
+        var em2 = em1.createEmptyCopy(); 
 
         // export new employee from em1; import it into em2
         em1.attachEntity(emp);
