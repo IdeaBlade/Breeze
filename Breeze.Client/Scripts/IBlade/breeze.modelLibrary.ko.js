@@ -52,6 +52,7 @@
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);

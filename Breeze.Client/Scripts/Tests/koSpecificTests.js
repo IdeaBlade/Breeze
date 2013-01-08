@@ -11,9 +11,10 @@ define(["testFns"], function (testFns) {
     var EntityQuery = breeze.EntityQuery;
     var EntityKey = breeze.EntityKey;
     var EntityState = breeze.EntityState;
-
-
+    
+    
     var newEm = testFns.newEm;
+    
 
     module("ko specific", {
         setup: function () {
@@ -31,7 +32,29 @@ define(["testFns"], function (testFns) {
         return testFns;
     };
     
+    test("registerEntityType", function () {
 
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(testFns.newMs());
+
+        em1.metadataStore.registerEntityTypeCtor("Region", function () {
+            this.foo = "foo";
+        }, function () {
+            this.bar = "bar";
+        });
+        var q = EntityQuery.from("Regions").take(1);
+        stop();
+        em1.executeQuery(q).then(function (data) {
+            ok(data.results.length === 1);
+            var region = data.results[0];
+            // 4 = 3 mapped + 1 unmapped ( foo) - should be no mention of 'bar'
+            ok(region.entityType.dataProperties.length === 4, "should only have 4 properties");
+            var regionType = em1.metadataStore.getEntityType("Region");
+            var region2 = regionType.createEntity();
+            ok(region2.entityType.dataProperties.length === 4, "should only have 4 properties");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("add knockout computed property based on collection navigation via constructor", 2, function () {
           // clones based on a fully populated store created at top of tests
           // see cloneModuleMetadataStore() below

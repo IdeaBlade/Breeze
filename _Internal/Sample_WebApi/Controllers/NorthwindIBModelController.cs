@@ -146,10 +146,12 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Roles;
     }
 
+#if ! DATABASEFIRST_OLD   
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
     }
+#endif
     #endregion
 
     #region named queries

@@ -331,10 +331,6 @@
       <Link>Scripts\ThirdParty\backbone.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\datajs-1.0.2.js">
-      <Link>Scripts\ThirdParty\datajs-1.0.2.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\jquery-1.6.2-vsdoc.js">
       <Link>Scripts\ThirdParty\jquery-1.6.2-vsdoc.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

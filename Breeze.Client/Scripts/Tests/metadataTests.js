@@ -1,4 +1,4 @@
-/// <reference path="datajs/datajs-1.0.2.js" />
+/// <reference path="datajs/datajs-1.1.0.js" />
 /// <reference path="q/q.js"/>
 /// <reference path="OQuery/oQuery.mod.js"/>
 /// <reference path="iblade/core.js" />

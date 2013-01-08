@@ -18,7 +18,7 @@ require.config({ baseUrl: "Scripts/Tests" });
 require([
       //"paramTests",
       //"miscTests",
-      //"koSpecificTests",
+      "koSpecificTests",
       //"attachTests",
       //"classRewriteTests",
       //"metadataTests",
@@ -28,7 +28,7 @@ require([
       //"queryTests",
       //"queryCtorTests",
       //"queryNonEFTests",
-      "queryDatatypeTests",
+      //"queryDatatypeTests",
       //"queryLocalTests",
       //"queryNamedTests",
       //"queryRawOdataTests",

@@ -39,6 +39,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Scripts\ThirdParty\datajs-1.1.0.js" />
+    <Content Include="Scripts\ThirdParty\datajs-1.1.0.min.js" />
     <Content Include="Scripts\IBlade\breeze.ajax.jQuery.js" />
     <Content Include="Scripts\IBlade\breeze.full.js" />
     <Content Include="Scripts\IBlade\build.full.js" />
@@ -97,7 +99,6 @@
     <Content Include="Scripts\Tests\testRunner.js" />
     <Content Include="Scripts\Tests\validateEntityTests.js" />
     <Content Include="Scripts\Tests\validateTests.js" />
-    <Content Include="Scripts\ThirdParty\datajs-1.0.2.js" />
     <Content Include="Scripts\ThirdParty\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\ThirdParty\jquery-1.6.2.js" />
     <Content Include="Scripts\ThirdParty\jquery-1.6.2.min.js" />
