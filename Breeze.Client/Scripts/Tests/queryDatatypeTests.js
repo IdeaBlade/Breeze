@@ -28,8 +28,9 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var query = new EntityQuery("TimeLimits").take(10);
         stop();
-        var tlimit;
+        var tlimit, tlimit2;
         var duration = "PT7H17M40S";
+        var zeroTime;
         em.executeQuery(query).then(function (data) {
             var results = data.results;
             var maxTime = results[0].getProperty("maxTime");
@@ -38,25 +39,48 @@ define(["testFns"], function (testFns) {
             tlimit = tlimitType.createEntity();
             tlimit.setProperty("maxTime", duration);
             em.addEntity(tlimit);
-
+            // check to insure that the default TimeSpan of 0 is used.
+            tlimit2 = tlimitType.createEntity();
+            tlimit2.setProperty("minTime", "PT20H20M20S");
+            zeroTime = tlimit2.getProperty("maxTime");
+            em.addEntity(tlimit2);
             return em.saveChanges();
         }).then(function(sr) {
             var ents = sr.entities;
-            ok(ents.length === 1);
+            ok(ents.length === 2);
             var maxTime = tlimit.getProperty("maxTime");
             ok(maxTime === duration, "maxTime should = " + duration);
-            var q2 = EntityQuery.fromEntities(tlimit);
+            zeroTime = tlimit2.getProperty("maxTime");
+            var q2 = EntityQuery.fromEntities([tlimit, tlimit2]).orderBy("minTime");
             var em2 = newEm();
             return em2.executeQuery(q2);
         }).then(function (data2) {
             var r = data2.results;
-            ok(r.length === 1, "should have only returned 1 rec");
-            var maxTime = tlimit.getProperty("maxTime");
+            ok(r.length === 2, "should have only returned 2 recs");
+            var tl1 = r[0];
+            var tl2 = r[1];
+            var maxTime = tl1.getProperty("maxTime");
             ok(maxTime === duration, "maxTime should = " + duration);
             var minTime = tlimit.getProperty("minTime");
             ok(minTime == null, "minTime should be null or undefined");
+            var zt = tl2.getProperty("maxTime");
         }).fail(testFns.handleFail).fin(start);
 
+    });
+    
+    test("bad time", function () {
+        var em = newEm();
+        var tlimitType = em.metadataStore.getEntityType("TimeLimit");
+        var tlimit = tlimitType.createEntity();
+        em.attachEntity(tlimit);
+        
+        tlimit.setProperty("maxTime", "3:15");
+        var valErrs = tlimit.entityAspect.getValidationErrors();
+        ok(valErrs[0].errorMessage.indexOf("maxTime") > 0, "error message should mention maxTime");
+        
+        tlimit.setProperty("maxTime", "PT4M");
+        valErrs = tlimit.entityAspect.getValidationErrors();
+        ok(valErrs.length == 0, "should be no more errors");
     });
 
     test("timestamp", function() {

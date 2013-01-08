@@ -260,6 +260,7 @@ function (core, a_config, DataType) {
             string: "'%displayName%' must be a string",
             bool: "'%displayName%' must be a 'true' or 'false' value",
             guid: "'%displayName%' must be a GUID",
+            duration: "'%displayName%' must be a ISO8601 duration string, such as 'P3H24M60S'",
             number: "'%displayName%' must be a number",
             integer: "'%displayName%' must be an integer",
             integerRange: "'%displayName%' must be an integer between the values of %minValue% and %maxValue%",
@@ -379,6 +380,14 @@ function (core, a_config, DataType) {
                 return core.isGuid(v);
             };
             return new ctor("guid", valFn);
+        };
+
+        ctor.duration = function() {
+            var valFn = function(v) {
+                if (v == null) return true;
+                return core.isDuration(v);
+            };
+            return new ctor("duration", valFn);
         };
 
         /**
@@ -701,7 +710,7 @@ function (core, a_config, DataType) {
                 // TODO: don't quite know how to validate this yet.
                 return Validator.none;
             case DataType.Time:
-                return Validator.none;
+                return Validator.duration;
             case DataType.Undefined:
                 return Validator.none;
         }

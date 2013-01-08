@@ -133,7 +133,7 @@ function (core) {
     @final
     @static
     **/
-    DataType.Time = DataType.addSymbol({ defaultValue: "0:00:00" });
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
     /**
 
     @property Boolean {DataType}
