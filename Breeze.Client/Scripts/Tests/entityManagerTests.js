@@ -41,6 +41,16 @@ define(["testFns"], function (testFns) {
         });
         ok(em);
     });
+
+    test("createEmptyCopy", function() {
+        var em = newEm();
+        var em2 = em.createEmptyCopy();
+        var q = EntityQuery.from("Customers").take(1);
+        stop();
+        em2.executeQuery(q).then(function(data) {
+            ok(data.results.length === 1);
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("export/import deleted", function() {
         var em = newEm();
