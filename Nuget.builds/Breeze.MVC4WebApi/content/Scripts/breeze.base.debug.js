@@ -11699,7 +11699,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         UnattachedChildrenMap.prototype.getChildren = function (parentEntityKey, navigationProperty) {
             var tuple = this.getTuple(parentEntityKey, navigationProperty);
             if (tuple) {
-                return tuple.children;
+                return tuple.children.filter(function (child) {
+                    // it may have later been detached.
+                    return !child.entityAspect.entityState.isDetached();
+                });
             } else {
                 return null;
             }
@@ -12238,7 +12241,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.84.1",
+        version: "0.84.2",
         core: core,
         config: a_config
     };

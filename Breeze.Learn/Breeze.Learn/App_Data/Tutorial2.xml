@@ -165,7 +165,7 @@ into a simple Html table structure. So let's change our query execution logic fr
 >     manager.executeQuery(query).then(function(data){
 >         ko.applyBindings(data);
 >     }).fail(function(e) {
-<         alert(e);  
+>         alert(e);  
 >     });
 
 to this:
@@ -180,7 +180,7 @@ to this:
 >        alert(e);  
 >     });
 
-We will also need to modify the *Html* pane to add the "output" tag referenced in the code above: 
+We will also need to modify the *Html* pane and replace its contents with this 'div' tag: 
 
 >     <div id="output">In progress...</div>
 
