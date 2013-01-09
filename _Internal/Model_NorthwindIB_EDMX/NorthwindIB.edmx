@@ -18,6 +18,7 @@
           <EntitySet Name="Role" EntityType="NorthwindIBModel.Store.Role" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Supplier" EntityType="NorthwindIBModel.Store.Supplier" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="TimeLimit" EntityType="NorthwindIBModel.Store.TimeLimit" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
           <AssociationSet Name="FK_Employee_Employee" Association="NorthwindIBModel.Store.FK_Employee_Employee">
@@ -232,6 +233,14 @@
           <Property Name="TerritoryDescription" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="RegionID" Type="int" Nullable="false" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TimeLimit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="MaxTime" Type="time" Nullable="false" />
+          <Property Name="MinTime" Type="time" />
         </EntityType>
         <EntityType Name="User">
           <Key>
@@ -478,6 +487,7 @@
             <End Role="Product" EntitySet="Products" />
             <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
           </AssociationSet>
+          <EntitySet Name="TimeLimits" EntityType="Models.NorthwindIB.EDMX.TimeLimit" />
         </EntityContainer>
         <EntityType Name="Order">
           <Key>
@@ -871,6 +881,14 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="TimeLimit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int32" Name="Id" Nullable="false" a:StoreGeneratedPattern="Identity" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+          <Property Type="Time" Name="MaxTime" Nullable="false" Precision="7" />
+          <Property Type="Time" Name="MinTime" Precision="7" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1078,6 +1096,15 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="TimeLimits">
+            <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.TimeLimit">
+              <MappingFragment StoreEntitySet="TimeLimit">
+                <ScalarProperty Name="MinTime" ColumnName="MinTime" />
+                <ScalarProperty Name="MaxTime" ColumnName="MaxTime" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
@@ -1160,6 +1187,7 @@
         <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.BonusOrderDetailItem" Width="2.875" PointX="8" PointY="1.625" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.OrderDetailBonusOrderDetailItem" />
         <AssociationConnector Association="Models.NorthwindIB.EDMX.ProductBonusOrderDetailItem" />
+        <EntityTypeShape EntityType="Models.NorthwindIB.EDMX.TimeLimit" Width="1.5" PointX="3.25" PointY="9.75" />
       </Diagram>
     </Diagrams>
   </Designer>

@@ -26,6 +26,22 @@ define(["testFns"], function (testFns) {
         expect(1);
         ok(true);
     });
+    
+    var factors = [31104000, // year (360*24*60*60) 
+          2592000,             // month (30*24*60*60) 
+          86400,               // day (24*60*60) 
+          3600,                // hour (60*60) 
+          60,                  // minute (60) 
+          1];                  // second (1)
+
+    test("durationToSeconds", function() {
+        var secs = core.durationToSeconds("PT1S");
+        ok(secs === 1, "should be 1");
+        secs = core.durationToSeconds("PT3H20M1S");
+        ok(secs === (3 * 60 * 60) + (20 * 60) + 1);
+        secs = core.durationToSeconds("P2Y1MT20M1S");
+        ok(secs === ((2 * factors[0]) + (1 * factors[1]) + (20 * factors[4]) + 1));
+    });
 
     test("backbone", function() {
         var Person = Backbone.Model.extend({});

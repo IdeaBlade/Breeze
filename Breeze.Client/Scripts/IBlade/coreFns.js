@@ -267,21 +267,34 @@ define(function () {
         });
     }
     
-    // These are no longer used - this is now used instead.
-    // date = new Date(Date.parse(dataAsIsoString))
-    
-    //// assumes no timezone in isoDateString
-    //function dateFromIsoString(isoDateString) {
-    //    return fastDateParse.apply(null, isoDateString.split(/\D/));
-    //}
-    
-    
-    //// used internally above
-    //function fastDateParse(y, m, d, h, i, s, ms){
-    //    return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
-    //}
+    function durationToSeconds(duration) {        
+        // basic algorithm from https://github.com/nezasa/iso8601-js-period
+        if (typeof duration !== "string") throw new Error("Invalid ISO8601 duration '" + duration + "'");
 
+        // regex splits as follows - grp0, grp1, y, m, d, grp2, h, m, s
+        //                           0     1     2  3  4  5     6  7  8   
+        var struct = /^P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?$/.exec(duration);
+        if (!struct) throw new Error("Invalid ISO8601 duration '" + duration + "'");
+        
+        var ymdhmsIndexes = [2, 3, 4, 6, 7, 8]; // -> grp1,y,m,d,grp2,h,m,s 
+        var factors = [31104000, // year (360*24*60*60) 
+            2592000,             // month (30*24*60*60) 
+            86400,               // day (24*60*60) 
+            3600,                // hour (60*60) 
+            60,                  // minute (60) 
+            1];                  // second (1)
 
+        var seconds = 0;
+        for (var i = 0; i < 6; i++) {
+            var digit = struct[ymdhmsIndexes[i]];
+            // remove letters, replace by 0 if not defined
+            digit = digit ? +digit.replace(/[A-Za-z]+/g, '') : 0;
+            seconds += digit * factors[i];
+        };
+        return seconds;
+
+    };
+    
     // is functions 
 
     function classof(o) {
@@ -391,6 +404,7 @@ define(function () {
         wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
+        durationToSeconds: durationToSeconds,
         // dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,

@@ -233,6 +233,7 @@ namespace Breeze.WebApi {
         } else if (leftType == typeof(Guid) 
           || leftType == typeof(DateTime) 
           || leftType == typeof(Boolean) 
+          || leftType == typeof(TimeSpan)
           || TypeFns.IsNumericType(leftType)
           || TypeFns.IsEnumType(leftType)) {
            ConvertExpr(ref rightExpr, ref leftExpr);

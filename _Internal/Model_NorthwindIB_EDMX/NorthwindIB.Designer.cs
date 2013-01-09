@@ -307,6 +307,22 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<BonusOrderDetailItem> _BonusOrderDetailItems;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<TimeLimit> TimeLimits
+        {
+            get
+            {
+                if ((_TimeLimits == null))
+                {
+                    _TimeLimits = base.CreateObjectSet<TimeLimit>("TimeLimits");
+                }
+                return _TimeLimits;
+            }
+        }
+        private ObjectSet<TimeLimit> _TimeLimits;
 
         #endregion
 
@@ -422,6 +438,14 @@ namespace Models.NorthwindIB.EDMX
         public void AddToBonusOrderDetailItems(BonusOrderDetailItem bonusOrderDetailItem)
         {
             base.AddObject("BonusOrderDetailItems", bonusOrderDetailItem);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the TimeLimits EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToTimeLimits(TimeLimit timeLimit)
+        {
+            base.AddObject("TimeLimits", timeLimit);
         }
 
         #endregion
@@ -4005,6 +4029,112 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="TimeLimit")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class TimeLimit : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new TimeLimit object.
+        /// </summary>
+        /// <param name="id">Initial value of the Id property.</param>
+        /// <param name="maxTime">Initial value of the MaxTime property.</param>
+        public static TimeLimit CreateTimeLimit(global::System.Int32 id, global::System.TimeSpan maxTime)
+        {
+            TimeLimit timeLimit = new TimeLimit();
+            timeLimit.Id = id;
+            timeLimit.MaxTime = maxTime;
+            return timeLimit;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 Id
+        {
+            get
+            {
+                return _Id;
+            }
+            set
+            {
+                if (_Id != value)
+                {
+                    OnIdChanging(value);
+                    ReportPropertyChanging("Id");
+                    _Id = StructuralObject.SetValidValue(value, "Id");
+                    ReportPropertyChanged("Id");
+                    OnIdChanged();
+                }
+            }
+        }
+        private global::System.Int32 _Id;
+        partial void OnIdChanging(global::System.Int32 value);
+        partial void OnIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.TimeSpan MaxTime
+        {
+            get
+            {
+                return _MaxTime;
+            }
+            set
+            {
+                OnMaxTimeChanging(value);
+                ReportPropertyChanging("MaxTime");
+                _MaxTime = StructuralObject.SetValidValue(value, "MaxTime");
+                ReportPropertyChanged("MaxTime");
+                OnMaxTimeChanged();
+            }
+        }
+        private global::System.TimeSpan _MaxTime;
+        partial void OnMaxTimeChanging(global::System.TimeSpan value);
+        partial void OnMaxTimeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.TimeSpan> MinTime
+        {
+            get
+            {
+                return _MinTime;
+            }
+            set
+            {
+                OnMinTimeChanging(value);
+                ReportPropertyChanging("MinTime");
+                _MinTime = StructuralObject.SetValidValue(value, "MinTime");
+                ReportPropertyChanged("MinTime");
+                OnMinTimeChanged();
+            }
+        }
+        private Nullable<global::System.TimeSpan> _MinTime;
+        partial void OnMinTimeChanging(Nullable<global::System.TimeSpan> value);
+        partial void OnMinTimeChanged();
 
         #endregion
 

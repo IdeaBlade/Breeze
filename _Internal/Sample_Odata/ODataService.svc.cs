@@ -1,4 +1,5 @@
-﻿using System.Data.Services;
+﻿
+using System.Data.Services;
 using System.Data.Services.Common;
 using Models.NorthwindIB.EDMX;
 
@@ -23,7 +24,7 @@ namespace Breeze_OData {
       config.SetEntitySetAccessRule("Roles", EntitySetRights.All);
       config.SetEntitySetAccessRule("Suppliers", EntitySetRights.All);
       config.SetEntitySetAccessRule("Users", EntitySetRights.All);
-      // config.SetEntitySetAccessRule("TimeLimits", EntitySetRights.All);
+      config.SetEntitySetAccessRule("TimeLimits", EntitySetRights.All);
 
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
