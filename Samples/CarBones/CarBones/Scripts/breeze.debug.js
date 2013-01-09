@@ -605,6 +605,10 @@ define('coreFns',[],function () {
     function isGuid(value) {
         return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);
     }
+    
+    function isDuration(value) {
+        return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
+    }
 
     function isEmpty(obj) {
         if (obj === null || obj === undefined) {
@@ -691,6 +695,7 @@ define('coreFns',[],function () {
 
         isDate: isDate,
         isGuid: isGuid,
+        isDuration: isDuration,
         isFunction: isFunction,
         isEmpty: isEmpty,
         isNumeric: isNumeric,
@@ -2013,6 +2018,15 @@ function (core) {
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
+
+    /**
+    @property Time {DataType}
+    @final
+    @static
+    **/
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
+    /**
+
     @property Boolean {DataType}
     @final
     @static
@@ -2378,6 +2392,7 @@ function (core, a_config, DataType) {
             string: "'%displayName%' must be a string",
             bool: "'%displayName%' must be a 'true' or 'false' value",
             guid: "'%displayName%' must be a GUID",
+            duration: "'%displayName%' must be a ISO8601 duration string, such as 'P3H24M60S'",
             number: "'%displayName%' must be a number",
             integer: "'%displayName%' must be an integer",
             integerRange: "'%displayName%' must be an integer between the values of %minValue% and %maxValue%",
@@ -2497,6 +2512,14 @@ function (core, a_config, DataType) {
                 return core.isGuid(v);
             };
             return new ctor("guid", valFn);
+        };
+
+        ctor.duration = function() {
+            var valFn = function(v) {
+                if (v == null) return true;
+                return core.isDuration(v);
+            };
+            return new ctor("duration", valFn);
         };
 
         /**
@@ -2818,6 +2841,8 @@ function (core, a_config, DataType) {
             case DataType.Binary:
                 // TODO: don't quite know how to validate this yet.
                 return Validator.none;
+            case DataType.Time:
+                return Validator.duration;
             case DataType.Undefined:
                 return Validator.none;
         }
@@ -4703,6 +4728,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var that = this;
             core.objectForEach(json._structuralTypeMap, function (key, value) {
                 structuralTypeMap[key] = that._structuralTypeFromJson(value);
+                checkTypeRegistry(that, structuralTypeMap[key]);
             });
             // TODO: don't think that this next line is needed
             json._structuralTypeMap = structuralTypeMap;
@@ -9879,9 +9905,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         ctor.prototype.createEmptyCopy = function () {
             var copy = new ctor({
                 serviceName: this.serviceName,
+                dataService: this.dataService,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                adapters: core.extend({}, this.adapters),
+                saveOptions: this.saveOptions,
+                validationOptions: this.validationOptions,
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -12187,7 +12215,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.83.4",
+        version: "0.83.5",
         core: core,
         config: a_config
     };
@@ -12862,6 +12890,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
