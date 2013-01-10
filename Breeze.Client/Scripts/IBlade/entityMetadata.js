@@ -851,10 +851,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var entityType = new EntityType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
@@ -871,10 +871,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
       
         function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
             var shortName = odataComplexType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var complexType = new ComplexType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             
             toArray(odataComplexType.property).forEach(function (prop) {
@@ -2562,16 +2562,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             //        namespace = namespace.substr(4);
             //    }
             //}
+            var ns;
             if (schema) {
-                namespace = getNamespaceFor(simpleTypeName, schema);
+                ns = getNamespaceFor(simpleTypeName, schema);
             } else {
                 var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                namespace = namespaceParts.join(".");
+                ns = namespaceParts.join(".");
             }
             return {
                 shortTypeName: simpleTypeName,
-                namespace: namespace,
-                typeName: qualifyTypeName(simpleTypeName, namespace)
+                namespace: ns,
+                typeName: qualifyTypeName(simpleTypeName, ns)
             };
         } else {
             return {
@@ -2583,13 +2584,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     }
     
     function getNamespaceFor(shortName, schema) {
-        var namespace;
+        var ns;
         var mapping = schema.cSpaceOSpaceMapping;
         if (mapping) {
             var fullName = mapping[schema.namespace + "." + shortName];
-            namespace = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
+            ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
         }
-        return namespace || schema.namespace;
+        return ns || schema.namespace;
     }
 
     return {

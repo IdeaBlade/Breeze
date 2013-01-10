@@ -16,32 +16,31 @@ QUnit.config.urlConfig.push({
 
 require.config({ baseUrl: "Scripts/Tests" });
 require([
-      //"paramTests",
-      //"miscTests",
-      //"koSpecificTests",
-      //"attachTests",
-      //"classRewriteTests",
-      //"metadataTests",
-      //"entityManagerTests",
-      //"entityTests",
-      //"complexTypeTests",
-      //"queryTests",
-      //"queryCtorTests",
-      //"queryNonEFTests",
-      //"queryDatatypeTests",
+      "paramTests",
+      "miscTests",
+      "koSpecificTests",
+      "attachTests",
+      "classRewriteTests",
+      "metadataTests",
+      "entityManagerTests",
+      "entityTests",
+      "complexTypeTests",
+      "queryTests",
+      "queryCtorTests",
+      "queryNonEFTests",
+      "queryDatatypeTests",
       "queryLocalTests",
-      //"queryNamedTests",
-      //"queryRawOdataTests",
-      //"querySelectTests",
-      //"validateTests",
-      //"validateEntityTests",
-      //"saveTests"
+      "queryNamedTests",
+      "queryRawOdataTests",
+      "querySelectTests",
+      "validateTests",
+      "validateEntityTests",
+      "saveTests"
 
 ], function (testFns) {
-    
+    // QUnit.start();
     document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
     if (QUnit.urlParams.canStart) {
-
         QUnit.start(); //Tests loaded, run tests
     }
 
