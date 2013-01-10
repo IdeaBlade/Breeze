@@ -9092,10 +9092,10 @@ function (core, m_entityMetadata, m_entityAspect) {
     function getComparableFn(dataType) {
         if (dataType === DataType.DateTime) {
             // dates don't perform equality comparisons properly 
-            return function (value) { return value.getTime(); };
+            return function (value) { return value && value.getTime(); };
         } else if (dataType === DataType.Time) {
             // durations must be converted to compare them
-            return function(value) { return core.durationToSeconds(value); };
+            return function(value) { return value && core.durationToSeconds(value); };
         } else {
             return function(value) { return value; };
         }
@@ -12241,7 +12241,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.84.2",
+        version: "0.84.3",
         core: core,
         config: a_config
     };

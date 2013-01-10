@@ -26,7 +26,21 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    test("local query with timespan", function () {
+    test("null dates", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("shippedDate", "==", null)
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be at least 1 null date");
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("timespan", function () {
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "PT4H")
@@ -39,7 +53,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("local query with 2 timespans", function () {
+    test("compare timespans", function () {
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "minTime")
@@ -52,7 +66,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("local query with null timespans", function () {
+    test("null timespans", function () {
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("minTime", "!=", null)
@@ -65,7 +79,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("local query with two fields", function () {
+    test("compare dates", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders")
             .where("requiredDate", "<", "shippedDate")

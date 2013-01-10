@@ -2144,10 +2144,10 @@ function (core, m_entityMetadata, m_entityAspect) {
     function getComparableFn(dataType) {
         if (dataType === DataType.DateTime) {
             // dates don't perform equality comparisons properly 
-            return function (value) { return value.getTime(); };
+            return function (value) { return value && value.getTime(); };
         } else if (dataType === DataType.Time) {
             // durations must be converted to compare them
-            return function(value) { return core.durationToSeconds(value); };
+            return function(value) { return value && core.durationToSeconds(value); };
         } else {
             return function(value) { return value; };
         }

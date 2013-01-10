@@ -26,6 +26,17 @@ define(["testFns"], function (testFns) {
         expect(1);
         ok(true);
     });
+
+    test("isDate", function() {
+        var a = null;
+        ok(!core.isDate(a), "x should not be a date");
+        var zzz = undefined;
+        ok(!core.isDate(zzz), "zzzz should not be date");
+        var dt1 = new Date();
+        ok(core.isDate(dt1), "dt1 should be a date");
+        var dt2 = new Date("xxx");
+        ok(!core.isDate(dt2), "dt2 is not a date");
+    });
     
     var factors = [31104000, // year (360*24*60*60) 
           2592000,             // month (30*24*60*60) 

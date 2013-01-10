@@ -2327,10 +2327,10 @@ function (core, m_entityMetadata, m_entityAspect) {
     function getComparableFn(dataType) {
         if (dataType === DataType.DateTime) {
             &#x2F;&#x2F; dates don&#x27;t perform equality comparisons properly 
-            return function (value) { return value.getTime(); };
+            return function (value) { return value &amp;&amp; value.getTime(); };
         } else if (dataType === DataType.Time) {
             &#x2F;&#x2F; durations must be converted to compare them
-            return function(value) { return core.durationToSeconds(value); };
+            return function(value) { return value &amp;&amp; core.durationToSeconds(value); };
         } else {
             return function(value) { return value; };
         }
