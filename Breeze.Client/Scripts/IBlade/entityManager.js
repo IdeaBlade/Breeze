@@ -2208,7 +2208,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         UnattachedChildrenMap.prototype.getChildren = function (parentEntityKey, navigationProperty) {
             var tuple = this.getTuple(parentEntityKey, navigationProperty);
             if (tuple) {
-                return tuple.children;
+                return tuple.children.filter(function (child) {
+                    // it may have later been detached.
+                    return !child.entityAspect.entityState.isDetached();
+                });
             } else {
                 return null;
             }

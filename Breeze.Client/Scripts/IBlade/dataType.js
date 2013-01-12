@@ -196,18 +196,21 @@ function (core) {
         return dt;
     };
 
-    DataType.fromJsType = function (typeName) {
-        switch (typeName) {
+    DataType.fromValue = function(val) {
+        if (core.isDate(val)) return DataType.DateTime;
+        switch (typeof val) {
             case "string":
+                if (core.isGuid(val)) return DataType.Guid;
+                else if (core.isDuration(val)) return DataType.Time;
                 return DataType.String;
             case "boolean":
                 return DataType.Boolean;
             case "number":
                 return DataType.Int32;
         }
-        return null;
+        return DataType.Undefined;
     };
-    
+   
     var _localTimeRegex = /.\d{3}$/;
 
     DataType.parseDateAsUTC = function (source) {

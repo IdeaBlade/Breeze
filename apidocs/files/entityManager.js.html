@@ -620,9 +620,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         ctor.prototype.createEmptyCopy = function () {
             var copy = new ctor({
                 serviceName: this.serviceName,
+                dataService: this.dataService,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                adapters: core.extend({}, this.adapters),
+                saveOptions: this.saveOptions,
+                validationOptions: this.validationOptions,
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -2389,7 +2391,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         UnattachedChildrenMap.prototype.getChildren = function (parentEntityKey, navigationProperty) {
             var tuple = this.getTuple(parentEntityKey, navigationProperty);
             if (tuple) {
-                return tuple.children;
+                return tuple.children.filter(function (child) {
+                    &#x2F;&#x2F; it may have later been detached.
+                    return !child.entityAspect.entityState.isDetached();
+                });
             } else {
                 return null;
             }

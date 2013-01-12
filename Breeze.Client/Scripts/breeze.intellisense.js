@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Jan 07 2013 10:23:41 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Jan 10 2013 12:38:03 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -389,6 +389,9 @@ intellisense.annotate(breeze.breeze.DataType, {
   
   /// <field name="DateTime" type="breeze.breeze.DataType" ></field>
   'DateTime': null,
+  
+  /// <field name="Time" type="breeze.breeze.DataType" >/**</field>
+  'Time': null,
   
   /// <field name="Boolean" type="breeze.breeze.DataType" ></field>
   'Boolean': null,

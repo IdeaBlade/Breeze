@@ -590,6 +590,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var that = this;
             core.objectForEach(json._structuralTypeMap, function (key, value) {
                 structuralTypeMap[key] = that._structuralTypeFromJson(value);
+                checkTypeRegistry(that, structuralTypeMap[key]);
             });
             &#x2F;&#x2F; TODO: don&#x27;t think that this next line is needed
             json._structuralTypeMap = structuralTypeMap;
@@ -1033,10 +1034,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var entityType = new EntityType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck(&quot;name&quot;));
             toArray(odataEntityType.property).forEach(function (prop) {
@@ -1053,10 +1054,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
       
         function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
             var shortName = odataComplexType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var complexType = new ComplexType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             
             toArray(odataComplexType.property).forEach(function (prop) {
@@ -2744,16 +2745,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             &#x2F;&#x2F;        namespace = namespace.substr(4);
             &#x2F;&#x2F;    }
             &#x2F;&#x2F;}
+            var ns;
             if (schema) {
-                namespace = getNamespaceFor(simpleTypeName, schema);
+                ns = getNamespaceFor(simpleTypeName, schema);
             } else {
                 var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                namespace = namespaceParts.join(&quot;.&quot;);
+                ns = namespaceParts.join(&quot;.&quot;);
             }
             return {
                 shortTypeName: simpleTypeName,
-                namespace: namespace,
-                typeName: qualifyTypeName(simpleTypeName, namespace)
+                namespace: ns,
+                typeName: qualifyTypeName(simpleTypeName, ns)
             };
         } else {
             return {
@@ -2765,13 +2767,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     }
     
     function getNamespaceFor(shortName, schema) {
-        var namespace;
+        var ns;
         var mapping = schema.cSpaceOSpaceMapping;
         if (mapping) {
             var fullName = mapping[schema.namespace + &quot;.&quot; + shortName];
-            namespace = fullName &amp;&amp; fullName.substr(0, fullName.length - (shortName.length + 1));
+            ns = fullName &amp;&amp; fullName.substr(0, fullName.length - (shortName.length + 1));
         }
-        return namespace || schema.namespace;
+        return ns || schema.namespace;
     }
 
     return {

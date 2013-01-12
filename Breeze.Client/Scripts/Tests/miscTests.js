@@ -27,6 +27,33 @@ define(["testFns"], function (testFns) {
         ok(true);
     });
 
+    test("isDate", function() {
+        var a = null;
+        ok(!core.isDate(a), "x should not be a date");
+        var zzz = undefined;
+        ok(!core.isDate(zzz), "zzzz should not be date");
+        var dt1 = new Date();
+        ok(core.isDate(dt1), "dt1 should be a date");
+        var dt2 = new Date("xxx");
+        ok(!core.isDate(dt2), "dt2 is not a date");
+    });
+    
+    var factors = [31104000, // year (360*24*60*60) 
+          2592000,             // month (30*24*60*60) 
+          86400,               // day (24*60*60) 
+          3600,                // hour (60*60) 
+          60,                  // minute (60) 
+          1];                  // second (1)
+
+    test("durationToSeconds", function() {
+        var secs = core.durationToSeconds("PT1S");
+        ok(secs === 1, "should be 1");
+        secs = core.durationToSeconds("PT3H20M1S");
+        ok(secs === (3 * 60 * 60) + (20 * 60) + 1);
+        secs = core.durationToSeconds("P2Y1MT20M1S");
+        ok(secs === ((2 * factors[0]) + (1 * factors[1]) + (20 * factors[4]) + 1));
+    });
+
     test("backbone", function() {
         var Person = Backbone.Model.extend({});
         var aPerson = new Person();

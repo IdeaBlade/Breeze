@@ -55,6 +55,42 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
+    test("registerEntityType 2", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(testFns.newMs());
+
+        em1.metadataStore.registerEntityTypeCtor("Region", function () {
+            this.foo = "foo";
+        }, function (entity) {
+            entity.bar = "bar";
+        });
+        var q = EntityQuery.from("Regions").take(2);
+        stop();
+        em1.executeQuery(q).then(function (data) {
+            ok(data.results.length === 2);
+            var region = data.results[0];
+            // 4 = 3 mapped + 1 unmapped ( foo) - should be no mention of 'bar'
+            ok(region.entityType.dataProperties.length === 4, "should only have 4 properties");
+            ok(region.bar === "bar", "bar property should = 'bar'");
+            var regionType = em1.metadataStore.getEntityType("Region");
+            var bundle = em1.exportEntities();
+            var em2 = new EntityManager();
+            em2.metadataStore.registerEntityTypeCtor("Region", function () {
+                this.foo = "foo";
+            }, function (entity) {
+                entity.bar = "bar";
+            });
+
+            em2.importEntities(bundle);
+            var ents = em2.getEntities();
+            ents.forEach(function (ent) {
+                ok(ent.entityType.dataProperties.length === 4, "should only have 4 properties");
+                ok(ent.bar === "bar", "bar property should = 'bar'");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("add knockout computed property based on collection navigation via constructor", 2, function () {
           // clones based on a fully populated store created at top of tests
           // see cloneModuleMetadataStore() below

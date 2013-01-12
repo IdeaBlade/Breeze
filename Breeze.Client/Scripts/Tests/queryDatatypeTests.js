@@ -68,6 +68,38 @@ define(["testFns"], function (testFns) {
 
     });
     
+    test("time 2", function () {
+        var em = newEm();
+        var query = new EntityQuery("TimeLimits").where("maxTime", ">", "PT4H").take(10);
+        var fourHrs = core.durationToSeconds("PT4H");
+        stop();
+
+        em.executeQuery(query).then(function(data) {
+            var results = data.results;
+            results.forEach(function(tlimit) {
+                var maxTime = tlimit.getProperty("maxTime");
+                var maxSecs = core.durationToSeconds(maxTime);
+                ok(maxSecs > fourHrs, "maxTime should be greater than 4 hours - " + maxSecs + " > " + fourHrs);
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("time not null", function () {
+        var em = newEm();
+        var query = new EntityQuery("TimeLimits").where("minTime", "!=", null).take(10);
+        stop();
+
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            ok(results.length > 0, "should be more than 0 recs with a null minTime");
+            results.forEach(function (tlimit) {
+                var minTime = tlimit.getProperty("minTime");
+                ok(minTime, "minTime should not be null");
+
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("bad time", function () {
         var em = newEm();
         var tlimitType = em.metadataStore.getEntityType("TimeLimit");

@@ -26,7 +26,60 @@ define(["testFns"], function (testFns) {
         }
     });
     
-    test("local query with two fields", function () {
+    test("null dates", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Orders")
+            .where("shippedDate", "==", null)
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be at least 1 null date");
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("timespan", function () {
+        var em = newEm();
+        var q = EntityQuery.from("TimeLimits")
+            .where("maxTime", "<", "PT4H")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("compare timespans", function () {
+        var em = newEm();
+        var q = EntityQuery.from("TimeLimits")
+            .where("maxTime", "<", "minTime")
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("null timespans", function () {
+        var em = newEm();
+        var q = EntityQuery.from("TimeLimits")
+            .where("minTime", "!=", null)
+            .take(20);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            var r2 = em.executeQueryLocally(q);
+            ok(r.length == r2.length);
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("compare dates", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders")
             .where("requiredDate", "<", "shippedDate")

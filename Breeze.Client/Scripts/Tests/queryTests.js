@@ -25,7 +25,54 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+    
+    test("detached unresolved children", function () {
+        var realEm = newEm();
+        var metadataStore = realEm.metadataStore; 
+        var orderType = metadataStore.getEntityType("Order"); 
+     
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", "729de505-ea6d-4cdf-89f6-0360ad37bde7")
+            .expand("orders");
+        var newOrder = orderType.createEntity(); // call the factory function for the Customer type
+        realEm.addEntity(newOrder);
+        newOrder.setProperty("customerID", "729de505-ea6d-4cdf-89f6-0360ad37bde7");
 
+        var items = realEm.rejectChanges();
+        stop();
+        realEm.executeQuery(query).then(function (data) {
+            var orders = data.results[0].getProperty("orders");
+            // the bug was that this included the previously detached order above. ( making a length of 11).
+            ok(orders.length == 10, "This customer must have 10 Orders");
+
+            var newOrder = orderType.createEntity(); // call the factory function for the Customer type
+            realEm.addEntity(newOrder);
+            newOrder.setProperty("customerID", "729de505-ea6d-4cdf-89f6-0360ad37bde7");
+
+            var items = realEm.rejectChanges();
+            return realEm.executeQuery(query);
+
+        }).then(function (data2) {
+            var orders = data2.results[0].getProperty("orders");
+            ok(orders.length == 10, "The customers must have 10 Orders");
+        }).fail(testFns.handleFail).fin(start);
+            
+    });
+
+    test("query with two nested expands", function() {
+        var em = newEm();
+        var query = EntityQuery.from("OrderDetails")
+            .where("orderID", "==", 11069)
+            .expand(["order.customer", "order.employee"]);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var r = data.results[0];
+            var c = r.getProperty("order").getProperty("customer");
+            ok(c, "c should not be null");
+            var e = r.getProperty("order").getProperty("employee");
+            ok(e, "e should not be null");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("query with two fields", function () {
         var em = newEm();

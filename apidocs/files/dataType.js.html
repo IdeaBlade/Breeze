@@ -310,6 +310,15 @@ function (core) {
     **&#x2F;
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     &#x2F;**
+
+    &#x2F;**
+    @property Time {DataType}
+    @final
+    @static
+    **&#x2F;
+    DataType.Time = DataType.addSymbol({ defaultValue: &quot;PT0S&quot; });
+    &#x2F;**
+
     @property Boolean {DataType}
     @final
     @static
@@ -370,18 +379,21 @@ function (core) {
         return dt;
     };
 
-    DataType.fromJsType = function (typeName) {
-        switch (typeName) {
+    DataType.fromValue = function(val) {
+        if (core.isDate(val)) return DataType.DateTime;
+        switch (typeof val) {
             case &quot;string&quot;:
+                if (core.isGuid(val)) return DataType.Guid;
+                else if (core.isDuration(val)) return DataType.Time;
                 return DataType.String;
             case &quot;boolean&quot;:
                 return DataType.Boolean;
             case &quot;number&quot;:
                 return DataType.Int32;
         }
-        return null;
+        return DataType.Undefined;
     };
-    
+   
     var _localTimeRegex = &#x2F;.\d{3}$&#x2F;;
 
     DataType.parseDateAsUTC = function (source) {

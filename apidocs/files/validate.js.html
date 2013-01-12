@@ -443,6 +443,7 @@ function (core, a_config, DataType) {
             string: &quot;&#x27;%displayName%&#x27; must be a string&quot;,
             bool: &quot;&#x27;%displayName%&#x27; must be a &#x27;true&#x27; or &#x27;false&#x27; value&quot;,
             guid: &quot;&#x27;%displayName%&#x27; must be a GUID&quot;,
+            duration: &quot;&#x27;%displayName%&#x27; must be a ISO8601 duration string, such as &#x27;P3H24M60S&#x27;&quot;,
             number: &quot;&#x27;%displayName%&#x27; must be a number&quot;,
             integer: &quot;&#x27;%displayName%&#x27; must be an integer&quot;,
             integerRange: &quot;&#x27;%displayName%&#x27; must be an integer between the values of %minValue% and %maxValue%&quot;,
@@ -562,6 +563,14 @@ function (core, a_config, DataType) {
                 return core.isGuid(v);
             };
             return new ctor(&quot;guid&quot;, valFn);
+        };
+
+        ctor.duration = function() {
+            var valFn = function(v) {
+                if (v == null) return true;
+                return core.isDuration(v);
+            };
+            return new ctor(&quot;duration&quot;, valFn);
         };
 
         &#x2F;**
@@ -883,6 +892,8 @@ function (core, a_config, DataType) {
             case DataType.Binary:
                 &#x2F;&#x2F; TODO: don&#x27;t quite know how to validate this yet.
                 return Validator.none;
+            case DataType.Time:
+                return Validator.duration;
             case DataType.Undefined:
                 return Validator.none;
         }

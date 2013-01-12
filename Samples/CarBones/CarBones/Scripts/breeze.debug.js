@@ -567,21 +567,34 @@ define('coreFns',[],function () {
         });
     }
     
-    // These are no longer used - this is now used instead.
-    // date = new Date(Date.parse(dataAsIsoString))
-    
-    //// assumes no timezone in isoDateString
-    //function dateFromIsoString(isoDateString) {
-    //    return fastDateParse.apply(null, isoDateString.split(/\D/));
-    //}
-    
-    
-    //// used internally above
-    //function fastDateParse(y, m, d, h, i, s, ms){
-    //    return new Date(y, m - 1, d, h || 0, i || 0, s || 0, ms || 0);
-    //}
+    function durationToSeconds(duration) {        
+        // basic algorithm from https://github.com/nezasa/iso8601-js-period
+        if (typeof duration !== "string") throw new Error("Invalid ISO8601 duration '" + duration + "'");
 
+        // regex splits as follows - grp0, grp1, y, m, d, grp2, h, m, s
+        //                           0     1     2  3  4  5     6  7  8   
+        var struct = /^P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?$/.exec(duration);
+        if (!struct) throw new Error("Invalid ISO8601 duration '" + duration + "'");
+        
+        var ymdhmsIndexes = [2, 3, 4, 6, 7, 8]; // -> grp1,y,m,d,grp2,h,m,s 
+        var factors = [31104000, // year (360*24*60*60) 
+            2592000,             // month (30*24*60*60) 
+            86400,               // day (24*60*60) 
+            3600,                // hour (60*60) 
+            60,                  // minute (60) 
+            1];                  // second (1)
 
+        var seconds = 0;
+        for (var i = 0; i < 6; i++) {
+            var digit = struct[ymdhmsIndexes[i]];
+            // remove letters, replace by 0 if not defined
+            digit = digit ? +digit.replace(/[A-Za-z]+/g, '') : 0;
+            seconds += digit * factors[i];
+        };
+        return seconds;
+
+    };
+    
     // is functions 
 
     function classof(o) {
@@ -604,6 +617,10 @@ define('coreFns',[],function () {
 
     function isGuid(value) {
         return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);
+    }
+    
+    function isDuration(value) {
+        return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
     }
 
     function isEmpty(obj) {
@@ -687,10 +704,12 @@ define('coreFns',[],function () {
         wrapExecution: wrapExecution,
         memoize: memoize,
         getUuid: getUuid,
+        durationToSeconds: durationToSeconds,
         // dateFromIsoString: dateFromIsoString,
 
         isDate: isDate,
         isGuid: isGuid,
+        isDuration: isDuration,
         isFunction: isFunction,
         isEmpty: isEmpty,
         isNumeric: isNumeric,
@@ -2013,6 +2032,15 @@ function (core) {
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
+
+    /**
+    @property Time {DataType}
+    @final
+    @static
+    **/
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
+    /**
+
     @property Boolean {DataType}
     @final
     @static
@@ -2073,18 +2101,21 @@ function (core) {
         return dt;
     };
 
-    DataType.fromJsType = function (typeName) {
-        switch (typeName) {
+    DataType.fromValue = function(val) {
+        if (core.isDate(val)) return DataType.DateTime;
+        switch (typeof val) {
             case "string":
+                if (core.isGuid(val)) return DataType.Guid;
+                else if (core.isDuration(val)) return DataType.Time;
                 return DataType.String;
             case "boolean":
                 return DataType.Boolean;
             case "number":
                 return DataType.Int32;
         }
-        return null;
+        return DataType.Undefined;
     };
-    
+   
     var _localTimeRegex = /.\d{3}$/;
 
     DataType.parseDateAsUTC = function (source) {
@@ -2378,6 +2409,7 @@ function (core, a_config, DataType) {
             string: "'%displayName%' must be a string",
             bool: "'%displayName%' must be a 'true' or 'false' value",
             guid: "'%displayName%' must be a GUID",
+            duration: "'%displayName%' must be a ISO8601 duration string, such as 'P3H24M60S'",
             number: "'%displayName%' must be a number",
             integer: "'%displayName%' must be an integer",
             integerRange: "'%displayName%' must be an integer between the values of %minValue% and %maxValue%",
@@ -2497,6 +2529,14 @@ function (core, a_config, DataType) {
                 return core.isGuid(v);
             };
             return new ctor("guid", valFn);
+        };
+
+        ctor.duration = function() {
+            var valFn = function(v) {
+                if (v == null) return true;
+                return core.isDuration(v);
+            };
+            return new ctor("duration", valFn);
         };
 
         /**
@@ -2818,6 +2858,8 @@ function (core, a_config, DataType) {
             case DataType.Binary:
                 // TODO: don't quite know how to validate this yet.
                 return Validator.none;
+            case DataType.Time:
+                return Validator.duration;
             case DataType.Undefined:
                 return Validator.none;
         }
@@ -4703,6 +4745,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var that = this;
             core.objectForEach(json._structuralTypeMap, function (key, value) {
                 structuralTypeMap[key] = that._structuralTypeFromJson(value);
+                checkTypeRegistry(that, structuralTypeMap[key]);
             });
             // TODO: don't think that this next line is needed
             json._structuralTypeMap = structuralTypeMap;
@@ -5146,10 +5189,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
             var shortName = odataEntityType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var entityType = new EntityType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(core.pluck("name"));
             toArray(odataEntityType.property).forEach(function (prop) {
@@ -5166,10 +5209,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
       
         function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
             var shortName = odataComplexType.name;
-            var namespace = getNamespaceFor(shortName, schema);
+            var ns = getNamespaceFor(shortName, schema);
             var complexType = new ComplexType({
                 shortName: shortName,
-                namespace: namespace
+                namespace: ns
             });
             
             toArray(odataComplexType.property).forEach(function (prop) {
@@ -6857,16 +6900,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             //        namespace = namespace.substr(4);
             //    }
             //}
+            var ns;
             if (schema) {
-                namespace = getNamespaceFor(simpleTypeName, schema);
+                ns = getNamespaceFor(simpleTypeName, schema);
             } else {
                 var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                namespace = namespaceParts.join(".");
+                ns = namespaceParts.join(".");
             }
             return {
                 shortTypeName: simpleTypeName,
-                namespace: namespace,
-                typeName: qualifyTypeName(simpleTypeName, namespace)
+                namespace: ns,
+                typeName: qualifyTypeName(simpleTypeName, ns)
             };
         } else {
             return {
@@ -6878,13 +6922,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     }
     
     function getNamespaceFor(shortName, schema) {
-        var namespace;
+        var ns;
         var mapping = schema.cSpaceOSpaceMapping;
         if (mapping) {
             var fullName = mapping[schema.namespace + "." + shortName];
-            namespace = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
+            ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
         }
-        return namespace || schema.namespace;
+        return ns || schema.namespace;
     }
 
     return {
@@ -7907,8 +7951,8 @@ function (core, m_entityMetadata, m_entityAspect) {
                     this.fn = function (entity) { return unquoted; };
                     this.dataType = DataType.String;
                 } else {
-                    var isIdentifier = RX_IDENTIFIER.test(value);
-                    if (isIdentifier) {
+                    var mayBeIdentifier = RX_IDENTIFIER.test(value);
+                    if (mayBeIdentifier) {
                         if (entityType) {
                             if (entityType.getProperty(value, false) == null) {
                                 // not a real FnNode;
@@ -7924,7 +7968,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                             return;
                         }
                         this.fn = function (entity) { return value; };
-                        this.dataType = DataType.fromJsType(typeof value);
+                        this.dataType = DataType.fromValue(value);
                     }
                 } 
             } else {
@@ -8462,8 +8506,9 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function (entityType) {            
-            var predFn = getPredicateFn(entityType, this._filterQueryOp);
+        ctor.prototype.toFunction = function (entityType) {
+            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
             var v1Fn = this._fnNode1.fn;
             if (this.fnNode2 === undefined && !this._valueIsLiteral) {
                 this.fnNode2 = FnNode.create(this._value, entityType);
@@ -8497,9 +8542,9 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         // TODO: still need to handle localQueryComparisonOptions for guids.
         
-        function getPredicateFn(entityType, filterQueryOp) {
+        function getPredicateFn(entityType, filterQueryOp, dataType) {
             var lqco = entityType.metadataStore.localQueryComparisonOptions;
-            var mc = makeComparable;
+            var mc = getComparableFn(dataType);
             var predFn;
             switch (filterQueryOp) {
                 case FilterQueryOp.Equals:
@@ -8595,16 +8640,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             
             var msg;
-            if (!dataType) {
-                // used for toString calls
-                if (core.isDate(val)) {
-                    dataType = DataType.DateTime;
-                } else if (core.isGuid(val)) {
-                    dataType = DataType.Guid;
-                } else {
-                    dataType = DataType.fromJsType(typeof val) || DataType.String;
-                }
-            }
+            
+            dataType = dataType || DataType.fromValue(val);
                        
             if (dataType.isNumeric) {
                 if (typeof val === "string") {
@@ -8621,9 +8658,15 @@ function (core, m_entityMetadata, m_entityAspect) {
                 try {
                     return "datetime'" + val.toISOString() + "'";
                 } catch(e) {
-                    msg = core.formatString("'%1' is not a valid dateTime'", val);
+                    msg = core.formatString("'%1' is not a valid dateTime", val);
                     throw new Error(msg);
                 }
+            } else if (dataType == DataType.Time) {
+                if (!core.isDuration(val)) {
+                    msg = core.formatString("'%1' is not a valid ISO 8601 duration", val);
+                    throw new Error(msg);
+                }
+                return "time'" + val + "'";
             } else if (dataType === DataType.Guid) {
                 if (!core.isGuid(val)) {
                     msg = core.formatString("'%1' is not a valid guid", val);
@@ -8866,17 +8909,20 @@ function (core, m_entityMetadata, m_entityAspect) {
             var propertyPath = this.propertyPath;
             var isDesc = this.isDesc;
             var that = this;
+            
             return function (entity1, entity2) {
                 var value1 = getPropertyPathValue(entity1, propertyPath);
                 var value2 = getPropertyPathValue(entity2, propertyPath);
-                if (that.lastProperty && that.lastProperty.dataType == DataType.String) {
+                var dataType = (that.lastProperty || {}).dataType;
+                if (dataType === DataType.String) {
                     if (!that.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
                         value1 = (value1 || "").toLowerCase();
                         value2 = (value2 || "").toLowerCase();
                     }
                 } else {
-                    value1 = makeComparable(value1);
-                    value2 = makeComparable(value2);
+                    var normalize = getComparableFn(dataType);
+                    value1 = normalize(value1);
+                    value2 = normalize(value2);
                 }
                 if (value1 == value2) {
                     return 0;
@@ -9043,14 +9089,18 @@ function (core, m_entityMetadata, m_entityAspect) {
             return nextValue;
         }
     }
-
-    function makeComparable(value) {
-        // dates don't perform equality comparisons properly 
-        if (value instanceof Date) {
-            return value.getTime();
+   
+    function getComparableFn(dataType) {
+        if (dataType === DataType.DateTime) {
+            // dates don't perform equality comparisons properly 
+            return function (value) { return value && value.getTime(); };
+        } else if (dataType === DataType.Time) {
+            // durations must be converted to compare them
+            return function(value) { return value && core.durationToSeconds(value); };
         } else {
-            return value;
+            return function(value) { return value; };
         }
+        
     }
 
     // Fixup --- because EntityAspect does not have access to EntityQuery or EntityMetadata
@@ -9879,9 +9929,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         ctor.prototype.createEmptyCopy = function () {
             var copy = new ctor({
                 serviceName: this.serviceName,
+                dataService: this.dataService,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
-                adapters: core.extend({}, this.adapters),
+                saveOptions: this.saveOptions,
+                validationOptions: this.validationOptions,
                 keyGeneratorCtor: this.keyGeneratorCtor
             });
             return copy;
@@ -11648,7 +11700,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         UnattachedChildrenMap.prototype.getChildren = function (parentEntityKey, navigationProperty) {
             var tuple = this.getTuple(parentEntityKey, navigationProperty);
             if (tuple) {
-                return tuple.children;
+                return tuple.children.filter(function (child) {
+                    // it may have later been detached.
+                    return !child.entityAspect.entityState.isDetached();
+                });
             } else {
                 return null;
             }
@@ -12187,7 +12242,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.83.4",
+        version: "0.84.3",
         core: core,
         config: a_config
     };
@@ -12862,6 +12917,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         var names = [];
         for (var p in entity) {
             if (p === "entityType") continue;
+            if (p === "_$typeName") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
