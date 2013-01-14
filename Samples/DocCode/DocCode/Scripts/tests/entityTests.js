@@ -697,7 +697,42 @@ define(["testFns"], function (testFns) {
         var entityStateName = order.entityAspect.entityState;
         equal(entityStateName, "Modified", "the entitystate should be 'Modified'");
     });
+    /*********************************************************
+    * Store-managed int ID is a negative temp id after addEntity
+    *********************************************************/
+    test("Store-managed int ID is a negative temp id after addEntity", 2, function() {
 
+        var em = newEm();
+        var employeeType = em.metadataStore.getEntityType("Employee");
+        var emp = employeeType.createEntity();
+        equal(emp.EmployeeID(), 0, "id should be zero at creation");
+        
+        // manager should replace '0' with generated temp id that is < 0
+        em.addEntity(emp);
+        var id = emp.EmployeeID();
+        ok(id < 0,
+            "id should be negative after addEntity; is "+ id +
+            " whose state is "+ emp.entityAspect.entityState.name);
+    });
+    /*********************************************************
+    * Store-managed int ID remains '0' after attachEntity
+    * even though '0' is the trigger for temp id gen if was added instead
+    *********************************************************/
+    test("Store-managed int ID remains '0' after attachEntity", 2, function () {
+
+        var em = newEm();
+        var employeeType = em.metadataStore.getEntityType("Employee");
+        var emp = employeeType.createEntity();
+        equal(emp.EmployeeID(), 0, "id should be zero at creation");
+        
+        // manager should NOT replace '0' with generated temp id 
+        em.attachEntity(emp);
+        var id = emp.EmployeeID();
+        equal(emp.EmployeeID(), 0,
+            "id should still be '0' after attachEntity whose state is "+
+            emp.entityAspect.entityState.name);
+    });
+    
     /*********************************************************
     * TEST HELPERS
     *********************************************************/
