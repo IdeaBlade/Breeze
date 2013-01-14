@@ -12,7 +12,8 @@ window.todoApp.datacontext = (function (breeze) {
         hasServerMetadata: false
     });
 
-    var manager = new breeze.EntityManager({dataService: dataService});
+    var manager = new breeze.EntityManager({ dataService: dataService });
+    manager.enableSaveQueuing(true);
     var metadataStore = manager.metadataStore;
     configureManagerToSaveOnModify();
 
