@@ -4,21 +4,22 @@
 
 	// intercept and wrap EntityManager's base saveChanges()
 	EntityManager.prototype.saveChanges = function () {
-		// Add queuingSave if not already added to this EntityManager
+		// Add queuingSave if not already added to this EntityManager instance
 		var queuingSave = this.queuingSave || (this.queuingSave = new QueuingSave(this));
 	    
 		var args = [].slice.call(arguments);
 		if (queuingSave.isEnabled) {
 			if (queuingSave.isSaving) {
+			    // save in progress; queue the save for later
 				return queuingSave.queueSaveChanges(args);
 			} else {
+			    // note that save is in progrees; then save
 				queuingSave.isSaving = true;
 				return queuingSave.innerSaveChanges(args);
 			}
 		}
 	    // queuing disabled; just call the base save
 	    return baseSaveChanges.apply(this, args);
-
 	};
 
     var QueuingSave = function(entityManager) {
@@ -26,8 +27,9 @@
         this.isEnabled = true;
         this.isSaving = false;
         this.saveQueue = [];
-        this.successFn = defaultSaveSucceeded;
-        this.failFn = defaultSaveFailed;
+        this.saveSucceeded = defaultSaveSucceeded;
+        this.saveFailed = defaultSaveFailed;
+        this.QueuedSaveFailedError = QueuedSaveFailedError;
     };
 
     QueuingSave.prototype.queueSaveChanges = function (args) {
@@ -38,17 +40,20 @@
         var savePromise = deferredSave.promise;
         return savePromise
             .then(function() {return self.innerSaveChanges(args); })
-            .fail(function(error) { self.failFn(self, error); });
+            .fail(function(error) { self.saveFailed(self, error); });
     };
     
     QueuingSave.prototype.innerSaveChanges = function (args) {
     	var self = this;
     	return baseSaveChanges.apply(self.entityManager, args)
-            .then(function () { self.successFn(self); })
-            .fail(function (error) { self.failFn(self, error); });
+            .then(function (saveResult) { self.saveSucceeded(self, saveResult); })
+            .fail(function (error) { self.saveFailed(self, error); });
     };
+    
+	// Default methods and Error class for initializing new QueuingSave objects
     QueuingSave.defaultQueuedSaveSucceeded = defaultSaveSucceeded;
     QueuingSave.defaultQueuedSaveFailed = defaultSaveFailed;
+    QueuingSave.QueuedSaveFailedError = QueuedSaveFailedError;
 
     
     function defaultSaveSucceeded(queuingSave) {
@@ -67,18 +72,21 @@
 		var deferredSave;
 	    // clear the save queue, calling reject on each deferred save
 		while(deferredSave = saveQueue.shift()) {
-			deferredSave.reject(new SaveFailedError("", error));
+			deferredSave.reject(new queuingSave.QueuedSaveFailedError(error, queuingSave));
 		}
-		throw error; // so rest of promise chain can hear error
+		throw error; // so rest of current promise chain can hear error
 	}
     
-    function SaveFailedError(errObject) {
-    	this.name = "SaveFailedError";
+	//#region QueuedSaveFailedError
+	// Custom Error sub-class; thrown when rejecting queued saves.
+    function QueuedSaveFailedError(errObject) {
+    	this.name = "QueuedSaveFailedError";
         this.message = "Queued save failed";
 		this.innerError = errObject;
 	}
 
-	SaveFailedError.prototype = new Error();
-	SaveFailedError.prototype.constructor = SaveFailedError;
+    QueuedSaveFailedError.prototype = new Error();
+    QueuedSaveFailedError.prototype.constructor = QueuedSaveFailedError;
+    //#endregion
 
 })(breeze, Q);
