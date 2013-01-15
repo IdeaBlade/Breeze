@@ -127,15 +127,12 @@ function (core) {
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
-
-    /**
     @property Time {DataType}
     @final
     @static
     **/
     DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
     /**
-
     @property Boolean {DataType}
     @final
     @static

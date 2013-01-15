@@ -2115,7 +2115,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
         the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
         @param [config.dataType=DataType.String] {DataType}
+        @param [config.complexTypeName] {String}
         @param [config.isNullable=true] {Boolean}
+        @param [config.defaultValue] {Any}
         @param [config.isPartOfKey=false] {Boolean}
         @param [config.isUnmapped=false] {Boolean}
         @param [config.concurrencyMode] {String}
@@ -2192,6 +2194,20 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
 
         /**
+        The name of the {{#crossLink "ComplexType"}}{{/crossLink}} associated with this property; may be null. 
+
+        __readOnly__
+        @property complexTypeName {String}
+        **/
+
+        /**
+        Whether the contents of this property is an instance of a {{#crossLink "ComplexType"}}{{/crossLink}}.
+
+        __readOnly__
+        @property isComplexProperty {bool}
+        **/
+
+        /**
         Whether this property is nullable. 
 
         __readOnly__
@@ -2253,6 +2269,22 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         __readOnly__
         @property relatedNavigationProperty {NavigationProperty}
+        **/
+        
+        /**
+        Is this a DataProperty? - always true here 
+        Allows polymorphic treatment of DataProperties and NavigationProperties.
+
+        __readOnly__
+        @property isDataProperty {Boolean}
+        **/
+
+        /**
+        Is this a NavigationProperty? - always false here 
+        Allows polymorphic treatment of DataProperties and NavigationProperties.
+
+        __readOnly__
+        @property isNavigationProperty {Boolean}
         **/
 
         ctor.prototype.isDataProperty = true;

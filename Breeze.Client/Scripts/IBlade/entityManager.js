@@ -504,7 +504,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             
             var that = this;
             core.using(this, "isLoading", true, function () {
-                checkEntityKey(that, entity);
+                if (entityState.isAdded()) {
+                    checkEntityKey(that, entity);
+                }
                 attachEntityCore(that, entity, entityState);
                 attachRelatedEntities(that, entity, entityState);
             });
@@ -2475,13 +2477,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         Returns a copy of this QueryOptions with the specified {{#crossLink "MergeStrategy"}}{{/crossLink}} 
         or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
         @example
-            var queryOptions = em1.defaultQueryOptions.using(MergeStrategy.PreserveChanges);
+            var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);
         or
         @example
-            var queryOptions = em1.defaultQueryOptions.using(FetchStrategy.FromLocalCache);
+            var queryOptions = em1.queryOptions.using(FetchStrategy.FromLocalCache);
         or
         @example
-            var queryOptions = em1.defaultQueryOptions.using( { mergeStrategy: OverwriteChanges });
+            var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
         @method using
         @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
         @return {QueryOptions}
