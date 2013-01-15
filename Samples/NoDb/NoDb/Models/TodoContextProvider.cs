@@ -9,19 +9,29 @@ using Breeze.WebApi;
 namespace NoDb.Models {
   public class TodoContextProvider : ContextProvider {
 
-    public TodoContext Context { get { return _todoContext; } }
+    public TodoContext Context { get { return TodoContext.Instance; } }
 
     public TodoContextProvider(IPrincipal user) {
-      // This sample lacks authentication so fake it
-      //UserId = user.Identity.Name;
-      UserId = TodoContext.FakeUserName;
+      // UserId = user.Identity.Name;    // if the sample supported authentication
+      UserId = TodoContext.FakeUserName; // fake it
     }
 
     public string UserId { get; private set; }
 
-    /// <summary>
-    /// Not currently called.
-    /// </summary>
+    /// <summary>Get all TodoLists for the current user.</summary>
+    /// <remarks>Could have returned an IEnumerable.</remarks>
+    public IQueryable<TodoList> TodoLists
+    {
+        get
+        {
+            return Context.TodoLists
+                          .Where(t => t.UserId == UserId)
+                          .AsQueryable();
+        }
+    }
+
+    /// <summary>Get all TodoItems belonging to the current user.</summary>
+    /// <remarks>Interesting but not currently called.</remarks>
     public IQueryable<TodoItem> Todos {
       get {
         return Context.TodoLists
@@ -31,20 +41,8 @@ namespace NoDb.Models {
       }
     }
 
-    /// <summary>
-    /// This could just as well be an IEnumerable.
-    /// </summary
-    public IQueryable<TodoList> TodoLists {
-      get {
-        return Context.TodoLists
-                      .Where(t => t.UserId == UserId)
-                      .AsQueryable();
-      }
-    }
-
-    protected override string BuildJsonMetadata() {
-      return null;
-    }
+    // No metadata from this provider but must implement abstract method.
+    protected override string BuildJsonMetadata() { return null;}
 
     #region Save processing
 
@@ -88,8 +86,6 @@ namespace NoDb.Models {
     }
 
     #endregion
-
-    private TodoContext _todoContext = TodoContext.Instance;
 
   }
 }

@@ -1,19 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿namespace NoDb.Models {
 
-namespace NoDb.Models {
-  /// <summary>
-  /// Todo item entity
-  /// </summary>
   public class TodoItem {
-    public int TodoItemId { get; set; }
-
-    [Required]
+    public int    TodoItemId { get; set; }
     public string Title { get; set; }
-    public bool IsDone { get; set; }
+    public bool   IsDone { get; set; }
 
-    [ForeignKey("TodoList")]
-    public int TodoListId { get; set; }
+    public int TodoListId { get; set; }  // Foreign key
     public virtual TodoList TodoList { get; set; }
   }
 }
