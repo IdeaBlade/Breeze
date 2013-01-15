@@ -43,7 +43,10 @@
                     <article class="todoList">
                         <header>
                             <form data-bind="validate: true">
-                                <input data-bind="value: title, selected: isEditingListTitle, blurOnEnter: true" />
+                                <input data-bind="value: title,
+                                                  selected: isEditingListTitle,
+                                                  blurOnEnter: true,
+                                                  click: $root.clearErrorMessage" />
                             </form>
                         </header>
 
@@ -53,7 +56,10 @@
                             <li>
                                 <input type="checkbox" data-bind="checked: isDone" />
                                 <input type="text" 
-                                    data-bind="value: title, disable: isDone, blurOnEnter: true, click: $root.clearErrorMessage" />
+                                       data-bind="value: title,
+                                                  disable: isDone,
+                                                  blurOnEnter: true,
+                                                  click: $root.clearErrorMessage" />
                                 <a href="#" data-bind="click: $parent.deleteTodo">X</a>
                                 <p class="error" data-bind="visible: errorMessage, text: errorMessage"></p>
                             </li>

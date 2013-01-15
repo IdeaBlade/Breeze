@@ -109,11 +109,13 @@ namespace NoDb.Models
             {
                 list.TodoListId = AddMapping(typeof(TodoList), list.TodoListId);
             }
+            ValidateTodoList(list);
             TodoLists.Add(list);
         }
 
         private void ModifyTodoList(TodoList list)
         {
+            ValidateTodoList(list);
             var todoList = FindTodoList(list.TodoListId);
             todoList.Title = list.Title;
             todoList.UserId = list.UserId;
@@ -136,12 +138,14 @@ namespace NoDb.Models
                 item.TodoListId = FindRealId(typeof(TodoList), item.TodoListId);
             }
 
+            ValidateTodoItem(item);
             var todoList = FindTodoList(item.TodoListId);
             todoList.AddItem(item);
         }
 
         private void ModifyTodoItem(TodoItem item)
         {
+            ValidateTodoItem(item);
             var todoList = FindTodoList(item.TodoListId);
             todoList.ReplaceItem(item);
         }
@@ -189,6 +193,25 @@ namespace NoDb.Models
             return (int)mapping.RealValue;
         }
 
+        public void ValidateTodoItem(TodoItem todoItem)
+        {
+            var errs = todoItem.Validate();
+            if (errs.Length <= 0) return;
+            var msg =
+                string.Format("TodoItem {0} '{1}' failed validation: {2}",
+                              todoItem.TodoItemId, todoItem.Title, errs);
+            throw new ValidationError(msg);
+        }
+
+        public void ValidateTodoList(TodoList todoList)
+        {
+            var errs = todoList.Validate();
+            if (errs.Length <= 0) return;
+            var msg =
+                string.Format("TodoList {0} '{1}' failed validation: {2}",
+                              todoList.TodoListId, todoList.Title, errs);
+            throw new ValidationError(msg);
+        }
         public void PopulateWithSampleData()
         {
             var newList = new TodoList { Title = "Before work", UserId = FakeUserName };
@@ -209,6 +232,11 @@ namespace NoDb.Models
         private bool _initialized;
         private readonly List<TodoList> _todoLists = new List<TodoList>();
         private readonly List<KeyMapping> _keyMappings = new List<KeyMapping>();
+    }
+
+    public class ValidationError : Exception
+    {
+        public ValidationError(string message) : base(message){ }
     }
 
     public sealed class IdGenerator

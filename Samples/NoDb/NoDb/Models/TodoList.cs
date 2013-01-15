@@ -42,10 +42,26 @@ namespace NoDb.Models {
       return ix;
     }
 
+    public string Validate()
+    {
+        var errs = string.Empty;
+        if (TodoListId <= 0)
+        {
+            errs += "TodoListId must be a positive integer"; 
+        }
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            errs += "Title is required";
+        } else if (Title.Length > 30) {
+            errs += "Title cannot be longer than 30 characters";
+        }
+        if (string.IsNullOrWhiteSpace(UserId))
+        {
+            errs += "UserId is required";
+        }
+        return errs;
+    }
+
     private readonly List<TodoItem> _todoItems = new List<TodoItem>();
   }
-
-
-
-
 }
