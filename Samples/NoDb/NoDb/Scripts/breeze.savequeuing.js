@@ -51,9 +51,6 @@ touch them at your own risk.
         this.baseSaveChanges = entityManager.saveChanges;
     	this.isSaving = false;
         this.saveQueue = [];
-        this.saveSucceeded = defaultSaveSucceeded;
-        this.saveFailed = defaultSaveFailed;
-        this.QueuedSaveFailedError = QueuedSaveFailedError;
     };
     
     SaveQueuing.prototype.isEnabled = function() {
@@ -96,10 +93,9 @@ touch them at your own risk.
     };
     
     // Default methods and Error class for initializing new saveQueuing objects
-    SaveQueuing.defaultQueuedSaveSucceeded = defaultSaveSucceeded;
-    SaveQueuing.defaultQueuedSaveFailed = defaultSaveFailed;
-    SaveQueuing.QueuedSaveFailedError = QueuedSaveFailedError;
-
+    SaveQueuing.prototype.saveSucceeded = defaultSaveSucceeded;
+    SaveQueuing.prototype.saveFailed = defaultSaveFailed;
+    SaveQueuing.prototype.QueuedSaveFailedError = QueuedSaveFailedError;
     
     function defaultSaveSucceeded() {
         var saveQueuing = this;
