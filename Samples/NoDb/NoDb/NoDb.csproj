@@ -90,7 +90,7 @@
     <Content Include="Content\TodoList.css" />
     <Content Include="favicon.ico" />
     <Content Include="Index.html" />
-    <Content Include="Scripts\app\breeze.savequeuing.js" />
+    <Content Include="Scripts\breeze.savequeuing.js" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
