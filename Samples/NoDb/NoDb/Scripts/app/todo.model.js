@@ -29,6 +29,7 @@
         et.addProperty(prop = new DataProperty({
            name: "title",
            dataType: DataType.String,
+           maxLength: 30,
            isNullable: false
         }));
         et.addValidator(Validator.required(), prop);
@@ -77,6 +78,7 @@
         et.addProperty(new DataProperty({
             name: "title",
             dataType: DataType.String,
+            maxLength: 30,
             isNullable: false
         }));
         et.addProperty(new DataProperty({
