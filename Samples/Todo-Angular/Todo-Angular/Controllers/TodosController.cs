@@ -10,7 +10,7 @@ namespace Todo.Controllers
     [BreezeController]
     public class TodosController : ApiController {
 
-        static readonly TimeSpan RefreshRate = TimeSpan.FromMinutes(20);
+        static readonly TimeSpan RefreshRate = TimeSpan.FromMinutes(60);
         private static readonly object Locker = new object();
         static DateTime _lastRefresh = DateTime.Now; // will first clear db at Now + "RefreshRate" 
         // static DateTime lastRefresh = DateTime.MinValue; // will clear when server starts
