@@ -1,5 +1,4 @@
-﻿/// <reference path="todo.datacontext.js"/>
-(function (ko, breeze, datacontext) {
+﻿(function (ko, breeze, datacontext) {
     
     // Extract Breeze metadata definition types
     var DataType = breeze.DataType;

@@ -23,12 +23,10 @@ namespace NoDb.Controllers {
         }
 
         // GET ~/api/BreezeTodo/TodoList
-        // GET ~/api/breezetodo/todolists/?$expand=todos
         [HttpGet]
         public IQueryable<TodoList> TodoLists()
         {
             return _context.TodoLists
-                //.Include("Todos")// do it client-side with Breeze
                 .OrderByDescending(t => t.TodoListId);
         }
 

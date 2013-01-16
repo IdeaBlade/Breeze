@@ -1,24 +1,20 @@
-﻿/// <reference path="todo.model.js"/>
-window.todoApp = window.TodoApp || {};
+﻿window.todoApp = window.TodoApp || {};
 
 window.todoApp.datacontext = (function (breeze) {
 
     breeze.NamingConvention.camelCase.setAsDefault();
-
-    var serviceName = "api/Todo";
-    
+ 
     var dataService = new breeze.DataService({
-        serviceName: serviceName,
-        hasServerMetadata: false
+        serviceName: "api/Todo",
+        hasServerMetadata: false // don't ask the server for metadata
     });
 
     var manager = new breeze.EntityManager({ dataService: dataService });
-    manager.enableSaveQueuing(true);
     var metadataStore = manager.metadataStore;
-    configureManagerToSaveOnModify();
+    manager.enableSaveQueuing(true);
+    configureManagerToSaveModifiedItemImmediately();
 
     var datacontext = {
-            name: "Breeze",
             metadataStore: metadataStore,
             getTodoLists: getTodoLists,
             createTodoList: createTodoList,
@@ -34,7 +30,7 @@ window.todoApp.datacontext = (function (breeze) {
     //#region Private Members
     function getTodoLists(todoListsObservable, errorObservable) {
         return breeze.EntityQuery
-            .from("TodoLists")    // .expand("Todos")
+            .from("TodoLists")  
             .using(manager).execute()
             .then(getSucceeded)
             .fail(getFailed);
@@ -97,18 +93,21 @@ window.todoApp.datacontext = (function (breeze) {
             var msg = "Error saving " + statename + " " + typeName + ": ";   
             
             var reason = error.message;
-            var detail = error.detail;
 
             if (reason === "Validation error") {
                 reason = getValidationError(error);
-            } else if (detail && detail.ExceptionMessage &&
-                       detail.ExceptionMessage.indexOf('Unable to locate') > -1) {
-                // Concurrency error 
-                reason = "can't find "+ typeName + 
-                         "; another user may have deleted it.";
+            } else if (isConcurrencyError(error)) {
+                reason =
+                    "can't find " + typeName + "; another user may have deleted it.";
             }
             masterEntity.errorMessage(msg + reason);
-        };
+        }
+        
+        function isConcurrencyError(error) {
+            var detail = error.detail;
+            return detail && detail.ExceptionMessage &&
+                detail.ExceptionMessage.indexOf("Unable to locate") > -1;
+        }
         
         function getValidationError(error) {
             try { // fish out the first error
@@ -119,7 +118,7 @@ window.todoApp.datacontext = (function (breeze) {
         }
     }
     
-    function configureManagerToSaveOnModify() {
+    function configureManagerToSaveModifiedItemImmediately() {
         manager.entityChanged.subscribe(function (args) {
             if (args.entityAction === breeze.EntityAction.EntityStateChange) {
                 var entity = args.entity;
