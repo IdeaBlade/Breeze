@@ -70,7 +70,7 @@ window.todoApp.datacontext = (function (breeze) {
     }
     
     function deleteTodoList(todoList) {       
-        // breeze doesn't cascade delete so we have to do it
+        // Neither breeze nor server cascade deletes so we have to do it
         var todoItems = todoList.todos().slice(); // iterate over copy
         todoItems.forEach(function(entity) { entity.entityAspect.setDeleted(); });
         todoList.entityAspect.setDeleted();
@@ -95,27 +95,28 @@ window.todoApp.datacontext = (function (breeze) {
             var reason = error.message;
 
             if (reason === "Validation error") {
-                reason = getValidationError(error);
+                reason = getValidationErrorMessage(error);
             } else if (isConcurrencyError(error)) {
                 reason =
                     "can't find " + typeName + "; another user may have deleted it.";
             }
             masterEntity.errorMessage(msg + reason);
         }
-        
-        function isConcurrencyError(error) {
-            var detail = error.detail;
-            return detail && detail.ExceptionMessage &&
-                detail.ExceptionMessage.indexOf("Unable to locate") > -1;
-        }
-        
-        function getValidationError(error) {
+
+        function getValidationErrorMessage(error) {
             try { // fish out the first error
                 var firstErr = error.entitiesWithErrors[0].entityAspect.getValidationErrors()[0];
                 return firstErr.errorMessage;
             } catch (e) { /* eat it for now */ }
             return "validation error";
         }
+        
+        function isConcurrencyError(error) {
+            var detail = error.detail;
+            return detail && detail.ExceptionMessage &&
+                detail.ExceptionMessage.match(/can't find/i);
+        }
+
     }
     
     function configureManagerToSaveModifiedItemImmediately() {

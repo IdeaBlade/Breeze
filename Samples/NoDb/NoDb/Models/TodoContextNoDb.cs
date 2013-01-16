@@ -17,6 +17,10 @@ namespace NoDb.Models
         // tells C# compiler not to mark type as 'beforefieldinit'
         static TodoContextNoDb() { }
 
+        // No one can instantiate
+        private TodoContextNoDb() { }
+
+        // Singleton instance of this in-memory "database"
         public static TodoContextNoDb Instance
         {
             get
@@ -29,9 +33,6 @@ namespace NoDb.Models
                 return __instance;
             }
         }
-
-        public const string FakeUserName = "NoDb";
-
         public List<TodoList> TodoLists
         {
             get
@@ -123,7 +124,6 @@ namespace NoDb.Models
             ValidateTodoList(list);
             var todoList = FindTodoList(list.TodoListId);
             todoList.Title = list.Title;
-            todoList.UserId = list.UserId;
         }
 
         private void DeleteTodoList(TodoList list)
@@ -183,7 +183,7 @@ namespace NoDb.Models
             if (todoList == null)
             {
                 if (okToFail) return null;
-                throw new Exception("Unable to locate TodoList: " + todoListId);
+                throw new Exception("Can't find TodoList " + todoListId);
             }
             return todoList;
         }
@@ -217,9 +217,10 @@ namespace NoDb.Models
                               todoList.TodoListId, todoList.Title, errs);
             throw new ValidationError(msg);
         }
+
         public void PopulateWithSampleData()
         {
-            var newList = new TodoList { Title = "Before work", UserId = FakeUserName };
+            var newList = new TodoList { Title = "Before work"};
 
             AddTodoList(newList);
             var listId = newList.TodoListId;

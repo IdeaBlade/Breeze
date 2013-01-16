@@ -8,7 +8,6 @@ namespace NoDb.Models
     {
         public int TodoListId { get; set; }
         public string Title { get; set; }
-        public string UserId { get; set; }
 
         public virtual ReadOnlyCollection<TodoItem> Todos
         {
@@ -52,10 +51,6 @@ namespace NoDb.Models
             {
                 errs += "Title cannot be longer than 30 characters";
             }
-            if (string.IsNullOrWhiteSpace(UserId))
-            {
-                errs += "UserId is required";
-            }
             return errs;
         }
 
@@ -64,7 +59,7 @@ namespace NoDb.Models
             var ix = _todoItems.FindIndex(s => s.TodoItemId == item.TodoItemId);
             if (ix == -1)
             {
-                throw new Exception("Unable to locate TodoItem: " + item.TodoItemId);
+                throw new Exception("Can't find TodoItem: " + item.TodoItemId);
             }
             return ix;
         }

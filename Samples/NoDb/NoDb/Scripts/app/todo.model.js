@@ -83,11 +83,6 @@
             maxLength: 30,
             isNullable: false
         }));
-        et.addProperty(new DataProperty({
-            name: "userId",
-            dataType: DataType.String,
-            isNullable: false
-        }));
 
         et.addProperty(new NavigationProperty({
             name: "todos",
@@ -99,10 +94,10 @@
         store.addEntityType(et);
         store.registerEntityTypeCtor("TodoList", TodoList, todoListInitializer);
 
-        function TodoList() { 
-            this.title = "My todos";       // defaults
-            this.userId = "to be replaced";
+        function TodoList() {
+             this.title = "My todos";
         }
+        
         function todoListInitializer(todoList) {
             todoList.errorMessage = ko.observable();
             todoList.isEditingListTitle = ko.observable(false);
