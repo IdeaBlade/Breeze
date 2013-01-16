@@ -1,5 +1,15 @@
 var breeze = this.Breeze;
 var core = this.BreezeCore;
+function test_dataType() {
+    var typ = breeze.DataType.DateTime;
+    var nm = typ.getName();
+    var isNumber = typ.isNumeric;
+    var dv = typ.defaultValue;
+    var symbs = breeze.DataType.getSymbols();
+    var x = typ.parentEnum === breeze.DataType;
+    var isFalse = breeze.DataType.contains(breeze.DataType.Double);
+    var dt = breeze.DataType.fromName("Decimal");
+}
 function test_dataProperty() {
     var lastNameProp = new breeze.DataProperty({
         name: "lastName",
@@ -512,6 +522,11 @@ function test_namingConventions() {
             return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
         }
     });
+    var nc = new breeze.NamingConvention({
+        serverPropertyNameToClient: function (x) {
+            return "xxx";
+        }
+    });
     var ms = new breeze.MetadataStore({
         namingConvention: namingConv
     });
@@ -548,6 +563,8 @@ function test_navigationProperty() {
 }
 function test_predicate() {
     var p1 = new breeze.Predicate("CompanyName", "StartsWith", "B");
+    var p1a = breeze.Predicate.create("CompanyName", "==", "City");
+    var p2a = p1a.and(p1a.not());
     var query = new breeze.EntityQuery("Customers").where(p1);
     var p2 = new breeze.Predicate("Region", breeze.FilterQueryOp.Equals, null);
     var query = new breeze.EntityQuery("Customers").where(p2);
