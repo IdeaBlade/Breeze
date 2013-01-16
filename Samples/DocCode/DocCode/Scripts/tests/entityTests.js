@@ -141,6 +141,7 @@ define(["testFns"], function (testFns) {
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(1);
         employee.LastName("Smith"); // initial value before attached
         employee.LastName("Jones"); // change value before attaching 
 
@@ -180,7 +181,8 @@ define(["testFns"], function (testFns) {
             var em = newEm(); // new empty EntityManager
             var empType = em.metadataStore.getEntityType("Employee");
 
-            var employee = empType.createEntity(); 
+            var employee = empType.createEntity();
+            employee.EmployeeID(1);
             employee.LastName("Jones");
             em.attachEntity(employee);// Attach as "Unchanged". 
             employee.LastName("Black"); // should be tracking original value
@@ -362,6 +364,7 @@ define(["testFns"], function (testFns) {
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity();
+        employee.EmployeeID(1);
         employee.LastName("Jones");
 
         em.attachEntity(employee); // attach as Unchanged
@@ -425,7 +428,7 @@ define(["testFns"], function (testFns) {
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
-        employee.EmployeeID(42);
+        employee.EmployeeID(1);
         employee.FirstName("Sally");
         em.attachEntity(employee); // simulate existing employee
 
@@ -464,7 +467,7 @@ define(["testFns"], function (testFns) {
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
-        employee.EmployeeID(42);
+        employee.EmployeeID(1);
         em.attachEntity(employee); // simulate existing employee
 
         employee.entityAspect.setDeleted();
@@ -516,6 +519,7 @@ define(["testFns"], function (testFns) {
             var empType = em.metadataStore.getEntityType("Employee");
 
             var employee = empType.createEntity();
+            employee.EmployeeID(1);
             employee.LastName("Jones");
             em.attachEntity(employee);// Attach as "Unchanged". 
             employee.LastName("Black"); // should be tracking original value
@@ -749,6 +753,7 @@ define(["testFns"], function (testFns) {
     function getFakeExistingcustomer(em, name) {
         name = name || "Just Kidding";
         var customer = createCustomer(em, name);
+        customer.CustomerID(breeze.core.getUuid());
         // pretend already exists
         return em.attachEntity(customer);
     }

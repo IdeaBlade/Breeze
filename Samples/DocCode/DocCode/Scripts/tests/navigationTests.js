@@ -810,7 +810,8 @@ define(["testFns"], function (testFns) {
 
     function getFakeExistingCustomer(em, name) {
         name = name || "Existing Customer";
-        var customer = createCustomer(name); 
+        var customer = createCustomer(name);
+        customer.CustomerID(testFns.getNewGuidId());
         em.attachEntity(customer);// pretend already exists
         return customer;
     }
@@ -836,10 +837,11 @@ define(["testFns"], function (testFns) {
         order.ShipName(shipName);
         return order;
     }
-    
+
     function getFakeExistingOrder(em, shipName, customer) {
         shipName = shipName || "Existing Order";
         var order = createOrder(shipName);
+        order.OrderID(testFns.getNextIntId());
         if (!!customer) {
             // setting the FK will keep the order from being
             // added to the customer's EntityManager;

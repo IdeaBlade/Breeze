@@ -453,12 +453,14 @@ define(["testFns"], function (testFns) {
         // attaching a new Todo, rather than adding it so
         // it appears to be a pre-exising Todo as when queried
         testTodo = createTodo("unchanged Todo");
+        testTodo.Id(testFns.getNextIntId());
         em.attachEntity(testTodo);
         koChangeNotificationTest(testTodo);
         testCount += 1;
 
         // fake deleted in a similar way
         testTodo = createTodo("deleted Todo");
+        testTodo.Id(testFns.getNextIntId());
         em.attachEntity(testTodo);
         testTodo.entityAspect.setDeleted();
         koChangeNotificationTest(testTodo);

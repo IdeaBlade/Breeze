@@ -33,6 +33,9 @@ define(["breeze"], function (breeze) {
         runQuery: runQuery,
         ensureIsEm: ensureIsEm,
 
+        getNextIntId: getNextIntId,
+        getNewGuidId: getNewGuidId,
+        
         assertIsSorted: assertIsSorted,
         getValidationErrMsgs: getValidationErrMsgs,
         morphString: morphString,
@@ -55,7 +58,7 @@ define(["breeze"], function (breeze) {
             chaiProductID: 1
         }
     };
-
+    var _nextIntId = 10000; // seed for getNextIntId()
     return testFns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
@@ -194,7 +197,18 @@ define(["breeze"], function (breeze) {
         }
         return em;
     }
-
+    /*********************************************************
+    * Generate the next new integer Id
+    *********************************************************/
+    function getNextIntId() {
+        return _nextIntId++;
+    }
+    /*********************************************************
+    * Generate the next new integer Id
+    *********************************************************/
+    function getNewGuidId() {
+        return breeze.core.getUuid();
+    }
     /*********************************************************
     * Verify query and its results
     *********************************************************/

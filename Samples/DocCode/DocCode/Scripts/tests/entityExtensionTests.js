@@ -433,7 +433,7 @@ define(["testFns"], function (testFns) {
             metadataStore: store
         });
         
-        var emp = createEmployee();
+        var emp = createEmployee42();
         em1.attachEntity(emp);
         var exportData = em1.exportEntities();
 
@@ -467,7 +467,7 @@ define(["testFns"], function (testFns) {
         equal(emp2 && emp2.fooComputed && emp2.fooComputed(), "Foo Test",
            "emp from em2 should have expected fooComputed value");
         
-        function createEmployee() {
+        function createEmployee42() {
             var employeeType = store.getEntityType("Employee");
             var employee = employeeType.createEntity();
             employee.EmployeeID(42);

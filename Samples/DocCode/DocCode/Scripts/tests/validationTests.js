@@ -44,7 +44,8 @@ define(["testFns"], function (testFns) {
         var empType = getEmployeeType(em);
 
         var employee = empType.createEntity(); // created but not attached
-
+        employee.EmployeeID(1);
+        
         // Start monitoring validation error changes
         employee.entityAspect
             .validationErrorsChanged.subscribe(assertTwoErrorsOnAttach);
@@ -74,8 +75,7 @@ define(["testFns"], function (testFns) {
         var empType = getEmployeeType(em);
 
         var employee = empType.createEntity(); // created but not attached
-
-        // attach entity
+        employee.EmployeeID(1);
         em.attachEntity(employee);
 
         var errors = employee.entityAspect.getValidationErrors();
@@ -96,6 +96,7 @@ define(["testFns"], function (testFns) {
         var empType = getEmployeeType(em);
 
         var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(1);
         employee.FirstName("John");
         employee.LastName("Doe");
 
@@ -154,6 +155,7 @@ define(["testFns"], function (testFns) {
         var validationErrors = []; // for testing
 
         var employee = empType.createEntity(); // created but not attached
+        employee.EmployeeID(1);
         employee.FirstName("John");
         employee.LastName("Doe");
 
@@ -333,6 +335,7 @@ define(["testFns"], function (testFns) {
     test("Employee must be from US (after countryIsInUS validator)", 2, function () {
         var em = newEm();
         var emp = createEmployee("Shania", "Twain");
+        emp.EmployeeID(1);
         em.attachEntity(emp);
 
         // add the US-only validator
@@ -361,6 +364,7 @@ define(["testFns"], function (testFns) {
 
         var em = newEm();
         var cust = createCustomer("Univ. of Waterloo");
+        cust.CustomerID(testFns.getNewGuidId());
         em.attachEntity(cust);
 
         // add the US-only validator
@@ -396,6 +400,7 @@ define(["testFns"], function (testFns) {
             .validators.push(canadaOnly);
 
         var cust = createCustomer("Univ. of Waterloo");
+        cust.CustomerID(testFns.getNewGuidId());
         em.attachEntity(cust);
         cust.Country("USA"); // try to sneak it into the USA
 
@@ -421,8 +426,9 @@ define(["testFns"], function (testFns) {
             .validators.push(zipCodeValidator);
 
         var cust = createCustomer("Boogaloo Board Games");
-
+        cust.CustomerID(testFns.getNewGuidId());
         em.attachEntity(cust);
+        
         cust.Country("USA");
         cust.PostalCode("N2L 3G1"); // a Canadian postal code
 
@@ -461,7 +467,8 @@ define(["testFns"], function (testFns) {
         custValidators.push(alwaysWrong);
 
         var cust = createCustomer("Presumed Guilty");
-
+        cust.CustomerID(testFns.getNewGuidId());
+        
         // Attach triggers entity validation by default
         em.attachEntity(cust);
 
@@ -501,6 +508,7 @@ define(["testFns"], function (testFns) {
         );
        
         var cust = createCustomer("Presumed Guilty");
+        cust.CustomerID(testFns.getNewGuidId());
         em.attachEntity(cust);
         
         var errmsgs = getErrorMessages(cust);
