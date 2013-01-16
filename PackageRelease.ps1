@@ -75,13 +75,16 @@ gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname
 #create basic release folder structure and zip it
 new-item $destDir\Scripts -type Directory
 new-item $destDir\Scripts\Adapters -type Directory
+new-item $destDir\TypeScript -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
 copy-item $srcDir\Breeze.Client\Scripts\IBlade\breeze.*.*.js $destDir\Scripts\Adapters
 copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
+copy-item $srcDir\Breeze.Client\TypeScript\TypeScript\breeze.d.ts $destDir\TypeScript
 new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
 copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi
 copy-item $srcDir\readme.txt $destDir\readme.txt
+
 "Version: $VersionNum" | out-file $destDir\version.txt
 $zipFile = $srcDir+"\breeze-runtime-$versionNum.zip"
 if (test-path $zipFile) {
@@ -94,7 +97,7 @@ prepareSample $srcDir $destDir "DocCode"       "Todos.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo"          "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Require"  "*.sdf, *.suo"
-prepareSample $srcDir $destDir "Todo-NoEF"     "*.suo"
+prepareSample $srcDir $destDir "NoDb"          "*.suo"
 prepareSample $srcDir $destDir "BreezyDevices" "*.mdf, *.ldf, *.suo"
 prepareSample $srcDir $destDir "CarBones"      "*.mdf, *.ldf, *.suo"
 

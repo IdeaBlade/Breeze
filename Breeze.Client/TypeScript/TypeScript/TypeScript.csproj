@@ -35,7 +35,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="breeze-0.65.d.ts" />
+    <Content Include="breeze.d.ts" />
     <Content Include="breeze-tests.js">
       <DependentUpon>breeze-tests.ts</DependentUpon>
     </Content>

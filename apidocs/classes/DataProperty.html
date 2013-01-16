@@ -185,7 +185,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2093"><code>entityMetadata.js:2093</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2095"><code>entityMetadata.js:2095</code></a>
         </div>
     
 
@@ -251,6 +251,13 @@ directly via the constructor.</p>
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
+                                <a href="#property_complexTypeName">complexTypeName</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_concurrencyMode">concurrencyMode</a>
 
                                 
@@ -273,6 +280,27 @@ directly via the constructor.</p>
                         
                             <li class="index-item property">
                                 <a href="#property_fixedLength">fixedLength</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_isComplexProperty">isComplexProperty</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_isDataProperty">isDataProperty</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_isNavigationProperty">isNavigationProperty</a>
 
                                 
                                 
@@ -390,7 +418,7 @@ directly via the constructor.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2101"><code>entityMetadata.js:2101</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2103"><code>entityMetadata.js:2103</code></a>
         
         </p>
 
@@ -471,8 +499,36 @@ the NamingConvention on the MetadataStore associated with the EntityType to whic
                             
                             <li class="param">
                                 
+                                    <code class="param-name optional">[complexTypeName]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
                                     <code class="param-name optional">[isNullable=true]</code>
                                     <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[defaultValue]</code>
+                                    <span class="type">Any</span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
 
@@ -605,6 +661,52 @@ personEntityType.addProperty(lastNameProperty);
                 <h2 class="off-left">Properties</h2>
 
                 
+                    <div id="property_complexTypeName" class="property item">
+    <h3 class="name"><code>complexTypeName</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2198"><code>entityMetadata.js:2198</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The name of the <a href="..\classes\ComplexType.html" class="crosslink">ComplexType</a> associated with this property; may be null. </p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="property_concurrencyMode" class="property item">
     <h3 class="name"><code>concurrencyMode</code></h3>
     <span class="type">String</span>
@@ -628,7 +730,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2215"><code>entityMetadata.js:2215</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2233"><code>entityMetadata.js:2233</code></a>
         
         </p>
 
@@ -674,7 +776,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2187"><code>entityMetadata.js:2187</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2191"><code>entityMetadata.js:2191</code></a>
         
         </p>
 
@@ -720,7 +822,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2244"><code>entityMetadata.js:2244</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2262"><code>entityMetadata.js:2262</code></a>
         
         </p>
 
@@ -766,7 +868,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2229"><code>entityMetadata.js:2229</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2247"><code>entityMetadata.js:2247</code></a>
         
         </p>
 
@@ -777,6 +879,146 @@ personEntityType.addProperty(lastNameProperty);
 
     <div class="description">
         <p>Whether this property is of 'fixed' length or not.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_isComplexProperty" class="property item">
+    <h3 class="name"><code>isComplexProperty</code></h3>
+    <span class="type">Bool</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2205"><code>entityMetadata.js:2205</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether the contents of this property is an instance of a <a href="..\classes\ComplexType.html" class="crosslink">ComplexType</a>.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_isDataProperty" class="property item">
+    <h3 class="name"><code>isDataProperty</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2276"><code>entityMetadata.js:2276</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Is this a DataProperty? - always true here 
+Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_isNavigationProperty" class="property item">
+    <h3 class="name"><code>isNavigationProperty</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2284"><code>entityMetadata.js:2284</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Is this a NavigationProperty? - always false here 
+Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
 
 <p><strong>readOnly</strong></p>
     </div>
@@ -812,7 +1054,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2194"><code>entityMetadata.js:2194</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2212"><code>entityMetadata.js:2212</code></a>
         
         </p>
 
@@ -858,7 +1100,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2201"><code>entityMetadata.js:2201</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2219"><code>entityMetadata.js:2219</code></a>
         
         </p>
 
@@ -904,7 +1146,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2208"><code>entityMetadata.js:2208</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2226"><code>entityMetadata.js:2226</code></a>
         
         </p>
 
@@ -950,7 +1192,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2222"><code>entityMetadata.js:2222</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2240"><code>entityMetadata.js:2240</code></a>
         
         </p>
 
@@ -996,7 +1238,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2173"><code>entityMetadata.js:2173</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2177"><code>entityMetadata.js:2177</code></a>
         
         </p>
 
@@ -1042,7 +1284,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2180"><code>entityMetadata.js:2180</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2184"><code>entityMetadata.js:2184</code></a>
         
         </p>
 
@@ -1088,7 +1330,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2251"><code>entityMetadata.js:2251</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2269"><code>entityMetadata.js:2269</code></a>
         
         </p>
 
@@ -1134,7 +1376,7 @@ personEntityType.addProperty(lastNameProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2236"><code>entityMetadata.js:2236</code></a>
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l2254"><code>entityMetadata.js:2254</code></a>
         
         </p>
 

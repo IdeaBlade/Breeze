@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Jan 10 2013 12:38:03 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Jan 15 2013 17:16:41 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -390,7 +390,7 @@ intellisense.annotate(breeze.breeze.DataType, {
   /// <field name="DateTime" type="breeze.breeze.DataType" ></field>
   'DateTime': null,
   
-  /// <field name="Time" type="breeze.breeze.DataType" >/**</field>
+  /// <field name="Time" type="breeze.breeze.DataType" ></field>
   'Time': null,
   
   /// <field name="Boolean" type="breeze.breeze.DataType" ></field>
@@ -1243,7 +1243,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   <returns type="Boolean" ></returns>
     /// </signature>
   },
-  'hasMetadataFor': function() {
+  'getDataService': function() {
     /// <signature>
     ///   <summary>
     ///   Returns the DataService for a specified service name
@@ -1301,7 +1301,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   'getEntityType': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns an   'EntityType' or a  'CompleType' given its name.
+    ///   Returns an   'EntityType' or a  'ComplexType' given its name.
     ///   </summary>
     ///   <param name="structuralTypeName" type="String" optional="true">Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown.</param>
     ///   <param name="okIfNotFound" type="Boolean" optional="true">Whether to throw an error if the specified EntityType is not found.</param>
@@ -1311,9 +1311,9 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   'getEntityTypes': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns an array containing all of the   'EntityType's in this MetadataStore.
+    ///   Returns an array containing all of the   'EntityType's or  'ComplexType's in this MetadataStore.
     ///   </summary>
-    ///   <returns type="Array" elementType="breeze.breeze.EntityType" ></returns>
+    ///   <returns type="Array of EntityType|ComplexType" ></returns>
     /// </signature>
   },
   
@@ -1586,6 +1586,12 @@ intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   /// <field name="dataType" type="breeze.breeze.DataType" >The  'DataType' of this property.</field>
   'dataType': null,
   
+  /// <field name="complexTypeName" type="String" >The name of the  'ComplexType' associated with this property; may be null. </field>
+  'complexTypeName': null,
+  
+  /// <field name="isComplexProperty" type="Bool" >Whether the contents of this property is an instance of a  'ComplexType'.</field>
+  'isComplexProperty': null,
+  
   /// <field name="isNullable" type="Boolean" >Whether this property is nullable. </field>
   'isNullable': null,
   
@@ -1612,6 +1618,12 @@ intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   
   /// <field name="relatedNavigationProperty" type="breeze.breeze.NavigationProperty" >The navigation property related to this property.  Will only be set if this is a foreign key property. </field>
   'relatedNavigationProperty': null,
+  
+  /// <field name="isDataProperty" type="Boolean" >Is this a DataProperty? - always true here  Allows polymorphic treatment of DataProperties and NavigationProperties.</field>
+  'isDataProperty': null,
+  
+  /// <field name="isNavigationProperty" type="Boolean" >Is this a NavigationProperty? - always false here  Allows polymorphic treatment of DataProperties and NavigationProperties.</field>
+  'isNavigationProperty': null,
   
 });
 intellisense.annotate(breeze.breeze.DataProperty, {

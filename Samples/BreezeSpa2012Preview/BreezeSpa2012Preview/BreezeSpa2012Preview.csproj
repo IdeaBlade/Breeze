@@ -42,10 +42,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.84.2\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.84.3\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.84.2\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.MVC4WebApi.0.84.3\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json">
