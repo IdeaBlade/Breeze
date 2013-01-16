@@ -9,11 +9,14 @@ using Breeze.WebApi;
 namespace NoDb.Models {
   public class TodoContextProvider : ContextProvider {
 
-    public TodoContext Context { get { return TodoContext.Instance; } }
+    public TodoContextNoDb Context { get { return TodoContextNoDb.Instance; } }
+
+    public TodoContextProvider() {
+        UserId = TodoContextNoDb.FakeUserName;
+    }
 
     public TodoContextProvider(IPrincipal user) {
-      // UserId = user.Identity.Name;    // if the sample supported authentication
-      UserId = TodoContext.FakeUserName; // fake it
+      UserId = user.Identity.Name;   
     }
 
     public string UserId { get; private set; }
@@ -28,17 +31,6 @@ namespace NoDb.Models {
                           .Where(t => t.UserId == UserId)
                           .AsQueryable();
         }
-    }
-
-    /// <summary>Get all TodoItems belonging to the current user.</summary>
-    /// <remarks>Interesting but not currently called.</remarks>
-    public IQueryable<TodoItem> Todos {
-      get {
-        return Context.TodoLists
-                      .SelectMany(l => l.Todos)
-                      .Where(t => t.TodoList.UserId == UserId)
-                      .AsQueryable();
-      }
     }
 
     // No metadata from this provider but must implement abstract method.

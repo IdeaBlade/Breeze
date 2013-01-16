@@ -6,13 +6,18 @@ using Breeze.WebApi;
 namespace NoDb.Models
 {
     /// <summary>In-memory "database" and "data access" layer.</summary>
-    public class TodoContext
+    /// <remarks>
+    /// When web app starts, fills in-mem "database" with sample data
+    /// Client changes are accumulated.
+    /// When app shuts down, all data are lost.
+    /// </remarks>
+    public class TodoContextNoDb
     {
         // DO NOT REMOVE explicit static constructor which
         // tells C# compiler not to mark type as 'beforefieldinit'
-        static TodoContext() { }
+        static TodoContextNoDb() { }
 
-        public static TodoContext Instance
+        public static TodoContextNoDb Instance
         {
             get
             {
@@ -25,7 +30,7 @@ namespace NoDb.Models
             }
         }
 
-        public const string FakeUserName = "FakeUser";
+        public const string FakeUserName = "NoDb";
 
         public List<TodoList> TodoLists
         {
@@ -227,7 +232,7 @@ namespace NoDb.Models
         #endregion
 
         private static readonly Object __lock = new Object();
-        private static readonly TodoContext __instance = new TodoContext();
+        private static readonly TodoContextNoDb __instance = new TodoContextNoDb();
 
         private bool _initialized;
         private readonly List<TodoList> _todoLists = new List<TodoList>();
