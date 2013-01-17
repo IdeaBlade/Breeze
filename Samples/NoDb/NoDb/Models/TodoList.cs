@@ -8,11 +8,29 @@ namespace NoDb.Models
     {
         public int TodoListId { get; set; }
         public string Title { get; set; }
-        public string UserId { get; set; }
 
+        // navigation property to child Todo items
         public virtual ReadOnlyCollection<TodoItem> Todos
         {
             get { return _todoItems.AsReadOnly(); }
+        }
+
+        public string Validate()
+        {
+            var errs = string.Empty;
+            if (TodoListId <= 0)
+            {
+                errs += "TodoListId must be a positive integer";
+            }
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                errs += "Title is required";
+            }
+            else if (Title.Length > 30)
+            {
+                errs += "Title cannot be longer than 30 characters";
+            }
+            return errs;
         }
 
         public int AddItem(TodoItem item)
@@ -37,34 +55,12 @@ namespace NoDb.Models
             _todoItems[ix] = item;
         }
 
-        public string Validate()
-        {
-            var errs = string.Empty;
-            if (TodoListId <= 0)
-            {
-                errs += "TodoListId must be a positive integer";
-            }
-            if (string.IsNullOrWhiteSpace(Title))
-            {
-                errs += "Title is required";
-            }
-            else if (Title.Length > 30)
-            {
-                errs += "Title cannot be longer than 30 characters";
-            }
-            if (string.IsNullOrWhiteSpace(UserId))
-            {
-                errs += "UserId is required";
-            }
-            return errs;
-        }
-
         private int FindIndex(TodoItem item)
         {
             var ix = _todoItems.FindIndex(s => s.TodoItemId == item.TodoItemId);
             if (ix == -1)
             {
-                throw new Exception("Unable to locate TodoItem: " + item.TodoItemId);
+                throw new Exception("Can't find TodoItem: " + item.TodoItemId);
             }
             return ix;
         }

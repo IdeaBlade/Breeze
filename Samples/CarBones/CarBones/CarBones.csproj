@@ -172,6 +172,7 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <Content Include="favicon.ico" />
     <Content Include="Index.cshtml" />
   </ItemGroup>
   <ItemGroup />

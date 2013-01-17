@@ -1,36 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security;
-using System.Security.Principal;
-using Breeze.WebApi;
+﻿// DISCLAIMER:
+// Inherits from "ContextProvider" in the Breeze.WebApi assembly.
+// You don't "need" it but we are using it because
+// we want to use the BreezeJS "saveChanges" method
+// to save a bunch of data in a single POST.
+// If you don't want to use BreezeJS "saveChanges" method
+// for saves or you want to parse and process the JSON 
+// change-set bundle yourself
+// you don't need Breeze.WebApi
 
 // ReSharper disable InconsistentNaming
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Breeze.WebApi;
+
 namespace NoDb.Models {
   public class TodoContextProvider : ContextProvider {
 
     public TodoContextNoDb Context { get { return TodoContextNoDb.Instance; } }
 
-    public TodoContextProvider() {
-        UserId = TodoContextNoDb.FakeUserName;
-    }
-
-    public TodoContextProvider(IPrincipal user) {
-      UserId = user.Identity.Name;   
-    }
-
-    public string UserId { get; private set; }
-
-    /// <summary>Get all TodoLists for the current user.</summary>
+    /// <summary>Get all TodoLists</summary>
     /// <remarks>Could have returned an IEnumerable.</remarks>
     public IQueryable<TodoList> TodoLists
     {
-        get
-        {
-            return Context.TodoLists
-                          .Where(t => t.UserId == UserId)
-                          .AsQueryable();
-        }
+        get { return Context.TodoLists.AsQueryable(); }
     }
 
     // No metadata from this provider but must implement abstract method.
@@ -41,9 +34,7 @@ namespace NoDb.Models {
     // Todo: delegate to helper classes when it gets more complicated
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       var entity = entityInfo.Entity;
-      if (entity is TodoList) {
-        return BeforeSaveTodoList(entity as TodoList, entityInfo);
-      }
+      if (entity is TodoList) { return true; }
       if (entity is TodoItem) {
         return BeforeSaveTodoItem(entity as TodoItem, entityInfo);
       }
@@ -54,30 +45,15 @@ namespace NoDb.Models {
       return Context.SaveChanges(saveMap);
     }
 
-    private bool BeforeSaveTodoList(TodoList todoList, EntityInfo info) {
-      if (info.EntityState == EntityState.Added) {
-        todoList.UserId = UserId;
-        return true;
-      }
-      return UserId == todoList.UserId || throwCannotSaveEntityForThisUser();
-    }
-
     private bool BeforeSaveTodoItem(TodoItem todoItem, EntityInfo info) {
-      var todoList = Context.TodoLists.FirstOrDefault( l => l.TodoListId == todoItem.TodoListId);
-      return (null == todoList)
-                 ? throwCannotFindParentTodoList()
-                 : UserId == todoList.UserId || throwCannotSaveEntityForThisUser();
-    }
-
-    private static bool throwCannotSaveEntityForThisUser() {
-      throw new SecurityException("Unauthorized user");
+        var todoList = Context.TodoLists.FirstOrDefault(tl => tl.TodoListId == todoItem.TodoListId);
+        return (null != todoList) || throwCannotFindParentTodoList();
     }
 
     private static bool throwCannotFindParentTodoList() {
-      throw new InvalidOperationException("Invalid TodoItem");
+      throw new InvalidOperationException("Invalid TodoItem - can't find parent TodoList");
     }
 
     #endregion
-
   }
 }

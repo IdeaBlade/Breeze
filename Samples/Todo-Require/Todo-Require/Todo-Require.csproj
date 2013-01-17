@@ -98,6 +98,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="favicon.ico" />
     <Content Include="Index.html" />
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="content\reset.css" />

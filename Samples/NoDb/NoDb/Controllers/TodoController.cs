@@ -1,11 +1,12 @@
 ﻿// DISCLAIMER:
 // This sample includes the Breeze.WebApi assembly.
-// You don't "need" it but we included it because
-// we wanted the OData query support and 
-// we wanted some help parsing the JSON save bundle 
-// from Breeze client which is a convenient way to save 
-// a bunch of data in on call
-// If you don't want these features, you don't need Breeze.WebApi
+// You don't "need" it but we are using it because
+// we want the OData query support and 
+// we want to use the BreezeJS "saveChanges" method
+// to save a bunch of data in a single POST
+// The Breeze.NET "ContextProvider" and "SaveResult" 
+// ease the drudgery but if you don't want these features, 
+// you don't need Breeze.WebApi
 namespace NoDb.Controllers {
     using System.Linq;
     using System.Web.Http;

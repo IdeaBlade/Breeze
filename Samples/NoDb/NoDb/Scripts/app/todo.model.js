@@ -51,7 +51,7 @@
             name: "todoList",
             entityTypeName: "TodoList",
             isScalar: true,
-            associationName: "TodoList_Items",
+            associationName: "TodoList_Items", // associates with TodoList.Todos
             foreignKeyNames: ["todoListId"]
         }));
             
@@ -83,26 +83,20 @@
             maxLength: 30,
             isNullable: false
         }));
-        et.addProperty(new DataProperty({
-            name: "userId",
-            dataType: DataType.String,
-            isNullable: false
-        }));
-
         et.addProperty(new NavigationProperty({
             name: "todos",
             entityTypeName: "TodoItem",
             isScalar: false,
-            associationName: "TodoList_Items"
+            associationName: "TodoList_Items" // associates with TodoItem.TodoList
         }));
             
         store.addEntityType(et);
         store.registerEntityTypeCtor("TodoList", TodoList, todoListInitializer);
 
-        function TodoList() { 
-            this.title = "My todos";       // defaults
-            this.userId = "to be replaced";
+        function TodoList() {
+             this.title = "My todos";
         }
+        
         function todoListInitializer(todoList) {
             todoList.errorMessage = ko.observable();
             todoList.isEditingListTitle = ko.observable(false);
