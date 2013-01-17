@@ -106,6 +106,7 @@
     <Content Include="content\reset.css" />
     <Content Include="content\toastr.css" />
     <Content Include="content\todo.css" />
+    <Content Include="favicon.ico" />    
     <Content Include="Index.html" />
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />

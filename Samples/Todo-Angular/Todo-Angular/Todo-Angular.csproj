@@ -103,6 +103,7 @@
     <Content Include="Content\toastr-responsive.css" />
     <Content Include="Content\toastr.css" />
     <Content Include="Content\todo.css" />
+    <Content Include="favicon.ico" />
     <Content Include="Index.html" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js" />
