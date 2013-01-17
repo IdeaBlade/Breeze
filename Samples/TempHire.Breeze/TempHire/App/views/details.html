@@ -1,0 +1,12 @@
+﻿<section style="margin-top: 20px">
+    <div class="btn-group">
+        <a class="btn" data-bind="css: { disabled: !canSave() }, click: save">Save</a>
+        <a class="btn" data-bind="css: { disabled: !canSave() }, click: cancel">Cancel</a>
+    </div>
+    <div data-bind="with: staffingResource">
+        <a><h2 class="name-link" data-bind="text: fullName" /></a>
+        <textarea class="summary" rows="5" data-bind="value: summary"></textarea>
+    </div>
+    
+    <!-- ko compose: { model:contacts } --><!--/ko-->
+</section>

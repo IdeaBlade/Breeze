@@ -1,0 +1,28 @@
+﻿<section>
+    <table class="list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address 1</th>
+                <th>Address 2</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zipcode</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: staffingResources">
+            <tr class="selectable-row">
+                <td data-bind="text: fullName"></td>
+                <td data-bind="text: address1"></td>
+                <td data-bind="text: address2"></td>
+                <td data-bind="text: city"></td>
+                <td data-bind="text: state"></td>
+                <td data-bind="text: zipcode"></td>
+                <td data-bind="text: phoneNumber"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- ko compose: { model:activeDetail } --><!--/ko-->
+</section>

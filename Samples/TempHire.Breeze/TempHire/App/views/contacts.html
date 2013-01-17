@@ -1,0 +1,34 @@
+﻿<section data-bind="with: staffingResource">
+    <div class="addresses" data-bind="foreach: addresses" >
+        <div class="address">
+            <label class="label" data-bind="text: addressType().displayName"></label>
+            <div class="formfieldwithlabel">
+                <label class="label">Address 1: </label>
+                <input class="data" type="text" data-bind="value: address1"/>
+            </div>
+            <div class="formfieldwithlabel">
+                <label class="label">Address 2:</label>
+                <input class="data" type="text" data-bind="value: address2"/>
+            </div>
+            <div class="formfieldwithlabel">
+                <label class="label">City:</label>
+                <input class="data" type="text" data-bind="value: city"/>
+            </div>
+            <div class="formfieldwithlabel">
+                <label class="label">State:</label>
+                <select class="data" data-bind="options: $root.states, optionsText: 'name', optionsValue: 'id', value: stateId"></select>
+            </div>
+            <div class="formfieldwithlabel">
+                <label class="label">Zipcode:</label>
+                <input class="data" type="text" data-bind="value: zipcode"/>
+            </div>
+        </div>
+    </div>
+    <div class="phonenumbers" data-bind="foreach: phoneNumbers">
+        <div class="phonenumber">
+            <label class="label" data-bind="text: phoneNumberType().name() + ' Phone:'"></label>
+            <input type="text" class="data" data-bind="value: number" style="width: 100px"/>
+            <input type="text" class="data" data-bind="value: areaCode" style="width: 30px"/>
+        </div>
+    </div>
+</section>
