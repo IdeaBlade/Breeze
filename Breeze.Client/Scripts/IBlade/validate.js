@@ -236,6 +236,24 @@ function (core, a_config, DataType) {
         };
 
         /**
+        Register a validator so that any deserialized metadata can reference it. 
+        @method register
+        @param validator {Validator} Validator to register.
+        **/
+        ctor.register = function(validator) {
+            a_config.registerFunction(function () { return validator; }, "Validator." + validator.name);
+        };
+
+        /**
+        Register a validator factory so that any deserialized metadata can reference it. 
+        @method registerFactory
+        @param validatorFactory {Function} A function that optionally takes a context property and returns a Validator instance.
+        **/
+        ctor.registerFactory = function(validatorFn, name) {
+            a_config.registerFunction(validatorFn, "Validator." + name);
+        };
+
+        /**
         Map of standard error message templates keyed by validator name.
         You can add to or modify this object to customize the template used for any validation error message.
         @example
@@ -363,7 +381,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Returns a standard string data type Validator.
+        Returns a Guid data type Validator.
         @example
             // Assume em1 is a preexisting EntityManager.
             var custType = em1.metadataStore.getEntityType("Customer");
@@ -382,6 +400,18 @@ function (core, a_config, DataType) {
             return new ctor("guid", valFn);
         };
 
+        /**
+       Returns a ISO 8601 duration string  Validator.
+       @example
+           // Assume em1 is a preexisting EntityManager.
+           var eventType = em1.metadataStore.getEntityType("Event");
+           var elapsedTimeProperty - eventType.getProperty("ElapsedTime");
+           // Validates that the value of the ElapsedTime property on Customer is a duration.
+           elapsedTimeProperty.validators.push(Validator.duration());
+       @method duration
+       @static
+       @return {Validator} A new Validator
+       **/
         ctor.duration = function() {
             var valFn = function(v) {
                 if (v == null) return true;
@@ -549,7 +579,7 @@ function (core, a_config, DataType) {
             if (typeof (value) !== "function") {
                 return;
             }
-            if (key === "fromJSON" || key === "createValidator") {
+            if (key === "fromJSON" || key === "register" || key === "registerFactory")  {
                 return;
             }
 

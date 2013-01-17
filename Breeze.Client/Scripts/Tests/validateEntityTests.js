@@ -292,18 +292,8 @@ define(["testFns"], function (testFns) {
         var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var em = newEm(ms);
         var custType = ms.getEntityType("Customer");
-           
-        // v in this case will be a Customer entity
-        var valFn = function (v) {
-            // This validator only validates US Zip Codes.
-            if ( v.getProperty("country") === "USA") {
-                var postalCode = v.getProperty("postalCode");
-                return isValidZipCode(postalCode);
-            }
-            return true;
-        };
-        var zipCodeValidator = new Validator("zipCodeValidator", valFn, 
-            { messageTemplate: "For the US, this is not a valid PostalCode" });
+
+        var zipCodeValidator = createZipCodeValidatorFactory()();
         custType.validators.push(zipCodeValidator);
 
         var cust1 = custType.createEntity();
@@ -321,28 +311,47 @@ define(["testFns"], function (testFns) {
         ok(valErrors.length === 1, "length should be 0");
     });
     
+    test("custom entity validation - register validator", function () {
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var em = newEm(ms);
+        var custType = ms.getEntityType("Customer");
+
+        var zipCodeValidatorFactory = createZipCodeValidatorFactory();
+        var zipCodeValidator = zipCodeValidatorFactory();
+        custType.validators.push(zipCodeValidator);
+
+        var msSerialized = em.metadataStore.exportMetadata();
+
+        Validator.register(zipCodeValidator);
+        var newMetadata = MetadataStore.importMetadata(msSerialized);
+        var em2 = newEm(newMetadata);
+        var custType2 = newMetadata.getEntityType("Customer");
+        var cust1 = custType2.createEntity();
+        cust1.setProperty("companyName", "Test1Co");
+        cust1.setProperty("country", "GER");
+        em2.attachEntity(cust1);
+        var valErrors = cust1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 0, "length should be 0");
+        cust1.setProperty("country", "USA");
+        valErrors = cust1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 0, "length should be 0");
+        var isOk = cust1.entityAspect.validateEntity();
+        ok(!isOk, "validateEntity should have returned false");
+        valErrors = cust1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 1, "length should be 0");
+    });
+    
+
+    
     test("custom property numeric range validation", function () {
         var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var em = newEm(ms);
         var orderType = ms.getEntityType("Order");
         var freightProperty = orderType.getProperty("freight");
-        
-        var numericRangeValidator = function(context) {
-            var valFn = function(v, ctx) {
-                if (v == null) return true;
-                if (typeof(v) !== "number") return false;
-                if (ctx.min != null && v < ctx.min) return false;
-                if (ctx.max != null && v > ctx.max) return false;
-                return true;
-            };
-            return new Validator("numericRange", valFn, {
-                messageTemplate: "'%displayName%' must be an integer between the values of %min% and %max%",
-                min: context.min,
-                max: context.max
-            });
-        };
 
-        freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
+        var numericRangeValidatorFactory = createNumericRangeValidatorFactory();
+
+        freightProperty.validators.push(numericRangeValidatorFactory({ min: 100, max: 500 }));
         var order1 = orderType.createEntity();
 
         em.attachEntity(order1);
@@ -357,7 +366,70 @@ define(["testFns"], function (testFns) {
         ok(valErrors.length === 0, "length should be 0");
         
     });
+    
+    test("custom property numeric range validation - register validatorFactory", function () {
+        var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var em = newEm(ms);
+        var orderType = ms.getEntityType("Order");
+        var freightProperty = orderType.getProperty("freight");
 
+        var numericRangeValidatorFactory = createNumericRangeValidatorFactory();
+        freightProperty.validators.push(numericRangeValidatorFactory({ min: 100, max: 500 }));
+
+        var serializedEm = em.exportEntities();
+        Validator.registerFactory(numericRangeValidatorFactory, "numericRange");
+        
+        var em2 = EntityManager.importEntities(serializedEm);
+        var orderType2 = em2.metadataStore.getEntityType("Order");
+        var order1 = orderType2.createEntity();
+
+        em2.attachEntity(order1);
+        var valErrors = order1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure
+        order1.setProperty("freight", 0);
+        valErrors = order1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 1, "length should be 1");
+        var ix = valErrors[0].errorMessage.indexOf("between the values of 100 and 500");
+        order1.setProperty("freight", 200);
+        valErrors = order1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 0, "length should be 0");
+
+    });
+    
+    function createZipCodeValidatorFactory() {
+        return function () {
+            // v in this case will be a Customer entity
+            var valFn = function (v) {
+                // This validator only validates US Zip Codes.
+                if (v.getProperty("country") === "USA") {
+                    var postalCode = v.getProperty("postalCode");
+                    return isValidZipCode(postalCode);
+                }
+                return true;
+            };
+            var zipCodeValidator = new Validator("zipCodeValidator", valFn,
+                { messageTemplate: "For the US, this is not a valid PostalCode" });
+            return zipCodeValidator;
+        };
+    }
+
+    function createNumericRangeValidatorFactory() {
+        var validatorFactory = function (context) {
+            var valFn = function (v, ctx) {
+                if (v == null) return true;
+                if (typeof (v) !== "number") return false;
+                if (ctx.min != null && v < ctx.min) return false;
+                if (ctx.max != null && v > ctx.max) return false;
+                return true;
+            };
+            return new Validator("numericRange", valFn, {
+                messageTemplate: "'%displayName%' must be an integer between the values of %min% and %max%",
+                min: context.min,
+                max: context.max
+            });
+        };
+        return validatorFactory;
+    }
     
     function isValidZipCode(value) {
         var re = /^\d{5}([\-]\d{4})?$/;
