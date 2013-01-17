@@ -9,9 +9,28 @@ namespace NoDb.Models
         public int TodoListId { get; set; }
         public string Title { get; set; }
 
+        // navigation property to child Todo items
         public virtual ReadOnlyCollection<TodoItem> Todos
         {
             get { return _todoItems.AsReadOnly(); }
+        }
+
+        public string Validate()
+        {
+            var errs = string.Empty;
+            if (TodoListId <= 0)
+            {
+                errs += "TodoListId must be a positive integer";
+            }
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                errs += "Title is required";
+            }
+            else if (Title.Length > 30)
+            {
+                errs += "Title cannot be longer than 30 characters";
+            }
+            return errs;
         }
 
         public int AddItem(TodoItem item)
@@ -34,24 +53,6 @@ namespace NoDb.Models
             var ix = FindIndex(item);
             item.TodoList = this;
             _todoItems[ix] = item;
-        }
-
-        public string Validate()
-        {
-            var errs = string.Empty;
-            if (TodoListId <= 0)
-            {
-                errs += "TodoListId must be a positive integer";
-            }
-            if (string.IsNullOrWhiteSpace(Title))
-            {
-                errs += "Title is required";
-            }
-            else if (Title.Length > 30)
-            {
-                errs += "Title cannot be longer than 30 characters";
-            }
-            return errs;
         }
 
         private int FindIndex(TodoItem item)

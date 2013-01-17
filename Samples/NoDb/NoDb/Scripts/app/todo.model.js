@@ -51,7 +51,7 @@
             name: "todoList",
             entityTypeName: "TodoList",
             isScalar: true,
-            associationName: "TodoList_Items",
+            associationName: "TodoList_Items", // associates with TodoList.Todos
             foreignKeyNames: ["todoListId"]
         }));
             
@@ -83,12 +83,11 @@
             maxLength: 30,
             isNullable: false
         }));
-
         et.addProperty(new NavigationProperty({
             name: "todos",
             entityTypeName: "TodoItem",
             isScalar: false,
-            associationName: "TodoList_Items"
+            associationName: "TodoList_Items" // associates with TodoItem.TodoList
         }));
             
         store.addEntityType(et);

@@ -4,8 +4,9 @@
     public int TodoItemId { get; set; }
     public string Title { get; set; }
     public bool IsDone { get; set; }
-
     public int TodoListId { get; set; }  // Foreign key
+
+    // navigation property to item's parent TodoList
     public virtual TodoList TodoList { get; set; }
 
     public string Validate()

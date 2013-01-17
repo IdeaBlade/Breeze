@@ -80,21 +80,22 @@ window.todoApp.datacontext = (function (breeze) {
     function saveEntity(masterEntity) {
 
         return manager.saveChanges().fail(saveFailed);
-       
+
         function saveFailed(error) {
-            setSaveErrorMessage(error);
-            manager.rejectChanges();
+            setErrorMessage(error);
+            // Let them see it "wrong" briefly before reverting"
+            setTimeout(function() { manager.rejectChanges(); }, 1000);
             throw error; // so caller can see failure
         }
 
-        function setSaveErrorMessage(error) {
+        function setErrorMessage(error) {
             var statename = masterEntity.entityAspect.entityState.name.toLowerCase();
             var typeName = masterEntity.entityType.shortName;
-            var msg = "Error saving " + statename + " " + typeName + ": ";   
-            
+            var msg = "Error saving " + statename + " " + typeName + ": ";
+
             var reason = error.message;
 
-            if (reason === "Validation error") {
+            if (reason.match(/validation error/i)) {
                 reason = getValidationErrorMessage(error);
             } else if (isConcurrencyError(error)) {
                 reason =
@@ -104,19 +105,20 @@ window.todoApp.datacontext = (function (breeze) {
         }
 
         function getValidationErrorMessage(error) {
-            try { // fish out the first error
-                var firstErr = error.entitiesWithErrors[0].entityAspect.getValidationErrors()[0];
-                return firstErr.errorMessage;
-            } catch (e) { /* eat it for now */ }
-            return "validation error";
+            try { // return the first error message
+                var firstItem = error.entitiesWithErrors[0];
+                var firstError = firstItem.entityAspect.getValidationErrors()[0];
+                return firstError.errorMessage;
+            } catch(e) { // ignore problem extracting error message 
+                return "validation error";
+            }
         }
-        
-        function isConcurrencyError(error) {
-            var detail = error.detail;
-            return detail && detail.ExceptionMessage &&
-                detail.ExceptionMessage.match(/can't find/i);
-        }
+    }
 
+    function isConcurrencyError(error) {
+        var detail = error.detail;
+        return detail && detail.ExceptionMessage &&
+            detail.ExceptionMessage.match(/can't find/i);
     }
     
     function configureManagerToSaveModifiedItemImmediately() {
