@@ -283,7 +283,7 @@ define(["testFns"], function (testFns) {
     function countryValidatorFactory(context) {
 
         return new Validator(
-            "countryIsIn" + context.country, // validator name
+            "countryIsIn", // validator name
             countryValidationFn,             // validation function
             {                                // validator context
             messageTemplate: "'%displayName%' must start with '%country%'",
