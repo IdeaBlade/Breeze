@@ -2382,6 +2382,24 @@ function (core, a_config, DataType) {
         };
 
         /**
+        Register a validator so that any deserialized metadata can reference it. 
+        @method register
+        @param validator {Validator} Validator to register.
+        **/
+        ctor.register = function(validator) {
+            a_config.registerFunction(function () { return validator; }, "Validator." + validator.name);
+        };
+
+        /**
+        Register a validator factory so that any deserialized metadata can reference it. 
+        @method registerFactory
+        @param validatorFactory {Function} A function that optionally takes a context property and returns a Validator instance.
+        **/
+        ctor.registerFactory = function(validatorFn, name) {
+            a_config.registerFunction(validatorFn, "Validator." + name);
+        };
+
+        /**
         Map of standard error message templates keyed by validator name.
         You can add to or modify this object to customize the template used for any validation error message.
         @example
@@ -2509,7 +2527,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Returns a standard string data type Validator.
+        Returns a Guid data type Validator.
         @example
             // Assume em1 is a preexisting EntityManager.
             var custType = em1.metadataStore.getEntityType("Customer");
@@ -2528,6 +2546,18 @@ function (core, a_config, DataType) {
             return new ctor("guid", valFn);
         };
 
+        /**
+       Returns a ISO 8601 duration string  Validator.
+       @example
+           // Assume em1 is a preexisting EntityManager.
+           var eventType = em1.metadataStore.getEntityType("Event");
+           var elapsedTimeProperty - eventType.getProperty("ElapsedTime");
+           // Validates that the value of the ElapsedTime property on Customer is a duration.
+           elapsedTimeProperty.validators.push(Validator.duration());
+       @method duration
+       @static
+       @return {Validator} A new Validator
+       **/
         ctor.duration = function() {
             var valFn = function(v) {
                 if (v == null) return true;
@@ -2695,7 +2725,7 @@ function (core, a_config, DataType) {
             if (typeof (value) !== "function") {
                 return;
             }
-            if (key === "fromJSON" || key === "createValidator") {
+            if (key === "fromJSON" || key === "register" || key === "registerFactory")  {
                 return;
             }
 
@@ -9727,6 +9757,39 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
 
         // class methods 
+          
+        /**
+        Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+        but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
+        to the EntityManager.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities.
+            // create and add an entity;
+            var emp1 = em1.createEntity("Employee");
+            // create and add an initialized entity;
+            var emp2 = em1.createEntity("Employee", { lastName: Smith", firstName: "John" });
+            // create and attach (not add) and entity
+            var emp3 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Unchanged);
+            // create but don't attach an entity;
+            var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
+
+        @method createEntity
+        @param typeName {String} The name of the type for which an instance should be created.
+        @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
+        @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
+        @return {Entity} A new Entity of the specified type.
+        **/
+        ctor.prototype.createEntity = function (typeName, initialValues, entityState) {
+            entityState = entityState || EntityState.Added;
+            var entity = this.metadataStore
+                .getEntityType(typeName)
+                .createEntity(initialValues);
+            if (entityState !== EntityState.Detached) {
+                this.attachEntity(entity, entityState);
+            }
+            return entity;
+        };
+
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -10000,7 +10063,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             em1.attachEntity(cust1, EntityState.Added);
         @method attachEntity
         @param entity {Entity} The entity to add.
-        @param [entityState] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
+        @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
         @return {Entity} The attached entity.
         **/
         ctor.prototype.attachEntity = function (entity, entityState) {

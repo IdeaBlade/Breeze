@@ -204,6 +204,39 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
 
         // class methods 
+          
+        /**
+        Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+        but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
+        to the EntityManager.
+        @example
+            // assume em1 is an EntityManager containing a number of preexisting entities.
+            // create and add an entity;
+            var emp1 = em1.createEntity("Employee");
+            // create and add an initialized entity;
+            var emp2 = em1.createEntity("Employee", { lastName: Smith", firstName: "John" });
+            // create and attach (not add) and entity
+            var emp3 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Unchanged);
+            // create but don't attach an entity;
+            var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
+
+        @method createEntity
+        @param typeName {String} The name of the type for which an instance should be created.
+        @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
+        @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
+        @return {Entity} A new Entity of the specified type.
+        **/
+        ctor.prototype.createEntity = function (typeName, initialValues, entityState) {
+            entityState = entityState || EntityState.Added;
+            var entity = this.metadataStore
+                .getEntityType(typeName)
+                .createEntity(initialValues);
+            if (entityState !== EntityState.Detached) {
+                this.attachEntity(entity, entityState);
+            }
+            return entity;
+        };
+
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -477,7 +510,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             em1.attachEntity(cust1, EntityState.Added);
         @method attachEntity
         @param entity {Entity} The entity to add.
-        @param [entityState] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
+        @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
         @return {Entity} The attached entity.
         **/
         ctor.prototype.attachEntity = function (entity, entityState) {

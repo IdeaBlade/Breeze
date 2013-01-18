@@ -22,8 +22,21 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("createEntity", function() {
+        var em = newEm();
+        var emp1 = em.createEntity("Employee");
+        ok(emp1.entityAspect.entityState === EntityState.Added);
+        
+        var emp2 = em.createEntity("Employee", { firstName: "John", lastName: "Smith" });
+        ok(emp2.entityAspect.entityState === EntityState.Added);
+        
+        var emp3 = em.createEntity("Employee", { firstName: "John", lastName: "Smith" }, EntityState.Detached);
+        ok(emp3.entityAspect.entityState === EntityState.Detached);
+        ok(emp3.getProperty("lastName") === "Smith");
+    });
     
-    test("Store-managed int ID remains '0' after attachEntity", 2, function () {
+    test("store-managed int ID remains '0' after attachEntity", 2, function () {
         var em = newEm();
         var employeeType = em.metadataStore.getEntityType("Employee");
         var empIdProp = employeeType.getProperty("employeeID");
@@ -115,12 +128,13 @@ define(["testFns"], function (testFns) {
         var customer = customerType.createEntity();
         em.attachEntity(customer);
 
-        var orderType = em.metadataStore.getEntityType("Order");
-        var newOrder = orderType.createEntity();
-        em.addEntity(newOrder);
+        //var orderType = em.metadataStore.getEntityType("Order");
+        //var newOrder = orderType.createEntity();
+        //em.addEntity(newOrder);
+        // newOrder.setProperty("customer", customer); // assign order to customer1
+        var newOrder = em.createEntity("Order", { customer: customer });
 
-        newOrder.setProperty("customer", customer); // assign order to customer1
-        var orders = customer.getProperty("orders" );
+        var orders = customer.getProperty("orders");
         ok(orders.indexOf(newOrder) >= 0,
             "newOrder is among the customer's orders");
 
@@ -225,11 +239,12 @@ define(["testFns"], function (testFns) {
         var customer = customerType.createEntity();
         em.attachEntity(customer);
 
-        var orderType = em.metadataStore.getEntityType("Order");
-        var newOrder = orderType.createEntity();
-        em.addEntity(newOrder);
-
-        newOrder.setProperty("customer", customer); // assign order to customer1
+        //var orderType = em.metadataStore.getEntityType("Order");
+        //var newOrder = orderType.createEntity();
+        //em.addEntity(newOrder);
+        // newOrder.setProperty("customer", customer); // assign order to customer1
+        var newOrder = em.createEntity("Order", { customer: customer });
+        
         ok(customer.getProperty("orders").indexOf(newOrder) >= 0,
             "newOrder is among customer's orders");
 
@@ -242,10 +257,11 @@ define(["testFns"], function (testFns) {
     test("add, detach and readd",  function () {
         // D2182
         var em = newEm();
-        var orderType = em.metadataStore.getEntityType("Order");
-        var newOrder = orderType.createEntity();
-
-        em.addEntity(newOrder);
+        //var orderType = em.metadataStore.getEntityType("Order");
+        //var newOrder = orderType.createEntity();
+        //em.addEntity(newOrder);
+        var newOrder = em.createEntity("Order");
+        
         em.detachEntity(newOrder); 
         em.addEntity(newOrder);// Exception thrown: "this key is already attached"
         ok(true);
@@ -306,9 +322,10 @@ define(["testFns"], function (testFns) {
        
     test("rejectChanges on added entity", function () {
         var em = newEm();
-        var typeInfo = em.metadataStore.getEntityType("Order");
-        var newEntity = typeInfo.createEntity();
-        em.addEntity(newEntity);
+        //var typeInfo = em.metadataStore.getEntityType("Order");
+        //var newEntity = typeInfo.createEntity();
+        //em.addEntity(newEntity);
+        var newEntity = em.createEntity("Order");
 
         var entityState = newEntity.entityAspect.entityState;
         ok(entityState.isAdded(),
@@ -329,9 +346,10 @@ define(["testFns"], function (testFns) {
     
     test("delete added entity", 3, function () {
         var em = newEm();
-        var typeInfo = em.metadataStore.getEntityType("Order");
-        var newEntity = typeInfo.createEntity();
-        em.addEntity(newEntity);
+        //var typeInfo = em.metadataStore.getEntityType("Order");
+        //var newEntity = typeInfo.createEntity();
+        //em.addEntity(newEntity);
+        var newEntity = em.createEntity("Order");
 
         ok(newEntity.entityAspect.entityState.isAdded(),
             "new Todo added to cache is in 'added' state");
@@ -358,6 +376,27 @@ define(["testFns"], function (testFns) {
             ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
         }
         try {
+            var cId = em.generateTempKeyValue(od);
+            ok(false, "should not be able to generate a temp multipart key");
+        } catch (e) {
+            ok(e.message.indexOf("multipart keys") >= 0, "error message should contain 'multipart keys'");
+        }
+        // only need to set part of the key
+        od.setProperty("orderID", 999);
+        em.addEntity(od);
+    });
+
+    test("add entity - no key 2", function () {
+        var em = newEm();
+        var od;
+        try {
+            od = em.createEntity("OrderDetail");
+            ok(false, "should not be able to attach an entity without setting its key");
+        } catch (e) {
+            ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
+        }
+        try {
+            od = em.createEntity("OrderDetail", null, EntityState.Detached);
             var cId = em.generateTempKeyValue(od);
             ok(false, "should not be able to generate a temp multipart key");
         } catch (e) {
@@ -671,10 +710,9 @@ define(["testFns"], function (testFns) {
 
     test("duplicate entity keys", function () {
         var em = newEm();
-        var custType = em.metadataStore.getEntityType("Customer");
-        var orderType = em.metadataStore.getEntityType("Order");
-        var cust1 = custType.createEntity();
-        var cust2 = custType.createEntity();
+
+        var cust1 = em.createEntity("Customer", null, EntityState.Detached);
+        var cust2 = em.createEntity("Customer", null, EntityState.Detached);
 
         em.attachEntity(cust1);
         try {
@@ -690,11 +728,10 @@ define(["testFns"], function (testFns) {
 
     test("fk fixup - fk to nav - attached", function () {
         var em = newEm();
-        var custType = em.metadataStore.getEntityType("Customer");
-        var orderType = em.metadataStore.getEntityType("Order");
-        var cust1 = custType.createEntity();
-        var cust2 = custType.createEntity();
-        var order1 = orderType.createEntity();
+        
+        var cust1 = em.createEntity("Customer", null, EntityState.Detached);
+        var cust2 = em.createEntity("Customer", null, EntityState.Detached);
+        var order1 = em.createEntity("Order", null, EntityState.Detached);
 
         em.attachEntity(order1);
         em.attachEntity(cust1);
@@ -707,12 +744,9 @@ define(["testFns"], function (testFns) {
 
     test("fk fixup - nav to fk - attached", function () {
         var em = newEm();
-        var custType = em.metadataStore.getEntityType("Customer");
-        var orderType = em.metadataStore.getEntityType("Order");
-        var cust1 = custType.createEntity();
-        var cust2 = custType.createEntity();
-        var order1 = orderType.createEntity();
-
+        var cust1 = em.createEntity("Customer", null, EntityState.Detached);
+        var cust2 = em.createEntity("Customer", null, EntityState.Detached);
+        var order1 = em.createEntity("Order", null, EntityState.Detached);
 
         em.attachEntity(order1);
         em.attachEntity(cust1);
@@ -775,9 +809,11 @@ define(["testFns"], function (testFns) {
     test("recursive navigation fixup", function () {
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
-        var emp1 = empType.createEntity();
-        var emp2 = empType.createEntity();
-        var emp3 = empType.createEntity();
+        var emp1 = em.createEntity("Employee", null, EntityState.Detached);
+        var emp2 = em.createEntity("Employee", null, EntityState.Detached);
+        var emp3 = em.createEntity("Employee", null, EntityState.Detached);
+        
+        
         ok(emp1.entityAspect.entityState.isDetached(), "emp1 should be detached");
         ok(emp2.entityAspect.entityState.isDetached(), "emp2 should be detached");
         ok(emp3.entityAspect.entityState.isDetached(), "emp3 should be detached");

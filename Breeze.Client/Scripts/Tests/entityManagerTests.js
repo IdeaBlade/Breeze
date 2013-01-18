@@ -299,11 +299,11 @@ define(["testFns"], function (testFns) {
         var empType = em.metadataStore.getEntityType("Employee");
         var custType = em.metadataStore.getEntityType("Customer");
         for (var i = 0; i < 5; i++) {
-            em.attachEntity(orderType.createEntity());
-            em.attachEntity(empType.createEntity());
+            em.addEntity(orderType.createEntity()).entityAspect.setUnchanged();
+            em.addEntity(empType.createEntity()).entityAspect.setUnchanged();
         }
         for (var i = 0; i < 5; i++) {
-            em.attachEntity(orderType.createEntity()).entityAspect.setModified();
+            em.addEntity(orderType.createEntity()).entityAspect.setModified();
             em.addEntity(empType.createEntity());
         }
         var c1 = em.getChanges();
@@ -536,8 +536,9 @@ define(["testFns"], function (testFns) {
         var emp1 = em.addEntity(empType.createEntity());
         ok(!emp1.entityAspect.wasLoaded);
         emp1.setProperty("lastName", "bar");
-        var cust1 = em.addEntity(custType.createEntity());
-        cust1.setProperty("companyName", "foo");
+        var cust1 = em.createEntity("Customer", { companyName: "foo" });
+        //var cust1 = em.addEntity(custType.createEntity());
+        //cust1.setProperty("companyName", "foo");
         ok(!cust1.entityAspect.wasLoaded);
         order1.setProperty("employee", emp1);
         order1.setProperty("customer", cust1);
