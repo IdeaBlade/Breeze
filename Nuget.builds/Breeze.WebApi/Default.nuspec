@@ -9,7 +9,7 @@
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web Api application.  We recommend installing this package shortly after creating a project with the "ASP.NET MVC 4 Empty" template or the "ASP.NET MVC 4 Web Api" template.  To see an example Breeze application, consider the "Breeze for MVC4 WebApi Client Sample". You don't need MVC for Breeze. You can start from an empty ASP.NET Web app but you'll have to know how to build out from there.</description>
+        <description>The files and references that are essential for a Breeze ASP.NET Web Api application.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
         <summary>Breeze ASP.NET Web Api support package</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>

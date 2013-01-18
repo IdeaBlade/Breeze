@@ -1,15 +1,15 @@
-Breeze MVC4 Web API Client Sample NuGet Package ReadMe
+"Breeze for ASP.NET MVC4 Web Api Sample" NuGet Package ReadMe
 -------------------------------------------------------
 This package installs a simple sample applications that 
 a) helps confirm your breeze project is setup properly
 b) demonstrates elementary Breeze application setup
 
-This package depends upon the Breeze.MVC4WebApi package which
+This package depends upon the Breeze.WebApi package which
 adds essential Breeze script files and .NET Web Api libraries to your project.
 
 This readme covers
 
-- Trying the "Breeze MVC4 Web Api Client Sample" application
+- Trying the "Breeze for ASP.NET MVC4 Web Api Sample" application
 - Trying the Web API calls of that application
 - The inventory of items added by this nuget package
 
@@ -80,11 +80,11 @@ You can still view the JSON response by doing the following:
 -------------------------------------------------------
 WHAT THIS PACKAGE ADDED
 
-This package depends upon and extends the "Breeze MVC4 Web Api" NuGet Package
-by adding a simple HTML/JavaScript application that uses Breeze
+This package depends upon and extends the "Breeze.WebApi" NuGet Package
+by adding a simple MVC4 HTML/JavaScript application that uses Breeze
 to display, edit, and save changes.
 
-It automatically includes the "Breeze MVC4 Web Api" NuGet Package if it is not already installed.
+It automatically includes the "Breeze Web Api" NuGet Package if it is not already installed.
 
 This specific nuget package added the following files to this project,
 shown from "back to front" from the Model on the server to the client.
@@ -125,6 +125,6 @@ Two application scripts
 	Scripts/app/sampleViewModel.js
 
 -------------------------------------------------------	
-Artifacts added by the "Breeze Web Api" NuGet package
+Artifacts added by the "Breeze.WebApi" NuGet package
 are described in the readme file for that package and on the web at
 http://www.breezejs.com/documentation/start-nuget
