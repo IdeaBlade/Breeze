@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Linq;
 using System.Data.Entity.Infrastructure;
 using System.Security;
@@ -36,7 +35,7 @@ namespace BreezeSpa2012Preview.Models
 
         // Todo: delegate to helper classes when it gets more complicated
 
-        public override bool BeforeSaveEntity(EntityInfo entityInfo)
+        protected override bool BeforeSaveEntity(EntityInfo entityInfo)
         {
             var entity = entityInfo.Entity;
             if (entity is TodoList)

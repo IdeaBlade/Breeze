@@ -6,7 +6,7 @@
     using Newtonsoft.Json.Linq;
 
     [Authorize]
-    [JsonFormatter, ODataActionFilter]
+    [BreezeController]
     public class BreezeTodoController : ApiController
     {
         private readonly BreezeTodoContext _context;
