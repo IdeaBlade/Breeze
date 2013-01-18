@@ -276,6 +276,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_duration">duration</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_getMessage">getMessage</a>
 
                                 
@@ -332,6 +341,20 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
 
                                 
                                     <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_register">register</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_registerFactory">registerFactory</a>
+
                                 
                                 
                             </li>
@@ -746,7 +769,7 @@ freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l489"><code>validate.js:489</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l519"><code>validate.js:519</code></a>
         
         </p>
 
@@ -832,7 +855,7 @@ discontinuedProperty.validators.push(Validator.bool());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l472"><code>validate.js:472</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l502"><code>validate.js:502</code></a>
         
         </p>
 
@@ -919,7 +942,7 @@ regionProperty.validators.push(Validator.byte());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l516"><code>validate.js:516</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l546"><code>validate.js:546</code></a>
         
         </p>
 
@@ -961,6 +984,92 @@ var orderDateProperty - orderType.getProperty("OrderDate");
 // Validates that the value of the OrderDate property on Order is a date
 // Probably not a very good validation to place on the Freight property.
 orderDateProperty.validators.push(Validator.date());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_duration" class="method item">
+    <h3 class="name"><code>duration</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;validate.js.html#l403"><code>validate.js:403</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a ISO 8601 duration string  Validator.</p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+var eventType = em1.metadataStore.getEntityType("Event");
+var elapsedTimeProperty - eventType.getProperty("ElapsedTime");
+// Validates that the value of the ElapsedTime property on Customer is a duration.
+elapsedTimeProperty.validators.push(Validator.duration());
 </code></pre>
             </div>
         </div>
@@ -1087,7 +1196,7 @@ var errMessage = v0.getMessage());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l365"><code>validate.js:365</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l383"><code>validate.js:383</code></a>
         
         </p>
 
@@ -1098,7 +1207,7 @@ var errMessage = v0.getMessage());
     </div>
 
     <div class="description">
-        <p>Returns a standard string data type Validator.</p>
+        <p>Returns a Guid data type Validator.</p>
     </div>
 
     
@@ -1173,7 +1282,7 @@ customerIdProperty.validators.push(Validator.guid());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l456"><code>validate.js:456</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l486"><code>validate.js:486</code></a>
         
         </p>
 
@@ -1259,7 +1368,7 @@ freightProperty.validators.push(Validator.int16());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l441"><code>validate.js:441</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l471"><code>validate.js:471</code></a>
         
         </p>
 
@@ -1344,7 +1453,7 @@ freightProperty.validators.push(Validator.int32());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l418"><code>validate.js:418</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l448"><code>validate.js:448</code></a>
         
         </p>
 
@@ -1440,7 +1549,7 @@ freightProperty.validators.push(Validator.int64());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l295"><code>validate.js:295</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l313"><code>validate.js:313</code></a>
         
         </p>
 
@@ -1566,7 +1675,7 @@ regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l393"><code>validate.js:393</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l423"><code>validate.js:423</code></a>
         
         </p>
 
@@ -1614,6 +1723,180 @@ freightProperty.validators.push(Validator.number());
 </div>
 
                 
+                    <div id="method_register" class="method item">
+    <h3 class="name"><code>register</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>validator</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;validate.js.html#l238"><code>validate.js:238</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Register a validator so that any deserialized metadata can reference it.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">validator</code>
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Validator to register.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="method_registerFactory" class="method item">
+    <h3 class="name"><code>registerFactory</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>validatorFactory</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;validate.js.html#l247"><code>validate.js:247</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Register a validator factory so that any deserialized metadata can reference it.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">validatorFactory</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A function that optionally takes a context property and returns a Validator instance.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="method_required" class="method item">
     <h3 class="name"><code>required</code></h3>
 
@@ -1652,7 +1935,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l271"><code>validate.js:271</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l289"><code>validate.js:289</code></a>
         
         </p>
 
@@ -1738,7 +2021,7 @@ regionProperty.validators.push(Validator.required());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l345"><code>validate.js:345</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l363"><code>validate.js:363</code></a>
         
         </p>
 
@@ -1834,7 +2117,7 @@ regionProperty.validators.push(Validator.string());
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l318"><code>validate.js:318</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l336"><code>validate.js:336</code></a>
         
         </p>
 
@@ -2118,7 +2401,7 @@ var sameValidator = result.validator;
             
         
         
-        <a href="..&#x2F;files&#x2F;validate.js.html#l238"><code>validate.js:238</code></a>
+        <a href="..&#x2F;files&#x2F;validate.js.html#l256"><code>validate.js:256</code></a>
         
         </p>
 

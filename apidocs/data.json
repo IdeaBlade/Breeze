@@ -195,7 +195,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "validate.js",
-            "line": 613
+            "line": 643
         },
         "core": {
             "name": "core",
@@ -341,7 +341,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2376,
+            "line": 2409,
             "description": "MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.",
             "static": 1
         },
@@ -356,7 +356,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2405,
+            "line": 2438,
             "description": "FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.",
             "static": 1
         },
@@ -371,7 +371,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2430,
+            "line": 2463,
             "description": "A QueryOptions instance is used to specify the 'options' under which a query will occur."
         },
         "SaveOptions": {
@@ -385,7 +385,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2543,
+            "line": 2576,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
         },
         "ValidationOptions": {
@@ -399,7 +399,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "entityManager.js",
-            "line": 2591,
+            "line": 2624,
             "description": "A ValidationOptions instance is used to specify the conditions under which validation will be executed."
         },
         "LocalQueryComparisonOptions": {
@@ -682,7 +682,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "validate.js",
-            "line": 613,
+            "line": 643,
             "description": "A ValidatationError is used to describe a failed validation."
         }
     },
@@ -2049,6 +2049,43 @@
         {
             "file": "entityManager.js",
             "line": 208,
+            "description": "Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added\nbut you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added \nto the EntityManager.",
+            "example": [
+                "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    // create and add an entity;\n    var emp1 = em1.createEntity(\"Employee\");\n    // create and add an initialized entity;\n    var emp2 = em1.createEntity(\"Employee\", { lastName: Smith\", firstName: \"John\" });\n    // create and attach (not add) an initialized entity\n    var emp3 = em1.createEntity(\"Employee\", { id: 435, lastName: Smith\", firstName: \"John\" }, EntityState.Unchanged);\n    // create but don't attach an entity;\n    var emp4 = em1.createEntity(\"Employee\", { id: 435, lastName: Smith\", firstName: \"John\" }, EntityState.Detached);"
+            ],
+            "itemtype": "method",
+            "name": "createEntity",
+            "params": [
+                {
+                    "name": "typeName",
+                    "description": "The name of the type for which an instance should be created.",
+                    "type": "String"
+                },
+                {
+                    "name": "initialValues",
+                    "description": "- Configuration object of the properties to set immediately after creation.",
+                    "type": "Config object",
+                    "optional": true,
+                    "optdefault": "null"
+                },
+                {
+                    "name": "entityState",
+                    "description": "- Configuration object of the properties to set immediately after creation.",
+                    "type": "EntityState",
+                    "optional": true,
+                    "optdefault": "EntityState.Added"
+                }
+            ],
+            "return": {
+                "description": "A new Entity of the specified type.",
+                "type": "Entity"
+            },
+            "class": "EntityManager",
+            "module": "breeze"
+        },
+        {
+            "file": "entityManager.js",
+            "line": 241,
             "description": "Creates a new EntityManager and imports a previously exported result into it.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var bundle = em1.exportEntities();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    // and imported\n    var em2 = EntityManager.importEntities(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1"
@@ -2086,7 +2123,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 236,
+            "line": 269,
             "description": "Exports an entire EntityManager or just selected entities into a serialized string for external storage.",
             "example": [
                 "\nThis method can be used to take a snapshot of an EntityManager that can be either stored offline or held \nmemory.  This snapshot can be restored or merged into an another EntityManager at some later date. ",
@@ -2112,7 +2149,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 279,
+            "line": 312,
             "description": "Imports a previously exported result into this EntityManager.",
             "example": [
                 "\nThis method can be used to make a complete copy of any previously created entityManager, even if created\nin a previous session and stored in localStorage. The static version of this method performs a\nvery similar process. ",
@@ -2148,7 +2185,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 357,
+            "line": 390,
             "description": "Clears this EntityManager's cache but keeps all other settings. Note that this \nmethod is not as fast as creating a new EntityManager via 'new EntityManager'.\nThis is because clear actually detaches all of the entities from the EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    em1.clear();\n    // em1 is will now contain no entities, but all other setting will be maintained."
@@ -2160,7 +2197,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 382,
+            "line": 415,
             "description": "General purpose property set method.  Any of the properties documented below \nmay be set.",
             "example": [
                 "\n     // assume em1 is a previously created EntityManager\n     // where we want to change some of its settings.\n     em1.setProperties( {\n        serviceName: \"api/foo\"\n        });"
@@ -2217,7 +2254,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 427,
+            "line": 460,
             "description": "Creates an empty copy of this EntityManager",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var em2 = em1.createEmptyCopy();\n    // em2 is a new EntityManager with all of em1's settings\n    // but no entities."
@@ -2233,7 +2270,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 450,
+            "line": 483,
             "description": "Attaches an entity to this EntityManager with an  {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);\nNote that this is the same as using 'attachEntity' with an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
@@ -2257,7 +2294,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 471,
+            "line": 504,
             "description": "Attaches an entity to this EntityManager with a specified {{#crossLink \"EntityState\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.attachEntity(cust1, EntityState.Added);"
@@ -2274,7 +2311,8 @@
                     "name": "entityState",
                     "description": "The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.",
                     "type": "EntityState",
-                    "optional": true
+                    "optional": true,
+                    "optdefault": "EntityState.Unchanged"
                 }
             ],
             "return": {
@@ -2286,7 +2324,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 526,
+            "line": 559,
             "description": "Detaches an entity from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    // assume cust1 is a customer Entity previously attached to em1\n    em1.detachEntity(cust1);\n    // em1 will now no longer contain cust1 and cust1 will have an \n    // entityAspect.entityState of EntityState.Detached"
@@ -2309,7 +2347,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 559,
+            "line": 592,
             "description": "Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call\noccurs internally before the first query to any service if the metadata hasn't already been\nloaded.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -2357,7 +2395,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 610,
+            "line": 643,
             "description": "Executes the specified query.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -2446,7 +2484,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 698,
+            "line": 731,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -2471,7 +2509,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 767,
+            "line": 800,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",
@@ -2561,7 +2599,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 910,
+            "line": 943,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -2589,7 +2627,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 922,
+            "line": 955,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -2612,7 +2650,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 945,
+            "line": 978,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy \nwill be used to merge any server side entity returned by this method.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -2646,7 +2684,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 970,
+            "line": 1003,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -2675,7 +2713,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1018,
+            "line": 1051,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -2700,7 +2738,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1035,
+            "line": 1068,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -2723,7 +2761,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1076,
+            "line": 1109,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -2750,7 +2788,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1112,
+            "line": 1145,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"api/NorthwindIBModel\" });\n    em.hasChanges.subscribe(function(args) {\n        var hasChanges = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -2775,7 +2813,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1138,
+            "line": 1171,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -2802,7 +2840,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1168,
+            "line": 1201,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -2818,7 +2856,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 1191,
+            "line": 1224,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",
@@ -2852,7 +2890,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2383,
+            "line": 2416,
             "description": "PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is not replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "PreserveChanges",
@@ -2864,7 +2902,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2393,
+            "line": 2426,
             "description": "OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is replaced by the 'merging' entity.",
             "itemtype": "property",
             "name": "OverwriteChanges",
@@ -2876,7 +2914,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2412,
+            "line": 2445,
             "description": "FromServer is used to tell the query to execute the query against a remote data source on the server.",
             "itemtype": "property",
             "name": "FromServer",
@@ -2888,7 +2926,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2419,
+            "line": 2452,
             "description": "FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.",
             "itemtype": "property",
             "name": "FromLocalCache",
@@ -2900,7 +2938,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2436,
+            "line": 2469,
             "description": "QueryOptions constructor",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { queryOptions: newQo });"
@@ -2936,7 +2974,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2455,
+            "line": 2488,
             "description": "A {{#crossLink \"FetchStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "fetchStrategy",
@@ -2946,7 +2984,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2461,
+            "line": 2494,
             "description": "A {{#crossLink \"MergeStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "mergeStrategy",
@@ -2956,7 +2994,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2469,
+            "line": 2502,
             "description": "The default value whenever QueryOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -2967,7 +3005,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2476,
+            "line": 2509,
             "description": "Returns a copy of this QueryOptions with the specified {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n    var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);\nor",
@@ -2993,7 +3031,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2502,
+            "line": 2535,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -3006,7 +3044,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2549,
+            "line": 2582,
             "itemtype": "method",
             "name": "<ctor> SaveOptions",
             "params": [
@@ -3029,7 +3067,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2563,
+            "line": 2596,
             "description": "Makes this instance the default instance.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -3039,7 +3077,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2573,
+            "line": 2606,
             "description": "Whether another save can be occuring at the same time as this one - default is false.\n\n__readOnly__",
             "itemtype": "property",
             "name": "allowConcurrentSaves",
@@ -3049,7 +3087,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2580,
+            "line": 2613,
             "description": "The default value whenever SaveOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -3060,7 +3098,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2597,
+            "line": 2630,
             "description": "ValidationOptions constructor",
             "example": [
                 "\n    var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { validationOptions: newVo });"
@@ -3110,7 +3148,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2618,
+            "line": 2651,
             "description": "Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnAttach",
@@ -3120,7 +3158,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2625,
+            "line": 2658,
             "description": "Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnSave",
@@ -3130,7 +3168,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2632,
+            "line": 2665,
             "description": "Whether entity and property level validation should occur after entities are queried from a remote server.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnQuery",
@@ -3140,7 +3178,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2639,
+            "line": 2672,
             "description": "Whether property level validation should occur after entities are modified.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validateOnPropertyChange",
@@ -3150,7 +3188,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2648,
+            "line": 2681,
             "description": "Returns a copy of this ValidationOptions with changes to the specified config properties.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions();\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );"
@@ -3200,7 +3238,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2668,
+            "line": 2701,
             "description": "Makes this instance the default instance.",
             "example": [
                 "\n    var validationOptions = new ValidationOptions()\n    var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );\n    var newOptions.setAsDefault();"
@@ -3213,7 +3251,7 @@
         },
         {
             "file": "entityManager.js",
-            "line": 2682,
+            "line": 2715,
             "description": "The default value whenever ValidationOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -6563,6 +6601,38 @@
         {
             "file": "validate.js",
             "line": 238,
+            "description": "Register a validator so that any deserialized metadata can reference it.",
+            "itemtype": "method",
+            "name": "register",
+            "params": [
+                {
+                    "name": "validator",
+                    "description": "Validator to register.",
+                    "type": "Validator"
+                }
+            ],
+            "class": "Validator",
+            "module": "breeze"
+        },
+        {
+            "file": "validate.js",
+            "line": 247,
+            "description": "Register a validator factory so that any deserialized metadata can reference it.",
+            "itemtype": "method",
+            "name": "registerFactory",
+            "params": [
+                {
+                    "name": "validatorFactory",
+                    "description": "A function that optionally takes a context property and returns a Validator instance.",
+                    "type": "Function"
+                }
+            ],
+            "class": "Validator",
+            "module": "breeze"
+        },
+        {
+            "file": "validate.js",
+            "line": 256,
             "description": "Map of standard error message templates keyed by validator name.\nYou can add to or modify this object to customize the template used for any validation error message.",
             "example": [
                 "\n    // v is this function is the value to be validated, in this case a \"country\" string.\n    var valFn = function (v) {\n        if (v == null) return true;\n        return (core.stringStartsWith(v, \"US\"));\n    };\n    var countryValidator = new Validator(\"countryIsUS\", valFn, { displayName: \"Country\" }); \n    Validator.messageTemplates[\"countryIsUS\", \"'%displayName%' must start with 'US'\");\nThis will have a similar effect to this\n     var countryValidator = new Validator(\"countryIsUS\", valFn, { \n        displayName: \"Country\", \n        messageTemplate: \"'%displayName%' must start with 'US'\" \n    });"
@@ -6576,7 +6646,7 @@
         },
         {
             "file": "validate.js",
-            "line": 271,
+            "line": 289,
             "description": "Returns a standard 'required value' Validator",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Makes \"Region\" on Customer a required property.\n    regionProperty.validators.push(Validator.required());"
@@ -6593,7 +6663,7 @@
         },
         {
             "file": "validate.js",
-            "line": 295,
+            "line": 313,
             "description": "Returns a standard maximum string length Validator; the maximum length must be specified",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer will be less than or equal to 5 characters.\n    regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));"
@@ -6624,7 +6694,7 @@
         },
         {
             "file": "validate.js",
-            "line": 318,
+            "line": 336,
             "description": "Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer will be \n    // between 2 and 5 characters\n    regionProperty.validators.push(Validator.stringLength( {minLength: 2, maxLength: 5});"
@@ -6660,7 +6730,7 @@
         },
         {
             "file": "validate.js",
-            "line": 345,
+            "line": 363,
             "description": "Returns a standard string dataType Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var regionProperty - custType.getProperty(\"Region\");\n    // Validates that the value of the Region property on Customer is a string.\n    regionProperty.validators.push(Validator.string());"
@@ -6677,8 +6747,8 @@
         },
         {
             "file": "validate.js",
-            "line": 365,
-            "description": "Returns a standard string data type Validator.",
+            "line": 383,
+            "description": "Returns a Guid data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerIdProperty - custType.getProperty(\"CustomerID\");\n    // Validates that the value of the CustomerID property on Customer is a Guid.\n    customerIdProperty.validators.push(Validator.guid());"
             ],
@@ -6694,7 +6764,24 @@
         },
         {
             "file": "validate.js",
-            "line": 393,
+            "line": 403,
+            "description": "Returns a ISO 8601 duration string  Validator.",
+            "example": [
+                "\n    // Assume em1 is a preexisting EntityManager.\n    var eventType = em1.metadataStore.getEntityType(\"Event\");\n    var elapsedTimeProperty - eventType.getProperty(\"ElapsedTime\");\n    // Validates that the value of the ElapsedTime property on Customer is a duration.\n    elapsedTimeProperty.validators.push(Validator.duration());"
+            ],
+            "itemtype": "method",
+            "name": "duration",
+            "static": 1,
+            "return": {
+                "description": "A new Validator",
+                "type": "Validator"
+            },
+            "class": "Validator",
+            "module": "breeze"
+        },
+        {
+            "file": "validate.js",
+            "line": 423,
             "description": "Returns a standard numeric data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is a number.\n    freightProperty.validators.push(Validator.number());"
@@ -6711,7 +6798,7 @@
         },
         {
             "file": "validate.js",
-            "line": 418,
+            "line": 448,
             "description": "Returns a standard large integer data type - 64 bit - Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.\n    freightProperty.validators.push(Validator.int64());"
@@ -6728,7 +6815,7 @@
         },
         {
             "file": "validate.js",
-            "line": 441,
+            "line": 471,
             "description": "Returns a standard 32 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    freightProperty.validators.push(Validator.int32());"
@@ -6745,7 +6832,7 @@
         },
         {
             "file": "validate.js",
-            "line": 456,
+            "line": 486,
             "description": "Returns a standard 16 bit integer data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    freightProperty.validators.push(Validator.int16());"
@@ -6762,7 +6849,7 @@
         },
         {
             "file": "validate.js",
-            "line": 472,
+            "line": 502,
             "description": "Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var freightProperty - orderType.getProperty(\"Freight\");\n    // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.\n    // Probably not a very good validation to place on the Freight property.\n    regionProperty.validators.push(Validator.byte());"
@@ -6779,7 +6866,7 @@
         },
         {
             "file": "validate.js",
-            "line": 489,
+            "line": 519,
             "description": "Returns a standard boolean data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var productType = em1.metadataStore.getEntityType(\"Product\");\n    var discontinuedProperty - productType.getProperty(\"Discontinued\");\n    // Validates that the value of the Discontinued property on Product is a boolean\n    discontinuedProperty.validators.push(Validator.bool());"
@@ -6796,7 +6883,7 @@
         },
         {
             "file": "validate.js",
-            "line": 516,
+            "line": 546,
             "description": "Returns a standard date data type Validator.",
             "example": [
                 "\n    // Assume em1 is a preexisting EntityManager.\n    var orderType = em1.metadataStore.getEntityType(\"Order\");\n    var orderDateProperty - orderType.getProperty(\"OrderDate\");\n    // Validates that the value of the OrderDate property on Order is a date\n    // Probably not a very good validation to place on the Freight property.\n    orderDateProperty.validators.push(Validator.date());"
@@ -6813,7 +6900,7 @@
         },
         {
             "file": "validate.js",
-            "line": 619,
+            "line": 649,
             "itemtype": "method",
             "name": "<ctor> ValidationError",
             "params": [
@@ -6838,7 +6925,7 @@
         },
         {
             "file": "validate.js",
-            "line": 639,
+            "line": 669,
             "description": "The Validator associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validator",
@@ -6848,7 +6935,7 @@
         },
         {
             "file": "validate.js",
-            "line": 646,
+            "line": 676,
             "description": "A 'context' object associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "context",
@@ -6858,7 +6945,7 @@
         },
         {
             "file": "validate.js",
-            "line": 653,
+            "line": 683,
             "description": "The DataProperty or NavigationProperty associated with this ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "property",
@@ -6868,7 +6955,7 @@
         },
         {
             "file": "validate.js",
-            "line": 660,
+            "line": 690,
             "description": "The property name associated with this ValidationError. This will be a \"property path\" for any properties of a complex object.\n\n__readOnly__",
             "itemtype": "property",
             "name": "propertyName",
@@ -6878,7 +6965,7 @@
         },
         {
             "file": "validate.js",
-            "line": 667,
+            "line": 697,
             "description": "The error message associated with the ValidationError.\n\n__readOnly__",
             "itemtype": "property",
             "name": "errorMessage",

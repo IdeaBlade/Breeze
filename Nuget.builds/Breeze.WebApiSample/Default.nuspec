@@ -16,7 +16,7 @@
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>
         <tags>javascript MVC4 EntityFramework Breeze</tags>
 		<dependencies>
-			<dependency id="Breeze.MVC4WebApi" version="{{version}}" />
+			<dependency id="Breeze.WebApi" version="{{version}}" />
 		</dependencies>
     </metadata>
     <files>

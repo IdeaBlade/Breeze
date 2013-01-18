@@ -268,6 +268,13 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_createEntity">createEntity</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_detachEntity">detachEntity</a>
 
                                 
@@ -781,7 +788,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l450"><code>entityManager.js:450</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l483"><code>entityManager.js:483</code></a>
         
         </p>
 
@@ -872,7 +879,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
                 <li class="arg">
                     
-                        <code class="optional">[entityState]</code>
+                        <code class="optional">[entityState=EntityState.Unchanged]</code>
                     
                 </li>
             
@@ -909,7 +916,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l471"><code>entityManager.js:471</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l504"><code>entityManager.js:504</code></a>
         
         </p>
 
@@ -946,7 +953,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
                 <li class="param">
                     
-                        <code class="param-name optional">[entityState]</code>
+                        <code class="param-name optional">[entityState=EntityState.Unchanged]</code>
                         <span class="type"><a href="..\classes\EntityState.html" class="crosslink">EntityState</a></span>
                         <span class="flag optional" title="This parameter is optional.">optional</span>
                     
@@ -1027,7 +1034,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l357"><code>entityManager.js:357</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l390"><code>entityManager.js:390</code></a>
         
         </p>
 
@@ -1098,7 +1105,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l427"><code>entityManager.js:427</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l460"><code>entityManager.js:460</code></a>
         
         </p>
 
@@ -1138,6 +1145,177 @@ em1.clear();
 var em2 = em1.createEmptyCopy();
 // em2 is a new EntityManager with all of em1's settings
 // but no entities.
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_createEntity" class="method item">
+    <h3 class="name"><code>createEntity</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>typeName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[initialValues=null]</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[entityState=EntityState.Added]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Entity</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l208"><code>entityManager.js:208</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
+to the EntityManager.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">typeName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the type for which an instance should be created.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[initialValues=null]</code>
+                        <span class="type">Config object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>Configuration object of the properties to set immediately after creation.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[entityState=EntityState.Added]</code>
+                        <span class="type"><a href="..\classes\EntityState.html" class="crosslink">EntityState</a></span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>Configuration object of the properties to set immediately after creation.</li>
+</ul>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Entity</span>:
+                    
+                    A new Entity of the specified type.
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
+// create and add an entity;
+var emp1 = em1.createEntity("Employee");
+// create and add an initialized entity;
+var emp2 = em1.createEntity("Employee", { lastName: Smith", firstName: "John" });
+// create and attach (not add) an initialized entity
+var emp3 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Unchanged);
+// create but don't attach an entity;
+var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
 </code></pre>
             </div>
         </div>
@@ -1191,7 +1369,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l526"><code>entityManager.js:526</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l559"><code>entityManager.js:559</code></a>
         
         </p>
 
@@ -1322,7 +1500,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l610"><code>entityManager.js:610</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l643"><code>entityManager.js:643</code></a>
         
         </p>
 
@@ -1625,7 +1803,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l698"><code>entityManager.js:698</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l731"><code>entityManager.js:731</code></a>
         
         </p>
 
@@ -1752,7 +1930,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l236"><code>entityManager.js:236</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l269"><code>entityManager.js:269</code></a>
         
         </p>
 
@@ -1898,7 +2076,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l945"><code>entityManager.js:945</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l978"><code>entityManager.js:978</code></a>
         
         </p>
 
@@ -2061,7 +2239,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l970"><code>entityManager.js:970</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1003"><code>entityManager.js:1003</code></a>
         
         </p>
 
@@ -2208,7 +2386,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l559"><code>entityManager.js:559</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l592"><code>entityManager.js:592</code></a>
         
         </p>
 
@@ -2398,7 +2576,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1018"><code>entityManager.js:1018</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1051"><code>entityManager.js:1051</code></a>
         
         </p>
 
@@ -2517,7 +2695,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1035"><code>entityManager.js:1035</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1068"><code>entityManager.js:1068</code></a>
         
         </p>
 
@@ -2651,7 +2829,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1138"><code>entityManager.js:1138</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1171"><code>entityManager.js:1171</code></a>
         
         </p>
 
@@ -2785,7 +2963,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1191"><code>entityManager.js:1191</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1224"><code>entityManager.js:1224</code></a>
         
         </p>
 
@@ -2941,7 +3119,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l910"><code>entityManager.js:910</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l943"><code>entityManager.js:943</code></a>
         
         </p>
 
@@ -3071,7 +3249,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l922"><code>entityManager.js:922</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l955"><code>entityManager.js:955</code></a>
         
         </p>
 
@@ -3188,7 +3366,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1076"><code>entityManager.js:1076</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1109"><code>entityManager.js:1109</code></a>
         
         </p>
 
@@ -3326,7 +3504,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l279"><code>entityManager.js:279</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l312"><code>entityManager.js:312</code></a>
         
         </p>
 
@@ -3487,7 +3665,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l208"><code>entityManager.js:208</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l241"><code>entityManager.js:241</code></a>
         
         </p>
 
@@ -3633,7 +3811,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1168"><code>entityManager.js:1168</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1201"><code>entityManager.js:1201</code></a>
         
         </p>
 
@@ -3745,7 +3923,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l767"><code>entityManager.js:767</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l800"><code>entityManager.js:800</code></a>
         
         </p>
 
@@ -4034,7 +4212,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l382"><code>entityManager.js:382</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l415"><code>entityManager.js:415</code></a>
         
         </p>
 
@@ -4703,7 +4881,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1112"><code>entityManager.js:1112</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1145"><code>entityManager.js:1145</code></a>
         
         </p>
 

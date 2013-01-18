@@ -9768,7 +9768,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var emp1 = em1.createEntity("Employee");
             // create and add an initialized entity;
             var emp2 = em1.createEntity("Employee", { lastName: Smith", firstName: "John" });
-            // create and attach (not add) and entity
+            // create and attach (not add) an initialized entity
             var emp3 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Unchanged);
             // create but don't attach an entity;
             var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
@@ -12338,7 +12338,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.84.4",
+        version: "0.85.2",
         core: core,
         config: a_config
     };

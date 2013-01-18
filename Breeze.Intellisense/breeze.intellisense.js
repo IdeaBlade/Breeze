@@ -1,4 +1,4 @@
-﻿// Generated on: Wed Jan 16 2013 10:13:02 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Jan 17 2013 19:19:34 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -733,6 +733,19 @@ intellisense.annotate(breeze.breeze.EntityKey, {
 
 intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   
+  'createEntity': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+    ///   but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
+    ///   to the EntityManager.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The name of the type for which an instance should be created.</param>
+    ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
+    ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">- Configuration object of the properties to set immediately after creation.</param>
+    ///   <returns type="Entity" >A new Entity of the specified type.</returns>
+    /// </signature>
+  },
   'exportEntities': function() {
     /// <signature>
     ///   <summary>
@@ -2100,6 +2113,24 @@ intellisense.annotate(breeze.breeze.Validator.prototype, {
     ///   <returns type="String" ></returns>
     /// </signature>
   },
+  'register': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Register a validator so that any deserialized metadata can reference it.
+    ///   </summary>
+    ///   <param name="validator" type="breeze.breeze.Validator" optional="true">Validator to register.</param>
+    
+    /// </signature>
+  },
+  'registerFactory': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Register a validator factory so that any deserialized metadata can reference it.
+    ///   </summary>
+    ///   <param name="validatorFactory" type="Function" optional="true">A function that optionally takes a context property and returns a Validator instance.</param>
+    
+    /// </signature>
+  },
   
 });
 intellisense.annotate(breeze.breeze.Validator, {
@@ -2141,7 +2172,15 @@ intellisense.annotate(breeze.breeze.Validator, {
   'guid': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a standard string data type Validator.
+    ///   Returns a Guid data type Validator.
+    ///   </summary>
+    ///   <returns type="breeze.breeze.Validator >A new Validator</returns>
+    /// </signature>
+  },
+  'duration': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a ISO 8601 duration string  Validator.
     ///   </summary>
     ///   <returns type="breeze.breeze.Validator >A new Validator</returns>
     /// </signature>

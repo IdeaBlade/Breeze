@@ -74,8 +74,8 @@ checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
 
-packageNuget $srcDir 'Breeze.MVC4WebApi' $versionNum $true
-packageNuget $srcDir 'Breeze.MVC4WebApiClientSample' $versionNum $false
+packageNuget $srcDir 'Breeze.WebApi' $versionNum $true
+packageNuget $srcDir 'Breeze.WebApiSample' $versionNum $false
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

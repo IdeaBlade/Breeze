@@ -152,6 +152,9 @@ function test_entityManager() {
     var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
     var cust1 = custType.createEntity();
     em1.addEntity(cust1);
+
+    var cust2 = em1.createEntity("Customer", { companyName: "foo" });
+    var cust3
     em1.attachEntity(cust1, breeze.EntityState.Added);
     em1.clear();
     var em2 = em1.createEmptyCopy();
