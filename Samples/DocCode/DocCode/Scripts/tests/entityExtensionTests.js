@@ -631,6 +631,98 @@ define(["testFns"], function (testFns) {
                 "cust2.adHocProperty should be undefined");
 
         });
+
+    /*********************************************************
+    * createEntity sequence is ctor, init-vals, init-er, add
+    *********************************************************/
+    test("createEntity sequence is ctor, init-vals, init-er, add", 1,
+        function () {
+            /* Arrange */
+            var expected = {
+                ctor: "constructor",
+                initVals: "initialValues",
+                initer: "initializer",
+                attach: "added to manager"
+            };
+            var actual = [];
+            var store = cloneModuleMetadataStore();
+            store.registerEntityTypeCtor(
+                'Customer',
+                function () { // ctor
+                    actual.push(expected.ctor);
+                    this.initialValue = ko.observable("");
+                    // will assign with initial values hash
+                    this.initialValue.subscribe(function() {
+                        actual.push(expected.initVals);
+                    });
+                },
+                function () {
+                    actual.push(expected.initer);
+                });
+            actual = []; // reset after registration
+            
+            var em = newEm(store);
+            em.entityChanged.subscribe(function (args) {
+                if (args.entityAction === breeze.EntityAction.Attach) {
+                    actual.push(expected.attach);
+                }
+            });
+            
+            /* ACT */
+            var cust = em.createEntity('Customer', { initialValue: expected[1] });
+            
+            /* ASSERT */
+            var exp = [];
+            for (var prop in expected) { exp.push(expected[prop]);}
+            deepEqual(actual, exp,
+                "Call sequence should be: "+exp.join(", "));
+        });
+
+    /*********************************************************
+    * query sequence is ctor, init-er, merge
+    *********************************************************/
+    test("query entity sequence is ctor, init-er, merge", 1,
+        function () {
+            /* Arrange */
+            var expected = {
+                ctor: "constructor",
+                initer: "initializer",
+                attach: "merge"
+            };
+            var actual = [];
+            var store = cloneModuleMetadataStore();
+            store.registerEntityTypeCtor(
+                'Customer',
+                function () { // ctor
+                    actual.push(expected.ctor);
+                },
+                function () {
+                    actual.push(expected.initer);
+                });
+            actual = []; // reset after registration
+
+            var em = newEm(store);
+            em.entityChanged.subscribe(function (args) {
+                if (args.entityAction === breeze.EntityAction.AttachOnQuery) {
+                    actual.push(expected.attach);
+                }
+            });
+
+            /* ACT */
+            stop();
+            EntityQuery
+                .from('Customers').take(1)
+                .using(em).execute()
+                .then(success).fail(handleFail).fin(start);
+
+            /* ASSERT */
+            function success() {
+                var exp = [];
+                for (var prop in expected) { exp.push(expected[prop]); }
+                deepEqual(actual, exp,
+                    "Call sequence should be: " + exp.join(", "));
+            }
+        });
     /*********************************************************
     * can define custom temporary key generator
     * must conform to the keygenerator-interface
