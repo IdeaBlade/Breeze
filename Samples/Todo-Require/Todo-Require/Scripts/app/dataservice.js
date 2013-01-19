@@ -33,10 +33,8 @@ define(['ko', 'breeze', 'logger'], function (ko, breeze, logger) {
         return manager.executeQuery(query);
     }
 
-    function createTodo() {
-        var todoType = manager.metadataStore.getEntityType("TodoItem");
-        var newTodo = todoType.createEntity();
-        return manager.addEntity(newTodo);
+    function createTodo(initialValues) {
+        return manager.createEntity('TodoItem', initialValues);
     }
     
     function saveChanges(suppressLogIfNothingToSave) {

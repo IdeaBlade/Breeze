@@ -75,11 +75,11 @@
         logger.error(error.message, "Query failed");
     }
     function addItem() {
-        var item = dataservice.createTodo();
-
-        item.IsDone(vm.markAllCompleted());
-        item.Description(vm.newTodo());
-        item.CreatedAt(new Date());
+        var item = dataservice.createTodo({
+            Description: vm.newTodo(),
+            CreatedAt: new Date(),
+            IsDone: vm.markAllCompleted()
+        });
 
         if (item.entityAspect.validateEntity()) {
             extendItem(item);

@@ -105,9 +105,12 @@
 
         TodoList.prototype.addTodo = function () { 
             if (this.newTodoTitle()) { 
-                var todoItem = datacontext.createTodoItem();
-                todoItem.title(this.newTodoTitle());
-                todoItem.todoList(this);
+                var todoItem = datacontext.createTodoItem(
+                {
+                    title: this.newTodoTitle()
+                    //, todoList: this  // can't set a navigation property in an initalizer ?
+                });
+                todoItem.todoList(this); // ... therefore must assign AFTER creation
                 datacontext.saveNewTodoItem(todoItem);
                 this.newTodoTitle("");
             }

@@ -44,16 +44,12 @@ window.todoApp.datacontext = (function (breeze) {
         }
     }
     
-    function createTodoItem() {
-        var item = metadataStore.getEntityType("TodoItem").createEntity();
-        manager.addEntity(item);
-        return item;
+    function createTodoItem(initialValues) {
+        return manager.createEntity("TodoItem", initialValues);
     }
     
-    function createTodoList() {
-        var list = metadataStore.getEntityType("TodoList").createEntity();
-        manager.addEntity(list);
-        return list;
+    function createTodoList(initialValues) {
+        return manager.createEntity("TodoList", initialValues);
     }
     
     function saveNewTodoItem(todoItem) {

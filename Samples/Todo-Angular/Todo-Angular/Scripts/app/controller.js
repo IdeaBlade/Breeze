@@ -45,11 +45,11 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     $scope.includeArchived = false;
     
     $scope.addItem = function() {
-        var item = dataservice.createTodo();
-
-        item.IsDone = false;
-        item.Description = $scope.newTodo;
-        item.CreatedAt = new Date();
+        var item = dataservice.createTodo({
+            Description: $scope.newTodo,
+            CreatedAt: new Date(),
+            IsDone: $scope.allCompleted
+        });
 
         if (item.entityAspect.validateEntity()) {
             extendItem(item);
