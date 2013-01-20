@@ -11,17 +11,17 @@ namespace NoDb.Models
     /// Client changes are accumulated.
     /// When app shuts down, all data are lost.
     /// </remarks>
-    public class TodoContextNoDb
+    public class TodoContext
     {
         // DO NOT REMOVE explicit static constructor which
         // tells C# compiler not to mark type as 'beforefieldinit'
-        static TodoContextNoDb() { }
+        static TodoContext() { }
 
         // No one can instantiate
-        private TodoContextNoDb() { }
+        private TodoContext() { }
 
         // Singleton instance of this in-memory "database"
-        public static TodoContextNoDb Instance
+        public static TodoContext Instance
         {
             get
             {
@@ -233,7 +233,7 @@ namespace NoDb.Models
         #endregion
 
         private static readonly Object __lock = new Object();
-        private static readonly TodoContextNoDb __instance = new TodoContextNoDb();
+        private static readonly TodoContext __instance = new TodoContext();
 
         private bool _initialized;
         private readonly List<TodoList> _todoLists = new List<TodoList>();

@@ -17,7 +17,7 @@ using Breeze.WebApi;
 namespace NoDb.Models {
   public class TodoContextProvider : ContextProvider {
 
-    public TodoContextNoDb Context { get { return TodoContextNoDb.Instance; } }
+    public TodoContext Context { get { return TodoContext.Instance; } }
 
     /// <summary>Get all TodoLists</summary>
     /// <remarks>Could have returned an IEnumerable.</remarks>

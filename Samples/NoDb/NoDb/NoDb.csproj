@@ -186,7 +186,7 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="Controllers\TodoController.cs" />
-    <Compile Include="Models\TodoContextNoDb.cs" />
+    <Compile Include="Models\TodoContext.cs" />
     <Compile Include="Models\TodoContextProvider.cs" />
     <Compile Include="Models\TodoItem.cs" />
     <Compile Include="Models\TodoList.cs" />
