@@ -50,9 +50,9 @@
         et.addProperty(new NavigationProperty({
             name: "todoList",
             entityTypeName: "TodoList",
-            isScalar: true,
-            associationName: "TodoList_Items", // associates with TodoList.Todos
-            foreignKeyNames: ["todoListId"]
+            isScalar: true,  // returns a single parent TodoList
+            foreignKeyNames: ["todoListId"],
+            associationName: "TodoList_Items" // associates with TodoList.Todos
         }));
             
         store.addEntityType(et);
@@ -86,7 +86,7 @@
         et.addProperty(new NavigationProperty({
             name: "todos",
             entityTypeName: "TodoItem",
-            isScalar: false,
+            isScalar: false, // returns a collection of TodoItems
             associationName: "TodoList_Items" // associates with TodoItem.TodoList
         }));
             
