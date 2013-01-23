@@ -69,7 +69,8 @@ define(["testFns"], function (testFns) {
         // Breeze converted it into a KO property and initialized it
         equal(cust.isBeingEdited(), false,
             "'isBeingEdited' should be a KO 'property' returning false");
-    }); 
+    });
+
     /*********************************************************
     * can 'new' the ctor .. but not a full entity until added to manager
     * not recommended; prefer CreateEntity approach
@@ -119,7 +120,38 @@ define(["testFns"], function (testFns) {
         equal(cust.foo(), 42,
             "'foo' should be a KO 'property' returning 42");
     });
+    /*********************************************************
+    * reject changes reverts changes to an unmapped property
+    *********************************************************/
+    test("reject changes reverts changes to an unmapped property", 2, function () {
+        var store = cloneModuleMetadataStore();
 
+        var originalTime = new Date(2013, 0, 1);
+        var Customer = function () {
+            this.lastTouched = originalTime;
+        };
+
+        store.registerEntityTypeCtor("Customer", Customer);
+
+        var manager = newEm(store);
+
+        // create a fake customer
+        var cust = manager.createEntity("Customer", { CompanyName: "Acme" },
+            breeze.EntityState.Unchanged);
+        var touched = cust.lastTouched();
+
+        // an hour passes ... and we visit the customer object
+        cust.CompanyName("Beta");
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+
+        // an hour passes ... and we visit to cancel
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+        cust.entityAspect.rejectChanges(); // roll back name change
+
+        equal(cust.CompanyName(), "Acme", "name should be rolled back");
+        equal(originalTime - cust.lastTouched(), 0,
+            "unmapped property, 'lastTouched', was rolled back");
+    });
     /*********************************************************
     * add instance function via constructor
     *********************************************************/
