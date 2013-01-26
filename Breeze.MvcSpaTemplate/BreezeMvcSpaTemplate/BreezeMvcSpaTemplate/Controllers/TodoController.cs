@@ -15,20 +15,19 @@
             _context = new TodoContextProvider(User);
         }
 
-        // GET ~/api/BreezeTodo/Metadata 
+        // GET ~/api/Todo/Metadata 
         [HttpGet]
         public string Metadata() {
             return _context.Metadata();
         }
 
-        // POST ~/api/BreezeTodo/SaveChanges
+        // POST ~/api/Todo/SaveChanges
         [HttpPost]
-        public SaveResult SaveChanges(JObject saveBundle)
-        {
+        public SaveResult SaveChanges(JObject saveBundle) {
             return _context.SaveChanges(saveBundle);
         }
 
-        // GET ~/api/BreezeTodo/TodoList
+        // GET ~/api/Todo/TodoList
         [HttpGet]
         public IQueryable<TodoList> TodoLists() {
             return _context.TodoLists
