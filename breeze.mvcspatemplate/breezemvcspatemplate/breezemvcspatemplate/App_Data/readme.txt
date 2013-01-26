@@ -1,0 +1,2 @@
+This App_Data folder must exist and must have the database, aspnet-BreezeMvcSpaTemplate-20130123165841 (.mdf and _log.ldf) in it.
+This readme helps Git source control retain the folder; Git will not keep empty folders.
