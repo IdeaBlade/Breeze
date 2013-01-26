@@ -1,0 +1,170 @@
+﻿<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+    <TemplateData>
+		<Name>BreezeMvcSpaTemplate</Name>
+		<Description>An ASP.NET MVC 4 project for a single page application (SPA) ... using Breeze</Description>
+         <Icon>__TemplateIcon.ico</Icon>
+        <ProjectType>CSharp</ProjectType>
+        <ProjectSubType>Web</ProjectSubType>
+        <TemplateGroupID>Web</TemplateGroupID>
+        <TemplateID>IdeaBlade.WAP.Cshtml.BreezeSpaApplication.v401</TemplateID>
+        <!-- <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp> -->
+        <SortOrder>1000</SortOrder>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>BreezeMvcSpaApplication</DefaultName>
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <LocationField>Enabled</LocationField>
+        <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
+        <!-- <Hidden>true</Hidden> -->
+    </TemplateData>
+    <TemplateContent>
+        <CustomParameters>
+            <CustomParameter Name="$language$" Value="C#" />
+            <CustomParameter Name="$languageext$" Value="cs" />
+            <CustomParameter Name="$globalclassname$" Value="MvcApplication" />
+        </CustomParameters>
+        <Project File="BreezeSinglePageApplication.cshtml.csproj" ReplaceParameters="true">
+            <Folder Name="Properties" TargetFolderName="Properties">
+                <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+            </Folder>
+            <Folder Name="App_Data" TargetFolderName="App_Data" />
+            <Folder Name="App_Start" TargetFolderName="App_Start">
+                <ProjectItem ReplaceParameters="true" TargetFileName="AuthConfig.cs">AuthConfig.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="BundleConfig.cs">BundleConfig.SinglePage.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="FilterConfig.cs">FilterConfig.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="RouteConfig.cs">RouteConfig.cs</ProjectItem>
+				<ProjectItem ReplaceParameters="true" TargetFileName="WebApiConfig.cs">WebApiConfig.SinglePage.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="BreezeWebApiConfig.cs">BreezeWebApiConfig.cs</ProjectItem>
+            </Folder> 
+            <Folder Name="Areas" TargetFolderName="Areas">
+                <Folder Name="HelpPage" TargetFolderName="HelpPage">
+                    <Folder Name="Views" TargetFolderName="Views">
+                        <ProjectItem ReplaceParameters="true" TargetFileName="_ViewStart.cshtml">_ViewStart.cshtml</ProjectItem>
+                    </Folder>
+                </Folder>
+            </Folder>
+            <Folder Name="Content" TargetFolderName="Content">
+                <ProjectItem ReplaceParameters="true" TargetFileName="Site.css">Site.SinglePage.css</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoList.css">TodoList.css</ProjectItem>
+            </Folder>
+            <Folder Name="Controllers" TargetFolderName="Controllers">
+                <ProjectItem ReplaceParameters="true" TargetFileName="AccountController.cs">AccountController.SinglePage.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoController.cs">TodoController.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="HomeController.cs">HomeController.SinglePage.cs</ProjectItem>
+            </Folder>
+            <Folder Name="Filters" TargetFolderName="Filters">
+                <ProjectItem ReplaceParameters="true" TargetFileName="InitializeSimpleMembershipAttribute.cs">InitializeSimpleMembershipAttribute.cs</ProjectItem>
+            </Folder>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax">Global.asax</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax.cs">Global.asax.cs</ProjectItem>
+            <Folder Name="Images" TargetFolderName="Images">
+                <ProjectItem ReplaceParameters="false" TargetFileName="accent.png">accent.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="bullet.png">bullet.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="heroAccent.png">heroAccent.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList0.png">orderedList0.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList1.png">orderedList1.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList2.png">orderedList2.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList3.png">orderedList3.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList4.png">orderedList4.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList5.png">orderedList5.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList6.png">orderedList6.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList7.png">orderedList7.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList8.png">orderedList8.png</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList9.png">orderedList9.png</ProjectItem>
+            </Folder>
+            <Folder Name="Models" TargetFolderName="Models">
+                <ProjectItem ReplaceParameters="true" TargetFileName="AccountModels.cs">AccountModels.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoList.cs">TodoList.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoItem.cs">TodoItem.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoItemContext.cs">TodoItemContext.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoContextProvider.cs">TodoContextProvider.cs</ProjectItem>
+			</Folder>
+            <Folder Name="Scripts" TargetFolderName="Scripts">
+                <ProjectItem ReplaceParameters="false" TargetFileName="_references.js">_references.SinglePage.js</ProjectItem>
+                <ProjectItem ReplaceParameters="false" TargetFileName="breeze.savequeuing.js">breeze.savequeuing.js</ProjectItem>
+                <Folder Name="app" TargetFolderName="app">
+                    <ProjectItem ReplaceParameters="false" TargetFileName="ajaxlogin.js">ajaxlogin.js</ProjectItem>
+                    <ProjectItem ReplaceParameters="false" TargetFileName="todo.viewmodel.js">todo.viewmodel.js</ProjectItem>
+                    <ProjectItem ReplaceParameters="false" TargetFileName="todo.datacontext.js">todo.datacontext.js</ProjectItem>
+                    <ProjectItem ReplaceParameters="false" TargetFileName="todo.bindings.js">todo.bindings.js</ProjectItem>
+                    <ProjectItem ReplaceParameters="false" TargetFileName="todo.model.js">todo.model.js</ProjectItem>
+                </Folder>
+            </Folder>
+            <Folder Name="Views" TargetFolderName="Views">
+                <Folder Name="Account" TargetFolderName="Account">
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_ChangePasswordPartial.cshtml">_ChangePasswordPartial.SinglePage.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_ExternalLoginsListPartial.cshtml">_ExternalLoginsListPartial.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_RemoveExternalLoginsPartial.cshtml">_RemoveExternalLoginsPartial.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_SetPasswordPartial.cshtml">_SetPasswordPartial.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="Login.cshtml">Login.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="Manage.cshtml">Manage.SinglePage.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="ExternalLoginFailure.cshtml">ExternalLoginFailure.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="ExternalLoginConfirmation.cshtml">ExternalLoginConfirmation.cshtml</ProjectItem>
+                </Folder>
+                <Folder Name="Home" TargetFolderName="Home">
+                    <ProjectItem ReplaceParameters="true" TargetFileName="Index.cshtml">Index.SinglePage.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_Login.cshtml">_Login.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_Register.cshtml">_Register.cshtml</ProjectItem>
+                </Folder>
+                <Folder Name="Shared" TargetFolderName="Shared">
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_Layout.cshtml">_Layout.SinglePage.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="_UserSettings.cshtml">_UserSettings.cshtml</ProjectItem>
+                    <ProjectItem ReplaceParameters="true" TargetFileName="Error.cshtml">Error.cshtml</ProjectItem>
+                </Folder>
+                <ProjectItem ReplaceParameters="true" TargetFileName="_ViewStart.cshtml">_ViewStart.cshtml</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.config</ProjectItem>
+            </Folder>
+            <ProjectItem>favicon.ico</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.SinglePage.config</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.Debug.config">Web.Debug.config</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.Release.config">Web.Release.config</ProjectItem>
+        </Project>
+    </TemplateContent>
+    <WizardExtension>
+        <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+        <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+    </WizardExtension>
+    <WizardData>
+        <packages repository="registry" keyName="AspNetMvc4VS11" isPreunzipped="true">
+		    <package id="Breeze.WebApi" version="0.85.2" skipAssemblyReferences="true" />
+            <package id="EntityFramework" version="5.0.0" skipAssemblyReferences="true" />
+            <package id="jQuery" version="1.8.2" />
+            <package id="jQuery.Validation" version="1.10.0" />
+            <package id="jQuery.UI.Combined" version="1.9.2" />
+            <package id="Microsoft.jQuery.Unobtrusive.Validation" version="2.0.20710.0" />
+            <package id="Microsoft.jQuery.Unobtrusive.Ajax" version="2.0.20710.0" />
+            <package id="Modernizr" version="2.6.2" />
+            <package id="Microsoft.Web.Infrastructure" version="1.0.0.0" skipAssemblyReferences="true" />
+            <package id="Newtonsoft.Json" version="4.5.10" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.Razor" version="2.0.20715.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebPages" version="2.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.Mvc" version="4.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.Mvc.FixedDisplayModes" version="1.0.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.Client" version="4.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.Net.Http" version="2.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.Core" version="4.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.WebHost" version="4.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi" version="4.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.Web.Optimization" version="1.0.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.HelpPage" version="4.0.0-rtm" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.Tracing" version="4.0.0-rtm" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebPages.Data" version="2.0.20710.0"  skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebPages.OAuth" version="2.0.20710.0" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebPages.WebData" version="2.0.20710.0" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.AspNet" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.Core" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.OAuth.Consumer" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.OAuth.Core" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.OpenId.Core" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="DotNetOpenAuth.OpenId.RelyingParty" version="4.1.4.12333" skipAssemblyReferences="true" />
+            <package id="System.Spatial" version="5.2.0-rc1" skipAssemblyReferences="true" />
+            <package id="Microsoft.Data.Edm" version="5.2.0-rc1" skipAssemblyReferences="true" />
+            <package id="Microsoft.Data.OData" version="5.2.0-rc1" skipAssemblyReferences="true" />
+            <package id="Microsoft.AspNet.WebApi.OData" version="4.0.0-rtm" skipAssemblyReferences="true" />
+            <package id="WebGrease" version="1.3.0" skipAssemblyReferences="true" />
+            <package id="knockoutjs" version="2.2.0" />
+          
+        </packages>
+    </WizardData>
+</VSTemplate>
