@@ -246,7 +246,7 @@
     <Compile Include="Models\TodoList.cs" />                                                                                                                                              
     <Compile Include="Models\TodoItem.cs" />                                                                                                                                              
     <Compile Include="Models\TodoItemContext.cs" /> 
-    <Compile Include="Models\TodoContextProvider.cs" />  
+    <Compile Include="Models\TodoRepository.cs" />  
     <Compile Include="Properties\AssemblyInfo.cs" />                                                                                                                                      
   </ItemGroup> 
   <ItemGroup>                                                                                                                                                                             

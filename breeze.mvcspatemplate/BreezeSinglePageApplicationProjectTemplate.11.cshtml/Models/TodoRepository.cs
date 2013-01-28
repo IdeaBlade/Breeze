@@ -8,9 +8,9 @@ using Breeze.WebApi;
 // ReSharper disable InconsistentNaming
 namespace $safeprojectname$.Models
 {
-    public class TodoContextProvider : EFContextProvider<TodoItemContext>
+    public class TodoRepository : EFContextProvider<TodoItemContext>
     {
-        public TodoContextProvider(IPrincipal user)
+        public TodoRepository(IPrincipal user)
         {
             UserId = user.Identity.Name;
         }

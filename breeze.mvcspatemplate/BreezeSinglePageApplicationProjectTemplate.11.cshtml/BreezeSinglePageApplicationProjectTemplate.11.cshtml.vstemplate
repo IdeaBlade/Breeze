@@ -78,7 +78,7 @@
                 <ProjectItem ReplaceParameters="true" TargetFileName="TodoList.cs">TodoList.cs</ProjectItem>
                 <ProjectItem ReplaceParameters="true" TargetFileName="TodoItem.cs">TodoItem.cs</ProjectItem>
                 <ProjectItem ReplaceParameters="true" TargetFileName="TodoItemContext.cs">TodoItemContext.cs</ProjectItem>
-                <ProjectItem ReplaceParameters="true" TargetFileName="TodoContextProvider.cs">TodoContextProvider.cs</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoRepository.cs">TodoRepository.cs</ProjectItem>
 			</Folder>
             <Folder Name="Scripts" TargetFolderName="Scripts">
                 <ProjectItem ReplaceParameters="false" TargetFileName="_references.js">_references.SinglePage.js</ProjectItem>
