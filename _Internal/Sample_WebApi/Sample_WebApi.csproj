@@ -42,10 +42,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Breeze.WebApi\Breeze.WebApi.dll</HintPath>
-    </Reference>
     <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
@@ -458,6 +454,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Breeze.WebApi\Breeze.WebApi.csproj">
+      <Project>{4d9ce4e7-dca1-4458-ba63-2c3f7907b754}</Project>
+      <Name>Breeze.WebApi</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj">
       <Project>{763b4341-7a4e-4880-a4e2-31aadc05f1ad}</Project>
       <Name>Model_NorthwindIB_CF</Name>

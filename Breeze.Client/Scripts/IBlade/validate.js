@@ -150,6 +150,7 @@ function (core, a_config, DataType) {
             this.valFn = valFn;
             this.context = context;
         };
+        var proto = ctor.prototype;
 
 
         /**
@@ -176,7 +177,7 @@ function (core, a_config, DataType) {
         can make use of.
         @return {ValidationError|null} A ValidationError if validation fails, null otherwise
         **/
-        ctor.prototype.validate = function (value, additionalContext) {
+        proto.validate = function (value, additionalContext) {
             var currentContext;
             if (additionalContext) {
                 currentContext = core.extend(Object.create(this.context), additionalContext);
@@ -202,7 +203,7 @@ function (core, a_config, DataType) {
         @method getMessage
         @return {String}
         **/
-        ctor.prototype.getMessage = function () {
+        proto.getMessage = function () {
             try {
                 var context = this.currentContext;
                 var message = context.message;
@@ -222,7 +223,7 @@ function (core, a_config, DataType) {
             }
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return this._baseContext;
         };
 
@@ -334,7 +335,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.
+        Returns a standard string length Validator; both minimum and maximum lengths must be specified.
         @example
             // Assume em1 is a preexisting EntityManager.
             var custType = em1.metadataStore.getEntityType("Customer");
@@ -665,6 +666,7 @@ function (core, a_config, DataType) {
             this.errorMessage = errorMessage;
             this.key = ValidationError.getKey(validator, this.propertyName);
         };
+
         
         /**
         The Validator associated with this ValidationError.

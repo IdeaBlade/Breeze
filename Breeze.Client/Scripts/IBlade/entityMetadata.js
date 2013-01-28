@@ -68,7 +68,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
-        
+        var proto = ctor.prototype;
         // 
         /**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -99,7 +99,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             lqco.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function () {
+        proto.setAsDefault = function () {
             ctor.defaultInstance = this;
             return this;
         };
@@ -150,6 +150,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             a_config.registerObject(this, "NamingConvention:" + this.name);
         };
+        var proto = ctor.prototype;
         
         /**
         The function used to convert server side property names to client side property names.
@@ -222,7 +223,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             namingConv.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
@@ -277,8 +278,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._typeRegistry = {};
             this._incompleteTypeMap = {}; // key is entityTypeName; value is map where key is assocName and value is navProp
         };
-        
-        ctor.prototype._$typeName = "MetadataStore";
+        var proto = ctor.prototype;
+        proto._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
 
         /**
@@ -288,7 +289,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param dataService {DataService} The DataService to add
         **/
         
-        ctor.prototype.addDataService = function(dataService) {
+        proto.addDataService = function(dataService) {
             assertParam(dataService, "dataService").isInstanceOf(DataService).check();
             var alreadyExists = this.dataServices.some(function(ds) {
                 return dataService.serviceName === ds.serviceName;
@@ -305,7 +306,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        ctor.prototype.addEntityType = function(structuralType) {
+        proto.addEntityType = function(structuralType) {
             structuralType.metadataStore = this;
             // don't register anon types
             if (!structuralType.isAnonymous) {
@@ -352,7 +353,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method exportMetadata
         @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
         **/
-        ctor.prototype.exportMetadata = function () {
+        proto.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "metadataStore") return null;
                 if (key === "namingConvention" || key === "localQueryComparisonOptions") {
@@ -378,7 +379,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {MetadataStore} This MetadataStore.
         @chainable
         **/
-        ctor.prototype.importMetadata = function (exportedString) {
+        proto.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
             var lqcoName = json.localQueryComparisonOptions;
@@ -449,7 +450,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.hasMetadataFor = function(serviceName) {
+        proto.hasMetadataFor = function(serviceName) {
             return !!this.getDataService(serviceName);
         };
         
@@ -464,7 +465,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.getDataService = function (serviceName) {
+        proto.getDataService = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
 
             serviceName = DataService._normalizeServiceName(serviceName);
@@ -507,7 +508,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (dataService, callback, errorCallback) {
+        proto.fetchMetadata = function (dataService, callback, errorCallback) {
             assertParam(dataService, "dataService").isString().or().isInstanceOf(DataService).check();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
@@ -550,7 +551,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param entityCtor {Function} The constructor for the 'unmapped' type. 
         @param [interceptor] {Function} A function
         **/
-        ctor.prototype.trackUnmappedType = function (entityCtor, interceptor) {
+        proto.trackUnmappedType = function (entityCtor, interceptor) {
             assertParam(entityCtor, "entityCtor").isFunction().check();
             assertParam(interceptor, "interceptor").isFunction().isOptional().check();
             // TODO: think about adding this to the MetadataStore.
@@ -584,7 +585,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
         **/
-        ctor.prototype.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+        proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
             assertParam(structuralTypeName, "structuralTypeName").isString().check();
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
@@ -621,7 +622,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method isEmpty
         @return {Boolean}
         **/
-        ctor.prototype.isEmpty = function () {
+        proto.isEmpty = function () {
             return this.dataServices.length === 0;
         };
 
@@ -641,7 +642,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
         @return {EntityType|ComplexType} The EntityType. ComplexType or 'undefined' if not not found.
         **/
-        ctor.prototype.getEntityType = function (structuralTypeName, okIfNotFound) {
+        proto.getEntityType = function (structuralTypeName, okIfNotFound) {
             assertParam(structuralTypeName, "structuralTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
             return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
@@ -655,7 +656,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityTypes
         @return {Array of EntityType|ComplexType}
         **/
-        ctor.prototype.getEntityTypes = function () {
+        proto.getEntityTypes = function () {
             return getTypesFromMap(this._structuralTypeMap);
         };
         
@@ -687,7 +688,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return types;
         }
 
-        ctor.prototype.getIncompleteNavigationProperties = function() {
+        proto.getIncompleteNavigationProperties = function() {
             return core.objectMapToArray(this._structuralTypeMap, function (key, value) {
                 if (value instanceof ComplexType) return null;
                 var badProps = value.navigationProperties.filter(function(np) {
@@ -705,7 +706,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityTypeNameForResourceName
         @param resourceName {String}
         */
-        ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
+        proto._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
             // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
             return this._resourceEntityTypeMap[resourceName];
@@ -723,7 +724,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
         */
-        ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
+        proto._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
             // resourceName = resourceName.toLowerCase();
@@ -744,7 +745,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         // protected methods
 
-        ctor.prototype._structuralTypeFromJson = function(json) {
+        proto._structuralTypeFromJson = function(json) {
             var stype = this.getEntityType(json.name, true);
             if (stype) return stype;
             var config = {
@@ -773,7 +774,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return stype;
         };
         
-        ctor.prototype._checkEntityType = function(entity) {
+        proto._checkEntityType = function(entity) {
             if (entity.entityType) return;
             var typeName = entity.prototype._$typeName;
             if (!typeName) {
@@ -785,7 +786,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
        
-        ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
+        proto._parseODataMetadata = function (serviceName, schemas) {
             var that = this;
             
             toArray(schemas).forEach(function (schema) {
@@ -1130,6 +1131,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
             
         };
+        var proto = ctor.prototype;
         
         /**
         The serviceName for this DataService.
@@ -1161,7 +1163,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        ctor.prototype._$typeName = "DataService";
+        proto._$typeName = "DataService";
         
         return ctor;
     }();
@@ -1222,6 +1224,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._mappedPropertiesCount = 0;
             
         };
+        var proto = ctor.prototype;
         
         /**
         The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
@@ -1327,7 +1330,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
             
 
-        ctor.prototype._$typeName = "EntityType";
+        proto._$typeName = "EntityType";
 
         /**
         General purpose property set method
@@ -1343,7 +1346,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             @param [config.autogeneratedKeyType] {AutoGeneratedKeyType}
             @param [config.defaultResourceName] {String}
         **/
-        ctor.prototype.setProperties = function (config) {
+        proto.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional()
                 .whereParam("defaultResourceName").isString().isOptional()
@@ -1363,7 +1366,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addProperty
         @param property {DataProperty|NavigationProperty}
         **/
-        ctor.prototype.addProperty = function (property) {
+        proto.addProperty = function (property) {
             assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
@@ -1397,7 +1400,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function (initialValues) {
+        proto.createEntity = function (initialValues) {
             var instance = this._createEntityCore();
             
             if (initialValues) {
@@ -1410,7 +1413,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return instance;
         };
 
-        ctor.prototype._createEntityCore = function() {
+        proto._createEntityCore = function() {
             var aCtor = this.getEntityCtor();
             var instance = new aCtor();
             new EntityAspect(instance);
@@ -1422,7 +1425,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityCtor
         @return {Function} The constructor for this EntityType.
         **/
-        ctor.prototype.getEntityCtor = function () {
+        proto.getEntityCtor = function () {
             if (this._ctor) return this._ctor;
             var typeRegistry = this.metadataStore._typeRegistry;
             var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
@@ -1440,7 +1443,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         // May make public later.
-        ctor.prototype._setCtor = function (aCtor, interceptor) {
+        proto._setCtor = function (aCtor, interceptor) {
             var instance = new aCtor();
             var proto = aCtor.prototype;
             
@@ -1491,7 +1494,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
         entity level validator and is added to the EntityType's 'validators'.
         **/
-        ctor.prototype.addValidator = function (validator, property) {
+        proto.addValidator = function (validator, property) {
             assertParam(validator, "validator").isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isString().or().isEntityProperty().check();
             if (property) {
@@ -1513,7 +1516,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getProperties
         @return {Array of DataProperty|NavigationProperty} Array of Data and Navigation properties.
         **/
-        ctor.prototype.getProperties = function () {
+        proto.getProperties = function () {
             return this.dataProperties.concat(this.navigationProperties);
         };
 
@@ -1526,7 +1529,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getPropertyNames
         @return {Array of String}
         **/
-        ctor.prototype.getPropertyNames = function () {
+        proto.getPropertyNames = function () {
             return this.getProperties().map(core.pluck('name'));
         };
 
@@ -1540,7 +1543,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param propertyName {String}
         @return {DataProperty} Will be null if not found.
         **/
-        ctor.prototype.getDataProperty = function (propertyName, isServerName) {
+        proto.getDataProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
             return core.arrayFirst(this.dataProperties, core.propEq(propName, propertyName));
         };
@@ -1555,7 +1558,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param propertyName {String}
         @return {NavigationProperty} Will be null if not found.
         **/
-        ctor.prototype.getNavigationProperty = function (propertyName, isServerName) {
+        proto.getNavigationProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
             return core.arrayFirst(this.navigationProperties, core.propEq(propName, propertyName));
         };
@@ -1578,7 +1581,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
         @return {DataProperty|NavigationProperty} Will be null if not found.
         **/
-        ctor.prototype.getProperty = function (propertyPath, throwIfNotFound) {
+        proto.getProperty = function (propertyPath, throwIfNotFound) {
             throwIfNotFound = throwIfNotFound || false;
             var propertyNames = (Array.isArray(propertyPath)) ? propertyPath : propertyPath.trim().split('.');
             var propertyName = propertyNames[0];
@@ -1616,11 +1619,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method toString
         @return {String}
         **/
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             return this.name;
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 shortName: this.shortName,
@@ -1635,7 +1638,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         // fromJSON is handled by metadataStore._structuralTypeFromJson;
         
-        ctor.prototype._clientPropertyPathToServer = function (propertyPath) {
+        proto._clientPropertyPathToServer = function (propertyPath) {
             var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
             var that = this;
             var serverPropPath = propertyPath.split(".").map(function (propName) {
@@ -1645,7 +1648,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return serverPropPath;
         };
 
-        ctor.prototype._updateProperty = function (property) {
+        proto._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;
             var serverName = property.nameOnServer;
             var clientName, testName;
@@ -1692,7 +1695,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         // for debugging use the line below instead.
         //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
 
-        ctor.prototype._checkNavProperty = function (navigationProperty) {
+        proto._checkNavProperty = function (navigationProperty) {
             if (navigationProperty.isNavigationProperty) {
                 if (navigationProperty.parentType != this) {
                     throw new Error(core.formatString("The navigationProperty '%1' is not a property of entity type '%2'",
@@ -1708,7 +1711,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
         };
         
-        ctor.prototype._addDataProperty = function (dp) {
+        proto._addDataProperty = function (dp) {
 
             this.dataProperties.push(dp);
             
@@ -1730,7 +1733,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         };
 
-        ctor.prototype._addNavigationProperty = function (np) {
+        proto._addNavigationProperty = function (np) {
 
             this.navigationProperties.push(np);
 
@@ -1739,7 +1742,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
 
-        ctor.prototype._fixup = function () {
+        proto._fixup = function () {
             var that = this;
             this.getProperties().forEach(function (property) {
                 that._updateProperty(property);
@@ -1842,9 +1845,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function addToIncompleteMap(incompleteTypeMap, np) {
             if (!np.entityType) {
-                var assocMap = {};
-                incompleteTypeMap[np.entityTypeName] = assocMap;
+                // Fixed based on this: http://stackoverflow.com/questions/14329352/bad-navigation-property-one-to-zero-or-one-relationship/14384399#14384399
+                var assocMap = incompleteTypeMap[np.entityTypeName];
+                if (!assocMap) {
+                    assocMap = {};
+                    incompleteTypeMap[np.entityTypeName] = assocMap;
+                }
                 assocMap[np.associationName] = np;
+                
             }
 
             var altAssocMap = incompleteTypeMap[np.parentType.name];
@@ -1933,7 +1941,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.concurrencyProperties = [];
             this.unmappedProperties = [];
         };
-        
+        var proto = ctor.prototype;
         /**
         The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this ComplexType.
 
@@ -1991,7 +1999,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method createInstance
         @param initialValues {Object} Configuration object containing initial values for the instance. 
         **/
-        ctor.prototype.createInstance = function (initialValues) {
+        proto.createInstance = function (initialValues) {
             var instance = this._createInstanceCore();
 
             if (initialValues) {
@@ -2004,7 +2012,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return instance;
         };
 
-        ctor.prototype._createInstanceCore = function (parent, parentProperty ) {
+        proto._createInstanceCore = function (parent, parentProperty ) {
             var aCtor = this.getCtor();
             var instance = new aCtor();
             new ComplexAspect(instance, parent, parentProperty);
@@ -2015,7 +2023,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         
 
-        ctor.prototype.addProperty = function (dataProperty) {
+        proto.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
             if (this.metadataStore && ! dataProperty.isUnmapped) {
                 throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
@@ -2032,7 +2040,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return this;
         };
         
-        ctor.prototype.getProperties = function () {
+        proto.getProperties = function () {
             return this.dataProperties;
         };       
 
@@ -2059,16 +2067,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getCtor
         **/
 
-        ctor.prototype.addValidator = EntityType.prototype.addValidator;
-        ctor.prototype.getProperty = EntityType.prototype.getProperty;
-        ctor.prototype.getPropertyNames = EntityType.prototype.getPropertyNames;
-        ctor.prototype._addDataProperty = EntityType.prototype._addDataProperty;
-        ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
+        proto.addValidator = EntityType.prototype.addValidator;
+        proto.getProperty = EntityType.prototype.getProperty;
+        proto.getPropertyNames = EntityType.prototype.getPropertyNames;
+        proto._addDataProperty = EntityType.prototype._addDataProperty;
+        proto._updateProperty = EntityType.prototype._updateProperty;
         // note the name change.
-        ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;
-        ctor.prototype._setCtor = EntityType.prototype._setCtor;
+        proto.getCtor = EntityType.prototype.getEntityCtor;
+        proto._setCtor = EntityType.prototype._setCtor;
         
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 shortName: this.shortName,
@@ -2078,14 +2086,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         };
        
-        ctor.prototype._fixup = function () {
+        proto._fixup = function () {
             var that = this;
             this.dataProperties.forEach(function (property) {
                 that._updateProperty(property);
             });
         };
 
-        ctor.prototype._$typeName = "ComplexType";
+        proto._$typeName = "ComplexType";
 
         return ctor;
     })();
@@ -2171,8 +2179,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
             }
         };
-        
-        ctor.prototype._$typeName = "DataProperty";
+        var proto = ctor.prototype;
+        proto._$typeName = "DataProperty";
 
         /**
         The name of this property
@@ -2289,10 +2297,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property isNavigationProperty {Boolean}
         **/
 
-        ctor.prototype.isDataProperty = true;
-        ctor.prototype.isNavigationProperty = false;
+        proto.isDataProperty = true;
+        proto.isNavigationProperty = false;
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 nameOnServer: this.nameOnServer,
@@ -2385,8 +2393,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("A Navigation property must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
         };
-        
-        ctor.prototype._$typeName = "NavigationProperty";
+        var proto = ctor.prototype;
+        proto._$typeName = "NavigationProperty";
         
         /**
         The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
@@ -2471,10 +2479,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property isNavigationProperty {Boolean}
         **/
         
-        ctor.prototype.isDataProperty = false;
-        ctor.prototype.isNavigationProperty = true;
+        proto.isDataProperty = false;
+        proto.isNavigationProperty = true;
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 nameOnServer: this.nameOnServer,
@@ -2539,8 +2547,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     }();
 
     // mixin methods
+    var pproto = core.Param.prototype;
 
-    core.Param.prototype.isEntity = function () {
+    pproto.isEntity = function () {
         var result = function (that, v) {
             if (v == null) return false;
             return (v.entityType !== undefined);
@@ -2551,7 +2560,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         return this.compose(result);
     };
 
-    core.Param.prototype.isEntityProperty = function () {
+    pproto.isEntityProperty = function () {
         var result = function (that, v) {
             if (v == null) return false;
             return (v.isDataProperty || v.isNavigationProperty);

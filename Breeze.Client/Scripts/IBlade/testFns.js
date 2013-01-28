@@ -359,6 +359,108 @@ define(["breeze.full"], function (breeze) {
         }
     };
 
+    testFns.sizeOf = sizeOf;
+
+    testFns.sizeOfDif = sizeOfDif;
+
+    function sizeOf(value, level) {
+        if (level == undefined) level = 0;
+        var bytes =0, keyBytes = 0;
+        var children = null;
+        if (value == null) {
+            bytes = 1; // not sure how much space a null or undefined take.
+        } else if (typeof value === 'boolean') {
+            bytes = 4;
+        } else if (typeof value === 'string') {
+            bytes = value.length * 2;
+        } else if (typeof value === 'number') {
+            bytes = 8;
+        } else if (typeof value === 'object') {
+            if (value['__visited__']) return null;
+            value['__visited__'] = 1;
+            children = [];
+            for (var propName in value) {
+                if (propName !== "__visited__") {
+                    var r = sizeOf(value[propName], 1);
+                    if (r != null && r.size !== 0) {
+                        bytes += r.size;
+                        r.name = propName;
+                        children.push(r);
+                    }
+                }
+            }
+        }
+
+        if (level == 0) {
+            clearVisited(value);
+        }
+        if (children) {
+            children.sort(function(a, b) {
+                return b.size - a.size;
+            });
+            var alt = {};
+            children.forEach(function(c) {
+                alt[c.name] = c;
+            });
+            children = alt;
+        }
+        return {
+            size: bytes,
+            children: children
+        };
+    };
+    
+    function sizeOfDif(s1, s2) {
+        
+        var dif = (s1.size || 0) - (s2.size || 0);
+        var s1Val, s2Val, oDif;
+        if (dif === 0) return null;
+        var children = [];
+        var s1Children = s1.children || {};
+        var s2Children = s2.children || {};
+        for (var s1Key in s1Children) {
+            s1Val = s1Children[s1Key];
+            s2Val = s2Children[s1Key];
+            if (s2Val) {
+                s2Val.visited = true;
+                oDif = sizeOfDif(s1Val, s2Val);
+                if (oDif) {
+                    oDif.name = s1Key;
+                    children.push(oDif);
+                }
+            } else {
+                oDif = { name: s1Key, dif: s1Val.size, s1Children: s1Val.children };
+                children.push(oDif);
+            }
+        }
+        for (var s2Key in s2Children) {
+            s2Val = s2Children[s2Key];
+            if (!s2Val.visited) {
+                oDif = { name: "-" + s2Key, dif: -1 * s2Val.size, s2Children: s2Val.children };
+                children.push(oDif);
+            }
+        }
+
+        var alt = {};
+        children.forEach(function(c) {
+            alt[c.name] = c;
+        });
+        children = alt;
+
+        return { dif: dif, children: children };
+    }
+
+    function clearVisited(value) {
+        if (value == null) return;
+        if (typeof value == 'object' && value["__visited__"]) {
+            delete value['__visited__'];
+            for (var i in value) {
+                clearVisited(value[i]);
+            }
+        }
+    }
+
+
     testFns.breeze = breeze;
     testFns.setDataService(BREEZE_DataService);
     testFns.configure();

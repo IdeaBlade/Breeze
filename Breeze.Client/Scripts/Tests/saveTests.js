@@ -40,6 +40,42 @@ define(["testFns"], function (testFns) {
         return testFns;
     };
 
+    test("save with server side entity level validation error", function() {
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", "error");
+        stop();
+        em.saveChanges().then(function(sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
+            var x = e;
+            start();
+        }).fin(start);
+    });
+    
+    test("delete unsaved entity", function () {
+        var realEm = newEm();
+        ok(realEm.hasChanges() === false, "The entity manager must not have changes");
+        var query = EntityQuery.from("Customers")
+            .where("customerID", "==", "729de505-ea6d-4cdf-89f6-0360ad37bde7")
+            .expand("orders");
+        stop();
+        realEm.executeQuery(query).then(function(data) {
+            var cust = data.results[0];
+            var newOrder = realEm.createEntity("Order", {}, breeze.EntityState.Detached);
+            var orders = cust.getProperty("orders");
+            orders.push(newOrder);
+            ok(newOrder.entityAspect.entityState.isAdded() === true, "The entity is Added");
+            newOrder.entityAspect.setDeleted();
+            ok(realEm.hasChanges() === false, "The entity manager must not  have changes");
+            return realEm.saveChanges();
+        }).then(function (sr) {
+            ok(realEm.hasChanges() === false, "The entity manager must not have changes");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("bigsave", function() {
         var em = newEm();
         var recentArgs;

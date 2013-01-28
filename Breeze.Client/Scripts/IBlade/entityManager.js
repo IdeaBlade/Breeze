@@ -122,10 +122,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.clear();
             
         };
-        ctor.prototype._$typeName = "EntityManager";
+        var proto = ctor.prototype;
+        
+        proto._$typeName = "EntityManager";
         
 
-        Event.bubbleEvent(ctor.prototype, null);
+        Event.bubbleEvent(proto, null);
         
         /**
         The service name associated with this EntityManager.
@@ -226,7 +228,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
         @return {Entity} A new Entity of the specified type.
         **/
-        ctor.prototype.createEntity = function (typeName, initialValues, entityState) {
+        proto.createEntity = function (typeName, initialValues, entityState) {
             entityState = entityState || EntityState.Added;
             var entity = this.metadataStore
                 .getEntityType(typeName)
@@ -294,7 +296,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
         @return {String} A serialized version of the exported data.
         **/
-        ctor.prototype.exportEntities = function (entities) {
+        proto.exportEntities = function (entities) {
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
                 metadataStore: this.metadataStore.exportMetadata(),
@@ -340,7 +342,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             merging into an existing EntityManager.
         @chainable
         **/
-        ctor.prototype.importEntities = function (exportedString, config) {
+        proto.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
@@ -397,7 +399,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // em1 is will now contain no entities, but all other setting will be maintained.
         @method clear
         **/
-        ctor.prototype.clear = function () {
+        proto.clear = function () {
             core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
                 // remove en
                 entityGroup._clear();
@@ -431,7 +433,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [config.keyGeneratorCtor] {Function}
 
         **/
-        ctor.prototype.setProperties = function (config) {
+        proto.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("serviceName").isString().isOptional()
                 .whereParam("dataService").isInstanceOf(DataService).isOptional()
@@ -467,7 +469,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method createEmptyCopy
         @return {EntityManager} A new EntityManager.
         **/
-        ctor.prototype.createEmptyCopy = function () {
+        proto.createEmptyCopy = function () {
             var copy = new ctor({
                 serviceName: this.serviceName,
                 dataService: this.dataService,
@@ -497,7 +499,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The entity to add.
         @return {Entity} The added entity.
         **/
-        ctor.prototype.addEntity = function (entity) {
+        proto.addEntity = function (entity) {
             return this.attachEntity(entity, EntityState.Added);
         };
 
@@ -513,7 +515,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
         @return {Entity} The attached entity.
         **/
-        ctor.prototype.attachEntity = function (entity, entityState) {
+        proto.attachEntity = function (entity, entityState) {
             core.assertParam(entity, "entity").isRequired().check();
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
@@ -568,7 +570,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The entity to detach.
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
         **/
-        ctor.prototype.detachEntity = function (entity) {
+        proto.detachEntity = function (entity) {
             core.assertParam(entity, "entity").isEntity().check();
             var aspect = entity.entityAspect;
             if (!aspect) {
@@ -622,7 +624,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
         **/
-        ctor.prototype.fetchMetadata = function (callback, errorCallback) {
+        proto.fetchMetadata = function (callback, errorCallback) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
@@ -709,7 +711,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
             would have been applied. 
         **/
-        ctor.prototype.executeQuery = function (query, callback, errorCallback) {
+        proto.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
             core.assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -753,7 +755,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param query {EntityQuery}  The {{#crossLink "EntityQuery"}}{{/crossLink}} to execute.
         @return  {Array of Entity}  Array of Entities
         **/
-        ctor.prototype.executeQueryLocally = function (query) {
+        proto.executeQueryLocally = function (query) {
             core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
@@ -855,7 +857,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @return {Promise} Promise
         **/
-        ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
+        proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
             core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
             core.assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -934,7 +936,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
-        ctor.prototype.findEntityGroup = function (entityType) {
+        proto.findEntityGroup = function (entityType) {
             core.assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             return this._entityGroupMap[entityType.name];
         };
@@ -964,8 +966,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
-        ctor.prototype.getEntityByKey = function () {
-
+        proto.getEntityByKey = function () {
             var entityKey = createEntityKey(this, arguments).entityKey;
 
             var group = this.findEntityGroup(entityKey.entityType);
@@ -1022,7 +1023,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
             promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
         **/
-        ctor.prototype.fetchEntityByKey = function () {
+        proto.fetchEntityByKey = function () {
             var tpl = createEntityKey(this, arguments);
             var entityKey = tpl.entityKey;
             var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
@@ -1061,7 +1062,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
-        ctor.prototype.findEntityByKey = function (entityKey) {
+        proto.findEntityByKey = function (entityKey) {
             return this.getEntityByKey(entityKey);
         };
 
@@ -1095,7 +1096,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The Entity to generate a key for.
         @return {Object} The new key value
         **/
-        ctor.prototype.generateTempKeyValue = function (entity) {
+        proto.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
             core.assertParam(entity, "entity").isEntity().check();
             var entityType = entity.entityType;
@@ -1136,7 +1137,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
-        //ctor.prototype.hasChanges = function (entityTypes) {
+        //proto.hasChanges = function (entityTypes) {
         //    if (!this._hasChanges) return false;
         //    if (entityTypes === undefined) return this._hasChanges;
         //    return this._hasChangesCore(entityTypes);
@@ -1160,7 +1161,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         
         // backdoor the "really" check for changes.
-        ctor.prototype._hasChangesCore = function (entityTypes) {
+        proto._hasChangesCore = function (entityTypes) {
             entityTypes = checkEntityTypes(this, entityTypes);
             var entityGroups = getEntityGroups(this, entityTypes);
             return entityGroups.some(function (eg) {
@@ -1192,7 +1193,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Array of Entity} Array of Entities
         **/
-        ctor.prototype.getChanges = function (entityTypes) {
+        proto.getChanges = function (entityTypes) {
             entityTypes = checkEntityTypes(this, entityTypes);
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             return this._getEntitiesCore(entityTypes, entityStates);
@@ -1208,7 +1209,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
-        ctor.prototype.rejectChanges = function () {
+        proto.rejectChanges = function () {
             if (!this._hasChanges) return [];
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             var changes = this._getEntitiesCore(null, entityStates);
@@ -1252,7 +1253,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, entities of all EntityStates are returned. 
         @return {Array of Entity} Array of Entities
         **/
-        ctor.prototype.getEntities = function (entityTypes, entityStates) {
+        proto.getEntities = function (entityTypes, entityStates) {
             entityTypes = checkEntityTypes(this, entityTypes);
             core.assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
             
@@ -1279,7 +1280,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // protected methods
 
-        ctor.prototype._notifyStateChange = function (entity, needsSave) {
+        proto._notifyStateChange = function (entity, needsSave) {
             this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
 
             if (needsSave) {
@@ -1299,7 +1300,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         };
 
-        ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
+        proto._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
 
             // TODO: think about writing a core.mapMany method if we see more of these.
@@ -1317,7 +1318,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return selected || [];
         };
 
-        ctor.prototype._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
+        proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
             var key = parentEntityKey.toString();
             var children = this._unattachedChildrenMap[key];
             if (!children) {
@@ -1328,7 +1329,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         
-        ctor.prototype._linkRelatedEntities = function (entity) {
+        proto._linkRelatedEntities = function (entity) {
             var em = this;
             var entityAspect = entity.entityAspect;
             // we do not want entityState to change as a result of linkage.
@@ -2275,8 +2276,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this._entities = [];
             this._emptyIndexes = [];
         };
+        var proto = ctor.prototype;
 
-        ctor.prototype.attachEntity = function (entity, entityState) {
+        proto.attachEntity = function (entity, entityState) {
             // entity should already have an aspect.
             var ix;
             var aspect = entity.entityAspect;
@@ -2302,7 +2304,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return entity;
         };
 
-        ctor.prototype.detachEntity = function (entity) {
+        proto.detachEntity = function (entity) {
             // by this point we have already determined that this entity 
             // belongs to this group.
             var aspect = entity.entityAspect;
@@ -2324,7 +2326,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
 
         // returns entity based on an entity key defined either as an array of key values or an EntityKey
-        ctor.prototype.findEntityByKey = function (entityKey) {
+        proto.findEntityByKey = function (entityKey) {
             var keyInGroup;
             if (entityKey instanceof EntityKey) {
                 keyInGroup = entityKey._keyInGroup;
@@ -2336,11 +2338,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return (ix !== undefined) ? this._entities[ix] : null;
         };
 
-        ctor.prototype.hasChanges = function() {
+        proto.hasChanges = function() {
             return this._entities.some(__changedFilter);
         };
 
-        ctor.prototype.getEntities = function (entityStates) {
+        proto.getEntities = function (entityStates) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
@@ -2349,7 +2351,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
         // just for the entityManager clear method - the entityGroup will be in an inconsistent state
         // after this op, which is ok because it will be thrown away.
-        ctor.prototype._clear = function() {
+        proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
                     var aspect = entity.entityAspect;
@@ -2360,7 +2362,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         };
 
-        ctor.prototype._fixupKey = function (tempValue, realValue) {
+        proto._fixupKey = function (tempValue, realValue) {
             // single part keys appear directly in map
             var ix = this._indexMap[tempValue];
             if (ix === undefined) {
@@ -2375,7 +2377,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this._indexMap[realValue] = ix;
         };
 
-        ctor.prototype._replaceKey = function(oldKey, newKey) {
+        proto._replaceKey = function(oldKey, newKey) {
             var ix = this._indexMap[oldKey._keyInGroup];
             delete this._indexMap[oldKey._keyInGroup];
             this._indexMap[newKey._keyInGroup] = ix;
@@ -2482,7 +2484,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.mergeStrategy = MergeStrategy.PreserveChanges;
             updateWithConfig(this, config);
         };
-        
+        var proto = ctor.prototype;
      
 
         /**
@@ -2497,7 +2499,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @property mergeStrategy {MergeStrategy}
         **/
 
-        ctor.prototype._$typeName = "QueryOptions";
+        proto._$typeName = "QueryOptions";
 
         /**
         The default value whenever QueryOptions are not specified.
@@ -2522,7 +2524,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {QueryOptions}
         @chainable
         **/
-        ctor.prototype.using = function(config) {
+        proto.using = function(config) {
             var result = new QueryOptions(this);
             if (MergeStrategy.contains(config)) {
                 config = { mergeStrategy: config };
@@ -2540,12 +2542,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             newQo.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 fetchStrategy: this.fetchStrategy.name,
                 mergeStrategy: this.mergeStrategy.name
@@ -2591,14 +2593,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 .applyAll(this);
                         
         };
-        ctor.prototype._$typeName = "SaveOptions";
+        var proto = ctor.prototype;
+        proto._$typeName = "SaveOptions";
         
         /**
         Makes this instance the default instance.
         @method setAsDefault
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
@@ -2647,6 +2650,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.validateOnPropertyChange = true;
             updateWithConfig(this, config);
         };
+        var proto = ctor.prototype;
 
         /**
         Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.
@@ -2676,7 +2680,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @property validateOnPropertyChange {Boolean}
         **/
 
-        ctor.prototype._$typeName = "ValidationOptions";
+        proto._$typeName = "ValidationOptions";
         
         /**
         Returns a copy of this ValidationOptions with changes to the specified config properties.
@@ -2692,7 +2696,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {ValidationOptions}
         @chainable
         **/
-        ctor.prototype.using = function(config) {
+        proto.using = function(config) {
             var result = new ValidationOptions(this);
             updateWithConfig(result, config);
             return result;
@@ -2707,7 +2711,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method setAsDefault
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };

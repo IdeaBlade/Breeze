@@ -56,6 +56,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.queryOptions = null;
             this.entityManager = null;                 
         };
+        var proto = ctor.prototype;
 
         /**
         The resource name used by this query.
@@ -121,7 +122,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
         @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
         */
-        ctor.prototype._getEntityType = function (metadataStore, throwErrorIfNotFound) {
+        proto._getEntityType = function (metadataStore, throwErrorIfNotFound) {
             assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
             assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
             var entityType = this.entityType;
@@ -131,7 +132,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                     throw new Error("There is no resourceName for this query");
                 }
                 if (metadataStore.isEmpty()) {
-                    return null;
+                    if (throwErrorIfNotFound) {
+                        throw new Error("There is no metadata available for this query");
+                    } else {
+                        return null;
+                    }
                 }
                 var entityTypeName = metadataStore._getEntityTypeNameForResourceName(resourceName);
                 if (!entityTypeName) {
@@ -167,7 +172,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.from = function (resourceName) {
+        proto.from = function (resourceName) {
             // TODO: think about allowing entityType as well 
             assertParam(resourceName, "resourceName").isString().check();
             resourceName = normalizeResourceName(resourceName);
@@ -250,7 +255,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.where = function (predicate) {
+        proto.where = function (predicate) {
             var eq = this._clone();
             if (arguments.length === 0) {
                 eq.wherePredicate = null;
@@ -301,7 +306,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.orderBy = function (propertyPaths) {
+        proto.orderBy = function (propertyPaths) {
             // deliberately don't pass in isDesc
             return orderByCore(this, normalizePropertyPaths(propertyPaths));
         };
@@ -327,7 +332,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.orderByDesc = function (propertyPaths) {
+        proto.orderByDesc = function (propertyPaths) {
             return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
         };
         
@@ -366,7 +371,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.select = function (propertyPaths) {
+        proto.select = function (propertyPaths) {
             return selectCore(this, normalizePropertyPaths(propertyPaths));
         };
 
@@ -382,7 +387,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.skip = function (count) {
+        proto.skip = function (count) {
             assertParam(count, "count").isOptional().isNumber().check();
             var eq = this._clone();
             if (arguments.length === 0) {
@@ -403,7 +408,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.top = function(count) {
+        proto.top = function(count) {
             return this.take(count);
         };
 
@@ -417,7 +422,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.take = function (count) {
+        proto.take = function (count) {
             assertParam(count, "count").isOptional().isNumber().check();
             var eq = this._clone();
             if (arguments.length === 0) {
@@ -450,7 +455,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.expand = function (propertyPaths) {
+        proto.expand = function (propertyPaths) {
             return expandCore(this, normalizePropertyPaths(propertyPaths));
         };
 
@@ -476,7 +481,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.withParameters = function(parameters) {
+        proto.withParameters = function(parameters) {
             assertParam(parameters, "parameters").isObject().check();
             return withParametersCore(this, parameters);
         };
@@ -498,7 +503,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.inlineCount = function(enabled) {
+        proto.inlineCount = function(enabled) {
             if (enabled === undefined) enabled = true;
             var eq = this._clone();
             eq.inlineCountEnabled = enabled;
@@ -703,7 +708,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         // protected methods
 
-        ctor.prototype._clone = function () {
+        proto._clone = function () {
             var copy = new EntityQuery();
             copy.resourceName = this.resourceName;
             copy.entityType = this.entityType;
@@ -732,7 +737,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         //        $expand    - done
         //        $inlinecount
 
-        ctor.prototype._toUri = function (metadataStore) {
+        proto._toUri = function (metadataStore) {
             // force entityType validation;
             var entityType = this._getEntityType(metadataStore, false);
             if (!entityType) {
@@ -822,7 +827,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype._toFilterFunction = function (entityType) {
+        proto._toFilterFunction = function (entityType) {
             var wherePredicate = this.wherePredicate;
             if (!wherePredicate) return null;
             // may throw an exception
@@ -830,7 +835,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return wherePredicate.toFunction(entityType);
         };
 
-        ctor.prototype._toOrderByComparer = function (entityType) {
+        proto._toOrderByComparer = function (entityType) {
             var orderByClause = this.orderByClause;
             if (!orderByClause) return null;
             // may throw an exception
@@ -1051,6 +1056,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
             }
         };
+        var proto = ctor.prototype;
 
         ctor.create = function (source, entityType) {
             if (typeof source !== 'string') {
@@ -1071,7 +1077,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return node.isValidated === false ? null : node;
         };
 
-        ctor.prototype.toString = function() {
+        proto.toString = function() {
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
                     return fnNode.toString();
@@ -1083,7 +1089,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.updateWithEntityType = function(entityType) {
+        proto.updateWithEntityType = function(entityType) {
             if (this.propertyPath) {
                 if (entityType.isAnonymous) return;
                 var prop = entityType.getProperty(this.propertyPath);
@@ -1095,7 +1101,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             this.updateWithEntityType(entityType);
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
@@ -1115,7 +1121,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.validate = function(entityType) {
+        proto.validate = function(entityType) {
             // will throw if not found;
             if (this.isValidated !== undefined) return;            
             this.isValidated = true;
@@ -1293,6 +1299,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
         };
+        var proto = ctor.prototype;
 
         /**  
         Returns whether an object is a Predicate
@@ -1426,7 +1433,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method and
         @param predicates* {multiple Predicates|Array of Predicate}
         **/
-        ctor.prototype.and = function (predicates) {
+        proto.and = function (predicates) {
             predicates = argsToPredicates(arguments);
             predicates.unshift(this);
             return ctor.and(predicates);
@@ -1451,7 +1458,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method or
         @param predicates* {multiple Predicates|Array of Predicate}
         **/
-        ctor.prototype.or = function (predicates) {
+        proto.or = function (predicates) {
             predicates = argsToPredicates(arguments);
             predicates.unshift(this);
             return ctor.or(predicates);
@@ -1471,7 +1478,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             var not_p1 = Predicate.create("Freight", "le", 100);
         @method not
         **/
-        ctor.prototype.not = function () {
+        proto.not = function () {
             return new CompositePredicate("not", [this]);
         };
 
@@ -1532,9 +1539,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._valueIsLiteral = valueIsLiteral;
         };
         
-        ctor.prototype = new Predicate({ prototype: true });
+        var proto = new Predicate({ prototype: true });
+        ctor.prototype = proto;
+        
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             var v1Expr = this._fnNode1.toOdataFragment(entityType);
             var v2Expr;
             if (this.fnNode2 === undefined && !this._valueIsLiteral) {
@@ -1557,7 +1566,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
             var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
             var v1Fn = this._fnNode1.fn;
@@ -1579,11 +1588,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             
         };
 
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             return core.formatString("{%1} %2 {%3}", this._propertyOrExpr, this._filterQueryOp.operator, this._value);
         };
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             // throw if not valid
             this._fnNode1.validate(entityType);
             this.dataType = this._fnNode1.dataType;
@@ -1759,9 +1768,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             this._predicates = predicates;
         };
-        ctor.prototype = new Predicate({ prototype: true });
+        var proto  = new Predicate({ prototype: true });
+        ctor.prototype = proto;
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             if (this._predicates.length == 1) {
                 return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(entityType) + ")";
             } else {
@@ -1772,11 +1782,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             return createFunction(entityType, this._booleanQueryOp, this._predicates);
         };
 
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             if (this._predicates.length == 1) {
                 return this._booleanQueryOp.operator + " " + "(" + this._predicates[0] + ")";
             } else {
@@ -1787,7 +1797,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             // will throw if not found;
             if (this._isValidated) return;
             this._predicates.every(function (p) {
@@ -1858,6 +1868,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             return ctor.create(propertyPaths, isDesc);
         };
+        var proto = ctor.prototype;
 
         /*
         Alternative method of creating an OrderByClause. 
@@ -1910,7 +1921,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method addClause
         @param orderByClause {OrderByClause}
         */
-        ctor.prototype.addClause = function (orderByClause) {
+        proto.addClause = function (orderByClause) {
             return new CompositeOrderByClause([this, orderByClause]);
         };
 
@@ -1942,9 +1953,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.propertyPath = parts[0];
             this.isDesc = isDesc;
         };
-        ctor.prototype = new OrderByClause({ prototype: true });
+        var proto = new OrderByClause({ prototype: true });
+        ctor.prototype = proto;
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             if (!entityType) {
                 return;
             } // can't validate yet
@@ -1952,11 +1964,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.lastProperty = entityType.getProperty(this.propertyPath, true);
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
         };
 
-        ctor.prototype.getComparer = function () {
+        proto.getComparer = function () {
             var propertyPath = this.propertyPath;
             var isDesc = this.isDesc;
             var that = this;
@@ -2005,16 +2017,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._orderByClauses = resultClauses;
 
         };
-        ctor.prototype = new OrderByClause({ prototype: true });
+        var proto = new OrderByClause({ prototype: true });
+        ctor.prototype = proto;
 
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             this._orderByClauses.forEach(function (obc) {
                 obc.validate(entityType);
             });
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             var strings = this._orderByClauses.map(function (obc) {
                 return obc.toOdataFragment(entityType);
             });
@@ -2022,7 +2035,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return strings.join(',');
         };
 
-        ctor.prototype.getComparer = function () {
+        proto.getComparer = function () {
             var orderByFuncs = this._orderByClauses.map(function (obc) {
                 return obc.getComparer();
             });
@@ -2048,8 +2061,9 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return pp.replace(".", "_");
             });
         };
+        var proto = ctor.prototype;
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             if (!entityType) {
                 return;
             } // can't validate yet
@@ -2059,14 +2073,14 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        proto.toOdataFragment = function(entityType) {
             var frag = this.propertyPaths.map(function (pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
         };
         
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             var that = this;
             return function (entity) {
                 var result = {};
@@ -2087,13 +2101,15 @@ function (core, m_entityMetadata, m_entityAspect) {
         var ctor = function (propertyPaths) {
             this.propertyPaths = propertyPaths;
         };
+        
+        var proto = ctor.prototype;
        
 //        // TODO:
-//        ctor.prototype.validate = function (entityType) {
+//        proto.validate = function (entityType) {
 //            
 //        };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        proto.toOdataFragment = function(entityType) {
             var frag = this.propertyPaths.map(function(pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(",");

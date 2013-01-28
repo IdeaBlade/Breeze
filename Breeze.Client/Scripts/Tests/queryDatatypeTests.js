@@ -23,6 +23,16 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    //test("binary", function() {
+    //    var em = newEm();
+    //    var query = new EntityQuery("Employees").take(10);
+    //    stop();
+    //    em.executeQuery(query).then(function(data) {
+    //        var emps = data.results;
+
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
     
     test("time", function () {
         var em = newEm();

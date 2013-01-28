@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Jan 17 2013 19:19:34 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Mon Jan 28 2013 15:23:12 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -2155,7 +2155,7 @@ intellisense.annotate(breeze.breeze.Validator, {
   'stringLength': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.
+    ///   Returns a standard string length Validator; both minimum and maximum lengths must be specified.
     ///   </summary>
     ///   <param name="context" type="Object" optional="true"></param>
     ///   <returns type="breeze.breeze.Validator >A new Validator</returns>

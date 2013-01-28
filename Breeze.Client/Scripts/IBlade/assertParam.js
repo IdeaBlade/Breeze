@@ -16,20 +16,21 @@ define(["coreFns"], function (core) {
         this._fns = [null];
         this._pending = [];
     };
+    var proto = Param.prototype;
 
-    Param.prototype.isObject = function() {
+    proto.isObject = function() {
         return this.isTypeOf("object");
     };
 
-    Param.prototype.isBoolean = function () {
+    proto.isBoolean = function () {
         return this.isTypeOf('boolean');
     };
 
-    Param.prototype.isString = function () {
+    proto.isString = function () {
         return this.isTypeOf('string');
     };
 
-    Param.prototype.isNonEmptyString = function() {
+    proto.isNonEmptyString = function() {
         var result = function(that, v) {
             if (v == null) return false;
             return (typeof(v) === 'string') && v.length > 0;
@@ -40,15 +41,15 @@ define(["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isNumber = function () {
+    proto.isNumber = function () {
         return this.isTypeOf('number');
     };
 
-    Param.prototype.isFunction = function () {
+    proto.isFunction = function () {
         return this.isTypeOf('function');
     };
 
-    Param.prototype.isTypeOf = function (typeName) {
+    proto.isTypeOf = function (typeName) {
         var result = function (that, v) {
             if (v == null) return false;
             if (typeof (v) === typeName) return true;
@@ -60,7 +61,7 @@ define(["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isInstanceOf = function (type, typeName) {
+    proto.isInstanceOf = function (type, typeName) {
         var result = function (that, v) {
             if (v == null) return false;
             return (v instanceof type);
@@ -72,7 +73,7 @@ define(["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.hasProperty = function (propertyName) {
+    proto.hasProperty = function (propertyName) {
         var result = function (that, v) {
             if (v == null) return false;
             return (v[propertyName] !== undefined);
@@ -83,7 +84,7 @@ define(["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isEnumOf = function (enumType) {
+    proto.isEnumOf = function (enumType) {
         var result = function (that, v) {
             if (v == null) false;
             return enumType.contains(v);
@@ -94,7 +95,7 @@ define(["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isRequired = function () {
+    proto.isRequired = function () {
         if (this.fn && !this._or) {
             return this;
         } else {
@@ -108,7 +109,7 @@ define(["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.isOptional = function () {
+    proto.isOptional = function () {
         if (this._fn) {
             setFn(this, makeOptional(this._fn));
         } else {
@@ -119,11 +120,11 @@ define(["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.isNonEmptyArray = function () {
+    proto.isNonEmptyArray = function () {
         return this.isArray(true);
     };
 
-    Param.prototype.isArray = function (mustBeNonEmpty) {
+    proto.isArray = function (mustBeNonEmpty) {
         if (this._fn) {
             setFn(this, makeArray(this._fn, mustBeNonEmpty));
         } else {
@@ -135,20 +136,20 @@ define(["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.or = function () {
+    proto.or = function () {
         this._fns.push(null);
         this._fn = null;
         return this;
     };
 
-    Param.prototype.getMessage = function () {
+    proto.getMessage = function () {
         var msg = this._fns.map(function (fn) {
             return fn.getMessage();
         }).join(", or it");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
     };
 
-    Param.prototype.check = function (defaultValue) {
+    proto.check = function (defaultValue) {
         var fn = compile(this);
         if (!fn) return;
         if (!fn(this, this.v)) {
@@ -161,7 +162,7 @@ define(["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.checkMsg = function () {
+    proto.checkMsg = function () {
         var fn = compile(this);
         if (!fn) return;
         if (!fn(this, this.v)) {
@@ -169,16 +170,16 @@ define(["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.withDefault = function(defaultValue) {
+    proto.withDefault = function(defaultValue) {
         this.defaultValue = defaultValue;
         return this;
     };
     
-    Param.prototype.whereParam = function(propName) {
+    proto.whereParam = function(propName) {
         return this.parent.whereParam(propName);
     };
 
-    Param.prototype.applyAll = function(instance, throwIfUnknownProperty) {
+    proto.applyAll = function(instance, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
         var clone = core.extend({ }, this.parent.config);
         this.parent.params.forEach(function(p) {
@@ -193,7 +194,7 @@ define(["coreFns"], function (core) {
         }
     };
 
-    Param.prototype._applyOne = function (instance, defaultValue) {
+    proto._applyOne = function (instance, defaultValue) {
         this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
@@ -204,7 +205,7 @@ define(["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.compose = function (fn) {
+    proto.compose = function (fn) {
 
         if (this._pending.length > 0) {
             while (this._pending.length > 0) {
@@ -221,7 +222,7 @@ define(["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.MESSAGE_PREFIX = "The '%1' parameter ";
+    proto.MESSAGE_PREFIX = "The '%1' parameter ";
 
     var assertParam = function (v, name) {
         return new Param(v, name);
@@ -234,8 +235,9 @@ define(["coreFns"], function (core) {
         this.config = config;
         this.params = [];
     };
+    var cproto = CompositeParam.prototype;
 
-    CompositeParam.prototype.whereParam = function(propName) {
+    cproto.whereParam = function(propName) {
         var param = new Param(this.config[propName], propName);
         param.parent = this;
         this.params.push(param);

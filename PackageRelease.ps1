@@ -67,7 +67,7 @@ if (test-path $destDir) {
 # Check that all files have been updated within the last 5 minutes
 $minutes = 5
 checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
-checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
+checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.*.js $minutes
 
 eraseExtraFiles $srcDir
 gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname }

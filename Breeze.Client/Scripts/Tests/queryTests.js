@@ -25,6 +25,98 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    test("size test", function() {
+        var em = newEm();
+        var em2 = newEm();
+        var query = EntityQuery.from("Customers").take(5).expand("orders");
+        stop();
+        var s1, s2, s3, s4, s5, s6;
+        var sizeDif;
+        em.executeQuery(query).then(function(data) {
+            s1 = testFns.sizeOf(em);
+            return em.executeQuery(query);
+        }).then(function(data2) {
+            s2 = testFns.sizeOf(em);
+            em.clear();
+            s3 = testFns.sizeOf(em);
+            sizeDif = testFns.sizeOfDif(s2, s3);
+            ok(sizeDif, "should be a sizeDif");
+            return em.executeQuery(query);
+        }).then(function(data3) {
+            s4 = testFns.sizeOf(em);
+            ok(s1.size === s4.size, "sizes should be equal");
+            em2 = newEm();
+            return em2.executeQuery(query);
+        }).then(function (data4) {
+            s5 = testFns.sizeOf(em2);
+            sizeDif = testFns.sizeOfDif(s1, s5);
+            if (sizeDif) {
+                ok(false, "sizes should be equal");
+            }
+            em2.clear();
+            s6 = testFns.sizeOf(em2);
+            sizeDif = testFns.sizeOfDif(s3, s6);
+            if (sizeDif) {
+                ok(false, "empty sizes should be equal");
+            }
+            
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("size test property change", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var query = EntityQuery.from("Customers").take(5).expand("orders");
+        stop();
+        var s1, s2, s3, s4, s5, s6;
+        var sizeDif; 
+        var hasChanges = em.hasChanges();
+        
+        em.entityChanged.subscribe(function(x) {
+            var y = x;
+        });
+        em2.entityChanged.subscribe(function (x) {
+            var y = x;
+        });
+
+        em.executeQuery(query).then(function (data) {
+            s1 = testFns.sizeOf(em);
+            return em.executeQuery(query);
+        }).then(function (data2) {
+            var custs = data2.results;
+            custs.forEach(function(c) {
+                var rv = c.getProperty("rowVersion");
+                c.setProperty("rowVersion", rv + 1);
+            });
+            em.rejectChanges();
+            s2 = testFns.sizeOf(em);
+            sizeDif = testFns.sizeOfDif(s1, s2);
+            ok(Math.abs(sizeDif.dif) < 20, "s12 dif should be very small");
+            em.clear();
+            s3 = testFns.sizeOf(em);
+            sizeDif = testFns.sizeOfDif(s2, s3);
+            ok(sizeDif, "should be a sizeDif");
+            return em.executeQuery(query);
+        }).then(function (data3) {
+            s4 = testFns.sizeOf(em);
+            ok(Math.abs(s1.size - s4.size) < 20, "sizes should be equal");
+            return em2.executeQuery(query);
+        }).then(function (data4) {
+            s5 = testFns.sizeOf(em2);
+            sizeDif = testFns.sizeOfDif(s1, s5);
+            if (sizeDif > 20) {
+                ok(false, "sizes should be almost equal");
+            }
+            em2.clear();
+            s6 = testFns.sizeOf(em2);
+            sizeDif = testFns.sizeOfDif(s3, s6);
+            if (sizeDif > 20) {
+                ok(false, "empty sizes should be almost equal");
+            }
+
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("detached unresolved children", function () {
         var realEm = newEm();

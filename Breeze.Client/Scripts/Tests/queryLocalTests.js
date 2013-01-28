@@ -26,6 +26,21 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("empty em", function () {
+        var em = new EntityManager();
+        var q = EntityQuery.from("Orders")
+            .where("shippedDate", "==", null)
+            .take(20);
+        try {
+            var r = em.executeQueryLocally(q);
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message.indexOf("metadata") > 0, "error message should mention metadata");
+            var x = e;
+        }
+        
+    });
+    
     test("null dates", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders")

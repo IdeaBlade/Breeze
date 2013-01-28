@@ -1018,20 +1018,21 @@ define('assertParam',["coreFns"], function (core) {
         this._fns = [null];
         this._pending = [];
     };
+    var proto = Param.prototype;
 
-    Param.prototype.isObject = function() {
+    proto.isObject = function() {
         return this.isTypeOf("object");
     };
 
-    Param.prototype.isBoolean = function () {
+    proto.isBoolean = function () {
         return this.isTypeOf('boolean');
     };
 
-    Param.prototype.isString = function () {
+    proto.isString = function () {
         return this.isTypeOf('string');
     };
 
-    Param.prototype.isNonEmptyString = function() {
+    proto.isNonEmptyString = function() {
         var result = function(that, v) {
             if (v == null) return false;
             return (typeof(v) === 'string') && v.length > 0;
@@ -1042,15 +1043,15 @@ define('assertParam',["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isNumber = function () {
+    proto.isNumber = function () {
         return this.isTypeOf('number');
     };
 
-    Param.prototype.isFunction = function () {
+    proto.isFunction = function () {
         return this.isTypeOf('function');
     };
 
-    Param.prototype.isTypeOf = function (typeName) {
+    proto.isTypeOf = function (typeName) {
         var result = function (that, v) {
             if (v == null) return false;
             if (typeof (v) === typeName) return true;
@@ -1062,7 +1063,7 @@ define('assertParam',["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isInstanceOf = function (type, typeName) {
+    proto.isInstanceOf = function (type, typeName) {
         var result = function (that, v) {
             if (v == null) return false;
             return (v instanceof type);
@@ -1074,7 +1075,7 @@ define('assertParam',["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.hasProperty = function (propertyName) {
+    proto.hasProperty = function (propertyName) {
         var result = function (that, v) {
             if (v == null) return false;
             return (v[propertyName] !== undefined);
@@ -1085,7 +1086,7 @@ define('assertParam',["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isEnumOf = function (enumType) {
+    proto.isEnumOf = function (enumType) {
         var result = function (that, v) {
             if (v == null) false;
             return enumType.contains(v);
@@ -1096,7 +1097,7 @@ define('assertParam',["coreFns"], function (core) {
         return this.compose(result);
     };
 
-    Param.prototype.isRequired = function () {
+    proto.isRequired = function () {
         if (this.fn && !this._or) {
             return this;
         } else {
@@ -1110,7 +1111,7 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.isOptional = function () {
+    proto.isOptional = function () {
         if (this._fn) {
             setFn(this, makeOptional(this._fn));
         } else {
@@ -1121,11 +1122,11 @@ define('assertParam',["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.isNonEmptyArray = function () {
+    proto.isNonEmptyArray = function () {
         return this.isArray(true);
     };
 
-    Param.prototype.isArray = function (mustBeNonEmpty) {
+    proto.isArray = function (mustBeNonEmpty) {
         if (this._fn) {
             setFn(this, makeArray(this._fn, mustBeNonEmpty));
         } else {
@@ -1137,20 +1138,20 @@ define('assertParam',["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.or = function () {
+    proto.or = function () {
         this._fns.push(null);
         this._fn = null;
         return this;
     };
 
-    Param.prototype.getMessage = function () {
+    proto.getMessage = function () {
         var msg = this._fns.map(function (fn) {
             return fn.getMessage();
         }).join(", or it");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
     };
 
-    Param.prototype.check = function (defaultValue) {
+    proto.check = function (defaultValue) {
         var fn = compile(this);
         if (!fn) return;
         if (!fn(this, this.v)) {
@@ -1163,7 +1164,7 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.checkMsg = function () {
+    proto.checkMsg = function () {
         var fn = compile(this);
         if (!fn) return;
         if (!fn(this, this.v)) {
@@ -1171,16 +1172,16 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.withDefault = function(defaultValue) {
+    proto.withDefault = function(defaultValue) {
         this.defaultValue = defaultValue;
         return this;
     };
     
-    Param.prototype.whereParam = function(propName) {
+    proto.whereParam = function(propName) {
         return this.parent.whereParam(propName);
     };
 
-    Param.prototype.applyAll = function(instance, throwIfUnknownProperty) {
+    proto.applyAll = function(instance, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
         var clone = core.extend({ }, this.parent.config);
         this.parent.params.forEach(function(p) {
@@ -1195,7 +1196,7 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype._applyOne = function (instance, defaultValue) {
+    proto._applyOne = function (instance, defaultValue) {
         this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
@@ -1206,7 +1207,7 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    Param.prototype.compose = function (fn) {
+    proto.compose = function (fn) {
 
         if (this._pending.length > 0) {
             while (this._pending.length > 0) {
@@ -1223,7 +1224,7 @@ define('assertParam',["coreFns"], function (core) {
         return this;
     };
 
-    Param.prototype.MESSAGE_PREFIX = "The '%1' parameter ";
+    proto.MESSAGE_PREFIX = "The '%1' parameter ";
 
     var assertParam = function (v, name) {
         return new Param(v, name);
@@ -1236,8 +1237,9 @@ define('assertParam',["coreFns"], function (core) {
         this.config = config;
         this.params = [];
     };
+    var cproto = CompositeParam.prototype;
 
-    CompositeParam.prototype.whereParam = function(propName) {
+    cproto.whereParam = function(propName) {
         var param = new Param(this.config[propName], propName);
         param.parent = this;
         this.params.push(param);
@@ -2296,6 +2298,7 @@ function (core, a_config, DataType) {
             this.valFn = valFn;
             this.context = context;
         };
+        var proto = ctor.prototype;
 
 
         /**
@@ -2322,7 +2325,7 @@ function (core, a_config, DataType) {
         can make use of.
         @return {ValidationError|null} A ValidationError if validation fails, null otherwise
         **/
-        ctor.prototype.validate = function (value, additionalContext) {
+        proto.validate = function (value, additionalContext) {
             var currentContext;
             if (additionalContext) {
                 currentContext = core.extend(Object.create(this.context), additionalContext);
@@ -2348,7 +2351,7 @@ function (core, a_config, DataType) {
         @method getMessage
         @return {String}
         **/
-        ctor.prototype.getMessage = function () {
+        proto.getMessage = function () {
             try {
                 var context = this.currentContext;
                 var message = context.message;
@@ -2368,7 +2371,7 @@ function (core, a_config, DataType) {
             }
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return this._baseContext;
         };
 
@@ -2480,7 +2483,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Returns a standard maximum string length Validator; both minimum and maximum lengths must be specified.
+        Returns a standard string length Validator; both minimum and maximum lengths must be specified.
         @example
             // Assume em1 is a preexisting EntityManager.
             var custType = em1.metadataStore.getEntityType("Customer");
@@ -2811,6 +2814,7 @@ function (core, a_config, DataType) {
             this.errorMessage = errorMessage;
             this.key = ValidationError.getKey(validator, this.propertyName);
         };
+
         
         /**
         The Validator associated with this ValidationError.
@@ -3242,8 +3246,9 @@ function (core, a_config, m_validate) {
                 v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
             }
         };
+        var proto = ctor.prototype;
 
-        ctor.prototype._postInitialize = function() {
+        proto._postInitialize = function() {
             var entity = this.entity;
             var entityCtor = entity.entityType.getEntityCtor();
             var initFn = entityCtor._$initializationFn;
@@ -3255,7 +3260,7 @@ function (core, a_config, m_validate) {
             }
         };
 
-        Event.bubbleEvent(ctor.prototype, function() {
+        Event.bubbleEvent(proto, function() {
             return this.entityManager;
         });
 
@@ -3346,7 +3351,7 @@ function (core, a_config, m_validate) {
         @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
-        ctor.prototype.getKey = function(forceRefresh) {
+        proto.getKey = function(forceRefresh) {
             forceRefresh = core.assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
@@ -3368,7 +3373,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method acceptChanges
         **/
-        ctor.prototype.acceptChanges = function() {
+        proto.acceptChanges = function() {
             var em = this.entityManager;
             if (this.entityState.isDeleted()) {
                 em.detachEntity(this.entity);
@@ -3387,7 +3392,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
         @method rejectChanges
         **/
-        ctor.prototype.rejectChanges = function() {
+        proto.rejectChanges = function() {
             var entity = this.entity;
             var entityManager = this.entityManager;
             // we do not want PropertyChange or EntityChange events to occur here
@@ -3431,7 +3436,7 @@ function (core, a_config, m_validate) {
              // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
         @method setUnchanged
         **/
-        ctor.prototype.setUnchanged = function() {
+        proto.setUnchanged = function() {
             clearOriginalValues(this.entity);
             delete this.hasTempKey;
             this.entityState = EntityState.Unchanged;
@@ -3449,7 +3454,7 @@ function (core, a_config, m_validate) {
         }
 
         // Dangerous method - see notes - talk to Jay - this is not a complete impl
-        //        ctor.prototype.setAdded = function () {
+        //        proto.setAdded = function () {
         //            this.originalValues = {};
         //            this.entityState = EntityState.Added;
         //            if (this.entity.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
@@ -3465,7 +3470,7 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Modified' state. 
         @method setModified
         **/
-        ctor.prototype.setModified = function() {
+        proto.setModified = function() {
             this.entityState = EntityState.Modified;
             this.entityManager._notifyStateChange(this.entity, true);
         };
@@ -3479,13 +3484,15 @@ function (core, a_config, m_validate) {
             // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
         @method setDeleted
         **/
-        ctor.prototype.setDeleted = function() {
+        proto.setDeleted = function() {
+            var em = this.entityManager;
             if (this.entityState.isAdded()) {
-                this.entityManager.detachEntity(this.entity);
+                em.detachEntity(this.entity);
+                em._notifyStateChange(this.entity, false);
             } else {
                 this.entityState = EntityState.Deleted;
                 this._removeFromRelations();
-                this.entityManager._notifyStateChange(this.entity, true);
+                em._notifyStateChange(this.entity, true);
             }
             // TODO: think about cascade deletes
         };
@@ -3504,7 +3511,7 @@ function (core, a_config, m_validate) {
         @method validateEntity
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateEntity = function () {
+        proto.validateEntity = function () {
             var ok =true;
             this._processValidationOpAndPublish(function(that) {
                 ok = validateTarget(that.entity);
@@ -3558,7 +3565,7 @@ function (core, a_config, m_validate) {
         @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
         @return {Boolean} Whether the entity passed validation.
         **/
-        ctor.prototype.validateProperty = function (property, context) {
+        proto.validateProperty = function (property, context) {
             var value = this.getPropertyValue(property); // performs validations
             if (value.complexAspect) {
                 return validateTarget(value);
@@ -3597,7 +3604,7 @@ function (core, a_config, m_validate) {
         If omitted, all of the validation errors for this entity will be returned.
         @return {Array of ValidationError}
         **/
-        ctor.prototype.getValidationErrors = function (property) {
+        proto.getValidationErrors = function (property) {
             assertParam(property, "property").isOptional().isEntityProperty().or().isString();
             var result = core.getOwnPropertyValues(this._validationErrors);
             if (property) {
@@ -3614,7 +3621,7 @@ function (core, a_config, m_validate) {
         @method addValidationError
         @param validationError {ValidationError} 
         **/
-        ctor.prototype.addValidationError = function (validationError) {
+        proto.addValidationError = function (validationError) {
             assertParam(validationError, "validationError").isInstanceOf(ValidationError).check();
             this._processValidationOpAndPublish(function (that) {
                 that._addValidationError(validationError);
@@ -3627,7 +3634,7 @@ function (core, a_config, m_validate) {
         @param validator {Validator}
         @param [property] {DataProperty|NavigationProperty}
         **/
-        ctor.prototype.removeValidationError = function (validator, property) {
+        proto.removeValidationError = function (validator, property) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isEntityProperty();
             this._processValidationOpAndPublish(function (that) {
@@ -3639,7 +3646,7 @@ function (core, a_config, m_validate) {
         Removes all of the validation errors for a specified entity
         @method clearValidationErrors
         **/
-        ctor.prototype.clearValidationErrors = function () {
+        proto.clearValidationErrors = function () {
             this._processValidationOpAndPublish(function (that) {
                 core.objectForEach(that._validationErrors, function(key, valError) {
                     if (valError) {
@@ -3671,10 +3678,10 @@ function (core, a_config, m_validate) {
             promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         **/
         // This method is provided in entityQuery.js.
-        // ctor.prototype.loadNavigationProperty = function(navigationProperty, callback, errorCallback) 
+        // proto.loadNavigationProperty = function(navigationProperty, callback, errorCallback) 
 
         // returns null for np's that do not have a parentKey
-        ctor.prototype.getParentKey = function (navigationProperty) {
+        proto.getParentKey = function (navigationProperty) {
             // NavigationProperty doesn't yet exist
             // core.assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
             var fkNames = navigationProperty.foreignKeyNames;
@@ -3686,7 +3693,7 @@ function (core, a_config, m_validate) {
             return new EntityKey(navigationProperty.entityType, fkValues);
         };
 
-        ctor.prototype.getPropertyValue = function (property) {
+        proto.getPropertyValue = function (property) {
             assertParam(property, "property").isString().or().isEntityProperty().check();
             var value;
             if (typeof (property) === 'string') {
@@ -3710,7 +3717,7 @@ function (core, a_config, m_validate) {
 
         // internal methods
 
-        ctor.prototype._removeFromRelations = function () {
+        proto._removeFromRelations = function () {
             var entity = this.entity;
 
             // remove this entity from any collections.
@@ -3747,7 +3754,7 @@ function (core, a_config, m_validate) {
         };
 
         // called from defaultInterceptor.
-        ctor.prototype._validateProperty = function (value, context) {
+        proto._validateProperty = function (value, context) {
             var ok = true;
             this._processValidationOpAndPublish(function (that) {
                 context.property.validators.forEach(function (validator) {
@@ -3757,7 +3764,7 @@ function (core, a_config, m_validate) {
             return ok;
         };
 
-        ctor.prototype._processValidationOpAndPublish = function (validationFn) {
+        proto._processValidationOpAndPublish = function (validationFn) {
             if (this._pendingValidationResult) {
                 // only top level processValidations call publishes
                 validationFn(this);
@@ -3774,12 +3781,12 @@ function (core, a_config, m_validate) {
             }
         };
 
-        ctor.prototype._addValidationError = function (validationError) {
+        proto._addValidationError = function (validationError) {
             this._validationErrors[validationError.key] = validationError;
             this._pendingValidationResult.added.push(validationError);
         };
 
-        ctor.prototype._removeValidationError = function (validator, propertyPath) {
+        proto._removeValidationError = function (validator, propertyPath) {
             var key = ValidationError.getKey(validator, propertyPath);
             var valError = this._validationErrors[key];
             if (valError) {
@@ -3867,6 +3874,7 @@ function (core, a_config, m_validate) {
             v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
 
         };
+        var proto = ctor.prototype;
         
         /**
         The complex object that this aspect is associated with.
@@ -3911,7 +3919,7 @@ function (core, a_config, m_validate) {
         @property originalValues {Object}
         **/
 
-        ctor.prototype._postInitialize = function() {
+        proto._postInitialize = function() {
             var co = this.complexObject;
             var aCtor = co.complexType.getCtor();
             var initFn = aCtor._$initializationFn;
@@ -3973,8 +3981,9 @@ function (core, a_config, m_validate) {
             this._keyInGroup = createKeyString(keyValues);
         };
         ctor._$typeName = "EntityKey";
+        var proto = ctor.prototype;
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 entityType: this.entityType.name,
                 values: this.values
@@ -4001,7 +4010,7 @@ function (core, a_config, m_validate) {
         @method equals
         @param entityKey {EntityKey}
         **/
-        ctor.prototype.equals = function (entityKey) {
+        proto.equals = function (entityKey) {
             if (!(entityKey instanceof EntityKey)) return false;
             return (this.entityType === entityKey.entityType) &&
                 core.arrayEquals(this.values, entityKey.values);
@@ -4011,7 +4020,7 @@ function (core, a_config, m_validate) {
         Returns a human readable representation of this EntityKey.
         @method toString
         */
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             return this.entityType.name + '-' + this._keyInGroup;
         };
 
@@ -4038,7 +4047,7 @@ function (core, a_config, m_validate) {
         };
 
         // TODO: we may want to compare to default values later.
-        ctor.prototype._isEmpty = function () {
+        proto._isEmpty = function () {
             return this.values.join("").length === 0;
         };
 
@@ -4433,7 +4442,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
-        
+        var proto = ctor.prototype;
         // 
         /**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -4464,7 +4473,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             lqco.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function () {
+        proto.setAsDefault = function () {
             ctor.defaultInstance = this;
             return this;
         };
@@ -4515,6 +4524,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
             a_config.registerObject(this, "NamingConvention:" + this.name);
         };
+        var proto = ctor.prototype;
         
         /**
         The function used to convert server side property names to client side property names.
@@ -4587,7 +4597,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             namingConv.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
@@ -4642,8 +4652,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._typeRegistry = {};
             this._incompleteTypeMap = {}; // key is entityTypeName; value is map where key is assocName and value is navProp
         };
-        
-        ctor.prototype._$typeName = "MetadataStore";
+        var proto = ctor.prototype;
+        proto._$typeName = "MetadataStore";
         ctor.ANONTYPE_PREFIX = "_IB_";
 
         /**
@@ -4653,7 +4663,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param dataService {DataService} The DataService to add
         **/
         
-        ctor.prototype.addDataService = function(dataService) {
+        proto.addDataService = function(dataService) {
             assertParam(dataService, "dataService").isInstanceOf(DataService).check();
             var alreadyExists = this.dataServices.some(function(ds) {
                 return dataService.serviceName === ds.serviceName;
@@ -4670,7 +4680,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        ctor.prototype.addEntityType = function(structuralType) {
+        proto.addEntityType = function(structuralType) {
             structuralType.metadataStore = this;
             // don't register anon types
             if (!structuralType.isAnonymous) {
@@ -4717,7 +4727,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method exportMetadata
         @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
         **/
-        ctor.prototype.exportMetadata = function () {
+        proto.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "metadataStore") return null;
                 if (key === "namingConvention" || key === "localQueryComparisonOptions") {
@@ -4743,7 +4753,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @return {MetadataStore} This MetadataStore.
         @chainable
         **/
-        ctor.prototype.importMetadata = function (exportedString) {
+        proto.importMetadata = function (exportedString) {
             var json = JSON.parse(exportedString);
             var ncName = json.namingConvention;
             var lqcoName = json.localQueryComparisonOptions;
@@ -4814,7 +4824,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.hasMetadataFor = function(serviceName) {
+        proto.hasMetadataFor = function(serviceName) {
             return !!this.getDataService(serviceName);
         };
         
@@ -4829,7 +4839,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param serviceName {String} The service name.
         @return {Boolean}
         **/
-        ctor.prototype.getDataService = function (serviceName) {
+        proto.getDataService = function (serviceName) {
             assertParam(serviceName, "serviceName").isString().check();
 
             serviceName = DataService._normalizeServiceName(serviceName);
@@ -4872,7 +4882,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @return {Promise} Promise
         **/
-        ctor.prototype.fetchMetadata = function (dataService, callback, errorCallback) {
+        proto.fetchMetadata = function (dataService, callback, errorCallback) {
             assertParam(dataService, "dataService").isString().or().isInstanceOf(DataService).check();
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
@@ -4915,7 +4925,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param entityCtor {Function} The constructor for the 'unmapped' type. 
         @param [interceptor] {Function} A function
         **/
-        ctor.prototype.trackUnmappedType = function (entityCtor, interceptor) {
+        proto.trackUnmappedType = function (entityCtor, interceptor) {
             assertParam(entityCtor, "entityCtor").isFunction().check();
             assertParam(interceptor, "interceptor").isFunction().isOptional().check();
             // TODO: think about adding this to the MetadataStore.
@@ -4949,7 +4959,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         initializationFn(entity)
         @param initializationFn.entity {Entity} The entity being created or materialized.
         **/
-        ctor.prototype.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+        proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
             assertParam(structuralTypeName, "structuralTypeName").isString().check();
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
@@ -4986,7 +4996,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method isEmpty
         @return {Boolean}
         **/
-        ctor.prototype.isEmpty = function () {
+        proto.isEmpty = function () {
             return this.dataServices.length === 0;
         };
 
@@ -5006,7 +5016,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
         @return {EntityType|ComplexType} The EntityType. ComplexType or 'undefined' if not not found.
         **/
-        ctor.prototype.getEntityType = function (structuralTypeName, okIfNotFound) {
+        proto.getEntityType = function (structuralTypeName, okIfNotFound) {
             assertParam(structuralTypeName, "structuralTypeName").isString().check();
             assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
             return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
@@ -5020,7 +5030,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityTypes
         @return {Array of EntityType|ComplexType}
         **/
-        ctor.prototype.getEntityTypes = function () {
+        proto.getEntityTypes = function () {
             return getTypesFromMap(this._structuralTypeMap);
         };
         
@@ -5052,7 +5062,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return types;
         }
 
-        ctor.prototype.getIncompleteNavigationProperties = function() {
+        proto.getIncompleteNavigationProperties = function() {
             return core.objectMapToArray(this._structuralTypeMap, function (key, value) {
                 if (value instanceof ComplexType) return null;
                 var badProps = value.navigationProperties.filter(function(np) {
@@ -5070,7 +5080,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityTypeNameForResourceName
         @param resourceName {String}
         */
-        ctor.prototype._getEntityTypeNameForResourceName = function (resourceName) {
+        proto._getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
             // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
             return this._resourceEntityTypeMap[resourceName];
@@ -5088,7 +5098,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
         */
-        ctor.prototype._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
+        proto._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
             // resourceName = resourceName.toLowerCase();
@@ -5109,7 +5119,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         // protected methods
 
-        ctor.prototype._structuralTypeFromJson = function(json) {
+        proto._structuralTypeFromJson = function(json) {
             var stype = this.getEntityType(json.name, true);
             if (stype) return stype;
             var config = {
@@ -5138,7 +5148,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return stype;
         };
         
-        ctor.prototype._checkEntityType = function(entity) {
+        proto._checkEntityType = function(entity) {
             if (entity.entityType) return;
             var typeName = entity.prototype._$typeName;
             if (!typeName) {
@@ -5150,7 +5160,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
        
-        ctor.prototype._parseODataMetadata = function (serviceName, schemas) {
+        proto._parseODataMetadata = function (serviceName, schemas) {
             var that = this;
             
             toArray(schemas).forEach(function (schema) {
@@ -5495,6 +5505,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
             
         };
+        var proto = ctor.prototype;
         
         /**
         The serviceName for this DataService.
@@ -5526,7 +5537,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        ctor.prototype._$typeName = "DataService";
+        proto._$typeName = "DataService";
         
         return ctor;
     }();
@@ -5587,6 +5598,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this._mappedPropertiesCount = 0;
             
         };
+        var proto = ctor.prototype;
         
         /**
         The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
@@ -5692,7 +5704,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
             
 
-        ctor.prototype._$typeName = "EntityType";
+        proto._$typeName = "EntityType";
 
         /**
         General purpose property set method
@@ -5708,7 +5720,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             @param [config.autogeneratedKeyType] {AutoGeneratedKeyType}
             @param [config.defaultResourceName] {String}
         **/
-        ctor.prototype.setProperties = function (config) {
+        proto.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional()
                 .whereParam("defaultResourceName").isString().isOptional()
@@ -5728,7 +5740,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addProperty
         @param property {DataProperty|NavigationProperty}
         **/
-        ctor.prototype.addProperty = function (property) {
+        proto.addProperty = function (property) {
             assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
@@ -5762,7 +5774,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [initialValues] {Config object} - Configuration object of the properties to set immediately after creation.
         @return {Entity} The new entity.
         **/
-        ctor.prototype.createEntity = function (initialValues) {
+        proto.createEntity = function (initialValues) {
             var instance = this._createEntityCore();
             
             if (initialValues) {
@@ -5775,7 +5787,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return instance;
         };
 
-        ctor.prototype._createEntityCore = function() {
+        proto._createEntityCore = function() {
             var aCtor = this.getEntityCtor();
             var instance = new aCtor();
             new EntityAspect(instance);
@@ -5787,7 +5799,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getEntityCtor
         @return {Function} The constructor for this EntityType.
         **/
-        ctor.prototype.getEntityCtor = function () {
+        proto.getEntityCtor = function () {
             if (this._ctor) return this._ctor;
             var typeRegistry = this.metadataStore._typeRegistry;
             var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
@@ -5805,7 +5817,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         // May make public later.
-        ctor.prototype._setCtor = function (aCtor, interceptor) {
+        proto._setCtor = function (aCtor, interceptor) {
             var instance = new aCtor();
             var proto = aCtor.prototype;
             
@@ -5856,7 +5868,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
         entity level validator and is added to the EntityType's 'validators'.
         **/
-        ctor.prototype.addValidator = function (validator, property) {
+        proto.addValidator = function (validator, property) {
             assertParam(validator, "validator").isInstanceOf(Validator).check();
             assertParam(property, "property").isOptional().isString().or().isEntityProperty().check();
             if (property) {
@@ -5878,7 +5890,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getProperties
         @return {Array of DataProperty|NavigationProperty} Array of Data and Navigation properties.
         **/
-        ctor.prototype.getProperties = function () {
+        proto.getProperties = function () {
             return this.dataProperties.concat(this.navigationProperties);
         };
 
@@ -5891,7 +5903,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getPropertyNames
         @return {Array of String}
         **/
-        ctor.prototype.getPropertyNames = function () {
+        proto.getPropertyNames = function () {
             return this.getProperties().map(core.pluck('name'));
         };
 
@@ -5905,7 +5917,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param propertyName {String}
         @return {DataProperty} Will be null if not found.
         **/
-        ctor.prototype.getDataProperty = function (propertyName, isServerName) {
+        proto.getDataProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
             return core.arrayFirst(this.dataProperties, core.propEq(propName, propertyName));
         };
@@ -5920,7 +5932,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param propertyName {String}
         @return {NavigationProperty} Will be null if not found.
         **/
-        ctor.prototype.getNavigationProperty = function (propertyName, isServerName) {
+        proto.getNavigationProperty = function (propertyName, isServerName) {
             var propName = isServerName ? "nameOnServer" : "name";
             return core.arrayFirst(this.navigationProperties, core.propEq(propName, propertyName));
         };
@@ -5943,7 +5955,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
         @return {DataProperty|NavigationProperty} Will be null if not found.
         **/
-        ctor.prototype.getProperty = function (propertyPath, throwIfNotFound) {
+        proto.getProperty = function (propertyPath, throwIfNotFound) {
             throwIfNotFound = throwIfNotFound || false;
             var propertyNames = (Array.isArray(propertyPath)) ? propertyPath : propertyPath.trim().split('.');
             var propertyName = propertyNames[0];
@@ -5981,11 +5993,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method toString
         @return {String}
         **/
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             return this.name;
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 shortName: this.shortName,
@@ -6000,7 +6012,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         // fromJSON is handled by metadataStore._structuralTypeFromJson;
         
-        ctor.prototype._clientPropertyPathToServer = function (propertyPath) {
+        proto._clientPropertyPathToServer = function (propertyPath) {
             var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
             var that = this;
             var serverPropPath = propertyPath.split(".").map(function (propName) {
@@ -6010,7 +6022,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return serverPropPath;
         };
 
-        ctor.prototype._updateProperty = function (property) {
+        proto._updateProperty = function (property) {
             var nc = this.metadataStore.namingConvention;
             var serverName = property.nameOnServer;
             var clientName, testName;
@@ -6057,7 +6069,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         // for debugging use the line below instead.
         //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
 
-        ctor.prototype._checkNavProperty = function (navigationProperty) {
+        proto._checkNavProperty = function (navigationProperty) {
             if (navigationProperty.isNavigationProperty) {
                 if (navigationProperty.parentType != this) {
                     throw new Error(core.formatString("The navigationProperty '%1' is not a property of entity type '%2'",
@@ -6073,7 +6085,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
         };
         
-        ctor.prototype._addDataProperty = function (dp) {
+        proto._addDataProperty = function (dp) {
 
             this.dataProperties.push(dp);
             
@@ -6095,7 +6107,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         };
 
-        ctor.prototype._addNavigationProperty = function (np) {
+        proto._addNavigationProperty = function (np) {
 
             this.navigationProperties.push(np);
 
@@ -6104,7 +6116,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
 
-        ctor.prototype._fixup = function () {
+        proto._fixup = function () {
             var that = this;
             this.getProperties().forEach(function (property) {
                 that._updateProperty(property);
@@ -6207,9 +6219,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function addToIncompleteMap(incompleteTypeMap, np) {
             if (!np.entityType) {
-                var assocMap = {};
-                incompleteTypeMap[np.entityTypeName] = assocMap;
+                // Fixed based on this: http://stackoverflow.com/questions/14329352/bad-navigation-property-one-to-zero-or-one-relationship/14384399#14384399
+                var assocMap = incompleteTypeMap[np.entityTypeName];
+                if (!assocMap) {
+                    assocMap = {};
+                    incompleteTypeMap[np.entityTypeName] = assocMap;
+                }
                 assocMap[np.associationName] = np;
+                
             }
 
             var altAssocMap = incompleteTypeMap[np.parentType.name];
@@ -6298,7 +6315,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.concurrencyProperties = [];
             this.unmappedProperties = [];
         };
-        
+        var proto = ctor.prototype;
         /**
         The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this ComplexType.
 
@@ -6356,7 +6373,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method createInstance
         @param initialValues {Object} Configuration object containing initial values for the instance. 
         **/
-        ctor.prototype.createInstance = function (initialValues) {
+        proto.createInstance = function (initialValues) {
             var instance = this._createInstanceCore();
 
             if (initialValues) {
@@ -6369,7 +6386,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return instance;
         };
 
-        ctor.prototype._createInstanceCore = function (parent, parentProperty ) {
+        proto._createInstanceCore = function (parent, parentProperty ) {
             var aCtor = this.getCtor();
             var instance = new aCtor();
             new ComplexAspect(instance, parent, parentProperty);
@@ -6380,7 +6397,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         
 
-        ctor.prototype.addProperty = function (dataProperty) {
+        proto.addProperty = function (dataProperty) {
             assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
             if (this.metadataStore && ! dataProperty.isUnmapped) {
                 throw new Error("The '" + this.name + "' ComplexType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
@@ -6397,7 +6414,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return this;
         };
         
-        ctor.prototype.getProperties = function () {
+        proto.getProperties = function () {
             return this.dataProperties;
         };       
 
@@ -6424,16 +6441,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method getCtor
         **/
 
-        ctor.prototype.addValidator = EntityType.prototype.addValidator;
-        ctor.prototype.getProperty = EntityType.prototype.getProperty;
-        ctor.prototype.getPropertyNames = EntityType.prototype.getPropertyNames;
-        ctor.prototype._addDataProperty = EntityType.prototype._addDataProperty;
-        ctor.prototype._updateProperty = EntityType.prototype._updateProperty;
+        proto.addValidator = EntityType.prototype.addValidator;
+        proto.getProperty = EntityType.prototype.getProperty;
+        proto.getPropertyNames = EntityType.prototype.getPropertyNames;
+        proto._addDataProperty = EntityType.prototype._addDataProperty;
+        proto._updateProperty = EntityType.prototype._updateProperty;
         // note the name change.
-        ctor.prototype.getCtor = EntityType.prototype.getEntityCtor;
-        ctor.prototype._setCtor = EntityType.prototype._setCtor;
+        proto.getCtor = EntityType.prototype.getEntityCtor;
+        proto._setCtor = EntityType.prototype._setCtor;
         
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 shortName: this.shortName,
@@ -6443,14 +6460,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         };
        
-        ctor.prototype._fixup = function () {
+        proto._fixup = function () {
             var that = this;
             this.dataProperties.forEach(function (property) {
                 that._updateProperty(property);
             });
         };
 
-        ctor.prototype._$typeName = "ComplexType";
+        proto._$typeName = "ComplexType";
 
         return ctor;
     })();
@@ -6536,8 +6553,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 }
             }
         };
-        
-        ctor.prototype._$typeName = "DataProperty";
+        var proto = ctor.prototype;
+        proto._$typeName = "DataProperty";
 
         /**
         The name of this property
@@ -6654,10 +6671,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property isNavigationProperty {Boolean}
         **/
 
-        ctor.prototype.isDataProperty = true;
-        ctor.prototype.isNavigationProperty = false;
+        proto.isDataProperty = true;
+        proto.isNavigationProperty = false;
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 nameOnServer: this.nameOnServer,
@@ -6750,8 +6767,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 throw new Error("A Navigation property must be instantiated with either a 'name' or a 'nameOnServer' property");
             }
         };
-        
-        ctor.prototype._$typeName = "NavigationProperty";
+        var proto = ctor.prototype;
+        proto._$typeName = "NavigationProperty";
         
         /**
         The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
@@ -6836,10 +6853,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property isNavigationProperty {Boolean}
         **/
         
-        ctor.prototype.isDataProperty = false;
-        ctor.prototype.isNavigationProperty = true;
+        proto.isDataProperty = false;
+        proto.isNavigationProperty = true;
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 name: this.name,
                 nameOnServer: this.nameOnServer,
@@ -6904,8 +6921,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     }();
 
     // mixin methods
+    var pproto = core.Param.prototype;
 
-    core.Param.prototype.isEntity = function () {
+    pproto.isEntity = function () {
         var result = function (that, v) {
             if (v == null) return false;
             return (v.entityType !== undefined);
@@ -6916,7 +6934,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         return this.compose(result);
     };
 
-    core.Param.prototype.isEntityProperty = function () {
+    pproto.isEntityProperty = function () {
         var result = function (that, v) {
             if (v == null) return false;
             return (v.isDataProperty || v.isNavigationProperty);
@@ -7066,6 +7084,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.queryOptions = null;
             this.entityManager = null;                 
         };
+        var proto = ctor.prototype;
 
         /**
         The resource name used by this query.
@@ -7131,7 +7150,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
         @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
         */
-        ctor.prototype._getEntityType = function (metadataStore, throwErrorIfNotFound) {
+        proto._getEntityType = function (metadataStore, throwErrorIfNotFound) {
             assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
             assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
             var entityType = this.entityType;
@@ -7141,7 +7160,11 @@ function (core, m_entityMetadata, m_entityAspect) {
                     throw new Error("There is no resourceName for this query");
                 }
                 if (metadataStore.isEmpty()) {
-                    return null;
+                    if (throwErrorIfNotFound) {
+                        throw new Error("There is no metadata available for this query");
+                    } else {
+                        return null;
+                    }
                 }
                 var entityTypeName = metadataStore._getEntityTypeNameForResourceName(resourceName);
                 if (!entityTypeName) {
@@ -7177,7 +7200,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.from = function (resourceName) {
+        proto.from = function (resourceName) {
             // TODO: think about allowing entityType as well 
             assertParam(resourceName, "resourceName").isString().check();
             resourceName = normalizeResourceName(resourceName);
@@ -7260,7 +7283,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.where = function (predicate) {
+        proto.where = function (predicate) {
             var eq = this._clone();
             if (arguments.length === 0) {
                 eq.wherePredicate = null;
@@ -7311,7 +7334,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.orderBy = function (propertyPaths) {
+        proto.orderBy = function (propertyPaths) {
             // deliberately don't pass in isDesc
             return orderByCore(this, normalizePropertyPaths(propertyPaths));
         };
@@ -7337,7 +7360,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.orderByDesc = function (propertyPaths) {
+        proto.orderByDesc = function (propertyPaths) {
             return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
         };
         
@@ -7376,7 +7399,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.select = function (propertyPaths) {
+        proto.select = function (propertyPaths) {
             return selectCore(this, normalizePropertyPaths(propertyPaths));
         };
 
@@ -7392,7 +7415,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.skip = function (count) {
+        proto.skip = function (count) {
             assertParam(count, "count").isOptional().isNumber().check();
             var eq = this._clone();
             if (arguments.length === 0) {
@@ -7413,7 +7436,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.top = function(count) {
+        proto.top = function(count) {
             return this.take(count);
         };
 
@@ -7427,7 +7450,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.take = function (count) {
+        proto.take = function (count) {
             assertParam(count, "count").isOptional().isNumber().check();
             var eq = this._clone();
             if (arguments.length === 0) {
@@ -7460,7 +7483,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.expand = function (propertyPaths) {
+        proto.expand = function (propertyPaths) {
             return expandCore(this, normalizePropertyPaths(propertyPaths));
         };
 
@@ -7486,7 +7509,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.withParameters = function(parameters) {
+        proto.withParameters = function(parameters) {
             assertParam(parameters, "parameters").isObject().check();
             return withParametersCore(this, parameters);
         };
@@ -7508,7 +7531,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityQuery}
         @chainable
         **/
-        ctor.prototype.inlineCount = function(enabled) {
+        proto.inlineCount = function(enabled) {
             if (enabled === undefined) enabled = true;
             var eq = this._clone();
             eq.inlineCountEnabled = enabled;
@@ -7713,7 +7736,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         // protected methods
 
-        ctor.prototype._clone = function () {
+        proto._clone = function () {
             var copy = new EntityQuery();
             copy.resourceName = this.resourceName;
             copy.entityType = this.entityType;
@@ -7742,7 +7765,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         //        $expand    - done
         //        $inlinecount
 
-        ctor.prototype._toUri = function (metadataStore) {
+        proto._toUri = function (metadataStore) {
             // force entityType validation;
             var entityType = this._getEntityType(metadataStore, false);
             if (!entityType) {
@@ -7832,7 +7855,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype._toFilterFunction = function (entityType) {
+        proto._toFilterFunction = function (entityType) {
             var wherePredicate = this.wherePredicate;
             if (!wherePredicate) return null;
             // may throw an exception
@@ -7840,7 +7863,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return wherePredicate.toFunction(entityType);
         };
 
-        ctor.prototype._toOrderByComparer = function (entityType) {
+        proto._toOrderByComparer = function (entityType) {
             var orderByClause = this.orderByClause;
             if (!orderByClause) return null;
             // may throw an exception
@@ -8061,6 +8084,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 }
             }
         };
+        var proto = ctor.prototype;
 
         ctor.create = function (source, entityType) {
             if (typeof source !== 'string') {
@@ -8081,7 +8105,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return node.isValidated === false ? null : node;
         };
 
-        ctor.prototype.toString = function() {
+        proto.toString = function() {
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
                     return fnNode.toString();
@@ -8093,7 +8117,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.updateWithEntityType = function(entityType) {
+        proto.updateWithEntityType = function(entityType) {
             if (this.propertyPath) {
                 if (entityType.isAnonymous) return;
                 var prop = entityType.getProperty(this.propertyPath);
@@ -8105,7 +8129,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             this.updateWithEntityType(entityType);
             if (this.fnName) {
                 var args = this.fnNodes.map(function(fnNode) {
@@ -8125,7 +8149,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.validate = function(entityType) {
+        proto.validate = function(entityType) {
             // will throw if not found;
             if (this.isValidated !== undefined) return;            
             this.isValidated = true;
@@ -8303,6 +8327,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
         };
+        var proto = ctor.prototype;
 
         /**  
         Returns whether an object is a Predicate
@@ -8436,7 +8461,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method and
         @param predicates* {multiple Predicates|Array of Predicate}
         **/
-        ctor.prototype.and = function (predicates) {
+        proto.and = function (predicates) {
             predicates = argsToPredicates(arguments);
             predicates.unshift(this);
             return ctor.and(predicates);
@@ -8461,7 +8486,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method or
         @param predicates* {multiple Predicates|Array of Predicate}
         **/
-        ctor.prototype.or = function (predicates) {
+        proto.or = function (predicates) {
             predicates = argsToPredicates(arguments);
             predicates.unshift(this);
             return ctor.or(predicates);
@@ -8481,7 +8506,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             var not_p1 = Predicate.create("Freight", "le", 100);
         @method not
         **/
-        ctor.prototype.not = function () {
+        proto.not = function () {
             return new CompositePredicate("not", [this]);
         };
 
@@ -8542,9 +8567,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._valueIsLiteral = valueIsLiteral;
         };
         
-        ctor.prototype = new Predicate({ prototype: true });
+        var proto = new Predicate({ prototype: true });
+        ctor.prototype = proto;
+        
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             var v1Expr = this._fnNode1.toOdataFragment(entityType);
             var v2Expr;
             if (this.fnNode2 === undefined && !this._valueIsLiteral) {
@@ -8567,7 +8594,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
             var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
             var v1Fn = this._fnNode1.fn;
@@ -8589,11 +8616,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             
         };
 
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             return core.formatString("{%1} %2 {%3}", this._propertyOrExpr, this._filterQueryOp.operator, this._value);
         };
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             // throw if not valid
             this._fnNode1.validate(entityType);
             this.dataType = this._fnNode1.dataType;
@@ -8769,9 +8796,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             this._predicates = predicates;
         };
-        ctor.prototype = new Predicate({ prototype: true });
+        var proto  = new Predicate({ prototype: true });
+        ctor.prototype = proto;
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             if (this._predicates.length == 1) {
                 return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(entityType) + ")";
             } else {
@@ -8782,11 +8810,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             return createFunction(entityType, this._booleanQueryOp, this._predicates);
         };
 
-        ctor.prototype.toString = function () {
+        proto.toString = function () {
             if (this._predicates.length == 1) {
                 return this._booleanQueryOp.operator + " " + "(" + this._predicates[0] + ")";
             } else {
@@ -8797,7 +8825,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
         };
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             // will throw if not found;
             if (this._isValidated) return;
             this._predicates.every(function (p) {
@@ -8868,6 +8896,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             }
             return ctor.create(propertyPaths, isDesc);
         };
+        var proto = ctor.prototype;
 
         /*
         Alternative method of creating an OrderByClause. 
@@ -8920,7 +8949,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         @method addClause
         @param orderByClause {OrderByClause}
         */
-        ctor.prototype.addClause = function (orderByClause) {
+        proto.addClause = function (orderByClause) {
             return new CompositeOrderByClause([this, orderByClause]);
         };
 
@@ -8952,9 +8981,10 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.propertyPath = parts[0];
             this.isDesc = isDesc;
         };
-        ctor.prototype = new OrderByClause({ prototype: true });
+        var proto = new OrderByClause({ prototype: true });
+        ctor.prototype = proto;
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             if (!entityType) {
                 return;
             } // can't validate yet
@@ -8962,11 +8992,11 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.lastProperty = entityType.getProperty(this.propertyPath, true);
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
         };
 
-        ctor.prototype.getComparer = function () {
+        proto.getComparer = function () {
             var propertyPath = this.propertyPath;
             var isDesc = this.isDesc;
             var that = this;
@@ -9015,16 +9045,17 @@ function (core, m_entityMetadata, m_entityAspect) {
             this._orderByClauses = resultClauses;
 
         };
-        ctor.prototype = new OrderByClause({ prototype: true });
+        var proto = new OrderByClause({ prototype: true });
+        ctor.prototype = proto;
 
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             this._orderByClauses.forEach(function (obc) {
                 obc.validate(entityType);
             });
         };
 
-        ctor.prototype.toOdataFragment = function (entityType) {
+        proto.toOdataFragment = function (entityType) {
             var strings = this._orderByClauses.map(function (obc) {
                 return obc.toOdataFragment(entityType);
             });
@@ -9032,7 +9063,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             return strings.join(',');
         };
 
-        ctor.prototype.getComparer = function () {
+        proto.getComparer = function () {
             var orderByFuncs = this._orderByClauses.map(function (obc) {
                 return obc.getComparer();
             });
@@ -9058,8 +9089,9 @@ function (core, m_entityMetadata, m_entityAspect) {
                 return pp.replace(".", "_");
             });
         };
+        var proto = ctor.prototype;
 
-        ctor.prototype.validate = function (entityType) {
+        proto.validate = function (entityType) {
             if (!entityType) {
                 return;
             } // can't validate yet
@@ -9069,14 +9101,14 @@ function (core, m_entityMetadata, m_entityAspect) {
             });
         };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        proto.toOdataFragment = function(entityType) {
             var frag = this.propertyPaths.map(function (pp) {
                  return entityType._clientPropertyPathToServer(pp);
              }).join(",");
              return frag;
         };
         
-        ctor.prototype.toFunction = function (entityType) {
+        proto.toFunction = function (entityType) {
             var that = this;
             return function (entity) {
                 var result = {};
@@ -9097,13 +9129,15 @@ function (core, m_entityMetadata, m_entityAspect) {
         var ctor = function (propertyPaths) {
             this.propertyPaths = propertyPaths;
         };
+        
+        var proto = ctor.prototype;
        
 //        // TODO:
-//        ctor.prototype.validate = function (entityType) {
+//        proto.validate = function (entityType) {
 //            
 //        };
 
-        ctor.prototype.toOdataFragment = function(entityType) {
+        proto.toOdataFragment = function(entityType) {
             var frag = this.propertyPaths.map(function(pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(",");
@@ -9675,10 +9709,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.clear();
             
         };
-        ctor.prototype._$typeName = "EntityManager";
+        var proto = ctor.prototype;
+        
+        proto._$typeName = "EntityManager";
         
 
-        Event.bubbleEvent(ctor.prototype, null);
+        Event.bubbleEvent(proto, null);
         
         /**
         The service name associated with this EntityManager.
@@ -9779,7 +9815,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
         @return {Entity} A new Entity of the specified type.
         **/
-        ctor.prototype.createEntity = function (typeName, initialValues, entityState) {
+        proto.createEntity = function (typeName, initialValues, entityState) {
             entityState = entityState || EntityState.Added;
             var entity = this.metadataStore
                 .getEntityType(typeName)
@@ -9847,7 +9883,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
         @return {String} A serialized version of the exported data.
         **/
-        ctor.prototype.exportEntities = function (entities) {
+        proto.exportEntities = function (entities) {
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
                 metadataStore: this.metadataStore.exportMetadata(),
@@ -9893,7 +9929,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             merging into an existing EntityManager.
         @chainable
         **/
-        ctor.prototype.importEntities = function (exportedString, config) {
+        proto.importEntities = function (exportedString, config) {
             config = config || {};
             assertConfig(config)
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
@@ -9950,7 +9986,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // em1 is will now contain no entities, but all other setting will be maintained.
         @method clear
         **/
-        ctor.prototype.clear = function () {
+        proto.clear = function () {
             core.objectForEach(this._entityGroupMap, function (key, entityGroup) {
                 // remove en
                 entityGroup._clear();
@@ -9984,7 +10020,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [config.keyGeneratorCtor] {Function}
 
         **/
-        ctor.prototype.setProperties = function (config) {
+        proto.setProperties = function (config) {
             assertConfig(config)
                 .whereParam("serviceName").isString().isOptional()
                 .whereParam("dataService").isInstanceOf(DataService).isOptional()
@@ -10020,7 +10056,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method createEmptyCopy
         @return {EntityManager} A new EntityManager.
         **/
-        ctor.prototype.createEmptyCopy = function () {
+        proto.createEmptyCopy = function () {
             var copy = new ctor({
                 serviceName: this.serviceName,
                 dataService: this.dataService,
@@ -10050,7 +10086,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The entity to add.
         @return {Entity} The added entity.
         **/
-        ctor.prototype.addEntity = function (entity) {
+        proto.addEntity = function (entity) {
             return this.attachEntity(entity, EntityState.Added);
         };
 
@@ -10066,7 +10102,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
         @return {Entity} The attached entity.
         **/
-        ctor.prototype.attachEntity = function (entity, entityState) {
+        proto.attachEntity = function (entity, entityState) {
             core.assertParam(entity, "entity").isRequired().check();
             this.metadataStore._checkEntityType(entity);
             entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
@@ -10121,7 +10157,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The entity to detach.
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
         **/
-        ctor.prototype.detachEntity = function (entity) {
+        proto.detachEntity = function (entity) {
             core.assertParam(entity, "entity").isEntity().check();
             var aspect = entity.entityAspect;
             if (!aspect) {
@@ -10175,7 +10211,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
         **/
-        ctor.prototype.fetchMetadata = function (callback, errorCallback) {
+        proto.fetchMetadata = function (callback, errorCallback) {
             core.assertParam(callback, "callback").isFunction().isOptional().check();
             core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
@@ -10262,7 +10298,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
             would have been applied. 
         **/
-        ctor.prototype.executeQuery = function (query, callback, errorCallback) {
+        proto.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
             core.assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -10306,7 +10342,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param query {EntityQuery}  The {{#crossLink "EntityQuery"}}{{/crossLink}} to execute.
         @return  {Array of Entity}  Array of Entities
         **/
-        ctor.prototype.executeQueryLocally = function (query) {
+        proto.executeQueryLocally = function (query) {
             core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
@@ -10408,7 +10444,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @return {Promise} Promise
         **/
-        ctor.prototype.saveChanges = function (entities, saveOptions, callback, errorCallback) {
+        proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
             core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
             core.assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
             core.assertParam(callback, "callback").isFunction().isOptional().check();
@@ -10487,7 +10523,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
-        ctor.prototype.findEntityGroup = function (entityType) {
+        proto.findEntityGroup = function (entityType) {
             core.assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             return this._entityGroupMap[entityType.name];
         };
@@ -10517,8 +10553,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
-        ctor.prototype.getEntityByKey = function () {
-
+        proto.getEntityByKey = function () {
             var entityKey = createEntityKey(this, arguments).entityKey;
 
             var group = this.findEntityGroup(entityKey.entityType);
@@ -10575,7 +10610,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             promiseData.entityKey {EntityKey} The entityKey of the entity to fetch.
             promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
         **/
-        ctor.prototype.fetchEntityByKey = function () {
+        proto.fetchEntityByKey = function () {
             var tpl = createEntityKey(this, arguments);
             var entityKey = tpl.entityKey;
             var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
@@ -10614,7 +10649,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
         @return {Entity} An Entity or null;
         **/
-        ctor.prototype.findEntityByKey = function (entityKey) {
+        proto.findEntityByKey = function (entityKey) {
             return this.getEntityByKey(entityKey);
         };
 
@@ -10648,7 +10683,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @param entity {Entity} The Entity to generate a key for.
         @return {Object} The new key value
         **/
-        ctor.prototype.generateTempKeyValue = function (entity) {
+        proto.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
             core.assertParam(entity, "entity").isEntity().check();
             var entityType = entity.entityType;
@@ -10689,7 +10724,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
-        //ctor.prototype.hasChanges = function (entityTypes) {
+        //proto.hasChanges = function (entityTypes) {
         //    if (!this._hasChanges) return false;
         //    if (entityTypes === undefined) return this._hasChanges;
         //    return this._hasChangesCore(entityTypes);
@@ -10713,7 +10748,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         
         // backdoor the "really" check for changes.
-        ctor.prototype._hasChangesCore = function (entityTypes) {
+        proto._hasChangesCore = function (entityTypes) {
             entityTypes = checkEntityTypes(this, entityTypes);
             var entityGroups = getEntityGroups(this, entityTypes);
             return entityGroups.some(function (eg) {
@@ -10745,7 +10780,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Array of Entity} Array of Entities
         **/
-        ctor.prototype.getChanges = function (entityTypes) {
+        proto.getChanges = function (entityTypes) {
             entityTypes = checkEntityTypes(this, entityTypes);
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             return this._getEntitiesCore(entityTypes, entityStates);
@@ -10761,7 +10796,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Array of Entity} The entities whose changes were rejected. These entities will all have EntityStates of 
         either 'Unchanged' or 'Detached'
         **/
-        ctor.prototype.rejectChanges = function () {
+        proto.rejectChanges = function () {
             if (!this._hasChanges) return [];
             var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
             var changes = this._getEntitiesCore(null, entityStates);
@@ -10805,7 +10840,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, entities of all EntityStates are returned. 
         @return {Array of Entity} Array of Entities
         **/
-        ctor.prototype.getEntities = function (entityTypes, entityStates) {
+        proto.getEntities = function (entityTypes, entityStates) {
             entityTypes = checkEntityTypes(this, entityTypes);
             core.assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
             
@@ -10832,7 +10867,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // protected methods
 
-        ctor.prototype._notifyStateChange = function (entity, needsSave) {
+        proto._notifyStateChange = function (entity, needsSave) {
             this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
 
             if (needsSave) {
@@ -10852,7 +10887,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         };
 
-        ctor.prototype._getEntitiesCore = function (entityTypes, entityStates) {
+        proto._getEntitiesCore = function (entityTypes, entityStates) {
             var entityGroups = getEntityGroups(this, entityTypes);
 
             // TODO: think about writing a core.mapMany method if we see more of these.
@@ -10870,7 +10905,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return selected || [];
         };
 
-        ctor.prototype._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
+        proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
             var key = parentEntityKey.toString();
             var children = this._unattachedChildrenMap[key];
             if (!children) {
@@ -10881,7 +10916,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         
-        ctor.prototype._linkRelatedEntities = function (entity) {
+        proto._linkRelatedEntities = function (entity) {
             var em = this;
             var entityAspect = entity.entityAspect;
             // we do not want entityState to change as a result of linkage.
@@ -11828,8 +11863,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this._entities = [];
             this._emptyIndexes = [];
         };
+        var proto = ctor.prototype;
 
-        ctor.prototype.attachEntity = function (entity, entityState) {
+        proto.attachEntity = function (entity, entityState) {
             // entity should already have an aspect.
             var ix;
             var aspect = entity.entityAspect;
@@ -11855,7 +11891,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return entity;
         };
 
-        ctor.prototype.detachEntity = function (entity) {
+        proto.detachEntity = function (entity) {
             // by this point we have already determined that this entity 
             // belongs to this group.
             var aspect = entity.entityAspect;
@@ -11877,7 +11913,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
 
         // returns entity based on an entity key defined either as an array of key values or an EntityKey
-        ctor.prototype.findEntityByKey = function (entityKey) {
+        proto.findEntityByKey = function (entityKey) {
             var keyInGroup;
             if (entityKey instanceof EntityKey) {
                 keyInGroup = entityKey._keyInGroup;
@@ -11889,11 +11925,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return (ix !== undefined) ? this._entities[ix] : null;
         };
 
-        ctor.prototype.hasChanges = function() {
+        proto.hasChanges = function() {
             return this._entities.some(__changedFilter);
         };
 
-        ctor.prototype.getEntities = function (entityStates) {
+        proto.getEntities = function (entityStates) {
             var filter = getFilter(entityStates);
             var changes = this._entities.filter(filter);
             return changes;
@@ -11902,7 +11938,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
         // just for the entityManager clear method - the entityGroup will be in an inconsistent state
         // after this op, which is ok because it will be thrown away.
-        ctor.prototype._clear = function() {
+        proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
                     var aspect = entity.entityAspect;
@@ -11913,7 +11949,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         };
 
-        ctor.prototype._fixupKey = function (tempValue, realValue) {
+        proto._fixupKey = function (tempValue, realValue) {
             // single part keys appear directly in map
             var ix = this._indexMap[tempValue];
             if (ix === undefined) {
@@ -11928,7 +11964,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this._indexMap[realValue] = ix;
         };
 
-        ctor.prototype._replaceKey = function(oldKey, newKey) {
+        proto._replaceKey = function(oldKey, newKey) {
             var ix = this._indexMap[oldKey._keyInGroup];
             delete this._indexMap[oldKey._keyInGroup];
             this._indexMap[newKey._keyInGroup] = ix;
@@ -12035,7 +12071,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.mergeStrategy = MergeStrategy.PreserveChanges;
             updateWithConfig(this, config);
         };
-        
+        var proto = ctor.prototype;
      
 
         /**
@@ -12050,7 +12086,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @property mergeStrategy {MergeStrategy}
         **/
 
-        ctor.prototype._$typeName = "QueryOptions";
+        proto._$typeName = "QueryOptions";
 
         /**
         The default value whenever QueryOptions are not specified.
@@ -12075,7 +12111,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {QueryOptions}
         @chainable
         **/
-        ctor.prototype.using = function(config) {
+        proto.using = function(config) {
             var result = new QueryOptions(this);
             if (MergeStrategy.contains(config)) {
                 config = { mergeStrategy: config };
@@ -12093,12 +12129,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             newQo.setAsDefault();
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
 
-        ctor.prototype.toJSON = function () {
+        proto.toJSON = function () {
             return {
                 fetchStrategy: this.fetchStrategy.name,
                 mergeStrategy: this.mergeStrategy.name
@@ -12144,14 +12180,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 .applyAll(this);
                         
         };
-        ctor.prototype._$typeName = "SaveOptions";
+        var proto = ctor.prototype;
+        proto._$typeName = "SaveOptions";
         
         /**
         Makes this instance the default instance.
         @method setAsDefault
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
@@ -12200,6 +12237,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.validateOnPropertyChange = true;
             updateWithConfig(this, config);
         };
+        var proto = ctor.prototype;
 
         /**
         Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.
@@ -12229,7 +12267,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @property validateOnPropertyChange {Boolean}
         **/
 
-        ctor.prototype._$typeName = "ValidationOptions";
+        proto._$typeName = "ValidationOptions";
         
         /**
         Returns a copy of this ValidationOptions with changes to the specified config properties.
@@ -12245,7 +12283,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {ValidationOptions}
         @chainable
         **/
-        ctor.prototype.using = function(config) {
+        proto.using = function(config) {
             var result = new ValidationOptions(this);
             updateWithConfig(result, config);
             return result;
@@ -12260,7 +12298,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method setAsDefault
         @chainable
         **/
-        ctor.prototype.setAsDefault = function() {
+        proto.setAsDefault = function() {
             ctor.defaultInstance = this;
             return this;
         };
@@ -12338,7 +12376,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "0.85.2",
+        version: "1.0.0",
         core: core,
         config: a_config
     };
