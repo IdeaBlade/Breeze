@@ -17,17 +17,17 @@ namespace NoDb.Controllers {
     [BreezeController]
     public class TodoController : ApiController
     {
-        private readonly TodoContextProvider _context;
+        private readonly TodoRepository _repository;
 
         public TodoController() {
-            _context = new TodoContextProvider();
+            _repository = new TodoRepository();
         }
 
         // GET ~/api/BreezeTodo/TodoList
         [HttpGet]
         public IQueryable<TodoList> TodoLists()
         {
-            return _context.TodoLists
+            return _repository.TodoLists
                 .OrderByDescending(t => t.TodoListId);
         }
 
@@ -35,7 +35,7 @@ namespace NoDb.Controllers {
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-            return _context.SaveChanges(saveBundle);
+            return _repository.SaveChanges(saveBundle);
         }
 
     }
