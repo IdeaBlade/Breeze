@@ -69,7 +69,8 @@ define(["testFns"], function (testFns) {
         // Breeze converted it into a KO property and initialized it
         equal(cust.isBeingEdited(), false,
             "'isBeingEdited' should be a KO 'property' returning false");
-    }); 
+    });
+
     /*********************************************************
     * can 'new' the ctor .. but not a full entity until added to manager
     * not recommended; prefer CreateEntity approach
@@ -119,7 +120,38 @@ define(["testFns"], function (testFns) {
         equal(cust.foo(), 42,
             "'foo' should be a KO 'property' returning 42");
     });
+    /*********************************************************
+    * reject changes reverts changes to an unmapped property
+    *********************************************************/
+    test("reject changes reverts changes to an unmapped property", 2, function () {
+        var store = cloneModuleMetadataStore();
 
+        var originalTime = new Date(2013, 0, 1);
+        var Customer = function () {
+            this.lastTouched = originalTime;
+        };
+
+        store.registerEntityTypeCtor("Customer", Customer);
+
+        var manager = newEm(store);
+
+        // create a fake customer
+        var cust = manager.createEntity("Customer", { CompanyName: "Acme" },
+            breeze.EntityState.Unchanged);
+        var touched = cust.lastTouched();
+
+        // an hour passes ... and we visit the customer object
+        cust.CompanyName("Beta");
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+
+        // an hour passes ... and we visit to cancel
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+        cust.entityAspect.rejectChanges(); // roll back name change
+
+        equal(cust.CompanyName(), "Acme", "name should be rolled back");
+        equal(originalTime - cust.lastTouched(), 0,
+            "unmapped property, 'lastTouched', was rolled back");
+    });
     /*********************************************************
     * add instance function via constructor
     *********************************************************/
@@ -630,6 +662,98 @@ define(["testFns"], function (testFns) {
             ok(typeof cust2.adHocProperty === "undefined",
                 "cust2.adHocProperty should be undefined");
 
+        });
+
+    /*********************************************************
+    * createEntity sequence is ctor, init-vals, init-er, add
+    *********************************************************/
+    test("createEntity sequence is ctor, init-vals, init-er, add", 1,
+        function () {
+            /* Arrange */
+            var expected = {
+                ctor: "constructor",
+                initVals: "initialValues",
+                initer: "initializer",
+                attach: "added to manager"
+            };
+            var actual = [];
+            var store = cloneModuleMetadataStore();
+            store.registerEntityTypeCtor(
+                'Customer',
+                function () { // ctor
+                    actual.push(expected.ctor);
+                    this.initialValue = ko.observable("");
+                    // will assign with initial values hash
+                    this.initialValue.subscribe(function() {
+                        actual.push(expected.initVals);
+                    });
+                },
+                function () {
+                    actual.push(expected.initer);
+                });
+            actual = []; // reset after registration
+            
+            var em = newEm(store);
+            em.entityChanged.subscribe(function (args) {
+                if (args.entityAction === breeze.EntityAction.Attach) {
+                    actual.push(expected.attach);
+                }
+            });
+            
+            /* ACT */
+            var cust = em.createEntity('Customer', { initialValue: expected[1] });
+            
+            /* ASSERT */
+            var exp = [];
+            for (var prop in expected) { exp.push(expected[prop]);}
+            deepEqual(actual, exp,
+                "Call sequence should be: "+exp.join(", "));
+        });
+
+    /*********************************************************
+    * query sequence is ctor, init-er, merge
+    *********************************************************/
+    test("query entity sequence is ctor, init-er, merge", 1,
+        function () {
+            /* Arrange */
+            var expected = {
+                ctor: "constructor",
+                initer: "initializer",
+                attach: "merge"
+            };
+            var actual = [];
+            var store = cloneModuleMetadataStore();
+            store.registerEntityTypeCtor(
+                'Customer',
+                function () { // ctor
+                    actual.push(expected.ctor);
+                },
+                function () {
+                    actual.push(expected.initer);
+                });
+            actual = []; // reset after registration
+
+            var em = newEm(store);
+            em.entityChanged.subscribe(function (args) {
+                if (args.entityAction === breeze.EntityAction.AttachOnQuery) {
+                    actual.push(expected.attach);
+                }
+            });
+
+            /* ACT */
+            stop();
+            EntityQuery
+                .from('Customers').take(1)
+                .using(em).execute()
+                .then(success).fail(handleFail).fin(start);
+
+            /* ASSERT */
+            function success() {
+                var exp = [];
+                for (var prop in expected) { exp.push(expected[prop]); }
+                deepEqual(actual, exp,
+                    "Call sequence should be: " + exp.join(", "));
+            }
         });
     /*********************************************************
     * can define custom temporary key generator

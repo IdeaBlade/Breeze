@@ -260,37 +260,39 @@ define(["testFns"], function (testFns) {
 
     /****** CUSTOM VALIDATORS *******/
 
-    function countryIsUSValidationFn(value, context) {
+    // custom validator ensures "Country" is US
+    // validator needs no parameters
+    var countryIsUSValidator = new Validator(
+        "countryIsUS",              // validator name
+        countryIsUSValidationFn,    // validation function
+        {                           // validator context
+            messageTemplate: "'%displayName%' must start with 'US'"
+        });
+
+    function countryIsUSValidationFn(value) {
         if (value == null) return true; // '== null' matches null and empty string
         return value.toUpperCase().startsWith("US");
     };
 
-    // custom validator ensures "Country" is US
-    var countryIsUSValidator = new Validator(
-        "countryIsUS",              // validator name
-        countryIsUSValidationFn,        // validation function
-        {                           // validator context
-        messageTemplate: "'%displayName%' must start with 'US'"
-    });
+    // validator takes a country parameter so we wrap it in
+    // a "validator factory". At runtime, call with the country parameter
+    // and it returns a countryValidator with parameters filled
+    function countryValidatorFactory(context) {
 
+        return new Validator(
+            "countryIsIn",        // validator name
+            countryValidationFn,  // validation function
+            {                     // validator context
+                messageTemplate: "'%displayName%' must start with '%country%'",
+                country: context.country
+            });
+    }
 
     function countryValidationFn(value, context) {
         if (value == null) return true; // '== null' matches null and empty string
         return value.toUpperCase().startsWith(context.country.toUpperCase());
     };
-
-    // returns a countryValidator with its parameters filled
-    function countryValidatorFactory(context) {
-
-        return new Validator(
-            "countryIsIn" + context.country, // validator name
-            countryValidationFn,             // validation function
-            {                                // validator context
-            messageTemplate: "'%displayName%' must start with '%country%'",
-            country: context.country
-        });
-    }
-
+    
     // The value to assess will be an entity 
     // with Country and PostalCode properties
     function zipCodeValidationFn(entity, context) {

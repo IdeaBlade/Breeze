@@ -26,9 +26,9 @@ namespace NoDb.Models
             {
                 errs += "Title is required";
             }
-            else if (Title.Length > 30)
+            else if (Title.Length > 20)
             {
-                errs += "Title cannot be longer than 30 characters";
+                errs += "Title cannot be longer than 20 characters";
             }
             return errs;
         }
