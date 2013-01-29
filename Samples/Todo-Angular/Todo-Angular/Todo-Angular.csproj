@@ -104,7 +104,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Content\reset.css" />
     <Content Include="Content\toastr-responsive.css" />
     <Content Include="Content\toastr.css" />
@@ -116,8 +115,9 @@
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\controller.js" />
+    <None Include="Scripts\breeze.intellisense.js" />       
     <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.js" />
+    <Content Include="Scripts\breeze.min.js" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.3.js" />
     <Content Include="Scripts\jquery-1.8.3.min.js" />

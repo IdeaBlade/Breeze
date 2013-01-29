@@ -98,7 +98,6 @@
     <Content Include="favicon.ico" />
     <Content Include="Index.html" />
     <Content Include="Scripts\breeze.savequeuing.js" />
-    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -163,8 +162,9 @@
     <Content Include="Scripts\app\todo.datacontext.js" />
     <Content Include="Scripts\app\todo.model.js" />
     <Content Include="Scripts\app\todo.viewmodel.js" />
+    <None Include="Scripts\breeze.intellisense.js" />    
     <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.js" />
+    <Content Include="Scripts\breeze.min.js" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.3.js" />
     <Content Include="Scripts\jquery-1.8.3.min.js" />
