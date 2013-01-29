@@ -42,13 +42,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.WebApi.0.85.2\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.WebApi.1.0.0\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.0.85.2\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.WebApi.1.0.0\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -112,7 +112,7 @@
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\viewModel.js" />
-    <None Include="Scripts\breeze.intellisense.js" />       
+    <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.min.js" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />
