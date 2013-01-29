@@ -112,7 +112,7 @@
     </WizardExtension>
     <WizardData>
         <packages repository="registry" keyName="AspNetMvc4VS11" isPreunzipped="true">
-		    <package id="Breeze.WebApi" version="1.0.0" skipAssemblyReferences="true" />
+		    <package id="Breeze.WebApi" version="1.0.1" skipAssemblyReferences="true" />
             <package id="EntityFramework" version="5.0.0" skipAssemblyReferences="true" />
             <package id="jQuery" version="1.8.2" />
             <package id="jQuery.Validation" version="1.10.0" />

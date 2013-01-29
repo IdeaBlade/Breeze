@@ -217,11 +217,11 @@
     <!-- Added for Breeze SPA Template -->
      <Reference Include="Breeze.WebApi, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">                                                                                                                                                  
         <Private>True</Private>                                                                                                                                                             
-        <HintPath>$nugetpackagesfolder$Breeze.WebApi.1.0.0\lib\Breeze.WebApi.dll</HintPath>                                                                                                    
+        <HintPath>$nugetpackagesfolder$Breeze.WebApi.1.0.1\lib\Breeze.WebApi.dll</HintPath>                                                                                                    
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <Private>True</Private> 
-      <HintPath>$nugetpackagesfolder$Breeze.WebApi.1.0.0\lib\Irony.dll</HintPath>
+      <HintPath>$nugetpackagesfolder$Breeze.WebApi.1.0.1\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="WebActivator">
       <Private>True</Private> 
