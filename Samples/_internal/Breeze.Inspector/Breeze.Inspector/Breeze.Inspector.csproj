@@ -291,7 +291,7 @@ echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Clien
 GOTO :done
 :breezeExists
 echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
 :done</PreBuildEvent>
