@@ -23,9 +23,9 @@
     </metadata>
     <files>
         <file src="content\App_Start\BreezeWebApiConfig.cs.pp" target="content\App_Start\BreezeWebApiConfig.cs.pp" />
+        <file src="content\Scripts\breeze.intellisense.js" target="content\Scripts\breeze.intellisense.js" />
         <file src="content\Scripts\breeze.debug.js" target="content\Scripts\breeze.debug.js" />
-		<file src="content\Scripts\breeze.js" target="content\Scripts\breeze.js" />
-		<file src="content\Scripts\breeze.intellisense.js" target="content\Scripts\breeze.intellisense.js" />
+		<file src="content\Scripts\breeze.min.js" target="content\Scripts\breeze.min.js" />
         <file src="content\Scripts\q.js" target="content\Scripts\q.js" />
 		<file src="content\Scripts\q.min.js" target="content\Scripts\q.min.js" />
         <file src="lib\Breeze.WebApi.dll" target="lib\Breeze.WebApi.dll" />
