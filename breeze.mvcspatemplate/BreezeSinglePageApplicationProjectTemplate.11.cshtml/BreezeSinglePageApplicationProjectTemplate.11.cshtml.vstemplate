@@ -58,21 +58,6 @@
             </Folder>
             <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax">Global.asax</ProjectItem>
             <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax.cs">Global.asax.cs</ProjectItem>
-            <Folder Name="Images" TargetFolderName="Images">
-                <ProjectItem ReplaceParameters="false" TargetFileName="accent.png">accent.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="bullet.png">bullet.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="heroAccent.png">heroAccent.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList0.png">orderedList0.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList1.png">orderedList1.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList2.png">orderedList2.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList3.png">orderedList3.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList4.png">orderedList4.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList5.png">orderedList5.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList6.png">orderedList6.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList7.png">orderedList7.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList8.png">orderedList8.png</ProjectItem>
-                <ProjectItem ReplaceParameters="false" TargetFileName="orderedList9.png">orderedList9.png</ProjectItem>
-            </Folder>
             <Folder Name="Models" TargetFolderName="Models">
                 <ProjectItem ReplaceParameters="true" TargetFileName="AccountModels.cs">AccountModels.cs</ProjectItem>
                 <ProjectItem ReplaceParameters="true" TargetFileName="TodoList.cs">TodoList.cs</ProjectItem>
