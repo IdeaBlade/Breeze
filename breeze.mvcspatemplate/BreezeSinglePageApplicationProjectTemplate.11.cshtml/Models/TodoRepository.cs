@@ -71,6 +71,8 @@ namespace $safeprojectname$.Models
         // "this.Context" is reserved for Breeze save only!
         // A second, lazily instantiated DbContext will be used
         // for db access during custom save validation. 
+        // See this stackoverflow question and reply for an explanation:
+        // http://stackoverflow.com/questions/14517945/using-this-context-inside-beforesaveentity
         private TodoItemContext ValidationContext
         {
             get { return _validationContext ?? (_validationContext = new TodoItemContext()); }
