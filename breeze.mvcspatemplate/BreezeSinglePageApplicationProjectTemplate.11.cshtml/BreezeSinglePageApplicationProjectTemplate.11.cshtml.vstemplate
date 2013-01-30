@@ -35,7 +35,6 @@
                 <ProjectItem ReplaceParameters="true" TargetFileName="FilterConfig.cs">FilterConfig.cs</ProjectItem>
                 <ProjectItem ReplaceParameters="true" TargetFileName="RouteConfig.cs">RouteConfig.cs</ProjectItem>
 				<ProjectItem ReplaceParameters="true" TargetFileName="WebApiConfig.cs">WebApiConfig.SinglePage.cs</ProjectItem>
-                <ProjectItem ReplaceParameters="true" TargetFileName="BreezeWebApiConfig.cs">BreezeWebApiConfig.cs</ProjectItem>
             </Folder> 
             <Folder Name="Areas" TargetFolderName="Areas">
                 <Folder Name="HelpPage" TargetFolderName="HelpPage">
