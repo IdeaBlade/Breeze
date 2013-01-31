@@ -40,6 +40,12 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     var logger = window.app.logger;
     var suspendItemSave;
 
+    $scope.searchText = "";
+    $scope.itemFilter = function (todoItem) {
+        return todoItem.Description.toLowerCase()
+               .indexOf($scope.searchText.toLowerCase()) != -1;
+    };
+
     $scope.newTodo = "";
     $scope.items = [];
     $scope.includeArchived = false;

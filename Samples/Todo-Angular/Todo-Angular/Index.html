@@ -31,9 +31,11 @@
                 <input id="includeArchived" type="checkbox" data-ng-model="includeArchived" data-ng-click="getAllTodos()" />
                 <label for="includeArchived" class="archived">Show archived</label>
             </div>
-
+            <div>
+              <input data-ng-model="searchText" type="search" placeholder="Search" />
+            </div>
             <ul>
-                <li data-ng-repeat="item in items">
+                <li data-ng-repeat="item in items | filter:itemFilter">
                     <div data-ng-show="!(item.isEditing)">
                          <!--data-ng-class on the checkbox in the next line is a fix for a subtle IE9 repaint bug-->
                         <input type="checkbox" data-ng-model="item.IsDone" data-ng-class="{done: item.IsDone}" />
