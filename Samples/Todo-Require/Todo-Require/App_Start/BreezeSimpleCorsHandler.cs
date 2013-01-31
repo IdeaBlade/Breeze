@@ -20,6 +20,7 @@ namespace Breeze.WebApi
     /// http://blog.bittercoder.com/2012/09/09/cors-and-webapi/
     /// Install early in Web Api Pipeline, 
     /// perhaps in Global.asax or BreezeWebApiConfig
+    /// Set "runaAllManagedModulesForAllRequests" in Web.config for < IIS 8    
     /// </remarks>
     /// <example>
     /// // In Global.asax

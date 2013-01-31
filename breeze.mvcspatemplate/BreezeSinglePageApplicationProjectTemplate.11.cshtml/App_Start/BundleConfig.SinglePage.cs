@@ -27,6 +27,7 @@ namespace $safeprojectname$
             bundles.Add(new ScriptBundle("~/bundles/breeze").Include(
                         "~/Scripts/q.js",
                         "~/Scripts/breeze.debug.js",
+                        "~/Scripts/breeze.min.js",
                         "~/Scripts/breeze.savequeuing.js"));
 
 			bundles.Add(new ScriptBundle("~/bundles/todo").Include(

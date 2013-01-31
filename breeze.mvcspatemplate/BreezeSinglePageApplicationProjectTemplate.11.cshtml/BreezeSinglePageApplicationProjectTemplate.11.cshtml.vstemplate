@@ -35,7 +35,6 @@
                 <ProjectItem ReplaceParameters="true" TargetFileName="FilterConfig.cs">FilterConfig.cs</ProjectItem>
                 <ProjectItem ReplaceParameters="true" TargetFileName="RouteConfig.cs">RouteConfig.cs</ProjectItem>
 				<ProjectItem ReplaceParameters="true" TargetFileName="WebApiConfig.cs">WebApiConfig.SinglePage.cs</ProjectItem>
-                <ProjectItem ReplaceParameters="true" TargetFileName="BreezeWebApiConfig.cs">BreezeWebApiConfig.cs</ProjectItem>
             </Folder> 
             <Folder Name="Areas" TargetFolderName="Areas">
                 <Folder Name="HelpPage" TargetFolderName="HelpPage">
@@ -112,7 +111,7 @@
     </WizardExtension>
     <WizardData>
         <packages repository="registry" keyName="AspNetMvc4VS11" isPreunzipped="true">
-		    <package id="Breeze.WebApi" version="1.0.0" skipAssemblyReferences="true" />
+		    <package id="Breeze.WebApi" version="1.0.1" skipAssemblyReferences="true" />
             <package id="EntityFramework" version="5.0.0" skipAssemblyReferences="true" />
             <package id="jQuery" version="1.8.2" />
             <package id="jQuery.Validation" version="1.10.0" />

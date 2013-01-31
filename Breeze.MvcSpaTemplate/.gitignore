@@ -1,7 +1,4 @@
-breeze.debug.js
-breeze.intellisense.js
-breeze.js
-breeze.min.js
+breeze.*.js
 
 # template examples
 BreezeMvcSpaTemplateSample
