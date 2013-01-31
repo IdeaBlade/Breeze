@@ -41,9 +41,14 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     var suspendItemSave;
 
     $scope.searchText = "";
+    
+    // Beware: this is called a lot!
     $scope.itemFilter = function (todoItem) {
-        return todoItem.Description.toLowerCase()
-               .indexOf($scope.searchText.toLowerCase()) != -1;
+        var searchText = $scope.searchText;
+        return searchText ?
+            // if there is search text, look for it in the description; else return true
+            -1 != todoItem.Description.toLowerCase().indexOf(searchText.toLowerCase()) :
+            true;
     };
 
     $scope.newTodo = "";
