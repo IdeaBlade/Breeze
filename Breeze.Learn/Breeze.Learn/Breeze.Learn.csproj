@@ -42,15 +42,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.83.2\lib\Breeze.WebApi.dll</HintPath>
+    <Reference Include="Breeze.WebApi, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Breeze.WebApi.1.0.1\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.MVC4WebApi.0.83.2\lib\Irony.dll</HintPath>
+    <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Breeze.WebApi.1.0.1\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json">
@@ -215,9 +217,9 @@
     <Content Include="Images\arrowdown.png" />
     <Content Include="Images\arrows.png" />
     <Content Include="Images\x.png" />
-    <Content Include="Scripts\breeze.debug.js" />
     <None Include="Scripts\breeze.intellisense.js" />
-    <Content Include="Scripts\breeze.js" />
+    <Content Include="Scripts\breeze.debug.js" />
+    <Content Include="Scripts\breeze.min.js" />
     <Content Include="Scripts\editor\codemirror.js" />
     <Content Include="Scripts\editor\css.js" />
     <Content Include="Scripts\editor\htmlmixed.js" />
