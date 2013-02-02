@@ -17,6 +17,7 @@ Unused
 *.suo
 packages
 .idea
+thumbs.db
 
 GetFtpCredential.ps1
 
