@@ -33,7 +33,7 @@ define(["coreFns"], function (core) {
     proto.isNonEmptyString = function() {
         return addContext(this, {
             fn: isNonEmptyString,
-            msg: " must be a nonEmpty string"
+            msg: "must be a nonEmpty string"
         });
     };
     
@@ -55,7 +55,7 @@ define(["coreFns"], function (core) {
         return addContext(this, {
             fn: isTypeOf,
             typeName: typeName,
-            msg: core.formatString(" must be a '%1'", typeName)
+            msg: core.formatString("must be a '%1'", typeName)
         });
     };
     
@@ -70,7 +70,7 @@ define(["coreFns"], function (core) {
             fn: isInstanceOf,
             type: type,
             typeName: typeName || type.prototype._$typeName,
-            msg: core.formatString(" must be an instance of '%1'", typeName)
+            msg: core.formatString("must be an instance of '%1'", typeName)
         });
     };
     
@@ -83,7 +83,7 @@ define(["coreFns"], function (core) {
         return addContext(this, {
             fn: hasProperty,
             propertyName: propertyName,
-            msg: core.formatString(" must have a '%1' property ", propertyName)
+            msg: core.formatString("must have a '%1' property ", propertyName)
         });
     };
     
@@ -96,7 +96,7 @@ define(["coreFns"], function (core) {
         return addContext(this, {
             fn: isEnumOf,
             enumType: enumType,
-            msg: core.formatString(" must be an instance of the '%1' enumeration", enumType.name)
+            msg: core.formatString("must be an instance of the '%1' enumeration", enumType.name)
         });
     };
     
@@ -109,7 +109,7 @@ define(["coreFns"], function (core) {
         return addContext(this, {
             fn: isRequired,
             allowNull: allowNull,
-            msg: " is required"
+            msg: "is required"
         });
     };
     
@@ -145,7 +145,7 @@ define(["coreFns"], function (core) {
     function isOptionalMessage(context, v) {
         var prevContext = context.prevContext;
         var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
-        return " is optional" + element;
+        return "is optional" + element;
     }
 
     proto.isNonEmptyArray = function () {
@@ -268,7 +268,7 @@ define(["coreFns"], function (core) {
         var that = this;
         var message = this._contexts.map(function (context) {
             return getMessage(context, that.v);
-        }).join(", or it");
+        }).join(", or it ");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
