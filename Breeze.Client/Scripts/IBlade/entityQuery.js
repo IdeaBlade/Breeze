@@ -1526,7 +1526,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             assertParam(propertyOrExpr, "propertyOrExpr").isString().check();
             assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, "value").isRequired().check();
+            assertParam(value, "value").isRequired(true).check();
             assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
             this._propertyOrExpr = propertyOrExpr;

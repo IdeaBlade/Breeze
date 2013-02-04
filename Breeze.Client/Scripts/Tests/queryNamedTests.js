@@ -139,6 +139,7 @@ define(["testFns"], function (testFns) {
             testFns.handleFail(e);
         }).fin(start);
     });
+    
 
     test("project enumerables", function() {
         var em = newEm();
@@ -187,6 +188,24 @@ define(["testFns"], function (testFns) {
             results.forEach(function(r) {
                 ok(r.companyName.substr(0, 1) === "A", "should start with an 'A'");
                 ok(r.customerID, "should have a customerId");
+            });
+        }).fail(function (e) {
+            testFns.handleFail(e);
+        }).fin(start);
+    });
+    
+    test("project filtered collection", function () {
+        var em = newEm();
+
+        var query = EntityQuery.from("CustomersWithBigOrders")
+            .where("customer.companyName", "startsWith", "A")
+            .using(em);
+        stop();
+        query.execute().then(function (data) {
+            var results = data.results;
+            ok(results.length > 0);
+            results.forEach(function (r) {
+                var x = r;
             });
         }).fail(function (e) {
             testFns.handleFail(e);

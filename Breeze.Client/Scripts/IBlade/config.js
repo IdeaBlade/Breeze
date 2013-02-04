@@ -87,8 +87,8 @@ function (core) {
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
     **/
     a_config.registerAdapter = function (interfaceName, adapterCtor) {
-        assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(adapterCtor, "adapterCtor").isFunction();
+        assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
+        assertParam(adapterCtor, "adapterCtor").isFunction().check();
         // this impl will be thrown away after the name is retrieved.
         var impl = new adapterCtor();
         var implName = impl.name;
@@ -193,22 +193,22 @@ function (core) {
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
     a_config.registerFunction = function (fn, fnName) {
-        core.assertParam(fn, "fn").isFunction().check();
-        core.assertParam(fnName, "fnName").isString().check();
+        assertParam(fn, "fn").isFunction().check();
+        assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         a_config.functionRegistry[fnName] = fn;
     };
 
     a_config.registerObject = function (obj, objName) {
-        core.assertParam(obj, "obj").isObject().check();
-        core.assertParam(objName, "objName").isString().check();
+        assertParam(obj, "obj").isObject().check();
+        assertParam(objName, "objName").isString().check();
 
         a_config.objectRegistry[objName] = obj;
     };
   
     a_config.registerType = function (ctor, typeName) {
-        core.assertParam(ctor, "ctor").isFunction().check();
-        core.assertParam(typeName, "typeName").isString().check();
+        assertParam(ctor, "ctor").isFunction().check();
+        assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
         a_config.typeRegistry[typeName] = ctor;
     };

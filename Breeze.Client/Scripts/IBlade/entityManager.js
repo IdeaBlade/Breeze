@@ -516,9 +516,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Entity} The attached entity.
         **/
         proto.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, "entity").isRequired().check();
+            assertParam(entity, "entity").isRequired().check();
             this.metadataStore._checkEntityType(entity);
-            entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
+            entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             if (entity.entityType.metadataStore != this.metadataStore) {
                 throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
@@ -571,7 +571,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
         **/
         proto.detachEntity = function (entity) {
-            core.assertParam(entity, "entity").isEntity().check();
+            assertParam(entity, "entity").isEntity().check();
             var aspect = entity.entityAspect;
             if (!aspect) {
                 // no aspect means in couldn't appear in any group
@@ -625,8 +625,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
         **/
         proto.fetchMetadata = function (callback, errorCallback) {
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
             var promise = this.metadataStore.fetchMetadata(this.dataService);
 
@@ -713,9 +713,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
-            core.assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             var promise;
             if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
                 promise = executeQueryCore(this, query);
@@ -756,7 +756,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return  {Array of Entity}  Array of Entities
         **/
         proto.executeQueryLocally = function (query) {
-            core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
+            assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
             var entityType = query._getEntityType(metadataStore, true);
@@ -858,10 +858,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Promise} Promise
         **/
         proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
-            core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
-            core.assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(entities, "entities").isOptional().isArray().isEntity().check();
+            assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
             var isFullSave = entities == null;
@@ -937,7 +937,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
         proto.findEntityGroup = function (entityType) {
-            core.assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+            assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             return this._entityGroupMap[entityType.name];
         };
 
@@ -1098,7 +1098,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
-            core.assertParam(entity, "entity").isEntity().check();
+            assertParam(entity, "entity").isEntity().check();
             var entityType = entity.entityType;
             var nextKeyValue = this.keyGenerator.generateTempKeyValue(entityType);
             var keyProp = entityType.keyProperties[0];
@@ -1255,7 +1255,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.getEntities = function (entityTypes, entityStates) {
             entityTypes = checkEntityTypes(this, entityTypes);
-            core.assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
+            assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
             
             if (entityStates) {
                 entityStates = validateEntityStates(this, entityStates);
@@ -1266,7 +1266,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // takes in entityTypes as either strings or entityTypes or arrays of either
         // and returns either an entityType or an array of entityTypes or throws an error
         function checkEntityTypes(em, entityTypes) {
-            core.assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
+            assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
                 .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             if (typeof entityTypes === "string") {
                 entityTypes = em.metadataStore.getEntityType(entityTypes, false);

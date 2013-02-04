@@ -83,6 +83,8 @@ namespace Sample_WebApi.Controllers {
       return custs;
     }
 
+    
+
     [HttpGet]
     public Customer CustomerWithScalarResult() {
       return ContextProvider.Context.Customers.First();
@@ -167,6 +169,14 @@ namespace Sample_WebApi.Controllers {
       var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID });
       return stuff;
     }
+
+    [HttpGet]
+    public IQueryable<Object> CustomersWithBigOrders() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { Customer = c, BigOrders = c.Orders.Where(o => o.Freight > 100) });
+      return stuff;
+    }
+
+     
 
     [HttpGet]
     public IQueryable<Object> CompanyInfoAndOrders() {

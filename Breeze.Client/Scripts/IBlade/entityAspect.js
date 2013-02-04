@@ -447,7 +447,7 @@ function (core, a_config, m_validate) {
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
         proto.getKey = function(forceRefresh) {
-            forceRefresh = core.assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
+            forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
                 var keyProps = entityType.keyProperties;
@@ -700,7 +700,7 @@ function (core, a_config, m_validate) {
         @return {Array of ValidationError}
         **/
         proto.getValidationErrors = function (property) {
-            assertParam(property, "property").isOptional().isEntityProperty().or().isString();
+            assertParam(property, "property").isOptional().isEntityProperty().or().isString().check();
             var result = core.getOwnPropertyValues(this._validationErrors);
             if (property) {
                 var propertyName = typeof (property) === 'string' ? property : property.name;
@@ -731,7 +731,7 @@ function (core, a_config, m_validate) {
         **/
         proto.removeValidationError = function (validator, property) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-            assertParam(property, "property").isOptional().isEntityProperty();
+            assertParam(property, "property").isOptional().isEntityProperty().check();
             this._processValidationOpAndPublish(function (that) {
                 that._removeValidationError(validator, property && property.name);
             });
@@ -778,7 +778,7 @@ function (core, a_config, m_validate) {
         // returns null for np's that do not have a parentKey
         proto.getParentKey = function (navigationProperty) {
             // NavigationProperty doesn't yet exist
-            // core.assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
+            // assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
             var fkNames = navigationProperty.foreignKeyNames;
             if (fkNames.length === 0) return null;
             var that = this;
@@ -1063,7 +1063,7 @@ function (core, a_config, m_validate) {
         **/
         var ctor = function (entityType, keyValues) {
             // can't ref EntityType here because of module circularity
-            // assertParam(entityType, "entityType").isInstanceOf(EntityType);
+            // assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }

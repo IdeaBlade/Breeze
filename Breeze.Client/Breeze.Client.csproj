@@ -39,6 +39,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Scripts\IBlade\assertParam.js" />
+    <Content Include="Scripts\IBlade\assertParam.copy.js" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.js" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.min.js" />
     <Content Include="Scripts\IBlade\breeze.ajax.jQuery.js" />
@@ -52,7 +54,6 @@
     <Content Include="Scripts\Tests\queryLocalTests.js" />
     <Content Include="Scripts\ThirdParty\backbone.js" />
     <Content Include="Scripts\ThirdParty\backbone.min.js" />
-    <Content Include="Scripts\IBlade\assertParam.js" />
     <Content Include="Scripts\ThirdParty\require.js" />
     <Content Include="Scripts\ThirdParty\underscore.js" />
     <Content Include="Scripts\ThirdParty\underscore.min.js" />

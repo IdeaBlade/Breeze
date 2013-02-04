@@ -64,6 +64,37 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
+    test("sizeof config", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var query = EntityQuery.from("Customers").take(5).expand("orders");
+        stop();
+        var s1, s2, s3, s4, s5, s6;
+        var sizeDif;
+        em.executeQuery(query).then(function (data) {
+            s1 = testFns.sizeOf(breeze.config);
+            return em.executeQuery(query);
+        }).then(function (data2) {
+            s2 = testFns.sizeOf(breeze.config);
+            em.clear();
+            s3 = testFns.sizeOf(breeze.config);
+            return em.executeQuery(query);
+        }).then(function (data3) {
+            s4 = testFns.sizeOf(breeze.config);
+            ok(s1.size === s4.size, "sizes should be equal");
+            em2 = newEm();
+            s5 = testFns.sizeOf(breeze.config);
+            return em2.executeQuery(query);
+        }).then(function (data4) {
+            s6 = testFns.sizeOf(breeze.config);
+            ok(s5.size === s6.size, "sizes should be equal");
+            em2 = newEm();
+            return em2.executeQuery(query);
+
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("size test property change", function () {
         var em = newEm();
         var em2 = newEm();

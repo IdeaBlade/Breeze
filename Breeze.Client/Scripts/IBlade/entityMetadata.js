@@ -1367,7 +1367,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param property {DataProperty|NavigationProperty}
         **/
         proto.addProperty = function (property) {
-            assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
+            assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty).check();
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
@@ -2550,26 +2550,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var pproto = core.Param.prototype;
 
     pproto.isEntity = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.entityType !== undefined);
-        };
-        result.getMessage = function () {
-            return " must be an entity";
-        };
-        return this.compose(result);
+        return this._addContext({
+            fn: isEntity,
+            msg: " must be an entity"
+        });
+    };
+    
+    function isEntity(context, v) {
+        if (v == null) return false;
+        return (v.entityType !== undefined);
+    }
+
+    pproto.isEntityProperty = function() {
+        return this._addContext({
+            fn: isEntityProperty,
+            msg: " must be either a DataProperty or a NavigationProperty"
+        });
     };
 
-    pproto.isEntityProperty = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.isDataProperty || v.isNavigationProperty);
-        };
-        result.getMessage = function () {
-            return " must be either a DataProperty or a NavigationProperty";
-        };
-        return this.compose(result);
-    };
+    function isEntityProperty(context, v) {
+        if (v == null) return false;
+        return (v.isDataProperty || v.isNavigationProperty);
+    }
 
     function isQualifiedTypeName(entityTypeName) {
         return entityTypeName.indexOf(":#") >= 0;

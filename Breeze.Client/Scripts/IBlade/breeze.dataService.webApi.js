@@ -67,11 +67,14 @@
                 if (callback) {
                     callback(schema);
                 }
+                
+                
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 var err = createError(jqXHR);
                 err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
+                
             }
         });
     };
@@ -92,15 +95,22 @@
                         inlineCount = parseInt(inlineCount, 10);
                     }
                     collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
+                    XHR.onreadystatechange = null;
+                    XHR.abort = null;
                 } catch(e) {
                     var error = createError(XHR);
                     error.internalError = e;
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
+                    XHR.onreadystatechange = null;
+                    XHR.abort = null;
                 }
+                
             },
             error: function(XHR, textStatus, errorThrown) {
                 if (errorCallback) errorCallback(createError(XHR));
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
             }
         });
     };

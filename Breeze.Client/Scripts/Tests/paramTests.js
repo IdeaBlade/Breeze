@@ -108,14 +108,15 @@ define(["testFns"], function (testFns) {
         isOk(assertParam(x.p0, "p0").isEnumOf(EntityState).isArray().isOptional());
         isOk(assertParam(x.p0, "p0").isInstanceOf(Customer, "Customer").isOptional());
         isOk(assertParam(x.p0, "p0").isArray().isInstanceOf(Customer, "Customer").isOptional());
-        isOk(assertParam(x.p0, "p0").isInstanceOf(Customer).isArray().isOptional());
+        isOk(assertParam(x.p0, "p0").isInstanceOf(Customer, "Customer").isArray().isOptional());
 
     });
 
     function isOk(param) {
         try {
+            var msg = param.getMessage();
             param.check();
-            ok(true, param.getMessage());
+            ok(true, msg);
         } catch (e) {
             ok(false, e);
         }

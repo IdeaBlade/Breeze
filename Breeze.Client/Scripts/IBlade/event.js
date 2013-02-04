@@ -28,8 +28,8 @@
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
     var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
-        assertParam(name, "eventName").isNonEmptyString();
-        assertParam(publisher, "publisher").isObject();
+        assertParam(name, "eventName").isNonEmptyString().check();
+        assertParam(publisher, "publisher").isObject().check();
         var that;
         if (defaultFn) {
             that = defaultFn;
@@ -74,36 +74,36 @@
     @return {Boolean} false if event is disabled; true otherwise.
     **/
     Event.prototype.publish = function(data, publishAsync, errorCallback) {
-
-        function publishCore() {
-            // subscribers from outer scope.
-            subscribers.forEach(function(s) {
-                try {
-                    s.callback(data);
-                } catch(e) {
-                    e.context = "unable to publish on topic: " + this.name;
-                    if (errorCallback) {
-                        errorCallback(e);
-                    } else if (this._defaultErrorCallback) {
-                        this._defaultErrorCallback(e);
-                    } else {
-                        fallbackErrorHandler(e);
-                    }
-                }
-            });
-        }
         
         if (!Event._isEnabled(this.name, this.publisher)) return false;
-        var subscribers = this._subscribers;
-        if (!subscribers) return true;
         
         if (publishAsync === true) {
-            setTimeout(publishCore, 0);
+            setTimeout(publishCore, 0, this, data, errorCallback);
         } else {
-            publishCore();
+            publishCore(this, data, errorCallback);
         }
         return true;
     };
+    
+    function publishCore(that, data, errorCallback) {
+        var subscribers = that._subscribers;
+        if (!subscribers) return true;
+        // subscribers from outer scope.
+        subscribers.forEach(function (s) {
+            try {
+                s.callback(data);
+            } catch (e) {
+                e.context = "unable to publish on topic: " + that.name;
+                if (errorCallback) {
+                    errorCallback(e);
+                } else if (that._defaultErrorCallback) {
+                    that._defaultErrorCallback(e);
+                } else {
+                    fallbackErrorHandler(e);
+                }
+            }
+        });
+    }
 
     /**
    Publish data for this event asynchronously.
@@ -227,9 +227,9 @@
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
-        assertParam(eventName, "eventName").isNonEmptyString();
-        assertParam(obj, "obj").isObject();
-        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction();
+        assertParam(eventName, "eventName").isNonEmptyString().check();
+        assertParam(obj, "obj").isObject().check();
+        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
         eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
@@ -256,8 +256,8 @@
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
     Event.isEnabled = function (eventName, obj) {
-        assertParam(eventName, "eventName").isNonEmptyString();
-        assertParam(obj, "obj").isObject();
+        assertParam(eventName, "eventName").isNonEmptyString().check();
+        assertParam(obj, "obj").isObject().check();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }

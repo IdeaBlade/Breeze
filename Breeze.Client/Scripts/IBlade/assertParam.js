@@ -13,8 +13,8 @@ define(["coreFns"], function (core) {
     var Param = function (v, name) {
         this.v = v;
         this.name = name;
-        this._fns = [null];
-        this._pending = [];
+        this._contexts = [null];
+        
     };
     var proto = Param.prototype;
 
@@ -31,15 +31,16 @@ define(["coreFns"], function (core) {
     };
 
     proto.isNonEmptyString = function() {
-        var result = function(that, v) {
-            if (v == null) return false;
-            return (typeof(v) === 'string') && v.length > 0;
-        };
-        result.getMessage = function() {
-            return " must be a nonEmpty string";
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isNonEmptyString,
+            msg: " must be a nonEmpty string"
+        });
     };
+    
+    function isNonEmptyString(context, v) {
+        if (v == null) return false;
+        return (typeof (v) === 'string') && v.length > 0;
+    }
 
     proto.isNumber = function () {
         return this.isTypeOf('number');
@@ -49,112 +50,163 @@ define(["coreFns"], function (core) {
         return this.isTypeOf('function');
     };
 
+   
     proto.isTypeOf = function (typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            if (typeof (v) === typeName) return true;
-            return false;
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be a '%1'", typeName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isTypeOf,
+            typeName: typeName,
+            msg: core.formatString(" must be a '%1'", typeName)
+        });
     };
-
+    
+    function isTypeOf(context, v) {
+        if (v == null) return false;
+        if (typeof (v) === context.typeName) return true;
+        return false;
+    }
+    
     proto.isInstanceOf = function (type, typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v instanceof type);
-        };
-        typeName = typeName || type.prototype._$typeName;
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of '%1'", typeName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isInstanceOf,
+            type: type,
+            typeName: typeName || type.prototype._$typeName,
+            msg: core.formatString(" must be an instance of '%1'", typeName)
+        });
     };
+    
+    function isInstanceOf(context, v) {
+        if (v == null) return false;
+        return (v instanceof context.type);
+    }
 
     proto.hasProperty = function (propertyName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v[propertyName] !== undefined);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must have a '%1' property ", propertyName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: hasProperty,
+            propertyName: propertyName,
+            msg: core.formatString(" must have a '%1' property ", propertyName)
+        });
     };
+    
+    function hasProperty(context, v) {
+        if (v == null) return false;
+        return (v[context.propertyName] !== undefined);
+    }
 
     proto.isEnumOf = function (enumType) {
-        var result = function (that, v) {
-            if (v == null) false;
-            return enumType.contains(v);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of the '%1' enumeration", enumType.name);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isEnumOf,
+            enumType: enumType,
+            msg: core.formatString(" must be an instance of the '%1' enumeration", enumType.name)
+        });
     };
+    
+    function isEnumOf(context, v) {
+        if (v == null) return false;
+        return context.enumType.contains(v);
+    }
 
-    proto.isRequired = function () {
-        if (this.fn && !this._or) {
-            return this;
-        } else {
-            var result = function (that, v) {
-                return v != null;
-            };
-            result.getMessage = function () {
-                return " is required";
-            };
-            return this;
-        }
+    proto.isRequired = function(allowNull) {
+        return addContext(this, {
+            fn: isRequired,
+            allowNull: allowNull,
+            msg: " is required"
+        });
     };
+    
+    function isRequired(context, v) {
+        if (context.allowNull) {
+            return v !== undefined;
+        } else {
+            return v != null;
+        }
+    }
+    
+    // combinable methods.
 
     proto.isOptional = function () {
-        if (this._fn) {
-            setFn(this, makeOptional(this._fn));
-        } else {
-            this._pending.push(function (that, fn) {
-                return makeOptional(fn);
-            });
-        }
-        return this;
+        var context = {
+            fn: isOptional,
+            prevContext: null,
+            msg: isOptionalMessage
+        };
+        return addContext(this, context);
     };
+    
+    function isOptional(context, v) {
+        if (v == null) return true;
+        var prevContext = context.prevContext;
+        if (prevContext) {
+            return prevContext.fn(prevContext, v);
+        } else {
+            return true;
+        }
+    };
+    
+    function isOptionalMessage(context, v) {
+        var prevContext = context.prevContext;
+        var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
+        return " is optional" + element;
+    }
 
     proto.isNonEmptyArray = function () {
         return this.isArray(true);
     };
 
-    proto.isArray = function (mustBeNonEmpty) {
-        if (this._fn) {
-            setFn(this, makeArray(this._fn, mustBeNonEmpty));
-        } else {
-            setFn(this, makeArray(null, mustBeNonEmpty));
-            this._pending.push(function (that, fn) {
-                return makeArray(fn, mustBeNonEmpty);
-            });
+    proto.isArray = function(mustNotBeEmpty) {
+        var context = {
+            fn: isArray,
+            mustNotBeEmpty: mustNotBeEmpty,
+            prevContext: null,
+            msg: isArrayMessage
+        };
+        return addContext(this, context);
+    };
+        
+    
+    function isArray(context, v) {
+        if (!Array.isArray(v)) {
+            return false;
         }
-        return this;
-    };
+        if (context.mustNotBeEmpty) {
+            if (v.length === 0) return false;
+        }
+        // allow standalone is array call.
+        var prevContext = context.prevContext;
+        if (!prevContext) return true;
 
+        return v.every(function (v1) {
+            return prevContext.fn(prevContext, v1);
+        });
+    };
+    
+    function isArrayMessage(context, v) {
+        var arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
+        var prevContext = context.prevContext;
+        var element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
+        return " must be " + arrayDescr + element;
+    }
+    
+    function getMessage(context, v) {
+        var msg = context.msg;
+        if (typeof (msg) === "function") {
+            msg = msg(context, v);
+        }
+        return msg;
+    }
+    
     proto.or = function () {
-        this._fns.push(null);
-        this._fn = null;
+        this._contexts.push(null);
+        this._context = null;
         return this;
-    };
-
-    proto.getMessage = function () {
-        var msg = this._fns.map(function (fn) {
-            return fn.getMessage();
-        }).join(", or it");
-        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
-    };
+    };   
 
     proto.check = function (defaultValue) {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
+        var ok = exec(this);
+        if (ok === undefined) return;
+        if (!ok) {
             throw new Error(this.getMessage());
         }
+        
         if (this.v !== undefined) {
             return this.v;
         } else {
@@ -162,12 +214,62 @@ define(["coreFns"], function (core) {
         }
     };
 
-    proto.checkMsg = function () {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
-            return this.getMessage();
+    // called from outside this file.
+    proto._addContext = function(context) {
+        return addContext(this, context);
+    };
+    
+    function addContext(that, context) {
+        if (that._context) {
+            var curContext = that._context;
+            
+            while (curContext.prevContext != null) {
+                curContext = curContext.prevContext;
+            }
+            
+            if (curContext.prevContext === null) {
+                curContext.prevContext = context;
+                // just update the prevContext but don't change the curContext.
+                return that;
+            } else if (context.prevContext === null) {
+                context.prevContext = that._context;
+            } else {
+                throw new Error("Illegal construction - use 'or' to combine checks");
+            }
         }
+        return setContext(that, context);
+    };
+
+
+    function setContext(that, context) {
+        that._contexts[that._contexts.length - 1] = context;
+        that._context = context;
+        return that;
+    }
+
+
+    
+    function exec(self) {
+        // clear off last one if null 
+        var contexts = self._contexts;
+        if (contexts[contexts.length - 1] == null) {
+            contexts.pop();
+        }
+        if (contexts.length === 0) {
+            return undefined;
+        }
+        return contexts.some(function (context) {
+            return context.fn(context, self.v);
+        });
+    }
+
+    
+    proto.getMessage = function () {
+        var that = this;
+        var message = this._contexts.map(function (context) {
+            return getMessage(context, that.v);
+        }).join(", or it");
+        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
     proto.withDefault = function(defaultValue) {
@@ -178,13 +280,13 @@ define(["coreFns"], function (core) {
     proto.whereParam = function(propName) {
         return this.parent.whereParam(propName);
     };
-
-    proto.applyAll = function(instance, throwIfUnknownProperty) {
+    
+    proto.applyAll = function (instance, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
-        var clone = core.extend({ }, this.parent.config);
-        this.parent.params.forEach(function(p) {
+        var clone = core.extend({}, this.parent.config);
+        this.parent.params.forEach(function (p) {
             if (throwIfUnknownProperty) delete clone[p.name];
-            p._applyOne(instance, p.defaultValue);
+            p._applyOne(instance);
         });
         // should be no properties left in the clone
         if (throwIfUnknownProperty) {
@@ -194,48 +296,32 @@ define(["coreFns"], function (core) {
         }
     };
 
-    proto._applyOne = function (instance, defaultValue) {
+    proto._applyOne = function( instance ) {
         this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {
-            if (defaultValue !== undefined) {
-                instance[this.name] = defaultValue;
+            if (this.defaultValue !== undefined) {
+                instance[this.name] = this.defaultValue;
             }
         }
     };
-
-    proto.compose = function (fn) {
-
-        if (this._pending.length > 0) {
-            while (this._pending.length > 0) {
-                var pending = this._pending.pop();
-                fn = pending(this, fn);
-            }
-            setFn(this, fn);
-        } else {
-            if (this._fn) {
-                throw new Error("Illegal construction - use 'or' to combine checks");
-            }
-            setFn(this, fn);
-        }
-        return this;
-    };
-
+    
+   
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
 
     var assertParam = function (v, name) {
         return new Param(v, name);
     };
 
-    var CompositeParam = function(config) {
+    var ConfigParam = function(config) {
         if (typeof (config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
         }
         this.config = config;
         this.params = [];
     };
-    var cproto = CompositeParam.prototype;
+    var cproto = ConfigParam.prototype;
 
     cproto.whereParam = function(propName) {
         var param = new Param(this.config[propName], propName);
@@ -243,72 +329,10 @@ define(["coreFns"], function (core) {
         this.params.push(param);
         return param;
     };
-
+    
     var assertConfig = function(config) {
-        return new CompositeParam(config);
+        return new ConfigParam(config);
     };
-
-    // private functions
-
-    function makeOptional(fn) {
-        var result = function (that, v) {
-            if (v == null) return true;
-            return fn(that, v);
-        };
-
-        result.getMessage = function () {
-            return " is optional, or it" + fn.getMessage();
-        };
-        return result;
-    }
-
-    function makeArray(fn, mustNotBeEmpty) {
-        var result = function (that, v) {
-            if (!Array.isArray(v)) {
-                return false;
-            }
-            if (mustNotBeEmpty) {
-                if (v.length === 0) return false;
-            }
-            // allow standalone is array call.
-            if (!fn) return true;
-
-            return v.every(function (v1) {
-                return fn(that, v1);
-            });
-        };
-        result.getMessage = function () {
-            var arrayDescr = mustNotBeEmpty ? "a nonEmpty array" : "an array";
-            var element = fn ? " where each element" + fn.getMessage() : "";
-            return " must be " + arrayDescr + element;
-        };
-        return result;
-    }
-
-
-
-    function setFn(that, fn) {
-        that._fns[that._fns.length - 1] = fn;
-        that._fn = fn;
-    }
-
-    function compile(self) {
-        if (!self._compiledFn) {
-            // clear off last one if null 
-            if (self._fns[self._fns.length - 1] == null) {
-                self._fns.pop();
-            }
-            if (self._fns.length === 0) {
-                return undefined;
-            }
-            self._compiledFn = function (that, v) {
-                return that._fns.some(function (fn) {
-                    return fn(that, v);
-                });
-            };
-        };
-        return self._compiledFn;
-    }
 
 
     // Param is exposed so that additional 'is' methods can be added to the prototype.
