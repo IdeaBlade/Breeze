@@ -859,7 +859,7 @@ define(["testFns"], function (testFns) {
         try {
             em.saveChanges(null, "adfa");
         } catch (e) {
-            ok(e.message.indexOf("SaveOptions") >= 0);
+            ok(e.message.indexOf("saveOptions") >= 0);
         }
         try {
             em.saveChanges("adfa");

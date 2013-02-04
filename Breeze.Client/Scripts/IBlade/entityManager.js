@@ -588,6 +588,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             group.detachEntity(entity);
             aspect._removeFromRelations();
             this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+            aspect._detach();
             return true;
         };
 
@@ -2317,9 +2318,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
-            aspect.entityState = EntityState.Detached;
-            aspect.entityGroup = null;
-            aspect.entityManager = null;
             return entity;
         };
         

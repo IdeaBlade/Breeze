@@ -812,6 +812,17 @@ function (core, a_config, m_validate) {
 
         // internal methods
 
+        proto._detach = function() {
+            
+            this.entityGroup = null;
+            this.entityManager = null;
+            this.entityState = EntityState.Detached;
+            this.originalValues = {};
+            this._validationErrors = {};
+            this.validationErrorsChanged.clear();
+            this.propertyChanged.clear();
+        };
+
         proto._removeFromRelations = function () {
             var entity = this.entity;
 

@@ -69,6 +69,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
         var proto = ctor.prototype;
+        proto._$typeName = "LocalQueryComparisonOptions";
+        
         // 
         /**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -151,7 +153,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "NamingConvention:" + this.name);
         };
         var proto = ctor.prototype;
-        
+        proto._$typeName = "NamingConvention";
         /**
         The function used to convert server side property names to client side property names.
 

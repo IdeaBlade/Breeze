@@ -151,7 +151,7 @@ function (core, a_config, DataType) {
             this.context = context;
         };
         var proto = ctor.prototype;
-
+        proto._$typeName = "Validator";
 
         /**
         Run this validator against the specified value.  This method will usually be called internally either

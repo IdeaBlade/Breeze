@@ -185,12 +185,16 @@
         if (ix !== -1) {
             subs.splice(ix, 1);
             if (subs.length === 0) {
-                delete this._subscribers;
+                this._subscribers = null;
             }
             return true;
         } else {
             return false;
         }
+    };
+
+    Event.prototype.clear = function() {
+        this._subscribers = null;
     };
     
     // event bubbling - document later.
