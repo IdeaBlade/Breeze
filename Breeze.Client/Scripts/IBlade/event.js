@@ -27,26 +27,17 @@
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
+    var Event = function (name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
-        var that;
-        if (defaultFn) {
-            that = defaultFn;
-        } else {
-            that = this;
-        }
-        that.name = name;
+
+        this.name = name;
         // register the name
         __eventNameMap[name] = true;
-        that.publisher = publisher;
-        that._nextUnsubKey = 1;
+        this.publisher = publisher;
+        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            that._defaultErrorCallback = defaultErrorCallback;
-        }
-        if (defaultFn) {
-            core.extend(defaultFn, Event.prototype);
-            return defaultFn;
+            this._defaultErrorCallback = defaultErrorCallback;
         }
     };
 

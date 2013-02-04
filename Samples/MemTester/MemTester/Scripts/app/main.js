@@ -21,17 +21,26 @@
     app.getCustomers = getCustomers;
 
     //#region private functions
-    
+    var i = 0;
     function getCustomers() {
         logger.info("querying Customers");
+        i = i + 1;
+        //if ((i % 5) === 0) {
+        //    manager.clear();
+        //}
         manager.clear();
+        manager = new breeze.EntityManager(serviceName);
+        
         var query = breeze.EntityQuery.from("Customers");
-        
-        return manager
-            .executeQuery(query)
-            .then(querySucceeded)
-            .fail(queryFailed);
-        
+
+        var promises = [];
+        for (var j = 0; j < 10; j++) {
+            promises.push(manager
+                .executeQuery(query)
+                .then(querySucceeded)
+                .fail(queryFailed));
+        }
+        return promises;
     };
     
 
@@ -54,11 +63,13 @@
             .fail(queryFailed);
         
     };
-    
+
+    var entitiesCount = 0;
     // reload vm.todos with the results 
     function querySucceeded(data) {
         logger.success("queried");
-
+        entitiesCount += data.results.length;
+        $('#resultsCount').html( entitiesCount );
     }
 
     function queryFailed(error) {

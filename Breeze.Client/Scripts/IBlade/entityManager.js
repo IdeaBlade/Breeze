@@ -113,16 +113,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
-            this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
-                if (!this._hasChanges) return false;
-                if (entityTypes === undefined) return this._hasChanges;
-                return this._hasChangesCore(entityTypes);
-            });
+            this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
             this.clear();
             
         };
         var proto = ctor.prototype;
+        
+        
         
         proto._$typeName = "EntityManager";
         
@@ -238,7 +236,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
             return entity;
         };
-
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -404,13 +401,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // remove en
                 entityGroup._clear();
             });
+            
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -923,7 +921,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // update _hasChanges after save.
                 that._hasChanges = isFullSave ? false : that._hasChangesCore();
                 if (!that._hasChanges) {
-                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                    that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
                 }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
@@ -1138,23 +1136,23 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
-        //proto.hasChanges = function (entityTypes) {
-        //    if (!this._hasChanges) return false;
-        //    if (entityTypes === undefined) return this._hasChanges;
-        //    return this._hasChangesCore(entityTypes);
-        //};
+        proto.hasChanges = function (entityTypes) {
+            if (!this._hasChanges) return false;
+            if (entityTypes === undefined) return this._hasChanges;
+            return this._hasChangesCore(entityTypes);
+        };
         
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
         @example                    
             var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
-            em.hasChanges.subscribe(function(args) {
-                var hasChanges = args.hasChanges;
+            em.hasChangesChanged.subscribe(function(args) {
+                var hasChangesChanged = args.hasChanges;
                 var entityManager = args.entityManager;
             });
         });
       
-        @event hasChanges 
+        @event hasChangesChanged
         @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
         @param hasChanges {Boolean} Whether or not this EntityManager has changes.
         @readOnly
@@ -1219,7 +1217,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, hasChanges: false });
+            this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -1287,7 +1285,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
+                    this.hasChangesChanged.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -1295,7 +1293,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                        this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }
@@ -2357,12 +2355,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
-                    var aspect = entity.entityAspect;
-                    aspect.entityState = EntityState.Detached;
-                    aspect.entityGroup = null;
-                    aspect.entityManager = null;
+                    entity.entityAspect._detach();
                 }
             });
+            this._entities = null;
+            this._indexMap = null;
+            this._emptyIndexes = null;
         };
 
         proto._fixupKey = function (tempValue, realValue) {

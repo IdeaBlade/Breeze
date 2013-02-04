@@ -79,7 +79,7 @@ define(["testFns"], function (testFns) {
     test("bigsave", function() {
         var em = newEm();
         var recentArgs;
-        em.hasChanges.subscribe(function(args) {
+        em.hasChangesChanged.subscribe(function(args) {
             recentArgs = args;
         });
         for (var i = 0; i < 20; i++) {
@@ -102,7 +102,7 @@ define(["testFns"], function (testFns) {
     test("bigsave many children", function () {
         var em = newEm();
         var recentArgs;
-        em.hasChanges.subscribe(function (args) {
+        em.hasChangesChanged.subscribe(function (args) {
             recentArgs = args;
         });
         for (var i = 0; i < 5; i++) {
@@ -280,7 +280,7 @@ define(["testFns"], function (testFns) {
     test("add parent and children", function () {
         var em = newEm();
         var recentArgs;
-        em.hasChanges.subscribe(function(args) {
+        em.hasChangesChanged.subscribe(function(args) {
             recentArgs = args;
         });
         var zzz = createParentAndChildren(em);

@@ -10034,6 +10034,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // remove en
                 entityGroup._clear();
             });
+            
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
@@ -11987,12 +11988,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
-                    var aspect = entity.entityAspect;
-                    aspect.entityState = EntityState.Detached;
-                    aspect.entityGroup = null;
-                    aspect.entityManager = null;
+                    entity.entityAspect._detach();
                 }
             });
+            this._entities = null;
+            this._indexMap = null;
+            this._emptyIndexes = null;
         };
 
         proto._fixupKey = function (tempValue, realValue) {

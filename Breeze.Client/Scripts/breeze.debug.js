@@ -10034,6 +10034,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // remove en
                 entityGroup._clear();
             });
+            
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
@@ -11987,12 +11988,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
-                    var aspect = entity.entityAspect;
-                    aspect.entityState = EntityState.Detached;
-                    aspect.entityGroup = null;
-                    aspect.entityManager = null;
+                    entity.entityAspect._detach();
                 }
             });
+            this._entities = null;
+            this._indexMap = null;
+            this._emptyIndexes = null;
         };
 
         proto._fixupKey = function (tempValue, realValue) {
@@ -12543,7 +12544,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         ajaxImpl.ajax({
             url: metadataSvcUrl,
             dataType: 'json',
-            success: function(data, textStatus, jqXHR) {
+            success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
                 var metadata = JSON.parse(data);
                 if (!metadata) {
@@ -12563,14 +12564,16 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 if (callback) {
                     callback(schema);
                 }
-                
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
                 
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                var err = createError(jqXHR);
+            error: function(XHR, textStatus, errorThrown) {
+                var err = createError(XHR);
                 err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
-                
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
             }
         });
     };
@@ -12681,16 +12684,16 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 
     };
 
-    function createError(jqXHR) {
+    function createError(XHR) {
         var err = new Error();
-        err.XHR = jqXHR;
-        err.message = jqXHR.statusText;
-        err.responseText = jqXHR.responseText;
-        err.status = jqXHR.status;
-        err.statusText = jqXHR.statusText;
+        err.XHR = XHR;
+        err.message = XHR.statusText;
+        err.responseText = XHR.responseText;
+        err.status = XHR.status;
+        err.statusText = XHR.statusText;
         if (err.responseText) {
             try {
-                var responseObj = JSON.parse(jqXHR.responseText);
+                var responseObj = JSON.parse(XHR.responseText);
                 err.detail = responseObj;
                 if (responseObj.ExceptionMessage) {
                     err.message = responseObj.ExceptionMessage;
@@ -12699,7 +12702,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 } else if (responseObj.Message) {
                     err.message = responseObj.Message;
                 } else {
-                    err.message = jqXHR.responseText;
+                    err.message = XHR.responseText;
                 }
             } catch (e) {
 
