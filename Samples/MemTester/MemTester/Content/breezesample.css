@@ -1,0 +1,292 @@
+﻿/********************************
+*   Breeze Client Sample Styles   
+*********************************/
+ul
+{
+    list-style: none;
+}
+
+.done
+{
+    text-decoration: line-through;
+}
+
+/********************************************
+* Styles copied from MVC Site.css 
+* in case starting from MVC 4 Empty template
+********************************************/
+html {
+    background-color: #e2e2e2;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #fff;
+    border-top: solid 10px #000;
+    color: #333;
+    font-size: .85em;
+    font-family: "Segoe UI", Verdana, Helvetica, Sans-Serif;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: #333;
+    outline: none;
+    padding-left: 3px;
+    padding-right: 3px;
+    text-decoration: underline;
+}
+
+    a:link, a:visited,
+    a:active, a:hover {
+        color: #333;
+    }
+
+    a:hover {
+        background-color: #c7d1d6;
+    }
+
+header, footer, hgroup,
+nav, section {
+    display: block;
+}
+
+mark {
+    background-color: #a6dbed;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+.clear-fix:after {
+    content: ".";
+    clear: both;
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+h1, h2, h3,
+h4, h5, h6 {
+    color: #000;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+h2 {
+    font-size: 1.75em;
+}
+
+h3 {
+    font-size: 1.2em;
+}
+
+h4 {
+    font-size: 1.1em;
+}
+
+h5, h6 {
+    font-size: 1em;
+}
+
+    h5 a:link, h5 a:visited, h5 a:active {
+        padding: 0;
+        text-decoration: none;
+    }
+
+
+/* main layout
+----------------------------------------------------------*/
+.content-wrapper {
+    margin: 0 auto;
+    max-width: 960px;
+}
+
+#body {
+    background-color: #efeeef;
+    clear: both;
+    padding-bottom: 35px;
+}
+
+    .main-content {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAAZCAYAAABtnU33AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAGWSURBVHja5Nghb1NhFAbgpxeBQUBwE4SEZAIEGBATS9CEgEQuc/AbQGHmOkUdqezcFla9ZKIGVbEJkiVkYo5sYmZiOYidNs1YtxbK1t77Jp9o+onzJPe255xaRHzEZ9XIpwK7qpPdAl0cVgB7iG6BPXQqAO5gr8gP2xUAb0MPvIWjEmOP0tgHf0e7xOB2Gvtg+FZicN82CF7HRgmxG2n7A3yCFk5LhD1N08lFYPlls0TgZpoMA8NX7JQAu5MWV4E7aJQA3LiooSqGXP6C1RnGrqbBqOBAHWsziF3L2mMcMOxjZcYaknbWvD/0RkRcdV5ExGZMfzaz1ks9o4BFxLOIaE0xtpU1mhRYRDyIiPoUYutZ20iOWkSM847U8AHv8WQK/mcb+Ws8MmJccC8LWMYSbt1Au9jMpmLsxcXfgnt5l+fNNQ4CrfPt4nWC4Tbe4jVe4e5/GN7bOeKtDw4CNwUezHO8xGI+9vf+YeHWybXMVm94n0QmDR7MIzzFY8zjIeZwH3fyzjF+4QA/8cPZ2rjrbLk48fweANyg8Nuq4OWHAAAAAElFTkSuQmCC') /*../Images/accent.png*/ no-repeat;
+        padding-left: 10px;
+        padding-top: 30px;
+    }
+
+    .featured + .main-content {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAAZCAYAAABtnU33AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAHCSURBVHja5NgvbBNRGADwH0clAoJDkZBDgEBhEFzQhIBEEhwWMUGKGblkwayG1ZHKVrGF1JFAKk6sglZsYmEJqcCRTmAmliH2ujRho39WWHv3JU9c8/W7/vou7973Lrz6slPGG8WI1xG2FSe2I3TRLwC2j26EXWQFAGdpEu9G4aJVAHALBuDP2Msxdi8Yj8FtNHMMbqZJ3B4Gw8ccg49tw+B1bOQQuxFsf4D3UcdBjrAHqKdJvH8SWADXcgSupUlcH/4gOiHpPbZygN0KFqPAGao5AFfTJM7GAcMaKguMrQSDccGHWEVjAbENrKZJfDgJGHpYWbANSRMraRL3TkuIRhToYHlB0E0sp0nc+VtSNEahTZTn/PFuoJwm8eaoxGjMgh0szelCVsHSqJkdRGmCwj28xDe8wO05eM9WsXbaAnVW8GD1foeveI5nuHgO28Va2FRkaRJP9OXSlDfNwviEp3j8HxuBehhTRemMP6COD3iCR3iIy/+geW+GFm89NDnOCzzoshph3MUD3Mc9XJmyZj88Qa1wUtGe1b9XmvFstMN4ixu4g1u4ieu4hqu4FPJ/4Sd+4Dt2HB0bdx0dLs48fg8Ax9hvy8gn+qUAAAAASUVORK5CYII=') /*../Images/heroAccent.png*/ no-repeat;
+    }
+
+header .content-wrapper {
+    padding-top: 20px; 
+}
+
+footer {
+    clear: both;
+    background-color: #e2e2e2;
+    font-size: .8em;
+    height: 100px;
+}
+
+
+/* site title
+----------------------------------------------------------*/
+.site-title {
+    color: #c8c8c8;
+    font-family: Rockwell, Consolas, "Courier New", Courier, monospace;
+    font-size: 2.3em;
+    margin: 0;
+}
+
+.site-title a, .site-title a:hover, .site-title a:active {
+    background: none;
+    color: #c8c8c8;
+    outline: none;
+    text-decoration: none;
+}
+
+/* forms */
+fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+    fieldset legend {
+        display: none;
+    }
+
+    fieldset ol {
+        padding: 0;
+        list-style: none;
+    }
+
+        fieldset ol li {
+            padding-bottom: 5px;
+        }
+
+label {
+    display: block;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+label.checkbox {
+    display: inline;
+}
+
+input, textarea {
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    color: #333;
+    font-size: 1.2em;
+    margin: 5px 0 6px 0;
+    padding: 5px;
+    width: 300px;
+}
+
+textarea {
+    font-family: inherit;
+    width: 500px;
+}
+
+    input:focus, textarea:focus {
+        border: 1px solid #7ac0da;
+    }
+
+    input[type="checkbox"] {
+        background: transparent;
+        border: inherit;
+        width: auto;
+    }
+
+    input[type="submit"],
+    input[type="button"],
+    button {
+        background-color: #d3dce0;
+        border: 1px solid #787878;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: 600;
+        padding: 7px;
+        margin-right: 8px;
+        width: auto;
+    }
+
+    td input[type="submit"],
+    td input[type="button"],
+    td button {
+        font-size: 1em;
+        padding: 4px;
+        margin-right: 4px;
+    }
+
+/********************
+*   Mobile Styles   
+********************/
+@media only screen and (max-width: 850px)
+{
+
+    /* header
+    ----------------------------------------------------------*/
+    header .float-left,
+    header .float-right
+    {
+        float: none;
+    }
+
+    /* logo */
+    header .site-title
+    {
+        margin: 10px;
+        text-align: center;
+    }
+    /* main layout
+    ----------------------------------------------------------*/
+    .main-content,
+    .featured + .main-content {
+        background-position: 10px 0;
+    }
+
+    .content-wrapper {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    /* forms */
+    input {
+        width: 90%;
+    }
+
+    /* footer
+    ----------------------------------------------------------*/
+    footer .float-left,
+    footer .float-right {
+        float: none;
+    }
+
+    footer {
+        text-align: center;
+        height: auto;
+        padding: 10px 0;
+    }
+
+        footer p {
+            margin: 0;
+        }
+
+}
