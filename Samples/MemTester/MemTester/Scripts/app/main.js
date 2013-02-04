@@ -24,7 +24,7 @@
     
     function getCustomers() {
         logger.info("querying Customers");
-
+        manager.clear();
         var query = breeze.EntityQuery.from("Customers");
         
         return manager
@@ -57,7 +57,7 @@
     
     // reload vm.todos with the results 
     function querySucceeded(data) {
-        logger.success("queried Todos");
+        logger.success("queried");
 
     }
 

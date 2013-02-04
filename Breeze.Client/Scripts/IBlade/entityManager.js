@@ -1740,9 +1740,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs = [];
                         return state;
                     }, function (state) {
+                        // cleanup
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
+                        // HACK for GC
+                        query = null;
+                        queryContext = null;
+                        entities = null;
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {

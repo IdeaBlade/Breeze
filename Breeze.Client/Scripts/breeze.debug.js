@@ -1035,7 +1035,7 @@ define('assertParam',["coreFns"], function (core) {
     proto.isNonEmptyString = function() {
         return addContext(this, {
             fn: isNonEmptyString,
-            msg: " must be a nonEmpty string"
+            msg: "must be a nonEmpty string"
         });
     };
     
@@ -1057,7 +1057,7 @@ define('assertParam',["coreFns"], function (core) {
         return addContext(this, {
             fn: isTypeOf,
             typeName: typeName,
-            msg: core.formatString(" must be a '%1'", typeName)
+            msg: core.formatString("must be a '%1'", typeName)
         });
     };
     
@@ -1072,7 +1072,7 @@ define('assertParam',["coreFns"], function (core) {
             fn: isInstanceOf,
             type: type,
             typeName: typeName || type.prototype._$typeName,
-            msg: core.formatString(" must be an instance of '%1'", typeName)
+            msg: core.formatString("must be an instance of '%1'", typeName)
         });
     };
     
@@ -1085,7 +1085,7 @@ define('assertParam',["coreFns"], function (core) {
         return addContext(this, {
             fn: hasProperty,
             propertyName: propertyName,
-            msg: core.formatString(" must have a '%1' property ", propertyName)
+            msg: core.formatString("must have a '%1' property ", propertyName)
         });
     };
     
@@ -1098,7 +1098,7 @@ define('assertParam',["coreFns"], function (core) {
         return addContext(this, {
             fn: isEnumOf,
             enumType: enumType,
-            msg: core.formatString(" must be an instance of the '%1' enumeration", enumType.name)
+            msg: core.formatString("must be an instance of the '%1' enumeration", enumType.name)
         });
     };
     
@@ -1111,7 +1111,7 @@ define('assertParam',["coreFns"], function (core) {
         return addContext(this, {
             fn: isRequired,
             allowNull: allowNull,
-            msg: " is required"
+            msg: "is required"
         });
     };
     
@@ -1147,7 +1147,7 @@ define('assertParam',["coreFns"], function (core) {
     function isOptionalMessage(context, v) {
         var prevContext = context.prevContext;
         var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
-        return " is optional" + element;
+        return "is optional" + element;
     }
 
     proto.isNonEmptyArray = function () {
@@ -1270,7 +1270,7 @@ define('assertParam',["coreFns"], function (core) {
         var that = this;
         var message = this._contexts.map(function (context) {
             return getMessage(context, that.v);
-        }).join(", or it");
+        }).join(", or it ");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
@@ -1530,12 +1530,16 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
         if (ix !== -1) {
             subs.splice(ix, 1);
             if (subs.length === 0) {
-                delete this._subscribers;
+                this._subscribers = null;
             }
             return true;
         } else {
             return false;
         }
+    };
+
+    Event.prototype.clear = function() {
+        this._subscribers = null;
     };
     
     // event bubbling - document later.
@@ -2323,7 +2327,7 @@ function (core, a_config, DataType) {
             this.context = context;
         };
         var proto = ctor.prototype;
-
+        proto._$typeName = "Validator";
 
         /**
         Run this validator against the specified value.  This method will usually be called internally either
@@ -3741,6 +3745,17 @@ function (core, a_config, m_validate) {
 
         // internal methods
 
+        proto._detach = function() {
+            
+            this.entityGroup = null;
+            this.entityManager = null;
+            this.entityState = EntityState.Detached;
+            this.originalValues = {};
+            this._validationErrors = {};
+            this.validationErrorsChanged.clear();
+            this.propertyChanged.clear();
+        };
+
         proto._removeFromRelations = function () {
             var entity = this.entity;
 
@@ -4467,6 +4482,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
         var proto = ctor.prototype;
+        proto._$typeName = "LocalQueryComparisonOptions";
+        
         // 
         /**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -4549,7 +4566,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "NamingConvention:" + this.name);
         };
         var proto = ctor.prototype;
-        
+        proto._$typeName = "NamingConvention";
         /**
         The function used to convert server side property names to client side property names.
 
@@ -10201,6 +10218,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             group.detachEntity(entity);
             aspect._removeFromRelations();
             this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+            aspect._detach();
             return true;
         };
 
@@ -11352,9 +11370,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs = [];
                         return state;
                     }, function (state) {
+                        // cleanup
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
+                        // HACK for GC
+                        query = null;
+                        queryContext = null;
+                        entities = null;
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
@@ -11930,9 +11953,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
-            aspect.entityState = EntityState.Detached;
-            aspect.entityGroup = null;
-            aspect.entityManager = null;
             return entity;
         };
         
