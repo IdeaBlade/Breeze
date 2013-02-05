@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo-Angular", "Todo-Angular\Todo-Angular.csproj", "{637A5817-2159-4612-AFB8-587B26C79097}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo-AngularWithDI", "Todo-AngularWithDI\Todo-AngularWithDI.csproj", "{637A5817-2159-4612-AFB8-587B26C79097}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{63D8C4AF-68A3-4E21-8D9A-0870618C627B}"
 	ProjectSection(SolutionItems) = preProject
