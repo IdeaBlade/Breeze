@@ -8,7 +8,7 @@
     root.app = {};
     var app = root.app;
 
-    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
+    breeze.config.initializeAdapterInstance("modelLibrary", "ko", true);
 
     // service name is route to the Web API controller
     // var serviceName = 'api/BreezeSample';
@@ -25,11 +25,19 @@
     function getCustomers() {
         logger.info("querying Customers");
         i = i + 1;
+        // one of the following
         //if ((i % 5) === 0) {
         //    manager.clear();
         //}
-        manager.clear();
-        manager = new breeze.EntityManager(serviceName);
+        
+        // manager.clear();
+
+        // manager = new breeze.EntityManager(serviceName);
+        
+        manager = new breeze.EntityManager({
+            metadataStore: manager.metadataStore,
+            serviceName: serviceName
+        });
         
         var query = breeze.EntityQuery.from("Customers");
 

@@ -166,7 +166,8 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { added: adds });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
+        
     }
     
     function publish(publisher, eventName, eventArgs) {
@@ -188,7 +189,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (hasOwnProperty.call(target, key)) {
+            if (key!== "relationArray" && hasOwnProperty.call(target, key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {
@@ -211,7 +212,7 @@ function (core, m_entityAspect, m_entityQuery) {
             });
         }
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { removed: removes });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
     }
 
 

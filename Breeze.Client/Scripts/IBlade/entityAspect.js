@@ -842,6 +842,7 @@ function (core, a_config, m_validate) {
                                 core.arrayRemoveItem(collection, entity);
                             }
                         }
+                        entity.setProperty(np.name, null);
                     }
                 } else {
                     // npValue is a live list so we need to copy it first.

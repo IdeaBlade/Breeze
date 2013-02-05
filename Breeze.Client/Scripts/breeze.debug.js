@@ -1372,26 +1372,17 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
+    var Event = function (name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
-        var that;
-        if (defaultFn) {
-            that = defaultFn;
-        } else {
-            that = this;
-        }
-        that.name = name;
+
+        this.name = name;
         // register the name
         __eventNameMap[name] = true;
-        that.publisher = publisher;
-        that._nextUnsubKey = 1;
+        this.publisher = publisher;
+        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            that._defaultErrorCallback = defaultErrorCallback;
-        }
-        if (defaultFn) {
-            core.extend(defaultFn, Event.prototype);
-            return defaultFn;
+            this._defaultErrorCallback = defaultErrorCallback;
         }
     };
 
@@ -3775,6 +3766,7 @@ function (core, a_config, m_validate) {
                                 core.arrayRemoveItem(collection, entity);
                             }
                         }
+                        entity.setProperty(np.name, null);
                     }
                 } else {
                     // npValue is a live list so we need to copy it first.
@@ -9430,7 +9422,8 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { added: adds });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
+        
     }
     
     function publish(publisher, eventName, eventArgs) {
@@ -9452,7 +9445,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (hasOwnProperty.call(target, key)) {
+            if (key!== "relationArray" && hasOwnProperty.call(target, key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {
@@ -9475,7 +9468,7 @@ function (core, m_entityAspect, m_entityQuery) {
             });
         }
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { removed: removes });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
     }
 
 
@@ -9743,16 +9736,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
-            this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
-                if (!this._hasChanges) return false;
-                if (entityTypes === undefined) return this._hasChanges;
-                return this._hasChangesCore(entityTypes);
-            });
+            this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
             this.clear();
             
         };
         var proto = ctor.prototype;
+        
+        
         
         proto._$typeName = "EntityManager";
         
@@ -9868,7 +9859,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
             return entity;
         };
-
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -10041,7 +10031,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -10554,7 +10544,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // update _hasChanges after save.
                 that._hasChanges = isFullSave ? false : that._hasChangesCore();
                 if (!that._hasChanges) {
-                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                    that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
                 }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
@@ -10769,23 +10759,23 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
-        //proto.hasChanges = function (entityTypes) {
-        //    if (!this._hasChanges) return false;
-        //    if (entityTypes === undefined) return this._hasChanges;
-        //    return this._hasChangesCore(entityTypes);
-        //};
+        proto.hasChanges = function (entityTypes) {
+            if (!this._hasChanges) return false;
+            if (entityTypes === undefined) return this._hasChanges;
+            return this._hasChangesCore(entityTypes);
+        };
         
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
         @example                    
             var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
-            em.hasChanges.subscribe(function(args) {
-                var hasChanges = args.hasChanges;
+            em.hasChangesChanged.subscribe(function(args) {
+                var hasChangesChanged = args.hasChanges;
                 var entityManager = args.entityManager;
             });
         });
       
-        @event hasChanges 
+        @event hasChangesChanged
         @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
         @param hasChanges {Boolean} Whether or not this EntityManager has changes.
         @readOnly
@@ -10850,7 +10840,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, hasChanges: false });
+            this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -10918,7 +10908,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
+                    this.hasChangesChanged.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -10926,7 +10916,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                        this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }
@@ -10970,8 +10960,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var entityType = entity.entityType;
                 var navigationProperties = entityType.navigationProperties;
                 var unattachedMap = em._unattachedChildrenMap;
-
-                navigationProperties.forEach(function (np) {
+                
+                navigationProperties.forEach(function(np) {
                     if (np.isScalar) {
                         var value = entity.getProperty(np.name);
                         // property is already linked up
@@ -11007,7 +10997,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                             onlyChild.setProperty(inverseNp.name, entity);
                         } else {
                             var currentChildren = entity.getProperty(np.name);
-                            unattachedChildren.forEach(function (child) {
+                            unattachedChildren.forEach(function(child) {
                                 currentChildren.push(child);
                                 child.setProperty(inverseNp.name, entity);
                             });
@@ -11380,28 +11370,34 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         queryContext = null;
                         entities = null;
                     }, function () {
+                       
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
                         var entities = rawEntities.map(function(rawEntity) {
+                            
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
+                            
                             var entity = mergeEntity(rawEntity, queryContext);
+                            
                             // anon types and simple types will not have an entityAspect.
                             if (validateOnQuery && entity.entityAspect) {
                                 entity.entityAspect.validateEntity();
                             }
                             return entity;
+                            
                         });
                         if (queryContext.deferredFns.length > 0) {
-                           queryContext.deferredFns.forEach(function(fn) {
+                            queryContext.deferredFns.forEach(function(fn) {
                                 fn();
                             });
                         }
-                        
+
                         return { results: entities, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                         
+
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -12545,13 +12541,12 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
             url: metadataSvcUrl,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
-                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+                
                 var metadata = JSON.parse(data);
                 if (!metadata) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
-                // setProperties metadataStore    
 
                 var schema = metadata.schema;
 
@@ -13172,19 +13167,29 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     } else {
                         val = breeze.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+
+                        val._koObj = koObj;
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
-                        koObj.subscribe(function(b) {
-                            koObj._suppressBreeze = true;
-                        }, null, "beforeChange");
+                        koObj.subscribe(onBeforeChange, null, "beforeChange");
                         // code to insure that any been changes notify ko
-                        val.arrayChanged.subscribe(function(args) {
-                            if (koObj._suppressBreeze) {
-                                koObj._suppressBreeze = false;
-                            } else {
-                                koObj.valueHasMutated();
-                            }
-                        });
+                        val.arrayChanged.subscribe(onArrayChanged);
+   
+
+                        //// old code to suppress extra breeze notification when 
+                        //// ko's array methods are called.
+                        //koObj.subscribe(function(b) {
+                        //    koObj._suppressBreeze = true;
+                        //}, null, "beforeChange");
+                        //// code to insure that any been changes notify ko
+                        //val.arrayChanged.subscribe(function(args) {
+                        //    if (koObj._suppressBreeze) {
+                        //        koObj._suppressBreeze = false;
+                        //    } else {
+                        //        koObj.valueHasMutated();
+                        //    }
+                        //});
+                        
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
@@ -13211,6 +13216,19 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         });
 
     };
+    
+    function onBeforeChange(args) {
+        args._koObj._suppressBreeze = true;
+    }
+    
+    function onArrayChanged(args) {
+        var koObj = args.relationArray._koObj;
+        if (koObj._suppressBreeze) {
+            koObj._suppressBreeze = false;
+        } else {
+            koObj.valueHasMutated();
+        }
+    }
 
     breeze.config.registerAdapter("modelLibrary", ctor);
     

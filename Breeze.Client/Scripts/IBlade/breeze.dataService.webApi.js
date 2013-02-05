@@ -48,13 +48,12 @@
             url: metadataSvcUrl,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
-                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+                
                 var metadata = JSON.parse(data);
                 if (!metadata) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
-                // setProperties metadataStore    
 
                 var schema = metadata.schema;
 

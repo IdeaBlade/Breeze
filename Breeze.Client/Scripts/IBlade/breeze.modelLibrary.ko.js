@@ -114,19 +114,28 @@
                     } else {
                         val = breeze.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+
+                        val._koObj = koObj;
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
-                        koObj.subscribe(function(b) {
-                            koObj._suppressBreeze = true;
-                        }, null, "beforeChange");
+                        koObj.subscribe(onBeforeChange, null, "beforeChange");
                         // code to insure that any been changes notify ko
-                        val.arrayChanged.subscribe(function(args) {
-                            if (koObj._suppressBreeze) {
-                                koObj._suppressBreeze = false;
-                            } else {
-                                koObj.valueHasMutated();
-                            }
-                        });
+                        val.arrayChanged.subscribe(onArrayChanged);
+   
+                        //// old code to suppress extra breeze notification when 
+                        //// ko's array methods are called.
+                        //koObj.subscribe(function(b) {
+                        //    koObj._suppressBreeze = true;
+                        //}, null, "beforeChange");
+                        //// code to insure that any been changes notify ko
+                        //val.arrayChanged.subscribe(function(args) {
+                        //    if (koObj._suppressBreeze) {
+                        //        koObj._suppressBreeze = false;
+                        //    } else {
+                        //        koObj.valueHasMutated();
+                        //    }
+                        //});
+                        
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
@@ -153,6 +162,19 @@
         });
 
     };
+    
+    function onBeforeChange(args) {
+        args._koObj._suppressBreeze = true;
+    }
+    
+    function onArrayChanged(args) {
+        var koObj = args.relationArray._koObj;
+        if (koObj._suppressBreeze) {
+            koObj._suppressBreeze = false;
+        } else {
+            koObj.valueHasMutated();
+        }
+    }
 
     breeze.config.registerAdapter("modelLibrary", ctor);
     
