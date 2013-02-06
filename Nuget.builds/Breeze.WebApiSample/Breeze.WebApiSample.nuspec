@@ -2,21 +2,22 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.WebApiSample</id>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
         <title>Breeze for ASP.NET MVC4 Web Api Sample</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>        
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Adds a very simple Breeze sample app to the project.  We recommend installing this package shortly after creating a project with the "ASP.NET MVC 4 Empty" template or the "ASP.NET MVC 4 Web Api" template. It extends the dependent "Breeze for WebApi projects" package which will be installed automatically.</description>
         <summary>Breeze MVC4 Web Api client sample application</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>
-        <tags>javascript MVC4 EntityFramework Breeze</tags>
+        <tags>javascript MVC EntityFramework Breeze SPA</tags>
 		<dependencies>
-			<dependency id="Breeze.WebApi" version="1.0.1" />
+			<dependency id="Breeze.WebApi" version="1.1.0" />
 		</dependencies>
     </metadata>
     <files>

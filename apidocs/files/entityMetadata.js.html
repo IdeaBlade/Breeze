@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -252,6 +252,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, &quot;LocalQueryComparisonOptions:&quot; + this.name);
         };
         var proto = ctor.prototype;
+        proto._$typeName = &quot;LocalQueryComparisonOptions&quot;;
+        
         &#x2F;&#x2F; 
         &#x2F;**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -334,7 +336,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, &quot;NamingConvention:&quot; + this.name);
         };
         var proto = ctor.prototype;
-        
+        proto._$typeName = &quot;NamingConvention&quot;;
         &#x2F;**
         The function used to convert server side property names to client side property names.
 
@@ -489,7 +491,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **&#x2F;
-        proto.addEntityType = function(structuralType) {
+        proto.addEntityType = function (structuralType) {
+            if (this.getEntityType(structuralType.name, true)) {
+                var xxx = 7;
+            }
             structuralType.metadataStore = this;
             &#x2F;&#x2F; don&#x27;t register anon types
             if (!structuralType.isAnonymous) {
@@ -710,13 +715,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var dataServiceAdapterInstance = a_config.getAdapterInstance(&quot;dataService&quot;, dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                &#x2F;&#x2F; might have been fetched by another query
-                if (!that.hasMetadataFor(serviceName)) {
-                    that.addDataService(dataService);
-                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -773,8 +774,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, &quot;aCtor&quot;).isFunction().isOptional().check();
             assertParam(initializationFn, &quot;initializationFn&quot;).isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                aCtor = createEmptyCtor();
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -794,7 +794,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
       
-
+        function createEmptyCtor() {
+            return function() {};
+        }
+        
         &#x2F;**
         Returns whether this MetadataStore contains any metadata yet.
         @example
@@ -1550,7 +1553,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param property {DataProperty|NavigationProperty}
         **&#x2F;
         proto.addProperty = function (property) {
-            assertParam(property, &quot;dataProperty&quot;).isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
+            assertParam(property, &quot;dataProperty&quot;).isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty).check();
             if (this.metadataStore &amp;&amp; !property.isUnmapped) {
                 throw new Error(&quot;The &#x27;&quot; + this.name + &quot;&#x27; EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.&quot;);
             }
@@ -1617,13 +1620,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 if (createCtor) {
                     aCtor = createCtor(this);
                 } else {
-                    aCtor = function() {
-                    };
+                    aCtor = createEmptyCtor();
                 }
             }
             this._setCtor(aCtor);
             return aCtor;
         };
+        
+        function createEmptyCtor() {
+            return function() { };
+        }
 
         &#x2F;&#x2F; May make public later.
         proto._setCtor = function (aCtor, interceptor) {
@@ -2733,26 +2739,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var pproto = core.Param.prototype;
 
     pproto.isEntity = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.entityType !== undefined);
-        };
-        result.getMessage = function () {
-            return &quot; must be an entity&quot;;
-        };
-        return this.compose(result);
+        return this._addContext({
+            fn: isEntity,
+            msg: &quot; must be an entity&quot;
+        });
+    };
+    
+    function isEntity(context, v) {
+        if (v == null) return false;
+        return (v.entityType !== undefined);
+    }
+
+    pproto.isEntityProperty = function() {
+        return this._addContext({
+            fn: isEntityProperty,
+            msg: &quot; must be either a DataProperty or a NavigationProperty&quot;
+        });
     };
 
-    pproto.isEntityProperty = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.isDataProperty || v.isNavigationProperty);
-        };
-        result.getMessage = function () {
-            return &quot; must be either a DataProperty or a NavigationProperty&quot;;
-        };
-        return this.compose(result);
-    };
+    function isEntityProperty(context, v) {
+        if (v == null) return false;
+        return (v.isDataProperty || v.isNavigationProperty);
+    }
 
     function isQualifiedTypeName(entityTypeName) {
         return entityTypeName.indexOf(&quot;:#&quot;) &gt;= 0;
@@ -2849,7 +2857,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>

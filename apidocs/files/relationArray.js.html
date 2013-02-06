@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -349,7 +349,8 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         
         &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { added: adds });
+        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, added: adds });
+        
     }
     
     function publish(publisher, eventName, eventArgs) {
@@ -371,7 +372,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (hasOwnProperty.call(target, key)) {
+            if (key!== &quot;relationArray&quot; &amp;&amp; hasOwnProperty.call(target, key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {
@@ -394,7 +395,7 @@ function (core, m_entityAspect, m_entityQuery) {
             });
         }
         &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { removed: removes });
+        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, removed: removes });
     }
 
 
@@ -425,7 +426,7 @@ function (core, m_entityAspect, m_entityQuery) {
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>

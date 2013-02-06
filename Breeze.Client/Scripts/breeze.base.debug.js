@@ -4184,10 +4184,9 @@ function (core, m_entityAspect, DataType) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty && !property.isComplexProperty) {
-                    // the || property.defaultValue is to insure that undefined -> null; 
+                if (localAspect.originalValues[propName]===undefined && property.isDataProperty && !property.isComplexProperty) {
                     // otherwise this entry will be skipped during serialization
-                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue !== undefined ? oldValue : property.defaultValue;
                 }
             }
 
@@ -12417,7 +12416,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.0.1",
+        version: "1.1.0",
         core: core,
         config: a_config
     };

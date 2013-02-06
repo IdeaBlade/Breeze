@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -210,26 +210,17 @@
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **&#x2F;
-    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
-        assertParam(name, &quot;eventName&quot;).isNonEmptyString();
-        assertParam(publisher, &quot;publisher&quot;).isObject();
-        var that;
-        if (defaultFn) {
-            that = defaultFn;
-        } else {
-            that = this;
-        }
-        that.name = name;
+    var Event = function (name, publisher, defaultErrorCallback) {
+        assertParam(name, &quot;eventName&quot;).isNonEmptyString().check();
+        assertParam(publisher, &quot;publisher&quot;).isObject().check();
+
+        this.name = name;
         &#x2F;&#x2F; register the name
         __eventNameMap[name] = true;
-        that.publisher = publisher;
-        that._nextUnsubKey = 1;
+        this.publisher = publisher;
+        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            that._defaultErrorCallback = defaultErrorCallback;
-        }
-        if (defaultFn) {
-            core.extend(defaultFn, Event.prototype);
-            return defaultFn;
+            this._defaultErrorCallback = defaultErrorCallback;
         }
     };
 
@@ -257,36 +248,36 @@
     @return {Boolean} false if event is disabled; true otherwise.
     **&#x2F;
     Event.prototype.publish = function(data, publishAsync, errorCallback) {
-
-        function publishCore() {
-            &#x2F;&#x2F; subscribers from outer scope.
-            subscribers.forEach(function(s) {
-                try {
-                    s.callback(data);
-                } catch(e) {
-                    e.context = &quot;unable to publish on topic: &quot; + this.name;
-                    if (errorCallback) {
-                        errorCallback(e);
-                    } else if (this._defaultErrorCallback) {
-                        this._defaultErrorCallback(e);
-                    } else {
-                        fallbackErrorHandler(e);
-                    }
-                }
-            });
-        }
         
         if (!Event._isEnabled(this.name, this.publisher)) return false;
-        var subscribers = this._subscribers;
-        if (!subscribers) return true;
         
         if (publishAsync === true) {
-            setTimeout(publishCore, 0);
+            setTimeout(publishCore, 0, this, data, errorCallback);
         } else {
-            publishCore();
+            publishCore(this, data, errorCallback);
         }
         return true;
     };
+    
+    function publishCore(that, data, errorCallback) {
+        var subscribers = that._subscribers;
+        if (!subscribers) return true;
+        &#x2F;&#x2F; subscribers from outer scope.
+        subscribers.forEach(function (s) {
+            try {
+                s.callback(data);
+            } catch (e) {
+                e.context = &quot;unable to publish on topic: &quot; + that.name;
+                if (errorCallback) {
+                    errorCallback(e);
+                } else if (that._defaultErrorCallback) {
+                    that._defaultErrorCallback(e);
+                } else {
+                    fallbackErrorHandler(e);
+                }
+            }
+        });
+    }
 
     &#x2F;**
    Publish data for this event asynchronously.
@@ -368,12 +359,16 @@
         if (ix !== -1) {
             subs.splice(ix, 1);
             if (subs.length === 0) {
-                delete this._subscribers;
+                this._subscribers = null;
             }
             return true;
         } else {
             return false;
         }
+    };
+
+    Event.prototype.clear = function() {
+        this._subscribers = null;
     };
     
     &#x2F;&#x2F; event bubbling - document later.
@@ -410,9 +405,9 @@
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **&#x2F;
     Event.enable = function (eventName, obj, isEnabled) {
-        assertParam(eventName, &quot;eventName&quot;).isNonEmptyString();
-        assertParam(obj, &quot;obj&quot;).isObject();
-        assertParam(isEnabled, &quot;isEnabled&quot;).isBoolean().isOptional().or().isFunction();
+        assertParam(eventName, &quot;eventName&quot;).isNonEmptyString().check();
+        assertParam(obj, &quot;obj&quot;).isObject().check();
+        assertParam(isEnabled, &quot;isEnabled&quot;).isBoolean().isOptional().or().isFunction().check();
         eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
@@ -439,8 +434,8 @@
     @return {Boolean|null} A null is returned if this value has not been set.
     **&#x2F;
     Event.isEnabled = function (eventName, obj) {
-        assertParam(eventName, &quot;eventName&quot;).isNonEmptyString();
-        assertParam(obj, &quot;obj&quot;).isObject();
+        assertParam(eventName, &quot;eventName&quot;).isNonEmptyString().check();
+        assertParam(obj, &quot;obj&quot;).isObject().check();
         if (!obj._getEventParent) {
             throw new Error(&quot;This object does not support event enabling&#x2F;disabling&quot;);
         }
@@ -506,7 +501,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>

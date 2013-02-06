@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -1709,7 +1709,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().check();
             assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, &quot;value&quot;).isRequired().check();
+            assertParam(value, &quot;value&quot;).isRequired(true).check();
             assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
             this._propertyOrExpr = propertyOrExpr;
@@ -2388,7 +2388,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>

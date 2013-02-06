@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -296,16 +296,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             }
             this.entityChanged = new Event(&quot;entityChanged_entityManager&quot;, this);
-            this.hasChanges = new Event(&quot;hasChanges_entityManager&quot;, this, null, function (entityTypes) {
-                if (!this._hasChanges) return false;
-                if (entityTypes === undefined) return this._hasChanges;
-                return this._hasChangesCore(entityTypes);
-            });
+            this.hasChangesChanged = new Event(&quot;hasChangesChanged_entityManager&quot;, this);
             
             this.clear();
             
         };
         var proto = ctor.prototype;
+        
+        
         
         proto._$typeName = &quot;EntityManager&quot;;
         
@@ -421,7 +419,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
             return entity;
         };
-
 
         &#x2F;**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -587,13 +584,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 &#x2F;&#x2F; remove en
                 entityGroup._clear();
             });
+            
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -699,9 +697,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Entity} The attached entity.
         **&#x2F;
         proto.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, &quot;entity&quot;).isRequired().check();
+            assertParam(entity, &quot;entity&quot;).isRequired().check();
             this.metadataStore._checkEntityType(entity);
-            entityState = core.assertParam(entityState, &quot;entityState&quot;).isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
+            entityState = assertParam(entityState, &quot;entityState&quot;).isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             if (entity.entityType.metadataStore != this.metadataStore) {
                 throw new Error(&quot;Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager&#x27;s MetadataStore.&quot;);
@@ -754,7 +752,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
         **&#x2F;
         proto.detachEntity = function (entity) {
-            core.assertParam(entity, &quot;entity&quot;).isEntity().check();
+            assertParam(entity, &quot;entity&quot;).isEntity().check();
             var aspect = entity.entityAspect;
             if (!aspect) {
                 &#x2F;&#x2F; no aspect means in couldn&#x27;t appear in any group
@@ -771,6 +769,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             group.detachEntity(entity);
             aspect._removeFromRelations();
             this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+            aspect._detach();
             return true;
         };
 
@@ -808,8 +807,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             it is usually better to access metadata via the &#x27;metadataStore&#x27; property of the EntityManager instead of using this &#x27;raw&#x27; data.            
         **&#x2F;
         proto.fetchMetadata = function (callback, errorCallback) {
-            core.assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
-            core.assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
+            assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
+            assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
 
             var promise = this.metadataStore.fetchMetadata(this.dataService);
 
@@ -896,9 +895,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **&#x2F;
         proto.executeQuery = function (query, callback, errorCallback) {
             &#x2F;&#x2F; TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
-            core.assertParam(query, &quot;query&quot;).isInstanceOf(EntityQuery).or().isString().check();
-            core.assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
-            core.assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
+            assertParam(query, &quot;query&quot;).isInstanceOf(EntityQuery).or().isString().check();
+            assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
+            assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             var promise;
             if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
                 promise = executeQueryCore(this, query);
@@ -939,7 +938,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return  {Array of Entity}  Array of Entities
         **&#x2F;
         proto.executeQueryLocally = function (query) {
-            core.assertParam(query, &quot;query&quot;).isInstanceOf(EntityQuery).check();
+            assertParam(query, &quot;query&quot;).isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
             var entityType = query._getEntityType(metadataStore, true);
@@ -1041,10 +1040,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Promise} Promise
         **&#x2F;
         proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
-            core.assertParam(entities, &quot;entities&quot;).isOptional().isArray().isEntity().check();
-            core.assertParam(saveOptions, &quot;saveOptions&quot;).isInstanceOf(SaveOptions).isOptional().check();
-            core.assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
-            core.assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
+            assertParam(entities, &quot;entities&quot;).isOptional().isArray().isEntity().check();
+            assertParam(saveOptions, &quot;saveOptions&quot;).isInstanceOf(SaveOptions).isOptional().check();
+            assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
+            assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
             var isFullSave = entities == null;
@@ -1105,7 +1104,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 &#x2F;&#x2F; update _hasChanges after save.
                 that._hasChanges = isFullSave ? false : that._hasChangesCore();
                 if (!that._hasChanges) {
-                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                    that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
                 }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
@@ -1120,7 +1119,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         &#x2F;&#x2F; TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
         proto.findEntityGroup = function (entityType) {
-            core.assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
+            assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
             return this._entityGroupMap[entityType.name];
         };
 
@@ -1281,7 +1280,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **&#x2F;
         proto.generateTempKeyValue = function (entity) {
             &#x2F;&#x2F; TODO - check if this entity is attached to this EntityManager.
-            core.assertParam(entity, &quot;entity&quot;).isEntity().check();
+            assertParam(entity, &quot;entity&quot;).isEntity().check();
             var entityType = entity.entityType;
             var nextKeyValue = this.keyGenerator.generateTempKeyValue(entityType);
             var keyProp = entityType.keyProperties[0];
@@ -1320,23 +1319,23 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **&#x2F;
-        &#x2F;&#x2F;proto.hasChanges = function (entityTypes) {
-        &#x2F;&#x2F;    if (!this._hasChanges) return false;
-        &#x2F;&#x2F;    if (entityTypes === undefined) return this._hasChanges;
-        &#x2F;&#x2F;    return this._hasChangesCore(entityTypes);
-        &#x2F;&#x2F;};
+        proto.hasChanges = function (entityTypes) {
+            if (!this._hasChanges) return false;
+            if (entityTypes === undefined) return this._hasChanges;
+            return this._hasChangesCore(entityTypes);
+        };
         
         &#x2F;**
         An {{#crossLink &quot;Event&quot;}}{{&#x2F;crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
         @example                    
             var em = new EntityManager( {serviceName: &quot;api&#x2F;NorthwindIBModel&quot; });
-            em.hasChanges.subscribe(function(args) {
-                var hasChanges = args.hasChanges;
+            em.hasChangesChanged.subscribe(function(args) {
+                var hasChangesChanged = args.hasChanges;
                 var entityManager = args.entityManager;
             });
         });
       
-        @event hasChanges 
+        @event hasChangesChanged
         @param entityManager {EntityManager} The EntityManager whose &#x27;hasChanges&#x27; status has changed. 
         @param hasChanges {Boolean} Whether or not this EntityManager has changes.
         @readOnly
@@ -1401,7 +1400,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, hasChanges: false });
+            this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -1438,7 +1437,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **&#x2F;
         proto.getEntities = function (entityTypes, entityStates) {
             entityTypes = checkEntityTypes(this, entityTypes);
-            core.assertParam(entityStates, &quot;entityStates&quot;).isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
+            assertParam(entityStates, &quot;entityStates&quot;).isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
             
             if (entityStates) {
                 entityStates = validateEntityStates(this, entityStates);
@@ -1449,7 +1448,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         &#x2F;&#x2F; takes in entityTypes as either strings or entityTypes or arrays of either
         &#x2F;&#x2F; and returns either an entityType or an array of entityTypes or throws an error
         function checkEntityTypes(em, entityTypes) {
-            core.assertParam(entityTypes, &quot;entityTypes&quot;).isString().isOptional().or().isNonEmptyArray().isString()
+            assertParam(entityTypes, &quot;entityTypes&quot;).isString().isOptional().or().isNonEmptyArray().isString()
                 .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             if (typeof entityTypes === &quot;string&quot;) {
                 entityTypes = em.metadataStore.getEntityType(entityTypes, false);
@@ -1469,7 +1468,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
+                    this.hasChangesChanged.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 &#x2F;&#x2F; called when rejecting a change or merging an unchanged record.
@@ -1477,7 +1476,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     &#x2F;&#x2F; NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                        this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }
@@ -1922,9 +1921,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs = [];
                         return state;
                     }, function (state) {
+                        &#x2F;&#x2F; cleanup
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
+                        &#x2F;&#x2F; HACK for GC
+                        query = null;
+                        queryContext = null;
+                        entities = null;
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
@@ -2500,9 +2504,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
-            aspect.entityState = EntityState.Detached;
-            aspect.entityGroup = null;
-            aspect.entityManager = null;
             return entity;
         };
         
@@ -2537,12 +2538,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
-                    var aspect = entity.entityAspect;
-                    aspect.entityState = EntityState.Detached;
-                    aspect.entityGroup = null;
-                    aspect.entityManager = null;
+                    entity.entityAspect._detach();
                 }
             });
+            this._entities = null;
+            this._indexMap = null;
+            this._emptyIndexes = null;
         };
 
         proto._fixupKey = function (tempValue, realValue) {
@@ -2980,7 +2981,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>

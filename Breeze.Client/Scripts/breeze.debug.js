@@ -4184,10 +4184,9 @@ function (core, m_entityAspect, DataType) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty && !property.isComplexProperty) {
-                    // the || property.defaultValue is to insure that undefined -> null; 
+                if (localAspect.originalValues[propName]===undefined && property.isDataProperty && !property.isComplexProperty) {
                     // otherwise this entry will be skipped during serialization
-                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue !== undefined ? oldValue : property.defaultValue;
                 }
             }
 
@@ -12417,7 +12416,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.0.1",
+        version: "1.1.0",
         core: core,
         config: a_config
     };
@@ -13078,8 +13077,6 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 }(function(breeze) {
     
     var core = breeze.core;
-    var ComplexAspect = breeze.ComplexAspect;
-
     var ko;
 
     var ctor = function () {
@@ -13184,7 +13181,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
                         koObj.subscribe(onBeforeChange, null, "beforeChange");
-                        // code to insure that any been changes notify ko
+                        // code to insure that any direct breeze changes notify ko
                         val.arrayChanged.subscribe(onArrayChanged);
    
                         //// old code to suppress extra breeze notification when 
@@ -13192,7 +13189,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                         //koObj.subscribe(function(b) {
                         //    koObj._suppressBreeze = true;
                         //}, null, "beforeChange");
-                        //// code to insure that any been changes notify ko
+                        //// code to insure that any direct breeze changes notify ko
                         //val.arrayChanged.subscribe(function(args) {
                         //    if (koObj._suppressBreeze) {
                         //        koObj._suppressBreeze = false;
@@ -13204,13 +13201,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
-                        // Alternative formulation - perf is not as good.
-                        //koObj.subscribe(function(item) {
-                        //    if (this.target() !== val) {
-                        //        this.target(val); // reset it
-                        //        throw new Error("Collection navigation properties may NOT be set");
-                        //    }
-                        //});
+                        
 
                     }
                 } else {

@@ -1015,8 +1015,8 @@ define('assertParam',["coreFns"], function (core) {
     var Param = function (v, name) {
         this.v = v;
         this.name = name;
-        this._fns = [null];
-        this._pending = [];
+        this._contexts = [null];
+        
     };
     var proto = Param.prototype;
 
@@ -1033,15 +1033,16 @@ define('assertParam',["coreFns"], function (core) {
     };
 
     proto.isNonEmptyString = function() {
-        var result = function(that, v) {
-            if (v == null) return false;
-            return (typeof(v) === 'string') && v.length > 0;
-        };
-        result.getMessage = function() {
-            return " must be a nonEmpty string";
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isNonEmptyString,
+            msg: "must be a nonEmpty string"
+        });
     };
+    
+    function isNonEmptyString(context, v) {
+        if (v == null) return false;
+        return (typeof (v) === 'string') && v.length > 0;
+    }
 
     proto.isNumber = function () {
         return this.isTypeOf('number');
@@ -1051,112 +1052,163 @@ define('assertParam',["coreFns"], function (core) {
         return this.isTypeOf('function');
     };
 
+   
     proto.isTypeOf = function (typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            if (typeof (v) === typeName) return true;
-            return false;
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be a '%1'", typeName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isTypeOf,
+            typeName: typeName,
+            msg: core.formatString("must be a '%1'", typeName)
+        });
     };
-
+    
+    function isTypeOf(context, v) {
+        if (v == null) return false;
+        if (typeof (v) === context.typeName) return true;
+        return false;
+    }
+    
     proto.isInstanceOf = function (type, typeName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v instanceof type);
-        };
-        typeName = typeName || type.prototype._$typeName;
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of '%1'", typeName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isInstanceOf,
+            type: type,
+            typeName: typeName || type.prototype._$typeName,
+            msg: core.formatString("must be an instance of '%1'", typeName)
+        });
     };
+    
+    function isInstanceOf(context, v) {
+        if (v == null) return false;
+        return (v instanceof context.type);
+    }
 
     proto.hasProperty = function (propertyName) {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v[propertyName] !== undefined);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must have a '%1' property ", propertyName);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: hasProperty,
+            propertyName: propertyName,
+            msg: core.formatString("must have a '%1' property ", propertyName)
+        });
     };
+    
+    function hasProperty(context, v) {
+        if (v == null) return false;
+        return (v[context.propertyName] !== undefined);
+    }
 
     proto.isEnumOf = function (enumType) {
-        var result = function (that, v) {
-            if (v == null) false;
-            return enumType.contains(v);
-        };
-        result.getMessage = function () {
-            return core.formatString(" must be an instance of the '%1' enumeration", enumType.name);
-        };
-        return this.compose(result);
+        return addContext(this, {
+            fn: isEnumOf,
+            enumType: enumType,
+            msg: core.formatString("must be an instance of the '%1' enumeration", enumType.name)
+        });
     };
+    
+    function isEnumOf(context, v) {
+        if (v == null) return false;
+        return context.enumType.contains(v);
+    }
 
-    proto.isRequired = function () {
-        if (this.fn && !this._or) {
-            return this;
-        } else {
-            var result = function (that, v) {
-                return v != null;
-            };
-            result.getMessage = function () {
-                return " is required";
-            };
-            return this;
-        }
+    proto.isRequired = function(allowNull) {
+        return addContext(this, {
+            fn: isRequired,
+            allowNull: allowNull,
+            msg: "is required"
+        });
     };
+    
+    function isRequired(context, v) {
+        if (context.allowNull) {
+            return v !== undefined;
+        } else {
+            return v != null;
+        }
+    }
+    
+    // combinable methods.
 
     proto.isOptional = function () {
-        if (this._fn) {
-            setFn(this, makeOptional(this._fn));
-        } else {
-            this._pending.push(function (that, fn) {
-                return makeOptional(fn);
-            });
-        }
-        return this;
+        var context = {
+            fn: isOptional,
+            prevContext: null,
+            msg: isOptionalMessage
+        };
+        return addContext(this, context);
     };
+    
+    function isOptional(context, v) {
+        if (v == null) return true;
+        var prevContext = context.prevContext;
+        if (prevContext) {
+            return prevContext.fn(prevContext, v);
+        } else {
+            return true;
+        }
+    };
+    
+    function isOptionalMessage(context, v) {
+        var prevContext = context.prevContext;
+        var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
+        return "is optional" + element;
+    }
 
     proto.isNonEmptyArray = function () {
         return this.isArray(true);
     };
 
-    proto.isArray = function (mustBeNonEmpty) {
-        if (this._fn) {
-            setFn(this, makeArray(this._fn, mustBeNonEmpty));
-        } else {
-            setFn(this, makeArray(null, mustBeNonEmpty));
-            this._pending.push(function (that, fn) {
-                return makeArray(fn, mustBeNonEmpty);
-            });
+    proto.isArray = function(mustNotBeEmpty) {
+        var context = {
+            fn: isArray,
+            mustNotBeEmpty: mustNotBeEmpty,
+            prevContext: null,
+            msg: isArrayMessage
+        };
+        return addContext(this, context);
+    };
+        
+    
+    function isArray(context, v) {
+        if (!Array.isArray(v)) {
+            return false;
         }
-        return this;
-    };
+        if (context.mustNotBeEmpty) {
+            if (v.length === 0) return false;
+        }
+        // allow standalone is array call.
+        var prevContext = context.prevContext;
+        if (!prevContext) return true;
 
+        return v.every(function (v1) {
+            return prevContext.fn(prevContext, v1);
+        });
+    };
+    
+    function isArrayMessage(context, v) {
+        var arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
+        var prevContext = context.prevContext;
+        var element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
+        return " must be " + arrayDescr + element;
+    }
+    
+    function getMessage(context, v) {
+        var msg = context.msg;
+        if (typeof (msg) === "function") {
+            msg = msg(context, v);
+        }
+        return msg;
+    }
+    
     proto.or = function () {
-        this._fns.push(null);
-        this._fn = null;
+        this._contexts.push(null);
+        this._context = null;
         return this;
-    };
-
-    proto.getMessage = function () {
-        var msg = this._fns.map(function (fn) {
-            return fn.getMessage();
-        }).join(", or it");
-        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + msg;
-    };
+    };   
 
     proto.check = function (defaultValue) {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
+        var ok = exec(this);
+        if (ok === undefined) return;
+        if (!ok) {
             throw new Error(this.getMessage());
         }
+        
         if (this.v !== undefined) {
             return this.v;
         } else {
@@ -1164,12 +1216,62 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    proto.checkMsg = function () {
-        var fn = compile(this);
-        if (!fn) return;
-        if (!fn(this, this.v)) {
-            return this.getMessage();
+    // called from outside this file.
+    proto._addContext = function(context) {
+        return addContext(this, context);
+    };
+    
+    function addContext(that, context) {
+        if (that._context) {
+            var curContext = that._context;
+            
+            while (curContext.prevContext != null) {
+                curContext = curContext.prevContext;
+            }
+            
+            if (curContext.prevContext === null) {
+                curContext.prevContext = context;
+                // just update the prevContext but don't change the curContext.
+                return that;
+            } else if (context.prevContext === null) {
+                context.prevContext = that._context;
+            } else {
+                throw new Error("Illegal construction - use 'or' to combine checks");
+            }
         }
+        return setContext(that, context);
+    };
+
+
+    function setContext(that, context) {
+        that._contexts[that._contexts.length - 1] = context;
+        that._context = context;
+        return that;
+    }
+
+
+    
+    function exec(self) {
+        // clear off last one if null 
+        var contexts = self._contexts;
+        if (contexts[contexts.length - 1] == null) {
+            contexts.pop();
+        }
+        if (contexts.length === 0) {
+            return undefined;
+        }
+        return contexts.some(function (context) {
+            return context.fn(context, self.v);
+        });
+    }
+
+    
+    proto.getMessage = function () {
+        var that = this;
+        var message = this._contexts.map(function (context) {
+            return getMessage(context, that.v);
+        }).join(", or it ");
+        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
     proto.withDefault = function(defaultValue) {
@@ -1180,13 +1282,13 @@ define('assertParam',["coreFns"], function (core) {
     proto.whereParam = function(propName) {
         return this.parent.whereParam(propName);
     };
-
-    proto.applyAll = function(instance, throwIfUnknownProperty) {
+    
+    proto.applyAll = function (instance, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
-        var clone = core.extend({ }, this.parent.config);
-        this.parent.params.forEach(function(p) {
+        var clone = core.extend({}, this.parent.config);
+        this.parent.params.forEach(function (p) {
             if (throwIfUnknownProperty) delete clone[p.name];
-            p._applyOne(instance, p.defaultValue);
+            p._applyOne(instance);
         });
         // should be no properties left in the clone
         if (throwIfUnknownProperty) {
@@ -1196,48 +1298,32 @@ define('assertParam',["coreFns"], function (core) {
         }
     };
 
-    proto._applyOne = function (instance, defaultValue) {
+    proto._applyOne = function( instance ) {
         this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {
-            if (defaultValue !== undefined) {
-                instance[this.name] = defaultValue;
+            if (this.defaultValue !== undefined) {
+                instance[this.name] = this.defaultValue;
             }
         }
     };
-
-    proto.compose = function (fn) {
-
-        if (this._pending.length > 0) {
-            while (this._pending.length > 0) {
-                var pending = this._pending.pop();
-                fn = pending(this, fn);
-            }
-            setFn(this, fn);
-        } else {
-            if (this._fn) {
-                throw new Error("Illegal construction - use 'or' to combine checks");
-            }
-            setFn(this, fn);
-        }
-        return this;
-    };
-
+    
+   
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
 
     var assertParam = function (v, name) {
         return new Param(v, name);
     };
 
-    var CompositeParam = function(config) {
+    var ConfigParam = function(config) {
         if (typeof (config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
         }
         this.config = config;
         this.params = [];
     };
-    var cproto = CompositeParam.prototype;
+    var cproto = ConfigParam.prototype;
 
     cproto.whereParam = function(propName) {
         var param = new Param(this.config[propName], propName);
@@ -1245,72 +1331,10 @@ define('assertParam',["coreFns"], function (core) {
         this.params.push(param);
         return param;
     };
-
+    
     var assertConfig = function(config) {
-        return new CompositeParam(config);
+        return new ConfigParam(config);
     };
-
-    // private functions
-
-    function makeOptional(fn) {
-        var result = function (that, v) {
-            if (v == null) return true;
-            return fn(that, v);
-        };
-
-        result.getMessage = function () {
-            return " is optional, or it" + fn.getMessage();
-        };
-        return result;
-    }
-
-    function makeArray(fn, mustNotBeEmpty) {
-        var result = function (that, v) {
-            if (!Array.isArray(v)) {
-                return false;
-            }
-            if (mustNotBeEmpty) {
-                if (v.length === 0) return false;
-            }
-            // allow standalone is array call.
-            if (!fn) return true;
-
-            return v.every(function (v1) {
-                return fn(that, v1);
-            });
-        };
-        result.getMessage = function () {
-            var arrayDescr = mustNotBeEmpty ? "a nonEmpty array" : "an array";
-            var element = fn ? " where each element" + fn.getMessage() : "";
-            return " must be " + arrayDescr + element;
-        };
-        return result;
-    }
-
-
-
-    function setFn(that, fn) {
-        that._fns[that._fns.length - 1] = fn;
-        that._fn = fn;
-    }
-
-    function compile(self) {
-        if (!self._compiledFn) {
-            // clear off last one if null 
-            if (self._fns[self._fns.length - 1] == null) {
-                self._fns.pop();
-            }
-            if (self._fns.length === 0) {
-                return undefined;
-            }
-            self._compiledFn = function (that, v) {
-                return that._fns.some(function (fn) {
-                    return fn(that, v);
-                });
-            };
-        };
-        return self._compiledFn;
-    }
 
 
     // Param is exposed so that additional 'is' methods can be added to the prototype.
@@ -1348,26 +1372,17 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function (name, publisher, defaultErrorCallback, defaultFn) {
-        assertParam(name, "eventName").isNonEmptyString();
-        assertParam(publisher, "publisher").isObject();
-        var that;
-        if (defaultFn) {
-            that = defaultFn;
-        } else {
-            that = this;
-        }
-        that.name = name;
+    var Event = function (name, publisher, defaultErrorCallback) {
+        assertParam(name, "eventName").isNonEmptyString().check();
+        assertParam(publisher, "publisher").isObject().check();
+
+        this.name = name;
         // register the name
         __eventNameMap[name] = true;
-        that.publisher = publisher;
-        that._nextUnsubKey = 1;
+        this.publisher = publisher;
+        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
-            that._defaultErrorCallback = defaultErrorCallback;
-        }
-        if (defaultFn) {
-            core.extend(defaultFn, Event.prototype);
-            return defaultFn;
+            this._defaultErrorCallback = defaultErrorCallback;
         }
     };
 
@@ -1395,36 +1410,36 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @return {Boolean} false if event is disabled; true otherwise.
     **/
     Event.prototype.publish = function(data, publishAsync, errorCallback) {
-
-        function publishCore() {
-            // subscribers from outer scope.
-            subscribers.forEach(function(s) {
-                try {
-                    s.callback(data);
-                } catch(e) {
-                    e.context = "unable to publish on topic: " + this.name;
-                    if (errorCallback) {
-                        errorCallback(e);
-                    } else if (this._defaultErrorCallback) {
-                        this._defaultErrorCallback(e);
-                    } else {
-                        fallbackErrorHandler(e);
-                    }
-                }
-            });
-        }
         
         if (!Event._isEnabled(this.name, this.publisher)) return false;
-        var subscribers = this._subscribers;
-        if (!subscribers) return true;
         
         if (publishAsync === true) {
-            setTimeout(publishCore, 0);
+            setTimeout(publishCore, 0, this, data, errorCallback);
         } else {
-            publishCore();
+            publishCore(this, data, errorCallback);
         }
         return true;
     };
+    
+    function publishCore(that, data, errorCallback) {
+        var subscribers = that._subscribers;
+        if (!subscribers) return true;
+        // subscribers from outer scope.
+        subscribers.forEach(function (s) {
+            try {
+                s.callback(data);
+            } catch (e) {
+                e.context = "unable to publish on topic: " + that.name;
+                if (errorCallback) {
+                    errorCallback(e);
+                } else if (that._defaultErrorCallback) {
+                    that._defaultErrorCallback(e);
+                } else {
+                    fallbackErrorHandler(e);
+                }
+            }
+        });
+    }
 
     /**
    Publish data for this event asynchronously.
@@ -1506,12 +1521,16 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
         if (ix !== -1) {
             subs.splice(ix, 1);
             if (subs.length === 0) {
-                delete this._subscribers;
+                this._subscribers = null;
             }
             return true;
         } else {
             return false;
         }
+    };
+
+    Event.prototype.clear = function() {
+        this._subscribers = null;
     };
     
     // event bubbling - document later.
@@ -1548,9 +1567,9 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
     Event.enable = function (eventName, obj, isEnabled) {
-        assertParam(eventName, "eventName").isNonEmptyString();
-        assertParam(obj, "obj").isObject();
-        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction();
+        assertParam(eventName, "eventName").isNonEmptyString().check();
+        assertParam(obj, "obj").isObject().check();
+        assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
         eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
@@ -1577,8 +1596,8 @@ define('event',["coreFns", "assertParam"], function (core, m_assertParam) {
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
     Event.isEnabled = function (eventName, obj) {
-        assertParam(eventName, "eventName").isNonEmptyString();
-        assertParam(obj, "obj").isObject();
+        assertParam(eventName, "eventName").isNonEmptyString().check();
+        assertParam(obj, "obj").isObject().check();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
@@ -1734,8 +1753,8 @@ function (core) {
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
     **/
     a_config.registerAdapter = function (interfaceName, adapterCtor) {
-        assertParam(interfaceName, "interfaceName").isNonEmptyString();
-        assertParam(adapterCtor, "adapterCtor").isFunction();
+        assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
+        assertParam(adapterCtor, "adapterCtor").isFunction().check();
         // this impl will be thrown away after the name is retrieved.
         var impl = new adapterCtor();
         var implName = impl.name;
@@ -1840,22 +1859,22 @@ function (core) {
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
     a_config.registerFunction = function (fn, fnName) {
-        core.assertParam(fn, "fn").isFunction().check();
-        core.assertParam(fnName, "fnName").isString().check();
+        assertParam(fn, "fn").isFunction().check();
+        assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         a_config.functionRegistry[fnName] = fn;
     };
 
     a_config.registerObject = function (obj, objName) {
-        core.assertParam(obj, "obj").isObject().check();
-        core.assertParam(objName, "objName").isString().check();
+        assertParam(obj, "obj").isObject().check();
+        assertParam(objName, "objName").isString().check();
 
         a_config.objectRegistry[objName] = obj;
     };
   
     a_config.registerType = function (ctor, typeName) {
-        core.assertParam(ctor, "ctor").isFunction().check();
-        core.assertParam(typeName, "typeName").isString().check();
+        assertParam(ctor, "ctor").isFunction().check();
+        assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
         a_config.typeRegistry[typeName] = ctor;
     };
@@ -2299,7 +2318,7 @@ function (core, a_config, DataType) {
             this.context = context;
         };
         var proto = ctor.prototype;
-
+        proto._$typeName = "Validator";
 
         /**
         Run this validator against the specified value.  This method will usually be called internally either
@@ -3352,7 +3371,7 @@ function (core, a_config, m_validate) {
         @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
         **/
         proto.getKey = function(forceRefresh) {
-            forceRefresh = core.assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
+            forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
                 var keyProps = entityType.keyProperties;
@@ -3605,7 +3624,7 @@ function (core, a_config, m_validate) {
         @return {Array of ValidationError}
         **/
         proto.getValidationErrors = function (property) {
-            assertParam(property, "property").isOptional().isEntityProperty().or().isString();
+            assertParam(property, "property").isOptional().isEntityProperty().or().isString().check();
             var result = core.getOwnPropertyValues(this._validationErrors);
             if (property) {
                 var propertyName = typeof (property) === 'string' ? property : property.name;
@@ -3636,7 +3655,7 @@ function (core, a_config, m_validate) {
         **/
         proto.removeValidationError = function (validator, property) {
             assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-            assertParam(property, "property").isOptional().isEntityProperty();
+            assertParam(property, "property").isOptional().isEntityProperty().check();
             this._processValidationOpAndPublish(function (that) {
                 that._removeValidationError(validator, property && property.name);
             });
@@ -3683,7 +3702,7 @@ function (core, a_config, m_validate) {
         // returns null for np's that do not have a parentKey
         proto.getParentKey = function (navigationProperty) {
             // NavigationProperty doesn't yet exist
-            // core.assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
+            // assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
             var fkNames = navigationProperty.foreignKeyNames;
             if (fkNames.length === 0) return null;
             var that = this;
@@ -3717,6 +3736,17 @@ function (core, a_config, m_validate) {
 
         // internal methods
 
+        proto._detach = function() {
+            
+            this.entityGroup = null;
+            this.entityManager = null;
+            this.entityState = EntityState.Detached;
+            this.originalValues = {};
+            this._validationErrors = {};
+            this.validationErrorsChanged.clear();
+            this.propertyChanged.clear();
+        };
+
         proto._removeFromRelations = function () {
             var entity = this.entity;
 
@@ -3736,6 +3766,7 @@ function (core, a_config, m_validate) {
                                 core.arrayRemoveItem(collection, entity);
                             }
                         }
+                        entity.setProperty(np.name, null);
                     }
                 } else {
                     // npValue is a live list so we need to copy it first.
@@ -3968,7 +3999,7 @@ function (core, a_config, m_validate) {
         **/
         var ctor = function (entityType, keyValues) {
             // can't ref EntityType here because of module circularity
-            // assertParam(entityType, "entityType").isInstanceOf(EntityType);
+            // assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }
@@ -4153,10 +4184,9 @@ function (core, m_entityAspect, DataType) {
             var entityManager = entityAspect.entityManager;
             // store an original value for this property if not already set
             if (entityAspect.entityState.isUnchangedOrModified()) {
-                if (!localAspect.originalValues[propName] && property.isDataProperty && !property.isComplexProperty) {
-                    // the || property.defaultValue is to insure that undefined -> null; 
+                if (localAspect.originalValues[propName]===undefined && property.isDataProperty && !property.isComplexProperty) {
                     // otherwise this entry will be skipped during serialization
-                    localAspect.originalValues[propName] = oldValue || property.defaultValue;
+                    localAspect.originalValues[propName] = oldValue !== undefined ? oldValue : property.defaultValue;
                 }
             }
 
@@ -4443,6 +4473,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
         };
         var proto = ctor.prototype;
+        proto._$typeName = "LocalQueryComparisonOptions";
+        
         // 
         /**
         Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -4525,7 +4557,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             a_config.registerObject(this, "NamingConvention:" + this.name);
         };
         var proto = ctor.prototype;
-        
+        proto._$typeName = "NamingConvention";
         /**
         The function used to convert server side property names to client side property names.
 
@@ -4680,7 +4712,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        proto.addEntityType = function(structuralType) {
+        proto.addEntityType = function (structuralType) {
+            if (this.getEntityType(structuralType.name, true)) {
+                var xxx = 7;
+            }
             structuralType.metadataStore = this;
             // don't register anon types
             if (!structuralType.isAnonymous) {
@@ -4901,13 +4936,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                // might have been fetched by another query
-                if (!that.hasMetadataFor(serviceName)) {
-                    that.addDataService(dataService);
-                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -4964,8 +4995,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                aCtor = createEmptyCtor();
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -4985,7 +5015,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
       
-
+        function createEmptyCtor() {
+            return function() {};
+        }
+        
         /**
         Returns whether this MetadataStore contains any metadata yet.
         @example
@@ -5741,7 +5774,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param property {DataProperty|NavigationProperty}
         **/
         proto.addProperty = function (property) {
-            assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty);
+            assertParam(property, "dataProperty").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty).check();
             if (this.metadataStore && !property.isUnmapped) {
                 throw new Error("The '" + this.name + "' EntityType has already been added to a MetadataStore and therefore no additional properties may be added to it.");
             }
@@ -5808,13 +5841,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 if (createCtor) {
                     aCtor = createCtor(this);
                 } else {
-                    aCtor = function() {
-                    };
+                    aCtor = createEmptyCtor();
                 }
             }
             this._setCtor(aCtor);
             return aCtor;
         };
+        
+        function createEmptyCtor() {
+            return function() { };
+        }
 
         // May make public later.
         proto._setCtor = function (aCtor, interceptor) {
@@ -6924,26 +6960,28 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var pproto = core.Param.prototype;
 
     pproto.isEntity = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.entityType !== undefined);
-        };
-        result.getMessage = function () {
-            return " must be an entity";
-        };
-        return this.compose(result);
+        return this._addContext({
+            fn: isEntity,
+            msg: " must be an entity"
+        });
+    };
+    
+    function isEntity(context, v) {
+        if (v == null) return false;
+        return (v.entityType !== undefined);
+    }
+
+    pproto.isEntityProperty = function() {
+        return this._addContext({
+            fn: isEntityProperty,
+            msg: " must be either a DataProperty or a NavigationProperty"
+        });
     };
 
-    pproto.isEntityProperty = function () {
-        var result = function (that, v) {
-            if (v == null) return false;
-            return (v.isDataProperty || v.isNavigationProperty);
-        };
-        result.getMessage = function () {
-            return " must be either a DataProperty or a NavigationProperty";
-        };
-        return this.compose(result);
-    };
+    function isEntityProperty(context, v) {
+        if (v == null) return false;
+        return (v.isDataProperty || v.isNavigationProperty);
+    }
 
     function isQualifiedTypeName(entityTypeName) {
         return entityTypeName.indexOf(":#") >= 0;
@@ -8554,7 +8592,7 @@ function (core, m_entityMetadata, m_entityAspect) {
         var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
             assertParam(propertyOrExpr, "propertyOrExpr").isString().check();
             assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, "value").isRequired().check();
+            assertParam(value, "value").isRequired(true).check();
             assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
             this._propertyOrExpr = propertyOrExpr;
@@ -9387,7 +9425,8 @@ function (core, m_entityAspect, m_entityQuery) {
         }
         
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { added: adds });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
+        
     }
     
     function publish(publisher, eventName, eventArgs) {
@@ -9409,7 +9448,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (hasOwnProperty.call(target, key)) {
+            if (key!== "relationArray" && hasOwnProperty.call(target, key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {
@@ -9432,7 +9471,7 @@ function (core, m_entityAspect, m_entityQuery) {
             });
         }
         // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { removed: removes });
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
     }
 
 
@@ -9700,16 +9739,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 this.serviceName = this.dataService.serviceName;
             }
             this.entityChanged = new Event("entityChanged_entityManager", this);
-            this.hasChanges = new Event("hasChanges_entityManager", this, null, function (entityTypes) {
-                if (!this._hasChanges) return false;
-                if (entityTypes === undefined) return this._hasChanges;
-                return this._hasChangesCore(entityTypes);
-            });
+            this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
             this.clear();
             
         };
         var proto = ctor.prototype;
+        
+        
         
         proto._$typeName = "EntityManager";
         
@@ -9825,7 +9862,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
             return entity;
         };
-
 
         /**
         Creates a new EntityManager and imports a previously exported result into it.
@@ -9991,13 +10027,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // remove en
                 entityGroup._clear();
             });
+            
             this._entityGroupMap = {};
             this._unattachedChildrenMap = new UnattachedChildrenMap();
             this.keyGenerator = new this.keyGeneratorCtor();
             this.entityChanged.publish({ entityAction: EntityAction.Clear });
             if (this._hasChanges) {
                 this._hasChanges = false;
-                this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             }
         };
 
@@ -10103,9 +10140,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Entity} The attached entity.
         **/
         proto.attachEntity = function (entity, entityState) {
-            core.assertParam(entity, "entity").isRequired().check();
+            assertParam(entity, "entity").isRequired().check();
             this.metadataStore._checkEntityType(entity);
-            entityState = core.assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
+            entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
             if (entity.entityType.metadataStore != this.metadataStore) {
                 throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
@@ -10158,7 +10195,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Boolean} Whether the entity could be detached. This will return false if the entity is already detached or was never attached.
         **/
         proto.detachEntity = function (entity) {
-            core.assertParam(entity, "entity").isEntity().check();
+            assertParam(entity, "entity").isEntity().check();
             var aspect = entity.entityAspect;
             if (!aspect) {
                 // no aspect means in couldn't appear in any group
@@ -10175,6 +10212,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             group.detachEntity(entity);
             aspect._removeFromRelations();
             this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+            aspect._detach();
             return true;
         };
 
@@ -10212,8 +10250,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
         **/
         proto.fetchMetadata = function (callback, errorCallback) {
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
 
             var promise = this.metadataStore.fetchMetadata(this.dataService);
 
@@ -10300,9 +10338,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.executeQuery = function (query, callback, errorCallback) {
             // TODO: think about creating an executeOdataQuery or executeRawOdataQuery as a seperate method.
-            core.assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             var promise;
             if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
                 promise = executeQueryCore(this, query);
@@ -10343,7 +10381,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return  {Array of Entity}  Array of Entities
         **/
         proto.executeQueryLocally = function (query) {
-            core.assertParam(query, "query").isInstanceOf(EntityQuery).check();
+            assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
             var entityType = query._getEntityType(metadataStore, true);
@@ -10445,10 +10483,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @return {Promise} Promise
         **/
         proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
-            core.assertParam(entities, "entities").isOptional().isArray().isEntity().check();
-            core.assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
-            core.assertParam(callback, "callback").isFunction().isOptional().check();
-            core.assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+            assertParam(entities, "entities").isOptional().isArray().isEntity().check();
+            assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             
             saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
             var isFullSave = entities == null;
@@ -10509,7 +10547,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 // update _hasChanges after save.
                 that._hasChanges = isFullSave ? false : that._hasChangesCore();
                 if (!that._hasChanges) {
-                    that.hasChanges.publish({ entityManager: that, hasChanges: false });
+                    that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
                 }
                 saveResult.entities = savedEntities;
                 if (callback) callback(saveResult);
@@ -10524,7 +10562,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
         proto.findEntityGroup = function (entityType) {
-            core.assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+            assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
             return this._entityGroupMap[entityType.name];
         };
 
@@ -10685,7 +10723,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.generateTempKeyValue = function (entity) {
             // TODO - check if this entity is attached to this EntityManager.
-            core.assertParam(entity, "entity").isEntity().check();
+            assertParam(entity, "entity").isEntity().check();
             var entityType = entity.entityType;
             var nextKeyValue = this.keyGenerator.generateTempKeyValue(entityType);
             var keyProp = entityType.keyProperties[0];
@@ -10724,23 +10762,23 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names. 
         @return {Boolean} Whether there were any changed entities.
         **/
-        //proto.hasChanges = function (entityTypes) {
-        //    if (!this._hasChanges) return false;
-        //    if (entityTypes === undefined) return this._hasChanges;
-        //    return this._hasChangesCore(entityTypes);
-        //};
+        proto.hasChanges = function (entityTypes) {
+            if (!this._hasChanges) return false;
+            if (entityTypes === undefined) return this._hasChanges;
+            return this._hasChangesCore(entityTypes);
+        };
         
         /**
         An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
         @example                    
             var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
-            em.hasChanges.subscribe(function(args) {
-                var hasChanges = args.hasChanges;
+            em.hasChangesChanged.subscribe(function(args) {
+                var hasChangesChanged = args.hasChanges;
                 var entityManager = args.entityManager;
             });
         });
       
-        @event hasChanges 
+        @event hasChangesChanged
         @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed. 
         @param hasChanges {Boolean} Whether or not this EntityManager has changes.
         @readOnly
@@ -10805,7 +10843,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             changes.forEach(function(e) {
                 e.entityAspect.rejectChanges();
             });
-            this.hasChanges.publish({ entityManager: this, hasChanges: false });
+            this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
             return changes;
         };
         
@@ -10842,7 +10880,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.getEntities = function (entityTypes, entityStates) {
             entityTypes = checkEntityTypes(this, entityTypes);
-            core.assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
+            assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
             
             if (entityStates) {
                 entityStates = validateEntityStates(this, entityStates);
@@ -10853,7 +10891,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // takes in entityTypes as either strings or entityTypes or arrays of either
         // and returns either an entityType or an array of entityTypes or throws an error
         function checkEntityTypes(em, entityTypes) {
-            core.assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
+            assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
                 .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
             if (typeof entityTypes === "string") {
                 entityTypes = em.metadataStore.getEntityType(entityTypes, false);
@@ -10873,7 +10911,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (needsSave) {
                 if (!this._hasChanges) {
                     this._hasChanges = true;
-                    this.hasChanges.publish({ entityManager: this, hasChanges: true });
+                    this.hasChangesChanged.publish({ entityManager: this, hasChanges: true });
                 }
             } else {
                 // called when rejecting a change or merging an unchanged record.
@@ -10881,7 +10919,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     // NOTE: this can be slow with lots of entities in the cache.
                     this._hasChanges = this._hasChangesCore();
                     if (!this._hasChanges) {
-                        this.hasChanges.publish({ entityManager: this, hasChanges: false });
+                        this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
                     }
                 }
             }
@@ -11326,9 +11364,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._pendingPubs = [];
                         return state;
                     }, function (state) {
+                        // cleanup
                         em.isLoading = state.isLoading;
                         em._pendingPubs.forEach(function(fn) { fn(); });
                         em._pendingPubs = null;
+                        // HACK for GC
+                        query = null;
+                        queryContext = null;
+                        entities = null;
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
@@ -11904,9 +11947,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             delete this._indexMap[keyInGroup];
             this._emptyIndexes.push(ix);
             this._entities[ix] = null;
-            aspect.entityState = EntityState.Detached;
-            aspect.entityGroup = null;
-            aspect.entityManager = null;
             return entity;
         };
         
@@ -11941,12 +11981,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         proto._clear = function() {
             this._entities.forEach(function (entity) {
                 if (entity != null) {
-                    var aspect = entity.entityAspect;
-                    aspect.entityState = EntityState.Detached;
-                    aspect.entityGroup = null;
-                    aspect.entityManager = null;
+                    entity.entityAspect._detach();
                 }
             });
+            this._entities = null;
+            this._indexMap = null;
+            this._emptyIndexes = null;
         };
 
         proto._fixupKey = function (tempValue, realValue) {
@@ -12376,7 +12416,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.0.1",
+        version: "1.1.0",
         core: core,
         config: a_config
     };
@@ -12492,19 +12532,19 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         ajaxImpl.ajax({
             url: metadataSvcUrl,
             dataType: 'json',
-            success: function(data, textStatus, jqXHR) {
-                // jQuery.getJSON(metadataSvcUrl).done(function (data, textStatus, jqXHR) {
+            success: function(data, textStatus, XHR) {
+                
                 var metadata = JSON.parse(data);
                 if (!metadata) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
-                // setProperties metadataStore    
 
                 var schema = metadata.schema;
 
@@ -12512,16 +12552,27 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
                 }
-
-                metadataStore._parseODataMetadata(serviceName, schema);
+                
+                // might have been fetched by another query
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+                
                 if (callback) {
                     callback(schema);
                 }
+                
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
+                
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                var err = createError(jqXHR);
+            error: function(XHR, textStatus, errorThrown) {
+                var err = createError(XHR);
                 err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
             }
         });
     };
@@ -12542,15 +12593,22 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                         inlineCount = parseInt(inlineCount, 10);
                     }
                     collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
+                    XHR.onreadystatechange = null;
+                    XHR.abort = null;
                 } catch(e) {
                     var error = createError(XHR);
                     error.internalError = e;
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
+                    XHR.onreadystatechange = null;
+                    XHR.abort = null;
                 }
+                
             },
             error: function(XHR, textStatus, errorThrown) {
                 if (errorCallback) errorCallback(createError(XHR));
+                XHR.onreadystatechange = null;
+                XHR.abort = null;
             }
         });
     };
@@ -12625,16 +12683,16 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 
     };
 
-    function createError(jqXHR) {
+    function createError(XHR) {
         var err = new Error();
-        err.XHR = jqXHR;
-        err.message = jqXHR.statusText;
-        err.responseText = jqXHR.responseText;
-        err.status = jqXHR.status;
-        err.statusText = jqXHR.statusText;
+        err.XHR = XHR;
+        err.message = XHR.statusText;
+        err.responseText = XHR.responseText;
+        err.status = XHR.status;
+        err.statusText = XHR.statusText;
         if (err.responseText) {
             try {
-                var responseObj = JSON.parse(jqXHR.responseText);
+                var responseObj = JSON.parse(XHR.responseText);
                 err.detail = responseObj;
                 if (responseObj.ExceptionMessage) {
                     err.message = responseObj.ExceptionMessage;
@@ -12643,7 +12701,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 } else if (responseObj.Message) {
                     err.message = responseObj.Message;
                 } else {
-                    err.message = jqXHR.responseText;
+                    err.message = XHR.responseText;
                 }
             } catch (e) {
 
@@ -12719,7 +12777,8 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -12734,7 +12793,13 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     }
                 }
                 var schema = data.dataServices.schema;
-                metadataStore._parseODataMetadata(serviceName, schema);
+
+                // might have been fetched by another query
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+
                 if (callback) {
                     callback(schema);
                 }
@@ -13012,8 +13077,6 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
 }(function(breeze) {
     
     var core = breeze.core;
-    var ComplexAspect = breeze.ComplexAspect;
-
     var ko;
 
     var ctor = function () {
@@ -13113,29 +13176,32 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     } else {
                         val = breeze.makeRelationArray([], entity, prop);
                         koObj = ko.observableArray(val);
+
+                        val._koObj = koObj;
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
-                        koObj.subscribe(function(b) {
-                            koObj._suppressBreeze = true;
-                        }, null, "beforeChange");
-                        // code to insure that any been changes notify ko
-                        val.arrayChanged.subscribe(function(args) {
-                            if (koObj._suppressBreeze) {
-                                koObj._suppressBreeze = false;
-                            } else {
-                                koObj.valueHasMutated();
-                            }
-                        });
+                        koObj.subscribe(onBeforeChange, null, "beforeChange");
+                        // code to insure that any direct breeze changes notify ko
+                        val.arrayChanged.subscribe(onArrayChanged);
+   
+                        //// old code to suppress extra breeze notification when 
+                        //// ko's array methods are called.
+                        //koObj.subscribe(function(b) {
+                        //    koObj._suppressBreeze = true;
+                        //}, null, "beforeChange");
+                        //// code to insure that any direct breeze changes notify ko
+                        //val.arrayChanged.subscribe(function(args) {
+                        //    if (koObj._suppressBreeze) {
+                        //        koObj._suppressBreeze = false;
+                        //    } else {
+                        //        koObj.valueHasMutated();
+                        //    }
+                        //});
+                        
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
-                        // Alternative formulation - perf is not as good.
-                        //koObj.subscribe(function(item) {
-                        //    if (this.target() !== val) {
-                        //        this.target(val); // reset it
-                        //        throw new Error("Collection navigation properties may NOT be set");
-                        //    }
-                        //});
+                        
 
                     }
                 } else {
@@ -13152,6 +13218,19 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         });
 
     };
+    
+    function onBeforeChange(args) {
+        args._koObj._suppressBreeze = true;
+    }
+    
+    function onArrayChanged(args) {
+        var koObj = args.relationArray._koObj;
+        if (koObj._suppressBreeze) {
+            koObj._suppressBreeze = false;
+        } else {
+            koObj.valueHasMutated();
+        }
+    }
 
     breeze.config.registerAdapter("modelLibrary", ctor);
     

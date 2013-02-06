@@ -34,7 +34,7 @@
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
@@ -630,7 +630,7 @@ function (core, a_config, m_validate) {
         @return {EntityKey} The {{#crossLink &quot;EntityKey&quot;}}{{&#x2F;crossLink}} associated with this Entity.
         **&#x2F;
         proto.getKey = function(forceRefresh) {
-            forceRefresh = core.assertParam(forceRefresh, &quot;forceRefresh&quot;).isBoolean().isOptional().check(false);
+            forceRefresh = assertParam(forceRefresh, &quot;forceRefresh&quot;).isBoolean().isOptional().check(false);
             if (forceRefresh || !this._entityKey) {
                 var entityType = this.entity.entityType;
                 var keyProps = entityType.keyProperties;
@@ -883,7 +883,7 @@ function (core, a_config, m_validate) {
         @return {Array of ValidationError}
         **&#x2F;
         proto.getValidationErrors = function (property) {
-            assertParam(property, &quot;property&quot;).isOptional().isEntityProperty().or().isString();
+            assertParam(property, &quot;property&quot;).isOptional().isEntityProperty().or().isString().check();
             var result = core.getOwnPropertyValues(this._validationErrors);
             if (property) {
                 var propertyName = typeof (property) === &#x27;string&#x27; ? property : property.name;
@@ -914,7 +914,7 @@ function (core, a_config, m_validate) {
         **&#x2F;
         proto.removeValidationError = function (validator, property) {
             assertParam(validator, &quot;validator&quot;).isString().or().isInstanceOf(Validator).check();
-            assertParam(property, &quot;property&quot;).isOptional().isEntityProperty();
+            assertParam(property, &quot;property&quot;).isOptional().isEntityProperty().check();
             this._processValidationOpAndPublish(function (that) {
                 that._removeValidationError(validator, property &amp;&amp; property.name);
             });
@@ -961,7 +961,7 @@ function (core, a_config, m_validate) {
         &#x2F;&#x2F; returns null for np&#x27;s that do not have a parentKey
         proto.getParentKey = function (navigationProperty) {
             &#x2F;&#x2F; NavigationProperty doesn&#x27;t yet exist
-            &#x2F;&#x2F; core.assertParam(navigationProperty, &quot;navigationProperty&quot;).isInstanceOf(NavigationProperty).check();
+            &#x2F;&#x2F; assertParam(navigationProperty, &quot;navigationProperty&quot;).isInstanceOf(NavigationProperty).check();
             var fkNames = navigationProperty.foreignKeyNames;
             if (fkNames.length === 0) return null;
             var that = this;
@@ -995,6 +995,17 @@ function (core, a_config, m_validate) {
 
         &#x2F;&#x2F; internal methods
 
+        proto._detach = function() {
+            
+            this.entityGroup = null;
+            this.entityManager = null;
+            this.entityState = EntityState.Detached;
+            this.originalValues = {};
+            this._validationErrors = {};
+            this.validationErrorsChanged.clear();
+            this.propertyChanged.clear();
+        };
+
         proto._removeFromRelations = function () {
             var entity = this.entity;
 
@@ -1014,6 +1025,7 @@ function (core, a_config, m_validate) {
                                 core.arrayRemoveItem(collection, entity);
                             }
                         }
+                        entity.setProperty(np.name, null);
                     }
                 } else {
                     &#x2F;&#x2F; npValue is a live list so we need to copy it first.
@@ -1246,7 +1258,7 @@ function (core, a_config, m_validate) {
         **&#x2F;
         var ctor = function (entityType, keyValues) {
             &#x2F;&#x2F; can&#x27;t ref EntityType here because of module circularity
-            &#x2F;&#x2F; assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType);
+            &#x2F;&#x2F; assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
             if (!Array.isArray(keyValues)) {
                 keyValues = Array.prototype.slice.call(arguments, 1);
             }
@@ -1372,7 +1384,7 @@ function (core, a_config, m_validate) {
 		<li>
 			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
 		<li>
-			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">Tutorials</a></li>	
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
 		<li>
 			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
 		<li>
