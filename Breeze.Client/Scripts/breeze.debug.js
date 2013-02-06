@@ -4940,10 +4940,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                // might have been fetched by another query
-                if (!that.hasMetadataFor(serviceName)) {
-                    that.addDataService(dataService);
-                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -12559,10 +12555,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 }
                 
                 // might have been fetched by another query
-                if (metadataStore.hasMetadataFor(serviceName)) {
-                    var DEBUG = 8;
-
-                } else {
+                if (!metadataStore.hasMetadataFor(serviceName)) {
                     metadataStore._parseODataMetadata(serviceName, schema);
                     metadataStore.addDataService(dataService);
                 }
@@ -12570,10 +12563,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                 if (callback) {
                     callback(schema);
                 }
-                // cleanup
-                metadataSvcUrl = null;
-                metadataStore = null;
-                serviceName = null;
+                
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
                 
@@ -12804,7 +12794,13 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     }
                 }
                 var schema = data.dataServices.schema;
-                metadataStore._parseODataMetadata(serviceName, schema);
+
+                // might have been fetched by another query
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+
                 if (callback) {
                     callback(schema);
                 }

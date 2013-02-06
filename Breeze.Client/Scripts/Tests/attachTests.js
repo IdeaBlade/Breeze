@@ -22,6 +22,19 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+    test("boolean reject changes", function () {
+        var em = newEm();
+        var emp1 = em.createEntity("Product", null, EntityState.Detached);
+        emp1.setProperty("isDiscontinued", false);
+        em.attachEntity(emp1);
+        emp1.setProperty("isDiscontinued", true);
+        emp1.setProperty("isDiscontinued", false);
+        emp1.entityAspect.rejectChanges();
+        var dc = emp1.getProperty("isDiscontinued");
+        ok(dc === false, "original value should be false");
+
+    });
 
     test("createEntity", function() {
         var em = newEm();

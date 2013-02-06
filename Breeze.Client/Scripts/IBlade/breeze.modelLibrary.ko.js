@@ -13,8 +13,6 @@
 }(function(breeze) {
     
     var core = breeze.core;
-    var ComplexAspect = breeze.ComplexAspect;
-
     var ko;
 
     var ctor = function () {
@@ -119,7 +117,7 @@
                         // new code to suppress extra breeze notification when 
                         // ko's array methods are called.
                         koObj.subscribe(onBeforeChange, null, "beforeChange");
-                        // code to insure that any been changes notify ko
+                        // code to insure that any direct breeze changes notify ko
                         val.arrayChanged.subscribe(onArrayChanged);
    
                         //// old code to suppress extra breeze notification when 
@@ -127,7 +125,7 @@
                         //koObj.subscribe(function(b) {
                         //    koObj._suppressBreeze = true;
                         //}, null, "beforeChange");
-                        //// code to insure that any been changes notify ko
+                        //// code to insure that any direct breeze changes notify ko
                         //val.arrayChanged.subscribe(function(args) {
                         //    if (koObj._suppressBreeze) {
                         //        koObj._suppressBreeze = false;
@@ -139,13 +137,7 @@
                         koObj.equalityComparer = function() {
                             throw new Error("Collection navigation properties may NOT be set.");
                         };
-                        // Alternative formulation - perf is not as good.
-                        //koObj.subscribe(function(item) {
-                        //    if (this.target() !== val) {
-                        //        this.target(val); // reset it
-                        //        throw new Error("Collection navigation properties may NOT be set");
-                        //    }
-                        //});
+                        
 
                     }
                 } else {
