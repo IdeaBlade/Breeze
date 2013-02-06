@@ -184,7 +184,7 @@ define(["breeze"], function (breeze) {
     // the database to a known, populated state.
     function teardown_todosReset() {
         stop();
-        todosReset().fail(handleFail).fin(start).end();
+        todosReset().fail(handleFail).fin(start).done();
     }
 
     /*********************************************************

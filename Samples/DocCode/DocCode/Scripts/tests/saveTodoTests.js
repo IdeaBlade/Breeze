@@ -190,7 +190,7 @@ define(["testFns"], function (testFns) {
     test("hasChanges event raised after rejectChanges", 1, function () {
         var em = newEm();
         var hasChangesWasRaised;
-        em.hasChanges.subscribe(
+        em.hasChangesChanged.subscribe(
             function () { hasChangesWasRaised = true; }
         );
 
@@ -208,7 +208,7 @@ define(["testFns"], function (testFns) {
     test("hasChanges event raised after saveChanges", 1, function () {
         var em = newEm();    
         var hasChangesWasRaised;
-        em.hasChanges.subscribe(
+        em.hasChangesChanged.subscribe(
             function() {
                  hasChangesWasRaised = true;
             }
