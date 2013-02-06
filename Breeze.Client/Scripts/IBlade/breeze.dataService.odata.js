@@ -62,7 +62,8 @@
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -77,7 +78,13 @@
                     }
                 }
                 var schema = data.dataServices.schema;
-                metadataStore._parseODataMetadata(serviceName, schema);
+
+                // might have been fetched by another query
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+
                 if (callback) {
                     callback(schema);
                 }

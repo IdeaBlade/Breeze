@@ -42,7 +42,8 @@
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         ajaxImpl.ajax({
             url: metadataSvcUrl,
@@ -61,11 +62,17 @@
                     if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
                 }
-
-                metadataStore._parseODataMetadata(serviceName, schema);
+                
+                // might have been fetched by another query
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+                
                 if (callback) {
                     callback(schema);
                 }
+                
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
                 

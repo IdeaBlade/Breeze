@@ -4713,7 +4713,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        proto.addEntityType = function(structuralType) {
+        proto.addEntityType = function (structuralType) {
+            if (this.getEntityType(structuralType.name, true)) {
+                var xxx = 7;
+            }
             structuralType.metadataStore = this;
             // don't register anon types
             if (!structuralType.isAnonymous) {
@@ -4934,7 +4937,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
                 // might have been fetched by another query
@@ -4997,8 +5000,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                aCtor = createEmptyCtor();
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -5018,7 +5020,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
       
-
+        function createEmptyCtor() {
+            return function() {};
+        }
+        
         /**
         Returns whether this MetadataStore contains any metadata yet.
         @example
@@ -5841,13 +5846,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 if (createCtor) {
                     aCtor = createCtor(this);
                 } else {
-                    aCtor = function() {
-                    };
+                    aCtor = createEmptyCtor();
                 }
             }
             this._setCtor(aCtor);
             return aCtor;
         };
+        
+        function createEmptyCtor() {
+            return function() { };
+        }
 
         // May make public later.
         proto._setCtor = function (aCtor, interceptor) {
@@ -10960,8 +10968,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var entityType = entity.entityType;
                 var navigationProperties = entityType.navigationProperties;
                 var unattachedMap = em._unattachedChildrenMap;
-                
-                navigationProperties.forEach(function(np) {
+
+                navigationProperties.forEach(function (np) {
                     if (np.isScalar) {
                         var value = entity.getProperty(np.name);
                         // property is already linked up
@@ -10997,7 +11005,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                             onlyChild.setProperty(inverseNp.name, entity);
                         } else {
                             var currentChildren = entity.getProperty(np.name);
-                            unattachedChildren.forEach(function(child) {
+                            unattachedChildren.forEach(function (child) {
                                 currentChildren.push(child);
                                 child.setProperty(inverseNp.name, entity);
                             });
@@ -11370,34 +11378,28 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         queryContext = null;
                         entities = null;
                     }, function () {
-                       
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
                         var entities = rawEntities.map(function(rawEntity) {
-                            
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
-                            
                             var entity = mergeEntity(rawEntity, queryContext);
-                            
                             // anon types and simple types will not have an entityAspect.
                             if (validateOnQuery && entity.entityAspect) {
                                 entity.entityAspect.validateEntity();
                             }
                             return entity;
-                            
                         });
                         if (queryContext.deferredFns.length > 0) {
-                            queryContext.deferredFns.forEach(function(fn) {
+                           queryContext.deferredFns.forEach(function(fn) {
                                 fn();
                             });
                         }
-
+                        
                         return { results: entities, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                         
-
                     });
                     deferred.resolve( result);
                 }, function (e) {
@@ -12535,7 +12537,8 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         ajaxImpl.ajax({
             url: metadataSvcUrl,
@@ -12554,11 +12557,23 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                     if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
                 }
+                
+                // might have been fetched by another query
+                if (metadataStore.hasMetadataFor(serviceName)) {
+                    var DEBUG = 8;
 
-                metadataStore._parseODataMetadata(serviceName, schema);
+                } else {
+                    metadataStore._parseODataMetadata(serviceName, schema);
+                    metadataStore.addDataService(dataService);
+                }
+                
                 if (callback) {
                     callback(schema);
                 }
+                // cleanup
+                metadataSvcUrl = null;
+                metadataStore = null;
+                serviceName = null;
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
                 
@@ -12773,7 +12788,8 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, serviceName, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+        var serviceName = dataService.serviceName;
         var metadataSvcUrl = getMetadataUrl(serviceName);
         OData.read(metadataSvcUrl,
             function (data) {
@@ -13175,7 +13191,6 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
                         // code to insure that any been changes notify ko
                         val.arrayChanged.subscribe(onArrayChanged);
    
-
                         //// old code to suppress extra breeze notification when 
                         //// ko's array methods are called.
                         //koObj.subscribe(function(b) {

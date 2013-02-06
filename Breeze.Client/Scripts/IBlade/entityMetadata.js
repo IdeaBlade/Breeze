@@ -308,7 +308,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @method addEntityType
         @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
         **/
-        proto.addEntityType = function(structuralType) {
+        proto.addEntityType = function (structuralType) {
+            if (this.getEntityType(structuralType.name, true)) {
+                var xxx = 7;
+            }
             structuralType.metadataStore = this;
             // don't register anon types
             if (!structuralType.isAnonymous) {
@@ -529,13 +532,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, serviceName, deferred.resolve, deferred.reject);
+            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawMetadata) {
-                // might have been fetched by another query
-                if (!that.hasMetadataFor(serviceName)) {
-                    that.addDataService(dataService);
-                }
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
             }, function (error) {
@@ -592,8 +591,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertParam(aCtor, "aCtor").isFunction().isOptional().check();
             assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
             if (!aCtor) {
-                aCtor = function () {
-                };
+                aCtor = createEmptyCtor();
             }
             var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
             var typeName;
@@ -613,7 +611,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
       
-
+        function createEmptyCtor() {
+            return function() {};
+        }
+        
         /**
         Returns whether this MetadataStore contains any metadata yet.
         @example
@@ -1436,13 +1437,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 if (createCtor) {
                     aCtor = createCtor(this);
                 } else {
-                    aCtor = function() {
-                    };
+                    aCtor = createEmptyCtor();
                 }
             }
             this._setCtor(aCtor);
             return aCtor;
         };
+        
+        function createEmptyCtor() {
+            return function() { };
+        }
 
         // May make public later.
         proto._setCtor = function (aCtor, interceptor) {

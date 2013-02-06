@@ -45,8 +45,9 @@ define(["testFns"], function (testFns) {
 
         var store = new MetadataStore({ namingConvention: NamingConvention.none } );
         stop();
-        var dataService = core.config.getAdapterInstance("dataService");
-        dataService.fetchMetadata(store, testFns.serviceName, function () {
+        var dataServiceAdapter = core.config.getAdapterInstance("dataService");
+        var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
+        dataServiceAdapter.fetchMetadata(store, dataService, function () {
 
             var typeMap = store._structuralTypeMap;
             var types = objectValues(typeMap);
@@ -89,13 +90,14 @@ define(["testFns"], function (testFns) {
             ok(false, e);
             sc.start();
         };
-        var dataService = core.config.getAdapterInstance("dataService");
-        dataService.fetchMetadata(store, testFns.serviceName, function () {
+        var dataServiceAdapter = core.config.getAdapterInstance("dataService");
+        var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
+        dataServiceAdapter.fetchMetadata(store, dataService, function () {
             typeMap = store._structuralTypeMap;
             ok(true, "should get here");
             sc.start();
         }, errFn);
-        dataService.fetchMetadata(store, testFns.serviceName, function () {
+        dataServiceAdapter.fetchMetadata(store, dataService, function () {
             typeMap = store._structuralTypeMap;
             ok(true, "should also get here");
             sc.start();
