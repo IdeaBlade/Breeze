@@ -32,8 +32,8 @@
                 <label for="includeArchived" class="archived">Show archived</label>
             </div>
             <div>
-              <span>Filter </span>
-              <input data-ng-model="searchText" type="search" placeholder="Search" />
+              <!--[if lte IE 9]><span style='font-size:.5em;'>Filter </span><![endif]-->
+              <input data-ng-model="searchText" type="search" placeholder="Filter by name ..." />
             </div>
             <ul>
                 <li data-ng-repeat="item in items | filter:itemFilter">
