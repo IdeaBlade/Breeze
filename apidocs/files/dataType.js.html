@@ -355,24 +355,28 @@ function (core) {
     @return {DataType} A DataType.
     **&#x2F;
     DataType.fromEdmDataType = function (typeName) {
-        &#x2F;&#x2F; if OData style
-        var dt;
+        var dt = null;
         var parts = typeName.split(&quot;.&quot;);
         if (parts.length &gt; 1) {
-            if (parts[1] === &quot;image&quot;) {
+            var simpleName = parts[1];
+            if (simpleName === &quot;image&quot;) {
                 &#x2F;&#x2F; hack
                 dt = DataType.Byte;
             } else if (parts.length == 2) {
-                dt = DataType.fromName(parts[1]);
+                dt = DataType.fromName(simpleName);
+                if (!dt) {
+                    if (simpleName === &quot;DateTimeOffset&quot;) {
+                        dt = DataType.DateTime;
+                    } else {
+                        dt = DataType.Undefined;
+                    }
+                }
             } else {
                 &#x2F;&#x2F; enum
                 dt = DataType.Int32;
             }
         }
 
-        if (!dt) {
-            throw new Error(&quot;Unable to recognize DataType for: &quot; + typeName);
-        }
         return dt;
     };
 

@@ -2098,24 +2098,28 @@ function (core) {
     @return {DataType} A DataType.
     **/
     DataType.fromEdmDataType = function (typeName) {
-        // if OData style
-        var dt;
+        var dt = null;
         var parts = typeName.split(".");
         if (parts.length > 1) {
-            if (parts[1] === "image") {
+            var simpleName = parts[1];
+            if (simpleName === "image") {
                 // hack
                 dt = DataType.Byte;
             } else if (parts.length == 2) {
-                dt = DataType.fromName(parts[1]);
+                dt = DataType.fromName(simpleName);
+                if (!dt) {
+                    if (simpleName === "DateTimeOffset") {
+                        dt = DataType.DateTime;
+                    } else {
+                        dt = DataType.Undefined;
+                    }
+                }
             } else {
                 // enum
                 dt = DataType.Int32;
             }
         }
 
-        if (!dt) {
-            throw new Error("Unable to recognize DataType for: " + typeName);
-        }
         return dt;
     };
 
@@ -5302,14 +5306,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             } else {
                 if (isEnumType(odataProperty, schema)) {
                     dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
-                    dp.enumType = odataProperty.type;
+                    if (dp) {
+                        dp.enumType = odataProperty.type;
+                    }
                 } else {
                     dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
                 }
             }
-            parentType.addProperty(dp);
-            addValidators(dp);
-
+            if (dp) {
+                parentType.addProperty(dp);
+                addValidators(dp);
+            }
             return dp;
         }
         
@@ -5325,6 +5332,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
              var dataType = DataType.fromEdmDataType(odataProperty.type);
+             if (dataType == null) {
+                 parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
+                 return null;
+             }
              var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
              var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
              var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
@@ -5345,6 +5356,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                  fixedLength: fixedLength,
                  concurrencyMode: odataProperty.concurrencyMode
              });
+             if (dataType === DataType.Undefined) {
+                 dp.rawTypeName = odataProperty.type;
+             }
             return dp;
         }
         
@@ -5628,6 +5642,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.concurrencyProperties = [];
             this.unmappedProperties = []; // will be updated later.
             this.validators = [];
+            this.warnings = [];
             this._mappedPropertiesCount = 0;
             
         };
@@ -12416,7 +12431,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.1.0",
+        version: "1.1.1",
         core: core,
         config: a_config
     };
