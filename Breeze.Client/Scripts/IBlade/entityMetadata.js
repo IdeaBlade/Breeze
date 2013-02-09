@@ -898,14 +898,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             } else {
                 if (isEnumType(odataProperty, schema)) {
                     dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
-                    dp.enumType = odataProperty.type;
+                    if (dp) {
+                        dp.enumType = odataProperty.type;
+                    }
                 } else {
                     dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
                 }
             }
-            parentType.addProperty(dp);
-            addValidators(dp);
-
+            if (dp) {
+                parentType.addProperty(dp);
+                addValidators(dp);
+            }
             return dp;
         }
         
@@ -921,6 +924,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
              var dataType = DataType.fromEdmDataType(odataProperty.type);
+             if (dataType == null) {
+                 parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
+                 return null;
+             }
              var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
              var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
              var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
@@ -941,6 +948,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                  fixedLength: fixedLength,
                  concurrencyMode: odataProperty.concurrencyMode
              });
+             if (dataType === DataType.Undefined) {
+                 dp.rawTypeName = odataProperty.type;
+             }
             return dp;
         }
         
@@ -1224,6 +1234,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             this.concurrencyProperties = [];
             this.unmappedProperties = []; // will be updated later.
             this.validators = [];
+            this.warnings = [];
             this._mappedPropertiesCount = 0;
             
         };

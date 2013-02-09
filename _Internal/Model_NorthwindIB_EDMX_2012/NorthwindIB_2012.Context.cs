@@ -41,7 +41,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<BonusOrderDetailItem> BonusOrderDetailItems { get; set; }
         public DbSet<TimeLimit> TimeLimits { get; set; }
     }
 }

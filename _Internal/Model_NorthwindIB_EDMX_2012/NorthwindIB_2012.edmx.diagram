@@ -35,9 +35,7 @@
         <AssociationConnector Association="NorthwindIBModel.EmployeeTerritoryNoPayload" ManuallyRouted="false" />
         <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="8.75" PointY="13.75" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" />
-        <EntityTypeShape EntityType="NorthwindIBModel.BonusOrderDetailItem" Width="1.5" PointX="9.125" PointY="5" />
-        <AssociationConnector Association="NorthwindIBModel.OrderDetailBonusOrderDetailItem" />
-        <EntityTypeShape EntityType="NorthwindIBModel.TimeLimit" Width="1.5" PointX="4.75" PointY="11.75" />
+        <EntityTypeShape EntityType="NorthwindIBModel.TimeLimit" Width="1.5" PointX="5.625" PointY="12.25" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

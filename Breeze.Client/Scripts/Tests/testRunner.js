@@ -29,7 +29,7 @@ require([
       "queryCtorTests",
       "queryNonEFTests",
       "queryDatatypeTests",
-      "queryLocalTes",
+      "queryLocalTests",
       "queryNamedTests",
       "queryRawOdataTests",
       "querySelectTests",

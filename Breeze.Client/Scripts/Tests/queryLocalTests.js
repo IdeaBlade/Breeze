@@ -25,6 +25,25 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+
+    test("query property inference error", function () {
+        var em = newEm();
+        var q1 = EntityQuery.from("Orders")
+            .where("orderID", "==", "20140000")
+        var r1 = em.executeQueryLocally(q1);
+        ok(r1.length == 0);
+
+        var p1 = new Predicate("orderID", "==", "2140000");
+        var q2 = EntityQuery.from("Orders").where(p1);
+        var r2 = em.executeQueryLocally(q2);
+        ok(r2.length == 0);
+
+        var p2 = new Predicate("employeeID", "ne", "orderID");
+        var q3 = EntityQuery.from("Orders").where(p1.and(p2));
+        var r3 = em.executeQueryLocally(q3);
+        ok(r3.length == 0);
+    });
+
     
     test("empty em", function () {
         var em = new EntityManager();

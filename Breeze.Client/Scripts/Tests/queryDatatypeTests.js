@@ -8,6 +8,7 @@ define(["testFns"], function (testFns) {
     var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityKey = breeze.EntityKey;
+    var DataType = breeze.DataType;
     var FilterQueryOp = breeze.FilterQueryOp;
     var Predicate = breeze.Predicate;
     var QueryOptions = breeze.QueryOptions;
@@ -34,8 +35,44 @@ define(["testFns"], function (testFns) {
     //    }).fail(testFns.handleFail).fin(start);
     //});
     
-    test("time", function () {
+    test("dateTimeOffset & dateTime2", function () {
         var em = newEm();
+        var query = new EntityQuery("TimeLimits").take(10);
+        var tlimitType = em.metadataStore.getEntityType("TimeLimit");
+        var dt1 = new Date(2001, 1, 1, 1, 1, 1);
+        var dt2 = new Date(2002, 2, 2, 2, 2, 2);
+        var tlimit = tlimitType.createEntity();
+        tlimit.setProperty("creationDate", dt1);
+        tlimit.setProperty("modificationDate", dt2);
+        em.addEntity(tlimit);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var r = sr.entities;
+            ok(r.length === 1, "1 rec should have been saved");
+            var tlimit2 = r[0];
+            var q = EntityQuery.fromEntities(tlimit2);
+            return em.executeQuery(q);
+        }).then(function (data) {
+            var r = data.results;
+            var tlimit3 = r[0];
+            var dt1a = tlimit3.getProperty("creationDate");
+            var dt2a = tlimit3.getProperty("modificationDate");
+            ok(dt1a.getTime() == dt1.getTime(), "creation dates should be the same");
+            ok(dt2a.getTime() === dt2a.getTime(), "mod dates should be the same");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
+    test("time", function () {
+        
+        var newMs = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
+        var tlimitType = newMs.getEntityType("TimeLimit");
+        core.arrayRemoveItem(tlimitType.dataProperties, function(dp) {
+            return dp.dataType === DataType.Undefined;
+        });
+        var em = newEm(newMs);
+
+        // var em = newEm();
         var query = new EntityQuery("TimeLimits").take(10);
         stop();
         var tlimit, tlimit2;
@@ -77,6 +114,8 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
 
     });
+    
+
     
     test("time 2", function () {
         var em = newEm();

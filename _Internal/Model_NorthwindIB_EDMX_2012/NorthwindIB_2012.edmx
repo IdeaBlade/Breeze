@@ -6,7 +6,6 @@
     <edmx:StorageModels>
     <Schema Namespace="NorthwindIBModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityContainer Name="NorthwindIBModelStoreContainer">
-          <EntitySet Name="BonusOrderDetailItem" EntityType="NorthwindIBModel.Store.BonusOrderDetailItem" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Category" EntityType="NorthwindIBModel.Store.Category" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Customer" EntityType="NorthwindIBModel.Store.Customer" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Employee" EntityType="NorthwindIBModel.Store.Employee" store:Type="Tables" Schema="dbo" />
@@ -91,16 +90,6 @@
             <End Role="UserRole" EntitySet="UserRole" />
           </AssociationSet>
         </EntityContainer>
-        <EntityType Name="BonusOrderDetailItem">
-          <Key>
-            <PropertyRef Name="BonusOrderDetailItemID" />
-          </Key>
-          <Property Name="BonusOrderDetailItemID" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="OrderID" Type="int" />
-          <Property Name="ProductID" Type="int" />
-          <Property Name="BonusProductID" Type="int" />
-          <Property Name="Comment" Type="nvarchar(max)" Nullable="false" />
-        </EntityType>
         <EntityType Name="Category">
           <Key>
             <PropertyRef Name="CategoryID" />
@@ -276,7 +265,7 @@
           <Property Name="Id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="Description" Type="nvarchar" MaxLength="2000" />
-          <Property Name="Ts" Type="timestamp" Nullable="false" StoreGeneratedPattern="Computed" />
+          <Property Name="Ts" Type="timestamp" StoreGeneratedPattern="Computed" />
           <Property Name="RoleType" Type="int" />
         </EntityType>
         <EntityType Name="Supplier">
@@ -313,6 +302,10 @@
           <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="MaxTime" Type="time" Nullable="false" />
           <Property Name="MinTime" Type="time" />
+          <Property Name="CreationDate" Type="datetimeoffset" />
+          <Property Name="ModificationDate" Type="datetime2" />
+          <Property Name="Geometry1" Type="geometry" />
+          <Property Name="Geography1" Type="geography" />
         </EntityType>
         <EntityType Name="User">
           <Key>
@@ -523,7 +516,7 @@
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
-      <Schema Namespace="NorthwindIBModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+      <Schema Namespace="NorthwindIBModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" annotation:UseStrongSpatialTypes="false">
         <EntityContainer Name="NorthwindIBContext_EDMX_2012" annotation:LazyLoadingEnabled="true" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
           <EntitySet Name="Categories" EntityType="NorthwindIBModel.Category" />
           <EntitySet Name="Customers" EntityType="NorthwindIBModel.Customer" />
@@ -596,11 +589,6 @@
           <AssociationSet Name="FK_UserRole_Role" Association="NorthwindIBModel.FK_UserRole_Role">
             <End Role="Role" EntitySet="Roles" />
             <End Role="UserRole" EntitySet="UserRoles" />
-          </AssociationSet>
-          <EntitySet Name="BonusOrderDetailItems" EntityType="NorthwindIBModel.BonusOrderDetailItem" />
-          <AssociationSet Name="OrderDetailBonusOrderDetailItem" Association="NorthwindIBModel.OrderDetailBonusOrderDetailItem">
-            <End Role="OrderDetail" EntitySet="OrderDetails" />
-            <End Role="BonusOrderDetailItem" EntitySet="BonusOrderDetailItems" />
           </AssociationSet>
           <EntitySet Name="TimeLimits" EntityType="NorthwindIBModel.TimeLimit" />
         </EntityContainer>
@@ -728,7 +716,6 @@
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Order" Relationship="NorthwindIBModel.FK_OrderDetail_Order" FromRole="OrderDetail" ToRole="Order" />
           <NavigationProperty Name="Product" Relationship="NorthwindIBModel.FK_OrderDetail_Product" FromRole="OrderDetail" ToRole="Product" />
-          <NavigationProperty Name="BonusOrderDetailItems" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="OrderDetail" ToRole="BonusOrderDetailItem" />
         </EntityType>
         <EntityType Name="PreviousEmployee">
           <Key>
@@ -999,7 +986,7 @@
           <Property Type="Int64" Name="Id" Nullable="false" a:StoreGeneratedPattern="Identity" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="Name" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="Description" MaxLength="2000" FixedLength="false" Unicode="true" />
-          <Property Type="Binary" Name="Ts" Nullable="false" MaxLength="8" FixedLength="true" a:StoreGeneratedPattern="Computed" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+          <Property Type="Binary" Name="Ts" MaxLength="8" FixedLength="true" a:StoreGeneratedPattern="Computed" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="NorthwindIBModel.RoleType" Name="RoleType" />
           <NavigationProperty Name="UserRoles" Relationship="NorthwindIBModel.FK_UserRole_Role" FromRole="Role" ToRole="UserRole" />
         </EntityType>
@@ -1016,31 +1003,6 @@
           </ReferentialConstraint>
         </Association>
         <EnumType Name="RoleType" a:ExternalTypeName="Models.NorthwindIB.RoleType" xmlns:a="http://schemas.microsoft.com/ado/2006/04/codegeneration" />
-        <EntityType Name="BonusOrderDetailItem">
-          <Key>
-            <PropertyRef Name="BonusOrderDetailItemID" />
-          </Key>
-          <Property Type="Guid" Name="BonusOrderDetailItemID" Nullable="false" />
-          <Property Type="Int32" Name="OrderID" />
-          <Property Type="Int32" Name="ProductID" />
-          <Property Type="Int32" Name="BonusProductID" />
-          <Property Type="String" Name="Comment" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="OrderDetail" Relationship="NorthwindIBModel.OrderDetailBonusOrderDetailItem" FromRole="BonusOrderDetailItem" ToRole="OrderDetail" />
-        </EntityType>
-        <Association Name="OrderDetailBonusOrderDetailItem">
-          <End Type="NorthwindIBModel.OrderDetail" Role="OrderDetail" Multiplicity="0..1" />
-          <End Type="NorthwindIBModel.BonusOrderDetailItem" Role="BonusOrderDetailItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderDetail">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Principal>
-            <Dependent Role="BonusOrderDetailItem">
-              <PropertyRef Name="OrderID" />
-              <PropertyRef Name="ProductID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="TimeLimit">
           <Key>
             <PropertyRef Name="Id" />
@@ -1048,6 +1010,10 @@
           <Property Type="Int32" Name="Id" Nullable="false" a:StoreGeneratedPattern="Identity" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="Time" Name="MaxTime" Nullable="false" Precision="7" />
           <Property Type="Time" Name="MinTime" Precision="7" />
+          <Property Type="DateTimeOffset" Name="CreationDate" Precision="7" />
+          <Property Type="DateTime" Name="ModificationDate" Precision="7" />
+          <Property Type="Geometry" Name="Geometry1" />
+          <Property Type="Geography" Name="Geography1" />
         </EntityType>
 
       </Schema>
@@ -1300,20 +1266,13 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="BonusOrderDetailItems">
-            <EntityTypeMapping TypeName="NorthwindIBModel.BonusOrderDetailItem">
-              <MappingFragment StoreEntitySet="BonusOrderDetailItem">
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="BonusProductID" ColumnName="BonusProductID" />
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
-                <ScalarProperty Name="BonusOrderDetailItemID" ColumnName="BonusOrderDetailItemID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TimeLimits">
             <EntityTypeMapping TypeName="NorthwindIBModel.TimeLimit">
               <MappingFragment StoreEntitySet="TimeLimit">
+                <ScalarProperty Name="Geography1" ColumnName="Geography1" />
+                <ScalarProperty Name="Geometry1" ColumnName="Geometry1" />
+                <ScalarProperty Name="ModificationDate" ColumnName="ModificationDate" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
                 <ScalarProperty Name="MinTime" ColumnName="MinTime" />
                 <ScalarProperty Name="MaxTime" ColumnName="MaxTime" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
