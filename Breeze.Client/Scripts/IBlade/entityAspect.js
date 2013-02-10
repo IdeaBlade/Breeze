@@ -338,7 +338,7 @@ function (core, a_config, m_validate) {
                     }
                 }
                 var entityCtor = entityType.getEntityCtor();
-                v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
+                v_modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
             }
         };
         var proto = ctor.prototype;
@@ -978,7 +978,7 @@ function (core, a_config, m_validate) {
                 }
             }
             var complexCtor = complexType.getCtor();
-            v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
+            v_modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
         };
         var proto = ctor.prototype;

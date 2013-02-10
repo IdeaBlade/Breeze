@@ -1688,8 +1688,8 @@ function (core) {
         this.name = name;
         this.defaultInstance = null;
         this._implMap = {};
-        
     };
+    
     InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
         this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
     };
@@ -1705,6 +1705,14 @@ function (core) {
         ajax: new InterfaceDef("ajax"),
         modelLibrary: new InterfaceDef("modelLibrary"),
         dataService: new InterfaceDef("dataService")
+    };
+    
+    a_config.interfaceRegistry.modelLibrary.getDefaultInstance = function () {
+        if (!this.defaultInstance) {
+            throw new Error("Unable to locate the default implementation of the '" + this.name
+                + "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
+        }
+        return this.defaultInstance;
     };
    
     /**
@@ -3266,7 +3274,7 @@ function (core, a_config, m_validate) {
                     }
                 }
                 var entityCtor = entityType.getEntityCtor();
-                v_modelLibraryDef.defaultInstance.startTracking(entity, entityCtor.prototype);
+                v_modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
             }
         };
         var proto = ctor.prototype;
@@ -3906,7 +3914,7 @@ function (core, a_config, m_validate) {
                 }
             }
             var complexCtor = complexType.getCtor();
-            v_modelLibraryDef.defaultInstance.startTracking(complexObject, complexCtor.prototype);
+            v_modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
         };
         var proto = ctor.prototype;
@@ -5161,7 +5169,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (stype) return stype;
             var config = {
                 shortName: json.shortName,
-                namespace: json.namespace,
+                namespace: json.namespace
             };
             var isEntityType = !!json.navigationProperties;
             stype = isEntityType ? new EntityType(config) : new ComplexType(config);
@@ -5852,7 +5860,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var typeRegistry = this.metadataStore._typeRegistry;
             var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
             if (!aCtor) {
-                var createCtor = v_modelLibraryDef.defaultInstance.createCtor;
+                var createCtor = v_modelLibraryDef.getDefaultInstance().createCtor;
                 if (createCtor) {
                     aCtor = createCtor(this);
                 } else {
@@ -5887,7 +5895,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 proto._$interceptor = defaultPropertyInterceptor;
             }
 
-            v_modelLibraryDef.defaultInstance.initializeEntityPrototype(proto);
+            v_modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
             this._ctor = aCtor;
         };
@@ -6314,7 +6322,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         
         function calcUnmappedProperties(entityType, instance) {
             var metadataPropNames = entityType.getPropertyNames();
-            var trackablePropNames = v_modelLibraryDef.defaultInstance.getTrackablePropertyNames(instance);
+            var trackablePropNames = v_modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
             trackablePropNames.forEach(function (pn) {
                 if (metadataPropNames.indexOf(pn) == -1) {
                     var newProp = new DataProperty({
@@ -6738,8 +6746,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 fixedLength: this.fixedLength,
                 defaultValue: this.defaultValue,
                 validators: this.validators,
-                isPartOfKey: this.isPartOfKey,
-                
+                isPartOfKey: this.isPartOfKey
             };
         };
 
@@ -8058,7 +8065,7 @@ function (core, m_entityMetadata, m_entityAspect) {
             minute:      { fn: function (source) { return source.minute; }, dataType: DataType.Int32 },
             day:         { fn: function (source) { return source.day; }, dataType: DataType.Int32 },
             month:       { fn: function (source) { return source.month; }, dataType: DataType.Int32 },
-            year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 },
+            year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 }
         };
         
         return obj;
@@ -12431,7 +12438,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.1.1",
+        version: "1.1.2",
         core: core,
         config: a_config
     };

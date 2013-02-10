@@ -22,8 +22,8 @@ function (core) {
         this.name = name;
         this.defaultInstance = null;
         this._implMap = {};
-        
     };
+    
     InterfaceDef.prototype.registerCtor = function(adapterName, ctor) {
         this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
     };
@@ -39,6 +39,14 @@ function (core) {
         ajax: new InterfaceDef("ajax"),
         modelLibrary: new InterfaceDef("modelLibrary"),
         dataService: new InterfaceDef("dataService")
+    };
+    
+    a_config.interfaceRegistry.modelLibrary.getDefaultInstance = function () {
+        if (!this.defaultInstance) {
+            throw new Error("Unable to locate the default implementation of the '" + this.name
+                + "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
+        }
+        return this.defaultInstance;
     };
    
     /**
