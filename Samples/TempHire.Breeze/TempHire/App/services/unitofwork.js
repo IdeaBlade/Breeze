@@ -20,10 +20,10 @@
                     provider.manager().rejectChanges();
                 };
 
-                this.staffingResourceListItems = repository.create(provider, null, 'StaffingResourceListItems');
-                this.staffingResources = repository.create(provider, 'StaffingResource', 'StaffingResources');
-                this.addresses = repository.create(provider, "Address", "Addresses");
-                this.phoneNumbers = repository.create(provider, "PhoneNumber", "PhoneNumbers");
+                this.staffingResourceListItems = repository.create(provider, null, 'ResourceMgt/StaffingResourceListItems');
+                this.staffingResources = repository.create(provider, 'StaffingResource', 'ResourceMgt/StaffingResources');
+                this.addresses = repository.create(provider, "Address", "ResourceMgt/Addresses");
+                this.phoneNumbers = repository.create(provider, "PhoneNumber", "ResourceMgt/PhoneNumbers");
 
                 this.states = repository.create(provider, "State", "States", breeze.FetchStrategy.FromLocalCache);
             };

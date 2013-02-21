@@ -12,11 +12,18 @@ namespace TempHire.App_Start {
   ///</remarks>
   public static class BreezeWebApiConfig {
 
-    public static void RegisterBreezePreStart() {
-      GlobalConfiguration.Configuration.Routes.MapHttpRoute(
-          name: "BreezeApi",
-          routeTemplate: "api/{controller}/{action}"
-      );
+    public static void RegisterBreezePreStart()
+    {
+        GlobalConfiguration.Configuration.Routes.MapHttpRoute(
+            name: "Default",
+            routeTemplate: "api/{action}",
+            defaults: new {Controller = "Default"}
+            );
+
+        GlobalConfiguration.Configuration.Routes.MapHttpRoute(
+            name: "Module",
+            routeTemplate: "api/{controller}/{action}"
+            );
     }
   }
 }

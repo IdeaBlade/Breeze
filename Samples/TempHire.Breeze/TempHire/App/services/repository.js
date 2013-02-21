@@ -2,28 +2,30 @@
 
     var Repository = (function () {
         
-        var repository = function (entityManagerProvider, entityTypeName, entitySetName, fetchStrategy) {
+        var repository = function (entityManagerProvider, entityTypeName, resourceName, fetchStrategy) {
+            
+            // Set resourceName as the defaultResourceName for the specified entityType
+            var entityType;
+            if (entityTypeName) {
+                entityType = getMetastore().getEntityType(entityTypeName);
+                entityType.defaultResourceName = resourceName;
+            }
 
             this.withId = function (key) {
-                var entityType = entityManagerProvider.manager().metadataStore.getEntityType(entityTypeName);
-                var entityKey = new breeze.EntityKey(entityType, key);
-                var query = breeze.EntityQuery.fromEntityKey(entityKey);
+                if (!entityTypeName)
+                    throw new Error("Repository must be created with an entity type specified");
 
-                return executeQuery(query)
-                    .then(function(data) { return data[0]; });
+                return manager().fetchEntityByKey(entityTypeName, key, true)
+                    .then(function(data) {
+                        if (!data.entity)
+                            throw new Error("Entity not found!");
+                        return data.entity;
+                    });
             };
             
-            this.withIdInCache = function(key) {
-                var entityType = entityManagerProvider.manager().metadataStore.getEntityType(entityTypeName);
-                var entityKey = new breeze.EntityKey(entityType, key);
-                var query = breeze.EntityQuery.fromEntityKey(entityKey);
-
-                return executeCacheQuery(query)[0];
-            };
-
             this.find = function (predicate) {
                 var query = breeze.EntityQuery
-                    .from(entitySetName)
+                    .from(resourceName)
                     .where(predicate);
 
                 return executeQuery(query);
@@ -31,7 +33,7 @@
 
             this.findInCache = function(predicate) {
                 var query = breeze.EntityQuery
-                    .from(entitySetName)
+                    .from(resourceName)
                     .where(predicate);
 
                 return executeCacheQuery(query);
@@ -39,7 +41,7 @@
 
             this.all = function () {
                 var query = breeze.EntityQuery
-                    .from(entitySetName);
+                    .from(resourceName);
 
                 return executeQuery(query);
             };
@@ -53,6 +55,14 @@
             function executeCacheQuery(query) {
                 return entityManagerProvider.manager().executeQueryLocally(query);
             }
+            
+            function getMetastore() {
+                return manager().metadataStore;
+            }
+            
+            function manager() {
+                return entityManagerProvider.manager();
+            }
         };
 
         return repository;
@@ -62,7 +72,7 @@
         create: create
     };
     
-    function create(entityManagerProvider, entityTypeName, entitySetName, fetchStrategy) {
-        return new Repository(entityManagerProvider, entityTypeName, entitySetName, fetchStrategy);
+    function create(entityManagerProvider, entityTypeName, resourceName, fetchStrategy) {
+        return new Repository(entityManagerProvider, entityTypeName, resourceName, fetchStrategy);
     }
 });

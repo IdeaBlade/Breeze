@@ -205,6 +205,7 @@
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\InfrastructureConfig.cs" />
+    <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\LookupBundle.cs" />
     <Compile Include="Controllers\ResourceMgtController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -14,7 +14,8 @@
 
 
             contacts.prototype.activate = function () {
-                this.staffingResource(this.unitOfWork.staffingResources.withIdInCache(this.staffingResourceId));
+                var root = this.unitOfWork.staffingResources.withId(this.staffingResourceId)
+                    .then(this.staffingResource);
                 
                 // Load states
                 var vm = this;
@@ -28,7 +29,7 @@
                 // Load phone numbers
                 var phoneNumbers = this.unitOfWork.phoneNumbers.find(predicate);
 
-                return Q.all([states, addresses, phoneNumbers]).fail(this.handleError);
+                return Q.all([root, states, addresses, phoneNumbers]).fail(this.handleError);
             };
 
             contacts.prototype.deactivate = function (close) {

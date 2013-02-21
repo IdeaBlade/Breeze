@@ -2,7 +2,7 @@
     function(app) {
 
         breeze.NamingConvention.camelCase.setAsDefault();
-        var serviceName = "api/ResourceMgt";
+        var serviceName = "api";
         var masterManager = new breeze.EntityManager(serviceName);
 
         extendEntities(masterManager.metadataStore);

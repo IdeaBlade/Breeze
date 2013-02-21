@@ -2,7 +2,6 @@
 using System.Web.Http;
 using Breeze.WebApi;
 using DomainModel;
-using Newtonsoft.Json.Linq;
 using TempHire.Services;
 
 namespace TempHire.Controllers
@@ -11,26 +10,6 @@ namespace TempHire.Controllers
     public class ResourceMgtController : ApiController
     {
         private readonly UnitOfWork _unitOfWork = new UnitOfWork();
-
-        // ~/api/resourcemgt/Metadata
-        [HttpGet]
-        public string Metadata()
-        {
-            return _unitOfWork.Metadata();
-        }
-
-        // ~/api/resourcemgt/Lookups
-        [HttpGet]
-        public LookupBundle Lookups()
-        {
-            return new LookupBundle
-                {
-                    AddressTypes = _unitOfWork.AddressTypes.All().ToList(),
-                    PhoneNumberTypes = _unitOfWork.PhoneNumberTypes.All().ToList(),
-                    RateTypes = _unitOfWork.RateTypes.All().ToList(),
-                    States = _unitOfWork.States.All().ToList()
-                };
-        }
 
         // ~/api/resourcemgt/StaffingResources
         [HttpGet]
@@ -73,12 +52,6 @@ namespace TempHire.Controllers
         public IQueryable<WorkExperienceItem> WorkExperienceItems()
         {
             return _unitOfWork.WorkExperienceItems.All();
-        }
-
-        [HttpPost]
-        public SaveResult SaveChanges(JObject saveBundle)
-        {
-            return _unitOfWork.Commit(saveBundle);
         }
     }
 }
