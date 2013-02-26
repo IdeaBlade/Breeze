@@ -1,9 +1,9 @@
-﻿define(['services/unitofwork', 'logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app'],
-    function(unitofwork, logger, system, viewModel, contacts, app) {
+﻿define(['services/unitofwork', 'logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog'],
+    function(unitofwork, logger, system, viewModel, contacts, app, nameeditor, dialog) {
 
-        return (function() {
+        var Details = (function() {
 
-            var details = function(id) {
+            var ctor = function(id) {
                 this.title = 'Details View';
                 this.staffingResourceId = id;
                 this.staffingResource = ko.observable();
@@ -16,7 +16,9 @@
                 this.contacts = viewModel.activator();
             };
 
-            details.prototype.activate = function () {
+            system.setModuleId(ctor, 'viewmodels/details');
+
+            ctor.prototype.activate = function () {
                 // Subscribe to events
                 app.on('hasChanges', function() {
                     this.canSave(this.unitOfWork.hasChanges());
@@ -33,7 +35,7 @@
                             .then(function(data) {
                                 vm.staffingResource(data);
                                 vm.log("StaffingResource loaded", true);
-                                return Q.when(vm.contacts.activateItem(new contacts(vm.staffingResourceId)))
+                                return Q.when(vm.contacts.activateItem(contacts.create(vm.staffingResourceId)))
                                     .then(function() {
                                         vm.initialized(true);
                                         return true;
@@ -43,7 +45,7 @@
                     .fail(this.handleError);
             };
 
-            details.prototype.canDeactivate = function (close) {
+            ctor.prototype.canDeactivate = function (close) {
                 var vm = this;
                 if (this.unitOfWork.hasChanges() && close) {
                     return Q.when(app.showMessage("You have pending changes. Would you like to save them?", "Confirm", ['Yes', 'No', 'Cancel']))
@@ -64,7 +66,7 @@
                 return true;
             };
             
-            details.prototype.deactivate = function(close) {
+            ctor.prototype.deactivate = function(close) {
                 app.off(null, null, this);
 
                 if (close) {
@@ -75,23 +77,45 @@
                 return this.contacts.deactivate(close);
             };
 
-            details.prototype.save = function () {
+            ctor.prototype.save = function () {
                 this.unitOfWork.commit().fail(this.handleError);
             };
 
-            details.prototype.cancel = function() {
+            ctor.prototype.cancel = function() {
                 this.unitOfWork.rollback();
             };
 
-            details.prototype.handleError = function(error) {
+            ctor.prototype.editName = function () {
+                var self = this;
+                var editor = nameeditor.create(self.id());
+                dialog.show(editor, ['Ok', 'Cancel'])
+                    .then(function(response) {
+                        if (response === 'Ok') {
+                            self.firstName(editor.firstName());
+                            self.middleName(editor.middleName());
+                            self.lastName(editor.lastName());
+                        }
+                    })
+                    .done();
+            };
+
+            ctor.prototype.handleError = function(error) {
                 logger.log(error.message, null, system.getModuleId(this), true);
                 throw error;
             };
 
-            details.prototype.log = function(message, showToast) {
+            ctor.prototype.log = function(message, showToast) {
                 logger.log(message, null, system.getModuleId(this), showToast);
             };
 
-            return details;
+            return ctor;
         })();
+
+        return {
+            create: create
+        };
+
+        function create(id) {
+            return new Details(id);
+        }
     });

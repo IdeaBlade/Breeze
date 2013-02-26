@@ -1,0 +1,9 @@
+﻿<div class="messageBox">
+    <div class="modal-body">
+        <!-- ko compose: { model : content } --><!--/ko-->
+    </div>
+    
+    <div class="modal-footer" data-bind="foreach: commands">
+        <button class="btn" data-bind="text: $data, click: $root.invokeCommand" />
+    </div>
+</div>

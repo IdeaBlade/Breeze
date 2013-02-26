@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/details', 'durandal/plugins/router'],
-    function (unitofwork, logger, system, viewModel, details, router) {
+﻿define(['services/unitofwork', 'logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/details', 'durandal/plugins/router', 'durandal/app'],
+    function (unitofwork, logger, system, viewModel, details, router, app) {
 
         return (function () {
 
@@ -16,27 +16,38 @@
                 this.viewAttached = viewAttached;
 
                 function activate(splat) {
+                    app.on('saved', function(entities) {
+                        loadList().fail(handleError);
+                    }, this);
+
                     return Q.when(vm.activeDetail.activate())
                         .then(function() {
-                            return uow.staffingResourceListItems.all()
+                            return loadList()
                                 .then(querySucceeded)
                                 .fail(handleError);
                         });
 
                     function querySucceeded(data) {
-                        vm.staffingResources(data);
-                        log("StaffingResourceListItems loaded", true);
-
                         if (splat.id) {
-                            var detail = new details(splat.id);
+                            var detail = details.create(splat.id);
                             return Q.when(vm.activeDetail.activateItem(detail));
                         }
 
                         return true;
                     }
                 }
+                
+                function loadList() {
+                    return uow.staffingResourceListItems.all()
+                        .then(function(data) {
+                            vm.staffingResources(data);
+                            log("StaffingResourceListItems loaded", true);
+                        });
+                }
 
                 function deactivate(close) {
+                    app.off(null, null, this);
+
                     return vm.activeDetail.deactivate(close);
                 }
                 

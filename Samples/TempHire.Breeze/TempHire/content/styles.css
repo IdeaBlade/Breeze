@@ -82,9 +82,10 @@ tr.selectable-row:hover
 .address {
     display: inline-block;
     margin-bottom: 10px;
+    margin-right: 10px;
     float: left;
     clear: left;
-    width: 80%;
+    /*width: 80%;*/
 }
 
 .phonenumber {
@@ -97,11 +98,12 @@ tr.selectable-row:hover
 
 .label {
     margin-top: 6px;
+    margin-right: 10px;
     float: left;
     clear: left;
 }
 
-.data {
+.right {
     float: right;
     /*clear: right;*/
 }
@@ -110,13 +112,14 @@ tr.selectable-row:hover
     display: inline-block; 
     float: left;
     clear: both;
-    width: 75%;
+    width: 350px;
+    /*width: 75%;*/
 }
 
 .phonenumbers {
     float: left;
     display: inline-block;
-    width: 25%;
+    width: 40%;
 }
 
 /***************************/

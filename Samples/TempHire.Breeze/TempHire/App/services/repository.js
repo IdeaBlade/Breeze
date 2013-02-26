@@ -4,11 +4,14 @@
         
         var repository = function (entityManagerProvider, entityTypeName, resourceName, fetchStrategy) {
             
-            // Set resourceName as the defaultResourceName for the specified entityType
+            // Ensure resourceName is registered
             var entityType;
             if (entityTypeName) {
                 entityType = getMetastore().getEntityType(entityTypeName);
-                entityType.defaultResourceName = resourceName;
+                entityType.setProperties({ defaultResourceName: resourceName });
+
+                // TODO: There will be a public method for this in the next release
+                getMetastore()._setEntityTypeForResourceName(resourceName, entityTypeName);
             }
 
             this.withId = function (key) {

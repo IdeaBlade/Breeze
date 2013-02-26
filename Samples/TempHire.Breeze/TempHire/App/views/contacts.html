@@ -1,34 +1,56 @@
 ﻿<section data-bind="with: staffingResource">
-    <div class="addresses" data-bind="foreach: addresses" >
-        <div class="address">
-            <label class="label" data-bind="text: addressType().displayName"></label>
-            <div class="formfieldwithlabel">
-                <label class="label">Address 1: </label>
-                <input class="data" type="text" data-bind="value: address1"/>
-            </div>
-            <div class="formfieldwithlabel">
-                <label class="label">Address 2:</label>
-                <input class="data" type="text" data-bind="value: address2"/>
-            </div>
-            <div class="formfieldwithlabel">
-                <label class="label">City:</label>
-                <input class="data" type="text" data-bind="value: city"/>
-            </div>
-            <div class="formfieldwithlabel">
-                <label class="label">State:</label>
-                <select class="data" data-bind="options: $root.states, optionsText: 'name', optionsValue: 'id', value: stateId"></select>
-            </div>
-            <div class="formfieldwithlabel">
-                <label class="label">Zipcode:</label>
-                <input class="data" type="text" data-bind="value: zipcode"/>
+    <div class="addresses">
+        <h3>Addresses:</h3>
+        <button class="btn btn-mini" data-bind="click: $parent.addAddress"><span style="font-weight:bolder">+</span></button>
+        <div data-bind="foreach: addresses">
+            <div style="display: inline-block">
+                <div class="address">
+                    <section data-bind="with: addressType">
+                        <label class="label" data-bind="text: displayName"></label>
+                    </section>
+                    <div class="formfieldwithlabel">
+                        <label class="label">Address 1: </label>
+                        <input class="right" type="text" data-bind="value: address1" />
+                    </div>
+                    <div class="formfieldwithlabel">
+                        <label class="label">Address 2:</label>
+                        <input class="right" type="text" data-bind="value: address2" />
+                    </div>
+                    <div class="formfieldwithlabel">
+                        <label class="label">City:</label>
+                        <input class="right" type="text" data-bind="value: city" />
+                    </div>
+                    <div class="formfieldwithlabel">
+                        <label class="label">State:</label>
+                        <select class="right" data-bind="options: $root.states, optionsText: 'name', optionsValue: 'id', value: stateId"></select>
+                    </div>
+                    <div class="formfieldwithlabel">
+                        <label class="label">Zipcode:</label>
+                        <input class="right" type="text" data-bind="value: zipcode" />
+                    </div>
+                </div>
+                <div class="btn-group-vertical" style="margin-top:30px">
+                    <button class="btn btn-mini" data-bind="css: {disabled: primary}, click: $root.setPrimaryAddress">Set Primary</button>
+                    <button class="btn btn-mini" style="margin-top:10px" data-bind="css: {disabled: primary || $parent.addresses().length === 1}, click: $root.deleteAddress">Delete</button>
+                </div>
             </div>
         </div>
     </div>
-    <div class="phonenumbers" data-bind="foreach: phoneNumbers">
-        <div class="phonenumber">
-            <label class="label" data-bind="text: phoneNumberType().name() + ' Phone:'"></label>
-            <input type="text" class="data" data-bind="value: number" style="width: 100px"/>
-            <input type="text" class="data" data-bind="value: areaCode" style="width: 30px"/>
+    <div class="phonenumbers">
+        <h3>Phone Numbers:</h3>
+        <button class="btn btn-mini" data-bind="click: $parent.addPhoneNumber"><span style="font-weight:bolder">+</span></button>
+        <div data-bind="foreach: phoneNumbers">
+            <div class="phonenumber">
+                <section data-bind="with: phoneNumberType">
+                    <label class="label" data-bind="text: name() + ' Phone:'"></label>
+                </section>
+                <div class="btn-group right" style="margin-left: 10px;margin-top: 3px">
+                    <button class="btn btn-mini" data-bind="css: {disabled: primary}, click: $root.setPrimaryPhoneNumber">Set Primary</button>
+                    <button class="btn btn-mini" style="margin-left: 5px" data-bind="css: {disabled: primary || $parent.phoneNumbers().length === 1}, click: $root.deletePhoneNumber">Delete</button>
+                </div>
+                <input type="text" class="right" data-bind="value: number" style="width: 100px" />
+                <input type="text" class="right" data-bind="value: areaCode" style="width: 30px" />
+            </div>
         </div>
     </div>
 </section>
