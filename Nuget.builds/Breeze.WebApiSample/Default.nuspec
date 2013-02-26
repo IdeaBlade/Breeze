@@ -21,7 +21,7 @@
 		</dependencies>
     </metadata>
     <files>
-        <file src="content\App_Start\BreezeClientSampleConfig.cs.pp" target="content\App_Start\BreezeClientSampleConfig.cs.pp" />
+        <file src="content\App_Start\BreezeClientSampleRouteConfig.cs.pp" target="content\App_Start\BreezeClientSampleRouteConfig.cs.pp" />
         <file src="content\Content\breezesample.css" target="content\Content\breezesample.css" />
         <file src="content\Controllers\BreezeSampleController.cs.pp" target="content\Controllers\BreezeSampleController.cs.pp" />
         <file src="content\Models\BreezeSampleContext.cs.pp" target="content\Models\BreezeSampleContext.cs.pp" />

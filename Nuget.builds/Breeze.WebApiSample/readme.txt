@@ -106,7 +106,7 @@ One MVC 4 Shell View
 
 One configuration file
 
-	App_Start/BreezeClientSampleConfig.cs - to make the sample app the start page
+	App_Start/BreezeClientSampleRouteConfig.cs - to make the sample app the start page
 
 One CSS content file
 
