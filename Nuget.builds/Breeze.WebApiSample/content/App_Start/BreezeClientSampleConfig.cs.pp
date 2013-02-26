@@ -17,6 +17,9 @@ namespace $rootnamespace$.App_Start {
 
     public static void RegisterBreezePreStart() {
 
+      // see http://haacked.com/archive/2008/07/14/make-routing-ignore-requests-for-a-file-extension.aspx
+      routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
       // Preempt standard default MVC page routing to go to Breeze Sample
       System.Web.Routing.RouteTable.Routes.MapRoute(
           name: "BreezeMvc",
