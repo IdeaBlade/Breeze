@@ -1497,8 +1497,7 @@ define(["testFns"], function (testFns) {
     // 'queryResult' reports if queried the remote service 
     // and holds a found entity even if it is marked for deletion.
     // 
-    // This fnc has been replaced by EntityManager.getEntityByKey.
-    
+    // This fnc has been largely replaced by EntityManager.fetchEntityByKey.
     function getByIdCacheOrRemote(manager, typeName, id, queryResult) {
         // get key for entity of specified type and id
         var typeInfo = manager.metadataStore.getEntityType(typeName);
@@ -1509,11 +1508,9 @@ define(["testFns"], function (testFns) {
         if (entity) {
             queryResult.queriedRemotely = false; // found it in cache
             queryResult.entity = entity;
-            // return entity, wrapped in promise
-            return Q.fcall(function () {
-                return (entity.entityAspect.entityState.isDeleted()) ?
-                    null : entity; // return null if marked for delete!
-            });
+            // return entity, wrapped in promise (set null if deleted)
+            return Q((entity.entityAspect.entityState.isDeleted()) ?
+                    null : entity); // return null if marked for delete!
         }
         // not in cache; try remotely
         queryResult.queriedRemotely = true; // queried the service
@@ -1521,7 +1518,7 @@ define(["testFns"], function (testFns) {
             .fromEntityKey(key)
             .using(manager).execute()
             .then(function (data) {
-                entity = data.results.length ? data.results[0] : null;
+                entity = data.results[0] || null;
                 return queryResult.entity = entity;
             });
     }
@@ -1595,7 +1592,28 @@ define(["testFns"], function (testFns) {
                 ok(!queryResult.queriedRemotely, "should have found deleted customer in cache");
             }
         });
+     /*********************************************************
+     * getById of non-existent customer returns null after looking in cache and server
+     *********************************************************/
+     test("getById of non-existent customer returns null [obsolete]", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = '11111111-2222-3333-4444-555555555555';
+            var queryResult = {};
+
+            stop(); // might go async
+            getByIdCacheOrRemote(em, "Customer", id, queryResult)
+            .then(querySucceeded).fail(handleFail).fin(start);
+
+            function querySucceeded(customer) {
+                ok(customer === null,
+                    "query should return null because customer doesn't exist");
+                ok(queryResult.queriedRemotely, "should have queried the server");
+            }
+        });
     
+
     // Test helper
     function makeAttachedCustomerWithId(manager, id) {
         var typeInfo = manager.metadataStore.getEntityType("Customer");
