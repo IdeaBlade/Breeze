@@ -1,4 +1,4 @@
-﻿define(['services/unitofwork', 'logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog'],
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog'],
     function(unitofwork, logger, system, viewModel, contacts, app, nameeditor, dialog) {
 
         var Details = (function() {
@@ -24,20 +24,20 @@
                     this.canSave(this.unitOfWork.hasChanges());
                 }, this);
 
-                var vm = this;
+                var self = this;
                 return Q.when(this.contacts.activate())
                     .then(function() {
-                        if (vm.initialized()) {
+                        if (self.initialized()) {
                             return true;
                         }
 
-                        return vm.unitOfWork.staffingResources.withId(vm.staffingResourceId)
+                        return self.unitOfWork.staffingResources.withId(self.staffingResourceId)
                             .then(function(data) {
-                                vm.staffingResource(data);
-                                vm.log("StaffingResource loaded", true);
-                                return Q.when(vm.contacts.activateItem(contacts.create(vm.staffingResourceId)))
+                                self.staffingResource(data);
+                                self.log("StaffingResource loaded", true);
+                                return Q.when(self.contacts.activateItem(contacts.create(self.staffingResourceId)))
                                     .then(function() {
-                                        vm.initialized(true);
+                                        self.initialized(true);
                                         return true;
                                     });
                             });
@@ -46,17 +46,17 @@
             };
 
             ctor.prototype.canDeactivate = function (close) {
-                var vm = this;
+                var self = this;
                 if (this.unitOfWork.hasChanges() && close) {
                     return Q.when(app.showMessage("You have pending changes. Would you like to save them?", "Confirm", ['Yes', 'No', 'Cancel']))
                         .then(function(response) {
                             if (response === 'Yes') {
-                                return vm.unitOfWork.commit()
+                                return self.unitOfWork.commit()
                                     .then(function() { return true; })
-                                    .fail(vm.handleError);
+                                    .fail(self.handleError);
                             }
                             else if (response === 'No') {
-                                vm.unitOfWork.rollback();
+                                self.unitOfWork.rollback();
                                 return true;
                             }
                             return false;
@@ -86,14 +86,14 @@
             };
 
             ctor.prototype.editName = function () {
-                var self = this;
-                var editor = nameeditor.create(self.id());
+                var staffingResource = this;
+                var editor = nameeditor.create(staffingResource.id());
                 dialog.show(editor, ['Ok', 'Cancel'])
                     .then(function(response) {
                         if (response === 'Ok') {
-                            self.firstName(editor.firstName());
-                            self.middleName(editor.middleName());
-                            self.lastName(editor.lastName());
+                            staffingResource.firstName(editor.firstName());
+                            staffingResource.middleName(editor.middleName());
+                            staffingResource.lastName(editor.lastName());
                         }
                     })
                     .done();

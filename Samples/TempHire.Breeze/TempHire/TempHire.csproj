@@ -7,7 +7,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}</ProjectGuid>
+    <ProjectGuid>{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -43,16 +43,13 @@
     <Reference Include="Antlr3.Runtime">
       <HintPath>..\packages\WebGrease.1.1.0\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Breeze.WebApi, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Breeze.WebApi">
       <HintPath>..\packages\Breeze.WebApi.1.1.2\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Irony">
       <HintPath>..\packages\Breeze.WebApi.1.1.2\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -60,8 +57,7 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Data.Entity" />
@@ -107,8 +103,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="WebActivator, Version=1.5.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="WebActivator">
       <HintPath>..\packages\WebActivator.1.5.3\lib\net40\WebActivator.dll</HintPath>
     </Reference>
     <Reference Include="WebGrease">
@@ -116,29 +111,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App\durandal\amd\almond-custom.js" />
-    <Content Include="App\durandal\amd\optimizer.exe" />
-    <Content Include="App\durandal\amd\r.js" />
-    <Content Include="App\durandal\amd\require.js" />
-    <Content Include="App\durandal\amd\text.js" />
-    <Content Include="App\durandal\app.js" />
-    <Content Include="App\durandal\composition.js" />
-    <Content Include="App\durandal\events.js" />
-    <Content Include="App\durandal\http.js" />
-    <Content Include="App\durandal\messageBox.html" />
-    <Content Include="App\durandal\messageBox.js" />
-    <Content Include="App\durandal\modalDialog.js" />
-    <Content Include="App\durandal\plugins\router.js" />
-    <Content Include="App\durandal\system.js" />
-    <Content Include="App\durandal\transitions\entrance.js" />
-    <Content Include="App\durandal\viewEngine.js" />
-    <Content Include="App\durandal\viewLocator.js" />
-    <Content Include="App\durandal\viewModel.js" />
-    <Content Include="App\durandal\viewModelBinder.js" />
-    <Content Include="App\durandal\widget.js" />
-    <Content Include="App\logger.js" />
     <Content Include="App\main.js" />
     <Content Include="App\services\entitymanagerprovider.js" />
+    <Content Include="App\services\logger.js" />
     <Content Include="App\services\repository.js" />
     <Content Include="App\services\unitofwork.js" />
     <Content Include="App\viewmodels\contacts.js" />
@@ -159,71 +134,98 @@
     <Content Include="App\views\resourcemgt.html" />
     <Content Include="App\views\shell.html" />
     <Content Include="App_Data\ReadMe.txt" />
-    <Content Include="content\bootstrap-responsive.css" />
-    <Content Include="content\bootstrap-responsive.min.css" />
-    <Content Include="content\bootstrap.css" />
-    <Content Include="content\bootstrap.min.css" />
-    <Content Include="content\durandal.css" />
-    <Content Include="content\images\glyphicons-halflings-white.png" />
-    <Content Include="content\images\glyphicons-halflings.png" />
-    <Content Include="content\styles.css" />
-    <Content Include="content\toastr.css" />
-    <Content Include="content\toastr.min.css" />
+    <Content Include="Content\app.css" />
+    <Content Include="Content\ie10mobile.css" />
+    <Content Include="Content\images\icon.png" />
     <Content Include="index.cshtml" />
-    <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
-    <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
-    <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
-    <None Include="_bin_deployableAssemblies\x86\sqlceer40EN.dll" />
-    <None Include="_bin_deployableAssemblies\x86\sqlcecompact40.dll" />
-    <None Include="_bin_deployableAssemblies\x86\sqlceca40.dll" />
-    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\README_ENU.txt" />
-    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\msvcr90.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlcese40.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlceqp40.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlceme40.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlceer40EN.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlcecompact40.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\sqlceca40.dll" />
-    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\README_ENU.txt" />
-    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\msvcr90.dll" />
-    <Content Include="scripts\bootstrap.js" />
-    <Content Include="scripts\bootstrap.min.js">
-		<DependentUpon>bootstrap.js</DependentUpon>
-	</Content>	
-    <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.min.js" >
-			<DependentUpon>breeze.debug.js</DependentUpon>
-	</Content>
-	<None Include="Scripts\breeze.intellisense.js">
-		<DependentUpon>breeze.debug.js</DependentUpon>
-	</None>	
-    <Content Include="Scripts\jquery-1.9.0.js" />
-    <Content Include="Scripts\jquery-1.9.0.min.js" >
-			<DependentUpon>jquery-1.9.0.js</DependentUpon>
-	</Content>
-	<None Include="Scripts\jquery-1.9.0.intellisense.js" >
-		<DependentUpon>jquery-1.9.0.js</DependentUpon>
-	</None>
-	<Content Include="scripts\jquery-1.9.0.min.map"  >
-		<DependentUpon>jquery-1.9.0.js</DependentUpon>
-	</Content>
-    <Content Include="Scripts\knockout-2.2.1.debug.js" />
-    <Content Include="Scripts\knockout-2.2.1.js" >
-		<DependentUpon>knockout-2.2.1.debug.js</DependentUpon>
-	</Content>
+    <None Include="Scripts\breeze.intellisense.js">
+      <DependentUpon>breeze.min.js</DependentUpon>
+    </None>
+    <Content Include="App\durandal\amd\almond-custom.js" />
+    <Content Include="App\durandal\amd\optimizer.exe" />
+    <Content Include="App\durandal\amd\r.js" />
+    <Content Include="App\durandal\amd\require.js" />
+    <Content Include="App\durandal\amd\text.js" />
+    <Content Include="App\durandal\app.js" />
+    <Content Include="App\durandal\composition.js" />
+    <Content Include="App\durandal\events.js" />
+    <Content Include="App\durandal\http.js" />
+    <Content Include="App\durandal\messageBox.html" />
+    <Content Include="App\durandal\messageBox.js" />
+    <Content Include="App\durandal\modalDialog.js" />
+    <Content Include="App\durandal\plugins\router.js" />
+    <Content Include="App\durandal\system.js" />
+    <Content Include="App\durandal\transitions\entrance.js" />
+    <Content Include="App\durandal\viewEngine.js" />
+    <Content Include="App\durandal\viewLocator.js" />
+    <Content Include="App\durandal\viewModel.js" />
+    <Content Include="App\durandal\viewModelBinder.js" />
+    <Content Include="App\durandal\widget.js" />
+    <Content Include="Content\bootstrap-responsive.css" />
+    <Content Include="Content\bootstrap-responsive.min.css" />
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\durandal.css" />
+    <Content Include="Content\images\glyphicons-halflings-white.png" />
+    <Content Include="Content\images\glyphicons-halflings.png" />
+    <Content Include="Content\toastr.css" />
+    <Content Include="Content\toastr.min.css" />
+    <Content Include="Scripts\bootstrap.js" />
+    <Content Include="Scripts\bootstrap.min.js">
+      <DependentUpon>bootstrap.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\breeze.debug.js">
+      <DependentUpon>breeze.min.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\breeze.min.js" />
+    <None Include="Scripts\jquery-1.9.1.intellisense.js">
+      <DependentUpon>jquery-1.9.1.js</DependentUpon>
+    </None>
+    <Content Include="Scripts\jquery-1.9.1.js" />
+    <Content Include="Scripts\jquery-1.9.1.min.js">
+      <DependentUpon>jquery-1.9.1.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\knockout-2.2.1.debug.js">
+      <DependentUpon>knockout-2.2.1.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\knockout-2.2.1.js" />
+    <Content Include="Scripts\moment.js" />
+    <Content Include="Scripts\moment.min.js">
+      <DependentUpon>moment.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\q.js" />
-    <Content Include="Scripts\q.min.js" >
-		<DependentUpon>q.js</DependentUpon>
-	</Content>
+    <Content Include="Scripts\q.min.js">
+      <DependentUpon>q.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\sammy-0.7.4.js" />
-    <Content Include="Scripts\sammy-0.7.4.min.js" >
-		<DependentUpon>sammy-0.7.4.js</DependentUpon>
-	</Content>
+    <Content Include="Scripts\sammy-0.7.4.min.js">
+      <DependentUpon>sammy-0.7.4.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\toastr.js" />
-    <Content Include="Scripts\toastr.min.js" >
-		<DependentUpon>toastr.js</DependentUpon>
-	</Content>
+    <Content Include="Scripts\toastr.min.js">
+      <DependentUpon>toastr.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
+    <Content Include="Scripts\jquery-1.9.1.min.map">
+      <DependentUpon>jquery-1.9.1.js</DependentUpon>
+    </Content>
+    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\msvcr90.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\README_ENU.txt" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceca40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlcecompact40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceer40EN.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceme40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceqp40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlcese40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\msvcr90.dll" />
+    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\README_ENU.txt" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceca40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlcecompact40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceer40EN.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
     <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
   </ItemGroup>
@@ -271,7 +273,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>0</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:59607/</IISUrl>
+          <IISUrl>http://localhost:49795/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

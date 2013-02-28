@@ -1,4 +1,4 @@
-﻿define(['durandal/system', 'services/unitofwork', 'logger'],
+﻿define(['durandal/system', 'services/unitofwork', 'services/logger'],
     function(system, unitofwork, logger) {
 
         var NameEditor = (function() {

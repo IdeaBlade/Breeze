@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TempHire", "TempHire\TempHire.csproj", "{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TempHire", "TempHire\TempHire.csproj", "{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{19FC1071-BF7D-41DE-A4E1-E1A8EE9BBABE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DEF2911A-5BC1-4629-9ACC-7EE0672ADF64}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
@@ -20,14 +20,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Demo|Any CPU.ActiveCfg = Debug|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Demo|Any CPU.Build.0 = Debug|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Fakestore|Any CPU.ActiveCfg = Release|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Fakestore|Any CPU.Build.0 = Release|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E82547C1-5104-49C7-8D6E-F32A4D82F2CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Demo|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Demo|Any CPU.Build.0 = Debug|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Fakestore|Any CPU.ActiveCfg = Release|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Fakestore|Any CPU.Build.0 = Release|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D6F789C-9AE3-436D-BA94-9FF606FA3EEB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{58F6DA15-8C8C-4FC0-A277-A6FFCDEDBF24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{58F6DA15-8C8C-4FC0-A277-A6FFCDEDBF24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58F6DA15-8C8C-4FC0-A277-A6FFCDEDBF24}.Demo|Any CPU.ActiveCfg = Demo|Any CPU

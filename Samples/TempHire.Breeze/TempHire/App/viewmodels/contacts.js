@@ -1,4 +1,4 @@
-﻿define(['services/unitofwork', 'logger', 'durandal/system', 'viewmodels/dialog', 'viewmodels/optionselector'],
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'viewmodels/dialog', 'viewmodels/optionselector'],
     function(unitofwork, logger, system, dialog, optionselector) {
 
         var Contacts = (function () {
@@ -73,9 +73,9 @@
                     .then(this.staffingResource);
                 
                 // Load states
-                var vm = this;
+                var self = this;
                 var states = this.unitOfWork.states.all()
-                    .then(vm.states);
+                    .then(self.states);
 
                 // Load addresses
                 var predicate = breeze.Predicate.create("staffingResourceId", "==", this.staffingResourceId);
