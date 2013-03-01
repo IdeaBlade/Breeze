@@ -1,5 +1,4 @@
-﻿define(function (require) {
-    var system = require('./system');
+﻿define(['./system'], function (system) {
     var parseMarkupCore;
 
     if ($.parseHTML) {
@@ -30,19 +29,27 @@
                 return allElements[0];
             }
 
-            var withoutComments = [];
+            var withoutCommentsOrEmptyText = [];
+            
             for (var i = 0; i < allElements.length; i++) {
                 var current = allElements[i];
                 if (current.nodeType != 8) {
-                    withoutComments.push(current);
+                    if (current.nodeType == 3) {
+                        var result = /\S/.test(current.nodeValue);
+                        if (!result) {
+                            continue;
+                        }
+                    }
+
+                    withoutCommentsOrEmptyText.push(current);
                 }
             }
 
-            if (withoutComments.length > 1) {
-                return $(withoutComments).wrapAll('<div class="durandal-wrapper"></div').parent().get(0);
+            if (withoutCommentsOrEmptyText.length > 1) {
+                return $(withoutCommentsOrEmptyText).wrapAll('<div class="durandal-wrapper"></div>').parent().get(0);
             }
 
-            return withoutComments[0];
+            return withoutCommentsOrEmptyText[0];
         },
         createView: function(viewId) {
             var that = this;

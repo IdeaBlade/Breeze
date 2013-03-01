@@ -20,7 +20,7 @@
                         loadList().fail(handleError);
                     }, this);
 
-                    return Q.when(self.activeDetail.activate())
+                    return self.activeDetail.activate()
                         .then(function() {
                             return loadList()
                                 .then(querySucceeded)
@@ -29,7 +29,7 @@
 
                     function querySucceeded() {
                         if (splat.id) {
-                            activateDetail(splat.id);
+                            return activateDetail(splat.id);
                         }
 
                         return true;
@@ -38,7 +38,7 @@
                 
                 function activateDetail(id) {
                     var detail = details.create(id);
-                    return Q.when(self.activeDetail.activateItem(detail));
+                    return self.activeDetail.activateItem(detail);
                 }
                 
                 function loadList() {

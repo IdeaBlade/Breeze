@@ -23,7 +23,7 @@
 
             ctor.prototype.canDeactivate = function (close) {
                 var self = this;
-                return Q.when(this.content.canDeactivate(close))
+                return this.content.canDeactivate(close)
                     .finally(function() { self.content().dialogResult = null; });
             };
 
@@ -40,6 +40,6 @@
 
         function show(obj, options) {
             var dialog = new Dialog(obj, options);
-            return Q.when(app.showModal(dialog));
+            return app.showModal(dialog);
         }
 });

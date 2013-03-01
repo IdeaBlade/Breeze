@@ -10,8 +10,7 @@
                 entityType = getMetastore().getEntityType(entityTypeName);
                 entityType.setProperties({ defaultResourceName: resourceName });
 
-                // TODO: There will be a public method for this in the next release
-                getMetastore()._setEntityTypeForResourceName(resourceName, entityTypeName);
+                getMetastore().setEntityTypeForResourceName(resourceName, entityTypeName);
             }
 
             this.withId = function (key) {

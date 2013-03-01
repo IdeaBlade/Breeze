@@ -1,9 +1,5 @@
-﻿define(function (require) {
-    var viewLocator = require('./viewLocator'),
-        viewModelBinder = require('./viewModelBinder'),
-        viewEngine = require('./viewEngine'),
-        system = require('./system'),
-        viewModel = require('./viewModel');
+﻿define(['./viewLocator', './viewModelBinder', './viewEngine', './system', './viewModel'],
+    function (viewLocator, viewModelBinder, viewEngine, system, viewModel) {
 
     var dummyModel = {},
         activeViewAttributeName = 'data-active-view';
@@ -173,8 +169,7 @@
             return viewLocator.locateViewForObject(settings.model, settings.viewElements);
         },
         getSettings: function (valueAccessor, element) {
-            var settings = {},
-                value = ko.utils.unwrapObservable(valueAccessor()) || {};
+            var value = ko.utils.unwrapObservable(valueAccessor()) || {};
 
             if (typeof value == 'string') {
                 return value;
@@ -188,13 +183,10 @@
             }
 
             for (var attrName in value) {
-                if (typeof attrName == 'string') {
-                    var attrValue = ko.utils.unwrapObservable(value[attrName]);
-                    settings[attrName] = attrValue;
-                }
+                value[attrName] = ko.utils.unwrapObservable(value[attrName]);
             }
 
-            return settings;
+            return value;
         },
         executeStrategy: function (element, settings) {
             settings.strategy(settings).then(function (view) {

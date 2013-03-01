@@ -9,6 +9,19 @@ define(['durandal/app', 'durandal/viewLocator', 'durandal/system', 'durandal/plu
     system.debug(true);
 
     app.start().then(function () {
+
+        // Q shim
+        system.defer = function (action) {
+            var deferred = Q.defer();
+            action.call(deferred, deferred);
+            var promise = deferred.promise;
+            deferred.promise = function () {
+                return promise;
+            };
+
+            return deferred;
+        };
+        
         toastr.options.positionClass = 'toast-bottom-right';
         toastr.options.backgroundpositionClass = 'toast-bottom-right';
 

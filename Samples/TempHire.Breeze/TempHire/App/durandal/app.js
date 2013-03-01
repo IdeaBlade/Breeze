@@ -1,10 +1,5 @@
-﻿define(function(require) {
-    var system = require('./system'),
-        viewEngine = require('./viewEngine'),
-        composition = require('./composition'),
-        widget = require('./widget'), //loads the widget handler
-        modalDialog = require('./modalDialog'),
-        Events = require('./events');
+﻿define(['./system', './viewEngine', './composition', './widget', './modalDialog', './events'], 
+    function(system, viewEngine, composition, widget, modalDialog, Events) {
 
     var MessageBox,
         defaultTitle = 'Application';
@@ -57,11 +52,9 @@
             composition.compose(hostElement, settings);
         },
         adaptToDevice: function() {
-            if (document.body.ontouchmove) {
-                document.body.ontouchmove = function(event) {
-                    event.preventDefault();
-                };
-            }
+            document.ontouchmove = function (event) {
+                event.preventDefault();
+            };
         }
     };
 

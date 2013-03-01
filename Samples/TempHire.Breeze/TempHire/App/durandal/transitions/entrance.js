@@ -1,5 +1,4 @@
-﻿define(function(require) {
-    var system = require('../system');
+﻿define(['../system'], function(system) {
     var fadeOutDuration = 100;
 
     var entrance = function(parent, newChild, settings) {
@@ -8,11 +7,15 @@
                 dfd.resolve();
             }
 
-            if (!settings.keepScrollPosition) {
-                $(document).scrollTop(0);
+            function scrollIfNeeded() {
+                if (!settings.keepScrollPosition) {
+                    $(document).scrollTop(0);
+                }
             }
 
             if (!newChild) {
+                scrollIfNeeded();
+
                 if (settings.activeView) {
                     $(settings.activeView).fadeOut(fadeOutDuration, function () {
                         if (!settings.cacheViews) {
@@ -31,6 +34,8 @@
                 var duration = settings.duration || 500;
 
                 function startTransition() {
+                    scrollIfNeeded();
+
                     if (settings.cacheViews) {
                         if (settings.composingNewView) {
                             ko.virtualElements.prepend(parent, newChild);

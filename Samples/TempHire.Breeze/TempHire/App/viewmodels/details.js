@@ -25,7 +25,7 @@
                 }, this);
 
                 var self = this;
-                return Q.when(this.contacts.activate())
+                return this.contacts.activate()
                     .then(function() {
                         if (self.initialized()) {
                             return true;
@@ -35,7 +35,7 @@
                             .then(function(data) {
                                 self.staffingResource(data);
                                 self.log("StaffingResource loaded", true);
-                                return Q.when(self.contacts.activateItem(contacts.create(self.staffingResourceId)))
+                                return self.contacts.activateItem(contacts.create(self.staffingResourceId))
                                     .then(function() {
                                         self.initialized(true);
                                         return true;
@@ -48,7 +48,7 @@
             ctor.prototype.canDeactivate = function (close) {
                 var self = this;
                 if (this.unitOfWork.hasChanges() && close) {
-                    return Q.when(app.showMessage("You have pending changes. Would you like to save them?", "Confirm", ['Yes', 'No', 'Cancel']))
+                    return app.showMessage("You have pending changes. Would you like to save them?", "Confirm", ['Yes', 'No', 'Cancel'])
                         .then(function(response) {
                             if (response === 'Yes') {
                                 return self.unitOfWork.commit()

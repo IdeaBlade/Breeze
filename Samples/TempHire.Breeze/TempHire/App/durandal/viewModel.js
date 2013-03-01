@@ -1,5 +1,4 @@
-﻿define(function (require) {
-    var system = require('./system');
+﻿define(['./system'], function (system) {
     var viewModel;
 
     function ensureSettings(settings) {
@@ -185,8 +184,8 @@
         };
 
         computed.deactivateItem = function (item, close) {
-            return system.defer(function (dfd) {
-                computed.canDeactivateItem(item, close).then(function (canDeactivate) {
+            return system.defer(function(dfd) {
+                computed.canDeactivateItem(item, close).then(function(canDeactivate) {
                     if (canDeactivate) {
                         deactivate(item, close, settings, dfd, activeItem);
                     } else {
@@ -194,7 +193,7 @@
                         dfd.resolve(false);
                     }
                 });
-            });
+            }).promise();
         };
 
         computed.canActivateItem = function (newItem, activationData) {
@@ -227,7 +226,7 @@
                                 system.defer(function (dfd2) {
                                     deactivate(currentItem, settings.closeOnDeactivate, settings, dfd2);
                                 }).promise().then(function () {
-                                    newItem = settings.beforeActivate(newItem);
+                                    newItem = settings.beforeActivate(newItem, activationData);
                                     activate(newItem, activeItem, function (result) {
                                         computed.isActivating(false);
                                         dfd.resolve(result);

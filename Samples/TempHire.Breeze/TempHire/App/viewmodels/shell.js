@@ -15,7 +15,7 @@
         function boot() {
             router.mapNav('home');
             router.mapNav('resourcemgt', 'viewmodels/resourcemgt', 'Resource Management');
-            router.mapRoute('resourcemgt/:id', 'viewmodels/resourcemgt', 'Resource Management', false);
+            //router.mapRoute('resourcemgt/:id', 'viewmodels/resourcemgt', 'Resource Management', false);
             log('TempHire Loaded!', null, true);
             return router.activate('home');
         }

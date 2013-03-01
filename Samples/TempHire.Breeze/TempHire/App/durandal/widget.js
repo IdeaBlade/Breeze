@@ -1,12 +1,11 @@
-﻿define(function(require) {
-    var system = require('./system'),
-        composition = require('./composition');
+﻿define(['./system', './composition'], function (system, composition) {
 
     var widgetPartAttribute = 'data-part',
         widgetPartSelector = '[' + widgetPartAttribute + ']';
 
     var kindModuleMaps = {},
-        kindViewMaps = {};
+        kindViewMaps = {},
+        bindableSettings = ['model','view','kind'];
 
     var widget = {
         getParts: function(elements) {
@@ -37,21 +36,21 @@
             return parts;
         },
         getSettings: function(valueAccessor) {
-            var settings = {},
-                value = ko.utils.unwrapObservable(valueAccessor()) || {};
+            var value = ko.utils.unwrapObservable(valueAccessor()) || {};
 
             if (typeof value == 'string') {
-                settings = value;
+                return value;
             } else {
                 for (var attrName in value) {
-                    if (typeof attrName == 'string') {
-                        var attrValue = ko.utils.unwrapObservable(value[attrName]);
-                        settings[attrName] = attrValue;
+                    if (ko.utils.arrayIndexOf(bindableSettings, attrName) != -1) {
+                        value[attrName] = ko.utils.unwrapObservable(value[attrName]);
+                    } else {
+                        value[attrName] = value[attrName];
                     }
                 }
             }
 
-            return settings;
+            return value;
         },
         registerKind: function(kind) {
             ko.bindingHandlers[kind] = {
@@ -104,7 +103,7 @@
 
             return settings;
         },
-        create: function(element, settings, bindingContext) {
+        create: function (element, settings, bindingContext) {
             if (typeof settings == 'string') {
                 settings = {
                     kind: settings
