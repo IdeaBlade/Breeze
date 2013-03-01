@@ -20,10 +20,10 @@ namespace DocCode.Controllers
       return _contextProvider.Metadata();
     }
 
-    [HttpPost]
-    public SaveResult SaveChanges(JObject saveBundle) {
-      return _contextProvider.SaveChanges(saveBundle);
-    }
+    //[HttpPost]
+    //public SaveResult SaveChanges(JObject saveBundle) {
+    //  return _contextProvider.SaveChanges(saveBundle);
+    //}
 
     [HttpGet]
     public IQueryable<Customer> Customers() {
