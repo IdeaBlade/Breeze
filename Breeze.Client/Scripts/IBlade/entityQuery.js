@@ -138,7 +138,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         return null;
                     }
                 }
-                var entityTypeName = metadataStore._getEntityTypeNameForResourceName(resourceName);
+                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
                 if (!entityTypeName) {
                     if (throwErrorIfNotFound) {
                         throw new Error("Cannot find resourceName of: " + resourceName);

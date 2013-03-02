@@ -702,21 +702,19 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
 
-        /*
-        INTERNAL FOR NOW
+        /**
         Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
         can be obtained via the  {{#crossLink "EntityType"}}{{/crossLink}} 'defaultResourceName' property
         @method getEntityTypeNameForResourceName
         @param resourceName {String}
-        */
-        proto._getEntityTypeNameForResourceName = function (resourceName) {
+        **/
+        proto.getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
             // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
             return this._resourceEntityTypeMap[resourceName];
         };
 
-        /*
-        INTERNAL FOR NOW
+        /**
         Associates a resourceName with an entityType. 
 
         This method is only needed in those cases where multiple resources return the same
@@ -726,8 +724,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param resourceName {String}
         @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
-        */
-        proto._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
+        **/
+        proto.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
             // resourceName = resourceName.toLowerCase();
@@ -806,7 +804,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     toArray(schema.entityContainer).forEach(function (container) {
                         toArray(container.entitySet).forEach(function (entitySet) {
                             var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
-                            that._setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                            that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         });
                     });
                 }
