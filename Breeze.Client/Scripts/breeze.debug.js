@@ -922,9 +922,6 @@ define('enum',["coreFns"], function (core) {
             }
         }
         return result;
-        //return Object.keys(this).filter(
-        //    function (key) { return key != "name" && key.substr(0, 1) !== "_"; }
-        //);
     };
 
     /**
@@ -12237,6 +12234,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             config = config || {};
             assertConfig(config)
                 .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
+                .whereParam("tag").isOptional()
                 .applyAll(this);
                         
         };

@@ -39,6 +39,19 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     };
+    
+    test("save with saveOptions", function () {
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        var so = new SaveOptions({ tag: "exit" });
+        stop();
+        em.saveChanges(null, so).then(function(sr) {
+            ok(sr.entities.length == 0);
+            start();
+        }).fail(testFns.handleFail).fin(start);
+            
+    });
 
     test("save with server side entity level validation error", function() {
         var em = newEm();

@@ -31,7 +31,7 @@ namespace Sample_WebApi.Controllers {
 #elif DATABASEFIRST_OLD
   public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_EDMX>  {
     public NorthwindContextProvider() : base() { }
-#elif DATABASEFIRST_NEW 
+#elif DATABASEFIRST_NEW
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #endif
@@ -49,7 +49,7 @@ namespace Sample_WebApi.Controllers {
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
       return saveMap;
     }
-      
+
   }
 
   [BreezeController]
@@ -66,7 +66,13 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
-      return ContextProvider.SaveChanges(saveBundle);
+      var saveOptions = Breeze.WebApi.ContextProvider.ExtractSaveOptions(saveBundle);
+      var tag = saveOptions.Tag as String;
+      if (tag == "exit") {
+        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
+      } else {
+        return ContextProvider.SaveChanges(saveBundle);
+      }
     }
 
     #region standard queries
@@ -83,7 +89,7 @@ namespace Sample_WebApi.Controllers {
       return custs;
     }
 
-    
+
 
     [HttpGet]
     public Customer CustomerWithScalarResult() {
@@ -100,7 +106,7 @@ namespace Sample_WebApi.Controllers {
       var orders = ContextProvider.Context.Orders;
       return orders;
     }
-    
+
     [HttpGet]
     public IQueryable<Employee> Employees() {
       return ContextProvider.Context.Employees;
@@ -132,7 +138,7 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Regions;
     }
 
-    
+
     [HttpGet]
     public IQueryable<Territory> Territories() {
       return ContextProvider.Context.Territories;
@@ -148,7 +154,7 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Roles;
     }
 
-#if ! DATABASEFIRST_OLD   
+#if ! DATABASEFIRST_OLD
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
@@ -176,7 +182,7 @@ namespace Sample_WebApi.Controllers {
       return stuff;
     }
 
-     
+
 
     [HttpGet]
     public IQueryable<Object> CompanyInfoAndOrders() {
@@ -186,8 +192,8 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Object> TypeEnvelopes() {
-      var stuff =this.GetType().Assembly.GetTypes()
-        .Select(t => new {t.Assembly.FullName, t.Name, t.Namespace})
+      var stuff = this.GetType().Assembly.GetTypes()
+        .Select(t => new { t.Assembly.FullName, t.Name, t.Namespace })
         .AsQueryable();
       return stuff;
     }
@@ -216,6 +222,6 @@ namespace Sample_WebApi.Controllers {
     #endregion
   }
 
-  
+
 
 }
