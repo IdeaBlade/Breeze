@@ -557,14 +557,11 @@ define(["testFns"], function (testFns) {
             custs[1].entityAspect.setDeleted();
             var custs2 = em.executeQueryLocally(query);
             ok(custs2.length == count - 2);
-            start();
-        }).fail(testFns.handleFail);
-              
+        }).fail(testFns.handleFail).fin(start);
+
     });
 
-   
-
-    asyncTest("local query", function () {
+    test("local query", function () {
         var em = newEm();
 
         var query = new EntityQuery()
@@ -575,20 +572,20 @@ define(["testFns"], function (testFns) {
             .from("Orders")
             .where("freight", ">=", 500);
 
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var orders = data.results;
             var ordersL = em.executeQueryLocally(query);
             ok(core.arrayEquals(orders, ordersL), "local query should return same result as remote query");
             var orders2 = em.executeQueryLocally(query2);
             ok(orders2.length > 0);
             ok(orders2.length < orders.length);
-            ok(orders2.every(function (o) { return o.getProperty("freight") >= 500; }));
-            start();
-        }).fail(testFns.handleFail);
+            ok(orders2.every(function(o) { return o.getProperty("freight") >= 500; }));
+            
+        }).fail(testFns.handleFail).fin(start);
     });
     
-    asyncTest("local query - fetchStrategy", function () {
+    test("local query - fetchStrategy", function () {
         var em = newEm();
 
         var query = new EntityQuery()
@@ -600,11 +597,12 @@ define(["testFns"], function (testFns) {
             .where("freight", ">=", 500);
 
         var orders;
-        em.executeQuery(query).then(function (data) {
+        stop();
+        em.executeQuery(query).then(function(data) {
             orders = data.results;
             query = query.using(FetchStrategy.FromLocalCache);
             return em.executeQuery(query);
-        }).then(function (dataLocal) {
+        }).then(function(dataLocal) {
             var ordersL = dataLocal.results;
             ok(core.arrayEquals(orders, ordersL), "local query should return same result as remote query");
             em.defaultQueryOptions = new QueryOptions({ fetchStrategy: FetchStrategy.FromLocalCache });
@@ -614,8 +612,7 @@ define(["testFns"], function (testFns) {
             ok(orders2.length > 0);
             ok(orders2.length < orders.length);
             ok(orders2.every(function(o) { return o.getProperty("freight") >= 500; }));
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("local query - ExecuteLocally", function() {

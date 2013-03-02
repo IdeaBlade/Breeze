@@ -1745,7 +1745,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         // HACK for GC
                         query = null;
                         queryContext = null;
-                        entities = null;
+                        
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {

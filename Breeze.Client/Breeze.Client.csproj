@@ -113,6 +113,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Scripts\IBlade\build.ps1" />
+    <None Include="Scripts\ThirdParty\datajs-1.1.0.min.js.map">
+      <DependentUpon>datajs-1.1.0.js</DependentUpon>
+    </None>
     <None Include="Scripts\ThirdParty\q.README.md" />
   </ItemGroup>
   <ItemGroup>

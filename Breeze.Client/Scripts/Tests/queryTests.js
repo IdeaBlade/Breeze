@@ -979,23 +979,23 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    asyncTest("greater than op", function () {
+    test("greater than op", function () {
         var em = newEm();
 
         var query = EntityQuery.from("Orders")
             .where("freight", ">", 100);
 
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+            
+        }).fail(testFns.handleFail).fin(start);
     });
 
    
-    asyncTest("predicate", function () {
+    test("predicate", function () {
         var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
@@ -1003,12 +1003,11 @@ define(["testFns"], function (testFns) {
         var pred2 = new Predicate("orderDate", ">", new Date(1998, 3, 1));
         var query = baseQuery.where(pred1.and(pred2));
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("predicate with contains", function() {
@@ -1026,8 +1025,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function(data) {
             var customers = data.results;
             ok(customers.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("query with contains", function() {
@@ -1044,7 +1042,7 @@ define(["testFns"], function (testFns) {
     });
     
     
-     asyncTest("predicate 2", function () {
+     test("predicate 2", function () {
         var em = newEm();
 
         var baseQuery = EntityQuery.from("Orders");
@@ -1053,13 +1051,13 @@ define(["testFns"], function (testFns) {
         var newPred = Predicate.and([pred1, pred2]);
         var query = baseQuery.where(newPred);
         var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             var orders = data.results;
             ok(orders.length > 0);
-            start();
-        }).fail(testFns.handleFail);
-    });
+
+        }).fail(testFns.handleFail).fin(start);
+     });
 
     test("predicate 3", function () {
         var em = newEm();
@@ -1125,14 +1123,13 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery.from("OrderDetails")
             .where("product.productID", "==", 1);
         stop();
-        query.using(em).execute().then(function (data) {
+        query.using(em).execute().then(function(data) {
             var orderDetails = data.results;
             ok(orderDetails.length > 0);
-            orderDetails.forEach(function (od) {
+            orderDetails.forEach(function(od) {
                 ok(od.getProperty("productID") === 1, "productID should === 1");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("unidirectional navigation bad query", function () {
@@ -1145,15 +1142,15 @@ define(["testFns"], function (testFns) {
         stop();
         query.using(em).execute().then(function(data) {
             ok(false, "should not get here");
-            start();
-        }).fail(function (err) {
+            
+        }).fail(function(err) {
             if (testFns.DEBUG_WEBAPI) {
                 ok(err.message.indexOf("OrderDetails") >= 1, " message should be about missing OrderDetails property");
             } else {
                 ok(err.message.indexOf("Product") >= 1, "should be an error message about the Product query");
             }
-            start();
-        });
+            
+        }).fin(start);
     });
 
 
@@ -1183,17 +1180,16 @@ define(["testFns"], function (testFns) {
              .expand("category");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function(data) {
             var products = data.results;
-            var cats = products.map(function (product) {
+            var cats = products.map(function(product) {
                 return product.getProperty("category");
             });
             cats.forEach(function(cat) {
                 var catName = cat.getProperty("categoryName");
                 ok(core.stringStartsWith(catName, "S"));
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("where nested property 2", function () {
@@ -1204,11 +1200,10 @@ define(["testFns"], function (testFns) {
              .where("customer.region", "==", "CA");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function(data) {
             var customers = data.results;
             ok(customers.length > 0, "some customers should have been found");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("orderBy", function () {
@@ -1218,12 +1213,11 @@ define(["testFns"], function (testFns) {
             .orderBy("productName desc")
             .take(5);
         stop();
-        em.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function(data) {
             var products = data.results;
             var productName = products[0].getProperty("productName");
-            testFns.assertIsSorted(products, "productName", true,  em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
-            start();
-        }).fail(testFns.handleFail);
+            testFns.assertIsSorted(products, "productName", true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("expand", function () {
@@ -1406,14 +1400,14 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
-    asyncTest("query expr - toLower", function() {
+    test("query expr - toLower", function() {
         var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("toLower(companyName)", "startsWith", "c");
         var queryUrl = query._toUri(em.metadataStore);
-
+        stop();
         em.executeQuery(query, function(data) {
             var custs = data.results;
             ok(custs.length > 0);
@@ -1421,8 +1415,8 @@ define(["testFns"], function (testFns) {
                 var name = cust.getProperty("companyName").toLowerCase();
                 return core.stringStartsWith(name, "c");
             }), "every cust should startwith a 'c'");
-            start();
-        }).fail(testFns.handleFail);
+
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("query expr - toUpper/substring", function() {
@@ -1519,27 +1513,25 @@ define(["testFns"], function (testFns) {
         }
     });   
 
-    asyncTest("bad filter property", function () {
+    test("bad filter property", function () {
         var em = newEm();
 
         var query = new EntityQuery()
             .from("Customers")
             .where("badCompanyName", "startsWith", "C");
         // var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             ok(false, "shouldn't get here");
-            start();
-        }, function (error) {
+        }, function(error) {
             ok(error instanceof Error);
             ok(error.message.indexOf("badCompanyName") > 0, "bad message");
             error.handled = true;
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
-    asyncTest("bad orderBy property ", function () {
+    test("bad orderBy property ", function () {
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1547,16 +1539,14 @@ define(["testFns"], function (testFns) {
             .where("companyName", FilterQueryOp.StartsWith, "C")
             .orderBy("badCompanyName");
         // var queryUrl = query._toUri(em.metadataStore);
-
-        em.executeQuery(query, function (data) {
+        stop();
+        em.executeQuery(query, function(data) {
             ok(false, "shouldn't get here");
-            start();
-        }, function (error) {
+        }, function(error) {
             ok(error instanceof Error);
             ok(error.message.indexOf("badCompanyName") > 0, "bad message");
-            error.handled = true;
-            start();
-        }).fail(testFns.handleFail);
+            error.handled = true;          
+        }).fail(testFns.handleFail).fin(start);
 
     });
 

@@ -1,4 +1,6 @@
-﻿$env:path += ";c:\program files (x86)\nodejs"
+﻿# $env:path += ";c:\program files (x86)\nodejs"
+
+$env:path += ";c:\program files\nodejs"
 
 node ../ThirdParty/r.js -o build.js out=../breeze.base.min.js
 

@@ -191,7 +191,7 @@
         }
         return metadataSvcUrl;
 
-    };
+    }
 
     function createError(XHR) {
         var err = new Error();
