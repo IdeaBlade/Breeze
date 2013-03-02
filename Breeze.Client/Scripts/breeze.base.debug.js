@@ -915,7 +915,7 @@ define('enum',["coreFns"], function (core) {
     Enum.prototype.getNames = function() {
         var result = [];
         for (var key in this) {
-            if (hasOwnProperty.call(this, key)) {
+            if (this.hasOwnProperty(key)) {
                 if (key != "name" && key.substr(0, 1) !== "_" && !core.isFunction(this[key])) {
                     result.push(key);
                 }
@@ -9468,7 +9468,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (key!== "relationArray" && hasOwnProperty.call(target, key)) {
+            if (key!== "relationArray" && target.hasOwnProperty(key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {

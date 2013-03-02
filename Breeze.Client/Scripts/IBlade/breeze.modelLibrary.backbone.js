@@ -19,6 +19,8 @@
     var _;
     
     var bbSet, bbGet;
+    
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
 
     var ctor = function () {
         this.name = "backbone";
