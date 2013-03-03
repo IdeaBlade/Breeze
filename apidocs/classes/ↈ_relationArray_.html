@@ -398,7 +398,7 @@ are all provided as well as several special purpose methods.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume orders is an empty, as yet unpopulated, relation array of orders
+                <pre class="code prettyprint"><code>// assume orders is an empty, as yet unpopulated, relation array of orders
 // associated with a specific customer.
 orders.load().then(...)
 </code></pre>
@@ -505,7 +505,7 @@ collections are collected into a single notification event for each relation arr
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 orders.arrayChanged.subscribe(
     function (arrayChangedArgs) {
         var addedEntities = arrayChangedArgs.added;

@@ -2586,6 +2586,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method <ctor> SaveOptions
         @param config {Object}
         @param [config.allowConcurrentSaves] {Boolean}
+        @param [config.tag] {Object} Free form value that will be sent to the server. 
         **/
         var ctor = function (config) {
             config = config || {};
@@ -2613,6 +2614,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         __readOnly__
         @property allowConcurrentSaves {Boolean}
+        **/
+
+        /**
+        A free form value that will be sent to the server.
+
+        __readOnly__
+        @property tag {Object}
         **/
 
         /**

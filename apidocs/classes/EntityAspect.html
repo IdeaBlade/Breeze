@@ -210,7 +210,7 @@ that provide a variety of services including validation and change tracking.</p>
 an entities 'entityAspect' property.  This property will be automatically attached when an entity is created via either 
 a query, import or EntityManager.createEntity call.</p>
 
-<pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+<pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var aspect = order.entityAspect;
 var currentState = aspect.entityState;
 </code></pre>
@@ -472,7 +472,7 @@ had 'acceptChanges' called on it.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> // assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code> // assume order is an order entity attached to an EntityManager.
  order.entityAspect.acceptChanges();
  // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
 </code></pre>
@@ -729,7 +729,7 @@ had 'acceptChanges' called on it.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> // assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code> // assume order is an order entity attached to an EntityManager.
 var entityKey = order.entityAspect.getKey();
 </code></pre>
             </div>
@@ -844,15 +844,15 @@ If omitted, all of the validation errors for this entity will be returned.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can return all of the errors for an Entity</p><pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <p>This method can return all of the errors for an Entity</p><pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var valErrors = order.entityAspect.getValidationErrors();
 </code></pre>
 
-<p>as well as those for just a specific property.</p><pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+<p>as well as those for just a specific property.</p><pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var orderDateErrors = order.entityAspect.getValidationErrors("OrderDate");
 </code></pre>
 
-<p>which can also be expressed as</p><pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+<p>which can also be expressed as</p><pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var orderDateProperty = order.entityType.getProperty("OrderDate");
 var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
 </code></pre>
@@ -1016,7 +1016,7 @@ promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">   emp.entityAspect.loadNavigationProperty("Orders")
+                <pre class="code prettyprint"><code>   emp.entityAspect.loadNavigationProperty("Orders")
     .then(function (data) {
         var orders = data.results;
     }).fail(function (exception) {
@@ -1085,7 +1085,7 @@ had 'rejectChanges' called on it.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> // assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code> // assume order is an order entity attached to an EntityManager.
  order.entityAspect.rejectChanges();
  // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
 </code></pre>
@@ -1260,7 +1260,7 @@ but also removes the entity from all of its related entities.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 order.entityAspect.setDeleted();
 // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
 </code></pre>
@@ -1325,7 +1325,7 @@ order.entityAspect.setDeleted();
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 order.entityAspect.setModified();
 // The 'order' entity will now be in a 'Modified' state. 
 </code></pre>
@@ -1390,7 +1390,7 @@ order.entityAspect.setModified();
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> // assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code> // assume order is an order entity attached to an EntityManager.
  order.entityAspect.setUnchanged();
  // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
 </code></pre>
@@ -1474,7 +1474,7 @@ all of the validators on both the entity itself as well as those on each of its 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var isOk = order.entityAspect.validateEntity();
 // isOk will be 'true' if there are no errors on the entity.
 if (!isOk) {
@@ -1619,11 +1619,11 @@ the path to a property of a complex object.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 var isOk = order.entityAspect.validateProperty("Order"); 
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var orderDateProperty = order.entityType.getProperty("OrderDate");
+<p>or</p><pre class="code prettyprint"><code>var orderDateProperty = order.entityType.getProperty("OrderDate");
 var isOk = order.entityAspect.validateProperty(OrderDateProperty); 
 </code></pre>
             </div>
@@ -1995,7 +1995,7 @@ for any properties of a complex type.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 order.entityAspect.propertyChanged.subscribe(
     function (propertyChangedArgs) {
         // this code will be executed anytime a property value changes on the 'order' entity.
@@ -2110,7 +2110,7 @@ errors that have been 'fixed'</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume order is an order entity attached to an EntityManager.
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 order.entityAspect.validationErrorsChanged.subscribe(
     function (validationChangeArgs) {
         // this code will be executed anytime a property value changes on the 'order' entity.

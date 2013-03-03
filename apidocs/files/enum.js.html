@@ -372,16 +372,13 @@ define([&quot;coreFns&quot;], function (core) {
     Enum.prototype.getNames = function() {
         var result = [];
         for (var key in this) {
-            if (hasOwnProperty.call(this, key)) {
+            if (this.hasOwnProperty(key)) {
                 if (key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot; &amp;&amp; !core.isFunction(this[key])) {
                     result.push(key);
                 }
             }
         }
         return result;
-        &#x2F;&#x2F;return Object.keys(this).filter(
-        &#x2F;&#x2F;    function (key) { return key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot;; }
-        &#x2F;&#x2F;);
     };
 
     &#x2F;**

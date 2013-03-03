@@ -704,20 +704,20 @@
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>At its most basic an EntityManager can be constructed with just a service name</p><pre class="code"><code class="prettyprint">var entityManager = new EntityManager( "api/NorthwindIBModel");
+                <p>At its most basic an EntityManager can be constructed with just a service name</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( "api/NorthwindIBModel");
 </code></pre>
 
-<p>This is the same as calling it with the following configuration object</p><pre class="code"><code class="prettyprint">var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+<p>This is the same as calling it with the following configuration object</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
 </code></pre>
 
-<p>Usually however, configuration objects will contain more than just the 'serviceName';</p><pre class="code"><code class="prettyprint">var metadataStore = new MetadataStore();
+<p>Usually however, configuration objects will contain more than just the 'serviceName';</p><pre class="code prettyprint"><code>var metadataStore = new MetadataStore();
 var entityManager = new EntityManager( {
     serviceName: "api/NorthwindIBModel", 
     metadataStore: metadataStore 
 });
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">return new QueryOptions({ 
+<p>or</p><pre class="code prettyprint"><code>return new QueryOptions({ 
     mergeStrategy: obj, 
     fetchStrategy: this.fetchStrategy 
 });
@@ -847,13 +847,13 @@ var entityManager = new EntityManager({
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var custType = em1.metadataStore.getEntityType("Customer");
 var cust1 = custType.createEntity();
 em1.addEntity(cust1);
 </code></pre>
 
-<p>Note that this is the same as using 'attachEntity' with an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> of 'Added'.</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+<p>Note that this is the same as using 'attachEntity' with an <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> of 'Added'.</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var custType = em1.metadataStore.getEntityType("Customer");
 var cust1 = custType.createEntity();
 em1.attachEntity(cust1, EntityState.Added);
@@ -991,7 +991,7 @@ em1.attachEntity(cust1, EntityState.Added);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var custType = em1.metadataStore.getEntityType("Customer");
 var cust1 = custType.createEntity();
 em1.attachEntity(cust1, EntityState.Added);
@@ -1059,7 +1059,7 @@ This is because clear actually detaches all of the entities from the EntityManag
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 em1.clear();
 // em1 is will now contain no entities, but all other setting will be maintained.
 </code></pre>
@@ -1141,7 +1141,7 @@ em1.clear();
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var em2 = em1.createEmptyCopy();
 // em2 is a new EntityManager with all of em1's settings
 // but no entities.
@@ -1307,7 +1307,7 @@ to the EntityManager.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities.
 // create and add an entity;
 var emp1 = em1.createEntity("Employee");
 // create and add an initialized entity;
@@ -1428,7 +1428,7 @@ var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 // assume cust1 is a customer Entity previously attached to em1
 em1.detachEntity(cust1);
 // em1 will now no longer contain cust1 and cust1 will have an 
@@ -1718,7 +1718,7 @@ would have been applied.
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders");
  em.executeQuery(query)
    .then( function(data) {
@@ -1729,7 +1729,7 @@ would have been applied.
  });
 </code></pre>
 
-<p>or with callbacks</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+<p>or with callbacks</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders");
  em.executeQuery(query,
     function(data) {
@@ -1741,7 +1741,7 @@ would have been applied.
     });
 </code></pre>
 
-<p>Either way this method is the same as calling the The <a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a> 'execute' method.</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+<p>Either way this method is the same as calling the The <a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a> 'execute' method.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders").using(em);
  query.execute()
    .then( function(data) {
@@ -1862,13 +1862,13 @@ would have been applied.
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>Because this method is executed immediately there is no need for a promise or a callback</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+                <p>Because this method is executed immediately there is no need for a promise or a callback</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders");
  var orders = em.executeQueryLocally(query);
 </code></pre>
 
 <p>Note that this can also be accomplished using the 'executeQuery' method with
-a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders").using(FetchStrategy.FromLocalCache);
  em.executeQuery(query)
    .then( function(data) {
@@ -1991,7 +1991,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
 
             <div class="example-content">
                 <p>This method can be used to take a snapshot of an EntityManager that can be either stored offline or held 
-memory.  This snapshot can be restored or merged into an another EntityManager at some later date. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+memory.  This snapshot can be restored or merged into an another EntityManager at some later date. </p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var bundle = em1.exportEntities();
 // can be stored via the web storage api
 window.localStorage.setItem("myEntityManager", bundle);
@@ -2005,7 +2005,7 @@ em2.importEntities(bundleFromStorage);
 // em2 will now have a complete copy of what was in em1
 </code></pre>
 
-<p>You can also control exactly which entities are exported. </p><pre class="code"><code class="prettyprint">// assume entitiesToExport is an array of entities to export.
+<p>You can also control exactly which entities are exported. </p><pre class="code prettyprint"><code>// assume entitiesToExport is an array of entities to export.
 var bundle = em1.exportEntities(entitiesToExport);
 // assume em2 is another entityManager containing some of the same entities possibly with modifications.
 em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
@@ -2170,7 +2170,7 @@ promiseData.fromCache {Boolean} Whether this entity was fetched from the server 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var employeeType = em1.metadataStore.getEntityType("Employee");
 var employeeKey = new EntityKey(employeeType, 1);
 em1.fetchEntityByKey(employeeKey).then(function(result) {
@@ -2317,7 +2317,7 @@ promiseData.fromCache {Boolean} Whether this entity was fetched from the server 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var employeeType = em1.metadataStore.getEntityType("Employee");
 var employeeKey = new EntityKey(employeeType, 1);
 em1.fetchEntityByKey(employeeKey).then(function(result) {
@@ -2512,7 +2512,7 @@ it is usually better to access metadata via the 'metadataStore' property of the 
 
             <div class="example-content">
                 <p>Usually you will not actually process the results of a fetchMetadata call directly, but will instead
-ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code"><code class="prettyprint"> var em1 = new EntityManager( "api/NorthwindIBModel");
+ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code> var em1 = new EntityManager( "api/NorthwindIBModel");
  em1.fetchMetadata()
     .then(function() {
         var metadataStore = em1.metadataStore;
@@ -2637,7 +2637,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var employeeType = em1.metadataStore.getEntityType("Employee");
 var employeeKey = new EntityKey(employeeType, 1);
 var employee = em1.findEntityByKey(employeeKey);
@@ -2760,7 +2760,7 @@ how a custom key generator can be plugged in.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var custumer = custType.createEntity();
 var customerId = em.generateTempKeyValue(custumer);
@@ -2891,16 +2891,16 @@ If this parameter is omitted, all EntityTypes are searched. String parameters ar
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be used to get all of the changed entities within an EntityManager</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <p>This method can be used to get all of the changed entities within an EntityManager</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var changedEntities = em1.getChanges();
 </code></pre>
 
-<p>or you can specify that you only want the changes on a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or you can specify that you only want the changes on a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var changedCustomers = em1.getChanges(custType);
 </code></pre>
 
-<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var orderType = em1.metadataStore.getEntityType("Order");
 var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
@@ -3041,22 +3041,22 @@ If this parameter is omitted, entities of all EntityStates are returned.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be used to get all of the entities within an EntityManager</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <p>This method can be used to get all of the entities within an EntityManager</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var entities = em1.getEntities();
 </code></pre>
 
-<p>or you can specify that you only want the changes on a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or you can specify that you only want the changes on a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var customers = em1.getEntities(custType);
 </code></pre>
 
-<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var orderType = em1.metadataStore.getEntityType("Order");
 var customersAndOrders = em1.getChanges([custType, orderType]);
 </code></pre>
 
-<p>You can also ask for entities with a particular <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> or EntityStates.</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>You can also ask for entities with a particular <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> or EntityStates.</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var orderType = em1.metadataStore.getEntityType("Order");
 var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState.Added);
@@ -3193,7 +3193,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var employee = em1.getEntityByKey("Employee", 1);
 // employee will either be an entity or null.
 </code></pre>
@@ -3308,7 +3308,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var employeeType = em1.metadataStore.getEntityType("Employee");
 var employeeKey = new EntityKey(employeeType, 1);
 var employee = em1.getEntityByKey(employeeKey);
@@ -3428,20 +3428,20 @@ If this parameter is omitted, all EntityTypes are searched. String parameters ar
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be used to determine if an EntityManager has any changes</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+                <p>This method can be used to determine if an EntityManager has any changes</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 if ( em1.hasChanges() {
    // do something interesting
 }
 </code></pre>
 
-<p>or if it has any changes on to a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or if it has any changes on to a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 if ( em1.hasChanges(custType) {
    // do something interesting
 }
 </code></pre>
 
-<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+<p>or to a collection of <a href="..\classes\EntityType.html" class="crosslink">EntityType</a>s</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 var orderType = em1.metadataStore.getEntityType("Order");
 if ( em1.hasChanges( [custType, orderType]) {
@@ -3587,7 +3587,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             <div class="example-content">
                 <p>This method can be used to make a complete copy of any previously created entityManager, even if created
 in a previous session and stored in localStorage. The static version of this method performs a
-very similar process. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+very similar process. </p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var bundle = em1.exportEntities();
 // bundle can be stored in window.localStorage or just held in memory.
 var em2 = new EntityManager({ 
@@ -3599,7 +3599,7 @@ em2.importEntities(bundle);
 </code></pre>
 
 <p>It can also be used to merge the contents of a previously created EntityManager with an 
-existing EntityManager with control over how the two are merged.</p><pre class="code"><code class="prettyprint">var bundle = em1.exportEntities();
+existing EntityManager with control over how the two are merged.</p><pre class="code prettyprint"><code>var bundle = em1.exportEntities();
 // assume em2 is another entityManager containing some of the same entities possibly with modifications.
 em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
 // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
@@ -3759,7 +3759,7 @@ merging into an existing EntityManager.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities.
 var bundle = em1.exportEntities();
 // can be stored via the web storage api
 window.localStorage.setItem("myEntityManager", bundle);
@@ -3848,7 +3848,7 @@ either 'Unchanged' or 'Detached'
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities.
 var entities = em1.rejectChanges();
 </code></pre>
             </div>
@@ -4135,7 +4135,7 @@ EntityManager/saveOptions if null.</p>
 
             <div class="example-content">
                 <p>Often we will be saving all of the entities within an EntityManager that are either added, modified or deleted
-and we will let the 'saveChanges' call determine which entities these are. </p><pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of preexisting entities. 
+and we will let the 'saveChanges' call determine which entities these are. </p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 // This could include added, modified and deleted entities.
 em.saveChanges().then(function(saveResult) {
     var savedEntities = saveResult.entities;
@@ -4145,7 +4145,7 @@ em.saveChanges().then(function(saveResult) {
 });
 </code></pre>
 
-<p>But we can also control exactly which entities to save and can specify specific SaveOptions</p><pre class="code"><code class="prettyprint">// assume entitiesToSave is an array of entities to save.
+<p>But we can also control exactly which entities to save and can specify specific SaveOptions</p><pre class="code prettyprint"><code>// assume entitiesToSave is an array of entities to save.
 var saveOptions = new SaveOptions({ allowConcurrentSaves: true });
 em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
     var savedEntities = saveResult.entities;
@@ -4155,7 +4155,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
 });
 </code></pre>
 
-<p>Callback methods can also be used</p><pre class="code"><code class="prettyprint">em.saveChanges(entitiesToSave, null, 
+<p>Callback methods can also be used</p><pre class="code prettyprint"><code>em.saveChanges(entitiesToSave, null, 
     function(saveResult) {
         var savedEntities = saveResult.entities;
         var keyMappings = saveResult.keyMappings;
@@ -4347,7 +4347,7 @@ may be set.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> // assume em1 is a previously created EntityManager
+                <pre class="code prettyprint"><code> // assume em1 is a previously created EntityManager
  // where we want to change some of its settings.
  em1.setProperties( {
     serviceName: "api/foo"
@@ -4842,7 +4842,7 @@ may be set.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
 em.entityChanged.subscribe(function(changeArgs) {
     // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. 
     var action = changeArgs.entityAction;
@@ -4940,7 +4940,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
 em.hasChangesChanged.subscribe(function(args) {
     var hasChangesChanged = args.hasChanges;
     var entityManager = args.entityManager;

@@ -660,7 +660,7 @@ of additional properties that will be automatically added to this object if not 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>Most validators will be 'property' level validators, like this.</p><pre class="code"><code class="prettyprint">// v is this function is the value to be validated, in this case a "country" string.
+                <p>Most validators will be 'property' level validators, like this.</p><pre class="code prettyprint"><code>// v is this function is the value to be validated, in this case a "country" string.
 var valFn = function (v) {
     if (v == null) return true;
     return (core.stringStartsWith(v, "US"));
@@ -678,7 +678,7 @@ var countryProp = custType.getProperty("Country");
 prop.validators.push(countryValidator);
 </code></pre>
 
-<p>Entity level validators are also possible</p><pre class="code"><code class="prettyprint">function isValidZipCode(value) {
+<p>Entity level validators are also possible</p><pre class="code prettyprint"><code>function isValidZipCode(value) {
     var re = /^\d{5}([\-]\d{4})?$/;
     return (re.test(value));
 }               
@@ -703,7 +703,7 @@ custType.validators.push(zipCodeValidator);
 </code></pre>
 
 <p>What is commonly needed is a way of creating a parameterized function that will itself
-return a new Validator.  This requires the use of a 'context' object.</p><pre class="code"><code class="prettyprint">// create a function that will take in a config object
+return a new Validator.  This requires the use of a 'context' object.</p><pre class="code prettyprint"><code>// create a function that will take in a config object
 // and will return a validator
 var numericRangeValidator = function(context) {
     var valFn = function(v, ctx) {
@@ -805,7 +805,7 @@ freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var productType = em1.metadataStore.getEntityType("Product");
 var discontinuedProperty - productType.getProperty("Discontinued");
 // Validates that the value of the Discontinued property on Product is a boolean
@@ -891,7 +891,7 @@ discontinuedProperty.validators.push(Validator.bool());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.
@@ -978,7 +978,7 @@ regionProperty.validators.push(Validator.byte());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var orderDateProperty - orderType.getProperty("OrderDate");
 // Validates that the value of the OrderDate property on Order is a date
@@ -1065,7 +1065,7 @@ orderDateProperty.validators.push(Validator.date());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var eventType = em1.metadataStore.getEntityType("Event");
 var elapsedTimeProperty - eventType.getProperty("ElapsedTime");
 // Validates that the value of the ElapsedTime property on Customer is a duration.
@@ -1148,7 +1148,7 @@ elapsedTimeProperty.validators.push(Validator.duration());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var v0 = Validator.maxLength({ maxLength: 5, displayName: "City" });
+                <pre class="code prettyprint"><code>var v0 = Validator.maxLength({ maxLength: 5, displayName: "City" });
 v0.validate("adasdfasdf");
 var errMessage = v0.getMessage());
 </code></pre>
@@ -1232,7 +1232,7 @@ var errMessage = v0.getMessage());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var custType = em1.metadataStore.getEntityType("Customer");
 var customerIdProperty - custType.getProperty("CustomerID");
 // Validates that the value of the CustomerID property on Customer is a Guid.
@@ -1318,7 +1318,7 @@ customerIdProperty.validators.push(Validator.guid());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is within the range of a 16 bit integer.
@@ -1404,7 +1404,7 @@ freightProperty.validators.push(Validator.int16());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 freightProperty.validators.push(Validator.int32());
@@ -1489,7 +1489,7 @@ freightProperty.validators.push(Validator.int32());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.
@@ -1625,7 +1625,7 @@ freightProperty.validators.push(Validator.int64());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var custType = em1.metadataStore.getEntityType("Customer");
 var regionProperty - custType.getProperty("Region");
 // Validates that the value of the Region property on Customer will be less than or equal to 5 characters.
@@ -1711,7 +1711,7 @@ regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is a number.
@@ -1971,7 +1971,7 @@ freightProperty.validators.push(Validator.number());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var custType = em1.metadataStore.getEntityType("Customer");
 var regionProperty - custType.getProperty("Region");
 // Makes "Region" on Customer a required property.
@@ -2057,7 +2057,7 @@ regionProperty.validators.push(Validator.required());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var custType = em1.metadataStore.getEntityType("Customer");
 var regionProperty - custType.getProperty("Region");
 // Validates that the value of the Region property on Customer is a string.
@@ -2206,7 +2206,7 @@ regionProperty.validators.push(Validator.string());
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is a preexisting EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is a preexisting EntityManager.
 var custType = em1.metadataStore.getEntityType("Customer");
 var regionProperty - custType.getProperty("Region");
 // Validates that the value of the Region property on Customer will be 
@@ -2351,7 +2351,7 @@ can make use of.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// using one of the predefined validators
+                <pre class="code prettyprint"><code>// using one of the predefined validators
 var validator = Validator.maxLength({ maxLength: 5, displayName: "City" });
 // should be ok because "asdf".length &lt; 5
 var result = validator.validate("asdf");
@@ -2422,7 +2422,7 @@ You can add to or modify this object to customize the template used for any vali
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// v is this function is the value to be validated, in this case a "country" string.
+                <pre class="code prettyprint"><code>// v is this function is the value to be validated, in this case a "country" string.
 var valFn = function (v) {
     if (v == null) return true;
     return (core.stringStartsWith(v, "US"));

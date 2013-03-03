@@ -56,8 +56,7 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
     Foreach-Object {$_ -replace $search2, $replace2 }
   $output | Set-Content $outputFile
   cd "$destDir"
-  # $expr = "..\..\.nuget\nuget.exe pack $folderName.nuspec"
-  $expr = "..\..\..\nuget.exe pack $folderName.nuspec"
+  $expr = "nuget pack $folderName.nuspec"
   invoke-expression $expr
 }
 
@@ -68,7 +67,7 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 # Check that all files have been updated within the last 5 minutes
-$minutes = 5
+$minutes = 15
 checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 

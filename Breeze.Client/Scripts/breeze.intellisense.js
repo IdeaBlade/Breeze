@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Feb 09 2013 21:34:08 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Mar 02 2013 20:04:14 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -1327,6 +1327,26 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Returns an array containing all of the   'EntityType's or  'ComplexType's in this MetadataStore.
     ///   </summary>
     ///   <returns type="Array of EntityType|ComplexType" ></returns>
+    /// </signature>
+  },
+  'getEntityTypeNameForResourceName': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
+    ///   can be obtained via the   'EntityType' 'defaultResourceName' property
+    ///   </summary>
+    ///   <param name="resourceName" type="String" optional="true"></param>
+    
+    /// </signature>
+  },
+  'setEntityTypeForResourceName': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Associates a resourceName with an entityType. 
+    ///   </summary>
+    ///   <param name="resourceName" type="String" optional="true"></param>
+    ///   <param name="entityTypeOrName" type="EntityType|String" optional="true">If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.</param>
+    
     /// </signature>
   },
   

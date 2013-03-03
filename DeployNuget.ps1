@@ -13,7 +13,7 @@ function deployNuget($srcDir, $folderName) {
   
   # push them
   gci $destDir *.nupkg -force | foreach ($_) {  
-      $expr = '..\..\..\nuget.exe push ' + $_.fullname 
+      $expr = 'nuget push ' + $_.fullname 
       invoke-expression $expr
   }
 

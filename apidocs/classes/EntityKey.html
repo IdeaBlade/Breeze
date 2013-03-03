@@ -376,16 +376,16 @@
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var empType = em1.metadataStore.getEntityType("Employee");
 var entityKey = new EntityKey(empType, 1);
 </code></pre>
 
-<p>EntityKey's may also be found by calling EntityAspect.getKey()</p><pre class="code"><code class="prettyprint">// assume employee1 is an existing Employee entity
+<p>EntityKey's may also be found by calling EntityAspect.getKey()</p><pre class="code prettyprint"><code>// assume employee1 is an existing Employee entity
 var empKey = employee1.entityAspect.getKey();
 </code></pre>
 
-<p>Multipart keys are created by passing an array as the 'keyValues' parameter</p><pre class="code"><code class="prettyprint">var empTerrType = em1.metadataStore.getEntityType("EmployeeTerritory");            
+<p>Multipart keys are created by passing an array as the 'keyValues' parameter</p><pre class="code prettyprint"><code>var empTerrType = em1.metadataStore.getEntityType("EmployeeTerritory");            
 var empTerrKey = new EntityKey(empTerrType, [ 1, 77]);
 // The order of the properties in the 'keyValues' array must be the same as that 
 // returned by empTerrType.keyProperties
@@ -485,7 +485,7 @@ There is also an static version of 'equals' with the same functionality.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var empType = em1.metadataStore.getEntityType("Employee");
 var empKey1 = new EntityKey(empType, 1);
 // assume employee1 is an existing Employee entity
@@ -612,7 +612,7 @@ There is also an instance version of 'equals' with the same functionality.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is an EntityManager containing a number of existing entities.
+                <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
 var empType = em1.metadataStore.getEntityType("Employee");
 var empKey1 = new EntityKey(empType, 1);
 // assume employee1 is an existing Employee entity

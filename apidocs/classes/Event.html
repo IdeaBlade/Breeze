@@ -448,7 +448,7 @@
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">salaryEvent = new Event("salaryEvent", person);
+                <pre class="code prettyprint"><code>salaryEvent = new Event("salaryEvent", person);
 </code></pre>
             </div>
         </div>
@@ -589,20 +589,20 @@ children of this object will be enabled or disabled.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">Event.enable(“propertyChanged”, myEntityManager, false) 
+                <pre class="code prettyprint"><code>Event.enable(“propertyChanged”, myEntityManager, false) 
 </code></pre>
 
-<p>will disable all EntityAspect.propertyChanged events within a EntityManager.</p><pre class="code"><code class="prettyprint">Event.enable(“propertyChanged”, myEntityManager, true) 
+<p>will disable all EntityAspect.propertyChanged events within a EntityManager.</p><pre class="code prettyprint"><code>Event.enable(“propertyChanged”, myEntityManager, true) 
 </code></pre>
 
-<p>will enable all EntityAspect.propertyChanged events within a EntityManager.</p><pre class="code"><code class="prettyprint">Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
+<p>will enable all EntityAspect.propertyChanged events within a EntityManager.</p><pre class="code prettyprint"><code>Event.enable(“propertyChanged”, myEntity.entityAspect, false) 
 </code></pre>
 
-<p>will disable EntityAspect.propertyChanged events for a specific entity.</p><pre class="code"><code class="prettyprint">Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
+<p>will disable EntityAspect.propertyChanged events for a specific entity.</p><pre class="code prettyprint"><code>Event.enable(“propertyChanged”, myEntity.entityAspect, null) 
 </code></pre>
 
 <p>will removes any enabling / disabling at the entity aspect level so now any 'Event.enable' calls at the EntityManager level, 
-made either previously or in the future, will control notification.</p><pre class="code"><code class="prettyprint">Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
+made either previously or in the future, will control notification.</p><pre class="code prettyprint"><code>Event.enable(“validationErrorsChanged”, myEntityManager, function(em) {     
    return em.customTag === “blue”;
 })                 
 </code></pre>
@@ -743,7 +743,7 @@ Note that this is dynamic, changing the customTag value will cause events to be 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">Event.isEnabled(“propertyChanged”, myEntityManager) 
+                <pre class="code prettyprint"><code>Event.isEnabled(“propertyChanged”, myEntityManager) 
 </code></pre>
             </div>
         </div>
@@ -921,14 +921,14 @@ errors will be eaten.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume 'salaryEvent' is previously constructed Event
+                <pre class="code prettyprint"><code>// Assume 'salaryEvent' is previously constructed Event
 salaryEvent.publish( { eventType: "payRaise", amount: 100 });
 </code></pre>
 
-<p>This event can also be published asychonously</p><pre class="code"><code class="prettyprint">salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
+<p>This event can also be published asychonously</p><pre class="code prettyprint"><code>salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
 </code></pre>
 
-<p>And we can add a handler in case the subscriber 'mishandles' the event.</p><pre class="code"><code class="prettyprint">salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {
+<p>And we can add a handler in case the subscriber 'mishandles' the event.</p><pre class="code prettyprint"><code>salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {
     // do something with the 'error' object
 });
 </code></pre>
@@ -1069,11 +1069,11 @@ errors will be eaten.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume 'salaryEvent' is previously constructed Event
+                <pre class="code prettyprint"><code>// Assume 'salaryEvent' is previously constructed Event
 salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
 </code></pre>
 
-<p>And we can add a handler in case the subscriber 'mishandles' the event.</p><pre class="code"><code class="prettyprint">salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
+<p>And we can add a handler in case the subscriber 'mishandles' the event.</p><pre class="code prettyprint"><code>salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 }, function(error) {
     // do something with the 'error' object
 });
 </code></pre>
@@ -1210,7 +1210,7 @@ salaryEvent.publishAsync( { eventType: "payRaise", amount: 100 });
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume 'salaryEvent' is previously constructed Event
+                <pre class="code prettyprint"><code>// Assume 'salaryEvent' is previously constructed Event
 salaryEvent.subscribe(function (eventArgs) {
     if (eventArgs.eventType === "payRaise") {
        // do something
@@ -1218,7 +1218,7 @@ salaryEvent.subscribe(function (eventArgs) {
 });
 </code></pre>
 
-<p>There are several built in Breeze events, such as EntityAspect.propertyChanged, EntityAspect.validationErrorsChanged as well.</p><pre class="code"><code class="prettyprint"> // Assume order is a preexisting 'order' entity
+<p>There are several built in Breeze events, such as EntityAspect.propertyChanged, EntityAspect.validationErrorsChanged as well.</p><pre class="code prettyprint"><code> // Assume order is a preexisting 'order' entity
  order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
      if ( pcEvent.propertyName === "OrderDate") {
          // do something
@@ -1337,7 +1337,7 @@ cannot be found.
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume order is a preexisting 'order' entity
+                <pre class="code prettyprint"><code>// Assume order is a preexisting 'order' entity
 var token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
         // do something
 });

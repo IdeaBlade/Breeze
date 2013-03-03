@@ -497,11 +497,11 @@ method that would modify a Predicate actually returns a new Predicate.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var p1 = new Predicate("CompanyName", "StartsWith", "B");
+                <pre class="code prettyprint"><code>var p1 = new Predicate("CompanyName", "StartsWith", "B");
 var query = new EntityQuery("Customers").where(p1);
 </code></pre>
 
-<p>or </p><pre class="code"><code class="prettyprint">var p2 = new Predicate("Region", FilterQueryOp.Equals, null);
+<p>or </p><pre class="code prettyprint"><code>var p2 = new Predicate("Region", FilterQueryOp.Equals, null);
 var query = new EntityQuery("Customers").where(p2);
 </code></pre>
             </div>
@@ -600,18 +600,18 @@ var query = new EntityQuery("Customers").where(p2);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var dt = new Date(88, 9, 12);
+                <pre class="code prettyprint"><code>var dt = new Date(88, 9, 12);
 var p1 = Predicate.create("OrderDate", "ne", dt);
 var p2 = Predicate.create("ShipCity", "startsWith", "C");
 var p3 = Predicate.create("Freight", "&gt;", 100);
 var newPred = p1.and(p2, p3);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var preds = [p2, p3];
+<p>or</p><pre class="code prettyprint"><code>var preds = [p2, p3];
 var newPred = p1.and(preds);
 </code></pre>
 
-<p>The 'and' method is also used to write "fluent" expressions</p><pre class="code"><code class="prettyprint">var p4 = Predicate.create("ShipCity", "startswith", "F")
+<p>The 'and' method is also used to write "fluent" expressions</p><pre class="code prettyprint"><code>var p4 = Predicate.create("ShipCity", "startswith", "F")
     .and("Size", "gt", 2000);
 </code></pre>
             </div>
@@ -712,14 +712,14 @@ var newPred = p1.and(preds);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var dt = new Date(88, 9, 12);
+                <pre class="code prettyprint"><code>var dt = new Date(88, 9, 12);
 var p1 = Predicate.create("OrderDate", "ne", dt);
 var p2 = Predicate.create("ShipCity", "startsWith", "C");
 var p3 = Predicate.create("Freight", "&gt;", 100);
 var newPred = Predicate.and(p1, p2, p3);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var preds = [p1, p2, p3];
+<p>or</p><pre class="code prettyprint"><code>var preds = [p1, p2, p3];
 var newPred = Predicate.and(preds);
 </code></pre>
             </div>
@@ -888,14 +888,14 @@ var newPred = Predicate.and(preds);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var p1 = Predicate.create("Freight", "gt", 100);
+                <pre class="code prettyprint"><code>var p1 = Predicate.create("Freight", "gt", 100);
 </code></pre>
 
-<p>or parameters can be passed as an array.</p><pre class="code"><code class="prettyprint">var predArgs = ["Freight", "gt", 100];
+<p>or parameters can be passed as an array.</p><pre class="code prettyprint"><code>var predArgs = ["Freight", "gt", 100];
 var p1 = Predicate.create(predArgs);
 </code></pre>
 
-<p>both of these are the same as </p><pre class="code"><code class="prettyprint">var p1 = new Predicate("Freight", "gt", 100);
+<p>both of these are the same as </p><pre class="code prettyprint"><code>var p1 = new Predicate("Freight", "gt", 100);
 </code></pre>
             </div>
         </div>
@@ -993,7 +993,7 @@ var p1 = Predicate.create(predArgs);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var p1 = new Predicate("CompanyName", "StartsWith", "B");
+                <pre class="code prettyprint"><code>var p1 = new Predicate("CompanyName", "StartsWith", "B");
 if (Predicate.isPredicate(p1)) {
     // do something
 }
@@ -1094,14 +1094,14 @@ if (Predicate.isPredicate(p1)) {
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var p1 = Predicate.create("Freight", "gt", 100);
+                <pre class="code prettyprint"><code>var p1 = Predicate.create("Freight", "gt", 100);
 var not_p1 = Predicate.not(p1);
 </code></pre>
 
-<p>This can also be accomplished using the 'instance' version of the 'not' method</p><pre class="code"><code class="prettyprint">var not_p1 = p1.not();
+<p>This can also be accomplished using the 'instance' version of the 'not' method</p><pre class="code prettyprint"><code>var not_p1 = p1.not();
 </code></pre>
 
-<p>Both of which would be the same as</p><pre class="code"><code class="prettyprint">var not_p1 = Predicate.create("Freight", "le", 100);
+<p>Both of which would be the same as</p><pre class="code prettyprint"><code>var not_p1 = Predicate.create("Freight", "le", 100);
 </code></pre>
             </div>
         </div>
@@ -1164,15 +1164,15 @@ var not_p1 = Predicate.not(p1);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var p1 = Predicate.create("Freight", "gt", 100);
+                <pre class="code prettyprint"><code>var p1 = Predicate.create("Freight", "gt", 100);
 var not_p1 = p1.not();
 </code></pre>
 
-<p>This can also be accomplished using the 'static' version of the 'not' method</p><pre class="code"><code class="prettyprint">var p1 = Predicate.create("Freight", "gt", 100);
+<p>This can also be accomplished using the 'static' version of the 'not' method</p><pre class="code prettyprint"><code>var p1 = Predicate.create("Freight", "gt", 100);
 var not_p1 = Predicate.not(p1);
 </code></pre>
 
-<p>which would be the same as</p><pre class="code"><code class="prettyprint">var not_p1 = Predicate.create("Freight", "le", 100);
+<p>which would be the same as</p><pre class="code prettyprint"><code>var not_p1 = Predicate.create("Freight", "le", 100);
 </code></pre>
             </div>
         </div>
@@ -1272,14 +1272,14 @@ var not_p1 = Predicate.not(p1);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var dt = new Date(88, 9, 12);
+                <pre class="code prettyprint"><code>var dt = new Date(88, 9, 12);
 var p1 = Predicate.create("OrderDate", "ne", dt);
 var p2 = Predicate.create("ShipCity", "startsWith", "C");
 var p3 = Predicate.create("Freight", "&gt;", 100);
 var newPred = Predicate.or(p1, p2, p3);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var preds = [p1, p2, p3];
+<p>or</p><pre class="code prettyprint"><code>var preds = [p1, p2, p3];
 var newPred = Predicate.or(preds);
 </code></pre>
             </div>
@@ -1378,18 +1378,18 @@ var newPred = Predicate.or(preds);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var dt = new Date(88, 9, 12);
+                <pre class="code prettyprint"><code>var dt = new Date(88, 9, 12);
 var p1 = Predicate.create("OrderDate", "ne", dt);
 var p2 = Predicate.create("ShipCity", "startsWith", "C");
 var p3 = Predicate.create("Freight", "&gt;", 100);
 var newPred = p1.and(p2, p3);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var preds = [p2, p3];
+<p>or</p><pre class="code prettyprint"><code>var preds = [p2, p3];
 var newPred = p1.and(preds);
 </code></pre>
 
-<p>The 'or' method is also used to write "fluent" expressions</p><pre class="code"><code class="prettyprint">var p4 = Predicate.create("ShipCity", "startswith", "F")
+<p>The 'or' method is also used to write "fluent" expressions</p><pre class="code prettyprint"><code>var p4 = Predicate.create("ShipCity", "startswith", "F")
     .or("Size", "gt", 2000);
 </code></pre>
             </div>

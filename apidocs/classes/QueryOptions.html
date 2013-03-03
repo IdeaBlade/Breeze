@@ -419,7 +419,7 @@
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+                <pre class="code prettyprint"><code>var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
 // assume em1 is a preexisting EntityManager
 em1.setProperties( { queryOptions: newQo });
 </code></pre>
@@ -486,7 +486,7 @@ em1.setProperties( { queryOptions: newQo });
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+                <pre class="code prettyprint"><code>var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
 newQo.setAsDefault();
 </code></pre>
             </div>
@@ -602,13 +602,13 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);
+                <pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var queryOptions = em1.queryOptions.using(FetchStrategy.FromLocalCache);
+<p>or</p><pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using(FetchStrategy.FromLocalCache);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
+<p>or</p><pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
 </code></pre>
             </div>
         </div>

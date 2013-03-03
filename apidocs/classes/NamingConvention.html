@@ -430,7 +430,7 @@ will translate property names between the server and the javascript client. </p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// A naming convention that converts the first character of every property name to uppercase on the server
+                <pre class="code prettyprint"><code>// A naming convention that converts the first character of every property name to uppercase on the server
 // and lowercase on the client.
 var namingConv = new NamingConvention({
     serverPropertyNameToClient: function(serverPropertyName) {
@@ -759,7 +759,7 @@ var em = new EntityManager( { metadataStore: ms });</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var namingConv = new NamingConvention({
+                <pre class="code prettyprint"><code>var namingConv = new NamingConvention({
     serverPropertyNameToClient: function(serverPropertyName) {
         return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
     },

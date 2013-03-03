@@ -282,6 +282,13 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_getEntityTypeNameForResourceName">getEntityTypeNameForResourceName</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_getEntityTypes">getEntityTypes</a>
 
                                 
@@ -320,6 +327,13 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
                         
                             <li class="index-item method">
                                 <a href="#method_registerEntityTypeCtor">registerEntityTypeCtor</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setEntityTypeForResourceName">setEntityTypeForResourceName</a>
 
                                 
                                 
@@ -486,16 +500,16 @@ used when performing "local queries" in order to match the semantics of queries 
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var ms = new MetadataStore();
+                <pre class="code prettyprint"><code>var ms = new MetadataStore();
 </code></pre>
 
-<p>The store can then be associated with an EntityManager</p><pre class="code"><code class="prettyprint">var entityManager = new EntityManager( {
+<p>The store can then be associated with an EntityManager</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( {
     serviceName: "api/NorthwindIBModel", 
     metadataStore: ms 
 });
 </code></pre>
 
-<p>or for an existing EntityManager</p><pre class="code"><code class="prettyprint">// Assume em1 is an existing EntityManager
+<p>or for an existing EntityManager</p><pre class="code prettyprint"><code>// Assume em1 is an existing EntityManager
 em1.setProperties( { metadataStore: ms });
 </code></pre>
             </div>
@@ -753,7 +767,7 @@ internally when exporting an EntityManager.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
+                <pre class="code prettyprint"><code>// assume ms is a previously created MetadataStore
 var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session imported
@@ -962,7 +976,7 @@ internally by an EntityManager before its first query against a new service.</p>
 
             <div class="example-content">
                 <p>Usually you will not actually process the results of a fetchMetadata call directly, but will instead
-ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code"><code class="prettyprint">var ms = new MetadataStore();
+ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code>var ms = new MetadataStore();
 // or more commonly
 // var ms = anEntityManager.metadataStore;
 ms.fetchMetadata("api/NorthwindIBModel")
@@ -1083,7 +1097,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is an existing EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is an existing EntityManager.
 var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
 var adapterName = ds.adapterName; // may be null
 </code></pre>
@@ -1221,15 +1235,103 @@ that same short name an exception will be thrown.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is a preexisting EntityManager
+                <pre class="code prettyprint"><code>// assume em1 is a preexisting EntityManager
 var odType = em1.metadataStore.getEntityType("OrderDetail");
 </code></pre>
 
-<p>or to throw an error if the type is not found</p><pre class="code"><code class="prettyprint">var badType = em1.metadataStore.getEntityType("Foo", false);
+<p>or to throw an error if the type is not found</p><pre class="code prettyprint"><code>var badType = em1.metadataStore.getEntityType("Foo", false);
 // badType will not get set and an exception will be thrown.
 </code></pre>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_getEntityTypeNameForResourceName" class="method item">
+    <h3 class="name"><code>getEntityTypeNameForResourceName</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>resourceName</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l705"><code>entityMetadata.js:705</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
+can be obtained via the  <a href="..\classes\EntityType.html" class="crosslink">EntityType</a> 'defaultResourceName' property</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">resourceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
     
 </div>
 
@@ -1305,7 +1407,7 @@ var odType = em1.metadataStore.getEntityType("OrderDetail");
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is a preexisting EntityManager
+                <pre class="code prettyprint"><code>// assume em1 is a preexisting EntityManager
 var allTypes = em1.metadataStore.getEntityTypes();
 </code></pre>
             </div>
@@ -1418,7 +1520,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// Assume em1 is an existing EntityManager.
+                <pre class="code prettyprint"><code>// Assume em1 is an existing EntityManager.
 if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
     // do something interesting
 }
@@ -1536,7 +1638,7 @@ if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
+                <pre class="code prettyprint"><code>// assume ms is a previously created MetadataStore
 var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session
@@ -1656,7 +1758,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume ms is a previously created MetadataStore
+                <pre class="code prettyprint"><code>// assume ms is a previously created MetadataStore
 var metadataAsString = ms.exportMetadata();
 window.localStorage.setItem("metadata", metadataAsString);
 // and later, usually in a different session
@@ -1741,7 +1843,7 @@ newMetadataStore.importMetadata(metadataFromStorage);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em1 is a preexisting EntityManager;
+                <pre class="code prettyprint"><code>// assume em1 is a preexisting EntityManager;
 if (em1.metadataStore.isEmpty()) {
     // do something interesting
 }
@@ -1907,7 +2009,7 @@ and populated with any initial values.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var Customer = function () {
+                <pre class="code prettyprint"><code>var Customer = function () {
     this.miscData = "asdf";
 };
 Customer.prototype.doFoo() {
@@ -1920,6 +2022,119 @@ em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
 </code></pre>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_setEntityTypeForResourceName" class="method item">
+    <h3 class="name"><code>setEntityTypeForResourceName</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>resourceName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>entityTypeOrName</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityMetadata.js.html#l717"><code>entityMetadata.js:717</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Associates a resourceName with an entityType. </p>
+
+<p>This method is only needed in those cases where multiple resources return the same
+entityType.  In this case Metadata discovery will only determine a single resource name for 
+each entityType.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">resourceName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityTypeOrName</code>
+                        <span class="type"><a href="..\classes\EntityType.html" class="crosslink">EntityType</a> | String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
+that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
     
 </div>
 

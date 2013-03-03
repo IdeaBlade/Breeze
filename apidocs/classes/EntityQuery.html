@@ -543,10 +543,10 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
 </code></pre>
 
-<p>Usually this constructor will be followed by calls to filtering, ordering or selection methods</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+<p>Usually this constructor will be followed by calls to filtering, ordering or selection methods</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
    .where("CompanyName", "startsWith", "C")
    .orderBy("Region");
 </code></pre>
@@ -803,7 +803,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders").using(em);
  query.execute()
    .then( function(data) {
@@ -813,7 +813,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
  });
 </code></pre>
 
-<p>or with callbacks</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+<p>or with callbacks</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders").using(em);
  query.execute(
     function(data) {
@@ -825,7 +825,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
     });
 </code></pre>
 
-<p>Either way this method is the same as calling the EntityManager 'execute' method.</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+<p>Either way this method is the same as calling the EntityManager 'execute' method.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders");
  em.executeQuery(query)
    .then( function(data) {
@@ -896,7 +896,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assume em is an entityManager already filled with order entities;
+                <pre class="code prettyprint"><code>// assume em is an entityManager already filled with order entities;
 var query = new EntityQuery("Orders").using(em);
 var orders = query.executeLocally();
 </code></pre>
@@ -1016,17 +1016,17 @@ by a '.' and another navigation property name to enable identifying a multi-leve
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", "startsWith", "C")
     .expand("Orders");
 </code></pre>
 
 <p>will return the filtered customers each with its "Orders" properties fully resolved.
-Multiple paths may be specified by separating the paths by a ','</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Orders")
+Multiple paths may be specified by separating the paths by a ','</p><pre class="code prettyprint"><code>var query = new EntityQuery("Orders")
     .expand("Customer, Employee")
 </code></pre>
 
-<p>and nested property paths my be specified as well</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Orders")
+<p>and nested property paths my be specified as well</p><pre class="code prettyprint"><code>var query = new EntityQuery("Orders")
     .expand("Customer, OrderDetails, OrderDetails.Product")
 </code></pre>
             </div>
@@ -1143,10 +1143,10 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = EntityQuery.from("Customers");
+                <pre class="code prettyprint"><code>var query = EntityQuery.from("Customers");
 </code></pre>
 
-<p>is the same as </p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers");
+<p>is the same as </p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers");
 </code></pre>
             </div>
         </div>
@@ -1260,11 +1260,11 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery()
+                <pre class="code prettyprint"><code>var query = new EntityQuery()
     .from("Customers");
 </code></pre>
 
-<p>is the same as </p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers");
+<p>is the same as </p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers");
 </code></pre>
             </div>
         </div>
@@ -1381,16 +1381,16 @@ to force a requery of selected entities, or to restrict an existing collection o
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+                <pre class="code prettyprint"><code>// assuming 'customers' is an array of 'Customer' entities retrieved earlier.
 var customersQuery = EntityQuery.fromEntities(customers);
 </code></pre>
 
-<p>The resulting query can, of course, be extended</p><pre class="code"><code class="prettyprint">// assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+<p>The resulting query can, of course, be extended</p><pre class="code prettyprint"><code>// assuming 'customers' is an array of 'Customer' entities retrieved earlier.
 var customersQuery = EntityQuery.fromEntities(customers)
     .where("Region", FilterQueryOp.NotEquals, null);
 </code></pre>
 
-<p>Single entities can requeried as well.</p><pre class="code"><code class="prettyprint">// assuming 'customer' is a 'Customer' entity retrieved earlier.
+<p>Single entities can requeried as well.</p><pre class="code prettyprint"><code>// assuming 'customer' is a 'Customer' entity retrieved earlier.
 var customerQuery = EntityQuery.fromEntities(customer);
 </code></pre>
 
@@ -1509,12 +1509,12 @@ var customerQuery = EntityQuery.fromEntities(customer);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var empType = metadataStore.getEntityType("Employee");
+                <pre class="code prettyprint"><code>var empType = metadataStore.getEntityType("Employee");
 var entityKey = new EntityKey(empType, 1);
 var query = EntityQuery.fromEntityKey(entityKey);
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint">// 'employee' is a previously queried employee
+<p>or</p><pre class="code prettyprint"><code>// 'employee' is a previously queried employee
 var entityKey = employee.entityAspect.getKey();
 var query = EntityQuery.fromEntityKey(entityKey);
 </code></pre>
@@ -1653,7 +1653,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">// 'employee' is a previously queried employee
+                <pre class="code prettyprint"><code>// 'employee' is a previously queried employee
 var ordersNavProp = employee.entityType.getProperty("Orders");
 var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
 </code></pre>
@@ -1773,7 +1773,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .take(20)
     .orderBy("CompanyName")
     .inlineCount(true);
@@ -1892,23 +1892,23 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
      .orderBy("CompanyName");
 </code></pre>
 
-<p>or to sort across multiple properties</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+<p>or to sort across multiple properties</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
      .orderBy("Region, CompanyName");
 </code></pre>
 
-<p>Nested property paths are also supported</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Products")
+<p>Nested property paths are also supported</p><pre class="code prettyprint"><code> var query = new EntityQuery("Products")
     .orderBy("Category.CategoryName");
 </code></pre>
 
-<p>Sorting in descending order is supported via the addition of ' desc' to the end of any property path.</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+<p>Sorting in descending order is supported via the addition of ' desc' to the end of any property path.</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
     .orderBy("CompanyName desc");
 </code></pre>
 
-<p>or</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+<p>or</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
     .orderBy("Region desc, CompanyName desc");
 </code></pre>
             </div>
@@ -2023,15 +2023,15 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
      .orderByDesc("CompanyName");
 </code></pre>
 
-<p>or to sort across multiple properties</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Customers")
+<p>or to sort across multiple properties</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
      .orderByDesc("Region, CompanyName");
 </code></pre>
 
-<p>Nested property paths are also supported</p><pre class="code"><code class="prettyprint"> var query = new EntityQuery("Products")
+<p>Nested property paths are also supported</p><pre class="code prettyprint"><code> var query = new EntityQuery("Products")
     .orderByDesc("Category.CategoryName");
 </code></pre>
             </div>
@@ -2150,24 +2150,24 @@ Any simple properties, i.e. strings, numbers or dates within a projection will n
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>Simple data properties can be projected</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <p>Simple data properties can be projected</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", "startsWith", "C")
     .select("CompanyName");
 </code></pre>
 
 <p>This will return an array of objects each with a single "CompanyName" property of type string.
-A similar query could return a navigation property instead</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+A similar query could return a navigation property instead</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", "startsWith", "C")
     .select("Orders");
 </code></pre>
 
 <p>where the result would be an array of objects each with a single "Orders" property that would itself be an array of "Order" entities.
-Composite projections are also possible:</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+Composite projections are also possible:</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", "startsWith", "C")
     .select("CompanyName, Orders");
 </code></pre>
 
-<p>As well as projections involving nested property paths</p><pre class="code"><code class="prettyprint">var query = EntityQuery("Orders")
+<p>As well as projections involving nested property paths</p><pre class="code prettyprint"><code>var query = EntityQuery("Orders")
     .where("Customer.CompanyName", "startsWith", "C")         
     .select("Customer.CompanyName, Customer, OrderDate");
 </code></pre>
@@ -2283,7 +2283,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
    .where("CompanyName", "startsWith", "C")
    .skip(5);
 </code></pre>
@@ -2399,7 +2399,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .take(5);
 </code></pre>
             </div>
@@ -2514,7 +2514,7 @@ Composite projections are also possible:</p><pre class="code"><code class="prett
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .top(5);
 </code></pre>
             </div>
@@ -2630,17 +2630,17 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>'using' can be used to return a new query with a specified EntityManager.</p><pre class="code"><code class="prettyprint"> var em = new EntityManager(serviceName);
+                <p>'using' can be used to return a new query with a specified EntityManager.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
  var query = new EntityQuery("Orders")
      .using(em);
 </code></pre>
 
-<p>or with a specified <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> </p><pre class="code"><code class="prettyprint">var em = new EntityManager(serviceName);
+<p>or with a specified <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> </p><pre class="code prettyprint"><code>var em = new EntityManager(serviceName);
 var query = new EntityQuery("Orders")
     .using(MergeStrategy.PreserveChanges);
 </code></pre>
 
-<p>or with a specified <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> </p><pre class="code"><code class="prettyprint">var em = new EntityManager(serviceName);
+<p>or with a specified <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> </p><pre class="code prettyprint"><code>var em = new EntityManager(serviceName);
 var query = new EntityQuery("Orders")
     .using(FetchStrategy.FromLocalCache);
 </code></pre>
@@ -2769,31 +2769,31 @@ var query = new EntityQuery("Orders")
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+                <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", "startsWith", "C");
 </code></pre>
 
-<p>This can also be expressed using an explicit <a href="..\classes\FilterQueryOp.html" class="crosslink">FilterQueryOp</a> as</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+<p>This can also be expressed using an explicit <a href="..\classes\FilterQueryOp.html" class="crosslink">FilterQueryOp</a> as</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("CompanyName", FilterQueryOp.StartsWith, "C");
 </code></pre>
 
-<p>or a preconstructed <a href="..\classes\Predicate.html" class="crosslink">Predicate</a> may be used</p><pre class="code"><code class="prettyprint">var pred = new Predicate("CompanyName", FilterQueryOp.StartsWith, "C");
+<p>or a preconstructed <a href="..\classes\Predicate.html" class="crosslink">Predicate</a> may be used</p><pre class="code prettyprint"><code>var pred = new Predicate("CompanyName", FilterQueryOp.StartsWith, "C");
 var query = new EntityQuery("Customers")
     .where(pred);
 </code></pre>
 
-<p>Predicates are often useful when you want to combine multiple conditions in a single filter, such as</p><pre class="code"><code class="prettyprint">var pred = Predicate.create("CompanyName", "startswith", "C").and("Region", FilterQueryOp.Equals, null);
+<p>Predicates are often useful when you want to combine multiple conditions in a single filter, such as</p><pre class="code prettyprint"><code>var pred = Predicate.create("CompanyName", "startswith", "C").and("Region", FilterQueryOp.Equals, null);
 var query = new EntityQuery("Customers")
     .where(pred);
-</code></pre><p>More complicated queries can make use of nested property paths</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Products")
+</code></pre><p>More complicated queries can make use of nested property paths</p><pre class="code prettyprint"><code>var query = new EntityQuery("Products")
     .where("Category.CategoryName", "startswith", "S");
 </code></pre>
 
-<p>or OData functions - A list of valid OData functions can be found within the <a href="..\classes\Predicate.html" class="crosslink">Predicate</a> documentation.</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+<p>or OData functions - A list of valid OData functions can be found within the <a href="..\classes\Predicate.html" class="crosslink">Predicate</a> documentation.</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
     .where("toLower(CompanyName)", "startsWith", "c");
 </code></pre>
 
-<p>or to be even more baroque</p><pre class="code"><code class="prettyprint">var query = new EntityQuery("Customers")
+<p>or to be even more baroque</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
    .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
 </code></pre>
             </div>
@@ -2908,17 +2908,17 @@ var query = new EntityQuery("Customers")
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+                <pre class="code prettyprint"><code>var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
     .withParameters({ BirthDate: "1/1/1960", Country: "USA" });
 </code></pre>
 
 <p>will call the 'EmployeesFilteredByCountryAndBirthdata' method on the server and pass in 2 parameters. This
 query will be uri encoded as </p>
 
-<pre class="code"><code class="prettyprint">{serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&amp;country=USA
+<pre class="code prettyprint"><code>{serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&amp;country=USA
 </code></pre>
 
-<p>Parameters may also be mixed in with other query criteria.</p><pre class="code"><code class="prettyprint"> var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+<p>Parameters may also be mixed in with other query criteria.</p><pre class="code prettyprint"><code> var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
     .withParameters({ BirthDate: "1/1/1960", Country: "USA" })
     .where("LastName", "startsWith", "S")
     .orderBy("BirthDate");

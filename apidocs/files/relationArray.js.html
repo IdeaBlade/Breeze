@@ -372,7 +372,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (key!== &quot;relationArray&quot; &amp;&amp; hasOwnProperty.call(target, key)) {
+            if (key!== &quot;relationArray&quot; &amp;&amp; target.hasOwnProperty(key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {

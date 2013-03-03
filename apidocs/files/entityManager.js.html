@@ -1928,7 +1928,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         &#x2F;&#x2F; HACK for GC
                         query = null;
                         queryContext = null;
-                        entities = null;
+                        
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
@@ -2769,11 +2769,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method &lt;ctor&gt; SaveOptions
         @param config {Object}
         @param [config.allowConcurrentSaves] {Boolean}
+        @param [config.tag] {Object} Free form value that will be sent to the server. 
         **&#x2F;
         var ctor = function (config) {
             config = config || {};
             assertConfig(config)
                 .whereParam(&quot;allowConcurrentSaves&quot;).isBoolean().isOptional().withDefault(false)
+                .whereParam(&quot;tag&quot;).isOptional()
                 .applyAll(this);
                         
         };

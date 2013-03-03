@@ -915,16 +915,13 @@ define('enum',["coreFns"], function (core) {
     Enum.prototype.getNames = function() {
         var result = [];
         for (var key in this) {
-            if (hasOwnProperty.call(this, key)) {
+            if (this.hasOwnProperty(key)) {
                 if (key != "name" && key.substr(0, 1) !== "_" && !core.isFunction(this[key])) {
                     result.push(key);
                 }
             }
         }
         return result;
-        //return Object.keys(this).filter(
-        //    function (key) { return key != "name" && key.substr(0, 1) !== "_"; }
-        //);
     };
 
     /**
@@ -5118,21 +5115,19 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
 
-        /*
-        INTERNAL FOR NOW
+        /**
         Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
         can be obtained via the  {{#crossLink "EntityType"}}{{/crossLink}} 'defaultResourceName' property
         @method getEntityTypeNameForResourceName
         @param resourceName {String}
-        */
-        proto._getEntityTypeNameForResourceName = function (resourceName) {
+        **/
+        proto.getEntityTypeNameForResourceName = function (resourceName) {
             assertParam(resourceName, "resourceName").isString().check();
             // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
             return this._resourceEntityTypeMap[resourceName];
         };
 
-        /*
-        INTERNAL FOR NOW
+        /**
         Associates a resourceName with an entityType. 
 
         This method is only needed in those cases where multiple resources return the same
@@ -5142,8 +5137,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param resourceName {String}
         @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
         that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
-        */
-        proto._setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
+        **/
+        proto.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
             assertParam(resourceName, "resourceName").isString().check();
             assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
             // resourceName = resourceName.toLowerCase();
@@ -5222,7 +5217,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                     toArray(schema.entityContainer).forEach(function (container) {
                         toArray(container.entitySet).forEach(function (entitySet) {
                             var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
-                            that._setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                            that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         });
                     });
                 }
@@ -7226,7 +7221,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                         return null;
                     }
                 }
-                var entityTypeName = metadataStore._getEntityTypeNameForResourceName(resourceName);
+                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
                 if (!entityTypeName) {
                     if (throwErrorIfNotFound) {
                         throw new Error("Cannot find resourceName of: " + resourceName);
@@ -9470,7 +9465,7 @@ function (core, m_entityAspect, m_entityQuery) {
     
     function combineArgs(target, source) {
         for (var key in source) {
-            if (key!== "relationArray" && hasOwnProperty.call(target, key)) {
+            if (key!== "relationArray" && target.hasOwnProperty(key)) {
                 var sourceValue = source[key];
                 var targetValue = target[key];
                 if (targetValue) {
@@ -11393,7 +11388,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         // HACK for GC
                         query = null;
                         queryContext = null;
-                        entities = null;
+                        
                     }, function () {
                         var rawEntities = data.results;
                         if (!Array.isArray(rawEntities)) {
@@ -12239,6 +12234,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             config = config || {};
             assertConfig(config)
                 .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
+                .whereParam("tag").isOptional()
                 .applyAll(this);
                         
         };
@@ -12438,7 +12434,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.1.2",
+        version: "1.1.3",
         core: core,
         config: a_config
     };
@@ -12703,7 +12699,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
         }
         return metadataSvcUrl;
 
-    };
+    }
 
     function createError(XHR) {
         var err = new Error();
@@ -13279,6 +13275,8 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     var _;
     
     var bbSet, bbGet;
+    
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
 
     var ctor = function () {
         this.name = "backbone";
