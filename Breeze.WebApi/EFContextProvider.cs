@@ -241,6 +241,7 @@ namespace Breeze.WebApi {
       var entry = AddObjectStateEntry(entityInfo);
       // EntityState will be changed to modified during the update from the OriginalValuesMap
       // Do NOT change this to EntityState.Modified because this will cause the entire record to update.
+      
       entry.ChangeState(System.Data.EntityState.Unchanged);
 
       // updating the original values is necessary under certain conditions when we change a foreign key field
@@ -251,7 +252,7 @@ namespace Breeze.WebApi {
       //  entry.SetModifiedProperty(dep.Name);
       //}
       
-      if ((int) entry.State != (int) EntityState.Modified) {
+      if ((int) entry.State != (int) EntityState.Modified || entityInfo.ForceUpdate) {
         // _originalValusMap can be null if we mark entity.SetModified but don't actually change anything.
         entry.ChangeState(System.Data.EntityState.Modified);
       }

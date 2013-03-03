@@ -39,6 +39,78 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     };
+
+    test("save data with server update", function() {
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function(data) {
+            order = data.results[0];
+            freight = order.getProperty("freight") + .5;
+            order.setProperty("freight", freight);
+            var so = new SaveOptions({ tag: "freight update" });
+            return em.saveChanges(null, so);
+        }).then(function(sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em).execute();
+        }).then(function(data2) {
+            var order2 = data2.results[0];
+            var freight2 = order2.getProperty("freight");
+            ok(freight2 == freight + 1, "freight2=" + freight2 + " vs " + (freight+1));
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save data with server update - ForceUpdate", function () {
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        stop();
+        var order, freight, shipCity;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight");
+            shipCity = testFns.morphString(order.getProperty("shipCity"));
+            order.setProperty("shipCity", shipCity);
+            var so = new SaveOptions({ tag: "freight update-force" });
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em).execute();
+        }).then(function (data2) {
+            var order2 = data2.results[0];
+            var freight2 = order2.getProperty("freight");
+            ok(freight2 == freight + 1, "freight2=" + freight2 + " vs " + (freight + 1));
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save data with server update - original values fixup", function () {
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        stop();
+        var order, freight, shipCity;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight");
+            shipCity = testFns.morphString(order.getProperty("shipCity"));
+            order.setProperty("shipCity", shipCity);
+            var so = new SaveOptions({ tag: "freight update-ov" });
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok(sr.entities.length == 1, "should have saved one entity");
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em).execute();
+        }).then(function (data2) {
+            var order2 = data2.results[0];
+            var freight2 = order2.getProperty("freight");
+            ok(freight2 == freight + 1, "freight2=" + freight2 + " vs " + (freight + 1));
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("save with saveOptions", function () {
         var em = newEm();

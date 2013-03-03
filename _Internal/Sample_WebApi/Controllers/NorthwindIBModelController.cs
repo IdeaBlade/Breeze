@@ -42,6 +42,18 @@ namespace Sample_WebApi.Controllers {
       if (entityInfo.Entity.GetType() == typeof(User) && entityInfo.EntityState == EntityState.Added) {
         return false;
       } else {
+        if ((SaveOptions.Tag as String) == "freight update") {
+          var order = entityInfo.Entity as Order;
+          order.Freight = order.Freight + 1;
+        } else if ((SaveOptions.Tag as String) == "freight update-ov") {
+          var order = entityInfo.Entity as Order;
+          order.Freight = order.Freight + 1;
+          entityInfo.OriginalValuesMap["Freight"] = null;
+        } else if ((SaveOptions.Tag as String) == "freight update-force") {
+          var order = entityInfo.Entity as Order;
+          order.Freight = order.Freight + 1;
+          entityInfo.ForceUpdate = true;
+        }
         return true;
       }
     }
