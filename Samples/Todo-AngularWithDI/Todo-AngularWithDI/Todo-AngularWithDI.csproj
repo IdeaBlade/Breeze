@@ -119,6 +119,7 @@
     <Content Include="Scripts\app\main.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.min.js" />
+    <Content Include="Scripts\breeze.savequeuing.js" />
     <Content Include="Scripts\jquery-1.8.3.js" />
     <Content Include="Scripts\jquery-1.8.3.min.js" />
     <Content Include="Scripts\q.js" />

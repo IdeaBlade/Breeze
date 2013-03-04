@@ -1,42 +1,13 @@
-﻿
-app.todoMain = angular.module('TodoMain', [])
-    .directive('onFocus', function() {
-        return {
-            restrict: 'A',
-            link: function(scope, elm, attrs) {
-                elm.bind('focus', function() {
-                    scope.$apply(attrs.onFocus);
-                });
-            }
-        };
-    })
-    .directive('onBlur', function() {
-        return {
-            restrict: 'A',
-            link: function(scope, elm, attrs) {
-                elm.bind('blur', function() {
-                    scope.$apply(attrs.onBlur);
-                });
-            }
-        };
-    })
-    .directive('focusWhen', function () {
-        return function (scope, elm, attrs) {
-            scope.$watch(attrs.focusWhen, function (newVal) {
-                if (newVal) {
-                    setTimeout(function() {
-                        elm.focus();
-                    }, 10);
-                } 
-            });
-        };
-    });
- 
-
-app.todoMain.controller('TodoCtrl', function ($scope) {
+﻿/* Defines the "todo view" controller 
+ * Constructor function relies on Ng injector to provide:
+ *     $scope - context variable for the view to which the view binds
+ *     $timeout - Angular equivalent of `setTimeout`
+ */
+app.todoMain.controller('TodoCtrl', function ($scope, $timeout) {
 
     var removeItem = breeze.core.arrayRemoveItem;
     var dataservice = window.app.dataservice;
+    dataservice.$timeout = $timeout; // inject into dataservice
     var logger = window.app.logger;
     var suspendItemSave;
 
@@ -62,13 +33,14 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
             IsDone: $scope.allCompleted
         });
 
-        if (item.entityAspect.validateEntity()) {
-            extendItem(item);
-            $scope.items.push(item);
-            dataservice.saveChanges();
-            $scope.newTodo = "";
-        } else {
-            handleItemErrors(item);
+        dataservice.saveChanges().fail(addFailed);
+        extendItem(item);
+        $scope.items.push(item);
+        $scope.newTodo = "";
+        
+        function addFailed() {
+            removeItem($scope.items, item);
+            $scope.apply();
         }
     };
     
@@ -81,7 +53,7 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
     $scope.completeEdit = function(item) {
         if (item) {
             item.isEditing = false;
-            validateAndSaveModifiedItem(item);
+            saveIfModified(item);
         }
     };
     
@@ -170,41 +142,19 @@ app.todoMain.controller('TodoCtrl', function ($scope) {
         if (item.isEditing !== undefined) return; // already extended
 
         item.isEditing = false;
-
+        
         // listen for changes with Breeze PropertyChanged event
-        item.entityAspect.propertyChanged.subscribe(function() {
-            if (item.isEditing || item.propertyChangedPending || suspendItemSave) {
-                return;
-            }
-            // throttle property changed response to allow time
-            // for other property changes (e.g. "Mark all as complete")
-            item.propertyChangedPending = true;
-            setTimeout(function () { validateAndSaveModifiedItem(item); }, 10);               
+        item.entityAspect.propertyChanged.subscribe(function () {
+            if (item.isEditing || suspendItemSave) { return; }
+            // give EntityManager time to hear the change
+            setTimeout(function() { saveIfModified(item); }, 0);
         });
     }
     
-    function validateAndSaveModifiedItem(item) {
+    function saveIfModified(item) {
         if (item.entityAspect.entityState.isModified()) {
-            if (item.entityAspect.validateEntity()) {
-                dataservice.saveChanges();
-            } else { // errors
-                handleItemErrors(item);
-                item.isEditing = true; // go back to editing
-            }
+            dataservice.saveChanges();
         }
-        item.propertyChangedPending = false;
-    }
-    
-    function handleItemErrors(item) {
-        if (!item) { return; }
-        var errs = item.entityAspect.getValidationErrors();
-        if (errs.length == 0) {
-            logger.info("No errors for current item");
-            return;
-        }
-        var firstErr = item.entityAspect.getValidationErrors()[0];
-        logger.error(firstErr.errorMessage);
-        item.entityAspect.rejectChanges(); // harsh for demo 
     }
 
     function getStateOfItems() {

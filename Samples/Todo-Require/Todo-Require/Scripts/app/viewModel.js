@@ -81,13 +81,16 @@
             IsDone: vm.markAllCompleted()
         });
 
-        if (item.entityAspect.validateEntity()) {
-            extendItem(item);
-            vm.items.push(item);
-            dataservice.saveChanges();
-            vm.newTodo("");
-        } else {
-            handleItemErrors(item);
+        dataservice.saveChanges().fail(addFailed);
+        extendItem(item);
+        vm.items.push(item);
+        vm.newTodo("");
+
+        function addFailed() {
+            var index = vm.items.indexOf(item);
+            if (index > -1) {
+                setTimeout(function () { vm.items.splice(index, 1); }, 2000);
+            }
         }
     }
     function extendItem(item) {
@@ -97,37 +100,18 @@
 
         // listen for changes with Breeze PropertyChanged event
         item.entityAspect.propertyChanged.subscribe(function () {
-            if (item.propertyChangedPending || suspendItemSave) { return; }
-            // throttle property changed response
-            // allow time for other property changes (if any) to come through
-            item.propertyChangedPending = true;
-            setTimeout(validateAndSaveModifiedItem, 10);
+            if (suspendItemSave) { return; }
+            // give EntityManager time to hear the change
+            setTimeout(saveIfModified, 0);
 
-            function validateAndSaveModifiedItem() {
+            function saveIfModified() {
                 if (item.entityAspect.entityState.isModified()) {
-                    if (item.entityAspect.validateEntity()) {
-                        dataservice.saveChanges();
-                    } else { // errors
-                        handleItemErrors(item);
-                        item.isEditing(true); // go back to editing
-                    }
+                    dataservice.saveChanges();
                 }
-                item.propertyChangedPending = false;
             }
-
         });
     }
-    function handleItemErrors(item) {
-        if (!item) { return; }
-        var errs = item.entityAspect.getValidationErrors();
-        if (errs.length == 0) {
-            logger.info("No errors for current item");
-            return;
-        }
-        var firstErr = item.entityAspect.getValidationErrors()[0];
-        logger.error(firstErr.errorMessage);
-        item.entityAspect.rejectChanges(); // harsh for demo 
-    }
+
     function edit(item) {
         if (item) { item.isEditing(true); }
     }
