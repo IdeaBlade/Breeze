@@ -56,18 +56,26 @@
         frame.frameBorder = 0;
         $(container).empty().append(frame);
         var scriptTag = "<scr" + "ipt ";
-        var scriptEndTag = "</scr" + "ipt>";
+        var scriptEndTag = "</scr" + "ipt>\r";
+
+        var isAngular = this.activeTutorial().Title.toLowerCase().indexOf("angular");
+
         var htmlStart = "<html><head>"
             + "<link rel='stylesheet' href='/Styles/output.css'/>"
-            + scriptTag + "src='/Scripts/jquery-1.8.2.js' type='text/javascript'>" + scriptEndTag
-            + scriptTag + "src='/Scripts/knockout-2.1.0.js' type='text/javascript'>" + scriptEndTag
-            + scriptTag + "src='/Scripts/q.js' type='text/javascript'>" + scriptEndTag
-            + scriptTag + "src='/Scripts/breeze.debug.js' type='text/javascript'>" + scriptEndTag
             + "</head><body>";
-        var html = htmlStart + this.currentHtml() 
-            + scriptTag + "type='text/javascript'>window.onload = function(){ try { " + this.currentJavascript() + "} catch (e) { alert('Not working: ' + e) }}" + scriptEndTag
-            + "</body></html>";
+        var htmlEnd = "</body></html>";
 
+        var scripts = scriptTag + "src='/Scripts/jquery-1.8.2.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/knockout-2.1.0.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/angular.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/q.js' type='text/javascript'>" + scriptEndTag
+            + scriptTag + "src='/Scripts/breeze.debug.js' type='text/javascript'>" + scriptEndTag;
+        
+        
+        var bootstrap = scriptTag + "type='text/javascript'>" + buildOnLoad(this.currentJavascript(), isAngular) + scriptEndTag;
+       
+        var html = htmlStart + this.currentHtml() + scripts + bootstrap + htmlEnd;
+        
         var doc = null;
         if (frame.contentDocument) {
             doc = frame.contentDocument;
@@ -82,6 +90,23 @@
         doc.write(html);
         doc.close();
     };
+    
+    function buildOnLoad(currentJavascript, isAngular) {
+        var prefix = isAngular ? "var app = angular.module('LearnModule', []);\r" : "";
+        var suffix = isAngular ? "angular.bootstrap(document, ['LearnModule']);\r" : "";
+        return "\rwindow.onload = function() {\rtry { "
+            + prefix
+            + currentJavascript
+            + suffix
+            + "\r} catch (e) { alert('Not working: ' + e) }}"
+    }
+    
+    function buildScript(attributes, content) {
+        content = content || "";
+        var scriptTag = "<scr" + "ipt ";
+        var scriptEndTag = "</scr" + "ipt>";
+        return scriptTag + attributes + ">" + content + scriptEndTag;
+    }
 
     learn.selectTutorial = function() {
         $('#dialog-select-tutorial').dialog({
