@@ -239,7 +239,6 @@
     <Content Include="Scripts\angular.min.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.min.js" />
-    <Content Include="Scripts\initAngular.js" />
     <Content Include="Scripts\editor\codemirror.js" />
     <Content Include="Scripts\editor\css.js" />
     <Content Include="Scripts\editor\htmlmixed.js" />
