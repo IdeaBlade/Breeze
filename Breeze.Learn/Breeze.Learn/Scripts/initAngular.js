@@ -1,1 +1,0 @@
-﻿window.app = angular.module('LearnModule', []);
