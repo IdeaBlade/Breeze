@@ -1,4 +1,4 @@
-plunkrHelpers = (function() {
+plunkerHelpers = (function() {
     return {
 		isCorsCapable: isCorsCapable
 	};
