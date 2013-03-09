@@ -190,7 +190,8 @@ function (core) {
                 }
             } else {
                 // enum
-                dt = DataType.Int32;
+                // dt = DataType.Int32;
+                dt = DataType.String;
             }
         }
 

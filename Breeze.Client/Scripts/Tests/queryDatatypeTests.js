@@ -190,7 +190,7 @@ define(["testFns"], function (testFns) {
     
     test("enums", function () {
         var em = newEm();
-        var query = new EntityQuery("Roles").where("roleType", "==", 1);
+        var query = new EntityQuery("Roles").where("roleType", "==", 'Restricted');
         var roleType = em.metadataStore.getEntityType("Role");
         stop();
         var role;
@@ -200,7 +200,7 @@ define(["testFns"], function (testFns) {
             role = roleType.createEntity();
             role.setProperty("name", "test1");
             role.setProperty("description", "descr 1");
-            role.setProperty("roleType", 2);
+            role.setProperty("roleType", 'Standard');
             em.addEntity(role);
             return em.saveChanges();
         }).then(function(sr) {
@@ -208,7 +208,7 @@ define(["testFns"], function (testFns) {
             ok(ents.length === 1, "only one entity should have been saved");
             role = ents[0];
             var rt = role.getProperty("roleType");
-            ok(rt === 2, "roleType should = 2");
+            ok(rt === 'Standard', "roleType should = 'Standard'");
             var q = EntityQuery.fromEntities(ents);
             var em2 = newEm();
             return em2.executeQuery(q);
@@ -217,7 +217,7 @@ define(["testFns"], function (testFns) {
             ok(r.length === 1, "only one entity should have been queried");
             role = r[0];
             var rt = role.getProperty("roleType");
-            ok(rt === 2, "roleType should = 2");
+            ok(rt === 'Standard', "roleType should = 'Standard'");
         }).fail(testFns.handleFail).fin(start);
 
     });

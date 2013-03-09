@@ -67,7 +67,7 @@ namespace Breeze.WebApi {
       });
       // Needed because JSON.NET does not natively support I8601 Duration formats for TimeSpan
       jsonSerializerSettings.Converters.Add(new TimeSpanConverter());
-
+      jsonSerializerSettings.Converters.Add(new StringEnumConverter());
       return jsonSerializerSettings;
     }
 
