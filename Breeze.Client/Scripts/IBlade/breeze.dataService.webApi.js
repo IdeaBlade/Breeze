@@ -204,15 +204,24 @@
             try {
                 var responseObj = JSON.parse(XHR.responseText);
                 err.detail = responseObj;
-                if (responseObj.ExceptionMessage) {
-                    err.message = responseObj.ExceptionMessage;
-                } else if (responseObj.InnerException) {
-                    err.message = responseObj.InnerException.Message;
-                } else if (responseObj.Message) {
-                    err.message = responseObj.Message;
+                if (responseObj.InnerException) {
+                    err.message = responseObj.InnerException.ExceptionMessage || responseObj.InnerException.Message;
                 } else {
+                    err.message = responseObj.ExceptionMessage || responseObj.Message;
+                } 
+                if (!err.message) {
                     err.message = XHR.responseText;
                 }
+
+                //if (responseObj.ExceptionMessage) {
+                //    err.message = responseObj.ExceptionMessage;
+                //} else if (responseObj.InnerException) {
+                //    err.message = responseObj.InnerException.Message;
+                //} else if (responseObj.Message) {
+                //    err.message = responseObj.Message;
+                //} else {
+                //    err.message = XHR.responseText;
+                //}
             } catch (e) {
 
             }

@@ -21,10 +21,12 @@ define(["testFns"], function (testFns) {
     module("query select", {
         setup: function () {
             testFns.setup();
+            // testFns.DEBUG_WEBAPI = false;
         },
         teardown: function () {
         }
     });
+    
     
    
     test("select - anon simple", function () {
@@ -107,11 +109,11 @@ define(["testFns"], function (testFns) {
     test("select - anon simple, entity scalar projection", function () {
         
         var em = newEm();
-        
+
         var query = EntityQuery
             .from("Orders")
-            .where("customer.companyName", "startsWith", "C")
-            .orderBy("customer.companyName");
+            .where("customer.companyName", "startsWith", "C");
+            // .orderBy("customer.companyName");  - problem for the OData Web api provider.
         if (testFns.DEBUG_WEBAPI) {
             query = query.select("customer.companyName, customer, orderDate");
         } else {
@@ -121,13 +123,13 @@ define(["testFns"], function (testFns) {
             
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function(data) {
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
             var customerType = em.metadataStore.getEntityType("Customer");
             ok(data, "no data");
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
-            anons.forEach(function (a) {
+            anons.forEach(function(a) {
                 if (testFns.DEBUG_WEBAPI) {
                     ok(Object.keys(a).length === 3, "should have 3 properties");
                     ok(typeof(a.customer_CompanyName) === 'string', "customer_CompanyName is not a string");
@@ -137,8 +139,7 @@ define(["testFns"], function (testFns) {
                 ok(a.customer.entityType === customerType, "a.customer is not of type Customer");
                 ok(a.orderDate !== undefined, "OrderDate should not be undefined");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("select - anon two props", function () {
@@ -152,8 +153,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function(data) {
             var r = data.results;
             ok(r.length > 0);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("select with expand should fail with good msg", function () {

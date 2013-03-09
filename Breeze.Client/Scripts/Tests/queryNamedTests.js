@@ -161,15 +161,19 @@ define(["testFns"], function (testFns) {
     test("project enumerables with filter", function () {
         var em = newEm();
         var query = EntityQuery.from("TypeEnvelopes")
-            .where("name.length",">", 10)
+            // .where("name.length",">", 10)   // OData filtering on nested anon props seem to work
+            .where("name", "startsWith", "N")
             .using(em);
         stop();
         query.execute().then(function (data) {
             var results = data.results;
             ok(results.length > 0);
-            ok(results[0].name.length > 10);
-            ok(results[0].namespace);
-            ok(results[0].fullName);
+            results.forEach(function(r) {
+                ok(r.name.substr(0, 1) == "N");
+                ok(r.namespace);
+                ok(r.fullName);
+            });
+            
         }).fail(function (e) {
             testFns.handleFail(e);
         }).fin(start);

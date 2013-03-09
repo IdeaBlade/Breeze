@@ -5083,7 +5083,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var type = typeMap[qualTypeName];
             if (!type) {
                 if (okIfNotFound) return null;
-                throw new Error("Unable to locate an 'Type' by the name: " + typeName);
+                throw new Error("Unable to locate a 'Type' by the name: " + typeName);
             }
             if (type.length) {
                 var typeNames = type.join(",");
@@ -6618,10 +6618,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
 
         /**
-        The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
+        The parent type that this property belongs to - will be either a {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}}.
 
         __readOnly__
-        @property parentEntityType {EntityType}
+        @property parentType {EntityType|ComplexType}
         **/
 
         /**
@@ -7286,7 +7286,30 @@ function (core, m_entityMetadata, m_entityAspect) {
             return new EntityQuery(resourceName);
         };
 
+        // Allow types to be defined client side.
+        proto.toType = function(typeOrFunction) {
+            assertParam(typeOrFunction, "typeOrFunction").isString().or.isInstanceOf(EntityType).or().isFunction().check();
+            var eq = this._clone();
+            eq.toType = typeOrFunction;
+        };
 
+        proto._getToTypeFn = function(metadataStore) {
+            if (this._toTypeFn === undefined) return this._toTypeFn;
+            var tmp = this.toType;
+            var toTypeFn;
+            if (typeof(tmp) === 'string') {
+                var type = metadataStore.getEntityType(tmp, false);
+                toTypeFn = function(e) { return type; };
+            } else if (tmp instanceof EntityType) {
+                toTypeFn = function (e) { return tmp; };
+            } else if (typeof(tmp) === 'function') {
+                toTypeFn = tmp;
+            } else {
+                // use getEntityTypeNameFromResourceName;
+            }
+            this._toTypeFn = toTypeFn;
+        };
+        
         /**
         Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
         @example                    
@@ -7809,16 +7832,6 @@ function (core, m_entityMetadata, m_entityAspect) {
 
             return copy;
         };
-
-        // OData QueryOptions - currently supports filter, orderBy, skip, top and expand.
-        //        $filter    - done
-        //        $select
-        //        $orderBy   - done
-        //        $top       - done
-        //        $skip      - done
-        //        $format
-        //        $expand    - done
-        //        $inlinecount
 
         proto._toUri = function (metadataStore) {
             // force entityType validation;
@@ -11364,7 +11377,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 }
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
-                     query: query, 
+                     query: query,
+                     toTypeFn: query._getToTypeFn(metadataStore),
                      entityManager: em, 
                      mergeStrategy: queryOptions.mergeStrategy, 
                      refMap: {}, 
@@ -11443,7 +11457,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
 
             
-            var entityType =em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
+            var entityType = em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
+            
+            if (entityType == null) {
+                var toTypeFn = queryContext._toTypeFn;
+                if (toTypeFn) {
+                    entityType = toTypeFn(rawEntity);
+                }
+            }
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
@@ -12229,6 +12250,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @method <ctor> SaveOptions
         @param config {Object}
         @param [config.allowConcurrentSaves] {Boolean}
+        @param [config.tag] {Object} Free form value that will be sent to the server. 
         **/
         var ctor = function (config) {
             config = config || {};
@@ -12256,6 +12278,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         __readOnly__
         @property allowConcurrentSaves {Boolean}
+        **/
+
+        /**
+        A free form value that will be sent to the server.
+
+        __readOnly__
+        @property tag {Object}
         **/
 
         /**

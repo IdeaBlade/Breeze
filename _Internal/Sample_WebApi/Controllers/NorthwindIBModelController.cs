@@ -2,11 +2,13 @@
 //#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
 #define DATABASEFIRST_NEW
+#define CLASS_ACTIONFILTER
 
 using System;
 using System.Net;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.OData;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 
@@ -20,10 +22,11 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
+using System.Web.Http.OData.Query;
 #endif
 
-
 namespace Sample_WebApi.Controllers {
+
 
 #if CODEFIRST_PROVIDER
   public class NorthwindContextProvider: EFContextProvider<NorthwindIBContext_CF>  {
@@ -64,9 +67,10 @@ namespace Sample_WebApi.Controllers {
 
   }
 
+#if CLASS_ACTIONFILTER
+
   [BreezeController]
   public class NorthwindIBModelController : ApiController {
-
 
     NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
@@ -90,6 +94,7 @@ namespace Sample_WebApi.Controllers {
     #region standard queries
 
     [HttpGet]
+    // [BreezeQueryable]
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
       return custs;
@@ -234,6 +239,202 @@ namespace Sample_WebApi.Controllers {
     #endregion
   }
 
+#else
+  
+  [JsonFormatter]
+  public class NorthwindIBModelController : ApiController {
+  
+    NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
+
+    [HttpGet]
+    public String Metadata() {
+      return ContextProvider.Metadata();
+    }
+
+    [HttpPost]
+    public SaveResult SaveChanges(JObject saveBundle) {
+      var saveOptions = Breeze.WebApi.ContextProvider.ExtractSaveOptions(saveBundle);
+      var tag = saveOptions.Tag as String;
+      if (tag == "exit") {
+        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
+      } else {
+        return ContextProvider.SaveChanges(saveBundle);
+      }
+    }
+
+    #region standard queries
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Customer> Customers() {
+      var custs = ContextProvider.Context.Customers;
+      return custs;
+    }
+
+    [HttpGet]
+    public IQueryable<Customer> Customers2(ODataQueryOptions oDataQueryOptions) {
+      var custs = ContextProvider.Context.Customers;
+      var applied = oDataQueryOptions.ApplyTo(custs);
+      return (IQueryable<Customer>) applied;
+    }
+
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Customer> CustomersStartingWith(string companyName) {
+      var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName));
+      return custs;
+    }
+
+    [HttpGet]
+    // [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public Customer CustomerWithScalarResult() {
+      return ContextProvider.Context.Customers.First();
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Customer> CustomersWithHttpError() {
+      throw new HttpResponseException(HttpStatusCode.NotFound);
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Order> Orders() {
+      var orders = ContextProvider.Context.Orders;
+      return orders;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Employee> Employees() {
+      return ContextProvider.Context.Employees;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Employee> EmployeesFilteredByCountryAndBirthdate(DateTime birthDate, string country) {
+      return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Country == country);
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<OrderDetail> OrderDetails() {
+      return ContextProvider.Context.OrderDetails;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Product> Products() {
+      return ContextProvider.Context.Products;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Supplier> Suppliers() {
+      return ContextProvider.Context.Suppliers;
+    }
+
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Region> Regions() {
+      return ContextProvider.Context.Regions;
+    }
+
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Territory> Territories() {
+      return ContextProvider.Context.Territories;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Category> Categories() {
+      return ContextProvider.Context.Categories;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Role> Roles() {
+      return ContextProvider.Context.Roles;
+    }
+
+#if ! DATABASEFIRST_OLD
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<TimeLimit> TimeLimits() {
+      return ContextProvider.Context.TimeLimits;
+    }
+#endif
+    #endregion
+
+    #region named queries
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Object> CompanyNames() {
+      var stuff = ContextProvider.Context.Customers.Select(c => c.CompanyName);
+      return stuff;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Object> CompanyNamesAndIds() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID });
+      return stuff;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Object> CustomersWithBigOrders() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { Customer = c, BigOrders = c.Orders.Where(o => o.Freight > 100) });
+      return stuff;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Object> CompanyInfoAndOrders() {
+      var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+      return stuff;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Object> TypeEnvelopes() {
+      var stuff = this.GetType().Assembly.GetTypes()
+                      .Select(t => new {t.Assembly.FullName, t.Name, t.Namespace}).ToList();
+
+      return stuff.AsQueryable();
+    }
+    
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Customer> CustomersAndOrders() {
+      var custs = ContextProvider.Context.Customers.Include("Orders");
+      return custs;
+    }
+
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Order> OrdersAndCustomers() {
+      var orders = ContextProvider.Context.Orders.Include("Customer");
+      return orders;
+    }
+    
+    [HttpGet]
+    [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
+    public IQueryable<Customer> CustomersStartingWithA() {
+      var custs = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("A"));
+      return custs;
+    }
+
+
+    #endregion
+  }
+
+#endif  
 
 }

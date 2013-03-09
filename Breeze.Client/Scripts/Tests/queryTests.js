@@ -259,22 +259,6 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("query with parameters", function () {
-        var em = newEm();
-        var q = EntityQuery.from("Customers")
-            .take(20)
-            .inlineCount(true);
-        stop();
-        em.executeQuery(q).then(function (data) {
-            var r = data.results;
-            var count = data.inlineCount;
-            ok(count > r.length);
-            if (testFns.DEBUG_WEBAPI) {
-                var count2 = data.XHR.getResponseHeader("X-InlineCount");
-                ok(parseInt(count2, 10) === count);
-            }
-        }).fail(testFns.handleFail).fin(start);
-    });
 
     test("query with inlineCount", function() {
         var em = newEm();

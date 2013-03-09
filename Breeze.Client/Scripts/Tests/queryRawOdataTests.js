@@ -89,12 +89,14 @@ define(["testFns"], function (testFns) {
         }
         stop();
         try {
-            $.getJSON("api/NorthwindIBModel/CustomersAndOrders?&$top=3", function (data, status) {
+            $.getJSON(testFns.defaultServiceName+"/CustomersAndOrders?&$top=3").success(function(data, status) {
                 ok(data);
                 var str = JSON.stringify(data, undefined, 4);
                 testFns.output("Customers with orders");
                 testFns.output(str);
                 start();
+            }).error(function(e) {
+                testFns.handleFail(e);
             });
         } catch (e) {
             testFns.handleFail(e);
@@ -108,13 +110,15 @@ define(["testFns"], function (testFns) {
         }
         stop();
         try {
-            $.getJSON("api/NorthwindIBModel/Orders?$top=10&filter=here", function (data, status) {
+            $.getJSON(testFns.defaultServiceName+"/Orders?$top=10&filter=here").success(function (data, status) {
                 ok(data);
                 var str = JSON.stringify(data, undefined, 4);
 
                 testFns.output("Orders with customers");
                 testFns.output(str);
                 start();
+            }).error(function(e) {
+                testFns.handleFail(e);
             });
         } catch (e) {
             testFns.handleFail(e);

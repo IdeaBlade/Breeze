@@ -524,7 +524,7 @@ namespace Breeze.WebApi {
   
     private List<String[]> GetCSpaceOSpaceMapping(ObjectContext oc) {
       var metadataWs = oc.MetadataWorkspace;
-      var cspaceTypes = metadataWs.GetItems<StructuralType>(DataSpace.CSpace);
+      var cspaceTypes = metadataWs.GetItems<System.Data.Metadata.Edm.StructuralType>(DataSpace.CSpace);
       ForceOSpaceLoad(oc);
       var tpls = cspaceTypes
           .Where(st => !(st is AssociationType))

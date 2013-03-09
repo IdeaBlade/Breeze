@@ -5,6 +5,7 @@ using System.Net.Http.Formatting;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using System.Web.Http.OData.Query;
 
 namespace Breeze.WebApi {
   /// <summary>
@@ -14,7 +15,7 @@ namespace Breeze.WebApi {
   /// Clears all <see cref="MediaTypeFormatter"/>s and 
   /// adds the Breeze formatter for JSON content.
   /// Removes the competing ASP.NET Web API's QueryFilterProvider if present. 
-  /// Adds <see cref="BreezeFilterProvider"/> for OData query processing
+  /// Adds <see cref="BreezeQueryableFilterProvider"/> for OData query processing
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
   public class BreezeControllerAttribute : Attribute, IControllerConfiguration {
@@ -26,16 +27,18 @@ namespace Breeze.WebApi {
     public void Initialize(HttpControllerSettings settings, HttpControllerDescriptor descriptor) {
       lock (__lock) {
         // Remove the Web API's "QueryFilterProvider" 
-        // and any previously added Breeze ODataActionFilterProvider.
+        // and any previously added BreezeQueryableFilterProvider.
         // Add the value from BreezeFilterProvider()
+        // var filterProviders = settings.Services.GetServices(typeof (IFilterProvider));
+        
         settings.Services.RemoveAll(typeof(IFilterProvider),
                                     f => (f.GetType().Name == "QueryFilterProvider")
-                                         || (f is ODataActionFilterProvider));
-        settings.Services.Add(typeof(IFilterProvider), BreezeFilterProvider());
+                                         || (f is BreezeQueryableFilterProvider));
+        settings.Services.Add(typeof(IFilterProvider), GetFilterProvider());
 
         // remove all formatters and add only the Breeze JsonFormatter
         settings.Formatters.Clear();
-        settings.Formatters.Add(BreezeJsonFormatter());
+        settings.Formatters.Add(GetJsonFormatter());
 
       }
     }
@@ -44,11 +47,11 @@ namespace Breeze.WebApi {
     /// Return the <see cref="IFilterProvider"/> for a Breeze Controller
     /// </summary>
     /// <remarks>
-    /// By default returns an <see cref="ODataActionFilterProvider"/>.
+    /// By default returns an <see cref="BreezeQueryableFilterProvider"/>.
     /// Override to substitute a custom provider.
     /// </remarks>
-    protected virtual IFilterProvider BreezeFilterProvider() {
-      return DefaultBreezeFilterProvider;
+    protected virtual IFilterProvider GetFilterProvider() {
+      return DefaultFilterProvider;
     }
 
     /// <summary>
@@ -59,8 +62,8 @@ namespace Breeze.WebApi {
     /// By default returns the Breeze <see cref="JsonFormatter"/>.
     /// Override it to substitute a custom JSON formatter.
     /// </remarks>
-    protected virtual MediaTypeFormatter BreezeJsonFormatter() {
-      return DefaultBreezeJsonFormatter;
+    protected virtual MediaTypeFormatter GetJsonFormatter() {
+      return DefaultJsonFormatter;
     }
 
     /// <summary>
@@ -68,20 +71,27 @@ namespace Breeze.WebApi {
     /// <see cref="ODataActionFilter"/> to controller action methods 
     /// that return IQueryable.
     /// </summary>
-    public class ODataActionFilterProvider : IFilterProvider {
-      private readonly IFilter _filter = new ODataActionFilter();
+    public class BreezeQueryableFilterProvider : IFilterProvider {
+      private readonly IFilter _filter = new BreezeQueryableAttribute() {AllowedQueryOptions = AllowedQueryOptions.All };
 
+      
       public IEnumerable<FilterInfo> GetFilters(HttpConfiguration configuration, HttpActionDescriptor actionDescriptor) {
-        return (actionDescriptor == null || !IsIQueryable(actionDescriptor.ReturnType)) ?
-            Enumerable.Empty<FilterInfo>() :
-            new[] { new FilterInfo(_filter, FilterScope.Global) };
+        if (actionDescriptor == null ||
+          (!IsIQueryable(actionDescriptor.ReturnType)) ||
+          actionDescriptor.GetCustomAttributes<QueryableAttribute>().Any() || // if method already has a QueryableAttribute (or subclass) then skip it.
+          actionDescriptor.GetParameters().Any(parameter => typeof (ODataQueryOptions).IsAssignableFrom(parameter.ParameterType))
+        ) {
+          return Enumerable.Empty<FilterInfo>();
+        }
+
+        return new FilterInfo[] { new FilterInfo(_filter, FilterScope.Global) };
       }
 
       internal static bool IsIQueryable(Type type) {
-        if (type == typeof(IQueryable))
-          return true;
-        if (type != null && type.IsGenericType)
+        if (type == typeof(IQueryable)) return true;
+        if (type != null && type.IsGenericType) {
           return type.GetGenericTypeDefinition() == typeof(IQueryable<>);
+        }
         return false;
       }
     }
@@ -90,8 +100,8 @@ namespace Breeze.WebApi {
 
 
     // These instances are stateless and threadsafe so can use static versions for all controller instances
-    private static readonly IFilterProvider DefaultBreezeFilterProvider = new ODataActionFilterProvider();
-    private static readonly MediaTypeFormatter DefaultBreezeJsonFormatter = JsonFormatter.Create();
+    private static readonly IFilterProvider DefaultFilterProvider = new BreezeQueryableFilterProvider();
+    private static readonly MediaTypeFormatter DefaultJsonFormatter = JsonFormatter.Create();
   }
 
 }

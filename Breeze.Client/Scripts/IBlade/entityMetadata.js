@@ -670,7 +670,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var type = typeMap[qualTypeName];
             if (!type) {
                 if (okIfNotFound) return null;
-                throw new Error("Unable to locate an 'Type' by the name: " + typeName);
+                throw new Error("Unable to locate a 'Type' by the name: " + typeName);
             }
             if (type.length) {
                 var typeNames = type.join(",");
@@ -2205,10 +2205,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **/
 
         /**
-        The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
+        The parent type that this property belongs to - will be either a {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}}.
 
         __readOnly__
-        @property parentEntityType {EntityType}
+        @property parentType {EntityType|ComplexType}
         **/
 
         /**

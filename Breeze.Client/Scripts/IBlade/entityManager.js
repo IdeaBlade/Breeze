@@ -1721,7 +1721,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 }
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
-                     query: query, 
+                     query: query,
+                     toTypeFn: query._getToTypeFn && query._getToTypeFn(metadataStore),
                      entityManager: em, 
                      mergeStrategy: queryOptions.mergeStrategy, 
                      refMap: {}, 
@@ -1800,7 +1801,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
 
             
-            var entityType =em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
+            var entityType = em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
+            
+            if (entityType == null) {
+                var toTypeFn = queryContext._toTypeFn;
+                if (toTypeFn) {
+                    entityType = toTypeFn(rawEntity);
+                }
+            }
 
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);

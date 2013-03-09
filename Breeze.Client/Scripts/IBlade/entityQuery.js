@@ -203,7 +203,30 @@ function (core, m_entityMetadata, m_entityAspect) {
             return new EntityQuery(resourceName);
         };
 
+        // Allow types to be defined client side.
+        proto.toType = function(typeOrFunction) {
+            assertParam(typeOrFunction, "typeOrFunction").isString().or.isInstanceOf(EntityType).or().isFunction().check();
+            var eq = this._clone();
+            eq.toType = typeOrFunction;
+        };
 
+        proto._getToTypeFn = function(metadataStore) {
+            if (this._toTypeFn === undefined) return this._toTypeFn;
+            var tmp = this.toType;
+            var toTypeFn;
+            if (typeof(tmp) === 'string') {
+                var type = metadataStore.getEntityType(tmp, false);
+                toTypeFn = function(e) { return type; };
+            } else if (tmp instanceof EntityType) {
+                toTypeFn = function (e) { return tmp; };
+            } else if (typeof(tmp) === 'function') {
+                toTypeFn = tmp;
+            } else {
+                // use getEntityTypeNameFromResourceName;
+            }
+            this._toTypeFn = toTypeFn;
+        };
+        
         /**
         Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
         @example                    
@@ -726,16 +749,6 @@ function (core, m_entityMetadata, m_entityAspect) {
 
             return copy;
         };
-
-        // OData QueryOptions - currently supports filter, orderBy, skip, top and expand.
-        //        $filter    - done
-        //        $select
-        //        $orderBy   - done
-        //        $top       - done
-        //        $skip      - done
-        //        $format
-        //        $expand    - done
-        //        $inlinecount
 
         proto._toUri = function (metadataStore) {
             // force entityType validation;

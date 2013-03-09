@@ -175,7 +175,7 @@ define(["breeze.full"], function (breeze) {
             return;
         }
         if (error.handled === undefined) {
-            ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message);
+            ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);
             start();
             return;
         }
