@@ -296,7 +296,7 @@ define(["testFns"], function (testFns) {
             cust1.setProperty("contactName", newRegion);
             return em.saveChanges();
         }).then(function(sr) {
-            ok(false, "shouldn't get here");
+            ok(false, "shouldn't get here - except with DATABASEFIRST_OLD");
             start();
         }).fail(function(error) {
             ok(error.message.indexOf("the word 'Error'") > 0);

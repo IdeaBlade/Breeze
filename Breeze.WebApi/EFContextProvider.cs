@@ -542,24 +542,7 @@ namespace Breeze.WebApi {
       metadataWs.LoadFromAssembly(asm);
     }
 
-    private String CsdlToJson(XDocument xDoc) {
-
-      var sw = new StringWriter();
-      using (var jsonWriter = new JsonPropertyFixupWriter(sw)) {
-        // jsonWriter.Formatting = Newtonsoft.Json.Formatting.Indented;
-        var jsonSerializer = new JsonSerializer();
-        var converter = new XmlNodeConverter();
-        // May need to put this back.
-        // converter.OmitRootObject = true;
-        // doesn't seem to do anything.
-        // converter.WriteArrayAttribute = true;
-        jsonSerializer.Converters.Add(converter);
-        jsonSerializer.Serialize(jsonWriter, xDoc);
-      }
-
-      var jsonText = sw.ToString();
-      return jsonText;
-    }
+   
 
     protected String GetConnectionStringFromConfig(String connectionName) {
       var item = ConfigurationManager.ConnectionStrings[connectionName];

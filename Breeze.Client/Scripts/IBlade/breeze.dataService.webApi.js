@@ -56,8 +56,8 @@
                     return;
                 }
 
-                var schema = metadata.schema;
-
+                var schema = metadata.schema || metadata.dataServices.schema;
+                
                 if (!schema) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
                     return;
@@ -105,9 +105,8 @@
                     collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
-                } catch(e) {
-                    var error = createError(XHR);
-                    error.internalError = e;
+                } catch (e) {
+                    var error = e instanceof Error ? e : createError(XHR);
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
                     XHR.onreadystatechange = null;
@@ -131,19 +130,19 @@
             dataType: 'json',
             contentType: "application/json",
             data: saveBundleStringified,
-            success: function(data, textStatus, jqXHR) {
+            success: function(data, textStatus, XHR) {
                 if (data.Error) {
                     // anticipatable errors on server - concurrency...
-                    var err = createError(jqXHR);
+                    var err = createError(XHR);
                     err.message = data.Error;
                     errorCallback(err);
                 } else {
-                    data.XHR = jqXHR;
+                    data.XHR = XHR;
                     callback(data);
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                if (errorCallback) errorCallback(createError(jqXHR));
+            error: function (XHR, textStatus, errorThrown) {
+                if (errorCallback) errorCallback(createError(XHR));
             }
         });
     };

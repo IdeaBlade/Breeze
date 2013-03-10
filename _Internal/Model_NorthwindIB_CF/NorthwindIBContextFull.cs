@@ -19,6 +19,7 @@ using System.Runtime.Serialization;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Foo;
+using System.Data.Spatial;
 
 namespace Models.NorthwindIB.CF {
 
@@ -151,13 +152,25 @@ namespace Foo {
 
   #endregion Category class
 
+  [AttributeUsage(AttributeTargets.Class)] // NEW
+  public class CustomerValidator : ValidationAttribute {
+    public override Boolean IsValid(Object value) {
+      var cust = value as Customer;
+      if (cust != null && cust.CompanyName.ToLower() == "error") {
+        ErrorMessage = "This customer is not valid!";
+        return false;
+      }
+      return true;
+    }
+  }
+
   [AttributeUsage(AttributeTargets.Property)]
   public class CustomValidator : ValidationAttribute {
     public override Boolean IsValid(Object value) {
       try {
         string val = (string)value;
         if (!string.IsNullOrEmpty(val) && val.StartsWith("Error")) {
-          ErrorMessage = "{0} equal the word 'Error'";
+          ErrorMessage = "{0} equals the word 'Error'";
           return false;
         }
         return true;
@@ -176,6 +189,7 @@ namespace Foo {
   /// </LongDescription>
   [DataContract(IsReference = true)]
   [Table("Customer", Schema = "dbo")]
+  [CustomerValidator]
   public partial class Customer {
 
     #region Data Properties
@@ -1549,6 +1563,13 @@ namespace Foo {
   [DataContract(IsReference = true)]
   [Table("TimeLimit", Schema = "dbo")]
   public partial class TimeLimit {
+
+    public TimeLimit() {
+          this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
+          this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
+          // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
+    }
+  
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -1562,7 +1583,22 @@ namespace Foo {
     [DataMember]
     [Column("MinTime")]
     public Nullable<System.TimeSpan> MinTime { get; set; }
-  }
 
+    [DataMember]
+    [Column("CreationDate")]
+    public Nullable<System.DateTimeOffset> CreationDate { get; set; }
+
+    [DataMember]
+    [Column("ModificationDate")]
+    public Nullable<System.DateTime> ModificationDate { get; set; }
+
+    [DataMember]
+    [Column("Geometry1")]
+    public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
+
+    [DataMember]
+    [Column("Geography1")]
+    public System.Data.Spatial.DbGeography Geography1 { get; set; }
+  }
 
 }

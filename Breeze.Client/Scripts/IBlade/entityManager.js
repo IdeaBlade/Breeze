@@ -1948,11 +1948,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         val = val.$value; // this will be a byte[] encoded as a string
                     }
                 } else if (dp.isComplexProperty) {
-                    var coVal = targetEntity.getProperty(dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        // recursive call
-                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                    });
+                    if (val != undefined) {
+                        var coVal = targetEntity.getProperty(dp.name);
+                        dp.dataType.dataProperties.forEach(function(cdp) {
+                            // recursive call
+                            coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                        });
+                    }
                 }
 
                 if (!dp.isComplexProperty) {

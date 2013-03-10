@@ -37,6 +37,25 @@ namespace Breeze.WebApi {
       }
     }
 
+    public static String CsdlToJson(XDocument xDoc) {
+
+      var sw = new StringWriter();
+      using (var jsonWriter = new JsonPropertyFixupWriter(sw)) {
+        // jsonWriter.Formatting = Newtonsoft.Json.Formatting.Indented;
+        var jsonSerializer = new JsonSerializer();
+        var converter = new XmlNodeConverter();
+        // May need to put this back.
+        // converter.OmitRootObject = true;
+        // doesn't seem to do anything.
+        // converter.WriteArrayAttribute = true;
+        jsonSerializer.Converters.Add(converter);
+        jsonSerializer.Serialize(jsonWriter, xDoc);
+      }
+
+      var jsonText = sw.ToString();
+      return jsonText;
+    }
+
     public SaveResult SaveChanges(JObject saveBundle) {
       var jsonSerializer = CreateJsonSerializer();
 
@@ -256,10 +275,12 @@ namespace Breeze.WebApi {
     public Object RealValue;
   }
 
+
+
   public class JsonPropertyFixupWriter : JsonTextWriter {
     public JsonPropertyFixupWriter(TextWriter textWriter)
       : base(textWriter) {
-      _isName = false;
+      _isDataType = false;
     }
 
     public override void WritePropertyName(string name) {
@@ -267,12 +288,12 @@ namespace Breeze.WebApi {
         name = name.Substring(1);
       }
       name = ToCamelCase(name);
-      _isName = name == "type";
+      _isDataType = name == "type";
       base.WritePropertyName(name);
     }
 
     public override void WriteValue(string value) {
-      if (_isName) {
+      if (_isDataType && !value.StartsWith("Edm.")) {
         base.WriteValue("Edm." + value);
       } else {
         base.WriteValue(value);
@@ -280,16 +301,20 @@ namespace Breeze.WebApi {
     }
 
     private static string ToCamelCase(string s) {
-      if (string.IsNullOrEmpty(s) || !char.IsUpper(s[0]))
+      if (string.IsNullOrEmpty(s) || !char.IsUpper(s[0])) {
         return s;
+      }
       string str = char.ToLower(s[0], CultureInfo.InvariantCulture).ToString((IFormatProvider)CultureInfo.InvariantCulture);
-      if (s.Length > 1)
+      if (s.Length > 1) {
         str = str + s.Substring(1);
+      }
       return str;
     }
 
-    private bool _isName;
+    private bool _isDataType;
 
+
+    
   }
  
 }
