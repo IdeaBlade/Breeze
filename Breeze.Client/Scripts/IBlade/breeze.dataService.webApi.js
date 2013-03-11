@@ -205,14 +205,16 @@
             try {
                 var responseObj = JSON.parse(XHR.responseText);
                 err.detail = responseObj;
-                if (responseObj.InnerException) {
-                    err.message = responseObj.InnerException.ExceptionMessage || responseObj.InnerException.Message;
-                } else {
-                    err.message = responseObj.ExceptionMessage || responseObj.Message;
-                } 
-                if (!err.message) {
-                    err.message = XHR.responseText;
-                }
+                var source = responseObj.InnerException || responseObj;
+                err.message = source.ExceptionMessage || source.Message || XHR.responseText;
+                //if (responseObj.InnerException) {
+                //    err.message = responseObj.InnerException.ExceptionMessage || responseObj.InnerException.Message;
+                //} else {
+                //    err.message = responseObj.ExceptionMessage || responseObj.Message;
+                //} 
+                //if (!err.message) {
+                //    err.message = XHR.responseText;
+                //}
 
                 //if (responseObj.ExceptionMessage) {
                 //    err.message = responseObj.ExceptionMessage;
