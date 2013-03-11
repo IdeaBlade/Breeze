@@ -1214,9 +1214,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertConfig(config)
                 .whereParam("name").isNonEmptyString()
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
-                .whereParam("resolveEntityType").isFunction()
-                .whereParam("resolveRefEntity").isFunction()
-                .whereParam("shouldIgnore").isFunction().isOptional().withDefault(shouldIgnoreDefault)
+                .whereParam("preprocessEntity").isFunction()
+                .whereParam("processAnonValue").isFunction().withDefault(processAnonValueDefault)
+                .whereParam("processNavigationResult").isFunction().isOptional().withDefault(processNavigationResultDefault)
                 .applyAll(this);
 
         };
@@ -1228,8 +1228,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return data.results;
         }
         
-        function shouldIgnoreDefault(rawEntity) {
-            return false;
+        // params are rawEntity, queryContext
+        function processNavigationResultDefault() {
+            return true;
+        }
+        
+        // params are - key, value, queryContext, result) {
+        function processAnonValueDefault() {
+            return true;
         }
 
         return ctor;

@@ -84,28 +84,37 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         
         name: "OData_default",
-
-        // will return null if anon
-        resolveEntityType: function (rawEntity, metadataStore) {
+        
+        preprocessEntity: function (rawEntity, queryContext) {
+            var entityType = null;
+            if (rawEntity.__metadata != null) {
             // TODO: may be able to make this more efficient by caching of the previous value.
-            var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
-            var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
-            var isFullEntity = entityType && entityType._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
-            return isFullEntity ? entityType : null;
-        },
-
-        resolveRefEntity: function (rawEntity, queryContext) {
-            var id = rawEntity['__deferred'];
-            if (id) {
-                return null;
-            } else {
-                return undefined;
+                var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+                var et = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var isFullEntity = et && et._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
+                entityType = isFullEntity ? et : null;
             }
+            var ignore = rawEntity['__deferred'] != null;
+            return {
+                entityType: entityType,
+                ignore: ignore
+            };
+        },
+        
+        
+        processAnonValue: function(key, value, queryContext) {
+            if (key == "__metadata") {
+                return false;
+            }
+            // EntityKey properties can be produced by EDMX models
+            if (key == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data")) {
+                return false;
+            }
+            return true;
         },
 
-
-        shouldIgnore: function (rawEntity) {
-            return rawEntity['__deferred'] !== undefined;
+        processNavigationResult: function (rawEntity) {
+            return rawEntity['__deferred'] === undefined;
         }
 
     });

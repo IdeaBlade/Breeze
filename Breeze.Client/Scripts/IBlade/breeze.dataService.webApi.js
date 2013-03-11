@@ -145,27 +145,28 @@
         
         name: "webApi_default",
         
-        // will return null if anon
-        resolveEntityType: function(rawEntity, metadataStore) {
-            // TODO: may be able to make this more efficient by caching of the previous value.
+        preprocessEntity: function(rawEntity, queryContext) {
             var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
-            return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+            return {
+                entityType: entityType,
+                id: rawEntity.$id,
+                refId: rawEntity.$ref,
+                ignore: false
+            };
         },
         
-        resolveRefEntity: function(rawEntity, queryContext) {
-            var id = rawEntity['$ref'];
-            if (id) {
-                var entity = queryContext.refMap[id];
-                if (entity === undefined) {
-                    return function() { return queryContext.refMap[id]; };
-                } else {
-                    return entity;
+        
+        processAnonValue: function(key, value, queryContext, result) {
+            var firstChar = key.substr(0, 1);
+            if (firstChar == "$") {
+                if (key === "$id") {
+                    queryContext.refMap[value] = result;
                 }
+                return false;
             }
-
-            queryContext.refId = rawEntity['$id'];
-            return undefined;
-        },
+            return true;
+        }
 
 
     });

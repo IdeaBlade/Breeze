@@ -1792,28 +1792,32 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function mergeEntity(rawEntity, queryContext, isSaving, isNestedInAnon) {
-            
+        function mergeEntity(rawEntity, queryContext, isSaving) {
+
             var em = queryContext.entityManager;
             var dataService = queryContext.dataService;
             var mergeStrategy = queryContext.mergeStrategy;
 
-            // resolveRefEntity will return one of 4 values;  a targetEntity, a fn that returns a target entity, a null or an undefined.
-            // null and undefined have different meanings 
-            // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
-            // -- undefined means that this is not a ref entity.
-            targetEntity = dataService.jsonResultsAdapter.resolveRefEntity(rawEntity, queryContext);
-            if (targetEntity !== undefined) {
-                return targetEntity;
+            // will have already been set if called nested.
+            var meta = rawEntity._$meta;
+            if (!meta) {
+                meta = dataService.jsonResultsAdapter.preprocessEntity(rawEntity, queryContext);
             }
 
+            if (meta.ignore) {
+                return null;
+            }
             
-            var entityType = queryContext.resolveEntityType(rawEntity, em.metadataStore);
+            if (meta.refId) {
+                return resolveRefEntity(meta.refId, queryContext);
+            }
             
+            var entityType = meta.entityType;
             if (entityType == null) {
                 return processAnonType(rawEntity, queryContext, isSaving);
             }
-
+            
+            rawEntity._$meta = meta;
             rawEntity.entityType = entityType;
             var entityKey = EntityKey._fromRawEntity(rawEntity, entityType);
             var targetEntity = em.findEntityByKey(entityKey);
@@ -1839,8 +1843,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._notifyStateChange(targetEntity, false);
                     }
                 } else {
-                    // also called by setPropertiesEntity
-                    updateCurrentRef(queryContext, targetEntity);
+                    updateCurrentRef(queryContext, targetEntity, rawEntity);
                     // we still need to merge related entities even if top level entity wasn't modified.
                     entityType.navigationProperties.forEach(function (np) {
                         if (np.isScalar) {
@@ -1866,7 +1869,20 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-       
+        // resolveRefEntity will return one of 4 values;  a targetEntity, a fn that returns a target entity, a null or an undefined.
+        // null and undefined have different meanings 
+        // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
+        // -- undefined means that this is not a ref entity.
+
+        function resolveRefEntity(refId, queryContext) {
+            var entity = queryContext.refMap[refId];
+            if (entity === undefined) {
+                return function() { return queryContext.refMap[refId]; };
+            } else {
+                return entity;
+            }
+        }
+
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var dataService = queryContext.dataService;
@@ -1877,23 +1893,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
-                if (key == "__metadata") {
-                    return;
-                }
-                // EntityKey properties can be produced by EDMX models
-                if (key == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data")) {
-                    return;
-                }
-                var firstChar = key.substr(0, 1);
-                if (firstChar == "$") {
-                    if (key === "$id") {
-                        queryContext.refMap[value] = result;
-                    }
-                    return;
-                } 
+          
+                if (!jsonResultsAdapter.processAnonValue(key, value, queryContext, result)) return;
                 
                 var newKey = keyFn(key);
-                var refValue;
+                var meta, refValue;
                 // == is deliberate here instead of ===
                 if (value == null) {
                     result[newKey] = value;
@@ -1901,27 +1905,33 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     result[newKey] = value.map(function(v, ix, arr) {
                         if (v == null) {
                             return v;
-                        } else if (v.$type || v.__metadata) {
-                            return mergeEntity(v, queryContext, isSaving, true);
-                        } else if (v.$ref) {
-                            refValue = jsonResultsAdapter.resolveRefEntity(v, queryContext);
+                        }
+                        meta = jsonResultsAdapter.preprocessEntity(v, queryContext);
+                        if (meta.entityType) {
+                            v._$meta = meta;
+                            return mergeEntity(v, queryContext, isSaving);
+                        } else if (meta.refId) {
+                            refValue = resolveRefEntity(meta.refId, queryContext);
                             if (typeof refValue == "function") {
-                                queryContext.deferredFns.push(function () {
+                                queryContext.deferredFns.push(function() {
                                     arr[ix] = refValue();
                                 });
                             }
                             return refValue;
-                        } else {
+                         } else {
                             return v;
-                        }
+                         }
                     });
                 } else {
-                    if (value.$type || value.__metadata) {
+                    meta = jsonResultsAdapter.preprocessEntity(value, queryContext);
+                    
+                    if (meta.entityType) {
+                        value._$meta = meta;
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
-                    } else if (value.$ref) {
-                        refValue = jsonResultsAdapter.resolveRefEntity(value, queryContext);
+                    } else if (meta.refId) {
+                        refValue = resolveRefEntity(meta.refId, queryContext);                       
                         if (typeof refValue == "function") {
-                            queryContext.deferredFns.push(function () {
+                            queryContext.deferredFns.push(function() {
                                 result[newKey] = refValue();
                             });
                         }
@@ -1934,10 +1944,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return result;
         }
         
+       
         function updateEntity(targetEntity, rawEntity, queryContext) {
-            updateCurrentRef(queryContext, targetEntity);
+            updateCurrentRef(queryContext, targetEntity, rawEntity);
             var entityType = targetEntity.entityType;
-            var metadataStore = entityType.metadataStore;
+            
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmapped) return;
                 var val = rawEntity[dp.nameOnServer];
@@ -1972,9 +1983,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
         
-        function updateCurrentRef(queryContext, targetEntity) {
-            if (queryContext.refId !== undefined) {
-                queryContext.refMap[queryContext.refId] = targetEntity;
+        
+        function updateCurrentRef(queryContext, targetEntity, rawEntity) {
+            var id = rawEntity._$meta.id;
+            if (id != null) {
+                queryContext.refMap[id] = targetEntity;
             }
         }
 
@@ -1995,7 +2008,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            if (queryContext.dataService.jsonResultsAdapter.shouldIgnore(relatedRawEntity)) return null;
+            if (!queryContext.dataService.jsonResultsAdapter.processNavigationResult(relatedRawEntity, queryContext)) return null;
             
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
@@ -2044,7 +2057,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            if (queryContext.dataService.jsonResultsAdapter.shouldIgnore(relatedRawEntities)) return null;
+            if (!queryContext.dataService.jsonResultsAdapter.processNavigationResult(relatedRawEntities, queryContext)) return null;
 
             // Don't think it's needed.
             // if (!Array.isArray(relatedRawEntities)) return null;
