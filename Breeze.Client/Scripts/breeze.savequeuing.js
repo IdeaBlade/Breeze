@@ -87,6 +87,10 @@
         var deferredSave = Q.defer();
         self.saveQueue.push(deferredSave);
 
+        // clone saveOptions because may change later, before this save is dequeued
+        args[1] = breeze.core.extend(new breeze.SaveOptions(),
+            args[1] || this.entityManager.saveOptions || breeze.SaveOptions.defaultInstance);
+
         var savePromise = deferredSave.promise;
         return savePromise
             .then(function () { return self.innerSaveChanges(args); })
