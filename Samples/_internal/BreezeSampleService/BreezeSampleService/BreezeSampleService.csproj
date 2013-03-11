@@ -11,8 +11,8 @@
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BreezeNorthwindService</RootNamespace>
-    <AssemblyName>BreezeNorthwindService</AssemblyName>
+    <RootNamespace>BreezeSampleService</RootNamespace>
+    <AssemblyName>BreezeSampleService</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -40,14 +40,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.WebApi.1.1.2\lib\Breeze.WebApi.dll</HintPath>
-    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.1.1.2\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -98,6 +92,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="content\font\fontawesome-webfont.eot" />
+    <Content Include="content\font\fontawesome-webfont.ttf" />
+    <Content Include="content\font\fontawesome-webfont.woff" />
+    <Content Include="content\font\FontAwesome.otf" />
     <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
@@ -114,8 +112,58 @@
     <None Include="_bin_deployableAssemblies\amd64\sqlceca40.dll" />
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\README_ENU.txt" />
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\msvcr90.dll" />
+    <Content Include="App_Data\CodeCamper.sdf" />
     <Content Include="App_Data\NorthwindIB.sdf" />
     <Content Include="App_Data\Todos.sdf" />
+    <Content Include="content\bootstrap-responsive.css" />
+    <Content Include="content\bootstrap-responsive.min.css" />
+    <Content Include="content\bootstrap.css" />
+    <Content Include="content\bootstrap.min.css" />
+    <Content Include="content\durandal.css" />
+    <Content Include="content\font-awesome-ie7.min.css" />
+    <Content Include="content\font-awesome.css" />
+    <Content Include="content\font-awesome.min.css" />
+    <Content Include="content\font\fontawesome-webfont.svg" />
+    <Content Include="content\ie10mobile.css" />
+    <Content Include="content\images\icon-blue.png" />
+    <Content Include="content\images\icon-light-blue-small.png" />
+    <Content Include="content\images\icon-light-blue.png" />
+    <Content Include="content\images\photos\aaron_skonnard.jpg" />
+    <Content Include="content\images\photos\colleen_papa.jpg" />
+    <Content Include="content\images\photos\dan_wahlin.jpg" />
+    <Content Include="content\images\photos\dave_ward.jpg" />
+    <Content Include="content\images\photos\elijah_manor.jpg" />
+    <Content Include="content\images\photos\eric_barnard.jpg" />
+    <Content Include="content\images\photos\esteban_garcia.jpg" />
+    <Content Include="content\images\photos\felix_fanboi.jpg" />
+    <Content Include="content\images\photos\fritz_onion.jpg" />
+    <Content Include="content\images\photos\glenn_block.jpg" />
+    <Content Include="content\images\photos\hans_fjallemark.jpg" />
+    <Content Include="content\images\photos\howard_dierking.jpg" />
+    <Content Include="content\images\photos\jesse_liberty.jpg" />
+    <Content Include="content\images\photos\jim_cowart.jpg" />
+    <Content Include="content\images\photos\john_papa.jpg" />
+    <Content Include="content\images\photos\john_smith.jpg" />
+    <Content Include="content\images\photos\julie_lerman.jpg" />
+    <Content Include="content\images\photos\mads_kristensen.jpg" />
+    <Content Include="content\images\photos\mike_callaghan.jpg" />
+    <Content Include="content\images\photos\pete_brown.jpg" />
+    <Content Include="content\images\photos\rey_bango.jpg" />
+    <Content Include="content\images\photos\rob_eisenberg.jpg" />
+    <Content Include="content\images\photos\ryan_niemeyer.jpg" />
+    <Content Include="content\images\photos\scott_guthrie.jpg" />
+    <Content Include="content\images\photos\scott_hanselman.jpg" />
+    <Content Include="content\images\photos\scott_hunter.jpg" />
+    <Content Include="content\images\photos\shawn_wildermuth.jpg" />
+    <Content Include="content\images\photos\steve_sanderson.jpg" />
+    <Content Include="content\images\photos\sue_menot.jpg" />
+    <Content Include="content\images\photos\tim_heuer.jpg" />
+    <Content Include="content\images\photos\unknown_person.jpg" />
+    <Content Include="content\images\photos\ward_bell.jpg" />
+    <Content Include="content\styles.css" />
+    <Content Include="content\toastr.css" />
+    <Content Include="content\toastr.min.css" />
+    <Content Include="Scripts\ngLogger.js" />
     <Content Include="Web.config" />
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
     <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
@@ -123,6 +171,9 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
+    <Compile Include="Controllers\CodeCamperController.cs" />
+    <Compile Include="Models\CodeCamperDbContext.cs" />
+    <Compile Include="Models\CodeCamperModel.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Models\NorthwindContext.cs" />
