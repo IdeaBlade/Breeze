@@ -54,7 +54,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.inlineCountEnabled = false;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
-            this.entityManager = null;                 
+            this.entityManager = null;
+            this.dataService = null;
         };
         var proto = ctor.prototype;
 

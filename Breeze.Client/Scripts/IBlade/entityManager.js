@@ -2734,6 +2734,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
             var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
             eq.queryOptions = queryOptions.using(obj);
+        } else if (obj instanceof DataService) {
+            eq.dataService = obj;
         } else {
             throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy or a FetchStrategy");
         }
