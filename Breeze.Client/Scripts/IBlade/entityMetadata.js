@@ -1135,11 +1135,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("serviceName").isNonEmptyString()
                 .whereParam("adapterName").isString().isOptional().withDefault(null)
                 .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
-                .whereParam("resolveEntityType").isFunction().isOptional().withDefault(null)
-                .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
+                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
                 .applyAll(this);
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
             this.adapterInstance = a_config.getAdapterInstance("dataService", this.adapterName);
+            
+            if (!this.jsonResultsAdapter) {
+                this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
+            }
         };
         var proto = ctor.prototype;
         proto._$typeName = "DataService";
@@ -1189,13 +1192,48 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             };
         };
 
-        function extractResultsDefault(data) {
-            return data.results;
-        }
+  
 
         
         return ctor;
     }();
+    
+    var JsonResultsAdapter = (function () {
+
+        /**
+        A JsonREsultsAdapter is used ... 
+
+        @class JsonResultsAdapter
+        **/
+
+        var ctor = function (config) {
+            if (arguments.length != 1) {
+                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+            }
+
+            assertConfig(config)
+                .whereParam("name").isNonEmptyString()
+                .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
+                .whereParam("resolveEntityType").isFunction()
+                .whereParam("resolveRefEntity").isFunction()
+                .whereParam("shouldIgnore").isFunction().isOptional().withDefault(shouldIgnoreDefault)
+                .applyAll(this);
+
+        };
+        var proto = ctor.prototype;
+
+        proto._$typeName = "JsonResultsAdapter";
+
+        function extractResultsDefault(data) {
+            return data.results;
+        }
+        
+        function shouldIgnoreDefault(rawEntity) {
+            return false;
+        }
+
+        return ctor;
+    })();
 
     var EntityType = (function () {
         /**
@@ -2671,6 +2709,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     return {
         MetadataStore: MetadataStore,
         DataService: DataService,
+        JsonResultsAdapter: JsonResultsAdapter,
         EntityType: EntityType,
         ComplexType: ComplexType,
         DataProperty: DataProperty,

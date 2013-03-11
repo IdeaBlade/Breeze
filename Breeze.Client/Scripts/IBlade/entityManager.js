@@ -908,7 +908,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     entityManager: that,
                     dataService: that.dataService,
                     mergeStrategy: MergeStrategy.OverwriteChanges,
-                    resolveEntityType: that.dataService.resolveEntityType || that.dataService.adapterInstance.resolveEntityType,
+                    resolveEntityType: that.dataService.jsonResultsAdapter.resolveEntityType,
                     refMap: {},
                     deferredFns: []
                 };
@@ -1721,7 +1721,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 }
                 // _getResolveEntityTypeFn does not exist on raw OData queries
                 var queryResolveEntityType = query._getResolveEntityTypeFn && query._getResolveEntityTypeFn(metadataStore);
-                var resolveEntityTypeFn = queryResolveEntityType || dataService.resolveEntityType || dataService.adapterInstance.resolveEntityType;
+                var resolveEntityTypeFn = queryResolveEntityType || dataService.jsonResultsAdapter.resolveEntityType;
                 
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
@@ -1753,7 +1753,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         queryContext = null;
                         
                     }, function () {
-                        var rawEntities = dataService.extractResults(data);
+                        var rawEntities = dataService.jsonResultsAdapter.extractResults(data);
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
@@ -1798,10 +1798,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var dataService = queryContext.dataService;
             var mergeStrategy = queryContext.mergeStrategy;
 
-            // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
-            // null and undefined have different meanings - null means a ref entity that cannot be resolved - usually an odata __deferred value
-            // undefined means that this is not a ref entity.
-            targetEntity = dataService.adapterInstance.resolveRefEntity(rawEntity, queryContext);
+            // resolveRefEntity will return one of 4 values;  a targetEntity, a fn that returns a target entity, a null or an undefined.
+            // null and undefined have different meanings 
+            // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
+            // -- undefined means that this is not a ref entity.
+            targetEntity = dataService.jsonResultsAdapter.resolveRefEntity(rawEntity, queryContext);
             if (targetEntity !== undefined) {
                 return targetEntity;
             }
@@ -1869,6 +1870,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
             var dataService = queryContext.dataService;
+            var jsonResultsAdapter = dataService.jsonResultsAdapter;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             if (typeof rawEntity !== 'object') {
                 return rawEntity;
@@ -1902,7 +1904,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         } else if (v.$type || v.__metadata) {
                             return mergeEntity(v, queryContext, isSaving, true);
                         } else if (v.$ref) {
-                            refValue = dataService.adapterInstance.resolveRefEntity(v, queryContext);
+                            refValue = jsonResultsAdapter.resolveRefEntity(v, queryContext);
                             if (typeof refValue == "function") {
                                 queryContext.deferredFns.push(function () {
                                     arr[ix] = refValue();
@@ -1917,7 +1919,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (value.$type || value.__metadata) {
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
                     } else if (value.$ref) {
-                        refValue = dataService.adapterInstance.resolveRefEntity(value, queryContext);
+                        refValue = jsonResultsAdapter.resolveRefEntity(value, queryContext);
                         if (typeof refValue == "function") {
                             queryContext.deferredFns.push(function () {
                                 result[newKey] = refValue();
@@ -1993,8 +1995,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            var deferred = queryContext.dataService.adapterInstance.getDeferredValue(relatedRawEntity);
-            if (deferred) return null;
+            if (queryContext.dataService.jsonResultsAdapter.shouldIgnore(relatedRawEntity)) return null;
+            
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
         }
@@ -2042,8 +2044,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            var deferred = queryContext.dataService.adapterInstance.getDeferredValue(relatedRawEntities);
-            if (deferred) return null;
+            if (queryContext.dataService.jsonResultsAdapter.shouldIgnore(relatedRawEntities)) return null;
 
             // Don't think it's needed.
             // if (!Array.isArray(relatedRawEntities)) return null;
@@ -2723,7 +2724,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         }
         return ctor;
     })();
-
+    
     // Extensions to the EntityQuery class - must be done here because some of the types used are not yet avail
     // when the EntityQuery file is processed.
 

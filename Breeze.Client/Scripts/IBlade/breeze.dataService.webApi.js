@@ -14,7 +14,7 @@
     var core = breeze.core;
 
     var EntityType = breeze.EntityType;
-
+    var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
     var ajaxImpl;
     
@@ -140,34 +140,36 @@
             }
         });
     };
-
-    // will return null if anon
-    ctor.prototype.resolveEntityType = function (rawEntity, metadataStore) {
-        // TODO: may be able to make this more efficient by caching of the previous value.
-        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
-        return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
-    };
-
-    ctor.prototype.getDeferredValue = function (rawEntity) {
-        // there are no deferred entries in the web api.
-        return false;
-    };
-
-    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
-        var id = rawEntity['$ref'];
-        if (id) {
-            var entity = queryContext.refMap[id];
-            if (entity === undefined) {
-                return function () { return queryContext.refMap[id]; };
-            } else {
-                return entity;
+    
+    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+        
+        name: "webApi_default",
+        
+        // will return null if anon
+        resolveEntityType: function(rawEntity, metadataStore) {
+            // TODO: may be able to make this more efficient by caching of the previous value.
+            var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
+            return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
+        },
+        
+        resolveRefEntity: function(rawEntity, queryContext) {
+            var id = rawEntity['$ref'];
+            if (id) {
+                var entity = queryContext.refMap[id];
+                if (entity === undefined) {
+                    return function() { return queryContext.refMap[id]; };
+                } else {
+                    return entity;
+                }
             }
-        }
 
-        queryContext.refId = rawEntity['$id'];
-    };
+            queryContext.refId = rawEntity['$id'];
+            return undefined;
+        },
 
 
+    });
+    
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
         // remove any trailing "/"

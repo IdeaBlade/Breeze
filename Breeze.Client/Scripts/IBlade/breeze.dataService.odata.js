@@ -14,6 +14,7 @@
     var core = breeze.core;
  
     var EntityType = breeze.EntityType;
+    var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
     var OData;
     
@@ -26,16 +27,7 @@
         OData.jsonHandler.recognizeDates = true;
     };
     
-    // will return null if anon
-    ctor.prototype.resolveEntityType = function (rawEntity, metadataStore) {
-        // TODO: may be able to make this more efficient by caching of the previous value.
-        var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
-        var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
-        var isFullEntity = entityType && entityType._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
-        return isFullEntity ? entityType : null;
-    };
-
-
+    
     ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
         var url = entityManager.serviceName + odataQuery;
         OData.read(url,
@@ -48,19 +40,6 @@
         );
     };
     
- 
-    ctor.prototype.getDeferredValue = function (rawEntity) {
-        return rawEntity['__deferred'];
-    };
-
-    ctor.prototype.resolveRefEntity = function (rawEntity, queryContext) {
-        var id = rawEntity['__deferred'];
-        if (id) {
-            return null;
-        } else {
-            return undefined;
-        }
-    };
 
     ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
         var serviceName = dataService.serviceName;
@@ -101,6 +80,35 @@
     ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
+    
+    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+        
+        name: "OData_default",
+
+        // will return null if anon
+        resolveEntityType: function (rawEntity, metadataStore) {
+            // TODO: may be able to make this more efficient by caching of the previous value.
+            var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+            var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);
+            var isFullEntity = entityType && entityType._mappedPropertiesCount === Object.keys(rawEntity).length - 1;
+            return isFullEntity ? entityType : null;
+        },
+
+        resolveRefEntity: function (rawEntity, queryContext) {
+            var id = rawEntity['__deferred'];
+            if (id) {
+                return null;
+            } else {
+                return undefined;
+            }
+        },
+
+
+        shouldIgnore: function (rawEntity) {
+            return rawEntity['__deferred'] !== undefined;
+        }
+
+    });
 
     function getMetadataUrl(serviceName) {
         var metadataSvcUrl = serviceName;
