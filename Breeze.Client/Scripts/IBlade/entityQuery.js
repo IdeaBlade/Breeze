@@ -123,8 +123,9 @@ function (core, m_entityMetadata, m_entityAspect) {
         @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
         */
         proto._getEntityType = function (metadataStore, throwErrorIfNotFound) {
-            assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
-            assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
+            // Uncomment next two lines if we make this method public.
+            // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
+            // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
             var entityType = this.entityType;
             if (!entityType) {
                 var resourceName = this.resourceName;
@@ -213,18 +214,23 @@ function (core, m_entityMetadata, m_entityAspect) {
         proto._getToTypeFn = function(metadataStore) {
             if (this._toTypeFn === undefined) return this._toTypeFn;
             var tmp = this.toType;
-            var toTypeFn;
+            var type, toTypeFn = null;
+            
             if (typeof(tmp) === 'string') {
-                var type = metadataStore.getEntityType(tmp, false);
+                type = metadataStore.getEntityType(tmp, false);
                 toTypeFn = function(e) { return type; };
             } else if (tmp instanceof EntityType) {
                 toTypeFn = function (e) { return tmp; };
             } else if (typeof(tmp) === 'function') {
                 toTypeFn = tmp;
             } else {
-                // use getEntityTypeNameFromResourceName;
+                type = this._getEntityType(metadataStore, false);
+                if (type) {
+                    toTypeFn = function(e) { return type; };
+                }
             }
             this._toTypeFn = toTypeFn;
+            return _toTypeFn;
         };
         
         /**

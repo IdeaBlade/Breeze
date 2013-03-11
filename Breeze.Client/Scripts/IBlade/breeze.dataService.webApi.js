@@ -56,7 +56,7 @@
                     return;
                 }
 
-                var schema = metadata.schema || metadata.dataServices.schema;
+                var schema = metadata.schema; // || metadata.dataServices.schema; ... for ODataModelBuilder maybe later
                 
                 if (!schema) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
@@ -77,15 +77,12 @@
                 XHR.abort = null;
                 
             },
-            error: function(XHR, textStatus, errorThrown) {
-                var err = createError(XHR);
-                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-                if (errorCallback) errorCallback(err);
-                XHR.onreadystatechange = null;
-                XHR.abort = null;
+            error: function (XHR, textStatus, errorThrown) {
+                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + metadataSvcUrl);
             }
         });
     };
+    
 
     ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
 
@@ -95,7 +92,6 @@
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
-                // TODO: check response object here for possible errors.
                 try {
                     var inlineCount = XHR.getResponseHeader("X-InlineCount");
 
@@ -114,10 +110,8 @@
                 }
                 
             },
-            error: function(XHR, textStatus, errorThrown) {
-                if (errorCallback) errorCallback(createError(XHR));
-                XHR.onreadystatechange = null;
-                XHR.abort = null;
+            error: function (XHR, textStatus, errorThrown) {
+                handleXHRError(XHR, errorCallback);
             }
         });
     };
@@ -142,7 +136,7 @@
                 }
             },
             error: function (XHR, textStatus, errorThrown) {
-                if (errorCallback) errorCallback(createError(XHR));
+                handleXHRError(XHR, errorCallback);
             }
         });
     };
@@ -153,10 +147,6 @@
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
         return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
     };
-
-    //impl.getEntityTypeName = function (rawEntity) {
-    //    return EntityType._getNormalizedTypeName(rawEntity["$type"]);
-    //};
 
     ctor.prototype.getDeferredValue = function (rawEntity) {
         // there are no deferred entries in the web api.
@@ -190,6 +180,18 @@
         }
         return metadataSvcUrl;
 
+    }
+    
+    function handleXHRError(XHR, errorCallback, messagePrefix) {
+
+        if (!errorCallback) return;
+        var err = createError(XHR);
+        if (messagePrefix) {
+            err.message = messagePrefix + "; " + +err.message;
+        }
+        errorCallback(err);
+        XHR.onreadystatechange = null;
+        XHR.abort = null;
     }
 
     function createError(XHR) {

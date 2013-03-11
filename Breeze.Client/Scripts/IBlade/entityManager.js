@@ -1722,7 +1722,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
                      query: query,
-                     toTypeFn: query._getToTypeFn && query._getToTypeFn(metadataStore),
+                     toTypeFn: query._getToTypeFn && query._getToTypeFn(metadataStore), // _getToTypeFn does not exist on raw OData queries
                      entityManager: em, 
                      mergeStrategy: queryOptions.mergeStrategy, 
                      refMap: {}, 
