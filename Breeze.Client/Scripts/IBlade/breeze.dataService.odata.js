@@ -27,7 +27,7 @@
     };
     
     // will return null if anon
-    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.resolveEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
         var entityType = entityTypeName && metadataStore.getEntityType(entityTypeName, true);

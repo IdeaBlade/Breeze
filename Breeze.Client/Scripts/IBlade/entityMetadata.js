@@ -361,6 +361,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "metadataStore") return null;
+                if (key === "adapterInstance") return null;
                 if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
@@ -522,18 +523,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 // use the dataService with a matching name or create a new one.
                 dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
-
-            var serviceName = dataService.serviceName;
-            
-            if (this.hasMetadataFor(serviceName)) {
-                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
+           
+            if (this.hasMetadataFor(dataService.serviceName)) {
+                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
             }
             
-            var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-            var that = this;
+            dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
@@ -1138,11 +1135,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("serviceName").isNonEmptyString()
                 .whereParam("adapterName").isString().isOptional().withDefault(null)
                 .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
+                .whereParam("resolveEntityType").isFunction().isOptional().withDefault(null)
+                .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
                 .applyAll(this);
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
-            
+            this.adapterInstance = a_config.getAdapterInstance("dataService", this.adapterName);
         };
         var proto = ctor.prototype;
+        proto._$typeName = "DataService";
         
         /**
         The serviceName for this DataService.
@@ -1157,6 +1157,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property adapterName {String}
         **/
+        
+        /**
+       The "dataService" adapter implementation instance associated with this EntityManager.
+
+       __readOnly__
+       @property adapterInstance {an instance of the "dataService" adapter interface}
+       **/
 
         /**
         Whether the server can provide metadata for this service.
@@ -1164,7 +1171,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property hasServerMetadata {Boolean}
         **/
-
+        
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
             if (serviceName.substr(-1) !== "/") {
@@ -1174,7 +1181,18 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        proto._$typeName = "DataService";
+        proto.toJSON = function () {
+            return {
+                serviceName: this.serviceName,
+                adapterName: this.adapterName || this.adapterInstance.name,
+                hasServerMetadata: this.hasServerMetadata
+            };
+        };
+
+        function extractResultsDefault(data) {
+            return data.results;
+        }
+
         
         return ctor;
     }();
@@ -1237,6 +1255,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
         };
         var proto = ctor.prototype;
+        proto._$typeName = "EntityType";
         
         /**
         The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
@@ -1340,9 +1359,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property validators {Array of Validator} 
         **/
-            
-
-        proto._$typeName = "EntityType";
 
         /**
         General purpose property set method

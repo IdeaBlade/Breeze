@@ -142,7 +142,7 @@
     };
 
     // will return null if anon
-    ctor.prototype.getEntityType = function (rawEntity, metadataStore) {
+    ctor.prototype.resolveEntityType = function (rawEntity, metadataStore) {
         // TODO: may be able to make this more efficient by caching of the previous value.
         var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
         return entityTypeName && metadataStore.getEntityType(entityTypeName, true);
@@ -207,24 +207,6 @@
                 err.detail = responseObj;
                 var source = responseObj.InnerException || responseObj;
                 err.message = source.ExceptionMessage || source.Message || XHR.responseText;
-                //if (responseObj.InnerException) {
-                //    err.message = responseObj.InnerException.ExceptionMessage || responseObj.InnerException.Message;
-                //} else {
-                //    err.message = responseObj.ExceptionMessage || responseObj.Message;
-                //} 
-                //if (!err.message) {
-                //    err.message = XHR.responseText;
-                //}
-
-                //if (responseObj.ExceptionMessage) {
-                //    err.message = responseObj.ExceptionMessage;
-                //} else if (responseObj.InnerException) {
-                //    err.message = responseObj.InnerException.Message;
-                //} else if (responseObj.Message) {
-                //    err.message = responseObj.Message;
-                //} else {
-                //    err.message = XHR.responseText;
-                //}
             } catch (e) {
 
             }

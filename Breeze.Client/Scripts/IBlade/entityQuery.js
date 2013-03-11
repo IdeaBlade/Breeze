@@ -211,26 +211,26 @@ function (core, m_entityMetadata, m_entityAspect) {
             eq.toType = typeOrFunction;
         };
 
-        proto._getToTypeFn = function(metadataStore) {
-            if (this._toTypeFn === undefined) return this._toTypeFn;
+        proto._getResolveEntityTypeFn = function(metadataStore) {
+            if (this._resolveEntityType === undefined) return this._resolveEntityType;
             var tmp = this.toType;
-            var type, toTypeFn = null;
+            var type, resolveEntityType = null;
             
             if (typeof(tmp) === 'string') {
                 type = metadataStore.getEntityType(tmp, false);
-                toTypeFn = function(e) { return type; };
+                resolveEntityType = function (e) { return type; };
             } else if (tmp instanceof EntityType) {
-                toTypeFn = function (e) { return tmp; };
+                resolveEntityType = function (e) { return tmp; };
             } else if (typeof(tmp) === 'function') {
-                toTypeFn = tmp;
+                resolveEntityType = tmp;
             } else {
                 type = this._getEntityType(metadataStore, false);
                 if (type) {
-                    toTypeFn = function(e) { return type; };
+                    resolveEntityType = function (e) { return type; };
                 }
             }
-            this._toTypeFn = toTypeFn;
-            return _toTypeFn;
+            this._resolveEntityType = resolveEntityType;
+            return resolveEntityType;
         };
         
         /**
