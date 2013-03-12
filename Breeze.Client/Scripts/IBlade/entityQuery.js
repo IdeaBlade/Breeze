@@ -115,52 +115,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         __readOnly__
         @property entityManager {EntityManager}
         **/
+       
 
-        /*
-        Made internal for now.
-        @method getEntityType
-        @param metadataStore {MetadataStore} The {{#crossLink "MetadataStore"}}{{/crossLink}} in which to locate the 
-        {{#crossLink "EntityType"}}{{/crossLink}} returned by this query. 
-        @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
-        @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
-        */
-        proto._getEntityType = function (metadataStore, throwErrorIfNotFound) {
-            // Uncomment next two lines if we make this method public.
-            // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
-            // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
-            var entityType = this.entityType;
-            if (!entityType) {
-                var resourceName = this.resourceName;
-                if (!resourceName) {
-                    throw new Error("There is no resourceName for this query");
-                }
-                if (metadataStore.isEmpty()) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("There is no metadata available for this query");
-                    } else {
-                        return null;
-                    }
-                }
-                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
-                if (!entityTypeName) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("Cannot find resourceName of: " + resourceName);
-                    } else {
-                        return null;
-                    }
-                }
-                entityType = metadataStore.getEntityType(entityTypeName);
-                if (!entityType) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
-                    } else {
-                        return null;
-                    }
-                }
-                this.entityType = entityType;
-            }
-            return entityType;
-        };
 
         /**
         Specifies the resource to query for this EntityQuery.
@@ -211,21 +167,6 @@ function (core, m_entityMetadata, m_entityAspect) {
             assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
             eq.toEntityType = entityType;
-        };
-
-        proto._getToEntityType = function (metadataStore) {
-            if (this.toEntityType instanceof EntityType) {
-                return this.toEntityType;
-            } else if (this.toEntityType) {
-                // toEntityType is a string
-                this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
-                return this.toEntityType;
-            } else {
-                // resolve it, if possible, via the resourceName
-                // do not cache this value in this case
-                // cannot determine the toEntityType if a selectClause is present.
-                return (!this.selectClause) && this._getEntityType(metadataStore, false);
-            }
         };
 
         
@@ -732,6 +673,59 @@ function (core, m_entityMetadata, m_entityAspect) {
 
 
         // protected methods
+        
+        proto._getFromEntityType = function (metadataStore, throwErrorIfNotFound) {
+            // Uncomment next two lines if we make this method public.
+            // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
+            // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
+            var entityType = this.entityType;
+            if (!entityType) {
+                var resourceName = this.resourceName;
+                if (!resourceName) {
+                    throw new Error("There is no resourceName for this query");
+                }
+                if (metadataStore.isEmpty()) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("There is no metadata available for this query");
+                    } else {
+                        return null;
+                    }
+                }
+                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+                if (!entityTypeName) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("Cannot find resourceName of: " + resourceName);
+                    } else {
+                        return null;
+                    }
+                }
+                entityType = metadataStore.getEntityType(entityTypeName);
+                if (!entityType) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
+                    } else {
+                        return null;
+                    }
+                }
+                this.entityType = entityType;
+            }
+            return entityType;
+        };
+
+        proto._getToEntityType = function (metadataStore) {
+            if (this.toEntityType instanceof EntityType) {
+                return this.toEntityType;
+            } else if (this.toEntityType) {
+                // toEntityType is a string
+                this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+                return this.toEntityType;
+            } else {
+                // resolve it, if possible, via the resourceName
+                // do not cache this value in this case
+                // cannot determine the toEntityType if a selectClause is present.
+                return (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+            }
+        };
 
         proto._clone = function () {
             var copy = new EntityQuery();
@@ -754,7 +748,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         proto._toUri = function (metadataStore) {
             // force entityType validation;
-            var entityType = this._getEntityType(metadataStore, false);
+            var entityType = this._getFromEntityType(metadataStore, false);
             if (!entityType) {
                 entityType = new EntityType(metadataStore);
             }

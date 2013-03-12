@@ -84,7 +84,7 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitObjectNode: function (value, queryContext) {
+        visitObjectNode: function (value, queryContext, isTopLevel) {
             var result = {};
             
             if (value.__metadata != null) {
@@ -99,17 +99,17 @@
             return result;
         },        
         
-        visitAnonPropNode: function (value, key, queryContext) {
+        visitAnonPropNode: function (value, queryContext, propertyName) {
             var result = {};
-            if (key == "__metadata" ||
+            if (propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
-               (key == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"))) {
+               (propertyName == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"))) {
                 result.ignore = true;
             }
             return result;
         },
 
-        visitNavPropNode: function (value) {
+        visitNavPropNode: function (value, queryContext, navigationProperty) {
             var result = {};
             result.ignore = (value['__deferred'] != null);
             return result;

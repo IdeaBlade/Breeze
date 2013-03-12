@@ -145,7 +145,7 @@
         
         name: "webApi_default",
         
-        visitObjectNode: function (value, isTopLevel, queryContext) {
+        visitObjectNode: function (value, queryContext, isTopLevel) {
             var entityTypeName = EntityType._getNormalizedTypeName(value["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
             
@@ -158,11 +158,11 @@
         },
         
         
-        visitAnonPropNode: function (value, key, queryContext ) {
+        visitAnonPropNode: function (value, queryContext, propertyName ) {
             var result = {};
-            var firstChar = key.substr(0, 1);
+            var firstChar = propertyName.substr(0, 1);
             if (firstChar == "$") {
-                if (key === "$id") {
+                if (propertyName === "$id") {
                     result.nodeId = value;
                 } else {
                     result.ignore = true;

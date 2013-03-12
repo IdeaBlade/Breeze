@@ -1222,24 +1222,18 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         var proto = ctor.prototype;
 
-        proto.copyAdapter = function(entityType) {
-            var newAdapter = new JsonResultsAdapter(this);
-            newAdapter.visitObjectNode = function(e) { return { entityType: entityType }; };
-            return newAdapter;
-        };
-
         proto._$typeName = "JsonResultsAdapter";
 
         function extractResultsDefault(data) {
             return data.results;
         }
         
-        // params are - value, key, queryContext ) {
+        // params are - value, queryContext, propertyName ) {
         function visitAnonPropNodeDefault() {
             return {};
         }
         
-        // params are value, navProp, queryContext
+        // params are value, queryContext, navigationProperty
         function visitNavPropNodeDefault() {
             return {};
         }

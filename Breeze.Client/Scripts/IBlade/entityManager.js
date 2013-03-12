@@ -747,7 +747,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
-            var entityType = query._getEntityType(metadataStore, true);
+            var entityType = query._getFromEntityType(metadataStore, true);
             // TODO: there may be multiple groups once we go further with inheritence
             var group = findOrCreateEntityGroup(this, entityType);
             // filter then order then skip then take
@@ -1799,7 +1799,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // will have already been set if called nested.
             var meta = node._$meta;
             if (!meta) {
-                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, isTopLevel, queryContext);
+                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, queryContext, isTopLevel);
             }
 
             if (meta.ignore) {
@@ -1895,7 +1895,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var result = { };
             core.objectForEach(node, function(key, value) {
 
-                var anonMeta = jsonResultsAdapter.visitAnonPropNode(value, key, queryContext);
+                var anonMeta = jsonResultsAdapter.visitAnonPropNode(value, queryContext, key);
 
                 if (anonMeta.ignore) return;
                 if (anonMeta.nodeId) {
@@ -1914,7 +1914,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         if (v == null) {
                             return v;
                         }
-                        meta = jsonResultsAdapter.visitObjectNode(v, false, queryContext);
+                        meta = jsonResultsAdapter.visitObjectNode(v, queryContext);
                         if (meta.entityType) {
                             v._$meta = meta;
                             return mergeEntity(v, queryContext);
@@ -1931,7 +1931,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                          }
                     });
                 } else {
-                    meta = jsonResultsAdapter.visitObjectNode(value, false, queryContext);
+                    meta = jsonResultsAdapter.visitObjectNode(value, queryContext);
                     
                     if (meta.entityType) {
                         value._$meta = meta;
@@ -2016,7 +2016,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, navigationProperty, queryContext);
+            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, queryContext, navigationProperty);
             if (navMeta.ignore) return;
 
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
@@ -2066,7 +2066,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntities, navigationProperty, queryContext);
+            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntities, queryContext, navigationProperty);
             if (navMeta.ignore) return null;
             
             // Don't think it's needed.
