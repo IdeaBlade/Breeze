@@ -145,17 +145,9 @@
         
         name: "webApi_default",
         
-        visitObjectNode: function (value, queryContext) {
+        visitObjectNode: function (value, isTopLevel, queryContext) {
             var entityTypeName = EntityType._getNormalizedTypeName(value["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-            //var metadataStore = queryContext.entityManager.metadataStore;
-            //var entityType;
-            //if (entityTypeName) {
-            //    entityType = metadataStore.getEntityType(entityTypeName, true);
-            //} else {
-            //    // fallback uses query's resourceName - this will only work for simple jsonResults.
-            //    entityType = queryContext.query._getEntityType(metadataStore, false);
-            //}
             
             return {
                 entityType: entityType,

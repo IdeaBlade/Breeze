@@ -1219,11 +1219,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("visitNavPropNode").isFunction().isOptional().withDefault(visitNavPropNodeDefault)
                 .applyAll(this);
             
-            // processEntityCandidateNode - visitObjectNode
-            // visitAnonPropNode
-            // visitNavPropNode
-            // processDataPropNode
-
         };
         var proto = ctor.prototype;
 

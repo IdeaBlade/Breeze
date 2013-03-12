@@ -904,7 +904,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 fixupKeys(that, saveResult.keyMappings);
                 
                 var queryContext = {
-                    query: null,
+                    query: null, // tells mergeEntity that this is a save instead of a query
                     entityManager: that,
                     jsonResultsAdapter: that.dataService.jsonResultsAdapter,
                     mergeStrategy: MergeStrategy.OverwriteChanges,
@@ -913,7 +913,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 };
                 
                 var savedEntities = saveResult.entities.map(function (rawEntity) {
-                    return mergeEntity(rawEntity, queryContext, true);
+                    return mergeEntity(rawEntity, queryContext);
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 // update _hasChanges after save.
@@ -1759,7 +1759,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         var entities = nodes.map(function (node) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
-                            var entity = mergeEntity(node, queryContext);
+                            var entity = mergeEntity(node, queryContext, true);
                             // anon types and simple types will not have an entityAspect.
                             if (validateOnQuery && entity.entityAspect) {
                                 entity.entityAspect.validateEntity();
@@ -1791,15 +1791,15 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function mergeEntity(node, queryContext, isSaving) {
+        function mergeEntity(node, queryContext, isTopLevel) {
 
             var em = queryContext.entityManager;
             var mergeStrategy = queryContext.mergeStrategy;
-
+            var isSaving = queryContext.query == null;
             // will have already been set if called nested.
             var meta = node._$meta;
             if (!meta) {
-                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, queryContext);
+                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, isTopLevel, queryContext);
             }
 
             if (meta.ignore) {
@@ -1812,7 +1812,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             
             var entityType = meta.entityType;
             if (entityType == null) {
-                return processAnonType(node, queryContext, isSaving);
+                // fallback uses query's resourceName to determine the entityType - this will only work for topLevel jsonResults.
+                entityType = isTopLevel && queryContext.query instanceof EntityQuery && !queryContext.query.selectClause && queryContext.query._getEntityType(em.metadataStore, false);
+                if (!entityType) {
+                    return processAnonType(node, queryContext);
+                }
             }
             
             node._$meta = meta;
@@ -1881,7 +1885,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function processAnonType(node, queryContext, isSaving) {
+        function processAnonType(node, queryContext) {
             var em = queryContext.entityManager;
             var jsonResultsAdapter = queryContext.jsonResultsAdapter;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
@@ -1910,10 +1914,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         if (v == null) {
                             return v;
                         }
-                        meta = jsonResultsAdapter.visitObjectNode(v, queryContext);
+                        meta = jsonResultsAdapter.visitObjectNode(v, false, queryContext);
                         if (meta.entityType) {
                             v._$meta = meta;
-                            return mergeEntity(v, queryContext, isSaving);
+                            return mergeEntity(v, queryContext);
                         } else if (meta.nodeRefId) {
                             refValue = resolveRefEntity(meta.nodeRefId, queryContext);
                             if (typeof refValue == "function") {
@@ -1927,11 +1931,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                          }
                     });
                 } else {
-                    meta = jsonResultsAdapter.visitObjectNode(value, queryContext);
+                    meta = jsonResultsAdapter.visitObjectNode(value, false, queryContext);
                     
                     if (meta.entityType) {
                         value._$meta = meta;
-                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
+                        result[newKey] = mergeEntity(value, queryContext);
                     } else if (meta.nodeRefId) {
                         refValue = resolveRefEntity(meta.nodeRefId, queryContext);                       
                         if (typeof refValue == "function") {
@@ -2014,7 +2018,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (!relatedRawEntity) return null;
             var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, navigationProperty, queryContext);
             if (navMeta.ignore) return;
-            
+
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
         }
