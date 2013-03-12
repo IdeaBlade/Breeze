@@ -84,22 +84,22 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        preprocessEntity: function (rawEntity, queryContext) {
+        visitObjectNode: function (value, queryContext) {
             var result = {};
             
-            if (rawEntity.__metadata != null) {
+            if (value.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = EntityType._getNormalizedTypeName(rawEntity.__metadata.type);
+                var entityTypeName = EntityType._getNormalizedTypeName(value.__metadata.type);
                 var et = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                if (et && et._mappedPropertiesCount === Object.keys(rawEntity).length - 1) {
+                if (et && et._mappedPropertiesCount === Object.keys(value).length - 1) {
                     result.entityType = et;
                 }
             }
-            result.ignore = rawEntity['__deferred'] != null;
+            result.ignore = value['__deferred'] != null;
             return result;
         },        
         
-        preprocessAnonValue: function (key, value, queryContext) {
+        visitAnonPropNode: function (value, key, queryContext) {
             var result = {};
             if (key == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
@@ -109,9 +109,9 @@
             return result;
         },
 
-        preprocessNavigationResult: function (rawEntity) {
+        visitNavPropNode: function (value) {
             var result = {};
-            result.ignore = (rawEntity['__deferred'] != null);
+            result.ignore = (value['__deferred'] != null);
             return result;
         }
 

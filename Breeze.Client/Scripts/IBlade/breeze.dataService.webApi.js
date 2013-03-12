@@ -145,8 +145,8 @@
         
         name: "webApi_default",
         
-        preprocessEntity: function (rawEntity, queryContext) {
-            var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
+        visitObjectNode: function (value, queryContext) {
+            var entityTypeName = EntityType._getNormalizedTypeName(value["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
             //var metadataStore = queryContext.entityManager.metadataStore;
             //var entityType;
@@ -159,14 +159,14 @@
             
             return {
                 entityType: entityType,
-                nodeId: rawEntity.$id,
-                nodeRefId: rawEntity.$ref,
+                nodeId: value.$id,
+                nodeRefId: value.$ref,
                 ignore: false
             };
         },
         
         
-        preprocessAnonValue: function (key, value, queryContext ) {
+        visitAnonPropNode: function (value, key, queryContext ) {
             var result = {};
             var firstChar = key.substr(0, 1);
             if (firstChar == "$") {

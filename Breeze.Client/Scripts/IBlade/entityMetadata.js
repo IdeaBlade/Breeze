@@ -1214,17 +1214,22 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertConfig(config)
                 .whereParam("name").isNonEmptyString()
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
-                .whereParam("preprocessEntity").isFunction()
-                .whereParam("preprocessAnonValue").isFunction().withDefault(preprocessAnonValueDefault)
-                .whereParam("preprocessNavigationResult").isFunction().isOptional().withDefault(preprocessNavigationResultDefault)
+                .whereParam("visitObjectNode").isFunction()
+                .whereParam("visitAnonPropNode").isFunction().withDefault(visitAnonPropNodeDefault)
+                .whereParam("visitNavPropNode").isFunction().isOptional().withDefault(visitNavPropNodeDefault)
                 .applyAll(this);
+            
+            // processEntityCandidateNode - visitObjectNode
+            // visitAnonPropNode
+            // visitNavPropNode
+            // processDataPropNode
 
         };
         var proto = ctor.prototype;
 
         proto.copyAdapter = function(entityType) {
             var newAdapter = new JsonResultsAdapter(this);
-            newAdapter.preprocessEntity = function(e) { return { entityType: entityType }; };
+            newAdapter.visitObjectNode = function(e) { return { entityType: entityType }; };
             return newAdapter;
         };
 
@@ -1234,13 +1239,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return data.results;
         }
         
-        // params are - key, value, queryContext ) {
-        function preprocessAnonValueDefault() {
+        // params are - value, key, queryContext ) {
+        function visitAnonPropNodeDefault() {
             return {};
         }
         
-        // params are rawEntity, queryContext
-        function preprocessNavigationResultDefault() {
+        // params are value, navProp, queryContext
+        function visitNavPropNodeDefault() {
             return {};
         }
 
