@@ -145,30 +145,39 @@
         
         name: "webApi_default",
         
-        preprocessEntity: function(rawEntity, queryContext) {
+        preprocessEntity: function (rawEntity, queryContext) {
             var entityTypeName = EntityType._getNormalizedTypeName(rawEntity["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+            //var metadataStore = queryContext.entityManager.metadataStore;
+            //var entityType;
+            //if (entityTypeName) {
+            //    entityType = metadataStore.getEntityType(entityTypeName, true);
+            //} else {
+            //    // fallback uses query's resourceName - this will only work for simple jsonResults.
+            //    entityType = queryContext.query._getEntityType(metadataStore, false);
+            //}
+            
             return {
                 entityType: entityType,
-                id: rawEntity.$id,
-                refId: rawEntity.$ref,
+                nodeId: rawEntity.$id,
+                nodeRefId: rawEntity.$ref,
                 ignore: false
             };
         },
         
         
-        processAnonValue: function(key, value, queryContext, result) {
+        preprocessAnonValue: function (key, value, queryContext ) {
+            var result = {};
             var firstChar = key.substr(0, 1);
             if (firstChar == "$") {
                 if (key === "$id") {
-                    queryContext.refMap[value] = result;
+                    result.nodeId = value;
+                } else {
+                    result.ignore = true;
                 }
-                return false;
             }
-            return true;
+            return result;
         }
-
-
     });
     
     function getMetadataUrl(serviceName) {

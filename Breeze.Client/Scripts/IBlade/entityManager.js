@@ -906,9 +906,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var queryContext = {
                     query: null,
                     entityManager: that,
-                    dataService: that.dataService,
+                    jsonResultsAdapter: that.dataService.jsonResultsAdapter,
                     mergeStrategy: MergeStrategy.OverwriteChanges,
-                    resolveEntityType: that.dataService.jsonResultsAdapter.resolveEntityType,
                     refMap: {},
                     deferredFns: []
                 };
@@ -1719,17 +1718,17 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         return { results: results, query: query };
                     });
                 }
-                // _getResolveEntityTypeFn does not exist on raw OData queries
-                var queryResolveEntityType = query._getResolveEntityTypeFn && query._getResolveEntityTypeFn(metadataStore);
-                var resolveEntityTypeFn = queryResolveEntityType || dataService.jsonResultsAdapter.resolveEntityType;
-                
+                // _getJsonResultsAdapter does not exist on raw OData queries
+                var queryResultsAdapter = query._getJsonResultsAdapter && query._getJsonResultsAdapter(em);
+                var jsonResultsAdapter = queryResultsAdapter || dataService.jsonResultsAdapter;
+
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
                      query: query,
                      entityManager: em,
                      dataService: dataService,
                      mergeStrategy: queryOptions.mergeStrategy,
-                     resolveEntityType: resolveEntityTypeFn,
+                     jsonResultsAdapter: jsonResultsAdapter,
                      refMap: {}, 
                      deferredFns: []
                 };
@@ -1753,7 +1752,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         queryContext = null;
                         
                     }, function () {
-                        var rawEntities = dataService.jsonResultsAdapter.extractResults(data);
+                        var rawEntities = jsonResultsAdapter.extractResults(data);
                         if (!Array.isArray(rawEntities)) {
                             rawEntities = [rawEntities];
                         }
@@ -1795,21 +1794,20 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeEntity(rawEntity, queryContext, isSaving) {
 
             var em = queryContext.entityManager;
-            var dataService = queryContext.dataService;
             var mergeStrategy = queryContext.mergeStrategy;
 
             // will have already been set if called nested.
             var meta = rawEntity._$meta;
             if (!meta) {
-                meta = dataService.jsonResultsAdapter.preprocessEntity(rawEntity, queryContext);
+                meta = queryContext.jsonResultsAdapter.preprocessEntity(rawEntity, queryContext);
             }
 
             if (meta.ignore) {
                 return null;
             }
             
-            if (meta.refId) {
-                return resolveRefEntity(meta.refId, queryContext);
+            if (meta.nodeRefId) {
+                return resolveRefEntity(meta.nodeRefId, queryContext);
             }
             
             var entityType = meta.entityType;
@@ -1874,10 +1872,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
         // -- undefined means that this is not a ref entity.
 
-        function resolveRefEntity(refId, queryContext) {
-            var entity = queryContext.refMap[refId];
+        function resolveRefEntity(nodeRefId, queryContext) {
+            var entity = queryContext.refMap[nodeRefId];
             if (entity === undefined) {
-                return function() { return queryContext.refMap[refId]; };
+                return function() { return queryContext.refMap[nodeRefId]; };
             } else {
                 return entity;
             }
@@ -1885,16 +1883,22 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
 
         function processAnonType(rawEntity, queryContext, isSaving) {
             var em = queryContext.entityManager;
-            var dataService = queryContext.dataService;
-            var jsonResultsAdapter = dataService.jsonResultsAdapter;
+            var jsonResultsAdapter = queryContext.jsonResultsAdapter;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             if (typeof rawEntity !== 'object') {
                 return rawEntity;
             }
             var result = { };
             core.objectForEach(rawEntity, function(key, value) {
-          
-                if (!jsonResultsAdapter.processAnonValue(key, value, queryContext, result)) return;
+
+                var anonMeta = jsonResultsAdapter.preprocessAnonValue(key, value, queryContext);
+
+                if (anonMeta.ignore) return;
+                if (anonMeta.nodeId) {
+                    // value === anonMeta.nodeId
+                    queryContext.refMap[value] = result;
+                    return;
+                }
                 
                 var newKey = keyFn(key);
                 var meta, refValue;
@@ -1910,8 +1914,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         if (meta.entityType) {
                             v._$meta = meta;
                             return mergeEntity(v, queryContext, isSaving);
-                        } else if (meta.refId) {
-                            refValue = resolveRefEntity(meta.refId, queryContext);
+                        } else if (meta.nodeRefId) {
+                            refValue = resolveRefEntity(meta.nodeRefId, queryContext);
                             if (typeof refValue == "function") {
                                 queryContext.deferredFns.push(function() {
                                     arr[ix] = refValue();
@@ -1928,8 +1932,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     if (meta.entityType) {
                         value._$meta = meta;
                         result[newKey] = mergeEntity(value, queryContext, isSaving, true);
-                    } else if (meta.refId) {
-                        refValue = resolveRefEntity(meta.refId, queryContext);                       
+                    } else if (meta.nodeRefId) {
+                        refValue = resolveRefEntity(meta.nodeRefId, queryContext);                       
                         if (typeof refValue == "function") {
                             queryContext.deferredFns.push(function() {
                                 result[newKey] = refValue();
@@ -1985,9 +1989,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         
         
         function updateCurrentRef(queryContext, targetEntity, rawEntity) {
-            var id = rawEntity._$meta.id;
-            if (id != null) {
-                queryContext.refMap[id] = targetEntity;
+            var nodeId = rawEntity._$meta.nodeId;
+            if (nodeId != null) {
+                queryContext.refMap[nodeId] = targetEntity;
             }
         }
 
@@ -2008,7 +2012,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            if (!queryContext.dataService.jsonResultsAdapter.processNavigationResult(relatedRawEntity, queryContext)) return null;
+            var navMeta = queryContext.jsonResultsAdapter.preprocessNavigationResult(relatedRawEntity, queryContext);
+            if (navMeta.ignore) return;
             
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
@@ -2057,8 +2062,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            if (!queryContext.dataService.jsonResultsAdapter.processNavigationResult(relatedRawEntities, queryContext)) return null;
-
+            var navMeta = queryContext.jsonResultsAdapter.preprocessNavigationResult(relatedRawEntities, queryContext);
+            if (navMeta.ignore) return null;
+            
             // Don't think it's needed.
             // if (!Array.isArray(relatedRawEntities)) return null;
 
@@ -2750,8 +2756,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             eq.queryOptions = queryOptions.using(obj);
         } else if (obj instanceof DataService) {
             eq.dataService = obj;
+        } else if (obj instanceof JsonResultsAdapter) {
+            eq.jsonResultsAdapter = obj;
         } else {
-            throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy or a FetchStrategy");
+        throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy, a FetchStrategy, a DataService or a JsonResultsAdapter");
         }
         return eq;
     };

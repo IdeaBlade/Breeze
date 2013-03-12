@@ -1215,12 +1215,18 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("name").isNonEmptyString()
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
                 .whereParam("preprocessEntity").isFunction()
-                .whereParam("processAnonValue").isFunction().withDefault(processAnonValueDefault)
-                .whereParam("processNavigationResult").isFunction().isOptional().withDefault(processNavigationResultDefault)
+                .whereParam("preprocessAnonValue").isFunction().withDefault(preprocessAnonValueDefault)
+                .whereParam("preprocessNavigationResult").isFunction().isOptional().withDefault(preprocessNavigationResultDefault)
                 .applyAll(this);
 
         };
         var proto = ctor.prototype;
+
+        proto.copyAdapter = function(entityType) {
+            var newAdapter = new JsonResultsAdapter(this);
+            newAdapter.preprocessEntity = function(e) { return { entityType: entityType }; };
+            return newAdapter;
+        };
 
         proto._$typeName = "JsonResultsAdapter";
 
@@ -1228,14 +1234,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             return data.results;
         }
         
-        // params are rawEntity, queryContext
-        function processNavigationResultDefault() {
-            return true;
+        // params are - key, value, queryContext ) {
+        function preprocessAnonValueDefault() {
+            return {};
         }
         
-        // params are - key, value, queryContext, result) {
-        function processAnonValueDefault() {
-            return true;
+        // params are rawEntity, queryContext
+        function preprocessNavigationResultDefault() {
+            return {};
         }
 
         return ctor;

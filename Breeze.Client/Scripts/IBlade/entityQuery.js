@@ -15,6 +15,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
+    var JsonResultsAdapter = m_entityMetadata.JsonResultsAdapter;
     
     
     var EntityQuery = (function () {
@@ -206,33 +207,32 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         // Allow types to be defined client side.
-        proto.toType = function(typeOrFunction) {
-            assertParam(typeOrFunction, "typeOrFunction").isString().or.isInstanceOf(EntityType).or().isFunction().check();
+        proto.toType = function(entityType) {
+            assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
-            eq.toType = typeOrFunction;
+            eq.toEntityType = entityType;
+            eq.jsonResultsAdapter = null;
         };
 
-        proto._getResolveEntityTypeFn = function(metadataStore) {
-            if (this._resolveEntityType === undefined) return this._resolveEntityType;
-            var tmp = this.toType;
-            var type, resolveEntityType = null;
-            
+        // returns null or a jsonResultAdapter
+        proto._getJsonResultsAdapter = function(entityManager) {
+            if (this.jsonResultsAdapter !== undefined) return this.jsonResultsAdapter;
+            if (!this.toType) return null;
+            var tmp = this.toEntityType;
+            var type;
+            var metadataStore = entityManager.metadataStore;
             if (typeof(tmp) === 'string') {
                 type = metadataStore.getEntityType(tmp, false);
-                resolveEntityType = function (e) { return type; };
             } else if (tmp instanceof EntityType) {
-                resolveEntityType = function (e) { return tmp; };
-            } else if (typeof(tmp) === 'function') {
-                resolveEntityType = tmp;
-            } else {
-                type = this._getEntityType(metadataStore, false);
-                if (type) {
-                    resolveEntityType = function (e) { return type; };
-                }
+                type = tmp;
+            } 
+            if (type) {
+                this.jsonResultsAdapter = entityManager.dataService.jsonResultsAdapter.copyAdapter(type);
             }
-            this._resolveEntityType = resolveEntityType;
-            return resolveEntityType;
+            
+            return this.jsonResultsAdapter;
         };
+        
         
         /**
         Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
