@@ -102,19 +102,32 @@ video
 
 /* #endregion */
 
-/* #region plunker-jsFiddle overrides*/
+/* #region demo overrides*/
 .ng-cloak { display: none; }
 
 .error {
     color: red;
+    font-weight:bold;
 }
+.message {
+    color: blue;
+    font-style: italic;
+}
+.isDirty {
+      color: red;
+      font-style: italic; 
+}
+    input.isDirty {
+        background: lightgoldenrodyellow;
+        font-weight:bold;
+    }
 .items li {
   list-style-type: none;
 }
 
 .loglist ol {
-    list-style-type: decimal;
     font-size: .5em;
+    list-style-type: decimal;
 }
     .loglist li {
          font-size: .8em;
