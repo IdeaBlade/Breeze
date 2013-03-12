@@ -1813,7 +1813,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var entityType = meta.entityType;
             if (entityType == null) {
                 // fallback uses query's resourceName to determine the entityType - this will only work for topLevel jsonResults.
-                entityType = isTopLevel && queryContext.query instanceof EntityQuery && !queryContext.query.selectClause && queryContext.query._getEntityType(em.metadataStore, false);
+                entityType = isTopLevel && queryContext.query && queryContext.query._getToEntityType && queryContext.query._getToEntityType(em.metadataStore);
                 if (!entityType) {
                     return processAnonType(node, queryContext);
                 }

@@ -211,28 +211,23 @@ function (core, m_entityMetadata, m_entityAspect) {
             assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
             eq.toEntityType = entityType;
-            eq.jsonResultsAdapter = null;
         };
 
-        // returns null or a jsonResultAdapter
-        proto._getJsonResultsAdapter = function(entityManager) {
-            if (this.jsonResultsAdapter !== undefined) return this.jsonResultsAdapter;
-            if (!this.toType) return null;
-            var tmp = this.toEntityType;
-            var type;
-            var metadataStore = entityManager.metadataStore;
-            if (typeof(tmp) === 'string') {
-                type = metadataStore.getEntityType(tmp, false);
-            } else if (tmp instanceof EntityType) {
-                type = tmp;
-            } 
-            if (type) {
-                this.jsonResultsAdapter = entityManager.dataService.jsonResultsAdapter.copyAdapter(type);
+        proto._getToEntityType = function (metadataStore) {
+            if (this.toEntityType instanceof EntityType) {
+                return this.toEntityType;
+            } else if (this.toEntityType) {
+                // toEntityType is a string
+                this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+                return this.toEntityType;
+            } else {
+                // resolve it, if possible, via the resourceName
+                // do not cache this value in this case
+                // cannot determine the toEntityType if a selectClause is present.
+                return (!this.selectClause) && this._getEntityType(metadataStore, false);
             }
-            
-            return this.jsonResultsAdapter;
         };
-        
+
         
         /**
         Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
