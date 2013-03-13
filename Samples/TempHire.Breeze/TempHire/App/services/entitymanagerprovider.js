@@ -5,8 +5,6 @@
         var serviceName = "api";
         var masterManager = new breeze.EntityManager(serviceName);
 
-        extendEntities(masterManager.metadataStore);
-
         var EntityManagerProvider = (function() {
 
             var entityManagerProvider = function() {
@@ -132,10 +130,15 @@
         }
 
         function prepare() {
-            var query = breeze.EntityQuery
-                .from("Lookups");
+            return masterManager.fetchMetadata()
+                .then(function() {
+                    extendEntities(masterManager.metadataStore);
 
-            return masterManager.executeQuery(query);
+                    var query = breeze.EntityQuery
+                        .from("Lookups");
+
+                    return masterManager.executeQuery(query);
+                });
         }
         
         function ensureEntityType(obj, entityTypeName) {
