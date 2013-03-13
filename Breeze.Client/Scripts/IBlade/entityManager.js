@@ -2550,10 +2550,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         proto.toJSON = function () {
-            return {
-                fetchStrategy: this.fetchStrategy.name,
-                mergeStrategy: this.mergeStrategy.name
-            };
+            return core._toJson(this);
         };
 
         ctor.fromJSON = function (json) {

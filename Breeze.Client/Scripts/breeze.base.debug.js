@@ -409,6 +409,26 @@ define('coreFns',[],function () {
         return target;
     }
 
+    function toJson(source, addlPropNames) {
+        var target = {};
+        for (var name in source) {
+            if (hasOwnProperty.call(source, name) && name.substr(0, 1) != "_") {
+                var value = source[name];
+                if (isFunction(value)) continue;
+                if (typeof(value) === "object") {
+                    if (value && value.parentEnum) {
+                        target[name] = value.name;
+                    }
+                } else {
+                    target[name] = value;
+                }
+            }
+        }
+        addlPropNames && addlPropNames.forEach(function(n) {
+            target[n] = source[n];
+        });
+        return target;
+    }
 
     // array functions
 
@@ -688,6 +708,7 @@ define('coreFns',[],function () {
         //objectFilter: objectFilter,
 
         extend: extend,
+        toJson: toJson,
         propEq: propEq,
         pluck: pluck,
 
@@ -1290,7 +1311,10 @@ define('assertParam',["coreFns"], function (core) {
         // should be no properties left in the clone
         if (throwIfUnknownProperty) {
             for (var key in clone) {
-                throw new Error("Invalid property in config: " + key);
+                // allow props with an undefined value
+                if (clone[key] !== undefined) {
+                    throw new Error("Invalid property in config: " + key);
+                }
             }
         }
     };
@@ -4568,6 +4592,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         var proto = ctor.prototype;
         proto._$typeName = "NamingConvention";
+        
         /**
         The function used to convert server side property names to client side property names.
 
@@ -5599,11 +5624,12 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         
         proto.toJSON = function () {
-            return {
-                serviceName: this.serviceName,
-                adapterName: this.adapterName || this.adapterInstance.name,
-                hasServerMetadata: this.hasServerMetadata
-            };
+            return core.toJson(this);
+            //return {
+            //    serviceName: this.serviceName,
+            //    adapterName: this.adapterName || this.adapterInstance.name,
+            //    hasServerMetadata: this.hasServerMetadata
+            //};
         };
 
   
@@ -5637,7 +5663,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         var proto = ctor.prototype;
 
         proto._$typeName = "JsonResultsAdapter";
-
+        
+        
         function extractResultsDefault(data) {
             return data.results;
         }
@@ -5714,6 +5741,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         var proto = ctor.prototype;
         proto._$typeName = "EntityType";
+        
         
         /**
         The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
@@ -6113,6 +6141,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         proto.toJSON = function () {
+            return core.toJson(this, ["dataProperties", "navigationProperties", "validators"]);
             return {
                 name: this.name,
                 shortName: this.shortName,
@@ -6566,13 +6595,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto._setCtor = EntityType.prototype._setCtor;
         
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                shortName: this.shortName,
-                namespace: this.namespace,
-                dataProperties: this.dataProperties,
-                validators: this.validators
-            };
+            return core.toJson(this, ["dataProperties", "validators"]);
+            //return {
+            //    name: this.name,
+            //    shortName: this.shortName,
+            //    namespace: this.namespace,
+            //    dataProperties: this.dataProperties,
+            //    validators: this.validators
+            //};
         };
        
         proto._fixup = function () {
@@ -6638,6 +6668,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("maxLength").isNumber().isOptional()
                 .whereParam("fixedLength").isBoolean().isOptional()
                 .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
+                .whereParam("enumType").isOptional()
+                .whereParam("rawTypeName").isOptional() // occurs with undefined datatypes
                 .applyAll(this);
             var hasName = !!(this.name || this.nameOnServer);
             if (!hasName) {
@@ -6790,20 +6822,23 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.isNavigationProperty = false;
 
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                nameOnServer: this.nameOnServer,
-                dataType: this.dataType.name,
-                complexTypeName: this.complexTypeName,
-                isNullable: this.isNullable,
-                isUnmapped: this.isUnmapped,
-                concurrencyMode: this.concurrencyMode,
-                maxLength: this.maxLength,
-                fixedLength: this.fixedLength,
-                defaultValue: this.defaultValue,
-                validators: this.validators,
-                isPartOfKey: this.isPartOfKey
-            };
+            var json = core.toJson(this, ["validators"]);
+            json.isComplexProperty = undefined;
+            return json;
+            //return {
+            //    name: this.name,
+            //    nameOnServer: this.nameOnServer,
+            //    dataType: this.dataType.name,
+            //    complexTypeName: this.complexTypeName,
+            //    isNullable: this.isNullable,
+            //    isUnmapped: this.isUnmapped,
+            //    concurrencyMode: this.concurrencyMode,
+            //    maxLength: this.maxLength,
+            //    fixedLength: this.fixedLength,
+            //    defaultValue: this.defaultValue,
+            //    validators: this.validators,
+            //    isPartOfKey: this.isPartOfKey
+            //};
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
@@ -6971,16 +7006,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.isNavigationProperty = true;
 
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                nameOnServer: this.nameOnServer,
-                entityTypeName: this.entityTypeName,
-                isScalar: this.isScalar,
-                associationName: this.associationName,
-                foreignKeyNames: this.foreignKeyNames,
-                foreignKeyNamesOnServer: this.foreignKeyNamesOnServer,
-                validators: this.validators
-            };
+            return core.toJson(this, ["validators"]);
+            //return {
+            //    name: this.name,
+            //    nameOnServer: this.nameOnServer,
+            //    entityTypeName: this.entityTypeName,
+            //    isScalar: this.isScalar,
+            //    associationName: this.associationName,
+            //    foreignKeyNames: this.foreignKeyNames,
+            //    foreignKeyNamesOnServer: this.foreignKeyNamesOnServer,
+            //    validators: this.validators
+            //};
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
@@ -12264,10 +12300,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         };
 
         proto.toJSON = function () {
-            return {
-                fetchStrategy: this.fetchStrategy.name,
-                mergeStrategy: this.mergeStrategy.name
-            };
+            return core.toJson(this);
+            //return {
+            //    fetchStrategy: this.fetchStrategy.name,
+            //    mergeStrategy: this.mergeStrategy.name
+            //};
         };
 
         ctor.fromJSON = function (json) {

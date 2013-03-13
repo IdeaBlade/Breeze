@@ -291,7 +291,10 @@ define(["coreFns"], function (core) {
         // should be no properties left in the clone
         if (throwIfUnknownProperty) {
             for (var key in clone) {
-                throw new Error("Invalid property in config: " + key);
+                // allow props with an undefined value
+                if (clone[key] !== undefined) {
+                    throw new Error("Invalid property in config: " + key);
+                }
             }
         }
     };

@@ -109,6 +109,26 @@ define(function () {
         return target;
     }
 
+    function toJson(source, addlPropNames) {
+        var target = {};
+        for (var name in source) {
+            if (hasOwnProperty.call(source, name) && name.substr(0, 1) != "_") {
+                var value = source[name];
+                if (isFunction(value)) continue;
+                if (typeof(value) === "object") {
+                    if (value && value.parentEnum) {
+                        target[name] = value.name;
+                    }
+                } else {
+                    target[name] = value;
+                }
+            }
+        }
+        addlPropNames && addlPropNames.forEach(function(n) {
+            target[n] = source[n];
+        });
+        return target;
+    }
 
     // array functions
 
@@ -388,6 +408,7 @@ define(function () {
         //objectFilter: objectFilter,
 
         extend: extend,
+        _toJson: toJson,
         propEq: propEq,
         pluck: pluck,
 
