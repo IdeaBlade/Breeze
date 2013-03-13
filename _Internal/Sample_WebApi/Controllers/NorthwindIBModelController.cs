@@ -208,6 +208,12 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpGet]
+    public Object CustomersAndProducts() {
+      var stuff = new {Customers = ContextProvider.Context.Customers.ToList(), Products = ContextProvider.Context.Products.ToList()};
+      return stuff;
+    }
+
+    [HttpGet]
     public IQueryable<Object> TypeEnvelopes() {
       var stuff = this.GetType().Assembly.GetTypes()
         .Select(t => new { t.Assembly.FullName, t.Name, t.Namespace })

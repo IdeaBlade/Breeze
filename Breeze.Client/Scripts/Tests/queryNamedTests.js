@@ -209,7 +209,9 @@ define(["testFns"], function (testFns) {
             var results = data.results;
             ok(results.length > 0);
             results.forEach(function (r) {
-                var x = r;
+                ok(r.customer, "cant find customer");
+                ok(r.customer.entityAspect, "customer doesn't have entityAspect");
+                ok(r.bigOrders, "can't find bigOrders");
             });
         }).fail(function (e) {
             testFns.handleFail(e);
@@ -364,5 +366,18 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
+    test("select scalar anon with two collection props", function () {
+
+        var em = newEm();
+        var query = EntityQuery
+            .from("CustomersAndProducts");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            start();
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     return testFns;
 });

@@ -257,6 +257,11 @@ define(function () {
         try {
             state = startFn();
             return fn();
+        } catch (e) {
+            if (typeof(state) === 'object') {
+                state.error = e;
+            }
+            throw e;
         } finally {
             endFn(state);
         }

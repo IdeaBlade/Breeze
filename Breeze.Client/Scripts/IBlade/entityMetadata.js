@@ -1211,9 +1211,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             assertConfig(config)
                 .whereParam("name").isNonEmptyString()
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
-                .whereParam("visitObjectNode").isFunction()
-                .whereParam("visitAnonPropNode").isFunction().withDefault(visitAnonPropNodeDefault)
-                .whereParam("visitNavPropNode").isFunction().isOptional().withDefault(visitNavPropNodeDefault)
+                .whereParam("visitNode").isFunction()
                 .applyAll(this);
             
         };

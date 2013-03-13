@@ -84,7 +84,7 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitObjectNode: function (value, queryContext, isTopLevel) {
+        visitNode: function (value, queryContext, propertyName) {
             var result = {};
             
             if (value.__metadata != null) {
@@ -95,26 +95,12 @@
                     result.entityType = et;
                 }
             }
-            result.ignore = value['__deferred'] != null;
+            result.ignore = value.__deferred != null || propertyName == "__metadata" ||
+                // EntityKey properties can be produced by EDMX models
+                (propertyName == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"));
             return result;
         },        
         
-        visitAnonPropNode: function (value, queryContext, propertyName) {
-            var result = {};
-            if (propertyName == "__metadata" ||
-                // EntityKey properties can be produced by EDMX models
-               (propertyName == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"))) {
-                result.ignore = true;
-            }
-            return result;
-        },
-
-        visitNavPropNode: function (value, queryContext, navigationProperty) {
-            var result = {};
-            result.ignore = (value['__deferred'] != null);
-            return result;
-        }
-
     });
 
     function getMetadataUrl(serviceName) {

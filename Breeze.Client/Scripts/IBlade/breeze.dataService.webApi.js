@@ -145,31 +145,19 @@
         
         name: "webApi_default",
         
-        visitObjectNode: function (value, queryContext, isTopLevel) {
+        visitNode: function (value, queryContext, propertyName) {
             var entityTypeName = EntityType._getNormalizedTypeName(value["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-            
+            var ignore = propertyName && propertyName.substr(0, 1) === "$";
+
             return {
                 entityType: entityType,
                 nodeId: value.$id,
                 nodeRefId: value.$ref,
-                ignore: false
+                ignore: ignore
             };
         },
         
-        
-        visitAnonPropNode: function (value, queryContext, propertyName ) {
-            var result = {};
-            var firstChar = propertyName.substr(0, 1);
-            if (firstChar == "$") {
-                if (propertyName === "$id") {
-                    result.nodeId = value;
-                } else {
-                    result.ignore = true;
-                }
-            }
-            return result;
-        }
     });
     
     function getMetadataUrl(serviceName) {

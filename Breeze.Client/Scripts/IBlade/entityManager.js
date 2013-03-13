@@ -1750,7 +1750,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         // HACK for GC
                         query = null;
                         queryContext = null;
-                        
+                        // HACK: some errors thrown in next function do not propogate properly - this catches them.
+                        if (state.error) deferred.reject(state.error);
+
                     }, function () {
                         var nodes = jsonResultsAdapter.extractResults(data);
                         if (!Array.isArray(nodes)) {
@@ -1799,7 +1801,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // will have already been set if called nested.
             var meta = node._$meta;
             if (!meta) {
-                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, queryContext, isTopLevel);
+                meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext);
             }
 
             if (meta.ignore) {
@@ -1871,11 +1873,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-        // resolveRefEntity will return one of 4 values;  a targetEntity, a fn that returns a target entity, a null or an undefined.
-        // null and undefined have different meanings 
-        // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
-        // -- undefined means that this is not a ref entity.
-
         function resolveRefEntity(nodeRefId, queryContext) {
             var entity = queryContext.refMap[nodeRefId];
             if (entity === undefined) {
@@ -1895,17 +1892,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var result = { };
             core.objectForEach(node, function(key, value) {
 
-                var anonMeta = jsonResultsAdapter.visitAnonPropNode(value, queryContext, key);
+                var meta = jsonResultsAdapter.visitNode(value, queryContext, key);
 
-                if (anonMeta.ignore) return;
-                if (anonMeta.nodeId) {
-                    // value === anonMeta.nodeId
-                    queryContext.refMap[value] = result;
-                    return;
-                }
+                if (meta.ignore) return;
                 
                 var newKey = keyFn(key);
-                var meta, refValue;
+                var refValue;
                 // == is deliberate here instead of ===
                 if (value == null) {
                     result[newKey] = value;
@@ -1914,10 +1906,10 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         if (v == null) {
                             return v;
                         }
-                        meta = jsonResultsAdapter.visitObjectNode(v, queryContext);
-                        if (meta.entityType) {
-                            v._$meta = meta;
-                            return mergeEntity(v, queryContext);
+                        meta = jsonResultsAdapter.visitNode(v, queryContext, ix.toString());
+                       
+                        if (meta.ignore) {
+                            return null;
                         } else if (meta.nodeRefId) {
                             refValue = resolveRefEntity(meta.nodeRefId, queryContext);
                             if (typeof refValue == "function") {
@@ -1926,25 +1918,32 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                                 });
                             }
                             return refValue;
-                         } else {
+                        } else if (meta.entityType) {
+                            v._$meta = meta;
+                            return mergeEntity(v, queryContext);
+                        } else {
+                            if (meta.nodeId) {
+                                queryContext.refMap[meta.nodeId] = v;
+                            }
                             return v;
-                         }
+                        }
                     });
                 } else {
-                    meta = jsonResultsAdapter.visitObjectNode(value, queryContext);
-                    
-                    if (meta.entityType) {
-                        value._$meta = meta;
-                        result[newKey] = mergeEntity(value, queryContext);
-                    } else if (meta.nodeRefId) {
-                        refValue = resolveRefEntity(meta.nodeRefId, queryContext);                       
+                    if (meta.nodeRefId) {
+                        refValue = resolveRefEntity(meta.nodeRefId, queryContext);
                         if (typeof refValue == "function") {
                             queryContext.deferredFns.push(function() {
                                 result[newKey] = refValue();
                             });
                         }
                         result[newKey] = refValue;
+                    } else if (meta.entityType) {
+                        value._$meta = meta;
+                        result[newKey] = mergeEntity(value, queryContext);
                     } else {
+                        if (meta.nodeId) {
+                            queryContext.refMap[meta.nodeId] = value;
+                        }
                         result[newKey] = value;
                     }
                 }
@@ -2016,8 +2015,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, queryContext, navigationProperty);
-            if (navMeta.ignore) return;
+            //var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, queryContext, navigationProperty);
+            //if (navMeta.ignore) return;
 
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
@@ -2066,11 +2065,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntities, queryContext, navigationProperty);
-            if (navMeta.ignore) return null;
             
-            // Don't think it's needed.
-            // if (!Array.isArray(relatedRawEntities)) return null;
+            // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
+            if (!Array.isArray(relatedRawEntities)) return null;
 
             var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
                 return mergeEntity(relatedRawEntity, queryContext);
