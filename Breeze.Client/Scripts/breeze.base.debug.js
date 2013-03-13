@@ -2121,7 +2121,8 @@ function (core) {
                 }
             } else {
                 // enum
-                dt = DataType.Int32;
+                // dt = DataType.Int32;
+                dt = DataType.String;
             }
         }
 
@@ -4774,6 +4775,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === "metadataStore") return null;
+                if (key === "adapterInstance") return null;
                 if (key === "namingConvention" || key === "localQueryComparisonOptions") {
                     return value.name;
                 }
@@ -4935,18 +4937,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 // use the dataService with a matching name or create a new one.
                 dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
-
-            var serviceName = dataService.serviceName;
-            
-            if (this.hasMetadataFor(serviceName)) {
-                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + serviceName);
+           
+            if (this.hasMetadataFor(dataService.serviceName)) {
+                throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
             }
             
-            var dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-            var that = this;
+            dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
@@ -5551,11 +5549,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("serviceName").isNonEmptyString()
                 .whereParam("adapterName").isString().isOptional().withDefault(null)
                 .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
+                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
                 .applyAll(this);
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
+            this.adapterInstance = a_config.getAdapterInstance("dataService", this.adapterName);
             
+            if (!this.jsonResultsAdapter) {
+                this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
+            }
         };
         var proto = ctor.prototype;
+        proto._$typeName = "DataService";
         
         /**
         The serviceName for this DataService.
@@ -5570,6 +5574,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property adapterName {String}
         **/
+        
+        /**
+       The "dataService" adapter implementation instance associated with this EntityManager.
+
+       __readOnly__
+       @property adapterInstance {an instance of the "dataService" adapter interface}
+       **/
 
         /**
         Whether the server can provide metadata for this service.
@@ -5577,7 +5588,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property hasServerMetadata {Boolean}
         **/
-
+        
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
             if (serviceName.substr(-1) !== "/") {
@@ -5587,10 +5598,62 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        proto._$typeName = "DataService";
+        proto.toJSON = function () {
+            return {
+                serviceName: this.serviceName,
+                adapterName: this.adapterName || this.adapterInstance.name,
+                hasServerMetadata: this.hasServerMetadata
+            };
+        };
+
+  
+
         
         return ctor;
     }();
+    
+    var JsonResultsAdapter = (function () {
+
+        /**
+        A JsonREsultsAdapter is used ... 
+
+        @class JsonResultsAdapter
+        **/
+
+        var ctor = function (config) {
+            if (arguments.length != 1) {
+                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+            }
+
+            assertConfig(config)
+                .whereParam("name").isNonEmptyString()
+                .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
+                .whereParam("visitObjectNode").isFunction()
+                .whereParam("visitAnonPropNode").isFunction().withDefault(visitAnonPropNodeDefault)
+                .whereParam("visitNavPropNode").isFunction().isOptional().withDefault(visitNavPropNodeDefault)
+                .applyAll(this);
+            
+        };
+        var proto = ctor.prototype;
+
+        proto._$typeName = "JsonResultsAdapter";
+
+        function extractResultsDefault(data) {
+            return data.results;
+        }
+        
+        // params are - value, queryContext, propertyName ) {
+        function visitAnonPropNodeDefault() {
+            return {};
+        }
+        
+        // params are value, queryContext, navigationProperty
+        function visitNavPropNodeDefault() {
+            return {};
+        }
+
+        return ctor;
+    })();
 
     var EntityType = (function () {
         /**
@@ -5650,6 +5713,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
         };
         var proto = ctor.prototype;
+        proto._$typeName = "EntityType";
         
         /**
         The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
@@ -5753,9 +5817,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property validators {Array of Validator} 
         **/
-            
-
-        proto._$typeName = "EntityType";
 
         /**
         General purpose property set method
@@ -7068,6 +7129,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     return {
         MetadataStore: MetadataStore,
         DataService: DataService,
+        JsonResultsAdapter: JsonResultsAdapter,
         EntityType: EntityType,
         ComplexType: ComplexType,
         DataProperty: DataProperty,
@@ -7098,6 +7160,7 @@ function (core, m_entityMetadata, m_entityAspect) {
     
     var EntityAspect = m_entityAspect.EntityAspect;
     var EntityKey = m_entityAspect.EntityKey;
+    var JsonResultsAdapter = m_entityMetadata.JsonResultsAdapter;
     
     
     var EntityQuery = (function () {
@@ -7137,7 +7200,8 @@ function (core, m_entityMetadata, m_entityAspect) {
             this.inlineCountEnabled = false;
             // default is to get queryOptions from the entityManager.
             this.queryOptions = null;
-            this.entityManager = null;                 
+            this.entityManager = null;
+            this.dataService = null;
         };
         var proto = ctor.prototype;
 
@@ -7196,51 +7260,8 @@ function (core, m_entityMetadata, m_entityAspect) {
         __readOnly__
         @property entityManager {EntityManager}
         **/
+       
 
-        /*
-        Made internal for now.
-        @method getEntityType
-        @param metadataStore {MetadataStore} The {{#crossLink "MetadataStore"}}{{/crossLink}} in which to locate the 
-        {{#crossLink "EntityType"}}{{/crossLink}} returned by this query. 
-        @param [throwErrorIfNotFound = false] {Boolean} Whether or not to throw an error if an EntityType cannot be found.
-        @return {EntityType} Will return a null if the resource has not yet been resolved and throwErrorIfNotFound is false. 
-        */
-        proto._getEntityType = function (metadataStore, throwErrorIfNotFound) {
-            assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
-            assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
-            var entityType = this.entityType;
-            if (!entityType) {
-                var resourceName = this.resourceName;
-                if (!resourceName) {
-                    throw new Error("There is no resourceName for this query");
-                }
-                if (metadataStore.isEmpty()) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("There is no metadata available for this query");
-                    } else {
-                        return null;
-                    }
-                }
-                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
-                if (!entityTypeName) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("Cannot find resourceName of: " + resourceName);
-                    } else {
-                        return null;
-                    }
-                }
-                entityType = metadataStore.getEntityType(entityTypeName);
-                if (!entityType) {
-                    if (throwErrorIfNotFound) {
-                        throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
-                    } else {
-                        return null;
-                    }
-                }
-                this.entityType = entityType;
-            }
-            return entityType;
-        };
 
         /**
         Specifies the resource to query for this EntityQuery.
@@ -7287,28 +7308,12 @@ function (core, m_entityMetadata, m_entityAspect) {
         };
 
         // Allow types to be defined client side.
-        proto.toType = function(typeOrFunction) {
-            assertParam(typeOrFunction, "typeOrFunction").isString().or.isInstanceOf(EntityType).or().isFunction().check();
+        proto.toType = function(entityType) {
+            assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
-            eq.toType = typeOrFunction;
+            eq.toEntityType = entityType;
         };
 
-        proto._getToTypeFn = function(metadataStore) {
-            if (this._toTypeFn === undefined) return this._toTypeFn;
-            var tmp = this.toType;
-            var toTypeFn;
-            if (typeof(tmp) === 'string') {
-                var type = metadataStore.getEntityType(tmp, false);
-                toTypeFn = function(e) { return type; };
-            } else if (tmp instanceof EntityType) {
-                toTypeFn = function (e) { return tmp; };
-            } else if (typeof(tmp) === 'function') {
-                toTypeFn = tmp;
-            } else {
-                // use getEntityTypeNameFromResourceName;
-            }
-            this._toTypeFn = toTypeFn;
-        };
         
         /**
         Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.
@@ -7813,6 +7818,59 @@ function (core, m_entityMetadata, m_entityAspect) {
 
 
         // protected methods
+        
+        proto._getFromEntityType = function (metadataStore, throwErrorIfNotFound) {
+            // Uncomment next two lines if we make this method public.
+            // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
+            // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
+            var entityType = this.entityType;
+            if (!entityType) {
+                var resourceName = this.resourceName;
+                if (!resourceName) {
+                    throw new Error("There is no resourceName for this query");
+                }
+                if (metadataStore.isEmpty()) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("There is no metadata available for this query");
+                    } else {
+                        return null;
+                    }
+                }
+                var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+                if (!entityTypeName) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("Cannot find resourceName of: " + resourceName);
+                    } else {
+                        return null;
+                    }
+                }
+                entityType = metadataStore.getEntityType(entityTypeName);
+                if (!entityType) {
+                    if (throwErrorIfNotFound) {
+                        throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
+                    } else {
+                        return null;
+                    }
+                }
+                this.entityType = entityType;
+            }
+            return entityType;
+        };
+
+        proto._getToEntityType = function (metadataStore) {
+            if (this.toEntityType instanceof EntityType) {
+                return this.toEntityType;
+            } else if (this.toEntityType) {
+                // toEntityType is a string
+                this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+                return this.toEntityType;
+            } else {
+                // resolve it, if possible, via the resourceName
+                // do not cache this value in this case
+                // cannot determine the toEntityType if a selectClause is present.
+                return (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+            }
+        };
 
         proto._clone = function () {
             var copy = new EntityQuery();
@@ -7835,7 +7893,7 @@ function (core, m_entityMetadata, m_entityAspect) {
 
         proto._toUri = function (metadataStore) {
             // force entityType validation;
-            var entityType = this._getEntityType(metadataStore, false);
+            var entityType = this._getFromEntityType(metadataStore, false);
             if (!entityType) {
                 entityType = new EntityType(metadataStore);
             }
@@ -9756,18 +9814,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
                 .applyAll(this);
 
-            if (config.dataService) {
-                this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService", config.dataService.adapterName);
-            } else if (config.serviceName) {
-                this.dataServiceAdapterInstance = a_config.getAdapterInstance("dataService");
+                
+            if (config.serviceName) {
                 this.dataService = new DataService({
                     serviceName: this.serviceName
                 });
-            } 
-
-            if (this.dataService) {
-                this.serviceName = this.dataService.serviceName;
             }
+            this.serviceName = this.dataService && this.dataService.serviceName;
+            
             this.entityChanged = new Event("entityChanged_entityManager", this);
             this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
@@ -9832,12 +9886,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         @property keyGeneratorCtor {KeyGenerator constructor}
         **/
 
-        /**
-        The "dataService" adapter implementation instance associated with this EntityManager.
-
-        __readOnly__
-        @property dataServiceAdapterInstance {an instance of the "dataService" adapter interface}
-        **/
+       
        
         // events
         /**
@@ -9953,7 +10002,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
                 metadataStore: this.metadataStore.exportMetadata(),
-                serviceName: this.serviceName,
+                // TODO: not right yet - need to also capture adapterName and other props.
+                dataService: this.dataService,
                 saveOptions: this.saveOptions,
                 queryOptions: this.queryOptions,
                 validationOptions: this.validationOptions,
@@ -10004,7 +10054,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             
             var json = JSON.parse(exportedString);
             this.metadataStore.importMetadata(json.metadataStore);
-            this.serviceName = json.serviceName;
+            // TODO: not right yet - need to also capture functions
+            this.dataService = new DataService( json.dataService);
             this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
             this.validationOptions = new ValidationOptions(json.validationOptions);
@@ -10096,16 +10147,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
                 .whereParam("keyGeneratorCtor").isOptional()
              .applyAll(this);
-            
-            if (config.dataService) {
-                this.dataServiceAdapterInstance = getAdapterInstance("dataService", this.dataService.adapterName);
-                this.serviceName = this.dataService.serviceName;
-            } else if (config.serviceName) {
+                
+            if (config.serviceName) {
                 this.dataService = new DataService({
-                    serviceName: this.serviceName
+                    serviceName: this.serviceName,
                 });
-                this.serviceName = this.dataService.serviceName;
             }
+            this.serviceName = this.dataService && this.dataService.serviceName;
             
             if (config.keyGeneratorCtor) {
                 this.keyGenerator = new this.keyGeneratorCtor();
@@ -10125,7 +10173,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         **/
         proto.createEmptyCopy = function () {
             var copy = new ctor({
-                serviceName: this.serviceName,
                 dataService: this.dataService,
                 metadataStore: this.metadataStore,
                 queryOptions: this.queryOptions,
@@ -10372,7 +10419,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             assertParam(callback, "callback").isFunction().isOptional().check();
             assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
             var promise;
-            if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.serviceName)) {
+            if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.dataService.serviceName)) {
                 promise = executeQueryCore(this, query);
             } else {
                 var that = this;
@@ -10414,7 +10461,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             assertParam(query, "query").isInstanceOf(EntityQuery).check();
             var result;
             var metadataStore = this.metadataStore;
-            var entityType = query._getEntityType(metadataStore, true);
+            var entityType = query._getFromEntityType(metadataStore, true);
             // TODO: there may be multiple groups once we go further with inheritence
             var group = findOrCreateEntityGroup(this, entityType);
             // filter then order then skip then take
@@ -10562,16 +10609,25 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var saveBundleStringified = JSON.stringify(saveBundle);
 
             var deferred = Q.defer();
-            this.dataServiceAdapterInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+            this.dataService.adapterInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
             var that = this;
             return deferred.promise.then(function (rawSaveResult) {
                 // HACK: simply to change the 'case' of properties in the saveResult
                 // but KeyMapping properties are still ucase. ugh...
                 var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
                 fixupKeys(that, saveResult.keyMappings);
-                var queryContext = { query: null, entityManager: that, mergeStrategy: MergeStrategy.OverwriteChanges, refMap: {} };
+                
+                var queryContext = {
+                    query: null, // tells mergeEntity that this is a save instead of a query
+                    entityManager: that,
+                    jsonResultsAdapter: that.dataService.jsonResultsAdapter,
+                    mergeStrategy: MergeStrategy.OverwriteChanges,
+                    refMap: {},
+                    deferredFns: []
+                };
+                
                 var savedEntities = saveResult.entities.map(function (rawEntity) {
-                    return mergeEntity(rawEntity, queryContext, true);
+                    return mergeEntity(rawEntity, queryContext);
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 // update _hasChanges after save.
@@ -11365,7 +11421,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function executeQueryCore(em, query) {
             try {
                 var metadataStore = em.metadataStore;
-                if (metadataStore.isEmpty() && em.dataService.hasServerMetadata) {
+                var dataService = query.dataService || em.dataService;
+                if (metadataStore.isEmpty() && dataService.hasServerMetadata) {
                     throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
                 }
                 var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
@@ -11375,12 +11432,17 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         return { results: results, query: query };
                     });
                 }
+                // _getJsonResultsAdapter does not exist on raw OData queries
+                var queryResultsAdapter = query._getJsonResultsAdapter && query._getJsonResultsAdapter(em);
+                var jsonResultsAdapter = queryResultsAdapter || dataService.jsonResultsAdapter;
+
                 var odataQuery = toOdataQueryString(query, metadataStore);
                 var queryContext = {
                      query: query,
-                     toTypeFn: query._getToTypeFn(metadataStore),
-                     entityManager: em, 
-                     mergeStrategy: queryOptions.mergeStrategy, 
+                     entityManager: em,
+                     dataService: dataService,
+                     mergeStrategy: queryOptions.mergeStrategy,
+                     jsonResultsAdapter: jsonResultsAdapter,
                      refMap: {}, 
                      deferredFns: []
                 };
@@ -11388,7 +11450,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var validateOnQuery = em.validationOptions.validateOnQuery;
                 var promise = deferred.promise;
                 
-                em.dataServiceAdapterInstance.executeQuery(em, odataQuery, function (data) {
+                dataService.adapterInstance.executeQuery(em, odataQuery, function (data) {
                     var result = core.wrapExecution(function () {
                         var state = { isLoading: em.isLoading };
                         em.isLoading = true;
@@ -11404,14 +11466,14 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         queryContext = null;
                         
                     }, function () {
-                        var rawEntities = data.results;
-                        if (!Array.isArray(rawEntities)) {
-                            rawEntities = [rawEntities];
+                        var nodes = jsonResultsAdapter.extractResults(data);
+                        if (!Array.isArray(nodes)) {
+                            nodes = [nodes];
                         }
-                        var entities = rawEntities.map(function(rawEntity) {
+                        var entities = nodes.map(function (node) {
                             // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
                             // mergeEntity can return deferred functions.
-                            var entity = mergeEntity(rawEntity, queryContext);
+                            var entity = mergeEntity(node, queryContext, true);
                             // anon types and simple types will not have an entityAspect.
                             if (validateOnQuery && entity.entityAspect) {
                                 entity.entityAspect.validateEntity();
@@ -11443,35 +11505,37 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        function mergeEntity(rawEntity, queryContext, isSaving, isNestedInAnon) {
-            
+        function mergeEntity(node, queryContext, isTopLevel) {
+
             var em = queryContext.entityManager;
             var mergeStrategy = queryContext.mergeStrategy;
-
-            // resolveRefEntity will return one of 3 values;  a targetEntity, a null or undefined.
-            // null and undefined have different meanings - null means a ref entity that cannot be resolved - usually an odata __deferred value
-            // undefined means that this is not a ref entity.
-            targetEntity = em.dataServiceAdapterInstance.resolveRefEntity(rawEntity, queryContext);
-            if (targetEntity !== undefined) {
-                return targetEntity;
+            var isSaving = queryContext.query == null;
+            // will have already been set if called nested.
+            var meta = node._$meta;
+            if (!meta) {
+                meta = queryContext.jsonResultsAdapter.visitObjectNode(node, queryContext, isTopLevel);
             }
 
+            if (meta.ignore) {
+                return null;
+            }
             
-            var entityType = em.dataServiceAdapterInstance.getEntityType(rawEntity, em.metadataStore);
+            if (meta.nodeRefId) {
+                return resolveRefEntity(meta.nodeRefId, queryContext);
+            }
             
+            var entityType = meta.entityType;
             if (entityType == null) {
-                var toTypeFn = queryContext._toTypeFn;
-                if (toTypeFn) {
-                    entityType = toTypeFn(rawEntity);
+                // fallback uses query's resourceName to determine the entityType - this will only work for topLevel jsonResults.
+                entityType = isTopLevel && queryContext.query && queryContext.query._getToEntityType && queryContext.query._getToEntityType(em.metadataStore);
+                if (!entityType) {
+                    return processAnonType(node, queryContext);
                 }
             }
-
-            if (entityType == null) {
-                return processAnonType(rawEntity, queryContext, isSaving);
-            }
-
-            rawEntity.entityType = entityType;
-            var entityKey = EntityKey._fromRawEntity(rawEntity, entityType);
+            
+            node._$meta = meta;
+            node.entityType = entityType;
+            var entityKey = EntityKey._fromRawEntity(node, entityType);
             var targetEntity = em.findEntityByKey(entityKey);
             if (targetEntity) {
                 if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -11481,7 +11545,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 var targetEntityState = targetEntity.entityAspect.entityState;
                 if (mergeStrategy === MergeStrategy.OverwriteChanges
                         || targetEntityState.isUnchanged()) {
-                    updateEntity(targetEntity, rawEntity, queryContext);
+                    updateEntity(targetEntity, node, queryContext);
                     targetEntity.entityAspect.wasLoaded = true;
                     
                     targetEntity.entityAspect.entityState = EntityState.Unchanged;
@@ -11495,14 +11559,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         em._notifyStateChange(targetEntity, false);
                     }
                 } else {
-                    // also called by setPropertiesEntity
-                    updateCurrentRef(queryContext, targetEntity);
+                    updateCurrentRef(queryContext, targetEntity, node);
                     // we still need to merge related entities even if top level entity wasn't modified.
                     entityType.navigationProperties.forEach(function (np) {
                         if (np.isScalar) {
-                            mergeRelatedEntityCore(rawEntity, np, queryContext);
+                            mergeRelatedEntityCore(node, np, queryContext);
                         } else {
-                            mergeRelatedEntitiesCore(rawEntity, np, queryContext);
+                            mergeRelatedEntitiesCore(node, np, queryContext);
                         }
                     });
                 }
@@ -11511,9 +11574,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 targetEntity = entityType._createEntityCore();
                 if (targetEntity.initializeFrom) {
                     // allows any injected post ctor activity to be performed by modelLibrary impl.
-                    targetEntity.initializeFrom(rawEntity);
+                    targetEntity.initializeFrom(node);
                 }
-                updateEntity(targetEntity, rawEntity, queryContext);
+                updateEntity(targetEntity, node, queryContext);
                 targetEntity.entityAspect._postInitialize();
                 attachEntityCore(em, targetEntity, EntityState.Unchanged);
                 targetEntity.entityAspect.wasLoaded = true;
@@ -11522,32 +11585,41 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-       
-        function processAnonType(rawEntity, queryContext, isSaving) {
+        // resolveRefEntity will return one of 4 values;  a targetEntity, a fn that returns a target entity, a null or an undefined.
+        // null and undefined have different meanings 
+        // -- null means a ref entity that cannot be resolved - usually an odata __deferred value
+        // -- undefined means that this is not a ref entity.
+
+        function resolveRefEntity(nodeRefId, queryContext) {
+            var entity = queryContext.refMap[nodeRefId];
+            if (entity === undefined) {
+                return function() { return queryContext.refMap[nodeRefId]; };
+            } else {
+                return entity;
+            }
+        }
+
+        function processAnonType(node, queryContext) {
             var em = queryContext.entityManager;
+            var jsonResultsAdapter = queryContext.jsonResultsAdapter;
             var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
-            if (typeof rawEntity !== 'object') {
-                return rawEntity;
+            if (typeof node !== 'object') {
+                return node;
             }
             var result = { };
-            core.objectForEach(rawEntity, function(key, value) {
-                if (key == "__metadata") {
+            core.objectForEach(node, function(key, value) {
+
+                var anonMeta = jsonResultsAdapter.visitAnonPropNode(value, queryContext, key);
+
+                if (anonMeta.ignore) return;
+                if (anonMeta.nodeId) {
+                    // value === anonMeta.nodeId
+                    queryContext.refMap[value] = result;
                     return;
                 }
-                // EntityKey properties can be produced by EDMX models
-                if (key == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data")) {
-                    return;
-                }
-                var firstChar = key.substr(0, 1);
-                if (firstChar == "$") {
-                    if (key === "$id") {
-                        queryContext.refMap[value] = result;
-                    }
-                    return;
-                } 
                 
                 var newKey = keyFn(key);
-                var refValue;
+                var meta, refValue;
                 // == is deliberate here instead of ===
                 if (value == null) {
                     result[newKey] = value;
@@ -11555,27 +11627,33 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                     result[newKey] = value.map(function(v, ix, arr) {
                         if (v == null) {
                             return v;
-                        } else if (v.$type || v.__metadata) {
-                            return mergeEntity(v, queryContext, isSaving, true);
-                        } else if (v.$ref) {
-                            refValue = em.dataServiceAdapterInstance.resolveRefEntity(v, queryContext);
+                        }
+                        meta = jsonResultsAdapter.visitObjectNode(v, queryContext);
+                        if (meta.entityType) {
+                            v._$meta = meta;
+                            return mergeEntity(v, queryContext);
+                        } else if (meta.nodeRefId) {
+                            refValue = resolveRefEntity(meta.nodeRefId, queryContext);
                             if (typeof refValue == "function") {
-                                queryContext.deferredFns.push(function () {
+                                queryContext.deferredFns.push(function() {
                                     arr[ix] = refValue();
                                 });
                             }
                             return refValue;
-                        } else {
+                         } else {
                             return v;
-                        }
+                         }
                     });
                 } else {
-                    if (value.$type || value.__metadata) {
-                        result[newKey] = mergeEntity(value, queryContext, isSaving, true);
-                    } else if (value.$ref) {
-                        refValue = em.dataServiceAdapterInstance.resolveRefEntity(value, queryContext);
+                    meta = jsonResultsAdapter.visitObjectNode(value, queryContext);
+                    
+                    if (meta.entityType) {
+                        value._$meta = meta;
+                        result[newKey] = mergeEntity(value, queryContext);
+                    } else if (meta.nodeRefId) {
+                        refValue = resolveRefEntity(meta.nodeRefId, queryContext);                       
                         if (typeof refValue == "function") {
-                            queryContext.deferredFns.push(function () {
+                            queryContext.deferredFns.push(function() {
                                 result[newKey] = refValue();
                             });
                         }
@@ -11588,10 +11666,11 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return result;
         }
         
+       
         function updateEntity(targetEntity, rawEntity, queryContext) {
-            updateCurrentRef(queryContext, targetEntity);
+            updateCurrentRef(queryContext, targetEntity, rawEntity);
             var entityType = targetEntity.entityType;
-            var metadataStore = entityType.metadataStore;
+            
             entityType.dataProperties.forEach(function (dp) {
                 if (dp.isUnmapped) return;
                 var val = rawEntity[dp.nameOnServer];
@@ -11604,11 +11683,13 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         val = val.$value; // this will be a byte[] encoded as a string
                     }
                 } else if (dp.isComplexProperty) {
-                    var coVal = targetEntity.getProperty(dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        // recursive call
-                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                    });
+                    if (val != undefined) {
+                        var coVal = targetEntity.getProperty(dp.name);
+                        dp.dataType.dataProperties.forEach(function(cdp) {
+                            // recursive call
+                            coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                        });
+                    }
                 }
 
                 if (!dp.isComplexProperty) {
@@ -11624,20 +11705,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             });
         }
         
-        function updateCurrentRef(queryContext, targetEntity) {
-            if (queryContext.refId !== undefined) {
-                queryContext.refMap[queryContext.refId] = targetEntity;
+        
+        function updateCurrentRef(queryContext, targetEntity, rawEntity) {
+            var nodeId = rawEntity._$meta.nodeId;
+            if (nodeId != null) {
+                queryContext.refMap[nodeId] = targetEntity;
             }
         }
 
         function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
-            //var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
-            //if (!relatedRawEntity) return;
-            //var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
-            //if (deferred) {
-            //    return;
-            //}
-            //var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+          
             var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext);
             if (relatedEntity == null) return;
             if (typeof relatedEntity === 'function') {
@@ -11653,8 +11730,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntity);
-            if (deferred) return null;
+            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, queryContext, navigationProperty);
+            if (navMeta.ignore) return;
+
             var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
             return relatedEntity;
         }
@@ -11678,34 +11756,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             }
         }
 
-        //function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
-        //    var propName = navigationProperty.name;
-
-        //    var inverseProperty = navigationProperty.inverse;
-        //    if (!inverseProperty) return;
-        //    var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
-
-        //    if (!relatedRawEntities) return;
-        //    var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
-        //    if (deferred) {
-        //        return;
-        //    }
-        //    if (!Array.isArray(relatedRawEntities)) return;
-        //    var relatedEntities = targetEntity.getProperty(propName);
-        //    relatedEntities.wasLoaded = true;
-        //    relatedRawEntities.forEach(function (relatedRawEntity) {
-        //        var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
-        //        if (typeof relatedEntity === 'function') {
-        //            queryContext.deferredFns.push(function() {
-        //                relatedEntity = relatedEntity();
-        //                updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
-        //            });
-        //        } else {
-        //            updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty);
-        //        }
-        //    });
-        //};
-        
+       
         function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
             var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
             if (relatedEntities == null) return;
@@ -11729,9 +11780,9 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntities) return null;
-            var deferred = queryContext.entityManager.dataServiceAdapterInstance.getDeferredValue(relatedRawEntities);
-            if (deferred) return null;
-
+            var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntities, queryContext, navigationProperty);
+            if (navMeta.ignore) return null;
+            
             // Don't think it's needed.
             // if (!Array.isArray(relatedRawEntities)) return null;
 
@@ -12410,7 +12461,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         }
         return ctor;
     })();
-
+    
     // Extensions to the EntityQuery class - must be done here because some of the types used are not yet avail
     // when the EntityQuery file is processed.
 
@@ -12421,8 +12472,12 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
             var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
             eq.queryOptions = queryOptions.using(obj);
+        } else if (obj instanceof DataService) {
+            eq.dataService = obj;
+        } else if (obj instanceof JsonResultsAdapter) {
+            eq.jsonResultsAdapter = obj;
         } else {
-            throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy or a FetchStrategy");
+        throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy, a FetchStrategy, a DataService or a JsonResultsAdapter");
         }
         return eq;
     };
