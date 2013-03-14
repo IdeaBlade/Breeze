@@ -84,21 +84,21 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (value, queryContext, nodeContext) {
+        visitNode: function (node, queryContext, nodeContext) {
             var result = {};
             
-            if (value.__metadata != null) {
+            if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = EntityType._getNormalizedTypeName(value.__metadata.type);
+                var entityTypeName = EntityType._getNormalizedTypeName(node.__metadata.type);
                 var et = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                if (et && et._mappedPropertiesCount === Object.keys(value).length - 1) {
+                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
                 }
             }
             var propertyName = nodeContext.propertyName;
-            result.ignore = value.__deferred != null || propertyName == "__metadata" ||
+            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
-                (propertyName == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"));
+                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
             return result;
         },        
         
