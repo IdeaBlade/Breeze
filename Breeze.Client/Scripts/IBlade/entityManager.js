@@ -288,7 +288,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
                 metadataStore: this.metadataStore.exportMetadata(),
-                // TODO: not right yet - need to also capture adapterName and other props.
                 dataService: this.dataService,
                 saveOptions: this.saveOptions,
                 queryOptions: this.queryOptions,
@@ -340,8 +339,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             
             var json = JSON.parse(exportedString);
             this.metadataStore.importMetadata(json.metadataStore);
-            // TODO: not right yet - need to also capture functions
-            this.dataService = new DataService( json.dataService);
+           
+            this.dataService = json.dataService && DataService.fromJSON(json.dataService);
             this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
             this.validationOptions = new ValidationOptions(json.validationOptions);

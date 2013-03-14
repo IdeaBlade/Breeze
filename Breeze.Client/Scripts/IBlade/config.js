@@ -207,11 +207,22 @@ function (core) {
         a_config.functionRegistry[fnName] = fn;
     };
 
-    a_config.registerObject = function (obj, objName) {
-        assertParam(obj, "obj").isObject().check();
-        assertParam(objName, "objName").isString().check();
+    a_config._storeObject = function (obj, type, name) {
+        // uncomment this if we make this public.
+        //assertParam(obj, "obj").isObject().check();
+        //assertParam(name, "objName").isString().check();
+        var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
+        a_config.objectRegistry[key] = obj;
+    };
 
-        a_config.objectRegistry[objName] = obj;
+    a_config._fetchObject = function (type, name) {
+        if (!name) return undefined;
+        var key = (typeof (type) === "string" ? type : type.prototype._$typeName) + "." + name;
+        var result = a_config.objectRegistry[key];
+        if (!result) {
+            throw new Error("Unable to locate a registered object by the name: " + key);
+        }
+        return result;
     };
   
     a_config.registerType = function (ctor, typeName) {
@@ -220,6 +231,19 @@ function (core) {
         ctor.prototype._$typeName = typeName;
         a_config.typeRegistry[typeName] = ctor;
     };
+    
+    //a_config._registerNamedInstance = function (instance, nameProperty) {
+    //    a_config.registerFunction(function () { return instance; }, instance._$typeName + "." + instance[nameProperty || "name"]);
+    //};
+
+    //a_config._namedInstanceFromJson = function (type, nameProperty, json) {
+    //    var key = type.proto._$typeName + "." + json[nameProperty || "name"];
+    //    var fn = a_config.functionRegistry[key];
+    //    if (!fn) {
+    //        throw new Error("Unable to locate " + key);
+    //    }
+    //    return fn(json);
+    //};
    
     a_config.stringifyPad = "  ";
     

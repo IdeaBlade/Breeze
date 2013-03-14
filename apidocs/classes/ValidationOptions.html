@@ -106,6 +106,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/JsonResultsAdapter.html">JsonResultsAdapter</a></li>
+            
                 <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
             
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
@@ -185,7 +187,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l2630"><code>entityManager.js:2630</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l2601"><code>entityManager.js:2601</code></a>
         </div>
     
 
@@ -238,7 +240,28 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_&lt;ctor&gt; ValidationOptions">&lt;ctor&gt; ValidationOptions</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_setAsDefault">setAsDefault</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setAsDefault">setAsDefault</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_using">using</a>
 
                                 
                                 
@@ -271,6 +294,22 @@
                             </li>
                         
                             <li class="index-item property">
+                                <a href="#property_defaultInstance">defaultInstance</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_validateOnAttach">validateOnAttach</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_validateOnAttach">validateOnAttach</a>
 
                                 
@@ -285,7 +324,28 @@
                             </li>
                         
                             <li class="index-item property">
+                                <a href="#property_validateOnPropertyChange">validateOnPropertyChange</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_validateOnQuery">validateOnQuery</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_validateOnQuery">validateOnQuery</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_validateOnSave">validateOnSave</a>
 
                                 
                                 
@@ -354,7 +414,166 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2636"><code>entityManager.js:2636</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2671"><code>entityManager - QueryContext.js:2671</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>ValidationOptions constructor</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[config]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnAttach=true]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnSave=true]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnQuery=false]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnPropertyChange=true]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var newVo = new ValidationOptions( { validateOnSave: false, validateOnAttach: false });
+// assume em1 is a preexisting EntityManager
+em1.setProperties( { validationOptions: newVo });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_&lt;ctor&gt; ValidationOptions" class="method item">
+    <h3 class="name"><code>&lt;ctor&gt; ValidationOptions</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[config]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2607"><code>entityManager.js:2607</code></a>
         
         </p>
 
@@ -505,7 +724,74 @@ em1.setProperties( { validationOptions: newVo });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2708"><code>entityManager.js:2708</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2743"><code>entityManager - QueryContext.js:2743</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Makes this instance the default instance.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var validationOptions = new ValidationOptions()
+var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+var newOptions.setAsDefault();
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setAsDefault" class="method item">
+    <h3 class="name"><code>setAsDefault</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2679"><code>entityManager.js:2679</code></a>
         
         </p>
 
@@ -586,7 +872,182 @@ var newOptions.setAsDefault();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2688"><code>entityManager.js:2688</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2723"><code>entityManager - QueryContext.js:2723</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a copy of this ValidationOptions with changes to the specified config properties.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">config</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The object to apply to create a new QueryOptions.</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnAttach]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnSave]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnQuery]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[validateOnPropertyChange]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\ValidationOptions.html" class="crosslink">ValidationOptions</a></span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var validationOptions = new ValidationOptions();
+var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_using" class="method item">
+    <h3 class="name"><code>using</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>config</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\ValidationOptions.html" class="crosslink">ValidationOptions</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2659"><code>entityManager.js:2659</code></a>
         
         </p>
 
@@ -746,7 +1207,53 @@ var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSav
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2722"><code>entityManager.js:2722</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2757"><code>entityManager - QueryContext.js:2757</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The default value whenever ValidationOptions are not specified.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_defaultInstance" class="property item">
+    <h3 class="name"><code>defaultInstance</code></h3>
+    <span class="type"><a href="..\classes\ValidationOptions.html" class="crosslink">ValidationOptions</a></span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2693"><code>entityManager.js:2693</code></a>
         
         </p>
 
@@ -790,7 +1297,53 @@ var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSav
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2658"><code>entityManager.js:2658</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2693"><code>entityManager - QueryContext.js:2693</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_validateOnAttach" class="property item">
+    <h3 class="name"><code>validateOnAttach</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2629"><code>entityManager.js:2629</code></a>
         
         </p>
 
@@ -836,7 +1389,53 @@ var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSav
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2679"><code>entityManager.js:2679</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2714"><code>entityManager - QueryContext.js:2714</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether property level validation should occur after entities are modified.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_validateOnPropertyChange" class="property item">
+    <h3 class="name"><code>validateOnPropertyChange</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2650"><code>entityManager.js:2650</code></a>
         
         </p>
 
@@ -882,7 +1481,53 @@ var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSav
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2672"><code>entityManager.js:2672</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2707"><code>entityManager - QueryContext.js:2707</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether entity and property level validation should occur after entities are queried from a remote server.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_validateOnQuery" class="property item">
+    <h3 class="name"><code>validateOnQuery</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2643"><code>entityManager.js:2643</code></a>
         
         </p>
 
@@ -928,7 +1573,53 @@ var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSav
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2665"><code>entityManager.js:2665</code></a>
+        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2700"><code>entityManager - QueryContext.js:2700</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_validateOnSave" class="property item">
+    <h3 class="name"><code>validateOnSave</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityManager.js.html#l2636"><code>entityManager.js:2636</code></a>
         
         </p>
 

@@ -1899,11 +1899,22 @@ function (core) {
         a_config.functionRegistry[fnName] = fn;
     };
 
-    a_config.registerObject = function (obj, objName) {
-        assertParam(obj, "obj").isObject().check();
-        assertParam(objName, "objName").isString().check();
+    a_config._storeObject = function (obj, type, name) {
+        // uncomment this if we make this public.
+        //assertParam(obj, "obj").isObject().check();
+        //assertParam(name, "objName").isString().check();
+        var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
+        a_config.objectRegistry[key] = obj;
+    };
 
-        a_config.objectRegistry[objName] = obj;
+    a_config._fetchObject = function (type, name) {
+        if (!name) return undefined;
+        var key = (typeof (type) === "string" ? type : type.prototype._$typeName) + "." + name;
+        var result = a_config.objectRegistry[key];
+        if (!result) {
+            throw new Error("Unable to locate a registered object by the name: " + key);
+        }
+        return result;
     };
   
     a_config.registerType = function (ctor, typeName) {
@@ -1912,6 +1923,19 @@ function (core) {
         ctor.prototype._$typeName = typeName;
         a_config.typeRegistry[typeName] = ctor;
     };
+    
+    //a_config._registerNamedInstance = function (instance, nameProperty) {
+    //    a_config.registerFunction(function () { return instance; }, instance._$typeName + "." + instance[nameProperty || "name"]);
+    //};
+
+    //a_config._namedInstanceFromJson = function (type, nameProperty, json) {
+    //    var key = type.proto._$typeName + "." + json[nameProperty || "name"];
+    //    var fn = a_config.functionRegistry[key];
+    //    if (!fn) {
+    //        throw new Error("Unable to locate " + key);
+    //    }
+    //    return fn(json);
+    //};
    
     a_config.stringifyPad = "  ";
     
@@ -2443,7 +2467,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Register a validator so that any deserialized metadata can reference it. 
+        Register a validator instance so that any deserialized metadata can reference it. 
         @method register
         @param validator {Validator} Validator to register.
         **/
@@ -4509,7 +4533,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = "LocalQueryComparisonOptions";
@@ -4593,7 +4617,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, "NamingConvention:" + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = "NamingConvention";
@@ -4836,16 +4860,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = a_config.objectRegistry["NamingConvention:" + ncName];
-                if (!nc) {
-                    throw new Error("Unable to locate a naming convention named: " + ncName);
-                }
-                this.namingConvention = nc;
-                var lqco = a_config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
-                if (!lqco) {
-                    throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
-                }
-                this.localQueryComparisonOptions = lqco;
+                this.namingConvention = a_config._fetchObject(NamingConvention, ncName);
+                this.localQueryComparisonOptions = a_config._fetchObject(LocalQueryComparisonOptions, lqcoName);
             } else {
                 if (this.namingConvention.name !== ncName) {
                     throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
@@ -5197,9 +5213,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var isEntityType = !!json.navigationProperties;
             stype = isEntityType ? new EntityType(config) : new ComplexType(config);
 
-            json.validators = json.validators.map(function(v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
 
             json.dataProperties = json.dataProperties.map(function(dp) {
                 return DataProperty.fromJSON(dp, stype);
@@ -5629,12 +5643,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         
         proto.toJSON = function () {
-            return core._toJson(this);
+            var json = core._toJson(this);
+            json.jsonResultsAdapter = this.jsonResultsAdapter.name;
+            return json;
         };
 
-  
+        ctor.fromJSON = function(json) {
+            json.jsonResultsAdapter = a_config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
+            return new DataService(json);
+        };
 
-        
         return ctor;
     }();
     
@@ -5645,10 +5663,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @class JsonResultsAdapter
         **/
-
         var ctor = function (config) {
             if (arguments.length != 1) {
-                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+                throw new Error("The JsonResultsAdapter ctor should be called with a single argument that is a configuration object.");
             }
 
             assertConfig(config)
@@ -5656,27 +5673,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
                 .whereParam("visitNode").isFunction()
                 .applyAll(this);
-            
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
-        var proto = ctor.prototype;
-
-        proto._$typeName = "JsonResultsAdapter";
         
+        var proto = ctor.prototype;
+        proto._$typeName = "JsonResultsAdapter";
         
         function extractResultsDefault(data) {
             return data.results;
         }
         
-        // params are - value, queryContext, propertyName ) {
-        function visitAnonPropNodeDefault() {
-            return {};
-        }
-        
-        // params are value, queryContext, navigationProperty
-        function visitNavPropNodeDefault() {
-            return {};
-        }
-
         return ctor;
     })();
 
@@ -6810,9 +6816,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.fromJSON = function (json, parentEntityType) {
             json.dataType = DataType.fromName(json.dataType);
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
+                
             var dp = new DataProperty(json);
             parentEntityType.addProperty(dp);
             return dp;
@@ -6976,9 +6981,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
             var np = new NavigationProperty(json);
             parentEntityType.addProperty(np);
             return np;
@@ -9994,7 +9997,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var exportBundle = exportEntityGroups(this, entities);
             var json = {
                 metadataStore: this.metadataStore.exportMetadata(),
-                // TODO: not right yet - need to also capture adapterName and other props.
                 dataService: this.dataService,
                 saveOptions: this.saveOptions,
                 queryOptions: this.queryOptions,
@@ -10046,8 +10048,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             
             var json = JSON.parse(exportedString);
             this.metadataStore.importMetadata(json.metadataStore);
-            // TODO: not right yet - need to also capture functions
-            this.dataService = new DataService( json.dataService);
+           
+            this.dataService = json.dataService && DataService.fromJSON(json.dataService);
             this.saveOptions = new SaveOptions(json.saveOptions);
             this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
             this.validationOptions = new ValidationOptions(json.validationOptions);
@@ -12474,7 +12476,7 @@ define('breeze',["core", "config", "entityAspect", "entityMetadata", "entityMana
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.1.3",
+        version: "1.2.1",
         core: core,
         config: a_config
     };
@@ -12501,6 +12503,7 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     
     return breeze;
 });
+
 
 // needs JQuery
 (function(factory) {

@@ -4,7 +4,7 @@ define(["core", "config", "entityAspect", "entityMetadata", "entityManager", "en
 function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_entityQuery, m_validate, makeRelationArray, KeyGenerator) {
           
     var breeze = {
-        version: "1.1.3",
+        version: "1.2.1",
         core: core,
         config: a_config
     };
@@ -31,3 +31,4 @@ function (core, a_config, m_entityAspect, m_entityMetadata, m_entityManager, m_e
     
     return breeze;
 });
+

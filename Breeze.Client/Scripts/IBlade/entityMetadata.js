@@ -66,7 +66,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, "LocalQueryComparisonOptions:" + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = "LocalQueryComparisonOptions";
@@ -150,7 +150,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, "NamingConvention:" + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = "NamingConvention";
@@ -393,16 +393,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = a_config.objectRegistry["NamingConvention:" + ncName];
-                if (!nc) {
-                    throw new Error("Unable to locate a naming convention named: " + ncName);
-                }
-                this.namingConvention = nc;
-                var lqco = a_config.objectRegistry["LocalQueryComparisonOptions:" + lqcoName];
-                if (!lqco) {
-                    throw new Error("Unable to locate a LocalQueryComparisonOptions instance named: " + lqcoName);
-                }
-                this.localQueryComparisonOptions = lqco;
+                this.namingConvention = a_config._fetchObject(NamingConvention, ncName);
+                this.localQueryComparisonOptions = a_config._fetchObject(LocalQueryComparisonOptions, lqcoName);
             } else {
                 if (this.namingConvention.name !== ncName) {
                     throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
@@ -754,9 +746,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var isEntityType = !!json.navigationProperties;
             stype = isEntityType ? new EntityType(config) : new ComplexType(config);
 
-            json.validators = json.validators.map(function(v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
 
             json.dataProperties = json.dataProperties.map(function(dp) {
                 return DataProperty.fromJSON(dp, stype);
@@ -1186,12 +1176,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
         
         proto.toJSON = function () {
-            return core._toJson(this);
+            var json = core._toJson(this);
+            json.jsonResultsAdapter = this.jsonResultsAdapter.name;
+            return json;
         };
 
-  
+        ctor.fromJSON = function(json) {
+            json.jsonResultsAdapter = a_config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
+            return new DataService(json);
+        };
 
-        
         return ctor;
     }();
     
@@ -1202,10 +1196,9 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         @class JsonResultsAdapter
         **/
-
         var ctor = function (config) {
             if (arguments.length != 1) {
-                throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
+                throw new Error("The JsonResultsAdapter ctor should be called with a single argument that is a configuration object.");
             }
 
             assertConfig(config)
@@ -1213,27 +1206,16 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
                 .whereParam("visitNode").isFunction()
                 .applyAll(this);
-            
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
-        var proto = ctor.prototype;
-
-        proto._$typeName = "JsonResultsAdapter";
         
+        var proto = ctor.prototype;
+        proto._$typeName = "JsonResultsAdapter";
         
         function extractResultsDefault(data) {
             return data.results;
         }
         
-        // params are - value, queryContext, propertyName ) {
-        function visitAnonPropNodeDefault() {
-            return {};
-        }
-        
-        // params are value, queryContext, navigationProperty
-        function visitNavPropNodeDefault() {
-            return {};
-        }
-
         return ctor;
     })();
 
@@ -2367,9 +2349,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
         ctor.fromJSON = function (json, parentEntityType) {
             json.dataType = DataType.fromName(json.dataType);
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
+                
             var dp = new DataProperty(json);
             parentEntityType.addProperty(dp);
             return dp;
@@ -2533,9 +2514,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
             var np = new NavigationProperty(json);
             parentEntityType.addProperty(np);
             return np;

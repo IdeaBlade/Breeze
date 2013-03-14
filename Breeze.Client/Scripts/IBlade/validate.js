@@ -237,7 +237,7 @@ function (core, a_config, DataType) {
         };
 
         /**
-        Register a validator so that any deserialized metadata can reference it. 
+        Register a validator instance so that any deserialized metadata can reference it. 
         @method register
         @param validator {Validator} Validator to register.
         **/

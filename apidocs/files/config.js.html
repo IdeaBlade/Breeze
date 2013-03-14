@@ -106,6 +106,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/JsonResultsAdapter.html">JsonResultsAdapter</a></li>
+            
                 <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
             
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
@@ -390,11 +392,22 @@ function (core) {
         a_config.functionRegistry[fnName] = fn;
     };
 
-    a_config.registerObject = function (obj, objName) {
-        assertParam(obj, &quot;obj&quot;).isObject().check();
-        assertParam(objName, &quot;objName&quot;).isString().check();
+    a_config._storeObject = function (obj, type, name) {
+        &#x2F;&#x2F; uncomment this if we make this public.
+        &#x2F;&#x2F;assertParam(obj, &quot;obj&quot;).isObject().check();
+        &#x2F;&#x2F;assertParam(name, &quot;objName&quot;).isString().check();
+        var key = (typeof(type) === &quot;string&quot; ? type : type.prototype._$typeName) + &quot;.&quot; + name;
+        a_config.objectRegistry[key] = obj;
+    };
 
-        a_config.objectRegistry[objName] = obj;
+    a_config._fetchObject = function (type, name) {
+        if (!name) return undefined;
+        var key = (typeof (type) === &quot;string&quot; ? type : type.prototype._$typeName) + &quot;.&quot; + name;
+        var result = a_config.objectRegistry[key];
+        if (!result) {
+            throw new Error(&quot;Unable to locate a registered object by the name: &quot; + key);
+        }
+        return result;
     };
   
     a_config.registerType = function (ctor, typeName) {
@@ -403,6 +416,19 @@ function (core) {
         ctor.prototype._$typeName = typeName;
         a_config.typeRegistry[typeName] = ctor;
     };
+    
+    &#x2F;&#x2F;a_config._registerNamedInstance = function (instance, nameProperty) {
+    &#x2F;&#x2F;    a_config.registerFunction(function () { return instance; }, instance._$typeName + &quot;.&quot; + instance[nameProperty || &quot;name&quot;]);
+    &#x2F;&#x2F;};
+
+    &#x2F;&#x2F;a_config._namedInstanceFromJson = function (type, nameProperty, json) {
+    &#x2F;&#x2F;    var key = type.proto._$typeName + &quot;.&quot; + json[nameProperty || &quot;name&quot;];
+    &#x2F;&#x2F;    var fn = a_config.functionRegistry[key];
+    &#x2F;&#x2F;    if (!fn) {
+    &#x2F;&#x2F;        throw new Error(&quot;Unable to locate &quot; + key);
+    &#x2F;&#x2F;    }
+    &#x2F;&#x2F;    return fn(json);
+    &#x2F;&#x2F;};
    
     a_config.stringifyPad = &quot;  &quot;;
     

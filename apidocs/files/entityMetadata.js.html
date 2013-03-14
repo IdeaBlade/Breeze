@@ -106,6 +106,8 @@
             
                 <li><a href="..&#x2F;classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="..&#x2F;classes/JsonResultsAdapter.html">JsonResultsAdapter</a></li>
+            
                 <li><a href="..&#x2F;classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
             
                 <li><a href="..&#x2F;classes/MergeStrategy.html">MergeStrategy</a></li>
@@ -249,7 +251,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, &quot;LocalQueryComparisonOptions:&quot; + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = &quot;LocalQueryComparisonOptions&quot;;
@@ -333,10 +335,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             if (!this.name) {
                 this.name = core.getUuid();
             }
-            a_config.registerObject(this, &quot;NamingConvention:&quot; + this.name);
+            a_config._storeObject(this, proto._$typeName, this.name);
         };
         var proto = ctor.prototype;
         proto._$typeName = &quot;NamingConvention&quot;;
+        
         &#x2F;**
         The function used to convert server side property names to client side property names.
 
@@ -544,6 +547,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.exportMetadata = function () {
             var result = JSON.stringify(this, function (key, value) {
                 if (key === &quot;metadataStore&quot;) return null;
+                if (key === &quot;adapterInstance&quot;) return null;
                 if (key === &quot;namingConvention&quot; || key === &quot;localQueryComparisonOptions&quot;) {
                     return value.name;
                 }
@@ -574,16 +578,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             delete json.namingConvention;
             delete json.localQueryComparisonOptions;
             if (this.isEmpty()) {
-                var nc = a_config.objectRegistry[&quot;NamingConvention:&quot; + ncName];
-                if (!nc) {
-                    throw new Error(&quot;Unable to locate a naming convention named: &quot; + ncName);
-                }
-                this.namingConvention = nc;
-                var lqco = a_config.objectRegistry[&quot;LocalQueryComparisonOptions:&quot; + lqcoName];
-                if (!lqco) {
-                    throw new Error(&quot;Unable to locate a LocalQueryComparisonOptions instance named: &quot; + lqcoName);
-                }
-                this.localQueryComparisonOptions = lqco;
+                this.namingConvention = a_config._fetchObject(NamingConvention, ncName);
+                this.localQueryComparisonOptions = a_config._fetchObject(LocalQueryComparisonOptions, lqcoName);
             } else {
                 if (this.namingConvention.name !== ncName) {
                     throw new Error(&quot;Cannot import metadata with a different &#x27;namingConvention&#x27; from the current MetadataStore&quot;);
@@ -705,18 +701,14 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 &#x2F;&#x2F; use the dataService with a matching name or create a new one.
                 dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
             }
-
-            var serviceName = dataService.serviceName;
-            
-            if (this.hasMetadataFor(serviceName)) {
-                throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + serviceName);
+           
+            if (this.hasMetadataFor(dataService.serviceName)) {
+                throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + dataService.serviceName);
             }
             
-            var dataServiceAdapterInstance = a_config.getAdapterInstance(&quot;dataService&quot;, dataService.adapterName);
 
             var deferred = Q.defer();
-            dataServiceAdapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-            var that = this;
+            dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
             return deferred.promise.then(function (rawMetadata) {
                 if (callback) callback(rawMetadata);
                 return Q.resolve(rawMetadata);
@@ -853,7 +845,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var type = typeMap[qualTypeName];
             if (!type) {
                 if (okIfNotFound) return null;
-                throw new Error(&quot;Unable to locate an &#x27;Type&#x27; by the name: &quot; + typeName);
+                throw new Error(&quot;Unable to locate a &#x27;Type&#x27; by the name: &quot; + typeName);
             }
             if (type.length) {
                 var typeNames = type.join(&quot;,&quot;);
@@ -939,9 +931,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             var isEntityType = !!json.navigationProperties;
             stype = isEntityType ? new EntityType(config) : new ComplexType(config);
 
-            json.validators = json.validators.map(function(v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
 
             json.dataProperties = json.dataProperties.map(function(dp) {
                 return DataProperty.fromJSON(dp, stype);
@@ -949,8 +939,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
 
             if (isEntityType) {
                 json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
-                json.navigationProperties = json.navigationProperties.map(function(dp) {
-                    return NavigationProperty.fromJSON(dp, stype);
+                json.navigationProperties = json.navigationProperties.map(function(np) {
+                    return NavigationProperty.fromJSON(np, stype);
                 });
             }
             stype = core.extend(stype, json);
@@ -1321,11 +1311,17 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam(&quot;serviceName&quot;).isNonEmptyString()
                 .whereParam(&quot;adapterName&quot;).isString().isOptional().withDefault(null)
                 .whereParam(&quot;hasServerMetadata&quot;).isBoolean().isOptional().withDefault(true)
+                .whereParam(&quot;jsonResultsAdapter&quot;).isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
                 .applyAll(this);
             this.serviceName = DataService._normalizeServiceName(this.serviceName);
+            this.adapterInstance = a_config.getAdapterInstance(&quot;dataService&quot;, this.adapterName);
             
+            if (!this.jsonResultsAdapter) {
+                this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
+            }
         };
         var proto = ctor.prototype;
+        proto._$typeName = &quot;DataService&quot;;
         
         &#x2F;**
         The serviceName for this DataService.
@@ -1340,6 +1336,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property adapterName {String}
         **&#x2F;
+        
+        &#x2F;**
+       The &quot;dataService&quot; adapter implementation instance associated with this EntityManager.
+
+       __readOnly__
+       @property adapterInstance {an instance of the &quot;dataService&quot; adapter interface}
+       **&#x2F;
 
         &#x2F;**
         Whether the server can provide metadata for this service.
@@ -1347,7 +1350,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property hasServerMetadata {Boolean}
         **&#x2F;
-
+        
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
             if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
@@ -1357,10 +1360,49 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             }
         };
         
-        proto._$typeName = &quot;DataService&quot;;
-        
+        proto.toJSON = function () {
+            var json = core._toJson(this);
+            json.jsonResultsAdapter = this.jsonResultsAdapter.name;
+            return json;
+        };
+
+        ctor.fromJSON = function(json) {
+            json.jsonResultsAdapter = a_config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
+            return new DataService(json);
+        };
+
         return ctor;
     }();
+    
+    var JsonResultsAdapter = (function () {
+
+        &#x2F;**
+        A JsonREsultsAdapter is used ... 
+
+        @class JsonResultsAdapter
+        **&#x2F;
+        var ctor = function (config) {
+            if (arguments.length != 1) {
+                throw new Error(&quot;The JsonResultsAdapter ctor should be called with a single argument that is a configuration object.&quot;);
+            }
+
+            assertConfig(config)
+                .whereParam(&quot;name&quot;).isNonEmptyString()
+                .whereParam(&quot;extractResults&quot;).isFunction().isOptional().withDefault(extractResultsDefault)
+                .whereParam(&quot;visitNode&quot;).isFunction()
+                .applyAll(this);
+            a_config._storeObject(this, proto._$typeName, this.name);
+        };
+        
+        var proto = ctor.prototype;
+        proto._$typeName = &quot;JsonResultsAdapter&quot;;
+        
+        function extractResultsDefault(data) {
+            return data.results;
+        }
+        
+        return ctor;
+    })();
 
     var EntityType = (function () {
         &#x2F;**
@@ -1420,6 +1462,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             
         };
         var proto = ctor.prototype;
+        proto._$typeName = &quot;EntityType&quot;;
+        
         
         &#x2F;**
         The {{#crossLink &quot;MetadataStore&quot;}}{{&#x2F;crossLink}} that contains this EntityType
@@ -1523,9 +1567,6 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         __readOnly__
         @property validators {Array of Validator} 
         **&#x2F;
-            
-
-        proto._$typeName = &quot;EntityType&quot;;
 
         &#x2F;**
         General purpose property set method
@@ -1822,16 +1863,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         };
 
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                shortName: this.shortName,
-                namespace: this.namespace,
-                defaultResourceName: this.defaultResourceName,
-                dataProperties: this.dataProperties,
-                navigationProperties: this.navigationProperties,
-                autoGeneratedKeyType: this.autoGeneratedKeyType.name,
-                validators: this.validators
-            };
+            return core._toJson(this, [&quot;dataProperties&quot;, &quot;navigationProperties&quot;, &quot;validators&quot;]);
         };
 
         &#x2F;&#x2F; fromJSON is handled by metadataStore._structuralTypeFromJson;
@@ -2275,13 +2307,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto._setCtor = EntityType.prototype._setCtor;
         
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                shortName: this.shortName,
-                namespace: this.namespace,
-                dataProperties: this.dataProperties,
-                validators: this.validators
-            };
+            return core._toJson(this, [&quot;dataProperties&quot;, &quot;validators&quot;]);
         };
        
         proto._fixup = function () {
@@ -2347,6 +2373,8 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
                 .whereParam(&quot;maxLength&quot;).isNumber().isOptional()
                 .whereParam(&quot;fixedLength&quot;).isBoolean().isOptional()
                 .whereParam(&quot;validators&quot;).isInstanceOf(Validator).isArray().isOptional().withDefault([])
+                .whereParam(&quot;enumType&quot;).isOptional()
+                .whereParam(&quot;rawTypeName&quot;).isOptional() &#x2F;&#x2F; occurs with undefined datatypes
                 .applyAll(this);
             var hasName = !!(this.name || this.nameOnServer);
             if (!hasName) {
@@ -2388,10 +2416,10 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         **&#x2F;
 
         &#x2F;**
-        The {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}} that this property belongs to.
+        The parent type that this property belongs to - will be either a {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}} or a {{#crossLink &quot;ComplexType&quot;}}{{&#x2F;crossLink}}.
 
         __readOnly__
-        @property parentEntityType {EntityType}
+        @property parentType {EntityType|ComplexType}
         **&#x2F;
 
         &#x2F;**
@@ -2499,28 +2527,15 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.isNavigationProperty = false;
 
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                nameOnServer: this.nameOnServer,
-                dataType: this.dataType.name,
-                complexTypeName: this.complexTypeName,
-                isNullable: this.isNullable,
-                isUnmapped: this.isUnmapped,
-                concurrencyMode: this.concurrencyMode,
-                maxLength: this.maxLength,
-                fixedLength: this.fixedLength,
-                defaultValue: this.defaultValue,
-                validators: this.validators,
-                isPartOfKey: this.isPartOfKey
-            };
+            var json = core._toJson(this, [&quot;validators&quot;]);
+            delete json.isComplexProperty;
+            return json;
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
-            
             json.dataType = DataType.fromName(json.dataType);
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
+                
             var dp = new DataProperty(json);
             parentEntityType.addProperty(dp);
             return dp;
@@ -2680,22 +2695,11 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         proto.isNavigationProperty = true;
 
         proto.toJSON = function () {
-            return {
-                name: this.name,
-                nameOnServer: this.nameOnServer,
-                entityTypeName: this.entityTypeName,
-                isScalar: this.isScalar,
-                associationName: this.associationName,
-                foreignKeyNames: this.foreignKeyNames,
-                foreignKeyNamesOnServer: this.foreignKeyNamesOnServer,
-                validators: this.validators
-            };
+            return core._toJson(this, [&quot;validators&quot;]);
         };
 
         ctor.fromJSON = function (json, parentEntityType) {
-            json.validators = json.validators.map(function (v) {
-                return Validator.fromJSON(v);
-            });
+            json.validators = json.validators.map(Validator.fromJSON);
             var np = new NavigationProperty(json);
             parentEntityType.addProperty(np);
             return np;
@@ -2838,6 +2842,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     return {
         MetadataStore: MetadataStore,
         DataService: DataService,
+        JsonResultsAdapter: JsonResultsAdapter,
         EntityType: EntityType,
         ComplexType: ComplexType,
         DataProperty: DataProperty,

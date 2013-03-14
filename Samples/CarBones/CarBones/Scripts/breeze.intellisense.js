@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Mar 02 2013 18:28:10 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Mar 14 2013 01:22:32 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.breeze, {
 
@@ -158,6 +158,14 @@ intellisense.annotate(breeze.breeze, {
     ///   and whether the service has server side metadata.  
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
+  'JsonResultsAdapter': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A JsonREsultsAdapter is used ...
+    ///   </summary>
     /// </signature>
   },
 
@@ -967,6 +975,240 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
     /// </signature>
   },
+  'createEntity': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+    ///   but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
+    ///   to the EntityManager.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The name of the type for which an instance should be created.</param>
+    ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
+    ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">- Configuration object of the properties to set immediately after creation.</param>
+    ///   <returns type="Entity" >A new Entity of the specified type.</returns>
+    /// </signature>
+  },
+  'exportEntities': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Exports an entire EntityManager or just selected entities into a serialized string for external storage.
+    ///   </summary>
+    ///   <param name="entities" type="Array" elementType="entities" optional="true">The entities to export; all entities are exported if this is omitted.</param>
+    ///   <returns type="String" >A serialized version of the exported data.</returns>
+    /// </signature>
+  },
+  'importEntities': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Imports a previously exported result into this EntityManager.
+    ///   </summary>
+    ///   <param name="exportedString" type="String" optional="true">The result of a previous 'export' call.</param>
+    ///   <param name="config" type="Object" optional="true">A configuration object.</param>
+    
+    /// </signature>
+  },
+  'clear': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Clears this EntityManager's cache but keeps all other settings. Note that this 
+    ///   method is not as fast as creating a new EntityManager via 'new EntityManager'.
+    ///   This is because clear actually detaches all of the entities from the EntityManager.
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method.  Any of the properties documented below 
+    ///   may be set.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    
+    /// </signature>
+  },
+  'createEmptyCopy': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates an empty copy of this EntityManager
+    ///   </summary>
+    ///   <returns type="breeze.breeze.EntityManager" >A new EntityManager.</returns>
+    /// </signature>
+  },
+  'addEntity': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attaches an entity to this EntityManager with an   'EntityState' of 'Added'.
+    ///   </summary>
+    ///   <param name="entity" type="Entity" optional="true">The entity to add.</param>
+    ///   <returns type="Entity" >The added entity.</returns>
+    /// </signature>
+  },
+  'attachEntity': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attaches an entity to this EntityManager with a specified  'EntityState'.
+    ///   </summary>
+    ///   <param name="entity" type="Entity" optional="true">The entity to add.</param>
+    ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.</param>
+    ///   <returns type="Entity" >The attached entity.</returns>
+    /// </signature>
+  },
+  'detachEntity': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Detaches an entity from this EntityManager.
+    ///   </summary>
+    ///   <param name="entity" type="Entity" optional="true">The entity to detach.</param>
+    ///   <returns type="Boolean" >Whether the entity could be detached. This will return false if the entity is already detached or was never attached.</returns>
+    /// </signature>
+  },
+  'fetchMetadata': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call
+    ///   occurs internally before the first query to any service if the metadata hasn't already been
+    ///   loaded.
+    ///   </summary>
+    ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
+    ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
+    ///   <returns type="breeze.breeze.Promise" >Promise </returns>
+    /// </signature>
+  },
+  'executeQuery': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Executes the specified query.
+    ///   </summary>
+    ///   <param name="query" type="EntityQuery|String" optional="true">The  'EntityQuery' or OData query string to execute.</param>
+    ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
+    ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
+    ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    /// </signature>
+  },
+  'executeQueryLocally': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Executes the specified query against this EntityManager's local cache.
+    ///   </summary>
+    ///   <param name="query" type="breeze.breeze.EntityQuery" optional="true">The  'EntityQuery' to execute.</param>
+    ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
+    /// </signature>
+  },
+  'saveChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities
+    ///   specified then there will be no server side call made but a valid 'empty' saveResult will still be returned.
+    ///   </summary>
+    ///   <param name="entities" type="Array" elementType="Entity" optional="true">The list of entities to save.  All entities with changes  within this EntityManager will be saved if this parameter is omitted, null or empty.</param>
+    ///   <param name="saveOptions" type="breeze.breeze.SaveOptions" optional="true"> 'SaveOptions' for the save - will default to  'EntityManager/saveOptions' if null.</param>
+    ///   <param name="callback" type="Function" optional="true">Function called on success.</param>
+    ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.          failureFunction([error])</param>
+    ///   <returns type="breeze.breeze.Promise" >Promise</returns>
+    /// </signature>
+  },
+  'getEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its key.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'getEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its   'EntityKey'.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'fetchEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its key with
+    ///   an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy 
+    ///   will be used to merge any server side entity returned by this method.
+    ///   </summary>
+    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
+    /// </signature>
+  },
+  'fetchEntityByKey - overload': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to fetch an entity from the server by its  'EntityKey' with
+    ///   an option to check the local cache first.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
+    ///   <returns type="breeze.breeze.Promise" ></returns>
+    /// </signature>
+  },
+  'findEntityByKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Attempts to locate an entity within this EntityManager by its   'EntityKey'.
+    ///   </summary>
+    ///   <param name="entityKey" type="breeze.breeze.EntityKey" optional="true">The   'EntityKey' of the Entity to be located.</param>
+    ///   <returns type="Entity" >An Entity or null;</returns>
+    /// </signature>
+  },
+  'generateTempKeyValue': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Generates a temporary key for the specified entity.  This is used to insure that newly
+    ///   created entities have unique keys and to register that these keys are temporary and
+    ///   need to be automatically replaced with 'real' key values once these entities are saved.
+    ///   </summary>
+    ///   <param name="entity" type="Entity" optional="true">The Entity to generate a key for.</param>
+    ///   <returns type="Object" >The new key value</returns>
+    /// </signature>
+  },
+  'hasChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns whether there are any changed entities of the specified  'EntityType's. A 'changed' Entity has
+    ///   has an  'EntityState' of either Added, Modified or Deleted.
+    ///   </summary>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
+    ///   <returns type="Boolean" >Whether there were any changed entities.</returns>
+    /// </signature>
+  },
+  'getChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a array of all changed entities of the specified  'EntityType's. A 'changed' Entity has
+    ///   has an  'EntityState' of either Added, Modified or Deleted.
+    ///   </summary>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which 'changed' entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
+    ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
+    /// </signature>
+  },
+  'rejectChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+    ///   </summary>
+    ///   <returns type="Array" elementType="Entity" >The entities whose changes were rejected. These entities will all have EntityStates of  either 'Unchanged' or 'Detached'</returns>
+    /// </signature>
+  },
+  'getEntities': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a array of all entities of the specified  'EntityType's with the specified  'EntityState's.
+    ///   </summary>
+    ///   <param name="entityTypes" type="String|Array of String|EntityType|Array of EntityType" optional="true">The  'EntityType's for which entities will be found. If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.</param>
+    ///   <param name="entityState" type="EntityState|Array of EntityState" optional="true">The  'EntityState's for which entities will be found. If this parameter is omitted, entities of all EntityStates are returned.</param>
+    ///   <returns type="Array" elementType="Entity" >Array of Entities</returns>
+    /// </signature>
+  },
   
   /// <field name="serviceName" type="String" >The service name associated with this EntityManager.</field>
   'serviceName': null,
@@ -989,12 +1231,40 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   /// <field name="keyGeneratorCtor" type="KeyGenerator constructor" >The  'KeyGenerator' constructor associated with this EntityManager.</field>
   'keyGeneratorCtor': null,
   
-  /// <field name="dataServiceAdapterInstance" type="An instance of the &quot;dataService&quot; adapter interface" >The 'dataService' adapter implementation instance associated with this EntityManager.</field>
-  'dataServiceAdapterInstance': null,
+  /// <field name="serviceName" type="String" >The service name associated with this EntityManager.</field>
+  'serviceName': null,
+  
+  /// <field name="dataService" type="breeze.breeze.DataService" >The DataService name associated with this EntityManager.</field>
+  'dataService': null,
+  
+  /// <field name="metadataStore" type="breeze.breeze.MetadataStore" >The  'MetadataStore' associated with this EntityManager. </field>
+  'metadataStore': null,
+  
+  /// <field name="queryOptions" type="breeze.breeze.QueryOptions" >The  'QueryOptions' associated with this EntityManager.</field>
+  'queryOptions': null,
+  
+  /// <field name="saveOptions" type="breeze.breeze.SaveOptions" >The  'SaveOptions' associated with this EntityManager.</field>
+  'saveOptions': null,
+  
+  /// <field name="validationOptions" type="breeze.breeze.ValidationOptions" >The  'ValidationOptions' associated with this EntityManager.</field>
+  'validationOptions': null,
+  
+  /// <field name="keyGeneratorCtor" type="KeyGenerator constructor" >The  'KeyGenerator' constructor associated with this EntityManager.</field>
+  'keyGeneratorCtor': null,
   
 });
 intellisense.annotate(breeze.breeze.EntityManager, {
   
+  'importEntities': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Creates a new EntityManager and imports a previously exported result into it.
+    ///   </summary>
+    ///   <param name="exportedString" type="String" optional="true">The result of a previous 'exportEntities' call.</param>
+    ///   <param name="config" type="Object" optional="true">A configuration object.</param>
+    ///   <returns type="breeze.breeze.EntityManager >A new EntityManager.</returns>
+    /// </signature>
+  },
   'importEntities': function() {
     /// <signature>
     ///   <summary>
@@ -1021,6 +1291,12 @@ intellisense.annotate(breeze.breeze.MergeStrategy, {
   /// <field name="OverwriteChanges" type="breeze.breeze.MergeStrategy" >OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already in a  'EntityState/Modified' state. In this case, the existing entity in the  EntityManager is replaced by the 'merging' entity.</field>
   'OverwriteChanges': null,
   
+  /// <field name="PreserveChanges" type="breeze.breeze.MergeStrategy" >PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already in a  'EntityState/Modified' state. In this case, the existing entity in the  EntityManager is not replaced by the 'merging' entity.</field>
+  'PreserveChanges': null,
+  
+  /// <field name="OverwriteChanges" type="breeze.breeze.MergeStrategy" >OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already in a  'EntityState/Modified' state. In this case, the existing entity in the  EntityManager is replaced by the 'merging' entity.</field>
+  'OverwriteChanges': null,
+  
 });
 
 intellisense.annotate(breeze.breeze.FetchStrategy.prototype, {
@@ -1029,6 +1305,12 @@ intellisense.annotate(breeze.breeze.FetchStrategy.prototype, {
 });
 intellisense.annotate(breeze.breeze.FetchStrategy, {
   
+  
+  /// <field name="FromServer" type="breeze.breeze.MergeStrategy" >FromServer is used to tell the query to execute the query against a remote data source on the server.</field>
+  'FromServer': null,
+  
+  /// <field name="FromLocalCache" type="breeze.breeze.MergeStrategy" >FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.</field>
+  'FromLocalCache': null,
   
   /// <field name="FromServer" type="breeze.breeze.MergeStrategy" >FromServer is used to tell the query to execute the query against a remote data source on the server.</field>
   'FromServer': null,
@@ -1058,6 +1340,30 @@ intellisense.annotate(breeze.breeze.QueryOptions.prototype, {
     
     /// </signature>
   },
+  'using': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a copy of this QueryOptions with the specified  'MergeStrategy' 
+    ///   or  'FetchStrategy' applied.
+    ///   </summary>
+    ///   <param name="config" type="Configuration Object|MergeStrategy|FetchStrategy" optional="true">The object to apply to create a new QueryOptions.</param>
+    ///   <returns type="breeze.breeze.QueryOptions" ></returns>
+    /// </signature>
+  },
+  'setAsDefault': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Makes this instance the default instance.
+    ///   </summary>
+    
+    /// </signature>
+  },
+  
+  /// <field name="fetchStrategy" type="breeze.breeze.FetchStrategy" >A  'FetchStrategy' __readOnly__</field>
+  'fetchStrategy': null,
+  
+  /// <field name="mergeStrategy" type="breeze.breeze.MergeStrategy" >A  'MergeStrategy' __readOnly__</field>
+  'mergeStrategy': null,
   
   /// <field name="fetchStrategy" type="breeze.breeze.FetchStrategy" >A  'FetchStrategy' __readOnly__</field>
   'fetchStrategy': null,
@@ -1068,6 +1374,9 @@ intellisense.annotate(breeze.breeze.QueryOptions.prototype, {
 });
 intellisense.annotate(breeze.breeze.QueryOptions, {
   
+  
+  /// <field name="defaultInstance" type="breeze.breeze.QueryOptions" >The default value whenever QueryOptions are not specified.</field>
+  'defaultInstance': null,
   
   /// <field name="defaultInstance" type="breeze.breeze.QueryOptions" >The default value whenever QueryOptions are not specified.</field>
   'defaultInstance': null,
@@ -1084,9 +1393,26 @@ intellisense.annotate(breeze.breeze.SaveOptions.prototype, {
     
     /// </signature>
   },
+  'setAsDefault': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Makes this instance the default instance.
+    ///   </summary>
+    
+    /// </signature>
+  },
   
   /// <field name="allowConcurrentSaves" type="Boolean" >Whether another save can be occuring at the same time as this one - default is false.</field>
   'allowConcurrentSaves': null,
+  
+  /// <field name="tag" type="Object" >A free form value that will be sent to the server.</field>
+  'tag': null,
+  
+  /// <field name="allowConcurrentSaves" type="Boolean" >Whether another save can be occuring at the same time as this one - default is false.</field>
+  'allowConcurrentSaves': null,
+  
+  /// <field name="tag" type="Object" >A free form value that will be sent to the server.</field>
+  'tag': null,
   
 });
 intellisense.annotate(breeze.breeze.SaveOptions, {
@@ -1095,10 +1421,30 @@ intellisense.annotate(breeze.breeze.SaveOptions, {
   /// <field name="defaultInstance" type="breeze.breeze.SaveOptions" >The default value whenever SaveOptions are not specified.</field>
   'defaultInstance': null,
   
+  /// <field name="defaultInstance" type="breeze.breeze.SaveOptions" >The default value whenever SaveOptions are not specified.</field>
+  'defaultInstance': null,
+  
 });
 
 intellisense.annotate(breeze.breeze.ValidationOptions.prototype, {
   
+  'using': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a copy of this ValidationOptions with changes to the specified config properties.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true">The object to apply to create a new QueryOptions.</param>
+    ///   <returns type="breeze.breeze.ValidationOptions" ></returns>
+    /// </signature>
+  },
+  'setAsDefault': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Makes this instance the default instance.
+    ///   </summary>
+    
+    /// </signature>
+  },
   'using': function() {
     /// <signature>
     ///   <summary>
@@ -1129,9 +1475,24 @@ intellisense.annotate(breeze.breeze.ValidationOptions.prototype, {
   /// <field name="validateOnPropertyChange" type="Boolean" >Whether property level validation should occur after entities are modified.</field>
   'validateOnPropertyChange': null,
   
+  /// <field name="validateOnAttach" type="Boolean" >Whether entity and property level validation should occur when entities are attached to the EntityManager other than via a query.</field>
+  'validateOnAttach': null,
+  
+  /// <field name="validateOnSave" type="Boolean" >Whether entity and property level validation should occur before entities are saved. A failed validation will force the save to fail early.</field>
+  'validateOnSave': null,
+  
+  /// <field name="validateOnQuery" type="Boolean" >Whether entity and property level validation should occur after entities are queried from a remote server.</field>
+  'validateOnQuery': null,
+  
+  /// <field name="validateOnPropertyChange" type="Boolean" >Whether property level validation should occur after entities are modified.</field>
+  'validateOnPropertyChange': null,
+  
 });
 intellisense.annotate(breeze.breeze.ValidationOptions, {
   
+  
+  /// <field name="defaultInstance" type="breeze.breeze.ValidationOptions" >The default value whenever ValidationOptions are not specified.</field>
+  'defaultInstance': null,
   
   /// <field name="defaultInstance" type="breeze.breeze.ValidationOptions" >The default value whenever ValidationOptions are not specified.</field>
   'defaultInstance': null,
@@ -1377,11 +1738,23 @@ intellisense.annotate(breeze.breeze.DataService.prototype, {
   /// <field name="adapterName" type="String" >The adapter name for the dataServiceAdapter to be used with this service.</field>
   'adapterName': null,
   
+  /// <field name="adapterInstance" type="An instance of the &quot;dataService&quot; adapter interface" >The 'dataService' adapter implementation instance associated with this EntityManager.</field>
+  'adapterInstance': null,
+  
   /// <field name="hasServerMetadata" type="Boolean" >Whether the server can provide metadata for this service.</field>
   'hasServerMetadata': null,
   
 });
 intellisense.annotate(breeze.breeze.DataService, {
+  
+  
+});
+
+intellisense.annotate(breeze.breeze.JsonResultsAdapter.prototype, {
+  
+  
+});
+intellisense.annotate(breeze.breeze.JsonResultsAdapter, {
   
   
 });
@@ -1613,8 +1986,8 @@ intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   /// <field name="name" type="String" >The name of this property</field>
   'name': null,
   
-  /// <field name="parentEntityType" type="breeze.breeze.EntityType" >The  'EntityType' that this property belongs to.</field>
-  'parentEntityType': null,
+  /// <field name="parentType" type="EntityType|ComplexType" >The parent type that this property belongs to - will be either a  'EntityType' or a  'ComplexType'.</field>
+  'parentType': null,
   
   /// <field name="dataType" type="breeze.breeze.DataType" >The  'DataType' of this property.</field>
   'dataType': null,
@@ -2136,7 +2509,7 @@ intellisense.annotate(breeze.breeze.Validator.prototype, {
   'register': function() {
     /// <signature>
     ///   <summary>
-    ///   Register a validator so that any deserialized metadata can reference it.
+    ///   Register a validator instance so that any deserialized metadata can reference it.
     ///   </summary>
     ///   <param name="validator" type="breeze.breeze.Validator" optional="true">Validator to register.</param>
     

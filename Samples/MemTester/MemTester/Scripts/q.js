@@ -44,7 +44,7 @@
         module.exports = definition();
 
     // RequireJS
-    } else if (typeof define === "function") {
+    } else if (typeof define === "function" && define.amd) {
         define(definition);
 
     // SES (Secure EcmaScript)
@@ -86,27 +86,64 @@ if (typeof process !== "undefined") {
     } else {
         nextTick = setImmediate;
     }
-} else if (typeof MessageChannel !== "undefined") {
-    // modern browsers
-    // http://www.nonblocking.io/2011/06/windownexttick.html
-    var channel = new MessageChannel();
-    // linked list of tasks (single, with head node)
-    var head = {}, tail = head;
-    channel.port1.onmessage = function () {
-        head = head.next;
-        var task = head.task;
-        delete head.task;
-        task();
-    };
-    nextTick = function (task) {
-        tail = tail.next = {task: task};
-        channel.port2.postMessage(0);
-    };
 } else {
-    // old browsers
-    nextTick = function (task) {
-        setTimeout(task, 0);
-    };
+    (function () {
+        // linked list of tasks (single, with head node)
+        var head = {task: void 0, next: null}, tail = head,
+            maxPendingTicks = 2, pendingTicks = 0, queuedTasks = 0, usedTicks = 0,
+            requestTick;
+
+        function onTick() {
+            // In case of multiple tasks ensure at least one subsequent tick
+            // to handle remaining tasks in case one throws.
+            --pendingTicks;
+
+            if (++usedTicks >= maxPendingTicks) {
+                // Amortize latency after thrown exceptions.
+                usedTicks = 0;
+                maxPendingTicks *= 4; // fast grow!
+                var expectedTicks = queuedTasks && Math.min(queuedTasks - 1, maxPendingTicks);
+                while (pendingTicks < expectedTicks) {
+                    ++pendingTicks;
+                    requestTick();
+                }
+            }
+
+            while (queuedTasks) {
+                --queuedTasks; // decrement here to ensure it's never negative
+                head = head.next;
+                var task = head.task;
+                head.task = void 0;
+                task();
+            }
+
+            usedTicks = 0;
+        }
+
+        nextTick = function (task) {
+            tail = tail.next = {task: task, next: null};
+            if (pendingTicks < ++queuedTasks && pendingTicks < maxPendingTicks) {
+                ++pendingTicks;
+                requestTick();
+            }
+        };
+
+        if (typeof MessageChannel !== "undefined") {
+            // modern browsers
+            // http://www.nonblocking.io/2011/06/windownexttick.html
+            var channel = new MessageChannel();
+            channel.port1.onmessage = onTick;
+            requestTick = function () {
+                channel.port2.postMessage(0);
+            };
+
+        } else {
+            // old browsers
+            requestTick = function () {
+                setTimeout(onTick, 0);
+            };
+        }
+    })();
 }
 
 // Attempt to make generics safe in the face of downstream
@@ -125,7 +162,7 @@ function uncurryThis(f) {
     return function () {
         return call.apply(f, arguments);
     };
-};
+}
 // This is equivalent, but slower:
 // uncurryThis = Function_bind.bind(Function_bind.call);
 // http://jsperf.com/uncurrythis
@@ -368,8 +405,11 @@ function defer() {
         if (pending) {
             return promise;
         }
-        value = valueOf(value); // shorten chain
-        return value;
+        var nearer = valueOf(value);
+        if (isPromise(nearer)) {
+            value = nearer; // shorten chain
+        }
+        return nearer;
     };
 
     if (Error.captureStackTrace && Q.longStackJumpLimit > 0) {
@@ -464,7 +504,7 @@ function promise(makePromise) {
  * bought and sold.
  */
 Q.makePromise = makePromise;
-function makePromise(descriptor, fallback, valueOf, exception) {
+function makePromise(descriptor, fallback, valueOf, exception, isException) {
     if (fallback === void 0) {
         fallback = function (op) {
             return reject(new Error("Promise does not support operation: " + op));
@@ -493,7 +533,7 @@ function makePromise(descriptor, fallback, valueOf, exception) {
         promise.valueOf = valueOf;
     }
 
-    if (exception) {
+    if (isException) {
         promise.exception = exception;
     }
 
@@ -509,6 +549,10 @@ makePromise.prototype.thenResolve = function (value) {
     return when(this, function () { return value; });
 };
 
+makePromise.prototype.thenReject = function (reason) {
+    return when(this, function () { throw reason; });
+};
+
 // Chainable methods
 array_reduce(
     [
@@ -522,7 +566,7 @@ array_reduce(
         "all", "allResolved",
         "timeout", "delay",
         "catch", "finally", "fail", "fin", "progress", "done",
-        "nfcall", "nfapply", "nfbind",
+        "nfcall", "nfapply", "nfbind", "denodeify", "nbind",
         "ncall", "napply", "nbind",
         "npost", "nsend", "ninvoke",
         "nodeify"
@@ -661,7 +705,7 @@ function reject(exception) {
         return reject(exception);
     }, function valueOf() {
         return this;
-    }, exception);
+    }, exception, true);
     // note that the error has not been handled
     displayErrors();
     rejections.push(rejection);
@@ -697,8 +741,8 @@ function fulfill(object) {
                 return object[name].apply(object, args);
             }
         },
-        "apply": function (args) {
-            return object.apply(void 0, args);
+        "apply": function (thisP, args) {
+            return object.apply(thisP, args);
         },
         "keys": function () {
             return object_keys(object);
@@ -745,7 +789,13 @@ function resolve(value) {
  */
 function coerce(promise) {
     var deferred = defer();
-    promise.then(deferred.resolve, deferred.reject, deferred.notify);
+    nextTick(function () {
+        try {
+            promise.then(deferred.resolve, deferred.reject, deferred.notify);
+        } catch (exception) {
+            deferred.reject(exception);
+        }
+    });
     return deferred.promise;
 }
 
@@ -1066,7 +1116,10 @@ function send(value, name) {
  * @param object    promise or immediate reference for target function
  * @param args      array of application arguments
  */
-var fapply = Q.fapply = dispatcher("apply");
+Q.fapply = fapply;
+function fapply(value, args) {
+    return dispatch(value, "apply", [void 0, args]);
+}
 
 /**
  * Calls the promised function in a future turn.
@@ -1091,7 +1144,7 @@ function fbind(value) {
     var args = array_slice(arguments, 1);
     return function fbound() {
         var allArgs = args.concat(array_slice(arguments));
-        return fapply(value, allArgs);
+        return dispatch(value, "apply", [this, allArgs]);
     };
 }
 
@@ -1115,27 +1168,24 @@ Q.keys = dispatcher("keys");
 Q.all = all;
 function all(promises) {
     return when(promises, function (promises) {
-        var countDown = promises.length;
-        if (countDown === 0) {
-            return resolve(promises);
-        }
+        var countDown = 0;
         var deferred = defer();
         array_reduce(promises, function (undefined, promise, index) {
             if (isFulfilled(promise)) {
                 promises[index] = valueOf(promise);
-                if (--countDown === 0) {
-                    deferred.resolve(promises);
-                }
             } else {
+                ++countDown;
                 when(promise, function (value) {
                     promises[index] = value;
                     if (--countDown === 0) {
                         deferred.resolve(promises);
                     }
-                })
-                .fail(deferred.reject);
+                }, deferred.reject);
             }
         }, void 0);
+        if (countDown === 0) {
+            deferred.resolve(promises);
+        }
         return deferred.promise;
     });
 }
@@ -1342,6 +1392,7 @@ function nfcall(callback/*, ...args */) {
  *
  */
 Q.nfbind = nfbind;
+Q.denodeify = Q.nfbind; // synonyms
 function nfbind(callback/*, ...args */) {
     var baseArgs = array_slice(arguments, 1);
     return function () {
@@ -1350,6 +1401,24 @@ function nfbind(callback/*, ...args */) {
         nodeArgs.push(deferred.makeNodeResolver());
 
         fapply(callback, nodeArgs).fail(deferred.reject);
+        return deferred.promise;
+    };
+}
+
+Q.nbind = nbind;
+function nbind(callback/*, ... args*/) {
+    var baseArgs = array_slice(arguments, 1);
+    return function () {
+        var nodeArgs = baseArgs.concat(array_slice(arguments));
+        var deferred = defer();
+        nodeArgs.push(deferred.makeNodeResolver());
+
+        var thisArg = this;
+        function bound() {
+            return callback.apply(thisArg, arguments);
+        }
+
+        fapply(bound, nodeArgs).fail(deferred.reject);
         return deferred.promise;
     };
 }
@@ -1365,7 +1434,7 @@ function nfbind(callback/*, ...args */) {
  */
 Q.npost = npost;
 function npost(object, name, args) {
-    var nodeArgs = array_slice(args);
+    var nodeArgs = array_slice(args || []);
     var deferred = defer();
     nodeArgs.push(deferred.makeNodeResolver());
 
