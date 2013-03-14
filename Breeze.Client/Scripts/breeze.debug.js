@@ -5582,6 +5582,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param config.serviceName {String} The name of the service. 
         @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
         @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
+        @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
         **/
         
         var ctor = function(config) {
@@ -5659,9 +5660,52 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var JsonResultsAdapter = (function () {
 
         /**
-        A JsonREsultsAdapter is used ... 
+        A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. 
+        This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens. 
 
         @class JsonResultsAdapter
+        **/
+
+        /**
+        JsonResultsAdapter constructor
+
+        @example
+            // 
+            var jsonResultsAdapter = new JsonResultsAdapter({
+                name: "test1e",
+                extractResults: function(json) {
+                    return json.results;
+                },
+                visitNode: function(node, queryContext, nodeContext) {
+                    var entityTypeName = normalizeTypeName(node.$type);
+                    var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                    var propertyName = nodeContext.propertyName;
+                    var ignore = propertyName && propertyName.substr(0, 1) === "$";
+
+                    return {
+                        entityType: entityType,
+                        nodeId: node.$id,
+                        nodeRefId: node.$ref,
+                        ignore: ignore
+                    };
+                }
+            });
+
+            var dataService = new DataService( {
+                 serviceName: "api/foo,
+                 jsonResultsAdapter: jsonResultsAdapter
+            });
+
+            var entityManager = new EntityManager( {
+                dataService: dataService
+            });
+            
+        @method <ctor> JsonResultsAdapter
+        @param config {Object}
+        @param config.name {String} The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported.
+        @param [config.extractResults] {Function} Called once per service operation to extract the 'payload' from any json received over the wire. 
+        This method has a default implementation which to simply return the "results" property from any json returned as a result of executing the query.
+        @param config.visitNode {Function} A visitor method that will be called on each node of the returned payload. 
         **/
         var ctor = function (config) {
             if (arguments.length != 1) {
@@ -7302,7 +7346,19 @@ function (core, m_entityMetadata, m_entityAspect) {
             return new EntityQuery(resourceName);
         };
 
-        // Allow types to be defined client side.
+        /**
+        Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.
+        @example                    
+            var query = new EntityQuery()
+                .from("MyCustomMethod")
+                .toType("Customer")
+        
+        @method toType
+        @param entityType {String|EntityType} The top level entityType that this query will return.  This method is only needed when a query returns a json result that 
+        does not include type information.  If the json result consists of more than a simple entity or array of entities, consider using a JsonResultsAdapter instead.
+        @return {EntityQuery}
+        @chainable
+        **/
         proto.toType = function(entityType) {
             assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
@@ -7618,8 +7674,8 @@ function (core, m_entityMetadata, m_entityAspect) {
 
          // Implementations found in EntityManager
         /**
-        Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} 
-        or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
+        Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "DataService"}}{{/crossLink}}, 
+        {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
         @example
         'using' can be used to return a new query with a specified EntityManager.
         @example
@@ -7638,7 +7694,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 .using(FetchStrategy.FromLocalCache);
         @example
         @method using
-        @param obj {EntityManager|MergeStrategy|FetchStrategy} The object to update in creating a new EntityQuery from an existing one.
+        @param obj {EntityManager|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to update in creating a new EntityQuery from an existing one.
         @return {EntityQuery}
         @chainable
         **/

@@ -240,28 +240,7 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_&lt;ctor&gt; QueryOptions">&lt;ctor&gt; QueryOptions</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
                                 <a href="#method_setAsDefault">setAsDefault</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
-                                <a href="#method_setAsDefault">setAsDefault</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
-                                <a href="#method_using">using</a>
 
                                 
                                 
@@ -294,30 +273,7 @@
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_defaultInstance">defaultInstance</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
                                 <a href="#property_fetchStrategy">fetchStrategy</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_fetchStrategy">fetchStrategy</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_mergeStrategy">mergeStrategy</a>
 
                                 
                                 
@@ -342,137 +298,6 @@
         
             <div id="methods" class="api-class-tabpanel">
                 <h2 class="off-left">Methods</h2>
-
-                
-                    <div id="method_&lt;ctor&gt; QueryOptions" class="method item">
-    <h3 class="name"><code>&lt;ctor&gt; QueryOptions</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code class="optional">[config]</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2500"><code>entityManager - QueryContext.js:2500</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>QueryOptions constructor</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[config]</code>
-                        <span class="type">Object</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                         
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[fetchStrategy=FetchStrategy.FromServer]</code>
-                                    <span class="type"><a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[mergeStrategy=MergeStrategy.PreserveChanges]</code>
-                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code prettyprint"><code>var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-// assume em1 is a preexisting EntityManager
-em1.setProperties( { queryOptions: newQo });
-</code></pre>
-            </div>
-        </div>
-    
-</div>
 
                 
                     <div id="method_&lt;ctor&gt; QueryOptions" class="method item">
@@ -640,72 +465,6 @@ em1.setProperties( { queryOptions: newQo });
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2566"><code>entityManager - QueryContext.js:2566</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Makes this instance the default instance.</p>
-    </div>
-
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code prettyprint"><code>var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-newQo.setAsDefault();
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_setAsDefault" class="method item">
-    <h3 class="name"><code>setAsDefault</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
         <a href="..&#x2F;files&#x2F;entityManager.js.html#l2505"><code>entityManager.js:2505</code></a>
         
         </p>
@@ -731,127 +490,6 @@ newQo.setAsDefault();
             <div class="example-content">
                 <pre class="code prettyprint"><code>var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
 newQo.setAsDefault();
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_using" class="method item">
-    <h3 class="name"><code>using</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>config</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>
-        </span>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2540"><code>entityManager - QueryContext.js:2540</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Returns a copy of this QueryOptions with the specified <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> 
-or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> applied.</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">config</code>
-                        <span class="type">Configuration Object | <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> | <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The object to apply to create a new QueryOptions.</p>
-                    </div>
-
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-                
-                    
-                        <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>:
-                    
-                
-            </div>
-        </div>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);
-</code></pre>
-
-<p>or</p><pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using(FetchStrategy.FromLocalCache);
-</code></pre>
-
-<p>or</p><pre class="code prettyprint"><code>var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
 </code></pre>
             </div>
         </div>
@@ -1013,52 +651,6 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2533"><code>entityManager - QueryContext.js:2533</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>The default value whenever QueryOptions are not specified.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_defaultInstance" class="property item">
-    <h3 class="name"><code>defaultInstance</code></h3>
-    <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
         <a href="..&#x2F;files&#x2F;entityManager.js.html#l2472"><code>entityManager.js:2472</code></a>
         
         </p>
@@ -1103,51 +695,6 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2519"><code>entityManager - QueryContext.js:2519</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>A <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a>
-<strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_fetchStrategy" class="property item">
-    <h3 class="name"><code>fetchStrategy</code></h3>
-    <span class="type"><a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
         <a href="..&#x2F;files&#x2F;entityManager.js.html#l2458"><code>entityManager.js:2458</code></a>
         
         </p>
@@ -1159,51 +706,6 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
 
     <div class="description">
         <p>A <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a>
-<strong>readOnly</strong></p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_mergeStrategy" class="property item">
-    <h3 class="name"><code>mergeStrategy</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;entityManager - QueryContext.js.html#l2525"><code>entityManager - QueryContext.js:2525</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>A <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a>
 <strong>readOnly</strong></p>
     </div>
 

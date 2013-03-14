@@ -162,7 +162,19 @@ function (core, m_entityMetadata, m_entityAspect) {
             return new EntityQuery(resourceName);
         };
 
-        // Allow types to be defined client side.
+        /**
+        Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.
+        @example                    
+            var query = new EntityQuery()
+                .from("MyCustomMethod")
+                .toType("Customer")
+        
+        @method toType
+        @param entityType {String|EntityType} The top level entityType that this query will return.  This method is only needed when a query returns a json result that 
+        does not include type information.  If the json result consists of more than a simple entity or array of entities, consider using a JsonResultsAdapter instead.
+        @return {EntityQuery}
+        @chainable
+        **/
         proto.toType = function(entityType) {
             assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
             var eq = this._clone();
@@ -478,8 +490,8 @@ function (core, m_entityMetadata, m_entityAspect) {
 
          // Implementations found in EntityManager
         /**
-        Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} 
-        or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
+        Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "DataService"}}{{/crossLink}}, 
+        {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
         @example
         'using' can be used to return a new query with a specified EntityManager.
         @example
@@ -498,7 +510,7 @@ function (core, m_entityMetadata, m_entityAspect) {
                 .using(FetchStrategy.FromLocalCache);
         @example
         @method using
-        @param obj {EntityManager|MergeStrategy|FetchStrategy} The object to update in creating a new EntityQuery from an existing one.
+        @param obj {EntityManager|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to update in creating a new EntityQuery from an existing one.
         @return {EntityQuery}
         @chainable
         **/

@@ -356,6 +356,13 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_toType">toType</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_using">using</a>
 
                                 
@@ -612,7 +619,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l507"><code>entityQuery.js:507</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l519"><code>entityQuery.js:519</code></a>
         
         </p>
 
@@ -875,7 +882,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l568"><code>entityQuery.js:568</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l580"><code>entityQuery.js:580</code></a>
         
         </p>
 
@@ -958,7 +965,7 @@ var orders = query.executeLocally();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l402"><code>entityQuery.js:402</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l414"><code>entityQuery.js:414</code></a>
         
         </p>
 
@@ -1324,7 +1331,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l580"><code>entityQuery.js:580</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l592"><code>entityQuery.js:592</code></a>
         
         </p>
 
@@ -1453,7 +1460,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l621"><code>entityQuery.js:621</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l633"><code>entityQuery.js:633</code></a>
         
         </p>
 
@@ -1582,7 +1589,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l646"><code>entityQuery.js:646</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l658"><code>entityQuery.js:658</code></a>
         
         </p>
 
@@ -1715,7 +1722,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l455"><code>entityQuery.js:455</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l467"><code>entityQuery.js:467</code></a>
         
         </p>
 
@@ -1836,7 +1843,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l245"><code>entityQuery.js:245</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l257"><code>entityQuery.js:257</code></a>
         
         </p>
 
@@ -1967,7 +1974,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l280"><code>entityQuery.js:280</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l292"><code>entityQuery.js:292</code></a>
         
         </p>
 
@@ -2090,7 +2097,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l305"><code>entityQuery.js:305</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l317"><code>entityQuery.js:317</code></a>
         
         </p>
 
@@ -2227,7 +2234,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l345"><code>entityQuery.js:345</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l357"><code>entityQuery.js:357</code></a>
         
         </p>
 
@@ -2343,7 +2350,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l381"><code>entityQuery.js:381</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l393"><code>entityQuery.js:393</code></a>
         
         </p>
 
@@ -2458,7 +2465,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l367"><code>entityQuery.js:367</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l379"><code>entityQuery.js:379</code></a>
         
         </p>
 
@@ -2525,6 +2532,123 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
 </div>
 
                 
+                    <div id="method_toType" class="method item">
+    <h3 class="name"><code>toType</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>entityType</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l165"><code>entityQuery.js:165</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entityType</code>
+                        <span class="type">String | <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The top level entityType that this query will return.  This method is only needed when a query returns a json result that 
+does not include type information.  If the json result consists of more than a simple entity or array of entities, consider using a JsonResultsAdapter instead.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a></span>:
+                    
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var query = new EntityQuery()
+    .from("MyCustomMethod")
+    .toType("Customer")
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_using" class="method item">
     <h3 class="name"><code>using</code></h3>
 
@@ -2573,7 +2697,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l480"><code>entityQuery.js:480</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l492"><code>entityQuery.js:492</code></a>
         
         </p>
 
@@ -2584,8 +2708,8 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
     </div>
 
     <div class="description">
-        <p>Returns a copy of this EntityQuery with the specified <a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a>, <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> 
-or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> applied.</p>
+        <p>Returns a copy of this EntityQuery with the specified <a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a>, <a href="..\classes\DataService.html" class="crosslink">DataService</a>, 
+<a href="..\classes\JsonResultsAdapter.html" class="crosslink">JsonResultsAdapter</a>, <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> applied.</p>
     </div>
 
     
@@ -2597,7 +2721,7 @@ or <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> a
                 <li class="param">
                     
                         <code class="param-name">obj</code>
-                        <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a> | <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> | <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a></span>
+                        <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a> | <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> | <a href="..\classes\FetchStrategy.html" class="crosslink">FetchStrategy</a> | <a href="..\classes\DataService.html" class="crosslink">DataService</a> | <a href="..\classes\JsonResultsAdapter.html" class="crosslink">JsonResultsAdapter</a></span>
                     
 
                     
@@ -2700,7 +2824,7 @@ var query = new EntityQuery("Orders")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l173"><code>entityQuery.js:173</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l185"><code>entityQuery.js:185</code></a>
         
         </p>
 
@@ -2852,7 +2976,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l428"><code>entityQuery.js:428</code></a>
+        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l440"><code>entityQuery.js:440</code></a>
         
         </p>
 

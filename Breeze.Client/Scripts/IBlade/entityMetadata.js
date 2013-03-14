@@ -1115,6 +1115,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @param config.serviceName {String} The name of the service. 
         @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
         @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
+        @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
         **/
         
         var ctor = function(config) {
@@ -1166,6 +1167,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property hasServerMetadata {Boolean}
         **/
         
+        /**
+        The JsonResultsAdapter used to process the results of any query against this DataService.
+
+        __readOnly__
+        @property jsonResultsAdapter {Boolean}
+        **/
+        
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
             if (serviceName.substr(-1) !== "/") {
@@ -1192,9 +1200,52 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
     var JsonResultsAdapter = (function () {
 
         /**
-        A JsonREsultsAdapter is used ... 
+        A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. 
+        This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens. 
 
         @class JsonResultsAdapter
+        **/
+
+        /**
+        JsonResultsAdapter constructor
+
+        @example
+            // 
+            var jsonResultsAdapter = new JsonResultsAdapter({
+                name: "test1e",
+                extractResults: function(json) {
+                    return json.results;
+                },
+                visitNode: function(node, queryContext, nodeContext) {
+                    var entityTypeName = normalizeTypeName(node.$type);
+                    var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                    var propertyName = nodeContext.propertyName;
+                    var ignore = propertyName && propertyName.substr(0, 1) === "$";
+
+                    return {
+                        entityType: entityType,
+                        nodeId: node.$id,
+                        nodeRefId: node.$ref,
+                        ignore: ignore
+                    };
+                }
+            });
+
+            var dataService = new DataService( {
+                 serviceName: "api/foo",
+                 jsonResultsAdapter: jsonResultsAdapter
+            });
+
+            var entityManager = new EntityManager( {
+                dataService: dataService
+            });
+            
+        @method <ctor> JsonResultsAdapter
+        @param config {Object}
+        @param config.name {String} The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported.
+        @param [config.extractResults] {Function} Called once per service operation to extract the 'payload' from any json received over the wire. 
+        This method has a default implementation which to simply return the "results" property from any json returned as a result of executing the query.
+        @param config.visitNode {Function} A visitor method that will be called on each node of the returned payload. 
         **/
         var ctor = function (config) {
             if (arguments.length != 1) {
