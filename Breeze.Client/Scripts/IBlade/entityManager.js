@@ -1884,73 +1884,57 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function processAnonType(node, queryContext) {
             var em = queryContext.entityManager;
             var jsonResultsAdapter = queryContext.jsonResultsAdapter;
-            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             if (typeof node !== 'object') {
                 return node;
             }
+            var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
             var result = { };
             core.objectForEach(node, function(key, value) {
-
                 var meta = jsonResultsAdapter.visitNode(value, queryContext, { parentNode: node, propertyName: key });
-
                 if (meta.ignore) return;
                 
                 var newKey = keyFn(key);
-                var refValue;
-                // == is deliberate here instead of ===
-                if (value == null) {
-                    result[newKey] = value;
-                } else if (Array.isArray(value)) {
-                    result[newKey] = value.map(function(v, ix, arr) {
-                        if (v == null) {
-                            return v;
-                        }
+                if (Array.isArray(value)) {
+                    result[newKey] = value.map(function(v, ix) {
                         meta = jsonResultsAdapter.visitNode(v, queryContext, { parentArray: value, index: ix });
-                       
-                        if (meta.ignore) {
-                            return null;
-                        } else if (meta.nodeRefId) {
-                            refValue = resolveRefEntity(meta.nodeRefId, queryContext);
-                            if (typeof refValue == "function") {
-                                queryContext.deferredFns.push(function() {
-                                    arr[ix] = refValue();
-                                });
-                            }
-                            return refValue;
-                        } else if (meta.entityType) {
-                            v._$meta = meta;
-                            return mergeEntity(v, queryContext);
-                        } else {
-                            if (meta.nodeId) {
-                                queryContext.refMap[meta.nodeId] = v;
-                            }
-                            return v;
-                        }
+                        return processMeta(meta, v, queryContext, function(refValue) {
+                            result[newKey][ix] = refValue();
+                        });
                     });
                 } else {
-                    if (meta.nodeRefId) {
-                        refValue = resolveRefEntity(meta.nodeRefId, queryContext);
-                        if (typeof refValue == "function") {
-                            queryContext.deferredFns.push(function() {
-                                result[newKey] = refValue();
-                            });
-                        }
-                        result[newKey] = refValue;
-                    } else if (meta.entityType) {
-                        value._$meta = meta;
-                        result[newKey] = mergeEntity(value, queryContext);
-                    } else {
-                        if (meta.nodeId) {
-                            queryContext.refMap[meta.nodeId] = value;
-                        }
-                        result[newKey] = value;
-                    }
+                    result[newKey] = processMeta(meta, value, queryContext, function(refValue) {
+                        result[newKey] = refValue();
+                    });
                 }
             });
             return result;
         }
-        
-       
+
+        function processMeta(meta, node, queryContext, assignFn) {
+            // == is deliberate here instead of ===
+            if (meta.ignore || node==null) {
+                return null;
+            } else if (meta.nodeRefId) {
+                var refValue = resolveRefEntity(meta.nodeRefId, queryContext);
+                if (typeof refValue == "function") {
+                    queryContext.deferredFns.push(function() {
+                        assignFn(refValue);
+                    });
+                    return undefined; // deferred and will be set later;
+                }
+                return refValue;
+            } else if (meta.entityType) {
+                node._$meta = meta;
+                return mergeEntity(node, queryContext);
+            } else {
+                if (meta.nodeId) {
+                    queryContext.refMap[meta.nodeId] = node;
+                }
+                return node;
+            }
+        }
+
+
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity, rawEntity);
             var entityType = targetEntity.entityType;
