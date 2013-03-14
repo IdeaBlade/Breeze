@@ -904,7 +904,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 fixupKeys(that, saveResult.keyMappings);
                 
                 var queryContext = {
-                    query: null, // tells mergeEntity that this is a save instead of a query
+                    query: null, // tells visitAndMerge that this is a save instead of a query
                     entityManager: that,
                     jsonResultsAdapter: that.dataService.jsonResultsAdapter,
                     mergeStrategy: MergeStrategy.OverwriteChanges,
@@ -913,7 +913,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 };
                 
                 var savedEntities = saveResult.entities.map(function (rawEntity) {
-                    return mergeEntity(rawEntity, queryContext);
+                    return visitAndMerge(rawEntity, queryContext);
                 });
                 markIsBeingSaved(entitiesToSave, false);
                 // update _hasChanges after save.
@@ -1759,9 +1759,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                             nodes = [nodes];
                         }
                         var entities = nodes.map(function (node) {
-                            // at the top level - mergeEntity will only return entities - at lower levels in the hierarchy 
-                            // mergeEntity can return deferred functions.
-                            var entity = mergeEntity(node, queryContext, true);
+                            var entity = mergeTopLevel(node, queryContext);
                             // anon types and simple types will not have an entityAspect.
                             if (validateOnQuery && entity.entityAspect) {
                                 entity.entityAspect.validateEntity();
@@ -1792,35 +1790,64 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 return Q.reject(e);
             }
         }
-
-        function mergeEntity(node, queryContext, isTopLevel) {
-
+        
+        function mergeTopLevel(node, queryContext) {
+            var meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, {});
+            if (!meta.entityType) {
+                meta.entityType = queryContext.query && queryContext.query._getToEntityType && queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
+            }
+            // 4 arg to processMeta should not be needed at the top level
+            return processMeta(node, queryContext, meta);
+        }
+        
+        function visitAndMerge(node, queryContext, nodeContext) {
+            nodeContext = nodeContext || {};
+            var meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, nodeContext);
+            return processMeta(node, queryContext, meta);
+        }
+        
+        function processMeta(node, queryContext, meta, assignFn) {
+            // == is deliberate here instead of ===
+            if (meta.ignore || node == null) {
+                return null;
+            } else if (meta.nodeRefId) {
+                var refValue = resolveRefEntity(meta.nodeRefId, queryContext);
+                if (typeof refValue == "function") {
+                    queryContext.deferredFns.push(function () {
+                        assignFn(refValue);
+                    });
+                    return undefined; // deferred and will be set later;
+                }
+                return refValue;
+            } else if (meta.entityType) {
+                node._$meta = meta;
+                return mergeEntity(node, meta.entityType, queryContext);
+            } else {
+                if (meta.nodeId) {
+                    queryContext.refMap[meta.nodeId] = node;
+                }
+                if (typeof node === 'object') {
+                    return processAnonType(node, queryContext);
+                } else {
+                    return node;
+                }
+            }
+        }
+        
+        function resolveRefEntity(nodeRefId, queryContext) {
+            var entity = queryContext.refMap[nodeRefId];
+            if (entity === undefined) {
+                return function () { return queryContext.refMap[nodeRefId]; };
+            } else {
+                return entity;
+            }
+        }
+        
+        function mergeEntity(node, entityType, queryContext ) {
             var em = queryContext.entityManager;
             var mergeStrategy = queryContext.mergeStrategy;
             var isSaving = queryContext.query == null;
-            // will have already been set if called nested.
-            var meta = node._$meta;
-            if (!meta) {
-                meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, {});
 
-                if (meta.ignore) {
-                    return null;
-                }
-
-                if (meta.nodeRefId) {
-                    return resolveRefEntity(meta.nodeRefId, queryContext);
-                }
-            }
-            var entityType = meta.entityType;
-            if (entityType == null) {
-                // fallback uses query's resourceName to determine the entityType - this will only work for topLevel jsonResults.
-                entityType = isTopLevel && queryContext.query && queryContext.query._getToEntityType && queryContext.query._getToEntityType(em.metadataStore);
-                if (!entityType) {
-                    return processAnonType(node, queryContext);
-                }
-            }
-            
-            node._$meta = meta;
             node.entityType = entityType;
             var entityKey = EntityKey._fromRawEntity(node, entityType);
             var targetEntity = em.findEntityByKey(entityKey);
@@ -1872,15 +1899,6 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             return targetEntity;
         }
         
-        function resolveRefEntity(nodeRefId, queryContext) {
-            var entity = queryContext.refMap[nodeRefId];
-            if (entity === undefined) {
-                return function() { return queryContext.refMap[nodeRefId]; };
-            } else {
-                return entity;
-            }
-        }
-
         function processAnonType(node, queryContext) {
             var em = queryContext.entityManager;
             var jsonResultsAdapter = queryContext.jsonResultsAdapter;
@@ -1897,43 +1915,18 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                 if (Array.isArray(value)) {
                     result[newKey] = value.map(function(v, ix) {
                         meta = jsonResultsAdapter.visitNode(v, queryContext, { parentArray: value, index: ix });
-                        return processMeta(meta, v, queryContext, function(refValue) {
+                        return processMeta(v, queryContext, meta, function(refValue) {
                             result[newKey][ix] = refValue();
                         });
                     });
                 } else {
-                    result[newKey] = processMeta(meta, value, queryContext, function(refValue) {
+                    result[newKey] = processMeta(value, queryContext, meta, function(refValue) {
                         result[newKey] = refValue();
                     });
                 }
             });
             return result;
         }
-
-        function processMeta(meta, node, queryContext, assignFn) {
-            // == is deliberate here instead of ===
-            if (meta.ignore || node==null) {
-                return null;
-            } else if (meta.nodeRefId) {
-                var refValue = resolveRefEntity(meta.nodeRefId, queryContext);
-                if (typeof refValue == "function") {
-                    queryContext.deferredFns.push(function() {
-                        assignFn(refValue);
-                    });
-                    return undefined; // deferred and will be set later;
-                }
-                return refValue;
-            } else if (meta.entityType) {
-                node._$meta = meta;
-                return mergeEntity(node, queryContext);
-            } else {
-                if (meta.nodeId) {
-                    queryContext.refMap[meta.nodeId] = node;
-                }
-                return node;
-            }
-        }
-
 
         function updateEntity(targetEntity, rawEntity, queryContext) {
             updateCurrentRef(queryContext, targetEntity, rawEntity);
@@ -1998,10 +1991,8 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
         function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
             var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
             if (!relatedRawEntity) return null;
-            //var navMeta = queryContext.jsonResultsAdapter.visitNavPropNode(relatedRawEntity, queryContext, navigationProperty);
-            //if (navMeta.ignore) return;
-
-            var relatedEntity = mergeEntity(relatedRawEntity, queryContext);
+            
+            var relatedEntity = visitAndMerge(relatedRawEntity, queryContext, { parentNode: rawEntity, navigationProperty: navigationProperty });
             return relatedEntity;
         }
         
@@ -2053,7 +2044,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             if (!Array.isArray(relatedRawEntities)) return null;
 
             var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
-                return mergeEntity(relatedRawEntity, queryContext);
+                return visitAndMerge(relatedRawEntity, queryContext, { parentNode: rawEntity, navigationProperty: navigationProperty});
             });
             return relatedEntities;
 
