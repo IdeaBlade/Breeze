@@ -84,7 +84,7 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (value, queryContext, propertyName) {
+        visitNode: function (value, queryContext, nodeContext) {
             var result = {};
             
             if (value.__metadata != null) {
@@ -95,6 +95,7 @@
                     result.entityType = et;
                 }
             }
+            var propertyName = nodeContext.propertyName;
             result.ignore = value.__deferred != null || propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
                 (propertyName == "EntityKey" && value.$type && core.stringStartsWith(value.$type, "System.Data"));

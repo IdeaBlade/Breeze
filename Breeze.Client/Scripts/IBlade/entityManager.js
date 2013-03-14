@@ -1801,17 +1801,16 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             // will have already been set if called nested.
             var meta = node._$meta;
             if (!meta) {
-                meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext);
-            }
+                meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, {});
 
-            if (meta.ignore) {
-                return null;
+                if (meta.ignore) {
+                    return null;
+                }
+
+                if (meta.nodeRefId) {
+                    return resolveRefEntity(meta.nodeRefId, queryContext);
+                }
             }
-            
-            if (meta.nodeRefId) {
-                return resolveRefEntity(meta.nodeRefId, queryContext);
-            }
-            
             var entityType = meta.entityType;
             if (entityType == null) {
                 // fallback uses query's resourceName to determine the entityType - this will only work for topLevel jsonResults.
@@ -1892,7 +1891,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
             var result = { };
             core.objectForEach(node, function(key, value) {
 
-                var meta = jsonResultsAdapter.visitNode(value, queryContext, key);
+                var meta = jsonResultsAdapter.visitNode(value, queryContext, { parentNode: node, propertyName: key });
 
                 if (meta.ignore) return;
                 
@@ -1906,7 +1905,7 @@ function (core, a_config, m_entityMetadata, m_entityAspect, m_entityQuery, KeyGe
                         if (v == null) {
                             return v;
                         }
-                        meta = jsonResultsAdapter.visitNode(v, queryContext, ix.toString());
+                        meta = jsonResultsAdapter.visitNode(v, queryContext, { parentArray: value, index: ix });
                        
                         if (meta.ignore) {
                             return null;

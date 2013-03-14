@@ -145,9 +145,10 @@
         
         name: "webApi_default",
         
-        visitNode: function (value, queryContext, propertyName) {
+        visitNode: function (value, queryContext, nodeContext ) {
             var entityTypeName = EntityType._getNormalizedTypeName(value["$type"]);
             var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+            var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 
             return {
