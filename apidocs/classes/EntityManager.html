@@ -187,7 +187,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityManager.js.html#l32"><code>entityManager.js:32</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l8"><code>a50_entityManager.js:8</code></a>
         </div>
     
 
@@ -550,7 +550,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l37"><code>entityManager.js:37</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l13"><code>a50_entityManager.js:13</code></a>
         
         </p>
 
@@ -783,7 +783,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l471"><code>entityManager.js:471</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l447"><code>a50_entityManager.js:447</code></a>
         
         </p>
 
@@ -911,7 +911,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l492"><code>entityManager.js:492</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l468"><code>a50_entityManager.js:468</code></a>
         
         </p>
 
@@ -1029,7 +1029,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l381"><code>entityManager.js:381</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l357"><code>a50_entityManager.js:357</code></a>
         
         </p>
 
@@ -1100,7 +1100,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l449"><code>entityManager.js:449</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l425"><code>a50_entityManager.js:425</code></a>
         
         </p>
 
@@ -1205,7 +1205,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l199"><code>entityManager.js:199</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l175"><code>a50_entityManager.js:175</code></a>
         
         </p>
 
@@ -1364,7 +1364,7 @@ var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: 
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l547"><code>entityManager.js:547</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l523"><code>a50_entityManager.js:523</code></a>
         
         </p>
 
@@ -1495,7 +1495,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l632"><code>entityManager.js:632</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l608"><code>a50_entityManager.js:608</code></a>
         
         </p>
 
@@ -1713,38 +1713,38 @@ would have been applied.
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders");
- em.executeQuery(query)
-   .then( function(data) {
-       var orders = data.results;
-       ... query results processed here
- }).fail( function(err) {
-       ... query failure processed here
- });
-</code></pre>
-
-<p>or with callbacks</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders");
- em.executeQuery(query,
-    function(data) {
-       var orders = data.results;
-       ... query results processed here
-    },
-    function(err) {
-       ... query failure processed here
+                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders");
+    em.executeQuery(query)
+    .then( function(data) {
+        var orders = data.results;
+        ... query results processed here
+    }).fail( function(err) {
+        ... query failure processed here
     });
 </code></pre>
 
-<p>Either way this method is the same as calling the The <a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a> 'execute' method.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders").using(em);
- query.execute()
-   .then( function(data) {
-       var orders = data.results;
-       ... query results processed here
- }).fail( function(err) {
-       ... query failure processed here
- });
+<p>or with callbacks</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders");
+    em.executeQuery(query,
+    function(data) {
+        var orders = data.results;
+        ... query results processed here
+    },
+    function(err) {
+        ... query failure processed here
+    });
+</code></pre>
+
+<p>Either way this method is the same as calling the The <a href="..\classes\EntityQuery.html" class="crosslink">EntityQuery</a> 'execute' method.</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders").using(em);
+    query.execute()
+    .then( function(data) {
+        var orders = data.results;
+        ... query results processed here
+    }).fail( function(err) {
+        ... query failure processed here
+    });
 </code></pre>
             </div>
         </div>
@@ -1798,7 +1798,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l720"><code>entityManager.js:720</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l696"><code>a50_entityManager.js:696</code></a>
         
         </p>
 
@@ -1857,21 +1857,21 @@ would have been applied.
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>Because this method is executed immediately there is no need for a promise or a callback</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders");
- var orders = em.executeQueryLocally(query);
+                <p>Because this method is executed immediately there is no need for a promise or a callback</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders");
+    var orders = em.executeQueryLocally(query);
 </code></pre>
 
 <p>Note that this can also be accomplished using the 'executeQuery' method with
-a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders").using(FetchStrategy.FromLocalCache);
- em.executeQuery(query)
-   .then( function(data) {
-       var orders = data.results;
-       ... query results processed here
- }).fail( function(err) {
-       ... query failure processed here
- });
+a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders").using(FetchStrategy.FromLocalCache);
+    em.executeQuery(query)
+    .then( function(data) {
+        var orders = data.results;
+        ... query results processed here
+    }).fail( function(err) {
+        ... query failure processed here
+    });
 </code></pre>
             </div>
         </div>
@@ -1925,7 +1925,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l259"><code>entityManager.js:259</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l235"><code>a50_entityManager.js:235</code></a>
         
         </p>
 
@@ -2071,7 +2071,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l975"><code>entityManager.js:975</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l951"><code>a50_entityManager.js:951</code></a>
         
         </p>
 
@@ -2234,7 +2234,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1000"><code>entityManager.js:1000</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l976"><code>a50_entityManager.js:976</code></a>
         
         </p>
 
@@ -2381,7 +2381,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l581"><code>entityManager.js:581</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l557"><code>a50_entityManager.js:557</code></a>
         
         </p>
 
@@ -2507,8 +2507,8 @@ it is usually better to access metadata via the 'metadataStore' property of the 
 
             <div class="example-content">
                 <p>Usually you will not actually process the results of a fetchMetadata call directly, but will instead
-ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code> var em1 = new EntityManager( "api/NorthwindIBModel");
- em1.fetchMetadata()
+ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code>    var em1 = new EntityManager( "api/NorthwindIBModel");
+    em1.fetchMetadata()
     .then(function() {
         var metadataStore = em1.metadataStore;
         // do something with the metadata
@@ -2571,7 +2571,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1048"><code>entityManager.js:1048</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1024"><code>a50_entityManager.js:1024</code></a>
         
         </p>
 
@@ -2690,7 +2690,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1065"><code>entityManager.js:1065</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1041"><code>a50_entityManager.js:1041</code></a>
         
         </p>
 
@@ -2824,7 +2824,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1168"><code>entityManager.js:1168</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1144"><code>a50_entityManager.js:1144</code></a>
         
         </p>
 
@@ -2958,7 +2958,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1221"><code>entityManager.js:1221</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1197"><code>a50_entityManager.js:1197</code></a>
         
         </p>
 
@@ -3114,7 +3114,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l941"><code>entityManager.js:941</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l917"><code>a50_entityManager.js:917</code></a>
         
         </p>
 
@@ -3244,7 +3244,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l953"><code>entityManager.js:953</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l929"><code>a50_entityManager.js:929</code></a>
         
         </p>
 
@@ -3361,7 +3361,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1106"><code>entityManager.js:1106</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1082"><code>a50_entityManager.js:1082</code></a>
         
         </p>
 
@@ -3425,14 +3425,14 @@ If this parameter is omitted, all EntityTypes are searched. String parameters ar
             <div class="example-content">
                 <p>This method can be used to determine if an EntityManager has any changes</p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 if ( em1.hasChanges() {
-   // do something interesting
+    // do something interesting
 }
 </code></pre>
 
 <p>or if it has any changes on to a specific <a href="..\classes\EntityType.html" class="crosslink">EntityType</a></p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
 var custType = em1.metadataStore.getEntityType("Customer");
 if ( em1.hasChanges(custType) {
-   // do something interesting
+    // do something interesting
 }
 </code></pre>
 
@@ -3440,7 +3440,7 @@ if ( em1.hasChanges(custType) {
 var custType = em1.metadataStore.getEntityType("Customer");
 var orderType = em1.metadataStore.getEntityType("Order");
 if ( em1.hasChanges( [custType, orderType]) {
-   // do something interesting
+    // do something interesting
 }
 </code></pre>
             </div>
@@ -3499,7 +3499,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l302"><code>entityManager.js:302</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l278"><code>a50_entityManager.js:278</code></a>
         
         </p>
 
@@ -3660,7 +3660,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l231"><code>entityManager.js:231</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l207"><code>a50_entityManager.js:207</code></a>
         
         </p>
 
@@ -3806,7 +3806,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1198"><code>entityManager.js:1198</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1174"><code>a50_entityManager.js:1174</code></a>
         
         </p>
 
@@ -3918,7 +3918,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l789"><code>entityManager.js:789</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l765"><code>a50_entityManager.js:765</code></a>
         
         </p>
 
@@ -4207,7 +4207,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l407"><code>entityManager.js:407</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l383"><code>a50_entityManager.js:383</code></a>
         
         </p>
 
@@ -4342,9 +4342,9 @@ may be set.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code prettyprint"><code> // assume em1 is a previously created EntityManager
- // where we want to change some of its settings.
- em1.setProperties( {
+                <pre class="code prettyprint"><code>    // assume em1 is a previously created EntityManager
+    // where we want to change some of its settings.
+    em1.setProperties( {
     serviceName: "api/foo"
     });
 </code></pre>
@@ -4385,7 +4385,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l133"><code>entityManager.js:133</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l109"><code>a50_entityManager.js:109</code></a>
         
         </p>
 
@@ -4431,7 +4431,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l168"><code>entityManager.js:168</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l144"><code>a50_entityManager.js:144</code></a>
         
         </p>
 
@@ -4477,7 +4477,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l140"><code>entityManager.js:140</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l116"><code>a50_entityManager.js:116</code></a>
         
         </p>
 
@@ -4489,7 +4489,8 @@ may be set.</p>
     <div class="description">
         <p>The <a href="..\classes\MetadataStore.html" class="crosslink">MetadataStore</a> associated with this EntityManager. </p>
 
-<p><strong>readOnly</strong></p>
+<pre class="code prettyprint"><code>__readOnly__
+</code></pre>
     </div>
 
     
@@ -4523,7 +4524,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l147"><code>entityManager.js:147</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l123"><code>a50_entityManager.js:123</code></a>
         
         </p>
 
@@ -4569,7 +4570,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l154"><code>entityManager.js:154</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l130"><code>a50_entityManager.js:130</code></a>
         
         </p>
 
@@ -4615,7 +4616,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l126"><code>entityManager.js:126</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l102"><code>a50_entityManager.js:102</code></a>
         
         </p>
 
@@ -4661,7 +4662,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l161"><code>entityManager.js:161</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l137"><code>a50_entityManager.js:137</code></a>
         
         </p>
 
@@ -4717,7 +4718,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l178"><code>entityManager.js:178</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l154"><code>a50_entityManager.js:154</code></a>
         
         </p>
 
@@ -4830,7 +4831,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;entityManager.js.html#l1142"><code>entityManager.js:1142</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1118"><code>a50_entityManager.js:1118</code></a>
         
         </p>
 

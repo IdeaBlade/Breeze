@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JsonResultsAdapter - The Breeze API</title>
+    <title>iface.keyGeneratorInterface.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,259 +179,52 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>JsonResultsAdapter Class</h1>
-<div class="box meta">
-    
+                        <h1 class="file-heading">File: iface.keyGeneratorInterface.js</h1>
 
-    
+<div class="file">
+    <pre class="code prettyprint linenums">
+﻿&#x2F;**
+@module breeze
+**&#x2F;
 
-    
-        <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a40_entityMetadata.js.html#l1193"><code>a40_entityMetadata.js:1193</code></a>
-        </div>
-    
+&#x2F;**
+This is an interface description. Any class that implements the methods and properties defined here is considered a valid
+implementation of this interface.
 
-    
-        
-            Module: <a href="../modules/breeze.html">breeze</a>
-        
-    
+Each EntityManager can have a single KeyGenerator implementation that it will use to manage the generation of all &#x27;temporary&#x27; keys.
 
-    
-</div>
+A KeyGenerator implementation is assigned to an EntityManager via the {{#crossLink &quot;EntityManager&#x2F;setProperties&quot;}}{{&#x2F;crossLink}} 
+method with a config parameter of &#x27;keyGeneratorCtor&#x27;. 
 
-
-
-<div class="box intro">
-    <p>A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. 
-This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens.</p>
-</div>
-
-
-
-<div id="classdocs" class="tabview">
-    <ul class="api-class-tabs">
-        <li class="api-class-tab index"><a href="#index">Index</a></li>
-
-        
-            <li class="api-class-tab methods"><a href="#methods">Methods</a></li>
-        
-        
-        
-        
-    </ul>
-
-    <div>
-        <div id="index" class="api-class-tabpanel index">
-            <h2 class="off-left">Item Index</h2>
-
-            
-                <div class="index-section methods">
-                    <h3>Methods</h3>
-
-                    <ul class="index-list methods">
-                        
-                            <li class="index-item method">
-                                <a href="#method_&lt;ctor&gt; JsonResultsAdapter">&lt;ctor&gt; JsonResultsAdapter</a>
-
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
-
-            
-
-            
-
-            
-        </div>
-
-        
-            <div id="methods" class="api-class-tabpanel">
-                <h2 class="off-left">Methods</h2>
-
-                
-                    <div id="method_&lt;ctor&gt; JsonResultsAdapter" class="method item">
-    <h3 class="name"><code>&lt;ctor&gt; JsonResultsAdapter</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>config</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a40_entityMetadata.js.html#l1200"><code>a40_entityMetadata.js:1200</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>JsonResultsAdapter constructor</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">config</code>
-                        <span class="type">Object</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                         
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name">name</code>
-                                    <span class="type">String</span>
-                                
-
-                                <div class="param-description">
-                                    <p>The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[extractResults]</code>
-                                    <span class="type">Function</span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    <p>Called once per service operation to extract the 'payload' from any json received over the wire. 
-This method has a default implementation which to simply return the "results" property from any json returned as a result of executing the query.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name">visitNode</code>
-                                    <span class="type">Function</span>
-                                
-
-                                <div class="param-description">
-                                    <p>A visitor method that will be called on each node of the returned payload.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code prettyprint"><code>// 
-var jsonResultsAdapter = new JsonResultsAdapter({
-    name: "test1e",
-    extractResults: function(json) {
-        return json.results;
-    },
-    visitNode: function(node, queryContext, nodeContext) {
-        var entityTypeName = normalizeTypeName(node.$type);
-        var entityType = entityTypeName &amp;&amp; queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-        var propertyName = nodeContext.propertyName;
-        var ignore = propertyName &amp;&amp; propertyName.substr(0, 1) === "$";
-
-        return {
-            entityType: entityType,
-            nodeId: node.$id,
-            nodeRefId: node.$ref,
-            ignore: ignore
-        };
+    MyKeyGenerator = function() { 
+        &#x2F;&#x2F; your code here
     }
-});
+    MyKeyGenerator.prototype.generateTempKeyValue = function(entityType) {
+        &#x2F;&#x2F; your implementation here.
+    }
+    em.setProperties( {keyGeneratorCtor: MyKeyGenerator });
+The assigned KeyGenerator is then called whenever the 
+EntityManager.generateTempKeyValue method is called.  The EntityManager internally keeps track of all of the generated keys
+and handles all of the mapping of these temporary keys to real keys after any save.  
 
-var dataService = new DataService( {
-        serviceName: "api/foo",
-        jsonResultsAdapter: jsonResultsAdapter
-});
+The KeyGenerator implementation only needs to do one thing.  Return a unique key value of the correct datatype for each 
+call to the generateTempKeyValue method.  Note, that KeyGeneration is NOT supported for multipart keys.  
 
-var entityManager = new EntityManager( {
-    dataService: dataService
-});
-</code></pre>
-            </div>
-        </div>
-    
-</div>
+If no KeyGenerator is supplied, a default KeyGenerator will be automatically provided.
+@class ↈ_keyGenerator_interface
+**&#x2F;
 
-                
-            </div>
-        
+&#x2F;**
+Returns a unique &#x27;temporary&#x27; key for the specified {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}}. 
+Uniqueness is defined for this purpose as being unique within this KeyGenerator. This is sufficient 
+because each EntityManager will have its own instance of a KeyGenerator and any entities imported into
+the EntityManager with temporary keys will have them regenerated and remapped on import.
 
-        
+@method generateTempKeyValue
+@param entityType {EntityType}
+**&#x2F;
 
-        
-
-        
-    </div>
+    </pre>
 </div>
 
                     </div>

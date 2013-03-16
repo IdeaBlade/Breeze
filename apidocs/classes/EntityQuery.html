@@ -187,7 +187,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;entityQuery.js.html#l22"><code>entityQuery.js:22</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l3"><code>a45_entityQuery.js:3</code></a>
         </div>
     
 
@@ -505,7 +505,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l31"><code>entityQuery.js:31</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l12"><code>a45_entityQuery.js:12</code></a>
         
         </p>
 
@@ -556,8 +556,8 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
 </code></pre>
 
 <p>Usually this constructor will be followed by calls to filtering, ordering or selection methods</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
-   .where("CompanyName", "startsWith", "C")
-   .orderBy("Region");
+    .where("CompanyName", "startsWith", "C")
+    .orderBy("Region");
 </code></pre>
             </div>
         </div>
@@ -619,7 +619,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l519"><code>entityQuery.js:519</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l500"><code>a45_entityQuery.js:500</code></a>
         
         </p>
 
@@ -812,37 +812,37 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders").using(em);
- query.execute()
-   .then( function(data) {
-       ... query results processed here
- }).fail( function(err) {
-       ... query failure processed here
- });
-</code></pre>
-
-<p>or with callbacks</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders").using(em);
- query.execute(
-    function(data) {
-       var orders = data.results;
-       ... query results processed here
-    },
-    function(err) {
-       ... query failure processed here
+                <p>This method can be called using a 'promises' syntax ( recommended)</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders").using(em);
+    query.execute()
+    .then( function(data) {
+        ... query results processed here
+    }).fail( function(err) {
+        ... query failure processed here
     });
 </code></pre>
 
-<p>Either way this method is the same as calling the EntityManager 'execute' method.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders");
- em.executeQuery(query)
-   .then( function(data) {
-       var orders = data.results;
-       ... query results processed here
- }).fail( function(err) {
-       ... query failure processed here
- });
+<p>or with callbacks</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders").using(em);
+    query.execute(
+    function(data) {
+        var orders = data.results;
+        ... query results processed here
+    },
+    function(err) {
+        ... query failure processed here
+    });
+</code></pre>
+
+<p>Either way this method is the same as calling the EntityManager 'execute' method.</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders");
+    em.executeQuery(query)
+    .then( function(data) {
+        var orders = data.results;
+        ... query results processed here
+    }).fail( function(err) {
+        ... query failure processed here
+    });
 </code></pre>
             </div>
         </div>
@@ -882,7 +882,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l580"><code>entityQuery.js:580</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l561"><code>a45_entityQuery.js:561</code></a>
         
         </p>
 
@@ -965,7 +965,7 @@ var orders = query.executeLocally();
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l414"><code>entityQuery.js:414</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l395"><code>a45_entityQuery.js:395</code></a>
         
         </p>
 
@@ -1094,7 +1094,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l147"><code>entityQuery.js:147</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l128"><code>a45_entityQuery.js:128</code></a>
         
         </p>
 
@@ -1211,7 +1211,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l121"><code>entityQuery.js:121</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l102"><code>a45_entityQuery.js:102</code></a>
         
         </p>
 
@@ -1331,7 +1331,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l592"><code>entityQuery.js:592</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l573"><code>a45_entityQuery.js:573</code></a>
         
         </p>
 
@@ -1460,7 +1460,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l633"><code>entityQuery.js:633</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l614"><code>a45_entityQuery.js:614</code></a>
         
         </p>
 
@@ -1589,7 +1589,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l658"><code>entityQuery.js:658</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l639"><code>a45_entityQuery.js:639</code></a>
         
         </p>
 
@@ -1722,7 +1722,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l467"><code>entityQuery.js:467</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l448"><code>a45_entityQuery.js:448</code></a>
         
         </p>
 
@@ -1843,7 +1843,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l257"><code>entityQuery.js:257</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l238"><code>a45_entityQuery.js:238</code></a>
         
         </p>
 
@@ -1901,23 +1901,23 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
-     .orderBy("CompanyName");
+                <pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
+        .orderBy("CompanyName");
 </code></pre>
 
-<p>or to sort across multiple properties</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
-     .orderBy("Region, CompanyName");
+<p>or to sort across multiple properties</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
+        .orderBy("Region, CompanyName");
 </code></pre>
 
-<p>Nested property paths are also supported</p><pre class="code prettyprint"><code> var query = new EntityQuery("Products")
+<p>Nested property paths are also supported</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Products")
     .orderBy("Category.CategoryName");
 </code></pre>
 
-<p>Sorting in descending order is supported via the addition of ' desc' to the end of any property path.</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
+<p>Sorting in descending order is supported via the addition of ' desc' to the end of any property path.</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
     .orderBy("CompanyName desc");
 </code></pre>
 
-<p>or</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
+<p>or</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
     .orderBy("Region desc, CompanyName desc");
 </code></pre>
             </div>
@@ -1974,7 +1974,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l292"><code>entityQuery.js:292</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l273"><code>a45_entityQuery.js:273</code></a>
         
         </p>
 
@@ -2032,15 +2032,15 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
-     .orderByDesc("CompanyName");
+                <pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
+        .orderByDesc("CompanyName");
 </code></pre>
 
-<p>or to sort across multiple properties</p><pre class="code prettyprint"><code> var query = new EntityQuery("Customers")
-     .orderByDesc("Region, CompanyName");
+<p>or to sort across multiple properties</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Customers")
+        .orderByDesc("Region, CompanyName");
 </code></pre>
 
-<p>Nested property paths are also supported</p><pre class="code prettyprint"><code> var query = new EntityQuery("Products")
+<p>Nested property paths are also supported</p><pre class="code prettyprint"><code>    var query = new EntityQuery("Products")
     .orderByDesc("Category.CategoryName");
 </code></pre>
             </div>
@@ -2097,7 +2097,7 @@ query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'t
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l317"><code>entityQuery.js:317</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l298"><code>a45_entityQuery.js:298</code></a>
         
         </p>
 
@@ -2234,7 +2234,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l357"><code>entityQuery.js:357</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l338"><code>a45_entityQuery.js:338</code></a>
         
         </p>
 
@@ -2293,8 +2293,8 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
 
             <div class="example-content">
                 <pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
-   .where("CompanyName", "startsWith", "C")
-   .skip(5);
+    .where("CompanyName", "startsWith", "C")
+    .skip(5);
 </code></pre>
             </div>
         </div>
@@ -2350,7 +2350,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l393"><code>entityQuery.js:393</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l374"><code>a45_entityQuery.js:374</code></a>
         
         </p>
 
@@ -2465,7 +2465,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l379"><code>entityQuery.js:379</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l360"><code>a45_entityQuery.js:360</code></a>
         
         </p>
 
@@ -2580,7 +2580,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l165"><code>entityQuery.js:165</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l146"><code>a45_entityQuery.js:146</code></a>
         
         </p>
 
@@ -2697,7 +2697,7 @@ does not include type information.  If the json result consists of more than a s
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l492"><code>entityQuery.js:492</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l473"><code>a45_entityQuery.js:473</code></a>
         
         </p>
 
@@ -2756,9 +2756,9 @@ does not include type information.  If the json result consists of more than a s
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>'using' can be used to return a new query with a specified EntityManager.</p><pre class="code prettyprint"><code> var em = new EntityManager(serviceName);
- var query = new EntityQuery("Orders")
-     .using(em);
+                <p>'using' can be used to return a new query with a specified EntityManager.</p><pre class="code prettyprint"><code>    var em = new EntityManager(serviceName);
+    var query = new EntityQuery("Orders")
+        .using(em);
 </code></pre>
 
 <p>or with a specified <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> </p><pre class="code prettyprint"><code>var em = new EntityManager(serviceName);
@@ -2824,7 +2824,7 @@ var query = new EntityQuery("Orders")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l185"><code>entityQuery.js:185</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l166"><code>a45_entityQuery.js:166</code></a>
         
         </p>
 
@@ -2861,10 +2861,10 @@ var query = new EntityQuery("Orders")
 
 <ul><li>a property name, a property path with '.' as path seperators or a property expression {String}</li>
 <li>an operator {FilterQueryOp|String} Either a  <a href="..\classes\FilterQueryOp.html" class="crosslink">FilterQueryOp</a> or it's string representation. Case is ignored
- when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.</li>
+    when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.</li>
 <li>a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
- if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
- In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
+    if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
+    In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
 <li>an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</li></ul></li>
 </ul>
                     </div>
@@ -2920,7 +2920,7 @@ var query = new EntityQuery("Customers")
 </code></pre>
 
 <p>or to be even more baroque</p><pre class="code prettyprint"><code>var query = new EntityQuery("Customers")
-   .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
+    .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
 </code></pre>
             </div>
         </div>
@@ -2976,7 +2976,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l440"><code>entityQuery.js:440</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l421"><code>a45_entityQuery.js:421</code></a>
         
         </p>
 
@@ -3044,7 +3044,7 @@ query will be uri encoded as </p>
 <pre class="code prettyprint"><code>{serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&amp;country=USA
 </code></pre>
 
-<p>Parameters may also be mixed in with other query criteria.</p><pre class="code prettyprint"><code> var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+<p>Parameters may also be mixed in with other query criteria.</p><pre class="code prettyprint"><code>    var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
     .withParameters({ BirthDate: "1/1/1960", Country: "USA" })
     .where("LastName", "startsWith", "S")
     .orderBy("BirthDate");
@@ -3086,7 +3086,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l112"><code>entityQuery.js:112</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l93"><code>a45_entityQuery.js:93</code></a>
         
         </p>
 
@@ -3132,7 +3132,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l77"><code>entityQuery.js:77</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l58"><code>a45_entityQuery.js:58</code></a>
         
         </p>
 
@@ -3178,7 +3178,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l98"><code>entityQuery.js:98</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l79"><code>a45_entityQuery.js:79</code></a>
         
         </p>
 
@@ -3224,7 +3224,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l105"><code>entityQuery.js:105</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l86"><code>a45_entityQuery.js:86</code></a>
         
         </p>
 
@@ -3270,7 +3270,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l63"><code>entityQuery.js:63</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l44"><code>a45_entityQuery.js:44</code></a>
         
         </p>
 
@@ -3316,7 +3316,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l84"><code>entityQuery.js:84</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l65"><code>a45_entityQuery.js:65</code></a>
         
         </p>
 
@@ -3362,7 +3362,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l91"><code>entityQuery.js:91</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l72"><code>a45_entityQuery.js:72</code></a>
         
         </p>
 
@@ -3408,7 +3408,7 @@ query will be uri encoded as </p>
             
         
         
-        <a href="..&#x2F;files&#x2F;entityQuery.js.html#l70"><code>entityQuery.js:70</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l51"><code>a45_entityQuery.js:51</code></a>
         
         </p>
 

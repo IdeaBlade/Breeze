@@ -7,7 +7,7 @@
 //    ], function (breeze) {
 
 // or uncomment this to run against a version of base and all plugins
-define(["breeze"], function (breeze) {
+define(["breeze.debug"], function (breeze) {
 
     "use strict";
 

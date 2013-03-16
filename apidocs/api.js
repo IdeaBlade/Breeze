@@ -47,8 +47,7 @@ YUI.add("yuidoc-meta", function(Y) {
         },
         {
             "displayName": "core",
-            "name": "core",
-            "description": "Utility types and functions of generally global applicability."
+            "name": "core"
         }
     ]
 } };

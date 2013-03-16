@@ -14,5 +14,6 @@ if (ko) {
     breeze.config.initializeAdapterInstance("modelLibrary", "ko");
 }
 
+this.window.breeze = breeze;
 return breeze;
 });

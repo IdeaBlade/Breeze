@@ -146,19 +146,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.base.js">
-      <Link>Scripts\IBlade\breeze.base.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\breeze.base.debug.js">
+      <Link>Scripts\IBlade\breeze.base.debug.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.base.min.js">
+    <Content Include="..\..\Breeze.Client\Scripts\breeze.base.min.js">
       <Link>Scripts\IBlade\breeze.base.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.js">
-      <Link>Scripts\IBlade\breeze.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\breeze.debug.js">
+      <Link>Scripts\IBlade\breeze.debug.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.min.js">
+    <Content Include="..\..\Breeze.Client\Scripts\breeze.min.js">
       <Link>Scripts\IBlade\breeze.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -59,7 +59,6 @@
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.backbone.js" />
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.backingStore.js" />
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.ko.js" />
-    <Content Include="Scripts\IBlade\coreFns.notyetneeded.js" />
     <Content Include="Scripts\IBlade\iface.keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\iface.promise.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\lib\ast.js" />
@@ -145,8 +144,8 @@
     <Content Include="Scripts\IBlade\node_modules\uglify-js\test\run-tests.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\tools\node.js" />
     <Content Include="Scripts\IBlade\testFns.js" />
-    <Content Include="Scripts\IBlade\_head.frag.js" />
-    <Content Include="Scripts\IBlade\_tail.frag.js" />
+    <None Include="Scripts\IBlade\_head.jsfrag" />
+    <None Include="Scripts\IBlade\_tail.jsfrag" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.js" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.min.js" />
     <Content Include="Scripts\Tests\complexTypeTests.js" />
@@ -188,8 +187,6 @@
     <Content Include="Scripts\ThirdParty\qunit.js" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\IBlade\buildend.frag" />
-    <None Include="Scripts\IBlade\buildstart.frag" />
     <None Include="Scripts\IBlade\node_modules\.bin\uglifyjs" />
     <None Include="Scripts\IBlade\node_modules\.bin\uglifyjs.cmd" />
     <None Include="Scripts\IBlade\node_modules\uglify-js\.npmignore" />
