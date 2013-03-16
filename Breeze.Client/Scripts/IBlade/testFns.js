@@ -8,10 +8,10 @@
 
 
 // Uncomment this line to run against base + individual plugins (minified)
-//define(["breeze.min", function(breeze) {
+define(["breeze.min"], function(breeze) {
 
 // Uncomment this to run against a version of base and all plugins
-define(["breeze.debug"], function (breeze) {
+// define(["breeze.debug"], function (breeze) {
 
     "use strict";
 
