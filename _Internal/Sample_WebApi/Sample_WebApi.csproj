@@ -146,104 +146,24 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\assertParam.js">
-      <Link>Scripts\IBlade\assertParam.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.base.js">
+      <Link>Scripts\IBlade\breeze.base.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.ajax.jQuery.js">
-      <Link>Scripts\IBlade\breeze.ajax.jQuery.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.dataService.odata.js">
-      <Link>Scripts\IBlade\breeze.dataService.odata.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.dataService.webApi.js">
-      <Link>Scripts\IBlade\breeze.dataService.webApi.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.full.js">
-      <Link>Scripts\IBlade\breeze.full.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.base.min.js">
+      <Link>Scripts\IBlade\breeze.base.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.js">
       <Link>Scripts\IBlade\breeze.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.backbone.js">
-      <Link>Scripts\IBlade\breeze.modelLibrary.backbone.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.backingStore.js">
-      <Link>Scripts\IBlade\breeze.modelLibrary.backingStore.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.modelLibrary.ko.js">
-      <Link>Scripts\IBlade\breeze.modelLibrary.ko.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\config.js">
-      <Link>Scripts\IBlade\config.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\core.js">
-      <Link>Scripts\IBlade\core.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\coreFns.js">
-      <Link>Scripts\IBlade\coreFns.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\coreFns.notyetneeded.js">
-      <Link>Scripts\IBlade\coreFns.notyetneeded.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\dataType.js">
-      <Link>Scripts\IBlade\dataType.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\defaultPropertyInterceptor.js">
-      <Link>Scripts\IBlade\defaultPropertyInterceptor.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityAspect.js">
-      <Link>Scripts\IBlade\entityAspect.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityManager.js">
-      <Link>Scripts\IBlade\entityManager.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityMetadata.js">
-      <Link>Scripts\IBlade\entityMetadata.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\entityQuery.js">
-      <Link>Scripts\IBlade\entityQuery.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\enum.js">
-      <Link>Scripts\IBlade\enum.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\event.js">
-      <Link>Scripts\IBlade\event.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\keyGenerator.js">
-      <Link>Scripts\IBlade\keyGenerator.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\relationArray.js">
-      <Link>Scripts\IBlade\relationArray.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\IBlade\breeze.min.js">
+      <Link>Scripts\IBlade\breeze.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\IBlade\testFns.js">
       <Link>Scripts\IBlade\testFns.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\validate.js">
-      <Link>Scripts\IBlade\validate.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\attachTests.js">

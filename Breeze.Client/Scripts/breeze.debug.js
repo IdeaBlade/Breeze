@@ -5634,6 +5634,13 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
         @property hasServerMetadata {Boolean}
         **/
         
+        /**
+        The JsonResultsAdapter used to process the results of any query against this DataService.
+
+        __readOnly__
+        @property jsonResultsAdapter {Boolean}
+        **/
+        
         ctor._normalizeServiceName = function(serviceName) {
             serviceName = serviceName.trim();
             if (serviceName.substr(-1) !== "/") {
@@ -5692,7 +5699,7 @@ function (core, a_config, DataType, m_entityAspect, m_validate, defaultPropertyI
             });
 
             var dataService = new DataService( {
-                 serviceName: "api/foo,
+                 serviceName: "api/foo",
                  jsonResultsAdapter: jsonResultsAdapter
             });
 

@@ -1,13 +1,13 @@
 ﻿
 // Uncomment these lines to run against base + individual plugins.
-//define(["breeze",
+//define(["breeze.base",
 //        "breeze.ajax.jQuery",
 //        "breeze.modelLibrary.ko", "breeze.modelLibrary.backbone", "breeze.modelLibrary.backingStore",
 //        "breeze.dataService.webApi", "breeze.dataService.odata"
 //    ], function (breeze) {
 
 // or uncomment this to run against a version of base and all plugins
-define(["breeze.full"], function (breeze) {
+define(["breeze"], function (breeze) {
 
     "use strict";
 

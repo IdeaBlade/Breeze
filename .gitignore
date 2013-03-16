@@ -18,6 +18,7 @@ Unused
 packages
 .idea
 thumbs.db
+node_modules
 
 GetFtpCredential.ps1
 

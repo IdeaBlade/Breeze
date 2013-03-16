@@ -1,7 +1,7 @@
 ﻿// Only one of the next 3 should be uncommented.
-#define CODEFIRST_PROVIDER 
+//#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
-//#define DATABASEFIRST_NEW
+#define DATABASEFIRST_NEW
 #define CLASS_ACTIONFILTER
 
 using System;
@@ -11,7 +11,7 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
-
+using System.Web.Http.OData.Query;
 using System.Collections.Generic;
 
 #if CODEFIRST_PROVIDER
@@ -22,7 +22,6 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
-using System.Web.Http.OData.Query;
 #endif
 
 namespace Sample_WebApi.Controllers {
@@ -171,12 +170,12 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Roles;
     }
 
-#if ! DATABASEFIRST_OLD
+
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
     }
-#endif
+
     #endregion
 
     #region named queries
