@@ -21,7 +21,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
 }
 
 function getBreezeVersion($srcDir) {
-    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\breeze.js"
+    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\_head.jsfrag"
     $text = get-content $versionFile
     $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
     return $versionNum
@@ -77,7 +77,8 @@ new-item $destDir\Scripts -type Directory
 new-item $destDir\Scripts\Adapters -type Directory
 new-item $destDir\TypeScript -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
-copy-item $srcDir\Breeze.Client\Scripts\IBlade\breeze.*.*.js $destDir\Scripts\Adapters
+copy-item $srcDir\Breeze.Client\Scripts\IBlade\b??_breeze.*.*.js $destDir\Scripts\Adapters\breeze.*.*
+
 copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
 copy-item $srcDir\Breeze.Client\TypeScript\TypeScript\breeze.d.ts $destDir\TypeScript
 new-item $destDir\WebApi -type Directory

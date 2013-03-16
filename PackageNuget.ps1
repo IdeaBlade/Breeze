@@ -21,7 +21,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
 }
 
 function getBreezeVersion($srcDir) {
-    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\breeze.js"
+    $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\_head.jsfrag"
     $text = get-content $versionFile
     $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
     return $versionNum
@@ -67,7 +67,7 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 # Check that all files have been updated within the last 5 minutes
-$minutes = 15
+$minutes = 30
 checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
