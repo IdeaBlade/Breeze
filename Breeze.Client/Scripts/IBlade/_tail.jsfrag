@@ -7,8 +7,8 @@ breeze.config.initializeAdapterInstances({
 
 // don't initialize with ko unless it exists.
 var ko = window.ko;
-if ((!ko) && require) {
-    ko = require("ko");
+if ((!ko) && window.require) {
+    ko = window.require("ko");
 }
 if (ko) {
     breeze.config.initializeAdapterInstance("modelLibrary", "ko");
