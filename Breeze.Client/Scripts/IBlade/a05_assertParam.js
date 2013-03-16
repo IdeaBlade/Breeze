@@ -1,4 +1,7 @@
-﻿
+﻿/**
+ @module core
+ **/
+
 var Param = function () {
     // The %1 parameter 
     // is required
@@ -9,13 +12,13 @@ var Param = function () {
     // must be an array where each element  
     // is optional or 
 
-    var Param = function(v, name) {
+    var ctor = function(v, name) {
         this.v = v;
         this.name = name;
         this._contexts = [null];
 
     };
-    var proto = Param.prototype;
+    var proto = ctor.prototype;
 
     proto.isObject = function() {
         return this.isTypeOf("object");
@@ -141,8 +144,6 @@ var Param = function () {
         }
     }
 
-    ;
-
     function isOptionalMessage(context, v) {
         var prevContext = context.prevContext;
         var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
@@ -179,8 +180,6 @@ var Param = function () {
             return prevContext.fn(prevContext, v1);
         });
     }
-
-    ;
 
     function isArrayMessage(context, v) {
         var arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
@@ -242,9 +241,6 @@ var Param = function () {
         }
         return setContext(that, context);
     }
-
-    ;
-
 
     function setContext(that, context) {
         that._contexts[that._contexts.length - 1] = context;
@@ -316,36 +312,40 @@ var Param = function () {
 
 
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
-    return Param;
+    return ctor;
 }();
 
 var assertParam = function (v, name) {
     return new Param(v, name);
 };
 
-var ConfigParam = function(config) {
-    if (typeof (config) !== "object") {
-        throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
-    }
-    this.config = config;
-    this.params = [];
-};
-var cproto = ConfigParam.prototype;
+var ConfigParam = function() {
+    var ctor = function(config) {
+        if (typeof(config) !== "object") {
+            throw new Error("Configuration parameter should be an object, instead it is a: " + typeof(config));
+        }
+        this.config = config;
+        this.params = [];
+    };
+    var proto = ctor.prototype;
 
-cproto.whereParam = function(propName) {
-    var param = new Param(this.config[propName], propName);
-    param.parent = this;
-    this.params.push(param);
-    return param;
-};
-    
+    proto.whereParam = function(propName) {
+        var param = new Param(this.config[propName], propName);
+        param.parent = this;
+        this.params.push(param);
+        return param;
+    };
+    return ctor;
+}();
+
 var assertConfig = function(config) {
     return new ConfigParam(config);
 };
 
+// Param is exposed so that additional 'is' methods can be added to the prototype.
 core.Param = Param;
 core.assertParam = assertParam;
 core.assertConfig = assertConfig;
-// Param is exposed so that additional 'is' methods can be added to the prototype.
-// return { Param: Param, assertParam: assertParam, assertConfig: assertConfig };
+
+
 

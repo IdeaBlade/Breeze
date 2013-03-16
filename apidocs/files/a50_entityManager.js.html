@@ -456,7 +456,7 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
-        var result = JSON.stringify(json, null, a_config.stringifyPad);
+        var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
 
@@ -2537,58 +2537,63 @@ var EntityGroup = (function () {
 
 })();
 
-&#x2F;**
-MergeStrategy is an &#x27;Enum&#x27; that determines how entities are merged into an EntityManager.
+var MergeStrategy = (function() {
+    &#x2F;**
+    MergeStrategy is an &#x27;Enum&#x27; that determines how entities are merged into an EntityManager.
+    
+    @class MergeStrategy
+    @static
+    **&#x2F;
+    var MergeStrategy = new Enum(&quot;MergeStrategy&quot;);
+    &#x2F;**
+    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
+    in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
+    EntityManager is not replaced by the &#x27;merging&#x27; entity.
+    
+    @property PreserveChanges {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
+    &#x2F;**
+    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
+    in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
+    EntityManager is replaced by the &#x27;merging&#x27; entity.
+    
+    @property OverwriteChanges {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+    MergeStrategy.seal();
+    return MergeStrategy;
+})();
 
-@class MergeStrategy
-@static
-**&#x2F;
-var MergeStrategy = new Enum(&quot;MergeStrategy&quot;);
-&#x2F;**
-PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
-EntityManager is not replaced by the &#x27;merging&#x27; entity.
-
-@property PreserveChanges {MergeStrategy}
-@final
-@static
-**&#x2F;
-MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
-&#x2F;**
-OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
-EntityManager is replaced by the &#x27;merging&#x27; entity.
-
-@property OverwriteChanges {MergeStrategy}
-@final
-@static
-**&#x2F;
-MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
-MergeStrategy.seal();
-
-&#x2F;**
-FetchStrategy is an &#x27;Enum&#x27; that determines how and where entities are retrieved from as a result of a query.
-
-@class FetchStrategy
-@static
-**&#x2F;
-var FetchStrategy = new Enum(&quot;FetchStrategy&quot;);
-&#x2F;**
-FromServer is used to tell the query to execute the query against a remote data source on the server.
-@property FromServer {MergeStrategy}
-@final
-@static
-**&#x2F;
-FetchStrategy.FromServer = FetchStrategy.addSymbol();
-&#x2F;**
-FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-@property FromLocalCache {MergeStrategy}
-@final
-@static
-**&#x2F;
-FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
-FetchStrategy.seal();
-
+var FetchStrategy = (function() {
+    &#x2F;**
+    FetchStrategy is an &#x27;Enum&#x27; that determines how and where entities are retrieved from as a result of a query.
+    
+    @class FetchStrategy
+    @static
+    **&#x2F;
+    var FetchStrategy = new Enum(&quot;FetchStrategy&quot;);
+    &#x2F;**
+    FromServer is used to tell the query to execute the query against a remote data source on the server.
+    @property FromServer {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    FetchStrategy.FromServer = FetchStrategy.addSymbol();
+    &#x2F;**
+    FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
+    @property FromLocalCache {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
+    FetchStrategy.seal();
+    return FetchStrategy;
+})();
 
 var QueryOptions = (function () {
     &#x2F;**

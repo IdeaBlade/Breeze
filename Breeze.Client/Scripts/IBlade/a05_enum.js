@@ -1,13 +1,10 @@
-﻿
+﻿/**
+ @module core
+ **/
+
 var Enum = function() {
 
-    /**
-    @module core
-    **/
-
-
     // TODO: think about CompositeEnum (flags impl).
-
 
     /**
     Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
@@ -67,7 +64,7 @@ var Enum = function() {
     @param [methodObj] {Object}
     **/
 
-    function Enum(name, methodObj) {
+    var ctor = function(name, methodObj) {
         this.name = name;
         var prototype = new EnumSymbol(methodObj);
         prototype.parentEnum = this;
@@ -77,9 +74,8 @@ var Enum = function() {
                 prototype[key] = methodObj[key];
             });
         }
-    }
-
-    ;
+    };
+    var proto = ctor.prototype;
 
     /**
     Checks if an object is an Enum 'symbol'.
@@ -91,7 +87,7 @@ var Enum = function() {
     @return {Boolean}
     @static
     **/
-    Enum.isSymbol = function(obj) {
+    ctor.isSymbol = function(obj) {
         return obj instanceof EnumSymbol;
     };
 
@@ -104,7 +100,7 @@ var Enum = function() {
     @param name {String} Name for which an enum symbol should be returned.
     @return {EnumSymbol} The symbol that matches the name or 'undefined' if not found.
     **/
-    Enum.prototype.fromName = function(name) {
+    proto.fromName = function(name) {
         return this[name];
     };
 
@@ -118,7 +114,7 @@ var Enum = function() {
     In other words, the 'propertiesObj' is any state that should be held by the symbol.
     @return {EnumSymbol} The new symbol
     **/
-    Enum.prototype.addSymbol = function(propertiesObj) {
+    proto.addSymbol = function(propertiesObj) {
         // TODO: check if sealed.
         var newSymbol = Object.create(this._symbolPrototype);
         if (propertiesObj) {
@@ -137,7 +133,7 @@ var Enum = function() {
         DayOfWeek.seal();
     @method seal
     **/
-    Enum.prototype.seal = function() {
+    proto.seal = function() {
         this.getSymbols().forEach(function(sym) { return sym.getName(); });
     };
 
@@ -175,7 +171,7 @@ var Enum = function() {
     @method getSymbols
     @return {Array of EnumSymbol} All of the symbols contained within this Enum.
     **/
-    Enum.prototype.getSymbols = function() {
+    proto.getSymbols = function() {
         return this.getNames().map(function(key) {
             return this[key];
         }, this);
@@ -188,7 +184,7 @@ var Enum = function() {
     @method getNames
     @return {Array of String} All of the names of the symbols contained within this Enum.
     **/
-    Enum.prototype.getNames = function() {
+    proto.getNames = function() {
         var result = [];
         for (var key in this) {
             if (this.hasOwnProperty(key)) {
@@ -211,7 +207,7 @@ var Enum = function() {
     @param {Object} Object or symbol to test.
     @return {Boolean} Whether this Enum contains the specified symbol.
     **/
-    Enum.prototype.contains = function(sym) {
+    proto.contains = function(sym) {
         if (!(sym instanceof EnumSymbol)) {
             return false;
         }
@@ -271,7 +267,7 @@ var Enum = function() {
         };
     };
 
-    return Enum;
+    return ctor;
 }();
 core.Enum = Enum;
 

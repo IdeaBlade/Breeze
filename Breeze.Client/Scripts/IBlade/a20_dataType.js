@@ -1,9 +1,9 @@
-﻿
-var DataType = function () {
-    /**
-    @module breeze
-    **/
+﻿/**
+  @module breeze
+  **/
 
+var DataType = function () {
+  
     /**
     DataType is an 'Enum' containing all of the supported data types.
 

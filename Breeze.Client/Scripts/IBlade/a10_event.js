@@ -1,9 +1,9 @@
-﻿    
-var Event = function() {
-    /**
-    @module core
-    **/
+﻿/**
+  @module core
+  **/
 
+var Event = function() {
+  
     var __eventNameMap = {};
 
     /**
@@ -23,7 +23,7 @@ var Event = function() {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function(name, publisher, defaultErrorCallback) {
+    var ctor = function(name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
 
@@ -36,6 +36,7 @@ var Event = function() {
             this._defaultErrorCallback = defaultErrorCallback;
         }
     };
+    var proto = ctor.prototype;
 
     /**
     Publish data for this event.
@@ -60,9 +61,9 @@ var Event = function() {
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
     @return {Boolean} false if event is disabled; true otherwise.
     **/
-    Event.prototype.publish = function(data, publishAsync, errorCallback) {
+    proto.publish = function(data, publishAsync, errorCallback) {
 
-        if (!Event._isEnabled(this.name, this.publisher)) return false;
+        if (!ctor._isEnabled(this.name, this.publisher)) return false;
 
         if (publishAsync === true) {
             setTimeout(publishCore, 0, this, data, errorCallback);
@@ -110,7 +111,7 @@ var Event = function() {
    errorCallback([e])
    @param [errorCallback.e] {Error} Any error encountered during publication execution.
    **/
-    Event.prototype.publishAsync = function(data, errorCallback) {
+    proto.publishAsync = function(data, errorCallback) {
         this.publish(data, true, errorCallback);
     };
 
@@ -138,7 +139,7 @@ var Event = function() {
         @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
     @return {Number} This is a key for 'unsubscription'.  It can be passed to the 'unsubscribe' method.
     **/
-    Event.prototype.subscribe = function(callback) {
+    proto.subscribe = function(callback) {
         if (!this._subscribers) {
             this._subscribers = [];
         }
@@ -163,7 +164,7 @@ var Event = function() {
     @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
     cannot be found.
     **/
-    Event.prototype.unsubscribe = function(unsubKey) {
+    proto.unsubscribe = function(unsubKey) {
         if (!this._subscribers) return false;
         var subs = this._subscribers;
         var ix = __arrayIndexOf(subs, function(s) {
@@ -180,12 +181,12 @@ var Event = function() {
         }
     };
 
-    Event.prototype.clear = function() {
+    proto.clear = function() {
         this._subscribers = null;
     };
 
     // event bubbling - document later.
-    Event.bubbleEvent = function(target, getParentFn) {
+    ctor.bubbleEvent = function(target, getParentFn) {
         target._getEventParent = getParentFn;
     };
 
@@ -217,7 +218,7 @@ var Event = function() {
     children of this object will be enabled or disabled. 
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
-    Event.enable = function(eventName, obj, isEnabled) {
+    ctor.enable = function(eventName, obj, isEnabled) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
@@ -228,7 +229,7 @@ var Event = function() {
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    Event._enableFast = function(event, obj, isEnabled) {
+    ctor._enableFast = function(event, obj, isEnabled) {
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
@@ -246,16 +247,16 @@ var Event = function() {
     @param target {Object} The object for which we want to know if notifications are enabled. 
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
-    Event.isEnabled = function(eventName, obj) {
+    ctor.isEnabled = function(eventName, obj) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
-        return Event._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, getFullEventName(eventName));
     };
 
-    Event._isEnabled = function(eventName, obj) {
+    ctor._isEnabled = function(eventName, obj) {
         var isEnabled = null;
         var eventMap = obj._$eventMap;
         if (eventMap) {
@@ -270,7 +271,7 @@ var Event = function() {
         } else {
             var parent = obj._getEventParent && obj._getEventParent();
             if (parent) {
-                return Event._isEnabled(eventName, parent);
+                return ctor._isEnabled(eventName, parent);
             } else {
                 // default if not explicitly disabled.
                 return true;
@@ -295,7 +296,7 @@ var Event = function() {
         // for now do nothing;
     }
 
-    return Event;
+    return ctor;
 
 }();
 

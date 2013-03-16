@@ -1,4 +1,6 @@
-﻿// =========== coreFns ===============
+﻿/**
+ @module core
+ **/
 
 var __hasOwnProperty = Object.prototype.hasOwnProperty;
 

@@ -409,7 +409,7 @@ var Validator = function () {
 
     ctor.fromJSON = function (json) {
         var validatorName = &quot;Validator.&quot; + json.validatorName;
-        var fn = a_config.functionRegistry[validatorName];
+        var fn = __config.functionRegistry[validatorName];
         if (!fn) {
             throw new Error(&quot;Unable to locate a validator named:&quot; + json.validatorName);
         }
@@ -422,7 +422,7 @@ var Validator = function () {
     @param validator {Validator} Validator to register.
     **&#x2F;
     ctor.register = function(validator) {
-        a_config.registerFunction(function () { return validator; }, &quot;Validator.&quot; + validator.name);
+        __config.registerFunction(function () { return validator; }, &quot;Validator.&quot; + validator.name);
     };
 
     &#x2F;**
@@ -431,7 +431,7 @@ var Validator = function () {
     @param validatorFactory {Function} A function that optionally takes a context property and returns a Validator instance.
     **&#x2F;
     ctor.registerFactory = function(validatorFn, name) {
-        a_config.registerFunction(validatorFn, &quot;Validator.&quot; + name);
+        __config.registerFunction(validatorFn, &quot;Validator.&quot; + name);
     };
 
     &#x2F;**
@@ -764,7 +764,7 @@ var Validator = function () {
             return;
         }
 
-        a_config.registerFunction(value, &quot;Validator.&quot; + key);
+        __config.registerFunction(value, &quot;Validator.&quot; + key);
     });
 
 

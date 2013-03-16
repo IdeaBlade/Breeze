@@ -2,8 +2,6 @@
 @module breeze   
 **/
 
-var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;   
-
 var EntityState = (function () {
     /**
     EntityState is an 'Enum' containing all of the valid states for an 'Entity'.
@@ -328,7 +326,7 @@ var EntityAspect = function() {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
+            __modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
         }
     };
     var proto = ctor.prototype;
@@ -968,7 +966,7 @@ var ComplexAspect = function() {
             }
         }
         var complexCtor = complexType.getCtor();
-        v_modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
+        __modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
     };
     var proto = ctor.prototype;

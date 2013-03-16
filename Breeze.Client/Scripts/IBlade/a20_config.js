@@ -1,16 +1,17 @@
-﻿var a_config = function() {
-    /**
-    @module breeze   
-    **/
+﻿/**
+  @module breeze   
+  **/
+
+var __config = function () {
 
     // alias for within fns with a config param
-    var a_config = {};
+    var __config = {};
 
 
-    a_config.functionRegistry = {};
-    a_config.typeRegistry = {};
-    a_config.objectRegistry = {};
-    a_config.interfaceInitialized = new Event("interfaceInitialized_config", a_config);
+    __config.functionRegistry = {};
+    __config.typeRegistry = {};
+    __config.objectRegistry = {};
+    __config.interfaceInitialized = new Event("interfaceInitialized_config", __config);
 
     var InterfaceDef = function(name) {
         this.name = name;
@@ -29,13 +30,13 @@
         return kv ? kv.value : null;
     };
 
-    a_config.interfaceRegistry = {
+    __config.interfaceRegistry = {
         ajax: new InterfaceDef("ajax"),
         modelLibrary: new InterfaceDef("modelLibrary"),
         dataService: new InterfaceDef("dataService")
     };
 
-    a_config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
+    __config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
         if (!this.defaultInstance) {
             throw new Error("Unable to locate the default implementation of the '" + this.name
                 + "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
@@ -63,21 +64,21 @@
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
         @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
-    a_config.setProperties = function(config) {
+    __config.setProperties = function(config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .whereParam("ajaxImplementation").isOptional()
             .applyAll(config);
         if (config.remoteAccessImplementation) {
-            a_config.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
+            __config.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
             // note the name change
-            a_config.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
+            __config.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
         }
         if (config.ajaxImplementation) {
-            a_config.initializeAdapterInstance("ajax", config.ajaxImplementation);
+            __config.initializeAdapterInstance("ajax", config.ajaxImplementation);
         }
     };
 
@@ -88,7 +89,7 @@
     @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
     **/
-    a_config.registerAdapter = function(interfaceName, adapterCtor) {
+    __config.registerAdapter = function(interfaceName, adapterCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
         assertParam(adapterCtor, "adapterCtor").isFunction().check();
         // this impl will be thrown away after the name is retrieved.
@@ -110,7 +111,7 @@
     this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
     @return {Function|null} Returns either a ctor function or null.
     **/
-    a_config.getAdapter = function(interfaceName, adapterName) {
+    __config.getAdapter = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         if (adapterName) {
             var impl = idef.getImpl(adapterName);
@@ -129,12 +130,12 @@
     @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
     @return [array of instances]
     **/
-    a_config.initializeAdapterInstances = function(config) {
+    __config.initializeAdapterInstances = function(config) {
         assertConfig(config)
             .whereParam("dataService").isOptional()
             .whereParam("modelLibrary").isOptional()
             .whereParam("ajax").isOptional();
-        return __objectMapToArray(config, a_config.initializeAdapterInstance);
+        return __objectMapToArray(config, __config.initializeAdapterInstance);
 
     };
 
@@ -148,7 +149,7 @@
     @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
     @return {an instance of the specified adapter}
     **/
-    a_config.initializeAdapterInstance = function(interfaceName, adapterName, isDefault) {
+    __config.initializeAdapterInstance = function(interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
         assertParam(adapterName, "adapterName").isNonEmptyString().check();
@@ -172,7 +173,7 @@
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    a_config.getAdapterInstance = function(interfaceName, adapterName) {
+    __config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         var impl;
         if (adapterName & adapterName !== "") {
@@ -194,36 +195,36 @@
 
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
-    a_config.registerFunction = function(fn, fnName) {
+    __config.registerFunction = function(fn, fnName) {
         assertParam(fn, "fn").isFunction().check();
         assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
-        a_config.functionRegistry[fnName] = fn;
+        __config.functionRegistry[fnName] = fn;
     };
 
-    a_config._storeObject = function(obj, type, name) {
+    __config._storeObject = function(obj, type, name) {
         // uncomment this if we make this public.
         //assertParam(obj, "obj").isObject().check();
         //assertParam(name, "objName").isString().check();
         var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
-        a_config.objectRegistry[key] = obj;
+        __config.objectRegistry[key] = obj;
     };
 
-    a_config._fetchObject = function(type, name) {
+    __config._fetchObject = function(type, name) {
         if (!name) return undefined;
         var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
-        var result = a_config.objectRegistry[key];
+        var result = __config.objectRegistry[key];
         if (!result) {
             throw new Error("Unable to locate a registered object by the name: " + key);
         }
         return result;
     };
 
-    a_config.registerType = function(ctor, typeName) {
+    __config.registerType = function(ctor, typeName) {
         assertParam(ctor, "ctor").isFunction().check();
         assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
-        a_config.typeRegistry[typeName] = ctor;
+        __config.typeRegistry[typeName] = ctor;
     };
 
     //a_config._registerNamedInstance = function (instance, nameProperty) {
@@ -239,7 +240,7 @@
     //    return fn(json);
     //};
 
-    a_config.stringifyPad = "  ";
+    __config.stringifyPad = "  ";
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
@@ -257,11 +258,11 @@
         }
 
         // recomposition of other impls will occur here.
-        a_config.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
+        __config.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
 
         if (instance.checkForRecomposition) {
             // now register for own dependencies.
-            a_config.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+            __config.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
                 instance.checkForRecomposition(interfaceInitializedArgs);
             });
         }
@@ -272,7 +273,7 @@
     function getInterfaceDef(interfaceName) {
         var lcName = interfaceName.toLowerCase();
         // source may be null
-        var kv = __objectFirst(a_config.interfaceRegistry || {}, function(k, v) {
+        var kv = __objectFirst(__config.interfaceRegistry || {}, function(k, v) {
             return k.toLowerCase() === lcName;
         });
         if (!kv) {
@@ -281,7 +282,12 @@
         return kv.value;
     }
 
-    return a_config;
+    return __config;
 }();
-core.config = a_config;
-breeze.config = a_config;
+
+var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
+
+// legacy
+core.config = __config;
+
+breeze.config = __config;

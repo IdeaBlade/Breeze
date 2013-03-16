@@ -1141,6 +1141,18 @@ var FnNode = (function() {
         }
     };
         
+    function createPropFunction(propertyPath) {
+        var properties = propertyPath.split('.');
+        if (properties.length === 1) {
+            return function (entity) {
+                return entity.getProperty(propertyPath);
+            };
+        } else {
+            return function (entity) {
+                return getPropertyPathValue(entity, properties);
+            };
+        }
+    }
 
     return ctor;
 })();
@@ -2121,21 +2133,7 @@ var ExpandClause = (function () {
     return ctor;
 })();
     
-// propertyPath can be either an array of paths or a '.' delimited string.
-    
-function createPropFunction(propertyPath) {
-    var properties = propertyPath.split('.');
-    if (properties.length === 1) {
-        return function(entity) {
-            return entity.getProperty(propertyPath);
-        };
-    } else {
-        return function(entity) {
-            return getPropertyPathValue(entity, properties);
-        };
-    }
-}
-
+  
 function getPropertyPathValue(obj, propertyPath) {
     var properties;
     if (Array.isArray(propertyPath)) {

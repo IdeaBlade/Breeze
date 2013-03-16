@@ -271,7 +271,7 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
-        var result = JSON.stringify(json, null, a_config.stringifyPad);
+        var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
 
@@ -2352,58 +2352,63 @@ var EntityGroup = (function () {
 
 })();
 
-/**
-MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.
+var MergeStrategy = (function() {
+    /**
+    MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.
+    
+    @class MergeStrategy
+    @static
+    **/
+    var MergeStrategy = new Enum("MergeStrategy");
+    /**
+    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
+    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
+    EntityManager is not replaced by the 'merging' entity.
+    
+    @property PreserveChanges {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
+    /**
+    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
+    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
+    EntityManager is replaced by the 'merging' entity.
+    
+    @property OverwriteChanges {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+    MergeStrategy.seal();
+    return MergeStrategy;
+})();
 
-@class MergeStrategy
-@static
-**/
-var MergeStrategy = new Enum("MergeStrategy");
-/**
-PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-EntityManager is not replaced by the 'merging' entity.
-
-@property PreserveChanges {MergeStrategy}
-@final
-@static
-**/
-MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
-/**
-OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-EntityManager is replaced by the 'merging' entity.
-
-@property OverwriteChanges {MergeStrategy}
-@final
-@static
-**/
-MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
-MergeStrategy.seal();
-
-/**
-FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
-
-@class FetchStrategy
-@static
-**/
-var FetchStrategy = new Enum("FetchStrategy");
-/**
-FromServer is used to tell the query to execute the query against a remote data source on the server.
-@property FromServer {MergeStrategy}
-@final
-@static
-**/
-FetchStrategy.FromServer = FetchStrategy.addSymbol();
-/**
-FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-@property FromLocalCache {MergeStrategy}
-@final
-@static
-**/
-FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
-FetchStrategy.seal();
-
+var FetchStrategy = (function() {
+    /**
+    FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
+    
+    @class FetchStrategy
+    @static
+    **/
+    var FetchStrategy = new Enum("FetchStrategy");
+    /**
+    FromServer is used to tell the query to execute the query against a remote data source on the server.
+    @property FromServer {MergeStrategy}
+    @final
+    @static
+    **/
+    FetchStrategy.FromServer = FetchStrategy.addSymbol();
+    /**
+    FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
+    @property FromLocalCache {MergeStrategy}
+    @final
+    @static
+    **/
+    FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
+    FetchStrategy.seal();
+    return FetchStrategy;
+})();
 
 var QueryOptions = (function () {
     /**

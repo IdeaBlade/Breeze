@@ -25,18 +25,18 @@
     };
 
 
-    // legacy properties 
+    // legacy properties - will not be supported after 6/1/2013
+
     breeze.entityModel = breeze;
-    // legacy properties - will not be supported after 3/1/2013
     breeze.entityTracking_backingStore = "backingStore";
     breeze.entityTracking_ko = "ko";
     breeze.entityTracking_backbone = "backbone";
     breeze.remoteAccess_odata = "odata";
     breeze.remoteAccess_webApi = "webApi";
     
-//    return breeze;
-// }();
-// =========== coreFns ===============
+/**
+ @module core
+ **/
 
 var __hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -478,6 +478,9 @@ core.parent = breeze;
 breeze.core = core;
 
 
+/**
+ @module core
+ **/
 
 var Param = function () {
     // The %1 parameter 
@@ -489,13 +492,13 @@ var Param = function () {
     // must be an array where each element  
     // is optional or 
 
-    var Param = function(v, name) {
+    var ctor = function(v, name) {
         this.v = v;
         this.name = name;
         this._contexts = [null];
 
     };
-    var proto = Param.prototype;
+    var proto = ctor.prototype;
 
     proto.isObject = function() {
         return this.isTypeOf("object");
@@ -621,8 +624,6 @@ var Param = function () {
         }
     }
 
-    ;
-
     function isOptionalMessage(context, v) {
         var prevContext = context.prevContext;
         var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
@@ -659,8 +660,6 @@ var Param = function () {
             return prevContext.fn(prevContext, v1);
         });
     }
-
-    ;
 
     function isArrayMessage(context, v) {
         var arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
@@ -722,9 +721,6 @@ var Param = function () {
         }
         return setContext(that, context);
     }
-
-    ;
-
 
     function setContext(that, context) {
         that._contexts[that._contexts.length - 1] = context;
@@ -796,49 +792,50 @@ var Param = function () {
 
 
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
-    return Param;
+    return ctor;
 }();
 
 var assertParam = function (v, name) {
     return new Param(v, name);
 };
 
-var ConfigParam = function(config) {
-    if (typeof (config) !== "object") {
-        throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config) );
-    }
-    this.config = config;
-    this.params = [];
-};
-var cproto = ConfigParam.prototype;
+var ConfigParam = function() {
+    var ctor = function(config) {
+        if (typeof(config) !== "object") {
+            throw new Error("Configuration parameter should be an object, instead it is a: " + typeof(config));
+        }
+        this.config = config;
+        this.params = [];
+    };
+    var proto = ctor.prototype;
 
-cproto.whereParam = function(propName) {
-    var param = new Param(this.config[propName], propName);
-    param.parent = this;
-    this.params.push(param);
-    return param;
-};
-    
+    proto.whereParam = function(propName) {
+        var param = new Param(this.config[propName], propName);
+        param.parent = this;
+        this.params.push(param);
+        return param;
+    };
+    return ctor;
+}();
+
 var assertConfig = function(config) {
     return new ConfigParam(config);
 };
 
+// Param is exposed so that additional 'is' methods can be added to the prototype.
 core.Param = Param;
 core.assertParam = assertParam;
 core.assertConfig = assertConfig;
-// Param is exposed so that additional 'is' methods can be added to the prototype.
-// return { Param: Param, assertParam: assertParam, assertConfig: assertConfig };
 
+
+
+/**
+ @module core
+ **/
 
 var Enum = function() {
 
-    /**
-    @module core
-    **/
-
-
     // TODO: think about CompositeEnum (flags impl).
-
 
     /**
     Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
@@ -898,7 +895,7 @@ var Enum = function() {
     @param [methodObj] {Object}
     **/
 
-    function Enum(name, methodObj) {
+    var ctor = function(name, methodObj) {
         this.name = name;
         var prototype = new EnumSymbol(methodObj);
         prototype.parentEnum = this;
@@ -908,9 +905,8 @@ var Enum = function() {
                 prototype[key] = methodObj[key];
             });
         }
-    }
-
-    ;
+    };
+    var proto = ctor.prototype;
 
     /**
     Checks if an object is an Enum 'symbol'.
@@ -922,7 +918,7 @@ var Enum = function() {
     @return {Boolean}
     @static
     **/
-    Enum.isSymbol = function(obj) {
+    ctor.isSymbol = function(obj) {
         return obj instanceof EnumSymbol;
     };
 
@@ -935,7 +931,7 @@ var Enum = function() {
     @param name {String} Name for which an enum symbol should be returned.
     @return {EnumSymbol} The symbol that matches the name or 'undefined' if not found.
     **/
-    Enum.prototype.fromName = function(name) {
+    proto.fromName = function(name) {
         return this[name];
     };
 
@@ -949,7 +945,7 @@ var Enum = function() {
     In other words, the 'propertiesObj' is any state that should be held by the symbol.
     @return {EnumSymbol} The new symbol
     **/
-    Enum.prototype.addSymbol = function(propertiesObj) {
+    proto.addSymbol = function(propertiesObj) {
         // TODO: check if sealed.
         var newSymbol = Object.create(this._symbolPrototype);
         if (propertiesObj) {
@@ -968,7 +964,7 @@ var Enum = function() {
         DayOfWeek.seal();
     @method seal
     **/
-    Enum.prototype.seal = function() {
+    proto.seal = function() {
         this.getSymbols().forEach(function(sym) { return sym.getName(); });
     };
 
@@ -1006,7 +1002,7 @@ var Enum = function() {
     @method getSymbols
     @return {Array of EnumSymbol} All of the symbols contained within this Enum.
     **/
-    Enum.prototype.getSymbols = function() {
+    proto.getSymbols = function() {
         return this.getNames().map(function(key) {
             return this[key];
         }, this);
@@ -1019,7 +1015,7 @@ var Enum = function() {
     @method getNames
     @return {Array of String} All of the names of the symbols contained within this Enum.
     **/
-    Enum.prototype.getNames = function() {
+    proto.getNames = function() {
         var result = [];
         for (var key in this) {
             if (this.hasOwnProperty(key)) {
@@ -1042,7 +1038,7 @@ var Enum = function() {
     @param {Object} Object or symbol to test.
     @return {Boolean} Whether this Enum contains the specified symbol.
     **/
-    Enum.prototype.contains = function(sym) {
+    proto.contains = function(sym) {
         if (!(sym instanceof EnumSymbol)) {
             return false;
         }
@@ -1102,17 +1098,17 @@ var Enum = function() {
         };
     };
 
-    return Enum;
+    return ctor;
 }();
 core.Enum = Enum;
 
 
-    
-var Event = function() {
-    /**
-    @module core
-    **/
+/**
+  @module core
+  **/
 
+var Event = function() {
+  
     var __eventNameMap = {};
 
     /**
@@ -1132,7 +1128,7 @@ var Event = function() {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    var Event = function(name, publisher, defaultErrorCallback) {
+    var ctor = function(name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
 
@@ -1145,6 +1141,7 @@ var Event = function() {
             this._defaultErrorCallback = defaultErrorCallback;
         }
     };
+    var proto = ctor.prototype;
 
     /**
     Publish data for this event.
@@ -1169,9 +1166,9 @@ var Event = function() {
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
     @return {Boolean} false if event is disabled; true otherwise.
     **/
-    Event.prototype.publish = function(data, publishAsync, errorCallback) {
+    proto.publish = function(data, publishAsync, errorCallback) {
 
-        if (!Event._isEnabled(this.name, this.publisher)) return false;
+        if (!ctor._isEnabled(this.name, this.publisher)) return false;
 
         if (publishAsync === true) {
             setTimeout(publishCore, 0, this, data, errorCallback);
@@ -1219,7 +1216,7 @@ var Event = function() {
    errorCallback([e])
    @param [errorCallback.e] {Error} Any error encountered during publication execution.
    **/
-    Event.prototype.publishAsync = function(data, errorCallback) {
+    proto.publishAsync = function(data, errorCallback) {
         this.publish(data, true, errorCallback);
     };
 
@@ -1247,7 +1244,7 @@ var Event = function() {
         @param [callback.data] {Object} Whatever 'data' was published.  This should be documented on the specific event.
     @return {Number} This is a key for 'unsubscription'.  It can be passed to the 'unsubscribe' method.
     **/
-    Event.prototype.subscribe = function(callback) {
+    proto.subscribe = function(callback) {
         if (!this._subscribers) {
             this._subscribers = [];
         }
@@ -1272,7 +1269,7 @@ var Event = function() {
     @return {Boolean} Whether unsubscription occured. This will return false if already unsubscribed or if the key simply
     cannot be found.
     **/
-    Event.prototype.unsubscribe = function(unsubKey) {
+    proto.unsubscribe = function(unsubKey) {
         if (!this._subscribers) return false;
         var subs = this._subscribers;
         var ix = __arrayIndexOf(subs, function(s) {
@@ -1289,12 +1286,12 @@ var Event = function() {
         }
     };
 
-    Event.prototype.clear = function() {
+    proto.clear = function() {
         this._subscribers = null;
     };
 
     // event bubbling - document later.
-    Event.bubbleEvent = function(target, getParentFn) {
+    ctor.bubbleEvent = function(target, getParentFn) {
         target._getEventParent = getParentFn;
     };
 
@@ -1326,7 +1323,7 @@ var Event = function() {
     children of this object will be enabled or disabled. 
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null. 
     **/
-    Event.enable = function(eventName, obj, isEnabled) {
+    ctor.enable = function(eventName, obj, isEnabled) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
@@ -1337,7 +1334,7 @@ var Event = function() {
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    Event._enableFast = function(event, obj, isEnabled) {
+    ctor._enableFast = function(event, obj, isEnabled) {
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
@@ -1355,16 +1352,16 @@ var Event = function() {
     @param target {Object} The object for which we want to know if notifications are enabled. 
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
-    Event.isEnabled = function(eventName, obj) {
+    ctor.isEnabled = function(eventName, obj) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
-        return Event._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, getFullEventName(eventName));
     };
 
-    Event._isEnabled = function(eventName, obj) {
+    ctor._isEnabled = function(eventName, obj) {
         var isEnabled = null;
         var eventMap = obj._$eventMap;
         if (eventMap) {
@@ -1379,7 +1376,7 @@ var Event = function() {
         } else {
             var parent = obj._getEventParent && obj._getEventParent();
             if (parent) {
-                return Event._isEnabled(eventName, parent);
+                return ctor._isEnabled(eventName, parent);
             } else {
                 // default if not explicitly disabled.
                 return true;
@@ -1404,24 +1401,25 @@ var Event = function() {
         // for now do nothing;
     }
 
-    return Event;
+    return ctor;
 
 }();
 
 core.Event = Event;
-var a_config = function() {
-    /**
-    @module breeze   
-    **/
+/**
+  @module breeze   
+  **/
+
+var __config = function () {
 
     // alias for within fns with a config param
-    var a_config = {};
+    var __config = {};
 
 
-    a_config.functionRegistry = {};
-    a_config.typeRegistry = {};
-    a_config.objectRegistry = {};
-    a_config.interfaceInitialized = new Event("interfaceInitialized_config", a_config);
+    __config.functionRegistry = {};
+    __config.typeRegistry = {};
+    __config.objectRegistry = {};
+    __config.interfaceInitialized = new Event("interfaceInitialized_config", __config);
 
     var InterfaceDef = function(name) {
         this.name = name;
@@ -1440,13 +1438,13 @@ var a_config = function() {
         return kv ? kv.value : null;
     };
 
-    a_config.interfaceRegistry = {
+    __config.interfaceRegistry = {
         ajax: new InterfaceDef("ajax"),
         modelLibrary: new InterfaceDef("modelLibrary"),
         dataService: new InterfaceDef("dataService")
     };
 
-    a_config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
+    __config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
         if (!this.defaultInstance) {
             throw new Error("Unable to locate the default implementation of the '" + this.name
                 + "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
@@ -1474,21 +1472,21 @@ var a_config = function() {
         @param [config.trackingImplementation] { implementation of entityTracking-interface }
         @param [config.ajaxImplementation] {implementation of ajax-interface }
     **/
-    a_config.setProperties = function(config) {
+    __config.setProperties = function(config) {
         assertConfig(config)
             .whereParam("remoteAccessImplementation").isOptional()
             .whereParam("trackingImplementation").isOptional()
             .whereParam("ajaxImplementation").isOptional()
             .applyAll(config);
         if (config.remoteAccessImplementation) {
-            a_config.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
+            __config.initializeAdapterInstance("dataService", config.remoteAccessImplementation);
         }
         if (config.trackingImplementation) {
             // note the name change
-            a_config.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
+            __config.initializeAdapterInstance("modelLibrary", config.trackingImplementation);
         }
         if (config.ajaxImplementation) {
-            a_config.initializeAdapterInstance("ajax", config.ajaxImplementation);
+            __config.initializeAdapterInstance("ajax", config.ajaxImplementation);
         }
     };
 
@@ -1499,7 +1497,7 @@ var a_config = function() {
     @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.  
     **/
-    a_config.registerAdapter = function(interfaceName, adapterCtor) {
+    __config.registerAdapter = function(interfaceName, adapterCtor) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
         assertParam(adapterCtor, "adapterCtor").isFunction().check();
         // this impl will be thrown away after the name is retrieved.
@@ -1521,7 +1519,7 @@ var a_config = function() {
     this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
     @return {Function|null} Returns either a ctor function or null.
     **/
-    a_config.getAdapter = function(interfaceName, adapterName) {
+    __config.getAdapter = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         if (adapterName) {
             var impl = idef.getImpl(adapterName);
@@ -1540,12 +1538,12 @@ var a_config = function() {
     @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
     @return [array of instances]
     **/
-    a_config.initializeAdapterInstances = function(config) {
+    __config.initializeAdapterInstances = function(config) {
         assertConfig(config)
             .whereParam("dataService").isOptional()
             .whereParam("modelLibrary").isOptional()
             .whereParam("ajax").isOptional();
-        return __objectMapToArray(config, a_config.initializeAdapterInstance);
+        return __objectMapToArray(config, __config.initializeAdapterInstance);
 
     };
 
@@ -1559,7 +1557,7 @@ var a_config = function() {
     @param [isDefault=true] {Boolean} - Whether to make this the default "adapter" for this interface. 
     @return {an instance of the specified adapter}
     **/
-    a_config.initializeAdapterInstance = function(interfaceName, adapterName, isDefault) {
+    __config.initializeAdapterInstance = function(interfaceName, adapterName, isDefault) {
         isDefault = isDefault === undefined ? true : isDefault;
         assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
         assertParam(adapterName, "adapterName").isNonEmptyString().check();
@@ -1583,7 +1581,7 @@ var a_config = function() {
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    a_config.getAdapterInstance = function(interfaceName, adapterName) {
+    __config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         var impl;
         if (adapterName & adapterName !== "") {
@@ -1605,36 +1603,36 @@ var a_config = function() {
 
     // this is needed for reflection purposes when deserializing an object that needs a fn or ctor
     // used to register validators.
-    a_config.registerFunction = function(fn, fnName) {
+    __config.registerFunction = function(fn, fnName) {
         assertParam(fn, "fn").isFunction().check();
         assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
-        a_config.functionRegistry[fnName] = fn;
+        __config.functionRegistry[fnName] = fn;
     };
 
-    a_config._storeObject = function(obj, type, name) {
+    __config._storeObject = function(obj, type, name) {
         // uncomment this if we make this public.
         //assertParam(obj, "obj").isObject().check();
         //assertParam(name, "objName").isString().check();
         var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
-        a_config.objectRegistry[key] = obj;
+        __config.objectRegistry[key] = obj;
     };
 
-    a_config._fetchObject = function(type, name) {
+    __config._fetchObject = function(type, name) {
         if (!name) return undefined;
         var key = (typeof(type) === "string" ? type : type.prototype._$typeName) + "." + name;
-        var result = a_config.objectRegistry[key];
+        var result = __config.objectRegistry[key];
         if (!result) {
             throw new Error("Unable to locate a registered object by the name: " + key);
         }
         return result;
     };
 
-    a_config.registerType = function(ctor, typeName) {
+    __config.registerType = function(ctor, typeName) {
         assertParam(ctor, "ctor").isFunction().check();
         assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
-        a_config.typeRegistry[typeName] = ctor;
+        __config.typeRegistry[typeName] = ctor;
     };
 
     //a_config._registerNamedInstance = function (instance, nameProperty) {
@@ -1650,7 +1648,7 @@ var a_config = function() {
     //    return fn(json);
     //};
 
-    a_config.stringifyPad = "  ";
+    __config.stringifyPad = "  ";
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
@@ -1668,11 +1666,11 @@ var a_config = function() {
         }
 
         // recomposition of other impls will occur here.
-        a_config.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
+        __config.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
 
         if (instance.checkForRecomposition) {
             // now register for own dependencies.
-            a_config.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
+            __config.interfaceInitialized.subscribe(function(interfaceInitializedArgs) {
                 instance.checkForRecomposition(interfaceInitializedArgs);
             });
         }
@@ -1683,7 +1681,7 @@ var a_config = function() {
     function getInterfaceDef(interfaceName) {
         var lcName = interfaceName.toLowerCase();
         // source may be null
-        var kv = __objectFirst(a_config.interfaceRegistry || {}, function(k, v) {
+        var kv = __objectFirst(__config.interfaceRegistry || {}, function(k, v) {
             return k.toLowerCase() === lcName;
         });
         if (!kv) {
@@ -1692,16 +1690,21 @@ var a_config = function() {
         return kv.value;
     }
 
-    return a_config;
+    return __config;
 }();
-core.config = a_config;
-breeze.config = a_config;
+
+var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
+
+// legacy
+core.config = __config;
+
+breeze.config = __config;
+/**
+  @module breeze
+  **/
 
 var DataType = function () {
-    /**
-    @module breeze
-    **/
-
+  
     /**
     DataType is an 'Enum' containing all of the supported data types.
 
@@ -2166,7 +2169,7 @@ var Validator = function () {
 
     ctor.fromJSON = function (json) {
         var validatorName = "Validator." + json.validatorName;
-        var fn = a_config.functionRegistry[validatorName];
+        var fn = __config.functionRegistry[validatorName];
         if (!fn) {
             throw new Error("Unable to locate a validator named:" + json.validatorName);
         }
@@ -2179,7 +2182,7 @@ var Validator = function () {
     @param validator {Validator} Validator to register.
     **/
     ctor.register = function(validator) {
-        a_config.registerFunction(function () { return validator; }, "Validator." + validator.name);
+        __config.registerFunction(function () { return validator; }, "Validator." + validator.name);
     };
 
     /**
@@ -2188,7 +2191,7 @@ var Validator = function () {
     @param validatorFactory {Function} A function that optionally takes a context property and returns a Validator instance.
     **/
     ctor.registerFactory = function(validatorFn, name) {
-        a_config.registerFunction(validatorFn, "Validator." + name);
+        __config.registerFunction(validatorFn, "Validator." + name);
     };
 
     /**
@@ -2521,7 +2524,7 @@ var Validator = function () {
             return;
         }
 
-        a_config.registerFunction(value, "Validator." + key);
+        __config.registerFunction(value, "Validator." + key);
     });
 
 
@@ -2691,8 +2694,6 @@ breeze.ValidationError = ValidationError;
 /**
 @module breeze   
 **/
-
-var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;   
 
 var EntityState = (function () {
     /**
@@ -3018,7 +3019,7 @@ var EntityAspect = function() {
                 }
             }
             var entityCtor = entityType.getEntityCtor();
-            v_modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
+            __modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
         }
     };
     var proto = ctor.prototype;
@@ -3658,7 +3659,7 @@ var ComplexAspect = function() {
             }
         }
         var complexCtor = complexType.getCtor();
-        v_modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
+        __modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
     };
     var proto = ctor.prototype;
@@ -4137,14 +4138,10 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     }
 }
     
-
-
-    /**
-    @module breeze
-    **/
-
+/**
+@module breeze
+**/
     
-var v_modelLibraryDef = a_config.interfaceRegistry.modelLibrary;
 
 var Q = __requireLib("Q", "See https://github.com/kriskowal/q ");
 
@@ -4196,7 +4193,7 @@ var LocalQueryComparisonOptions = (function () {
         if (!this.name) {
             this.name = __getUuid();
         }
-        a_config._storeObject(this, proto._$typeName, this.name);
+        __config._storeObject(this, proto._$typeName, this.name);
     };
     var proto = ctor.prototype;
     proto._$typeName = "LocalQueryComparisonOptions";
@@ -4280,7 +4277,7 @@ var NamingConvention = (function () {
         if (!this.name) {
             this.name = __getUuid();
         }
-        a_config._storeObject(this, proto._$typeName, this.name);
+        __config._storeObject(this, proto._$typeName, this.name);
     };
     var proto = ctor.prototype;
     proto._$typeName = "NamingConvention";
@@ -4497,7 +4494,7 @@ var MetadataStore = (function () {
                 return value.name;
             }
             return value;
-        }, a_config.stringifyPad);
+        }, __config.stringifyPad);
         return result;
     };
 
@@ -4523,8 +4520,8 @@ var MetadataStore = (function () {
         delete json.namingConvention;
         delete json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = a_config._fetchObject(NamingConvention, ncName);
-            this.localQueryComparisonOptions = a_config._fetchObject(LocalQueryComparisonOptions, lqcoName);
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName);
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName);
         } else {
             if (this.namingConvention.name !== ncName) {
                 throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
@@ -5260,7 +5257,7 @@ var DataService = function () {
             .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
             .applyAll(this);
         this.serviceName = DataService._normalizeServiceName(this.serviceName);
-        this.adapterInstance = a_config.getAdapterInstance("dataService", this.adapterName);
+        this.adapterInstance = __config.getAdapterInstance("dataService", this.adapterName);
             
         if (!this.jsonResultsAdapter) {
             this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
@@ -5320,7 +5317,7 @@ var DataService = function () {
     };
 
     ctor.fromJSON = function(json) {
-        json.jsonResultsAdapter = a_config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
+        json.jsonResultsAdapter = __config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
         return new DataService(json);
     };
 
@@ -5387,7 +5384,7 @@ var JsonResultsAdapter = (function () {
             .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
             .whereParam("visitNode").isFunction()
             .applyAll(this);
-        a_config._storeObject(this, proto._$typeName, this.name);
+        __config._storeObject(this, proto._$typeName, this.name);
     };
         
     var proto = ctor.prototype;
@@ -5662,7 +5659,7 @@ var EntityType = (function () {
         var typeRegistry = this.metadataStore._typeRegistry;
         var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
         if (!aCtor) {
-            var createCtor = v_modelLibraryDef.getDefaultInstance().createCtor;
+            var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             if (createCtor) {
                 aCtor = createCtor(this);
             } else {
@@ -5697,7 +5694,7 @@ var EntityType = (function () {
             proto._$interceptor = defaultPropertyInterceptor;
         }
 
-        v_modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
+        __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
         this._ctor = aCtor;
     };
@@ -6115,7 +6112,7 @@ var EntityType = (function () {
         
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
-        var trackablePropNames = v_modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
+        var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
             if (metadataPropNames.indexOf(pn) == -1) {
                 var newProp = new DataProperty({
@@ -6744,31 +6741,34 @@ var AutoGeneratedKeyType = function () {
 }();
 
 // mixin methods
-var pproto = core.Param.prototype;
+(function() {
+   
+    var proto = Param.prototype;
 
-pproto.isEntity = function () {
-    return this._addContext({
-        fn: isEntity,
-        msg: " must be an entity"
-    });
-};
-    
-function isEntity(context, v) {
-    if (v == null) return false;
-    return (v.entityType !== undefined);
-}
+    proto.isEntity = function() {
+        return this._addContext({
+            fn: isEntity,
+            msg: " must be an entity"
+        });
+    };
 
-pproto.isEntityProperty = function() {
-    return this._addContext({
-        fn: isEntityProperty,
-        msg: " must be either a DataProperty or a NavigationProperty"
-    });
-};
+    function isEntity(context, v) {
+        if (v == null) return false;
+        return (v.entityType !== undefined);
+    }
 
-function isEntityProperty(context, v) {
-    if (v == null) return false;
-    return (v.isDataProperty || v.isNavigationProperty);
-}
+    proto.isEntityProperty = function() {
+        return this._addContext({
+            fn: isEntityProperty,
+            msg: " must be either a DataProperty or a NavigationProperty"
+        });
+    };
+
+    function isEntityProperty(context, v) {
+        if (v == null) return false;
+        return (v.isDataProperty || v.isNavigationProperty);
+    }
+})();
 
 function isQualifiedTypeName(entityTypeName) {
     return entityTypeName.indexOf(":#") >= 0;
@@ -7984,6 +7984,18 @@ var FnNode = (function() {
         }
     };
         
+    function createPropFunction(propertyPath) {
+        var properties = propertyPath.split('.');
+        if (properties.length === 1) {
+            return function (entity) {
+                return entity.getProperty(propertyPath);
+            };
+        } else {
+            return function (entity) {
+                return getPropertyPathValue(entity, properties);
+            };
+        }
+    }
 
     return ctor;
 })();
@@ -8964,21 +8976,7 @@ var ExpandClause = (function () {
     return ctor;
 })();
     
-// propertyPath can be either an array of paths or a '.' delimited string.
-    
-function createPropFunction(propertyPath) {
-    var properties = propertyPath.split('.');
-    if (properties.length === 1) {
-        return function(entity) {
-            return entity.getProperty(propertyPath);
-        };
-    } else {
-        return function(entity) {
-            return getPropertyPathValue(entity, properties);
-        };
-    }
-}
-
+  
 function getPropertyPathValue(obj, propertyPath) {
     var properties;
     if (Array.isArray(propertyPath)) {
@@ -9034,12 +9032,11 @@ breeze.FnNode = FnNode;
 // Not documented - only exposed for testing purposes
 breeze.OrderByClause = OrderByClause;
 
-var KeyGenerator = function () {  
-    /**
-    @module breeze
-    **/
-    
+/**
+ @module breeze
+ **/
 
+var KeyGenerator = function () {
     
     /*
     @class KeyGenerator
@@ -9054,6 +9051,7 @@ var KeyGenerator = function () {
         this.nextNumberIncrement = -1;
         this.stringPrefix = "K_";
     };
+    var proto = ctor.prototype;
 
     /*
     Returns a unique 'temporary' id for the specified {{#crossLink "EntityType"}}{{/crossLink}}. 
@@ -9080,7 +9078,7 @@ var KeyGenerator = function () {
     @method generateTempKeyValue
     @param entityType {EntityType}
     */
-    ctor.prototype.generateTempKeyValue = function (entityType) {
+    proto.generateTempKeyValue = function (entityType) {
         var keyProps = entityType.keyProperties;
         if (keyProps.length > 1) {
             throw new Error("Ids can not be autogenerated for entities with multipart keys");
@@ -9092,7 +9090,7 @@ var KeyGenerator = function () {
         return nextId;
     };
 
-    ctor.prototype.getTempKeys = function () {
+    proto.getTempKeys = function () {
         var results = [];
         for (var key in this._tempIdMap) {
             var propEntry = this._tempIdMap[key];
@@ -9108,7 +9106,7 @@ var KeyGenerator = function () {
 
     // proto methods below are not part of the KeyGenerator interface.
 
-    ctor.prototype.isTempKey = function (entityKey) {
+    proto.isTempKey = function (entityKey) {
         var keyProps = entityKey.entityType.keyProperties;
         if (keyProps.length > 1) return false;
         var keyProp = keyProps[0];
@@ -9159,7 +9157,7 @@ var KeyGenerator = function () {
         return result;
     }
 
-    a_config.registerType(ctor, "KeyGenerator");
+    __config.registerType(ctor, "KeyGenerator");
 
     return ctor;
 }();
@@ -9661,7 +9659,7 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
-        var result = JSON.stringify(json, null, a_config.stringifyPad);
+        var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
 
@@ -11742,58 +11740,63 @@ var EntityGroup = (function () {
 
 })();
 
-/**
-MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.
+var MergeStrategy = (function() {
+    /**
+    MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.
+    
+    @class MergeStrategy
+    @static
+    **/
+    var MergeStrategy = new Enum("MergeStrategy");
+    /**
+    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
+    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
+    EntityManager is not replaced by the 'merging' entity.
+    
+    @property PreserveChanges {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
+    /**
+    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
+    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
+    EntityManager is replaced by the 'merging' entity.
+    
+    @property OverwriteChanges {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+    MergeStrategy.seal();
+    return MergeStrategy;
+})();
 
-@class MergeStrategy
-@static
-**/
-var MergeStrategy = new Enum("MergeStrategy");
-/**
-PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-EntityManager is not replaced by the 'merging' entity.
-
-@property PreserveChanges {MergeStrategy}
-@final
-@static
-**/
-MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
-/**
-OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-EntityManager is replaced by the 'merging' entity.
-
-@property OverwriteChanges {MergeStrategy}
-@final
-@static
-**/
-MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
-MergeStrategy.seal();
-
-/**
-FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
-
-@class FetchStrategy
-@static
-**/
-var FetchStrategy = new Enum("FetchStrategy");
-/**
-FromServer is used to tell the query to execute the query against a remote data source on the server.
-@property FromServer {MergeStrategy}
-@final
-@static
-**/
-FetchStrategy.FromServer = FetchStrategy.addSymbol();
-/**
-FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-@property FromLocalCache {MergeStrategy}
-@final
-@static
-**/
-FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
-FetchStrategy.seal();
-
+var FetchStrategy = (function() {
+    /**
+    FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
+    
+    @class FetchStrategy
+    @static
+    **/
+    var FetchStrategy = new Enum("FetchStrategy");
+    /**
+    FromServer is used to tell the query to execute the query against a remote data source on the server.
+    @property FromServer {MergeStrategy}
+    @final
+    @static
+    **/
+    FetchStrategy.FromServer = FetchStrategy.addSymbol();
+    /**
+    FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
+    @property FromLocalCache {MergeStrategy}
+    @final
+    @static
+    **/
+    FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
+    FetchStrategy.seal();
+    return FetchStrategy;
+})();
 
 var QueryOptions = (function () {
     /**
