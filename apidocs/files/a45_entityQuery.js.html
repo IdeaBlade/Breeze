@@ -653,8 +653,7 @@ var EntityQuery = (function () {
         eq.inlineCountEnabled = enabled;
         return eq;
     };
-
-        &#x2F;&#x2F; Implementations found in EntityManager
+    
     &#x2F;**
     Returns a copy of this EntityQuery with the specified {{#crossLink &quot;EntityManager&quot;}}{{&#x2F;crossLink}}, {{#crossLink &quot;DataService&quot;}}{{&#x2F;crossLink}}, 
     {{#crossLink &quot;JsonResultsAdapter&quot;}}{{&#x2F;crossLink}}, {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} or {{#crossLink &quot;FetchStrategy&quot;}}{{&#x2F;crossLink}} applied.
@@ -680,10 +679,25 @@ var EntityQuery = (function () {
     @return {EntityQuery}
     @chainable
     **&#x2F;
-        
-    &#x2F;&#x2F; Implementations found in EntityManager
+    proto.using = function (obj) {
+        var eq = this._clone();
+        if (obj instanceof EntityManager) {
+            eq.entityManager = obj;
+        } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
+            var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
+            eq.queryOptions = queryOptions.using(obj);
+        } else if (obj instanceof DataService) {
+            eq.dataService = obj;
+        } else if (obj instanceof JsonResultsAdapter) {
+            eq.jsonResultsAdapter = obj;
+        } else {
+            throw new Error(&quot;EntityQuery.using parameter must be either an EntityManager, a Query Strategy, a FetchStrategy, a DataService or a JsonResultsAdapter&quot;);
+        }
+        return eq;
+    };
+
     &#x2F;**
-    Executes this query.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
+    Executes this query.  This method requires that an EntityManager has been previously specified via the &quot;using&quot; method.
     @example
     This method can be called using a &#x27;promises&#x27; syntax ( recommended)
     @example
@@ -742,7 +756,13 @@ var EntityQuery = (function () {
 
     @return {Promise}
     **&#x2F;
-        
+    proto.execute = function (callback, errorCallback) {
+        if (!this.entityManager) {
+            throw new Error(&quot;An EntityQuery must have its EntityManager property set before calling &#x27;execute&#x27;&quot;);
+        }
+        return this.entityManager.executeQuery(this, callback, errorCallback);
+    };
+
     &#x2F;**
     Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the &quot;using&quot; method.
     @example
@@ -754,6 +774,12 @@ var EntityQuery = (function () {
       
     @method executeLocally
     **&#x2F;
+    proto.executeLocally = function () {
+        if (!this.entityManager) {
+            throw new Error(&quot;An EntityQuery must have its EntityManager property set before calling &#x27;executeLocally&#x27;&quot;);
+        }
+        return this.entityManager.executeQueryLocally(this);
+    };
 
     &#x2F;**
     Static method tht creates an EntityQuery that will allow &#x27;requerying&#x27; an entity or a collection of entities by primary key. This can be useful

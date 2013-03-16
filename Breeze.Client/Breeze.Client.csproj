@@ -17,7 +17,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -59,6 +59,7 @@
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.backbone.js" />
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.backingStore.js" />
     <Content Include="Scripts\IBlade\b00_breeze.modelLibrary.ko.js" />
+    <Content Include="Scripts\IBlade\a55_emOptions.js" />
     <Content Include="Scripts\IBlade\iface.keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\iface.promise.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\lib\ast.js" />

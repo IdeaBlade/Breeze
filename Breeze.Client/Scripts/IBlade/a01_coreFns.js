@@ -232,8 +232,8 @@ function __requireLib(libNames, errMessage) {
 function __requireLibCore(libName) {
     var lib = window[libName];
     if (lib) return lib;
-    if (require) {
-        lib = require(libName);
+    if (window.require) {
+        lib = window.require(libName);
     }
     if (lib) return lib;
     return null;

@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Mar 16 2013 11:10:05 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Sat Mar 16 2013 16:13:23 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1859,7 +1859,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'execute': function() {
     /// <signature>
     ///   <summary>
-    ///   Executes this query.  This method requires that an EntityManager have been previously specified via the 'using' method.
+    ///   Executes this query.  This method requires that an EntityManager has been previously specified via the 'using' method.
     ///   </summary>
     ///   <param name="callback" type="Function" optional="true">Function called on success.          successFunction([data])</param>
     ///   <param name="errorCallback" type="Function" optional="true">Function called on failure.              failureFunction([error])</param>
