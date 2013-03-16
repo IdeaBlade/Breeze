@@ -167,6 +167,7 @@
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.min.js" />
+    <Content Include="Scripts\breeze.savequeuing.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
     <Content Include="Scripts\knockout-2.1.0.debug.js" />
@@ -176,19 +177,19 @@
     <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\qunit.js" />
     <Content Include="Scripts\require.js" />
-    <Content Include="Scripts\tests\apiDirectTests.js" />
-    <Content Include="Scripts\tests\basicTodoTests.js" />
-    <Content Include="Scripts\tests\entityExtensionTests.js" />
-    <Content Include="Scripts\tests\entityTests.js" />
-    <Content Include="Scripts\tests\exportImportTests.js" />
-    <Content Include="Scripts\tests\metadataTests.js" />
-    <Content Include="Scripts\tests\navigationTests.js" />
-    <Content Include="Scripts\tests\queryTests.js" />
-    <Content Include="Scripts\tests\saveTodoTests.js" />
-    <Content Include="Scripts\tests\testFns.js" />
-    <Content Include="Scripts\tests\testNorthwindData.js" />
-    <Content Include="Scripts\tests\testRunner.js" />
-    <Content Include="Scripts\tests\validationTests.js" />
+    <Content Include="tests\apiDirectTests.js" />
+    <Content Include="tests\basicTodoTests.js" />
+    <Content Include="tests\entityExtensionTests.js" />
+    <Content Include="tests\entityTests.js" />
+    <Content Include="tests\exportImportTests.js" />
+    <Content Include="tests\metadataTests.js" />
+    <Content Include="tests\navigationTests.js" />
+    <Content Include="tests\queryTests.js" />
+    <Content Include="tests\saveTodoTests.js" />
+    <Content Include="tests\testFns.js" />
+    <Content Include="tests\testNorthwindData.js" />
+    <Content Include="tests\testRunner.js" />
+    <Content Include="tests\validationTests.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -241,16 +242,16 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>
-      IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
-      echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
-      GOTO :done
-      :breezeExists
-      echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
-      :done
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
+echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
+GOTO :done
+:breezeExists
+echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
+ :done
 </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
