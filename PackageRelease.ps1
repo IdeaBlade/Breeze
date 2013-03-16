@@ -65,7 +65,7 @@ if (test-path $destDir) {
 }
 
 # Check that all files have been updated within the last 5 minutes
-$minutes = 5
+$minutes = 1500
 checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.*.js $minutes
 
@@ -77,7 +77,11 @@ new-item $destDir\Scripts -type Directory
 new-item $destDir\Scripts\Adapters -type Directory
 new-item $destDir\TypeScript -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
-copy-item $srcDir\Breeze.Client\Scripts\IBlade\b??_breeze.*.*.js $destDir\Scripts\Adapters\breeze.*.*
+
+# next 4 lines are a workaround because next line does not work
+# copy-item $srcDir\Breeze.Client\Scripts\IBlade\b??_breeze.*.*.js $destDir\Scripts\Adapters\breeze.*.*
+$expr = "copy $srcDir\Breeze.Client\Scripts\IBlade\b??_breeze.*.*.js $destDir\Scripts\Adapters\breeze.*.*"
+& cmd /c ($expr)
 
 copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
 copy-item $srcDir\Breeze.Client\TypeScript\TypeScript\breeze.d.ts $destDir\TypeScript
