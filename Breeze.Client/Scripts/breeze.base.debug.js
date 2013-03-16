@@ -12135,6 +12135,8 @@ if ((!ko) && require) {
 }
 if (ko) {
     breeze.config.initializeAdapterInstance("modelLibrary", "ko");
+} else {
+    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore");
 }
 
 this.window.breeze = breeze;
