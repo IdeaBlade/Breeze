@@ -10,7 +10,7 @@
 This tutorial guides you through some of *Breeze's* basic capabilities with an emphasis on querying data.  Angular.js is used within this tutorial to handle data-binding and render html. 
 
 ### How does it work?
-Follow the instructions in this top left panel, enter your JavaScript in the top right panel, click "Run" in the lower left output panel and see the results. <a href="http://www.breezejs.com/live-tutorial-overview" target="_blank" title="Live Tutorial Overview">Learn more here</a>.
+Follow the instructions in this top left panel, enter your JavaScript in the top right panel, click "Run" in the lower left output panel and see the results. <a href="http://www.breezejs.com/ng-live-tutorial-overview" target="_blank" title="Live Angular Tutorial Overview">Learn more here</a>.
 
 ### Let's go!
 Click the **Run** button in the box below.
