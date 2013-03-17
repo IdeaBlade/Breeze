@@ -41,7 +41,33 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         equal(restoreCount, expected.entityCount,
             "should have restored expected number of all entities");
     });
-    
+ 
+    /*********************************************************
+    * can navigate from restored child to its parent
+    *********************************************************/
+    test("can navigate from restored child to its parent", 1, function () {
+        var em1 = newEm();
+        var expected = testData.primeTheCache(em1);
+        var exportData = em1.exportEntities();
+
+        var stashName = "stash_everything";
+        window.localStorage.setItem(stashName, exportData);
+
+        var em2 = newEm();
+        var importData = window.localStorage.getItem(stashName);
+        em2.importEntities(importData);
+
+        var restoredOrder = em2.getEntities(expected.orderType)[0];
+        var restoredCust = restoredOrder.Customer();
+        if (restoredCust) {
+            var restoredCustName = restoredCust.CompanyName();
+            ok(true,
+                "Got Customer of restored Order '{0}' by navigation"
+                    .format(restoredCustName));
+        } else {
+            ok(false, "should have navigated to parent Customer of restored Order");
+        }
+    });
     /*********************************************************
     * can stash changes locally and restore
     *********************************************************/
@@ -73,19 +99,23 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
              "restored order entitystate is " + orderState);
 
         var restoredCust = restoredOrder.Customer(); // by navigation
-        ok(restoredCust !== null,
-             "Got Customer of restored Order '{0}' by navigation"
-                 .format(restoredCust.CompanyName()));
-        var restoredCustName = restoredCust.CompanyName();
-        var newCustName = expected.newCust.CompanyName();
-        equal(restoredCustName, newCustName,
-             "restoredNewCust's name should == newCust's name");
-        
-        var restoredCustID = restoredCust.CustomerID();
-        var newCustID = expected.newCust.CustomerID();
-        notEqual(restoredCustID, newCustID,
-             "restoredNewCust ID should not equal newCust's ID " +
-             "because the imported newCust gets a new temp key");
+        if (restoredCust) {
+            var restoredCustName = restoredCust.CompanyName();
+            ok(true,
+                "Got Customer of restored Order '{0}' by navigation"
+                    .format(restoredCustName));
+            var newCustName = expected.newCust.CompanyName();
+            equal(restoredCustName, newCustName,
+                "restoredNewCust's name should == newCust's name");
+
+            var restoredCustID = restoredCust.CustomerID();
+            var newCustID = expected.newCust.CustomerID();
+            notEqual(restoredCustID, newCustID,
+                "restoredNewCust ID should not equal newCust's ID " +
+                    "because the imported newCust gets a new temp key");
+        } else {
+            ok(false, "should have navigated to parent Customer of restored Order");
+        }
     });
     /*********************************************************
      * cannot attach an entity from another manager

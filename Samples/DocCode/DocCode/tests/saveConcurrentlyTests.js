@@ -78,9 +78,10 @@ define(["testFns"], function (testFns) {
     * DON'T USE THIS FEATURE UNLESS YOU KNOW WHY
     *********************************************************/
     test("Concurrent save w/ 'allowConcurrentSaves' saves a new entity twice",
-        3, function () {
+        4, function () {
         var em = newEm();
-        em.createEntity('TodoItem', { Description: "DeleteMe" });
+        var description = "DeleteMe";
+        em.createEntity('TodoItem', { Description: description });
         var saveSuccessCount = 0;
             
         var saveOptions =
@@ -98,26 +99,41 @@ define(["testFns"], function (testFns) {
 
         Q.all([save1, save2])
          .fail(handleFail) // unexpected
-         .fin(start); // resume tests after both promises
+         .fin(afterAll); // resume tests after both promises
 
         function saveSucceeded(saveResult) {
             equal(saveSuccessCount +=1, 1,
-                "one of the saves should succeed");
+                "One of the saves should succeed");
         }
 
         // second save then fails during key fixup
         function saveFailed(error) {
             equal(saveSuccessCount += 1, 2,
-                "second save should fail");
-
-            var expected = /key fixup[\w\W]*unable to locate/i;
+                "Second save should fail on the client");
+            
+            var expected = /key fixup.*unable to locate/i;
             ok(expected.test(error.message),
-               "2nd save of same entity; " +
-               "fails only because of id fixup error: '{0}'"
+               "2nd save of same entity fails on client " +
+               "only because of id fixup error: '{0}'"
                .format(error.message));
         }
 
-        });
+        function afterAll() {
+            EntityQuery.from('Todos')
+                .where('Description', 'eq', description)
+                .using(em).execute()
+                .then(afterAllQuerySucceeded)
+                .fail(handleFail)
+                .fin(start);
+        }
+        function afterAllQuerySucceeded(data) {
+            equal(data.results.length, 2,
+                "In fact the single new Todo was saved twice; " +
+                "should find 2 Todos in the database with its '" +
+                description + "' description."
+            );
+        }
+    });
 
     /*********************************************************
     * concurrent save with separate managers is ok
