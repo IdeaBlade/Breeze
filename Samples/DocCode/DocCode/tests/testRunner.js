@@ -29,6 +29,7 @@ require(["testFns" // always first
     , "validationTests"
     , "metadataTests"
     , "saveTodoTests"
+    , "saveConcurrentlyTests"
     , "exportImportTests"
     , "apiDirectTests"
 

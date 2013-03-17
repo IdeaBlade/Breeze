@@ -65,13 +65,14 @@ define(["breeze"], function (breeze) {
 
     /*******************************************************
     * String extensions
-    *Monkey punching JavaScript native String class
+    * Monkey punching JavaScript native String class
     * w/ format, startsWith, endsWith
     * go ahead and shoot me but it's convenient 
     ********************************************************/
     function extendString() {
         var stringFn = String.prototype;
 
+        // Ex: "{0} returned {1} item(s)".format(queryName, count));
         stringFn.format = stringFn.format || function () {
             var s = this;
             for (var i = 0, len = arguments.length; i < len; i++) {

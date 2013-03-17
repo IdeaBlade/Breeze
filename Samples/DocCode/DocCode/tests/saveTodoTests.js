@@ -1,7 +1,3 @@
-/**********************************************
- * Prototype for the typical test modules
- **********************************************/
-
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
 
@@ -16,14 +12,10 @@ define(["testFns"], function (testFns) {
 
     // Classes we'll need from the breeze namespaces
     var EntityQuery = breeze.EntityQuery;
-    var Qop = breeze.FilterQueryOp;
 
     var queryForOne = testFns.queryForOne;
     var runQuery = testFns.runQuery;
     var handleFail = testFns.handleFail;
-
-    // Name of each type's query endpoint in the persistence service
-    var todos = testFns.todoQueryName;
 
     // Target the Todos service
     var serviceName = testFns.todosServiceName;
@@ -40,11 +32,10 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("can save and requery a new Todo", 2, function () {
 
-        var todoDescription = "Save todo in Breeze";
-        var newTodo = createTodo(todoDescription);
-
         var em = newEm();       // new empty EntityManager
-        em.addEntity(newTodo); // add to the cache
+
+        var description = "Save todo in Breeze";
+        var newTodo = em.createEntity('TodoItem',{ Description: description });
 
         stop(); // going async ... tell the testrunner to wait
 
@@ -57,13 +48,13 @@ define(["testFns"], function (testFns) {
             em.clear(); // clear the EntityManager
 
             // re-query from database to confirm it really did get saved
-            var requery = makeQueryForId(id);
+            var requery = new EntityQuery("Todos").where("Id", "eq", id);
             return queryForOne(em, requery, "refetch saved Todo w/ id = " + id);
         })
 
         .then(function (data) { // back from re-query
             var refetchedTodo = data.first;
-            equal(refetchedTodo.Description(), todoDescription,
+            equal(refetchedTodo.Description(), description,
                 "refetched the saved new Todo");
         })
 
@@ -75,11 +66,11 @@ define(["testFns"], function (testFns) {
     * updates id and state after saving a new Todo
     *********************************************************/
     test("updates id and state after saving a new Todo", 5, function () {
+        
+        var em1 = newEm();       // new empty EntityManager
 
-        var newTodo = createTodo("Learn to save in breeze");
-
-        var em1 = newEm();      // new empty EntityManager
-        em1.addEntity(newTodo); // add to the cache
+        var description = "Learn to save in breeze";
+        var newTodo = em1.createEntity('TodoItem',{ Description: description });
 
         var tempId = newTodo.Id(); // temporary now; we'll see it change
 
@@ -100,7 +91,7 @@ define(["testFns"], function (testFns) {
                 "new Todo id changed from " + tempId + " to " + savedId);
 
             // re-query from database to confirm it really did get saved
-            var requery = makeQueryForId(savedId);
+            var requery = new EntityQuery("Todos").where("Id", "==", savedId);
             var em2 = newEm(); // query with a new, empty EntityManager
 
             return queryForOne(em2, requery,  // query and wait ...
@@ -131,9 +122,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();      // new empty EntityManager
         var newTodo, updateTodo, deleteTodo;
 
-        // add a Todo
-        newTodo = createTodo("Learn to save in breeze");
-        em.addEntity(newTodo); // add to the cache
+        newTodo = em.createEntity('TodoItem',{ Description: "Learn to save in breeze" });
 
         // get two Todos to modify and delete
         var twoQuery = new EntityQuery("Todos").take(2);
@@ -185,27 +174,26 @@ define(["testFns"], function (testFns) {
         .fin(start);
     });
     /*********************************************************
-    * hasChanges event raised after rejectChanges
+    * hasChangesChanged event raised after rejectChanges
     *********************************************************/
-    test("hasChanges event raised after rejectChanges", 1, function () {
+    test("hasChangesChanged event raised after rejectChanges", 1, function () {
         var em = newEm();
         var hasChangesWasRaised;
         em.hasChangesChanged.subscribe(
             function () { hasChangesWasRaised = true; }
         );
 
-        // add a Todo
-        var newTodo = createTodo("Learn to save in breeze");
-        em.addEntity(newTodo); // add to the cache
+        // add a Todo (and ignore it)
+        em.createEntity('TodoItem',{ Description: "Learn to save in breeze" });
 
         em.rejectChanges();
         ok(hasChangesWasRaised,
-            "hasChanges should have been raised after rejectChanges");
+            "hasChangesChanged should have been raised after rejectChanges");
     });
     /*********************************************************
-    * hasChanges event raised after saveChanges
+    * hasChangesChanged event raised after saveChanges
     *********************************************************/
-    test("hasChanges event raised after saveChanges", 1, function () {
+    test("hasChangesChanged event raised after saveChanges", 1, function () {
         var em = newEm();    
         var hasChangesWasRaised;
         em.hasChangesChanged.subscribe(
@@ -214,15 +202,14 @@ define(["testFns"], function (testFns) {
             }
         );
 
-        // add a Todo
-        var newTodo = createTodo("Learn to save in breeze");
-        em.addEntity(newTodo); // add to the cache
+        // add a Todo (and forget about it)
+        em.createEntity('TodoItem',{ Description: "Learn to save in breeze" });
 
         stop();
         em.saveChanges()
            .then ( function() {
                ok(hasChangesWasRaised,
-                "hasChanges should have been raised after rejectChanges");
+                "hasChangesChanged should have been raised after saveChanges");
            })
            .fail( function(error) {
                ok(false, "save failed: " + error.message);
@@ -230,28 +217,4 @@ define(["testFns"], function (testFns) {
            .fin(start);
     });
 
-    /*********************************************************
-    * helpers
-    *********************************************************/
-
-    function makeQueryForId(id) {
-        return new EntityQuery("Todos").where("Id", Qop.Equals, id);
-    }
-
-    function createTodo(name) {
-
-        var todoTypeInfo = getMetadataStore().getEntityType("TodoItem");
-
-        var newTodo = todoTypeInfo.createEntity();
-        newTodo.Description(name || "New Todo");
-        newTodo.CreatedAt(new Date());
-
-        return newTodo;
-    }
-
-    function getMetadataStore(em) {
-        if (em) { return em.metadataStore; }
-        // no em? no problem. We also stashed the store elsewhere
-        return newEm.options.metadataStore;
-    }
 });
