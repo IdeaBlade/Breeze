@@ -7,7 +7,9 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     * Breeze configuration and module setup 
     *********************************************************/
     var breeze = testFns.breeze;
-    var EntityQuery = breeze.EntityQuery;       
+    var EntityQuery = breeze.EntityQuery;
+    var EntityManager = breeze.EntityManager;
+    var EntityState = breeze.EntityState;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
@@ -32,8 +34,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var stashName = "stash_everything";
         window.localStorage.setItem(stashName, exportData);
         
-        var em2 = newEm();
         var importData = window.localStorage.getItem(stashName);
+        var em2 = new EntityManager(); // virginal
         em2.importEntities(importData);
 
         var entitiesInCache = em2.getEntities();
@@ -53,8 +55,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var stashName = "stash_everything";
         window.localStorage.setItem(stashName, exportData);
 
-        var em2 = newEm();
         var importData = window.localStorage.getItem(stashName);
+        var em2 = new EntityManager(); // virginal        
         em2.importEntities(importData);
 
         var restoredOrder = em2.getEntities(expected.orderType)[0];
@@ -82,9 +84,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var stashName = "stash_changes";
         window.localStorage.setItem(stashName, exportData);
 
-        var em2 = newEm();
-
         var importData = window.localStorage.getItem(stashName);
+        var em2 = new EntityManager(); // virginal        
         em2.importEntities(importData);
 
         var entitiesInCache = em2.getEntities();
@@ -120,14 +121,28 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     /*********************************************************
      * cannot attach an entity from another manager
      *********************************************************/
-    test("cannot attach an entity from another manager", 1,
-        function () {
-            var em1 = newEm();
-            var expected = testData.primeTheCache(em1);
-            var em2 = newEm();
-            raises(function() {
-                em2.attachEntity(expected.unchangedCust);
-            }, "should throw if attach entity from another manager");            
+    test("cannot attach an entity from another manager", 1, function () {
+        var em1 = newEm();
+        var expected = testData.primeTheCache(em1);
+        
+        var errRegEx = /belongs to another EntityManager/i;
+        var expectedErrMsg = 
+            "should have thrown error matching '{0}'"
+            .format(errRegEx.toString());
+        try {
+            var em2 = newEm(); //new manager, prepared w/ existing metadata            
+            em2.attachEntity(expected.unchangedCust);
+            ok(false, expectedErrMsg);
+        } catch (err) {
+            ok(errRegEx.test(err.message), expectedErrMsg);
+        }
+        // The following works but is less informative
+        //raises(
+        //    function () {
+        //        em2.attachEntity(expected.unchangedCust);
+        //    },
+        //    /belongs to anotherx EntityManager/i,
+        //    "should throw expected error if attach entity from another manager");
     });
     /*********************************************************
     * can copy unchanged to another manager with export/import
@@ -139,7 +154,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
         var expected = testData.primeTheCache(em1);
         var exportData = em1.exportEntities(expected.unchanged);
 
-        var em2 = newEm();
+        var em2 = new EntityManager(); //virginal
         em2.importEntities(exportData);
         
         var entitiesInCache = em2.getEntities();
@@ -153,31 +168,28 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     *********************************************************/
     test("import merge overwrites if entity in cache is unchanged", 3, 
         function () {
+            // both managers prepared w/ existing metadata
             var em1 = newEm();
-            var customerType = em1.metadataStore
-                .getEntityType("Customer");
+            var em2 = newEm();
 
-            var cust1 = customerType.createEntity();
             var cust1Id = breeze.core.getUuid();
-            cust1.CustomerID(cust1Id);
-            cust1.CompanyName("Foo");
-            em1.attachEntity(cust1);
-
-            // cust1's name is "Foo" in em1
-            var exportData = em1.exportEntities();
+            var cust1a = em1.createEntity("Customer", {
+                CustomerID: cust1Id,
+                CompanyName: "Foo"
+            }, EntityState.Unchanged);
 
             // Suppose em2 queried for same customer 
             // much earlier when it had the name "Bar"
-            var em2 = newEm();
-            var cust1b = customerType.createEntity();
-            cust1b.CustomerID(cust1Id);
-            cust1b.CompanyName("Bar");
-            em2.attachEntity(cust1b);
+            var cust1b = em2.createEntity("Customer", {
+                CustomerID: cust1Id,
+                CompanyName: "Bar"
+            }, EntityState.Unchanged);
 
             equal(cust1b.CompanyName(), "Bar",
                 "should have cust name, Bar, before import");
             
-            // Import from em1
+            // Import from em1 where cust1's name is "Foo" 
+            var exportData = em1.exportEntities();
             em2.importEntities(exportData);
 
             ok(cust1b.entityAspect.entityState.isUnchanged(),
@@ -202,8 +214,8 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
             var selectedCustsCount = selectedCusts.length;
 
             var exportData = em1.exportEntities(selectedCusts);
-
-            var em2 = newEm();
+            
+            var em2 = new EntityManager(); // virginal
             em2.importEntities(exportData);
 
             var entitiesInCache = em2.getEntities();
@@ -217,13 +229,13 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     *********************************************************/
     test("temporary keys change after importing", 2, function () {
         var em1 = newEm();
-        var newCust1a = testData.createCustomer(em1);
-        em1.addEntity(newCust1a);
+        var newCust1a = em1.createEntity("Customer", {CompanyName: "Foo"});
 
-        var em2 = newEm();
         var exportData = em1.exportEntities([newCust1a]);
 
+        var em2 = new EntityManager(); // virginal
         em2.importEntities(exportData);
+        
         var newCust1b = em2.getChanges()[0];
 
         equal(newCust1a.CompanyName(), newCust1b.CompanyName(),
@@ -239,36 +251,33 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     *********************************************************/
     test("can safely merge and preserve pending changes", 2,
         function () {
+        // both manager's prepared w/ existing metadata
         var em1 = newEm();
-        var customerType = em1.metadataStore
-            .getEntityType("Customer");
-
-        var cust1 = customerType.createEntity();
-        var cust1Id = breeze.core.getUuid();
-        cust1.CustomerID(cust1Id);
-        cust1.CompanyName("Foo");
-        em1.attachEntity(cust1);
-
-        var exportData = em1.exportEntities();
-
-        // As if em2 queried for same customer
         var em2 = newEm();
-        var cust1b = customerType.createEntity();
-        cust1b.CustomerID(cust1Id);
-        cust1b.CompanyName("Foo");
-        em2.attachEntity(cust1b);
+
+        var cust1Id = breeze.core.getUuid();
+        var cust1a = em1.createEntity("Customer", {
+            CustomerID: cust1Id,
+            CompanyName: "Foo"
+        }, EntityState.Unchanged);
+
+        // As if em2 queried for same customer           
+        var cust1b = em2.createEntity("Customer", {
+            CustomerID: cust1Id,
+            CompanyName: "Foo"
+        }, EntityState.Unchanged);
 
         // then the user changed it but hasn't saved.
         var changedName = "Changed name";
         cust1b.CompanyName(changedName);
 
         // Import from em1; preserves changes by default
+        var exportData = em1.exportEntities();
         em2.importEntities(exportData);
 
         ok(cust1b.entityAspect.entityState.isModified(),
             "cust1b should still be in Modified state after import");
 
-        // Fails: D#2207
         equal(cust1b.CompanyName(), changedName,
             "should retain pending cust name change, '{0}'" .format(changedName));
 
