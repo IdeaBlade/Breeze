@@ -21,7 +21,7 @@
 
 })(function () {         
     var breeze = {
-        version: "1.2.3",
+        version: "1.2.4",
     };
 
 
@@ -6688,7 +6688,7 @@ var NavigationProperty = (function () {
     proto.isNavigationProperty = true;
 
     proto.toJSON = function () {
-        return __toJson(this, ["validators"]);
+        return __toJson(this, ["validators", "foreignKeyNames", "foreignKeyNamesOnServer"]);
     };
 
     ctor.fromJSON = function (json, parentEntityType) {
@@ -9727,8 +9727,9 @@ var EntityManager = (function () {
             
         var json = JSON.parse(exportedString);
         this.metadataStore.importMetadata(json.metadataStore);
-           
-        this.dataService = json.dataService && DataService.fromJSON(json.dataService);
+        // the || clause is for backwards compat with an earlier serialization format.           
+        this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
+        
         this.saveOptions = new SaveOptions(json.saveOptions);
         this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
         this.validationOptions = new ValidationOptions(json.validationOptions);

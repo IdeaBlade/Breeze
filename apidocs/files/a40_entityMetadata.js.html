@@ -2733,7 +2733,7 @@ var NavigationProperty = (function () {
     proto.isNavigationProperty = true;
 
     proto.toJSON = function () {
-        return __toJson(this, [&quot;validators&quot;]);
+        return __toJson(this, [&quot;validators&quot;, &quot;foreignKeyNames&quot;, &quot;foreignKeyNamesOnServer&quot;]);
     };
 
     ctor.fromJSON = function (json, parentEntityType) {
