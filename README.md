@@ -4,6 +4,9 @@ Breeze is a data management library for JavaScript that makes it easy to query d
 
 When used with a databinding framework like Knockout, Breeze enables you to code in a familiar architectural pattern like MVC or MVVM and keep your view separate from your business logic.
 
+## Issues and Wiki
+The GitHub Issues and Wiki have been disabled. Please post all questions and issues to [StackOverflow tagged with breeze](http://stackoverflow.com/questions/tagged/breeze?sort=newest).
+
 ## Official releases
 
 The Breeze source is free, open-source, and available here on GitHub. If you don't need the full source code, you can download one of the official releases.
