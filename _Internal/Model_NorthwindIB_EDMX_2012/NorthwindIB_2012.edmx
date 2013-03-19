@@ -1010,7 +1010,7 @@
           <Property Type="Int32" Name="Id" Nullable="false" a:StoreGeneratedPattern="Identity" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="Time" Name="MaxTime" Nullable="false" Precision="7" />
           <Property Type="Time" Name="MinTime" Precision="7" />
-          <Property Type="DateTimeOffset" Name="CreationDate" Precision="7" />
+          <Property Type="DateTimeOffset" Name="CreationDate" Precision="7" Nullable="true" />
           <Property Type="DateTime" Name="ModificationDate" Precision="7" />
           <Property Type="Geometry" Name="Geometry1" />
           <Property Type="Geography" Name="Geography1" />

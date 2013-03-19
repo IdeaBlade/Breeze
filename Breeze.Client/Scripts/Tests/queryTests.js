@@ -26,6 +26,40 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("bad query test", function () {
+        var em = newEm();
+        
+        var q = EntityQuery.from("EntityThatDoesnotExist")
+            .using(em);
+        stop();
+
+        q.execute().then(function (data) {
+            ok(false, "should not get here");
+            start();
+        }).fail(function (e) {
+            ok(e.message && e.message.toLowerCase().indexOf("entitythatdoesnotexist") >= 0, e.message);
+            start();
+        }).fin(function(x) {
+            start();
+        });
+    });
+    
+    test("bad query test 2", function () {
+        var em = newEm();
+
+        var q = EntityQuery.from("EntityThatDoesnotExist")
+            .using(em);
+        stop();
+
+        q.execute()
+            .then(function () { })
+            .fail(function () { })
+            .fin(function (x) {
+                ok(true);
+                start();
+            });
+    });
+
     test("size test", function() {
         var em = newEm();
         var em2 = newEm();

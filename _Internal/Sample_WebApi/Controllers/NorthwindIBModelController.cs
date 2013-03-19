@@ -40,9 +40,12 @@ namespace Sample_WebApi.Controllers {
 
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
-      // prohibit any additions of entities of type 'UserRole'
-      if (entityInfo.Entity.GetType() == typeof(User) && entityInfo.EntityState == EntityState.Added) {
-        return false;
+      // prohibit any additions of entities of type 'Region'
+      if (entityInfo.Entity.GetType() == typeof(Region) && entityInfo.EntityState == EntityState.Added) {
+        var region = entityInfo.Entity as Region;
+        return !region.RegionDescription.ToLowerInvariant().StartsWith("error");
+        
+        
       } else {
         if ((SaveOptions.Tag as String) == "freight update") {
           var order = entityInfo.Entity as Order;

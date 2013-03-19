@@ -178,19 +178,19 @@ define(["breeze.debug"], function (breeze) {
             start();
             return;
         }
-        if (error.handled === undefined) {
-            ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);
-            start();
-            return;
-        }
         if (error.handled === true) return;
-        ok(false, "failed");
-        if (error.message) {
-            ok(false, error.message);
+        
+        if (error instanceof (Error)) {
+            if (error.message) {
+                ok(false, error.message);
+            } else {
+                ok(false, "Failed: " + error.toString());
+            }
         } else {
-            ok(false, "Failed: " + error.toString());
+            ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);
         }
         start();
+        return;
     };
 
     testFns.getDups = function(items) {

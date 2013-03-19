@@ -21,7 +21,7 @@
 
 })(function () {         
     var breeze = {
-        version: "1.2.4",
+        version: "1.2.5",
     };
 
 
@@ -10305,7 +10305,7 @@ var EntityManager = (function () {
             });
             markIsBeingSaved(entitiesToSave, false);
             // update _hasChanges after save.
-            that._hasChanges = isFullSave ? false : that._hasChangesCore();
+            that._hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : that._hasChangesCore();
             if (!that._hasChanges) {
                 that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
             }
@@ -10319,6 +10319,16 @@ var EntityManager = (function () {
         });
 
     };
+    
+    function haveSameContents(arr1, arr2) {
+        if (arr1.length != arr2.length) {
+            return false;
+        }
+        for (var i=0, c=arr1.length; i<c; i++) {
+            if (arr1[i] !== arr2[i]) return false;
+        }
+        return true;
+    }
 
     // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
     proto.findEntityGroup = function (entityType) {
@@ -10546,13 +10556,13 @@ var EntityManager = (function () {
         
         
     // backdoor the "really" check for changes.
-    proto._hasChangesCore = function (entityTypes) {
+    proto._hasChangesCore = function(entityTypes) {
         entityTypes = checkEntityTypes(this, entityTypes);
         var entityGroups = getEntityGroups(this, entityTypes);
-        return entityGroups.some(function (eg) {
+        return entityGroups.some(function(eg) {
             return eg.hasChanges();
         });
-    }
+    };
         
     /**
     Returns a array of all changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
@@ -10968,7 +10978,7 @@ var EntityManager = (function () {
                 entityGroup.entityManager._linkRelatedEntities( targetEntity);
             }
         });
-    };
+    }
 
     function promiseWithCallbacks(promise, callback, errorCallback) {
 
@@ -11418,7 +11428,7 @@ var EntityManager = (function () {
                 updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
             }
         });
-    };
+    }
 
     function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
@@ -11566,10 +11576,8 @@ var EntityManager = (function () {
             }
         });
         return result;
-    };
+    }
         
-        
-
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }

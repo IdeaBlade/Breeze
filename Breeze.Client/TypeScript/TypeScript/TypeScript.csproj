@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9D98B6F5-A58E-4C18-8947-72305B508B80}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Project1</RootNamespace>
     <AssemblyName>Project1</AssemblyName>
@@ -31,8 +31,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="breeze-tests.min.js.map">
+      <DependentUpon>breeze-tests.js</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="breeze.d.ts" />

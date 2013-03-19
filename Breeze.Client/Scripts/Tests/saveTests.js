@@ -38,7 +38,24 @@ define(["testFns"], function (testFns) {
             ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
         });
         return testFns;
-    };
+    }
+    
+    test("save data with server reject", function () {
+        var em = newEm();
+
+        var user = em.createEntity("Region");
+        
+        user.setProperty("regionDescription", "error here");
+        em.addEntity(user);
+        var hasChanges = em.hasChanges();
+        ok(hasChanges, "should have some changes");
+        em.saveChanges().then(function (sr) {
+            ok(sr.entities.length == 0, "should now have saved anything");
+            hasChanges = em.hasChanges();
+            ok(hasChanges, "should still have some changes because user should have been rejected on the server");
+            // var q2 = EntityQuery.fromEntities(order);
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("save data with server update", function() {
         var em = newEm();

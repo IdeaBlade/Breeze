@@ -7,8 +7,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using System.Data.Spatial;
-
 namespace Models.NorthwindIB.EDMX_2012
 {
     using System;
@@ -16,12 +14,6 @@ namespace Models.NorthwindIB.EDMX_2012
     
     public partial class TimeLimit
     {
-        public TimeLimit() {
-          
-          this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
-          this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
-          // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
-        }
         public int Id { get; set; }
         public System.TimeSpan MaxTime { get; set; }
         public Nullable<System.TimeSpan> MinTime { get; set; }
