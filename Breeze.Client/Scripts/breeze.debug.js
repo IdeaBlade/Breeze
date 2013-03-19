@@ -12366,7 +12366,7 @@ breeze.MergeStrategy = MergeStrategy;
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 
-                var metadata = JSON.parse(data);
+                var metadata = typeof data === "string" ? JSON.parse(data) : data;
                 if (!metadata) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
