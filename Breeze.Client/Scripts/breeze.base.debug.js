@@ -4021,8 +4021,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (!entityAspect.entityState.isDeleted()) {
                     var inverseKeyProps = property.entityType.keyProperties;
                     inverseKeyProps.forEach(function(keyProp, i ) {
-                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
-                        that.setProperty(property.relatedDataProperties[i].name, relatedValue);
+                        var relatedDataProp = property.relatedDataProperties[i];
+                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
+                        that.setProperty(relatedDataProp.name, relatedValue);
                     });
                 }
             }
@@ -4141,7 +4142,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 /**
 @module breeze
 **/
-    
 
 var Q = __requireLib("Q", "See https://github.com/kriskowal/q ");
 
@@ -4418,15 +4418,25 @@ var MetadataStore = (function () {
     @param dataService {DataService} The DataService to add
     **/
         
-    proto.addDataService = function(dataService) {
+    proto.addDataService = function(dataService, shouldOverwrite) {
         assertParam(dataService, "dataService").isInstanceOf(DataService).check();
-        var alreadyExists = this.dataServices.some(function(ds) {
-            return dataService.serviceName === ds.serviceName;
-        });
-        if (alreadyExists) {
-            throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+        assertParam(shouldOverwrite, "shouldOverwrite").isBoolean().isOptional().check();
+        var ix = this._getDataServiceIndex(dataService.serviceName);
+        if (ix >= 0) {
+            if (!!shouldOverwrite) {
+                this.dataServices[ix] = dataService;
+            } else {
+                throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+            }
+        } else {
+            this.dataServices.push(dataService);
         }
-        this.dataServices.push(dataService);
+    };
+
+    proto._getDataServiceIndex = function (serviceName) {
+        return __arrayIndexOf(this.dataServices, function(ds) {
+            return ds.serviceName === serviceName;
+        });
     };
 
     /**
@@ -4452,6 +4462,7 @@ var MetadataStore = (function () {
                 structuralType._mappedPropertiesCount++;
             }
         });
+        checkTypeRegistry(this, structuralType);
 
     };
         
@@ -4478,15 +4489,24 @@ var MetadataStore = (function () {
     @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
     **/
     proto.exportMetadata = function () {
-        var result = JSON.stringify(this, function (key, value) {
-            if (key === "metadataStore") return null;
-            if (key === "adapterInstance") return null;
-            if (key === "namingConvention" || key === "localQueryComparisonOptions") {
-                return value.name;
-            }
-            return value;
+        var result = JSON.stringify({
+            "namingConvention": this.namingConvention.name,
+            "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
+            "dataServices": this.dataServices,
+            "structuralTypeMap": this._structuralTypeMap,
+            "resourceEntityTypeMap": this._resourceEntityTypeMap,
+            "incompleteTypeMap": this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
+        //var result = JSON.stringify(this, function (key, value) {
+        //    if (key === "metadataStore") return null;
+        //    if (key === "adapterInstance") return null;
+        //    if (key === "namingConvention" || key === "localQueryComparisonOptions") {
+        //        return value.name;
+        //    }
+        //    return value;
+        //}, __config.stringifyPad);
+        //return result;
     };
 
     /**
@@ -4508,8 +4528,7 @@ var MetadataStore = (function () {
         var json = JSON.parse(exportedString);
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
-        delete json.namingConvention;
-        delete json.localQueryComparisonOptions;
+
         if (this.isEmpty()) {
             this.namingConvention = __config._fetchObject(NamingConvention, ncName);
             this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName);
@@ -4521,19 +4540,22 @@ var MetadataStore = (function () {
                 throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
             }
         }
-        var structuralTypeMap = {};
+        
         var that = this;
-        __objectForEach(json._structuralTypeMap, function (key, value) {
-            structuralTypeMap[key] = that._structuralTypeFromJson(value);
-            checkTypeRegistry(that, structuralTypeMap[key]);
+        
+        json.dataServices.forEach(function (ds) {
+            ds = DataService.fromJSON(ds);
+            that.addDataService(ds, true);
         });
-        // TODO: don't think that this next line is needed
-        json._structuralTypeMap = structuralTypeMap;
-        __extend(this, json);
+        var structuralTypeMap = this._structuralTypeMap;
+        __objectForEach(json.structuralTypeMap, function (key, value) {
+            structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        });
+        __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
+        __extend(this._incompleteTypeMap, json.incompleteTypeMap);
+       
         return this;
-    };
-        
-        
+    };       
 
     /**
     Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -4852,32 +4874,7 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    proto._structuralTypeFromJson = function(json) {
-        var stype = this.getEntityType(json.name, true);
-        if (stype) return stype;
-        var config = {
-            shortName: json.shortName,
-            namespace: json.namespace
-        };
-        var isEntityType = !!json.navigationProperties;
-        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
-
-        json.validators = json.validators.map(Validator.fromJSON);
-
-        json.dataProperties = json.dataProperties.map(function(dp) {
-            return DataProperty.fromJSON(dp, stype);
-        });
-
-        if (isEntityType) {
-            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
-            json.navigationProperties = json.navigationProperties.map(function(np) {
-                return NavigationProperty.fromJSON(np, stype);
-            });
-        }
-        stype = __extend(stype, json);
-        this.addEntityType(stype);
-        return stype;
-    };
+    
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -4919,14 +4916,12 @@ var MetadataStore = (function () {
             if (schema.complexType) {
                 toArray(schema.complexType).forEach(function (ct) {
                     var complexType = convertFromODataComplexType(ct, schema, that);
-                    checkTypeRegistry(that, complexType);
                 });
             }
             if (schema.entityType) {
                 toArray(schema.entityType).forEach(function (et) {
                     var entityType = convertFromODataEntityType(et, schema, that);
                     entityType.defaultResourceName = entityTypeDefaultResourceNameMap[entityType.name];
-                    checkTypeRegistry(that, entityType);
                 });
             }
 
@@ -4936,6 +4931,33 @@ var MetadataStore = (function () {
             throw new Error("Bad nav properties");
         }
     };
+    
+    function structuralTypeFromJson(metadataStore, json) {
+        var stype = metadataStore.getEntityType(json.name, true);
+        if (stype) return stype;
+        var config = {
+            shortName: json.shortName,
+            namespace: json.namespace
+        };
+        var isEntityType = !!json.navigationProperties;
+        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
+
+        json.validators = json.validators.map(Validator.fromJSON);
+
+        json.dataProperties = json.dataProperties.map(function (dp) {
+            return DataProperty.fromJSON(dp, stype);
+        });
+
+        if (isEntityType) {
+            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
+            json.navigationProperties = json.navigationProperties.map(function (np) {
+                return NavigationProperty.fromJSON(np, stype);
+            });
+        }
+        stype = __extend(stype, json);
+        metadataStore.addEntityType(stype);
+        return stype;
+    };
         
     function checkTypeRegistry(metadataStore, structuralType) {
         // check if this structural type's name, short version or qualified version has a registered ctor.
@@ -4944,7 +4966,8 @@ var MetadataStore = (function () {
             // next line is in case the entityType was originally registered with a shortname.
             typeCtor.prototype._$typeName = structuralType.name;
             structuralType._setCtor(typeCtor);
-            metadataStore._structuralTypeMap[structuralType.name] = structuralType;
+            //  not needed - should already have been done
+            // metadataStore._structuralTypeMap[structuralType.name] = structuralType;
         }
     }
 

@@ -665,7 +665,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.saveChanges().then(function(saveResult) {
             zzz.cust1.entityAspect.setDeleted();
-            var order1custid = zzz.order1.getProperty("customerId");
+            var order1custid = zzz.order1.getProperty("customerID");
             ok(order1custid == null, "cust id should have been null'd");
             return em.saveChanges();
         }).then(function(sr) {

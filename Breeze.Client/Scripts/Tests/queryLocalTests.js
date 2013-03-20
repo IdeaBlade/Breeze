@@ -29,7 +29,7 @@ define(["testFns"], function (testFns) {
     test("query property inference error", function () {
         var em = newEm();
         var q1 = EntityQuery.from("Orders")
-            .where("orderID", "==", "20140000")
+            .where("orderID", "==", "20140000");
         var r1 = em.executeQueryLocally(q1);
         ok(r1.length == 0);
 
