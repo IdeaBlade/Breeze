@@ -159,8 +159,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (!entityAspect.entityState.isDeleted()) {
                     var inverseKeyProps = property.entityType.keyProperties;
                     inverseKeyProps.forEach(function(keyProp, i ) {
-                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
-                        that.setProperty(property.relatedDataProperties[i].name, relatedValue);
+                        var relatedDataProp = property.relatedDataProperties[i];
+                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
+                        that.setProperty(relatedDataProp.name, relatedValue);
                     });
                 }
             }
