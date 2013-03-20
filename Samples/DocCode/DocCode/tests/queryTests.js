@@ -84,7 +84,55 @@ define(["testFns"], function (testFns) {
         );
     });
 
+    /*********************************************************
+    * Custom timeout cancels 'all customers' query
+    * The server may or maynot complete the query but the
+    * query has timedout from the client perspective.
+    *********************************************************/
+    test("custom timeout cancels 'all customers' query", 1,
+        function () {
+            var timeoutMs = 0; // ridiculously short ... should time out
+            allCustomerTimeoutQuery(timeoutMs, true);
+    });
+    /*********************************************************
+   * 'all customers' query completes before custom timeout
+   *********************************************************/
+    test("'all customers' query completes before custom timeout", 1,
+        function () {
+            var timeoutMs = 100000; // ridiculously long ... should succeed
+            allCustomerTimeoutQuery(timeoutMs, false);
+    });
+    function allCustomerTimeoutQuery (timeoutMs, shouldTimeout) {
 
+        var expectTimeoutMsg = shouldTimeout ?
+            " when should timeout." : " when should not timeout.";
+        
+        var em = newEm();
+        var query = new EntityQuery().from("Customers").using(em); 
+
+        stop(); // going async ... tell testrunner to wait
+
+        Q.timeout(query.execute, timeoutMs)
+            .then(queryFinishedBeforeTimeout)
+            .fail(queryTimedout)
+            .fin(start);
+        
+        function queryFinishedBeforeTimeout() {
+            ok(!shouldTimeout, "Query succeeded" + expectTimeoutMsg);
+        }
+
+        function queryTimedout(error) {
+            var expect = /timed out/i;
+            var emsg = error.message;
+            if (expect.test(emsg)) {
+                ok(shouldTimeout, 
+                    ("Query timed out w/ message '{0}' " + expectTimeoutMsg)
+                    .format(emsg));
+            } else {
+                handleFail(error);
+            }
+        }
+    }
     /*** Single condition filtering ***/
 
     /*********************************************************
