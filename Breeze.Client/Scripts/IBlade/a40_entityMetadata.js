@@ -261,12 +261,11 @@ var MetadataStore = (function () {
             .applyAll(this);
         this.dataServices = []; // array of dataServices;
         this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
-        this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
         this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
-        this._shortNameMap = {}; // key is shortName, value is qualified name
-        this._id = __id++;
-        this._typeRegistry = {};
+        this._shortNameMap = {}; // key is shortName, value is qualified name - does not need to be serialized.
+        this._ctorRegistry = {}; // key is either short or qual type name - value is ctor;
         this._incompleteTypeMap = {}; // key is entityTypeName; value is map where key is assocName and value is navProp
+        this._id = __id++;
     };
     var proto = ctor.prototype;
     proto._$typeName = "MetadataStore";
@@ -305,14 +304,6 @@ var MetadataStore = (function () {
         if (!structuralType.isAnonymous) {
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
-                
-            // in case resourceName was registered before this point
-            if (structuralType instanceof EntityType) {
-                var resourceName = this._entityTypeResourceMap[structuralType.name];
-                if (resourceName) {
-                    structuralType.defaultResourceName = resourceName;
-                }
-            }
         }
         structuralType._fixup();
                                   
@@ -582,7 +573,7 @@ var MetadataStore = (function () {
             typeName = structuralTypeName;
         }
         aCtor.prototype._$typeName = typeName;
-        this._typeRegistry[typeName] = aCtor;
+        this._ctorRegistry[typeName] = aCtor;
         if (initializationFn) {
             aCtor._$initializationFn = initializationFn;
         }
@@ -687,7 +678,6 @@ var MetadataStore = (function () {
     **/
     proto.getEntityTypeNameForResourceName = function (resourceName) {
         assertParam(resourceName, "resourceName").isString().check();
-        // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
         return this._resourceEntityTypeMap[resourceName];
     };
 
@@ -705,7 +695,7 @@ var MetadataStore = (function () {
     proto.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
         assertParam(resourceName, "resourceName").isString().check();
         assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
-        // resourceName = resourceName.toLowerCase();
+        
         var entityTypeName;
         if (entityTypeOrName instanceof EntityType) {
             entityTypeName = entityTypeOrName.name;
@@ -714,10 +704,9 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        this._entityTypeResourceMap[entityTypeName] = resourceName;
         var entityType = this.getEntityType(entityTypeName, true);
-        if (entityType) {
-            entityType.defaultResourceName = entityType.defaultResourceName || resourceName;
+        if (entityType && !entityType.defaultResourceName) {
+            entityType.defaultResourceName = resourceName;
         }
     };
 
@@ -775,11 +764,13 @@ var MetadataStore = (function () {
                 });
                 schema.cSpaceOSpaceMapping = newMap;
             }
+            var entityTypeDefaultResourceNameMap = {};
             if (schema.entityContainer) {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
                         that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
                     });
                 });
             }
@@ -794,8 +785,8 @@ var MetadataStore = (function () {
             if (schema.entityType) {
                 toArray(schema.entityType).forEach(function (et) {
                     var entityType = convertFromODataEntityType(et, schema, that);
+                    entityType.defaultResourceName = entityTypeDefaultResourceNameMap[entityType.name];
                     checkTypeRegistry(that, entityType);
-                           
                 });
             }
 
@@ -808,7 +799,7 @@ var MetadataStore = (function () {
         
     function checkTypeRegistry(metadataStore, structuralType) {
         // check if this structural type's name, short version or qualified version has a registered ctor.
-        var typeCtor = metadataStore._typeRegistry[structuralType.name] || metadataStore._typeRegistry[structuralType.shortName];
+        var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
         if (typeCtor) {
             // next line is in case the entityType was originally registered with a shortname.
             typeCtor.prototype._$typeName = structuralType.name;
@@ -1516,8 +1507,8 @@ var EntityType = (function () {
     **/
     proto.getEntityCtor = function () {
         if (this._ctor) return this._ctor;
-        var typeRegistry = this.metadataStore._typeRegistry;
-        var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
+        var ctorRegistry = this.metadataStore._ctorRegistry;
+        var aCtor = ctorRegistry[this.name] || ctorRegistry[this.shortName];
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             if (createCtor) {

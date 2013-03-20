@@ -22,6 +22,8 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
+using System.Net.Http;
+using System.Net.Http.Headers;
 #endif
 
 namespace Sample_WebApi.Controllers {
@@ -81,6 +83,13 @@ namespace Sample_WebApi.Controllers {
     public String Metadata() {
       return ContextProvider.Metadata();
     }
+
+    //[HttpGet]
+    //public HttpResponseMessage Metadata() {
+    //  var result = new HttpResponseMessage { Content = new StringContent( ContextProvider.Metadata()) };
+    //  result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    //  return result;
+    //}
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {

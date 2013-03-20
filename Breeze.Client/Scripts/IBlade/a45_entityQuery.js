@@ -24,7 +24,7 @@ var EntityQuery = (function () {
     **/
     var ctor = function (resourceName) {
         assertParam(resourceName, "resourceName").isOptional().isString().check();
-        this.resourceName = normalizeResourceName(resourceName);
+        this.resourceName = resourceName;
         this.entityType = null;
         this.wherePredicate = null;
         this.orderByClause = null;
@@ -115,7 +115,6 @@ var EntityQuery = (function () {
     proto.from = function (resourceName) {
         // TODO: think about allowing entityType as well 
         assertParam(resourceName, "resourceName").isString().check();
-        resourceName = normalizeResourceName(resourceName);
         var currentName = this.resourceName;
         if (currentName && currentName !== resourceName) {
             throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
@@ -873,14 +872,6 @@ var EntityQuery = (function () {
 
     // private functions
         
-    function normalizeResourceName(resourceName) {
-        return resourceName;
-//            if (resourceName) {
-//                return resourceName.toLowerCase();
-//            } else {
-//                return undefined;
-//            }
-    }
         
     function normalizePropertyPaths(propertyPaths) {
         assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
