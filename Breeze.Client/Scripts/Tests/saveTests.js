@@ -665,15 +665,19 @@ define(["testFns"], function (testFns) {
         stop();
         em.saveChanges().then(function(saveResult) {
             zzz.cust1.entityAspect.setDeleted();
-            em.saveChanges().then(function(sr) {
-                ok(false, "shouldn't get here");
-                start();
-            }).fail(function(error) {
-                ok(em.hasChanges());
-                ok(error instanceof Error, "should be an error");
-                ok(error.message.indexOf("FOREIGN KEY") >= 0, "message should contain 'FOREIGN KEY'");
-                start();
-            });
+            var order1custid = zzz.order1.getProperty("customerId");
+            ok(order1custid == null, "cust id should have been null'd");
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(true, "saved ok - children null'd");
+            start();
+        // this can occur if we have a foreign key constraint on customer.orders            
+        //}).fail(function (error) {
+            //ok(em.hasChanges());
+            //ok(error instanceof Error, "should be an error");
+            //ok(error.message.indexOf("FOREIGN KEY") >= 0, "message should contain 'FOREIGN KEY'");
+            //start();
+        //});
         }).fail(testFns.handleFail);
     });
     
