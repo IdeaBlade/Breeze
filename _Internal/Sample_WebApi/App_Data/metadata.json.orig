@@ -17,6 +17,7 @@
             "dataProperties": [
                 {
                     "name": "address",
+                    "nameOnServer": "Address",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -32,6 +33,7 @@
                 },
                 {
                     "name": "city",
+                    "nameOnServer": "City",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -47,6 +49,7 @@
                 },
                 {
                     "name": "region",
+                    "nameOnServer": "Region",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -62,6 +65,7 @@
                 },
                 {
                     "name": "postalCode",
+                    "nameOnServer": "PostalCode",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -77,6 +81,7 @@
                 },
                 {
                     "name": "country",
+                    "nameOnServer": "Country",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -100,6 +105,7 @@
             "dataProperties": [
                 {
                     "name": "categoryID",
+                    "nameOnServer": "CategoryID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
@@ -116,6 +122,7 @@
                 },
                 {
                     "name": "categoryName",
+                    "nameOnServer": "CategoryName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
@@ -134,6 +141,7 @@
                 },
                 {
                     "name": "description",
+                    "nameOnServer": "Description",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -148,6 +156,7 @@
                 },
                 {
                     "name": "picture",
+                    "nameOnServer": "Picture",
                     "dataType": "Binary",
                     "isNullable": true,
                     "defaultValue": null,
@@ -162,6 +171,7 @@
                 },
                 {
                     "name": "rowVersion",
+                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
@@ -194,6 +204,7 @@
             "defaultResourceName": "Customers",
             "dataProperties": [
                 {
+                    "name": "customerID",
                     "nameOnServer": "CustomerID",
                     "dataType": "Guid",
                     "isNullable": false,
@@ -210,6 +221,7 @@
                     ]
                 },
                 {
+                    "name": "customerID_OLD",
                     "nameOnServer": "CustomerID_OLD",
                     "dataType": "String",
                     "isNullable": true,
@@ -225,6 +237,7 @@
                     ]
                 },
                 {
+                    "name": "companyName",
                     "nameOnServer": "CompanyName",
                     "dataType": "String",
                     "isNullable": false,
@@ -243,6 +256,7 @@
                     ]
                 },
                 {
+                    "name": "contactName",
                     "nameOnServer": "ContactName",
                     "dataType": "String",
                     "isNullable": true,
@@ -258,6 +272,7 @@
                     ]
                 },
                 {
+                    "name": "contactTitle",
                     "nameOnServer": "ContactTitle",
                     "dataType": "String",
                     "isNullable": true,
@@ -273,6 +288,7 @@
                     ]
                 },
                 {
+                    "name": "address",
                     "nameOnServer": "Address",
                     "dataType": "String",
                     "isNullable": true,
@@ -288,6 +304,7 @@
                     ]
                 },
                 {
+                    "name": "city",
                     "nameOnServer": "City",
                     "dataType": "String",
                     "isNullable": true,
@@ -303,6 +320,7 @@
                     ]
                 },
                 {
+                    "name": "region",
                     "nameOnServer": "Region",
                     "dataType": "String",
                     "isNullable": true,
@@ -318,6 +336,7 @@
                     ]
                 },
                 {
+                    "name": "postalCode",
                     "nameOnServer": "PostalCode",
                     "dataType": "String",
                     "isNullable": true,
@@ -333,6 +352,7 @@
                     ]
                 },
                 {
+                    "name": "country",
                     "nameOnServer": "Country",
                     "dataType": "String",
                     "isNullable": true,
@@ -348,6 +368,7 @@
                     ]
                 },
                 {
+                    "name": "phone",
                     "nameOnServer": "Phone",
                     "dataType": "String",
                     "isNullable": true,
@@ -363,6 +384,7 @@
                     ]
                 },
                 {
+                    "name": "fax",
                     "nameOnServer": "Fax",
                     "dataType": "String",
                     "isNullable": true,
@@ -378,6 +400,7 @@
                     ]
                 },
                 {
+                    "name": "rowVersion",
                     "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": true,
@@ -394,6 +417,7 @@
             ],
             "navigationProperties": [
                 {
+                    "name": "orders",
                     "nameOnServer": "Orders",
                     "entityTypeName": "Order:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
@@ -409,6 +433,7 @@
             "dataProperties": [
                 {
                     "name": "employeeID",
+                    "nameOnServer": "EmployeeID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
@@ -425,6 +450,7 @@
                 },
                 {
                     "name": "lastName",
+                    "nameOnServer": "LastName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
@@ -443,6 +469,7 @@
                 },
                 {
                     "name": "firstName",
+                    "nameOnServer": "FirstName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
@@ -461,6 +488,7 @@
                 },
                 {
                     "name": "title",
+                    "nameOnServer": "Title",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -476,6 +504,7 @@
                 },
                 {
                     "name": "titleOfCourtesy",
+                    "nameOnServer": "TitleOfCourtesy",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -491,6 +520,7 @@
                 },
                 {
                     "name": "birthDate",
+                    "nameOnServer": "BirthDate",
                     "dataType": "DateTime",
                     "isNullable": true,
                     "defaultValue": null,
@@ -504,6 +534,7 @@
                 },
                 {
                     "name": "hireDate",
+                    "nameOnServer": "HireDate",
                     "dataType": "DateTime",
                     "isNullable": true,
                     "defaultValue": null,
@@ -517,6 +548,7 @@
                 },
                 {
                     "name": "address",
+                    "nameOnServer": "Address",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -532,6 +564,7 @@
                 },
                 {
                     "name": "city",
+                    "nameOnServer": "City",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -547,6 +580,7 @@
                 },
                 {
                     "name": "region",
+                    "nameOnServer": "Region",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -562,6 +596,7 @@
                 },
                 {
                     "name": "postalCode",
+                    "nameOnServer": "PostalCode",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -577,6 +612,7 @@
                 },
                 {
                     "name": "country",
+                    "nameOnServer": "Country",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -592,6 +628,7 @@
                 },
                 {
                     "name": "homePhone",
+                    "nameOnServer": "HomePhone",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -607,6 +644,7 @@
                 },
                 {
                     "name": "extension",
+                    "nameOnServer": "Extension",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -622,6 +660,7 @@
                 },
                 {
                     "name": "photo",
+                    "nameOnServer": "Photo",
                     "dataType": "Binary",
                     "isNullable": true,
                     "defaultValue": null,
@@ -636,6 +675,7 @@
                 },
                 {
                     "name": "notes",
+                    "nameOnServer": "Notes",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -650,6 +690,7 @@
                 },
                 {
                     "name": "photoPath",
+                    "nameOnServer": "PhotoPath",
                     "dataType": "String",
                     "isNullable": true,
                     "defaultValue": null,
@@ -665,6 +706,7 @@
                 },
                 {
                     "name": "reportsToEmployeeID",
+                    "nameOnServer": "ReportsToEmployeeID",
                     "dataType": "Int32",
                     "isNullable": true,
                     "defaultValue": null,
@@ -678,6 +720,7 @@
                 },
                 {
                     "name": "rowVersion",
+                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
@@ -696,12 +739,14 @@
             "navigationProperties": [
                 {
                     "name": "directReports",
+                    "nameOnServer": "DirectReports",
                     "entityTypeName": "Employee:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Employee_Employee"
                 },
                 {
                     "name": "manager",
+                    "nameOnServer": "Manager",
                     "entityTypeName": "Employee:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Employee_Employee",
@@ -714,18 +759,21 @@
                 },
                 {
                     "name": "employeeTerritories",
+                    "nameOnServer": "EmployeeTerritories",
                     "entityTypeName": "EmployeeTerritory:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_EmployeeTerritory_Employee"
                 },
                 {
                     "name": "orders",
+                    "nameOnServer": "Orders",
                     "entityTypeName": "Order:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Order_Employee"
                 },
                 {
                     "name": "territories",
+                    "nameOnServer": "Territories",
                     "entityTypeName": "Territory:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "EmployeeTerritoryNoPayload"

@@ -298,6 +298,7 @@
       <Link>Scripts\ThirdParty\underscore.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="App_Data\metadata.json.orig" />
     <None Include="App_Data\metadata.json" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
