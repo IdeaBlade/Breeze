@@ -341,17 +341,6 @@ var EntityManager = (function () {
         return this;
     };
 
-    // Similar logic - but more performant is performed inside of importEntityGroup.
-    //function dateReviver(key, value) {
-    //    var a;
-    //    if (typeof value === 'string') {
-    //        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
-    //        if (a) {
-    //            return new Date(Date.parse(value));
-    //        }
-    //    }
-    //    return value;
-    //};
         
     /**
     Clears this EntityManager's cache but keeps all other settings. Note that this 

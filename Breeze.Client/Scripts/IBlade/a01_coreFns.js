@@ -75,26 +75,23 @@ function __extend(target, source) {
     return target;
 }
 
-function __toJson(source, addlPropNames) {
+function __toJson(source, propNames) {
     var target = {};
-    for (var name in source) {
-        if (__hasOwnProperty.call(source, name) && name.substr(0, 1) != "_") {
-            var value = source[name];
-            if (__isFunction(value)) continue;
-            if (typeof(value) === "object") {
-                if (value && value.parentEnum) {
-                    target[name] = value.name;
-                }
-            } else {
-                target[name] = value;
+    
+    propNames && propNames.forEach(function (propName) {
+        if (!(propName in source)) return;
+        var value = source[propName];
+        if (Array.isArray(value) && value.length === 0) return;
+        if (typeof(value) === "object") {
+            if (value && value.parentEnum) {
+                value = value.name;
             }
         }
-    }
-    addlPropNames && addlPropNames.forEach(function(n) {
-        target[n] = source[n];
+        target[propName] = value;
     });
     return target;
 }
+
 
 // array functions
 

@@ -147,7 +147,7 @@ var QueryOptions = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this);
+        return __toJson(this, ["fetchStrategy", "mergeStrategy"]);
     };
 
     ctor.fromJSON = function (json) {
