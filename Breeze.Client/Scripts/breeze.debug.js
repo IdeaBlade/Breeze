@@ -4456,12 +4456,12 @@ var MetadataStore = (function () {
         var newMetadataStore = new MetadataStore();
         newMetadataStore.importMetadata(metadataFromStorage);
     @method importMetadata
-    @param exportedString {String} A previously exported MetadataStore.
+    @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
     @return {MetadataStore} This MetadataStore.
     @chainable
     **/
-    proto.importMetadata = function (exportedString) {
-        var json = JSON.parse(exportedString);
+    proto.importMetadata = function (exportedMetadata) {
+        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.serializationVersion && json.serializationVersion !== breeze.serializationVersion) {
             var msg = __formatString("Cannot import metadata with a different 'serializationVersion' (%1) than the current 'breeze.serializationVersion' (%2) ",
                 json.serializationVersion, breeze.serializationVersion);
@@ -4471,13 +4471,13 @@ var MetadataStore = (function () {
         var lqcoName = json.localQueryComparisonOptions;
 
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName);
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName);
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
-            if (this.namingConvention.name !== ncName) {
+            if (ncName && this.namingConvention.name !== ncName) {
                 throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
             }
-            if (this.localQueryComparisonOptions.name !== lqcoName) {
+            if (lqcoName && this.localQueryComparisonOptions.name !== lqcoName) {
                 throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
             }
         }
@@ -12346,7 +12346,11 @@ breeze.MergeStrategy = MergeStrategy;
                     return;
                 }
 
-                metadataStore.addDataService(dataService);
+                // import may have brought in the service.
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore.addDataService(dataService);
+                }
+                
                 if (callback) {
                     callback(metadata);
                 }

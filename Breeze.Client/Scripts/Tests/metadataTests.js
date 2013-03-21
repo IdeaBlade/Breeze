@@ -47,7 +47,7 @@ define(["testFns"], function (testFns) {
         stop();
         var dataServiceAdapter = core.config.getAdapterInstance("dataService");
         var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
-        dataServiceAdapter.fetchMetadata(store, dataService, function () {
+        dataServiceAdapter.fetchMetadata(store, dataService).then(function() {
 
             var typeMap = store._structuralTypeMap;
             var types = objectValues(typeMap);
@@ -66,7 +66,7 @@ define(["testFns"], function (testFns) {
             ok(!notProp);
             equal(prop.name, keys[0].name);
             start();
-        });
+        }).fail(testFns.handleFail);
     });
 
     test("initialize only once", function() {

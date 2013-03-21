@@ -74,7 +74,11 @@
                     return;
                 }
 
-                metadataStore.addDataService(dataService);
+                // import may have brought in the service.
+                if (!metadataStore.hasMetadataFor(serviceName)) {
+                    metadataStore.addDataService(dataService);
+                }
+                
                 if (callback) {
                     callback(metadata);
                 }

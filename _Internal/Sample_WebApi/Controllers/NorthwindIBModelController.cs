@@ -24,6 +24,8 @@ using Models.NorthwindIB.EDMX;
 using Models.NorthwindIB.EDMX_2012;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.IO;
+using System.Web;
 #endif
 
 namespace Sample_WebApi.Controllers {
@@ -78,16 +80,25 @@ namespace Sample_WebApi.Controllers {
 
     NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
+    [HttpGet]
+    public HttpResponseMessage Metadata() {
+      var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
+      var fileName = Path.Combine(folder, "metadata.json");
+      var jsonMetadata = File.ReadAllText(fileName);
+      var result = new HttpResponseMessage { Content = new StringContent(jsonMetadata) };
+      result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+      return result;
+    }
 
     //[HttpGet]
     //public String Metadata() {
     //  return ContextProvider.Metadata();
     //}
 
-    [HttpGet]
-    public HttpResponseMessage Metadata() {
-      return ContextProvider.MetadataAsJson();
-    }
+    //[HttpGet]
+    //public HttpResponseMessage Metadata() {
+    //  return ContextProvider.MetadataAsJson();
+    //}
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
