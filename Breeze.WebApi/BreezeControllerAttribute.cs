@@ -16,6 +16,9 @@ namespace Breeze.WebApi {
   /// adds the Breeze formatter for JSON content.
   /// Removes the competing ASP.NET Web API's QueryFilterProvider if present. 
   /// Adds <see cref="BreezeQueryableFilterProvider"/> for OData query processing
+  /// Adds <see cref="MetadataFilterProvider"/> returning a Metadata action filter
+  /// which (by default) converts a Metadata string response to
+  /// an HTTP response with string content.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
   public class BreezeControllerAttribute : Attribute, IControllerConfiguration {
@@ -32,7 +35,8 @@ namespace Breeze.WebApi {
         settings.Services.RemoveAll(typeof(IFilterProvider),
                                     f => (f.GetType().Name == "QueryFilterProvider")
                                          || (f is BreezeQueryableFilterProvider));
-        settings.Services.Add(typeof(IFilterProvider), GetFilterProvider(_filter));
+        settings.Services.Add(typeof(IFilterProvider), GetQueryableFilterProvider(_queryableFilter));
+        settings.Services.Add(typeof(IFilterProvider), GetMetadataFilterProvider(_metadataFilter));
 
         // remove all formatters and add only the Breeze JsonFormatter
         settings.Formatters.Clear();
@@ -52,8 +56,8 @@ namespace Breeze.WebApi {
     /// a stable sort order should set this value to <c>false</c>.
     /// The default value is <c>true</c>.</value>
     public bool EnsureStableOrdering {
-      get { return _filter.EnsureStableOrdering; }
-      set { _filter.EnsureStableOrdering = value; }
+      get { return _queryableFilter.EnsureStableOrdering; }
+      set { _queryableFilter.EnsureStableOrdering = value; }
     }
 
     /// <summary>
@@ -64,8 +68,8 @@ namespace Breeze.WebApi {
     /// The default is <see cref="HandleNullPropagationOption.Default"/>.
     /// </value>
     public HandleNullPropagationOption HandleNullPropagation {
-      get { return _filter.HandleNullPropagation; }
-      set { _filter.HandleNullPropagation = value; }
+      get { return _queryableFilter.HandleNullPropagation; }
+      set { _queryableFilter.HandleNullPropagation = value; }
     }
 
     /// <summary>
@@ -78,8 +82,8 @@ namespace Breeze.WebApi {
     /// The maxiumum depth of the Any or All elements nested inside the query.
     /// </value>
     public int MaxAnyAllExpressionDepth {
-      get { return _filter.MaxAnyAllExpressionDepth; }
-      set { _filter.MaxAnyAllExpressionDepth = value; }
+      get { return _queryableFilter.MaxAnyAllExpressionDepth; }
+      set { _queryableFilter.MaxAnyAllExpressionDepth = value; }
     }
 
     /// <summary>
@@ -89,54 +93,54 @@ namespace Breeze.WebApi {
     /// The maximum number of query results to send back to clients.
     /// </value>
     public int PageSize {
-      get { return _filter.PageSize; }
-      set { _filter.PageSize = value; }
+      get { return _queryableFilter.PageSize; }
+      set { _queryableFilter.PageSize = value; }
     }
 
     public AllowedQueryOptions AllowedQueryOptions {
-      get { return _filter.AllowedQueryOptions; }
-      set { _filter.AllowedQueryOptions = value; }
+      get { return _queryableFilter.AllowedQueryOptions; }
+      set { _queryableFilter.AllowedQueryOptions = value; }
     }
 
     public AllowedFunctions AllowedFunctions {
-      get { return _filter.AllowedFunctions; }
-      set { _filter.AllowedFunctions = value; }
+      get { return _queryableFilter.AllowedFunctions; }
+      set { _queryableFilter.AllowedFunctions = value; }
     }
 
     public AllowedArithmeticOperators AllowedArithmeticOperators {
-      get { return _filter.AllowedArithmeticOperators; }
-      set { _filter.AllowedArithmeticOperators = value; }
+      get { return _queryableFilter.AllowedArithmeticOperators; }
+      set { _queryableFilter.AllowedArithmeticOperators = value; }
     }
 
     public AllowedLogicalOperators AllowedLogicalOperators {
-      get { return _filter.AllowedLogicalOperators; }
-      set { _filter.AllowedLogicalOperators = value; }
+      get { return _queryableFilter.AllowedLogicalOperators; }
+      set { _queryableFilter.AllowedLogicalOperators = value; }
     }
 
     public string AllowedOrderByProperties {
-      get { return _filter.AllowedOrderByProperties; }
-      set { _filter.AllowedOrderByProperties = value; }
+      get { return _queryableFilter.AllowedOrderByProperties; }
+      set { _queryableFilter.AllowedOrderByProperties = value; }
     }
 
     public int MaxSkip {
-      get { return _filter.MaxSkip; }
-      set { _filter.MaxSkip = value; }
+      get { return _queryableFilter.MaxSkip; }
+      set { _queryableFilter.MaxSkip = value; }
     }
 
     public int MaxTop {
-      get { return _filter.MaxTop; }
-      set { _filter.MaxTop = value; }
+      get { return _queryableFilter.MaxTop; }
+      set { _queryableFilter.MaxTop = value; }
     }
 
 
     /// <summary>
-    /// Return the <see cref="IFilterProvider"/> for a Breeze Controller
+    /// Return the IQueryable <see cref="IFilterProvider"/> for a Breeze Controller
     /// </summary>
     /// <remarks>
     /// By default returns an <see cref="BreezeQueryableFilterProvider"/>.
     /// Override to substitute a custom provider.
     /// </remarks>
-    protected virtual IFilterProvider GetFilterProvider(BreezeQueryableAttribute defaultFilter) {
+    protected virtual IFilterProvider GetQueryableFilterProvider(BreezeQueryableAttribute defaultFilter) {
       return new BreezeQueryableFilterProvider(defaultFilter);
     }
 
@@ -152,7 +156,20 @@ namespace Breeze.WebApi {
       return DefaultJsonFormatter;
     }
 
-    private BreezeQueryableAttribute _filter = new BreezeQueryableAttribute() { AllowedQueryOptions = AllowedQueryOptions.All };
+    /// <summary>
+    /// Return the Metadata <see cref="IFilterProvider"/> for a Breeze Controller
+    /// </summary>
+    /// <remarks>
+    /// By default returns an <see cref="MetadataToHttpResponseAttribute"/>.
+    /// Override to substitute a custom provider.
+    /// </remarks>
+    protected virtual IFilterProvider GetMetadataFilterProvider(MetadataToHttpResponseAttribute metadataFilter)
+    {
+        return new MetadataFilterProvider(metadataFilter);
+    }
+
+    private BreezeQueryableAttribute _queryableFilter = new BreezeQueryableAttribute() { AllowedQueryOptions = AllowedQueryOptions.All };
+    private MetadataToHttpResponseAttribute _metadataFilter = new MetadataToHttpResponseAttribute();
     private static object __lock = new object();
 
 
@@ -175,7 +192,7 @@ namespace Breeze.WebApi {
         return Enumerable.Empty<FilterInfo>();
       }
 
-      return new FilterInfo[] { new FilterInfo(_filter, FilterScope.Global) };
+      return new [] { new FilterInfo(_filter, FilterScope.Global) };
     }
 
     internal static bool IsIQueryable(Type type) {
@@ -186,6 +203,22 @@ namespace Breeze.WebApi {
       return false;
     }
 
-    private IFilter _filter;
+    private readonly BreezeQueryableAttribute _filter;
+  }
+
+  internal class MetadataFilterProvider : IFilterProvider
+  {
+
+      public MetadataFilterProvider(MetadataToHttpResponseAttribute filter)
+      {
+          _filter = filter;
+      }
+
+      public IEnumerable<FilterInfo> GetFilters(HttpConfiguration configuration, HttpActionDescriptor actionDescriptor)
+      {
+          return new [] { new FilterInfo(_filter, FilterScope.Controller) };
+      }
+
+      private readonly MetadataToHttpResponseAttribute _filter;
   }
 }

@@ -89,13 +89,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Legacy\LegacyBreezeControllerAttribute.cs" />
     <Compile Include="BreezeControllerAttribute.cs" />
+    <Compile Include="Legacy\LegacyBreezeControllerAttribute.cs" />
     <Compile Include="ContextProvider.cs" />
     <Compile Include="BreezeConfig.cs" />
     <Compile Include="BreezeQueryableAttribute.cs" />
     <Compile Include="Legacy\ODataActionFilter.cs" />
     <Compile Include="Legacy\ODataFilterGrammer.cs" />
+    <Compile Include="MetadataToHttpResponseAttribute.cs" />
     <Compile Include="QueryBuilder.cs" />
     <Compile Include="PropertySignature.cs" />
     <Compile Include="DynamicGenericTypeBuilder.cs" />
