@@ -305,9 +305,9 @@ var MetadataStore = (function () {
     @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
     **/
     proto.addEntityType = function (structuralType) {
-        if (this.getEntityType(structuralType.name, true)) {
-            var xxx = 7;
-        }
+        //if (this.getEntityType(structuralType.name, true)) {
+        //    var xxx = 7;
+        //}
         structuralType.metadataStore = this;
         // don't register anon types
         if (!structuralType.isAnonymous) {
@@ -349,6 +349,7 @@ var MetadataStore = (function () {
     **/
     proto.exportMetadata = function () {
         var result = JSON.stringify({
+            "serializationVersion": breeze.serializationVersion,
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
@@ -357,15 +358,6 @@ var MetadataStore = (function () {
             "incompleteTypeMap": this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
-        //var result = JSON.stringify(this, function (key, value) {
-        //    if (key === "metadataStore") return null;
-        //    if (key === "adapterInstance") return null;
-        //    if (key === "namingConvention" || key === "localQueryComparisonOptions") {
-        //        return value.name;
-        //    }
-        //    return value;
-        //}, __config.stringifyPad);
-        //return result;
     };
 
     /**
@@ -385,6 +377,11 @@ var MetadataStore = (function () {
     **/
     proto.importMetadata = function (exportedString) {
         var json = JSON.parse(exportedString);
+        if (json.serializationVersion && json.serializationVersion !== breeze.serializationVersion) {
+            var msg = __formatString("Cannot import metadata with a different 'serializationVersion' (%1) than the current 'breeze.serializationVersion' (%2) ",
+                json.serializationVersion, breeze.serializationVersion);
+            throw new Error(msg);
+        }
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
 

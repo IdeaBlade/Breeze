@@ -19,14 +19,13 @@
         breeze = definition();
     }
 
-})(function () {         
+})(function () {  
     var breeze = {
         version: "1.2.5",
+        serializationVersion: "1.0.1"
     };
 
-
     // legacy properties - will not be supported after 6/1/2013
-
     breeze.entityModel = breeze;
     breeze.entityTracking_backingStore = "backingStore";
     breeze.entityTracking_ko = "ko";

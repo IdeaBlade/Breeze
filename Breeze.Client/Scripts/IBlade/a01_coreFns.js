@@ -13,7 +13,6 @@ function __objectForEach(obj, kvFn) {
     }
 }
     
-    
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
         if (__hasOwnProperty.call(obj, key)) {
@@ -38,39 +37,6 @@ function __objectMapToArray(obj, kvFn) {
     }
     return results;
 }
-    
-// Not yet needed 
-
-//// transform an object's values
-//function objectMapValue(obj, kvProjection) {
-//    var value, newMap = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            value = kvProjection(key, obj[key]);
-//            if (value !== undefined) {
-//                newMap[key] = value;
-//            }
-//        }
-//    }
-//    return newMap;
-//}
-
-
-//// shrink an object's surface
-//function objectFilter(obj, kvPredicate) {
-//    var result = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            var value = obj[key];
-//            if (kvPredicate(key, value)) {
-//                result[key] = value;
-//            }
-//        }
-//    }
-//    return result;
-//};
-    
-   
 
 // Functional extensions 
 

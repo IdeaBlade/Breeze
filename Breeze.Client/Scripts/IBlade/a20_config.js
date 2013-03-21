@@ -227,19 +227,6 @@ var __config = function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    //a_config._registerNamedInstance = function (instance, nameProperty) {
-    //    a_config.registerFunction(function () { return instance; }, instance._$typeName + "." + instance[nameProperty || "name"]);
-    //};
-
-    //a_config._namedInstanceFromJson = function (type, nameProperty, json) {
-    //    var key = type.proto._$typeName + "." + json[nameProperty || "name"];
-    //    var fn = a_config.functionRegistry[key];
-    //    if (!fn) {
-    //        throw new Error("Unable to locate " + key);
-    //    }
-    //    return fn(json);
-    //};
-
     __config.stringifyPad = "  ";
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {

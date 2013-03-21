@@ -19,14 +19,13 @@
         breeze = definition();
     }
 
-})(function () {         
+})(function () {  
     var breeze = {
         version: "1.2.5",
+        serializationVersion: "1.0.1"
     };
 
-
     // legacy properties - will not be supported after 6/1/2013
-
     breeze.entityModel = breeze;
     breeze.entityTracking_backingStore = "backingStore";
     breeze.entityTracking_ko = "ko";
@@ -48,7 +47,6 @@ function __objectForEach(obj, kvFn) {
         }
     }
 }
-    
     
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
@@ -74,39 +72,6 @@ function __objectMapToArray(obj, kvFn) {
     }
     return results;
 }
-    
-// Not yet needed 
-
-//// transform an object's values
-//function objectMapValue(obj, kvProjection) {
-//    var value, newMap = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            value = kvProjection(key, obj[key]);
-//            if (value !== undefined) {
-//                newMap[key] = value;
-//            }
-//        }
-//    }
-//    return newMap;
-//}
-
-
-//// shrink an object's surface
-//function objectFilter(obj, kvPredicate) {
-//    var result = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            var value = obj[key];
-//            if (kvPredicate(key, value)) {
-//                result[key] = value;
-//            }
-//        }
-//    }
-//    return result;
-//};
-    
-   
 
 // Functional extensions 
 
@@ -1634,19 +1599,6 @@ var __config = function () {
         ctor.prototype._$typeName = typeName;
         __config.typeRegistry[typeName] = ctor;
     };
-
-    //a_config._registerNamedInstance = function (instance, nameProperty) {
-    //    a_config.registerFunction(function () { return instance; }, instance._$typeName + "." + instance[nameProperty || "name"]);
-    //};
-
-    //a_config._namedInstanceFromJson = function (type, nameProperty, json) {
-    //    var key = type.proto._$typeName + "." + json[nameProperty || "name"];
-    //    var fn = a_config.functionRegistry[key];
-    //    if (!fn) {
-    //        throw new Error("Unable to locate " + key);
-    //    }
-    //    return fn(json);
-    //};
 
     __config.stringifyPad = "  ";
 
@@ -4446,9 +4398,9 @@ var MetadataStore = (function () {
     @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
     **/
     proto.addEntityType = function (structuralType) {
-        if (this.getEntityType(structuralType.name, true)) {
-            var xxx = 7;
-        }
+        //if (this.getEntityType(structuralType.name, true)) {
+        //    var xxx = 7;
+        //}
         structuralType.metadataStore = this;
         // don't register anon types
         if (!structuralType.isAnonymous) {
@@ -4490,6 +4442,7 @@ var MetadataStore = (function () {
     **/
     proto.exportMetadata = function () {
         var result = JSON.stringify({
+            "serializationVersion": breeze.serializationVersion,
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
@@ -4498,15 +4451,6 @@ var MetadataStore = (function () {
             "incompleteTypeMap": this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
-        //var result = JSON.stringify(this, function (key, value) {
-        //    if (key === "metadataStore") return null;
-        //    if (key === "adapterInstance") return null;
-        //    if (key === "namingConvention" || key === "localQueryComparisonOptions") {
-        //        return value.name;
-        //    }
-        //    return value;
-        //}, __config.stringifyPad);
-        //return result;
     };
 
     /**
@@ -4526,6 +4470,11 @@ var MetadataStore = (function () {
     **/
     proto.importMetadata = function (exportedString) {
         var json = JSON.parse(exportedString);
+        if (json.serializationVersion && json.serializationVersion !== breeze.serializationVersion) {
+            var msg = __formatString("Cannot import metadata with a different 'serializationVersion' (%1) than the current 'breeze.serializationVersion' (%2) ",
+                json.serializationVersion, breeze.serializationVersion);
+            throw new Error(msg);
+        }
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
 
