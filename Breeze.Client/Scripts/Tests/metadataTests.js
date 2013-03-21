@@ -47,26 +47,30 @@ define(["testFns"], function (testFns) {
         stop();
         var dataServiceAdapter = core.config.getAdapterInstance("dataService");
         var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
-        dataServiceAdapter.fetchMetadata(store, dataService).then(function() {
-
-            var typeMap = store._structuralTypeMap;
-            var types = objectValues(typeMap);
-            ok(types.length > 0);
-            var custType = store.getEntityType("Customer");
-            var props = custType.dataProperties;
-            ok(props.length > 0);
-            var keys = custType.keyProperties;
-            ok(keys.length > 0);
-            var prop = custType.getProperty("CustomerID");
-            ok(prop);
-            ok(prop.isDataProperty);
-            var navProp = custType.navigationProperties[0];
-            ok(navProp.isNavigationProperty);
-            var notProp = custType.getProperty("foo");
-            ok(!notProp);
-            equal(prop.name, keys[0].name);
-            start();
-        }).fail(testFns.handleFail);
+        dataServiceAdapter.fetchMetadata(store, dataService, function() {
+            try {
+                var typeMap = store._structuralTypeMap;
+                var types = objectValues(typeMap);
+                ok(types.length > 0);
+                var custType = store.getEntityType("Customer");
+                var props = custType.dataProperties;
+                ok(props.length > 0);
+                var keys = custType.keyProperties;
+                ok(keys.length > 0);
+                var prop = custType.getProperty("CustomerID");
+                ok(prop);
+                ok(prop.isDataProperty);
+                var navProp = custType.navigationProperties[0];
+                ok(navProp.isNavigationProperty);
+                var notProp = custType.getProperty("foo");
+                ok(!notProp);
+                equal(prop.name, keys[0].name);
+                start();
+            } catch(e) {
+                ok(false, "should'nt fail except if using server side json metadata file.");
+                start();
+            }
+        }, testFns.handleFail);
     });
 
     test("initialize only once", function() {
