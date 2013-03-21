@@ -411,7 +411,7 @@ define(["testFns"], function (testFns) {
             "order's Customer is null after deleting former parent customer");
 
         var defaultValue = order.entityType.getProperty("CustomerID").defaultValue;
-        equal(order.CustomerID(), null,
+        equal(order.CustomerID(), defaultValue,
             "order's CustomerID is its default value after deleting former parent customer");
         
         equal(order.entityAspect.entityState, EntityState.Modified,
