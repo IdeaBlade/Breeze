@@ -377,9 +377,9 @@ var MetadataStore = (function () {
                 json.serializationVersion, breeze.serializationVersion);
             throw new Error(msg);
         }
+
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
-
         if (this.isEmpty()) {
             this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
             this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
@@ -394,7 +394,7 @@ var MetadataStore = (function () {
         
         var that = this;
         
-        json.dataServices.forEach(function (ds) {
+        json.dataServices && json.dataServices.forEach(function (ds) {
             ds = DataService.fromJSON(ds);
             that.addDataService(ds, true);
         });

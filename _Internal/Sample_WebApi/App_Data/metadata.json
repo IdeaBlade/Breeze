@@ -1,8 +1,8 @@
 {
-    "serializationVersion": "1.0.1",
+    "xxx_serializationVersion": "1.0.1",
     "xxx_namingConvention": "camelCase",
     "xxx_localQueryComparisonOptions": "caseInsensitiveSQL",
-    "dataServices": [
+    "xxx_dataServices": [
         {
             "serviceName": "api/NorthwindIBModel/",
             "adapterName": null,
