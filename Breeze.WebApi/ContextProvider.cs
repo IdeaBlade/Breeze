@@ -1,17 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using System.Xml.Linq;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 
 namespace Breeze.WebApi {
   // Base for EFContextProvider

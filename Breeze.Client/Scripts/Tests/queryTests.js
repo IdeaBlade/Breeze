@@ -1707,7 +1707,7 @@ define(["testFns"], function (testFns) {
             // On success, 'data' contains the model metadata.
             //                console.log(data);
             ok(data);
-            var metadata = JSON.parse(data);
+            var metadata = typeof(data) === "string" ? JSON.parse(data) : data;
             var str = JSON.stringify(metadata, undefined, 4);
             testFns.output("Metadata");
             testFns.output(str);

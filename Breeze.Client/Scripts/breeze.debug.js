@@ -12321,28 +12321,34 @@ breeze.MergeStrategy = MergeStrategy;
             url: metadataSvcUrl,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
+                // might have been fetched by another query
+                if (metadataStore.hasMetadataFor(serviceName)) {
+                    callback("already fetched");
+                    return;
+                }
+                var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
                 
-                var metadata = JSON.parse(data);
                 if (!metadata) {
                     if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
                     return;
                 }
 
-                var schema = metadata.schema; // || metadata.dataServices.schema; ... for ODataModelBuilder maybe later
-                
-                if (!schema) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to locate 'schema' member in metadata"));
+                if (metadata.structuralTypeMap) {
+                    // breeze native metadata format.
+                    metadataStore.importMetadata(metadata);
+                } else if (metadata.schema) {
+                    // OData or CSDL to JSON format
+                    metadataStore._parseODataMetadata(serviceName, metadata.schema);
+                } else {
+                    if (errorCallback) {
+                        errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to process returned metadata"));
+                    }
                     return;
                 }
-                
-                // might have been fetched by another query
-                if (!metadataStore.hasMetadataFor(serviceName)) {
-                    metadataStore._parseODataMetadata(serviceName, schema);
-                    metadataStore.addDataService(dataService);
-                }
-                
+
+                metadataStore.addDataService(dataService);
                 if (callback) {
-                    callback(schema);
+                    callback(metadata);
                 }
                 
                 XHR.onreadystatechange = null;

@@ -79,17 +79,15 @@ namespace Sample_WebApi.Controllers {
     NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
 
-    [HttpGet]
-    public String Metadata() {
-      return ContextProvider.Metadata();
-    }
-
     //[HttpGet]
-    //public HttpResponseMessage Metadata() {
-    //  var result = new HttpResponseMessage { Content = new StringContent( ContextProvider.Metadata()) };
-    //  result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-    //  return result;
+    //public String Metadata() {
+    //  return ContextProvider.Metadata();
     //}
+
+    [HttpGet]
+    public HttpResponseMessage Metadata() {
+      return ContextProvider.MetadataAsJson();
+    }
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
