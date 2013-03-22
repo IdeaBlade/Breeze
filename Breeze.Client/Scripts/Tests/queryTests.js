@@ -7,6 +7,7 @@ define(["testFns"], function (testFns) {
     
     
     var EntityQuery = breeze.EntityQuery;
+    var DataService = breeze.DataService;
     var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityKey = breeze.EntityKey;
@@ -58,6 +59,77 @@ define(["testFns"], function (testFns) {
                 ok(true);
                 start();
             });
+    });
+
+    test("query using jsonResultsAdapter", function() {
+        var em = newEm();
+        var jsonResultsAdapter = new breeze.JsonResultsAdapter({
+            name: "eventAdapter",
+            extractResults: function (json) {
+                return json.results;
+            },
+            visitNode: function (node, queryContext, nodeContext) {
+                var entityTypeName = 'OrderDetail';
+                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var propertyName = nodeContext.propertyName;
+                var ignore = propertyName && propertyName.substr(0, 1) === "$";
+                if (entityType) {
+                    node.RowVersion = 77;
+                }
+                return {
+                    entityType: entityType,
+                    nodeId: node.$id,
+                    nodeRefId: node.$ref,
+                    ignore: ignore
+                };
+            }
+        });
+        var query = EntityQuery.from("OrderDetails").take(5).using(jsonResultsAdapter);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            ok(data.results.length === 5, "should be 5 recs");
+            var rv = data.results[0].getProperty("rowVersion");
+            ok(rv === 77, "rowVersion should be 77");
+            start();
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
+    test("query using dataService with jsonResultsAdapter", function () {
+        var em = newEm();
+        
+        var jsonResultsAdapter = new breeze.JsonResultsAdapter({
+            name: "eventAdapter",
+            extractResults: function (json) {
+                return json.results;
+            },
+            visitNode: function (node, queryContext, nodeContext) {
+                var entityTypeName = 'OrderDetail';
+                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var propertyName = nodeContext.propertyName;
+                var ignore = propertyName && propertyName.substr(0, 1) === "$";
+                if (entityType) {
+                    node.RowVersion = 77;
+                }
+                return {
+                    entityType: entityType,
+                    nodeId: node.$id,
+                    nodeRefId: node.$ref,
+                    ignore: ignore
+                };
+            }
+        });
+        var oldDs = em.dataService;
+        var newDs = new DataService({ serviceName: oldDs.serviceName, jsonResultsAdapter: jsonResultsAdapter });
+        var query = EntityQuery.from("OrderDetails").take(5).using(newDs);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(data.results.length === 5, "should be 5 recs");
+            var rv = data.results[0].getProperty("rowVersion");
+            ok(rv === 77, "rowVersion should be 77");
+            start();
+        }).fail(testFns.handleFail).fin(start);
+
     });
 
     test("size test", function() {

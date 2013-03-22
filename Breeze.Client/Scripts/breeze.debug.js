@@ -11081,8 +11081,8 @@ var EntityManager = (function () {
                     return { results: results, query: query };
                 });
             }
-            // _getJsonResultsAdapter does not exist on raw OData queries
-            var jsonResultsAdapter = (query._getJsonResultsAdapter && query._getJsonResultsAdapter(em)) || dataService.jsonResultsAdapter;
+            
+            var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
 
             var odataQuery = toOdataQueryString(query, metadataStore);
             var queryContext = {
