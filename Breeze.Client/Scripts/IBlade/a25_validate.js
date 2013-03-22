@@ -727,6 +727,8 @@ function getValidatorCtor(symbol) {
             return Validator.number;
         case DataType.DateTime:
             return Validator.date;
+        case DataType.DateTimeOffset:
+            return Validator.date;
         case DataType.Boolean:
             return Validator.bool;
         case DataType.Guid:

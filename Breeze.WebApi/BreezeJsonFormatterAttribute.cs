@@ -14,14 +14,6 @@ using System.Net.Http;
 
 namespace Breeze.WebApi {
 
-  public static class ContextProviderExtensions {
-    public static HttpResponseMessage MetadataAsJson(this ContextProvider contextProvider) {
-      var result = new HttpResponseMessage { Content = new StringContent( contextProvider.Metadata()) };
-      result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-      return result;
-    }
-  }
-
   [Obsolete("Use BreezeJsonFormatterAttribute - will be removed afte June 1, 2013")]
   public class JsonFormatterAttribute : BreezeJsonFormatterAttribute {
     

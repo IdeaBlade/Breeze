@@ -163,9 +163,8 @@ namespace Breeze.WebApi {
     /// By default returns an <see cref="MetadataToHttpResponseAttribute"/>.
     /// Override to substitute a custom provider.
     /// </remarks>
-    protected virtual IFilterProvider GetMetadataFilterProvider(MetadataToHttpResponseAttribute metadataFilter)
-    {
-        return new MetadataFilterProvider(metadataFilter);
+    protected virtual IFilterProvider GetMetadataFilterProvider(MetadataToHttpResponseAttribute metadataFilter) {
+      return new MetadataFilterProvider(metadataFilter);
     }
 
     private BreezeQueryableAttribute _queryableFilter = new BreezeQueryableAttribute() { AllowedQueryOptions = AllowedQueryOptions.All };
@@ -178,7 +177,7 @@ namespace Breeze.WebApi {
   }
 
   internal class BreezeQueryableFilterProvider : IFilterProvider {
-    
+
     public BreezeQueryableFilterProvider(BreezeQueryableAttribute filter) {
       _filter = filter;
     }
@@ -192,7 +191,7 @@ namespace Breeze.WebApi {
         return Enumerable.Empty<FilterInfo>();
       }
 
-      return new [] { new FilterInfo(_filter, FilterScope.Global) };
+      return new[] { new FilterInfo(_filter, FilterScope.Global) };
     }
 
     internal static bool IsIQueryable(Type type) {
@@ -206,19 +205,16 @@ namespace Breeze.WebApi {
     private readonly BreezeQueryableAttribute _filter;
   }
 
-  internal class MetadataFilterProvider : IFilterProvider
-  {
+  internal class MetadataFilterProvider : IFilterProvider {
 
-      public MetadataFilterProvider(MetadataToHttpResponseAttribute filter)
-      {
-          _filter = filter;
-      }
+    public MetadataFilterProvider(MetadataToHttpResponseAttribute filter) {
+      _filter = filter;
+    }
 
-      public IEnumerable<FilterInfo> GetFilters(HttpConfiguration configuration, HttpActionDescriptor actionDescriptor)
-      {
-          return new [] { new FilterInfo(_filter, FilterScope.Controller) };
-      }
+    public IEnumerable<FilterInfo> GetFilters(HttpConfiguration configuration, HttpActionDescriptor actionDescriptor) {
+      return new[] { new FilterInfo(_filter, FilterScope.Controller) };
+    }
 
-      private readonly MetadataToHttpResponseAttribute _filter;
+    private readonly MetadataToHttpResponseAttribute _filter;
   }
 }

@@ -62,6 +62,22 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
 
     });
+
+    test("where dateTimeOffset & dateTime2", function () {
+        var em = newEm();
+        var dt1 = new Date(1950, 1, 1, 1, 1, 1);
+        var p1 = Predicate.create("creationDate", ">", dt1).or("modificationDate", ">", dt1);
+        var query = EntityQuery.from("TimeLimits").where(p1);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should be some results");
+            start();
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     
     test("time", function () {
         

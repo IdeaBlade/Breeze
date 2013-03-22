@@ -2247,6 +2247,7 @@ var DataProperty = (function () {
         if (!hasName) {
             throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
         }
+        // name/nameOnServer is resolved later when a metadataStore is available.
             
         if (this.complexTypeName) {
             this.isComplexProperty = true;

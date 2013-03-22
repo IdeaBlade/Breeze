@@ -124,6 +124,13 @@ var DataType = function () {
     @static
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
+    
+    /**
+    @property DateTimeOffset {DataType}
+    @final
+    @static
+    **/
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
     @property Time {DataType}
     @final
@@ -178,14 +185,7 @@ var DataType = function () {
                 // hack
                 dt = DataType.Byte;
             } else if (parts.length == 2) {
-                dt = DataType.fromName(simpleName);
-                if (!dt) {
-                    if (simpleName === "DateTimeOffset") {
-                        dt = DataType.DateTime;
-                    } else {
-                        dt = DataType.Undefined;
-                    }
-                }
+                dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 // enum
                 // dt = DataType.Int32;

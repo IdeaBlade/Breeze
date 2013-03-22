@@ -1774,6 +1774,13 @@ var DataType = function () {
     @static
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
+    
+    /**
+    @property DateTimeOffset {DataType}
+    @final
+    @static
+    **/
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
     @property Time {DataType}
     @final
@@ -1828,14 +1835,7 @@ var DataType = function () {
                 // hack
                 dt = DataType.Byte;
             } else if (parts.length == 2) {
-                dt = DataType.fromName(simpleName);
-                if (!dt) {
-                    if (simpleName === "DateTimeOffset") {
-                        dt = DataType.DateTime;
-                    } else {
-                        dt = DataType.Undefined;
-                    }
-                }
+                dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 // enum
                 // dt = DataType.Int32;
@@ -2620,6 +2620,8 @@ function getValidatorCtor(symbol) {
         case DataType.Single:
             return Validator.number;
         case DataType.DateTime:
+            return Validator.date;
+        case DataType.DateTimeOffset:
             return Validator.date;
         case DataType.Boolean:
             return Validator.bool;
@@ -6337,6 +6339,7 @@ var DataProperty = (function () {
         if (!hasName) {
             throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
         }
+        // name/nameOnServer is resolved later when a metadataStore is available.
             
         if (this.complexTypeName) {
             this.isComplexProperty = true;
@@ -8565,20 +8568,23 @@ var SimplePredicate = (function () {
         } else if (dataType === DataType.DateTime) {
             try {
                 return "datetime'" + val.toISOString() + "'";
-            } catch(e) {
-                msg = __formatString("'%1' is not a valid dateTime", val);
-                throw new Error(msg);
+            } catch (e) {
+                throwError("'%1' is not a valid dateTime", val);
+            }
+        } else if (dataType === DataType.DateTimeOffset) {
+            try {
+                return "datetimeoffset'" + val.toISOString() + "'";
+            } catch (e) {
+                throwError("'%1' is not a valid dateTimeoffset", val);
             }
         } else if (dataType == DataType.Time) {
             if (!__isDuration(val)) {
-                msg = __formatString("'%1' is not a valid ISO 8601 duration", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid ISO 8601 duration", val);
             }
             return "time'" + val + "'";
         } else if (dataType === DataType.Guid) {
             if (!__isGuid(val)) {
-                msg = __formatString("'%1' is not a valid guid", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid guid", val);
             }
             return "guid'" + val + "'";
         } else if (dataType === DataType.Boolean) {
@@ -8591,6 +8597,11 @@ var SimplePredicate = (function () {
             return val;
         }
 
+    }
+    
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
     }
 
     return ctor;

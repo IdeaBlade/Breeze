@@ -1,0 +1,45 @@
+{
+	"title": "Breeze Metadata Schema",
+	"type": "object",
+	"properties": {
+                "structuralTypeMap":  {
+                        "description": "Map of entity and complex type names to their definitions",
+	                "type": "object",
+	                "required": true,
+	                "additionalProperties": {
+	                    "type": "object",
+	                    "oneOf": [
+                               { "$ref": "#/definitions/entityType" },
+                               { "$ref": "#/definitions/complexType" }
+			    ]
+	                }
+	            }
+                },
+        
+		"serializationVersion": {
+			"description": "The serialization version for this document",
+			"type": "string"
+		},
+		"namingConvention": {
+			"type": "string"
+		},
+		"localQueryComparisonOptions": {
+			"type": "string"
+			
+		}
+		
+	},
+	"definitions": {
+	    "entityType": {
+	    },
+	    "complexType": {
+	    },
+	    "dataProperty": {
+            },	
+	    "navigationProperty": {
+	    }
+	
+	},
+	"additionalProperties": true
+	
+}

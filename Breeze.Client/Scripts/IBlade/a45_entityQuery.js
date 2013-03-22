@@ -1748,20 +1748,23 @@ var SimplePredicate = (function () {
         } else if (dataType === DataType.DateTime) {
             try {
                 return "datetime'" + val.toISOString() + "'";
-            } catch(e) {
-                msg = __formatString("'%1' is not a valid dateTime", val);
-                throw new Error(msg);
+            } catch (e) {
+                throwError("'%1' is not a valid dateTime", val);
+            }
+        } else if (dataType === DataType.DateTimeOffset) {
+            try {
+                return "datetimeoffset'" + val.toISOString() + "'";
+            } catch (e) {
+                throwError("'%1' is not a valid dateTimeoffset", val);
             }
         } else if (dataType == DataType.Time) {
             if (!__isDuration(val)) {
-                msg = __formatString("'%1' is not a valid ISO 8601 duration", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid ISO 8601 duration", val);
             }
             return "time'" + val + "'";
         } else if (dataType === DataType.Guid) {
             if (!__isGuid(val)) {
-                msg = __formatString("'%1' is not a valid guid", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid guid", val);
             }
             return "guid'" + val + "'";
         } else if (dataType === DataType.Boolean) {
@@ -1774,6 +1777,11 @@ var SimplePredicate = (function () {
             return val;
         }
 
+    }
+    
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
     }
 
     return ctor;
