@@ -49,6 +49,7 @@ define(["testFns"], function (testFns) {
         em.addEntity(user);
         var hasChanges = em.hasChanges();
         ok(hasChanges, "should have some changes");
+        stop();
         em.saveChanges().then(function (sr) {
             ok(sr.entities.length == 0, "should now have saved anything");
             hasChanges = em.hasChanges();
@@ -404,7 +405,7 @@ define(["testFns"], function (testFns) {
         }).fin(start);
     });
 
-    test("allow concurrent saves with concurrency column", 2, function() {
+    test("allow concurrent saves with concurrency column",  function() {
         var em = newEm();
         em.saveOptions = new SaveOptions({ allowConcurrentSaves: true });
         var q = new EntityQuery()
@@ -412,51 +413,26 @@ define(["testFns"], function (testFns) {
             .take(2);
         stop();
         
-        var cust;
-        var savedCount = 0;
-        
-        function handleSaveResult(sr) {
-            savedCount = savedCount + 1;
-            if (savedCount == 1) {
-                ok(true, "should have gotten here");
-                return;
-            }
-            if (savedCount == 2) {
-                ok(false, "second fail should have failed");
-                start();
-            }
-        }
-        
-        function handleFailResult(err) {
-            var msg = err.message;
-            if ( msg.indexOf("Store update, insert")>=0) {
-                ok(true, "should also have gotten here");
-                start();
-            } else {
-                ok(false, "should not get here: " + msg);
-                start();
-            }
-        }
-
         em.executeQuery(q).then(function(data) {
             // query cust
-            cust = data.results[0];
+            var cust = data.results[0];
             testFns.morphStringProp(cust, "companyName");
 
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-        }).fail(testFns.handleFail);
+            return Q.all([em.saveChanges(), em.saveChanges()]);
+        }).then(function(x) {
+            ok(false, "one save should have failed for concurrency reasons");
+        }).fail(function(e) {
+            var msg = e.message;
+            if (msg.indexOf("Store update, insert") >= 0) {
+                ok(true, "got expected exception" + msg);
+            } else {
+                ok(false, msg);
+            }
+        }).fin(start);
+
     });
     
-    test("allow concurrent saves with NO concurrency column", 2, function() {
+    test("allow concurrent saves with NO concurrency column",  function() {
         var em = newEm();
         em.saveOptions = new SaveOptions({ allowConcurrentSaves: true });
         var q = new EntityQuery()
@@ -466,46 +442,22 @@ define(["testFns"], function (testFns) {
         stop();
         var prod;
         
-        var savedCount = 0;
-        
-        function handleSaveResult(sr) {
-            savedCount = savedCount + 1;
-            if (savedCount == 1) {
-                ok(true, "should have gotten here");
-                return;
-            }
-            if (savedCount == 2) {
-                ok(true, "this is good");
-                start();
-            }
-        }
-        
-        function handleFailResult(err) {
-            var msg = err.message;
-            ok(false, "should not get here: " + msg);
-            start();
-        }
-
         em.executeQuery(q).then(function(data) {
             // query cust
             prod = data.results[0];
             var price = prod.getProperty("unitPrice");
             prod.setProperty("unitPrice", price + .01);
 
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-        }).fail(testFns.handleFail);
+            return Q.all([em.saveChanges(), em.saveChanges()]);
+        }).then(function(x) {
+            ok(true, "expected both to succeed");
+        }).fail(function(e) {
+            ok(false, "both saves should have been ok but: " + msg);
+        }).fin(start);
+            
     });
     
-    test("disallow concurrent saves with NO concurrency column",2, function() {
+    test("disallow concurrent saves with NO concurrency column",  function() {
         var em = newEm();
         // Next line is not needed because it is the default
         // em.saveOptions = new SaveOptions({ allowConcurrentSaves: false });
@@ -516,55 +468,23 @@ define(["testFns"], function (testFns) {
         stop();
         var prod;
         
-        var savedCount = 0;
-        var failedCount = 0;
-        
-        function handleSaveResult(sr) {
-            savedCount = savedCount + 1;
-            if (savedCount == 1) {
-                ok(true, "should have gotten here");
-                if (failedCount == 1) {
-                    start();
-                }
-                return;
-            }
-            if (savedCount == 2) {
-                ok(false, "second fail should have failed");
-                start();
-            }
-        }
-        
-        function handleFailResult(err) {
-            failedCount = failedCount + 1;
-            var msg = err.message;
-            if ( msg.indexOf("allowConcurrentSaves")>=0) {
-                ok(true, "should also have gotten here");
-                if (savedCount == 1) {
-                    start();
-                }
-            } else {
-                ok(false, "should not get here: " + msg);
-                start();
-            }
-        }
-
         em.executeQuery(q).then(function(data) {
             // query cust
             prod = data.results[0];
             var price = prod.getProperty("unitPrice");
             prod.setProperty("unitPrice", price + .01);
 
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-            em.saveChanges().then(function(sr) {
-                handleSaveResult(sr);
-            }).fail(function(e) {
-                handleFailResult(e);
-            });
-        }).fail(testFns.handleFail);
+            return Q.all([em.saveChanges(), em.saveChanges()]);
+        }).then(function(x) {
+            ok(false, "expected only one to complete");
+        }).fail(function (e) {
+            if (e.message.indexOf("allowConcurrentSaves") >= 0) {
+                ok(true, "got expected error: " + e.message);
+            } else {
+                ok(false, "unexpected error: " + e.message);
+            }
+        }).fin(start);
+
     });
 
     test("modify one", function () {
@@ -667,7 +587,6 @@ define(["testFns"], function (testFns) {
             //ok(em.hasChanges());
             //ok(error instanceof Error, "should be an error");
             //ok(error.message.indexOf("FOREIGN KEY") >= 0, "message should contain 'FOREIGN KEY'");
-            //start();
             //});
         }).fail(testFns.handleFail).fin(start);
     });
@@ -806,7 +725,6 @@ define(["testFns"], function (testFns) {
             ok(sr2.entities.length === 3);
             ok(zzz.cust1.entityAspect.entityState.isDetached(), "should be marked as detached");
             ok(zzz.order1.entityAspect.entityState.isUnchanged(), "should be marked as unchanged");
-            start();
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -838,7 +756,6 @@ define(["testFns"], function (testFns) {
             return em.saveChanges();
         }).then(function(sr2) {
             ok(false, "should not get here, save should have failed");
-            start();
         }).fail(function(error) {
             ok(em.hasChanges());
             ok(error.detail.ExceptionType.toLowerCase().indexOf("concurrency") >= 0, "wrong error message: " + error.detail.ExceptionType);
