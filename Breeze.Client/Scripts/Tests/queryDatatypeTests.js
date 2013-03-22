@@ -72,8 +72,6 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function (data) {
             var r = data.results;
             ok(r.length > 0, "should be some results");
-            start();
-
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -88,7 +86,6 @@ define(["testFns"], function (testFns) {
         });
         var em = newEm(newMs);
 
-        // var em = newEm();
         var query = new EntityQuery("TimeLimits").take(10);
         stop();
         var tlimit, tlimit2;
@@ -126,7 +123,7 @@ define(["testFns"], function (testFns) {
             ok(maxTime === duration, "maxTime should = " + duration);
             var minTime = tlimit.getProperty("minTime");
             ok(minTime == null, "minTime should be null or undefined");
-            var zt = tl2.getProperty("maxTime");
+            var zt = tl2.getProperty("maxTime");           
         }).fail(testFns.handleFail).fin(start);
 
     });

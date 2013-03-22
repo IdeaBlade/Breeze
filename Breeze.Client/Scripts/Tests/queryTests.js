@@ -36,30 +36,13 @@ define(["testFns"], function (testFns) {
 
         q.execute().then(function (data) {
             ok(false, "should not get here");
-            start();
         }).fail(function (e) {
             ok(e.message && e.message.toLowerCase().indexOf("entitythatdoesnotexist") >= 0, e.message);
-            start();
         }).fin(function(x) {
             start();
         });
     });
     
-    test("bad query test 2", function () {
-        var em = newEm();
-
-        var q = EntityQuery.from("EntityThatDoesnotExist")
-            .using(em);
-        stop();
-
-        q.execute()
-            .then(function () { })
-            .fail(function () { })
-            .fin(function (x) {
-                ok(true);
-                start();
-            });
-    });
 
     test("query using jsonResultsAdapter", function() {
         var em = newEm();
@@ -90,7 +73,6 @@ define(["testFns"], function (testFns) {
             ok(data.results.length === 5, "should be 5 recs");
             var rv = data.results[0].getProperty("rowVersion");
             ok(rv === 77, "rowVersion should be 77");
-            start();
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -127,7 +109,43 @@ define(["testFns"], function (testFns) {
             ok(data.results.length === 5, "should be 5 recs");
             var rv = data.results[0].getProperty("rowVersion");
             ok(rv === 77, "rowVersion should be 77");
-            start();
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
+    test("query using em with dataService with jsonResultsAdapter", function () {
+        var em = newEm();
+
+        var jsonResultsAdapter = new breeze.JsonResultsAdapter({
+            name: "eventAdapter",
+            extractResults: function (json) {
+                return json.results;
+            },
+            visitNode: function (node, queryContext, nodeContext) {
+                var entityTypeName = 'OrderDetail';
+                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var propertyName = nodeContext.propertyName;
+                var ignore = propertyName && propertyName.substr(0, 1) === "$";
+                if (entityType) {
+                    node.RowVersion = 77;
+                }
+                return {
+                    entityType: entityType,
+                    nodeId: node.$id,
+                    nodeRefId: node.$ref,
+                    ignore: ignore
+                };
+            }
+        });
+        var oldDs = em.dataService;
+        var newDs = new DataService({ serviceName: oldDs.serviceName, jsonResultsAdapter: jsonResultsAdapter });
+        var em2 = new EntityManager({ dataService: newDs });
+        var query = EntityQuery.from("OrderDetails").take(5);
+        stop();
+        em2.executeQuery(query).then(function (data) {
+            ok(data.results.length === 5, "should be 5 recs");
+            var rv = data.results[0].getProperty("rowVersion");
+            ok(rv === 77, "rowVersion should be 77");
         }).fail(testFns.handleFail).fin(start);
 
     });

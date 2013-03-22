@@ -1,6 +1,7 @@
 
 
 QUnit.config.autostart = false;
+QUnit.config.testTimeout = 5000;
 QUnit.config.urlConfig.push({
     id: "canStart",
     label: "Start the tests",
@@ -25,7 +26,7 @@ require([
       //"entityManagerTests",
       //"entityTests",
       //"complexTypeTests",
-      "queryTests",
+      //"queryTests",
       //"queryCtorTests",
       //"queryNonEFTests",
       //"queryDatatypeTests",
@@ -35,7 +36,7 @@ require([
       //"querySelectTests",
       //"validateTests",
       //"validateEntityTests",
-      //"saveTests"
+      "saveTests"
 
 ], function (testFns) {
     // QUnit.start();
