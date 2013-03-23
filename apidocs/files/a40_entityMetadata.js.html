@@ -186,7 +186,6 @@
 ﻿&#x2F;**
 @module breeze
 **&#x2F;
-    
 
 var Q = __requireLib(&quot;Q&quot;, &quot;See https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
 
@@ -446,12 +445,11 @@ var MetadataStore = (function () {
             .applyAll(this);
         this.dataServices = []; &#x2F;&#x2F; array of dataServices;
         this._resourceEntityTypeMap = {}; &#x2F;&#x2F; key is resource name - value is qualified entityType name
-        this._entityTypeResourceMap = {}; &#x2F;&#x2F; key is qualified entitytype name - value is resourceName
         this._structuralTypeMap = {}; &#x2F;&#x2F; key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
-        this._shortNameMap = {}; &#x2F;&#x2F; key is shortName, value is qualified name
-        this._id = __id++;
-        this._typeRegistry = {};
+        this._shortNameMap = {}; &#x2F;&#x2F; key is shortName, value is qualified name - does not need to be serialized.
+        this._ctorRegistry = {}; &#x2F;&#x2F; key is either short or qual type name - value is ctor;
         this._incompleteTypeMap = {}; &#x2F;&#x2F; key is entityTypeName; value is map where key is assocName and value is navProp
+        this._id = __id++;
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;MetadataStore&quot;;
@@ -464,15 +462,25 @@ var MetadataStore = (function () {
     @param dataService {DataService} The DataService to add
     **&#x2F;
         
-    proto.addDataService = function(dataService) {
+    proto.addDataService = function(dataService, shouldOverwrite) {
         assertParam(dataService, &quot;dataService&quot;).isInstanceOf(DataService).check();
-        var alreadyExists = this.dataServices.some(function(ds) {
-            return dataService.serviceName === ds.serviceName;
-        });
-        if (alreadyExists) {
-            throw new Error(&quot;A dataService with this name &#x27;&quot; + dataService.serviceName + &quot;&#x27; already exists in this MetadataStore&quot;);
+        assertParam(shouldOverwrite, &quot;shouldOverwrite&quot;).isBoolean().isOptional().check();
+        var ix = this._getDataServiceIndex(dataService.serviceName);
+        if (ix &gt;= 0) {
+            if (!!shouldOverwrite) {
+                this.dataServices[ix] = dataService;
+            } else {
+                throw new Error(&quot;A dataService with this name &#x27;&quot; + dataService.serviceName + &quot;&#x27; already exists in this MetadataStore&quot;);
+            }
+        } else {
+            this.dataServices.push(dataService);
         }
-        this.dataServices.push(dataService);
+    };
+
+    proto._getDataServiceIndex = function (serviceName) {
+        return __arrayIndexOf(this.dataServices, function(ds) {
+            return ds.serviceName === serviceName;
+        });
     };
 
     &#x2F;**
@@ -482,22 +490,11 @@ var MetadataStore = (function () {
     @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
     **&#x2F;
     proto.addEntityType = function (structuralType) {
-        if (this.getEntityType(structuralType.name, true)) {
-            var xxx = 7;
-        }
         structuralType.metadataStore = this;
         &#x2F;&#x2F; don&#x27;t register anon types
         if (!structuralType.isAnonymous) {
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
-                
-            &#x2F;&#x2F; in case resourceName was registered before this point
-            if (structuralType instanceof EntityType) {
-                var resourceName = this._entityTypeResourceMap[structuralType.name];
-                if (resourceName) {
-                    structuralType.defaultResourceName = resourceName;
-                }
-            }
         }
         structuralType._fixup();
                                   
@@ -506,9 +503,8 @@ var MetadataStore = (function () {
                 structuralType._mappedPropertiesCount++;
             }
         });
-
+        checkTypeRegistry(this, structuralType);
     };
-        
         
     &#x2F;**
     The  {{#crossLink &quot;NamingConvention&quot;}}{{&#x2F;crossLink}} associated with this MetadataStore.
@@ -532,13 +528,14 @@ var MetadataStore = (function () {
     @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
     **&#x2F;
     proto.exportMetadata = function () {
-        var result = JSON.stringify(this, function (key, value) {
-            if (key === &quot;metadataStore&quot;) return null;
-            if (key === &quot;adapterInstance&quot;) return null;
-            if (key === &quot;namingConvention&quot; || key === &quot;localQueryComparisonOptions&quot;) {
-                return value.name;
-            }
-            return value;
+        var result = JSON.stringify({
+            &quot;serializationVersion&quot;: breeze.serializationVersion,
+            &quot;namingConvention&quot;: this.namingConvention.name,
+            &quot;localQueryComparisonOptions&quot;: this.localQueryComparisonOptions.name,
+            &quot;dataServices&quot;: this.dataServices,
+            &quot;structuralTypeMap&quot;: this._structuralTypeMap,
+            &quot;resourceEntityTypeMap&quot;: this._resourceEntityTypeMap,
+            &quot;incompleteTypeMap&quot;: this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -554,40 +551,47 @@ var MetadataStore = (function () {
         var newMetadataStore = new MetadataStore();
         newMetadataStore.importMetadata(metadataFromStorage);
     @method importMetadata
-    @param exportedString {String} A previously exported MetadataStore.
+    @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
     @return {MetadataStore} This MetadataStore.
     @chainable
     **&#x2F;
-    proto.importMetadata = function (exportedString) {
-        var json = JSON.parse(exportedString);
+    proto.importMetadata = function (exportedMetadata) {
+        var json = (typeof (exportedMetadata) === &quot;string&quot;) ? JSON.parse(exportedMetadata) : exportedMetadata;
+        if (json.serializationVersion &amp;&amp; json.serializationVersion !== breeze.serializationVersion) {
+            var msg = __formatString(&quot;Cannot import metadata with a different &#x27;serializationVersion&#x27; (%1) than the current &#x27;breeze.serializationVersion&#x27; (%2) &quot;,
+                json.serializationVersion, breeze.serializationVersion);
+            throw new Error(msg);
+        }
+
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
-        delete json.namingConvention;
-        delete json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName);
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName);
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
-            if (this.namingConvention.name !== ncName) {
+            if (ncName &amp;&amp; this.namingConvention.name !== ncName) {
                 throw new Error(&quot;Cannot import metadata with a different &#x27;namingConvention&#x27; from the current MetadataStore&quot;);
             }
-            if (this.localQueryComparisonOptions.name !== lqcoName) {
+            if (lqcoName &amp;&amp; this.localQueryComparisonOptions.name !== lqcoName) {
                 throw new Error(&quot;Cannot import metadata with different &#x27;localQueryComparisonOptions&#x27; from the current MetadataStore&quot;);
             }
         }
-        var structuralTypeMap = {};
+        
         var that = this;
-        __objectForEach(json._structuralTypeMap, function (key, value) {
-            structuralTypeMap[key] = that._structuralTypeFromJson(value);
-            checkTypeRegistry(that, structuralTypeMap[key]);
+        
+        json.dataServices &amp;&amp; json.dataServices.forEach(function (ds) {
+            ds = DataService.fromJSON(ds);
+            that.addDataService(ds, true);
         });
-        &#x2F;&#x2F; TODO: don&#x27;t think that this next line is needed
-        json._structuralTypeMap = structuralTypeMap;
-        __extend(this, json);
+        var structuralTypeMap = this._structuralTypeMap;
+        __objectForEach(json.structuralTypeMap, function (key, value) {
+            structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        });
+        __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
+        __extend(this._incompleteTypeMap, json.incompleteTypeMap);
+       
         return this;
-    };
-        
-        
+    };       
 
     &#x2F;**
     Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -767,7 +771,7 @@ var MetadataStore = (function () {
             typeName = structuralTypeName;
         }
         aCtor.prototype._$typeName = typeName;
-        this._typeRegistry[typeName] = aCtor;
+        this._ctorRegistry[typeName] = aCtor;
         if (initializationFn) {
             aCtor._$initializationFn = initializationFn;
         }
@@ -872,7 +876,6 @@ var MetadataStore = (function () {
     **&#x2F;
     proto.getEntityTypeNameForResourceName = function (resourceName) {
         assertParam(resourceName, &quot;resourceName&quot;).isString().check();
-        &#x2F;&#x2F; return this._resourceEntityTypeMap[resourceName.toLowerCase()];
         return this._resourceEntityTypeMap[resourceName];
     };
 
@@ -890,7 +893,7 @@ var MetadataStore = (function () {
     proto.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
         assertParam(resourceName, &quot;resourceName&quot;).isString().check();
         assertParam(entityTypeOrName, &quot;entityTypeOrName&quot;).isInstanceOf(EntityType).or().isString().check();
-        &#x2F;&#x2F; resourceName = resourceName.toLowerCase();
+        
         var entityTypeName;
         if (entityTypeOrName instanceof EntityType) {
             entityTypeName = entityTypeOrName.name;
@@ -899,41 +902,15 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        this._entityTypeResourceMap[entityTypeName] = resourceName;
         var entityType = this.getEntityType(entityTypeName, true);
-        if (entityType) {
-            entityType.defaultResourceName = entityType.defaultResourceName || resourceName;
+        if (entityType &amp;&amp; !entityType.defaultResourceName) {
+            entityType.defaultResourceName = resourceName;
         }
     };
 
     &#x2F;&#x2F; protected methods
 
-    proto._structuralTypeFromJson = function(json) {
-        var stype = this.getEntityType(json.name, true);
-        if (stype) return stype;
-        var config = {
-            shortName: json.shortName,
-            namespace: json.namespace
-        };
-        var isEntityType = !!json.navigationProperties;
-        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
-
-        json.validators = json.validators.map(Validator.fromJSON);
-
-        json.dataProperties = json.dataProperties.map(function(dp) {
-            return DataProperty.fromJSON(dp, stype);
-        });
-
-        if (isEntityType) {
-            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
-            json.navigationProperties = json.navigationProperties.map(function(np) {
-                return NavigationProperty.fromJSON(np, stype);
-            });
-        }
-        stype = __extend(stype, json);
-        this.addEntityType(stype);
-        return stype;
-    };
+    
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -960,11 +937,13 @@ var MetadataStore = (function () {
                 });
                 schema.cSpaceOSpaceMapping = newMap;
             }
+            var entityTypeDefaultResourceNameMap = {};
             if (schema.entityContainer) {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
                         that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
                     });
                 });
             }
@@ -973,14 +952,12 @@ var MetadataStore = (function () {
             if (schema.complexType) {
                 toArray(schema.complexType).forEach(function (ct) {
                     var complexType = convertFromODataComplexType(ct, schema, that);
-                    checkTypeRegistry(that, complexType);
                 });
             }
             if (schema.entityType) {
                 toArray(schema.entityType).forEach(function (et) {
                     var entityType = convertFromODataEntityType(et, schema, that);
-                    checkTypeRegistry(that, entityType);
-                           
+                    entityType.defaultResourceName = entityTypeDefaultResourceNameMap[entityType.name];
                 });
             }
 
@@ -990,15 +967,50 @@ var MetadataStore = (function () {
             throw new Error(&quot;Bad nav properties&quot;);
         }
     };
+
+    function structuralTypeFromJson(metadataStore, json) {
+        var typeName = qualifyTypeName(json.shortName, json.namespace);
+        var stype = metadataStore.getEntityType(typeName, true);
+        if (stype) return stype;
+        var config = {
+            shortName: json.shortName,
+            namespace: json.namespace
+        };
+        var isEntityType = !!json.autoGeneratedKeyType;
+        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
+
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
+
+        if (json.dataProperties) {
+            json.dataProperties = json.dataProperties.map(function(dp) {
+                return DataProperty.fromJSON(dp, stype);
+            });
+        }
+        
+        if (isEntityType) {
+            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
+            if (json.navigationProperties) {
+                json.navigationProperties = json.navigationProperties.map(function(np) {
+                    return NavigationProperty.fromJSON(np, stype);
+                });
+            }
+        }
+        stype = __extend(stype, json);
+        metadataStore.addEntityType(stype);
+        return stype;
+    };
         
     function checkTypeRegistry(metadataStore, structuralType) {
         &#x2F;&#x2F; check if this structural type&#x27;s name, short version or qualified version has a registered ctor.
-        var typeCtor = metadataStore._typeRegistry[structuralType.name] || metadataStore._typeRegistry[structuralType.shortName];
+        var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
         if (typeCtor) {
             &#x2F;&#x2F; next line is in case the entityType was originally registered with a shortname.
             typeCtor.prototype._$typeName = structuralType.name;
             structuralType._setCtor(typeCtor);
-            metadataStore._structuralTypeMap[structuralType.name] = structuralType;
+            &#x2F;&#x2F;  not needed - should already have been done
+            &#x2F;&#x2F; metadataStore._structuralTypeMap[structuralType.name] = structuralType;
         }
     }
 
@@ -1094,6 +1106,7 @@ var MetadataStore = (function () {
                     parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
                 }
             }
+            &#x2F;&#x2F; TODO: don&#x27;t set maxLength if null;
             var maxLength = odataProperty.maxLength;
             maxLength = (maxLength == null || maxLength===&quot;Max&quot;) ? null : parseInt(maxLength);
             &#x2F;&#x2F; can&#x27;t set the name until we go thru namingConventions and these need the dp.
@@ -1356,7 +1369,7 @@ var DataService = function () {
     };
         
     proto.toJSON = function () {
-        var json = __toJson(this);
+        var json = __toJson(this, [&quot;serviceName&quot;, &quot;adapterName&quot;, &quot;hasServerMetadata&quot;]);
         json.jsonResultsAdapter = this.jsonResultsAdapter.name;
         return json;
     };
@@ -1701,8 +1714,8 @@ var EntityType = (function () {
     **&#x2F;
     proto.getEntityCtor = function () {
         if (this._ctor) return this._ctor;
-        var typeRegistry = this.metadataStore._typeRegistry;
-        var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
+        var ctorRegistry = this.metadataStore._ctorRegistry;
+        var aCtor = ctorRegistry[this.name] || ctorRegistry[this.shortName];
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             if (createCtor) {
@@ -1901,10 +1914,11 @@ var EntityType = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this, [&quot;dataProperties&quot;, &quot;navigationProperties&quot;, &quot;validators&quot;]);
+        return __toJson(this, [&quot;shortName&quot;, &quot;namespace&quot;, &quot;autoGeneratedKeyType&quot;, &quot;defaultResourceName&quot;,
+            &quot;dataProperties&quot;, &quot;navigationProperties&quot;, &quot;validators&quot;]);
     };
 
-    &#x2F;&#x2F; fromJSON is handled by metadataStore._structuralTypeFromJson;
+    &#x2F;&#x2F; fromJSON is handled by structuralTypeFromJson function.
         
     proto._clientPropertyPathToServer = function (propertyPath) {
         var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
@@ -2345,7 +2359,7 @@ var ComplexType = (function () {
     proto._setCtor = EntityType.prototype._setCtor;
         
     proto.toJSON = function () {
-        return __toJson(this, [&quot;dataProperties&quot;, &quot;validators&quot;]);
+        return __toJson(this, [&quot;shortName&quot;, &quot;namespace&quot;, &quot;dataProperties&quot;, &quot;validators&quot;]);
     };
        
     proto._fixup = function () {
@@ -2418,6 +2432,7 @@ var DataProperty = (function () {
         if (!hasName) {
             throw new Error(&quot;A DataProperty must be instantiated with either a &#x27;name&#x27; or a &#x27;nameOnServer&#x27; property&quot;);
         }
+        &#x2F;&#x2F; name&#x2F;nameOnServer is resolved later when a metadataStore is available.
             
         if (this.complexTypeName) {
             this.isComplexProperty = true;
@@ -2565,15 +2580,22 @@ var DataProperty = (function () {
     proto.isNavigationProperty = false;
 
     proto.toJSON = function () {
-        var json = __toJson(this, [&quot;validators&quot;]);
-        delete json.isComplexProperty;
-        return json;
+        return  __toJson(this, [&quot;name&quot;, &quot;nameOnServer&quot;, &quot;dataType&quot;, &quot;complexTypeName&quot;, &quot;isNullable&quot;,
+            &quot;defaultValue&quot;, &quot;isPartOfKey&quot;, &quot;isUnmapped&quot;, &quot;concurrencyMode&quot;,
+            &quot;maxLength&quot;, &quot;fixedLength&quot;, &quot;validators&quot;, &quot;enumType&quot;, &quot;rawTypeName&quot;]);
     };
 
-    ctor.fromJSON = function (json, parentEntityType) {
+    ctor.fromJSON = function(json, parentEntityType) {
         json.dataType = DataType.fromName(json.dataType);
-        json.validators = json.validators.map(Validator.fromJSON);
-                
+        &#x2F;&#x2F; dateTime instances require &#x27;extra&#x27; work to deserialize properly.
+        if (json.defaultValue &amp;&amp; json.dataType == DataType.DateTime) {
+            json.defaultValue = new Date(Date.parse(json.defaultValue));
+        }
+        
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
+
         var dp = new DataProperty(json);
         parentEntityType.addProperty(dp);
         return dp;
@@ -2733,16 +2755,19 @@ var NavigationProperty = (function () {
     proto.isNavigationProperty = true;
 
     proto.toJSON = function () {
-        return __toJson(this, [&quot;validators&quot;, &quot;foreignKeyNames&quot;, &quot;foreignKeyNamesOnServer&quot;]);
+        return __toJson(this, [&quot;name&quot;, &quot;nameOnServer&quot;, &quot;entityTypeName&quot;, &quot;isScalar&quot;,
+            &quot;associationName&quot;, &quot;validators&quot;, &quot;foreignKeyNames&quot;, &quot;foreignKeyNamesOnServer&quot;]);
     };
 
     ctor.fromJSON = function (json, parentEntityType) {
-        json.validators = json.validators.map(Validator.fromJSON);
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
         var np = new NavigationProperty(json);
         parentEntityType.addProperty(np);
         return np;
     };
-
+    
     return ctor;
 })();
     
@@ -2819,8 +2844,8 @@ function isQualifiedTypeName(entityTypeName) {
     return entityTypeName.indexOf(&quot;:#&quot;) &gt;= 0;
 }
     
-function qualifyTypeName(simpleTypeName, namespace) {
-    return simpleTypeName + &quot;:#&quot; + namespace;
+function qualifyTypeName(shortName, namespace) {
+    return shortName + &quot;:#&quot; + namespace;
 }
 
 &#x2F;&#x2F; schema is only needed for navProperty type name
@@ -2840,19 +2865,19 @@ function normalizeTypeName(entityTypeName, schema) {
     var nameParts = entityTypeNameNoAssembly.split(&quot;.&quot;);
     if (nameParts.length &gt; 1) {
             
-        var simpleTypeName = nameParts[nameParts.length - 1];
+        var shortName = nameParts[nameParts.length - 1];
 
         var ns;
         if (schema) {
-            ns = getNamespaceFor(simpleTypeName, schema);
+            ns = getNamespaceFor(shortName, schema);
         } else {
             var namespaceParts = nameParts.slice(0, nameParts.length - 1);
             ns = namespaceParts.join(&quot;.&quot;);
         }
         return {
-            shortTypeName: simpleTypeName,
+            shortTypeName: shortName,
             namespace: ns,
-            typeName: qualifyTypeName(simpleTypeName, ns)
+            typeName: qualifyTypeName(shortName, ns)
         };
     } else {
         return {

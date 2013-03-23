@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Mar 19 2013 11:18:11 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Sat Mar 23 2013 14:13:44 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -605,6 +605,9 @@ intellisense.annotate(breeze.breeze.DataType, {
   
   /// <field name="DateTime" type="breeze.breeze.DataType" ></field>
   'DateTime': null,
+  
+  /// <field name="DateTimeOffset" type="breeze.breeze.DataType" ></field>
+  'DateTimeOffset': null,
   
   /// <field name="Time" type="breeze.breeze.DataType" ></field>
   'Time': null,
@@ -1233,7 +1236,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   <summary>
     ///   Imports a previously exported serialized MetadataStore into this MetadataStore.
     ///   </summary>
-    ///   <param name="exportedString" type="String" optional="true">A previously exported MetadataStore.</param>
+    ///   <param name="exportedMetadata" type="String|JSON Object" optional="true">A previously exported MetadataStore.</param>
     ///   <returns type="breeze.breeze.MetadataStore" >This MetadataStore.</returns>
     /// </signature>
   },

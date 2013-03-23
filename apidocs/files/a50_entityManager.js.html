@@ -526,17 +526,6 @@ var EntityManager = (function () {
         return this;
     };
 
-    &#x2F;&#x2F; Similar logic - but more performant is performed inside of importEntityGroup.
-    &#x2F;&#x2F;function dateReviver(key, value) {
-    &#x2F;&#x2F;    var a;
-    &#x2F;&#x2F;    if (typeof value === &#x27;string&#x27;) {
-    &#x2F;&#x2F;        a = &#x2F;^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$&#x2F;.exec(value);
-    &#x2F;&#x2F;        if (a) {
-    &#x2F;&#x2F;            return new Date(Date.parse(value));
-    &#x2F;&#x2F;        }
-    &#x2F;&#x2F;    }
-    &#x2F;&#x2F;    return value;
-    &#x2F;&#x2F;};
         
     &#x2F;**
     Clears this EntityManager&#x27;s cache but keeps all other settings. Note that this 
@@ -1887,8 +1876,8 @@ var EntityManager = (function () {
                     return { results: results, query: query };
                 });
             }
-            &#x2F;&#x2F; _getJsonResultsAdapter does not exist on raw OData queries
-            var jsonResultsAdapter = (query._getJsonResultsAdapter &amp;&amp; query._getJsonResultsAdapter(em)) || dataService.jsonResultsAdapter;
+            
+            var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
 
             var odataQuery = toOdataQueryString(query, metadataStore);
             var queryContext = {

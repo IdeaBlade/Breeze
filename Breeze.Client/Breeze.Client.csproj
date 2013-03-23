@@ -39,6 +39,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Metadata\metadata.example.js" />
+    <None Include="Metadata\metadata.schema.js" />
     <Content Include="Scripts\IBlade\a01_coreFns.js" />
     <Content Include="Scripts\IBlade\a05_assertParam.js" />
     <Content Include="Scripts\IBlade\a05_enum.js" />

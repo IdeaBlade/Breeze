@@ -19,14 +19,13 @@
         breeze = definition();
     }
 
-})(function () {         
+})(function () {  
     var breeze = {
-        version: "1.2.5",
+        version: "1.2.6",
+        serializationVersion: "1.0.2"
     };
 
-
     // legacy properties - will not be supported after 6/1/2013
-
     breeze.entityModel = breeze;
     breeze.entityTracking_backingStore = "backingStore";
     breeze.entityTracking_ko = "ko";
@@ -48,7 +47,6 @@ function __objectForEach(obj, kvFn) {
         }
     }
 }
-    
     
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
@@ -74,39 +72,6 @@ function __objectMapToArray(obj, kvFn) {
     }
     return results;
 }
-    
-// Not yet needed 
-
-//// transform an object's values
-//function objectMapValue(obj, kvProjection) {
-//    var value, newMap = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            value = kvProjection(key, obj[key]);
-//            if (value !== undefined) {
-//                newMap[key] = value;
-//            }
-//        }
-//    }
-//    return newMap;
-//}
-
-
-//// shrink an object's surface
-//function objectFilter(obj, kvPredicate) {
-//    var result = {};
-//    for (var key in obj) {
-//        if (__hasOwnProperty.call(obj, key)) {
-//            var value = obj[key];
-//            if (kvPredicate(key, value)) {
-//                result[key] = value;
-//            }
-//        }
-//    }
-//    return result;
-//};
-    
-   
 
 // Functional extensions 
 
@@ -145,26 +110,23 @@ function __extend(target, source) {
     return target;
 }
 
-function __toJson(source, addlPropNames) {
+function __toJson(source, propNames) {
     var target = {};
-    for (var name in source) {
-        if (__hasOwnProperty.call(source, name) && name.substr(0, 1) != "_") {
-            var value = source[name];
-            if (__isFunction(value)) continue;
-            if (typeof(value) === "object") {
-                if (value && value.parentEnum) {
-                    target[name] = value.name;
-                }
-            } else {
-                target[name] = value;
+    
+    propNames && propNames.forEach(function (propName) {
+        if (!(propName in source)) return;
+        var value = source[propName];
+        if (Array.isArray(value) && value.length === 0) return;
+        if (typeof(value) === "object") {
+            if (value && value.parentEnum) {
+                value = value.name;
             }
         }
-    }
-    addlPropNames && addlPropNames.forEach(function(n) {
-        target[n] = source[n];
+        target[propName] = value;
     });
     return target;
 }
+
 
 // array functions
 
@@ -1635,19 +1597,6 @@ var __config = function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    //a_config._registerNamedInstance = function (instance, nameProperty) {
-    //    a_config.registerFunction(function () { return instance; }, instance._$typeName + "." + instance[nameProperty || "name"]);
-    //};
-
-    //a_config._namedInstanceFromJson = function (type, nameProperty, json) {
-    //    var key = type.proto._$typeName + "." + json[nameProperty || "name"];
-    //    var fn = a_config.functionRegistry[key];
-    //    if (!fn) {
-    //        throw new Error("Unable to locate " + key);
-    //    }
-    //    return fn(json);
-    //};
-
     __config.stringifyPad = "  ";
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
@@ -1825,6 +1774,13 @@ var DataType = function () {
     @static
     **/
     DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
+    
+    /**
+    @property DateTimeOffset {DataType}
+    @final
+    @static
+    **/
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), parse: coerceToDate });
     /**
     @property Time {DataType}
     @final
@@ -1879,14 +1835,7 @@ var DataType = function () {
                 // hack
                 dt = DataType.Byte;
             } else if (parts.length == 2) {
-                dt = DataType.fromName(simpleName);
-                if (!dt) {
-                    if (simpleName === "DateTimeOffset") {
-                        dt = DataType.DateTime;
-                    } else {
-                        dt = DataType.Undefined;
-                    }
-                }
+                dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 // enum
                 // dt = DataType.Int32;
@@ -2671,6 +2620,8 @@ function getValidatorCtor(symbol) {
         case DataType.Single:
             return Validator.number;
         case DataType.DateTime:
+            return Validator.date;
+        case DataType.DateTimeOffset:
             return Validator.date;
         case DataType.Boolean:
             return Validator.bool;
@@ -4021,8 +3972,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (!entityAspect.entityState.isDeleted()) {
                     var inverseKeyProps = property.entityType.keyProperties;
                     inverseKeyProps.forEach(function(keyProp, i ) {
-                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : keyProp.defaultValue;
-                        that.setProperty(property.relatedDataProperties[i].name, relatedValue);
+                        var relatedDataProp = property.relatedDataProperties[i];
+                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
+                        that.setProperty(relatedDataProp.name, relatedValue);
                     });
                 }
             }
@@ -4141,7 +4093,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 /**
 @module breeze
 **/
-    
 
 var Q = __requireLib("Q", "See https://github.com/kriskowal/q ");
 
@@ -4401,12 +4352,11 @@ var MetadataStore = (function () {
             .applyAll(this);
         this.dataServices = []; // array of dataServices;
         this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
-        this._entityTypeResourceMap = {}; // key is qualified entitytype name - value is resourceName
         this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
-        this._shortNameMap = {}; // key is shortName, value is qualified name
-        this._id = __id++;
-        this._typeRegistry = {};
+        this._shortNameMap = {}; // key is shortName, value is qualified name - does not need to be serialized.
+        this._ctorRegistry = {}; // key is either short or qual type name - value is ctor;
         this._incompleteTypeMap = {}; // key is entityTypeName; value is map where key is assocName and value is navProp
+        this._id = __id++;
     };
     var proto = ctor.prototype;
     proto._$typeName = "MetadataStore";
@@ -4419,15 +4369,25 @@ var MetadataStore = (function () {
     @param dataService {DataService} The DataService to add
     **/
         
-    proto.addDataService = function(dataService) {
+    proto.addDataService = function(dataService, shouldOverwrite) {
         assertParam(dataService, "dataService").isInstanceOf(DataService).check();
-        var alreadyExists = this.dataServices.some(function(ds) {
-            return dataService.serviceName === ds.serviceName;
-        });
-        if (alreadyExists) {
-            throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+        assertParam(shouldOverwrite, "shouldOverwrite").isBoolean().isOptional().check();
+        var ix = this._getDataServiceIndex(dataService.serviceName);
+        if (ix >= 0) {
+            if (!!shouldOverwrite) {
+                this.dataServices[ix] = dataService;
+            } else {
+                throw new Error("A dataService with this name '" + dataService.serviceName + "' already exists in this MetadataStore");
+            }
+        } else {
+            this.dataServices.push(dataService);
         }
-        this.dataServices.push(dataService);
+    };
+
+    proto._getDataServiceIndex = function (serviceName) {
+        return __arrayIndexOf(this.dataServices, function(ds) {
+            return ds.serviceName === serviceName;
+        });
     };
 
     /**
@@ -4437,22 +4397,11 @@ var MetadataStore = (function () {
     @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
     **/
     proto.addEntityType = function (structuralType) {
-        if (this.getEntityType(structuralType.name, true)) {
-            var xxx = 7;
-        }
         structuralType.metadataStore = this;
         // don't register anon types
         if (!structuralType.isAnonymous) {
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
-                
-            // in case resourceName was registered before this point
-            if (structuralType instanceof EntityType) {
-                var resourceName = this._entityTypeResourceMap[structuralType.name];
-                if (resourceName) {
-                    structuralType.defaultResourceName = resourceName;
-                }
-            }
         }
         structuralType._fixup();
                                   
@@ -4461,9 +4410,8 @@ var MetadataStore = (function () {
                 structuralType._mappedPropertiesCount++;
             }
         });
-
+        checkTypeRegistry(this, structuralType);
     };
-        
         
     /**
     The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
@@ -4487,13 +4435,14 @@ var MetadataStore = (function () {
     @return {String} A serialized version of this MetadataStore that may be stored locally and later restored. 
     **/
     proto.exportMetadata = function () {
-        var result = JSON.stringify(this, function (key, value) {
-            if (key === "metadataStore") return null;
-            if (key === "adapterInstance") return null;
-            if (key === "namingConvention" || key === "localQueryComparisonOptions") {
-                return value.name;
-            }
-            return value;
+        var result = JSON.stringify({
+            "serializationVersion": breeze.serializationVersion,
+            "namingConvention": this.namingConvention.name,
+            "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
+            "dataServices": this.dataServices,
+            "structuralTypeMap": this._structuralTypeMap,
+            "resourceEntityTypeMap": this._resourceEntityTypeMap,
+            "incompleteTypeMap": this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -4509,40 +4458,47 @@ var MetadataStore = (function () {
         var newMetadataStore = new MetadataStore();
         newMetadataStore.importMetadata(metadataFromStorage);
     @method importMetadata
-    @param exportedString {String} A previously exported MetadataStore.
+    @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
     @return {MetadataStore} This MetadataStore.
     @chainable
     **/
-    proto.importMetadata = function (exportedString) {
-        var json = JSON.parse(exportedString);
+    proto.importMetadata = function (exportedMetadata) {
+        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
+        if (json.serializationVersion && json.serializationVersion !== breeze.serializationVersion) {
+            var msg = __formatString("Cannot import metadata with a different 'serializationVersion' (%1) than the current 'breeze.serializationVersion' (%2) ",
+                json.serializationVersion, breeze.serializationVersion);
+            throw new Error(msg);
+        }
+
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
-        delete json.namingConvention;
-        delete json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName);
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName);
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
-            if (this.namingConvention.name !== ncName) {
+            if (ncName && this.namingConvention.name !== ncName) {
                 throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
             }
-            if (this.localQueryComparisonOptions.name !== lqcoName) {
+            if (lqcoName && this.localQueryComparisonOptions.name !== lqcoName) {
                 throw new Error("Cannot import metadata with different 'localQueryComparisonOptions' from the current MetadataStore");
             }
         }
-        var structuralTypeMap = {};
+        
         var that = this;
-        __objectForEach(json._structuralTypeMap, function (key, value) {
-            structuralTypeMap[key] = that._structuralTypeFromJson(value);
-            checkTypeRegistry(that, structuralTypeMap[key]);
+        
+        json.dataServices && json.dataServices.forEach(function (ds) {
+            ds = DataService.fromJSON(ds);
+            that.addDataService(ds, true);
         });
-        // TODO: don't think that this next line is needed
-        json._structuralTypeMap = structuralTypeMap;
-        __extend(this, json);
+        var structuralTypeMap = this._structuralTypeMap;
+        __objectForEach(json.structuralTypeMap, function (key, value) {
+            structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        });
+        __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
+        __extend(this._incompleteTypeMap, json.incompleteTypeMap);
+       
         return this;
-    };
-        
-        
+    };       
 
     /**
     Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -4722,7 +4678,7 @@ var MetadataStore = (function () {
             typeName = structuralTypeName;
         }
         aCtor.prototype._$typeName = typeName;
-        this._typeRegistry[typeName] = aCtor;
+        this._ctorRegistry[typeName] = aCtor;
         if (initializationFn) {
             aCtor._$initializationFn = initializationFn;
         }
@@ -4827,7 +4783,6 @@ var MetadataStore = (function () {
     **/
     proto.getEntityTypeNameForResourceName = function (resourceName) {
         assertParam(resourceName, "resourceName").isString().check();
-        // return this._resourceEntityTypeMap[resourceName.toLowerCase()];
         return this._resourceEntityTypeMap[resourceName];
     };
 
@@ -4845,7 +4800,7 @@ var MetadataStore = (function () {
     proto.setEntityTypeForResourceName = function (resourceName, entityTypeOrName) {
         assertParam(resourceName, "resourceName").isString().check();
         assertParam(entityTypeOrName, "entityTypeOrName").isInstanceOf(EntityType).or().isString().check();
-        // resourceName = resourceName.toLowerCase();
+        
         var entityTypeName;
         if (entityTypeOrName instanceof EntityType) {
             entityTypeName = entityTypeOrName.name;
@@ -4854,41 +4809,15 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        this._entityTypeResourceMap[entityTypeName] = resourceName;
         var entityType = this.getEntityType(entityTypeName, true);
-        if (entityType) {
-            entityType.defaultResourceName = entityType.defaultResourceName || resourceName;
+        if (entityType && !entityType.defaultResourceName) {
+            entityType.defaultResourceName = resourceName;
         }
     };
 
     // protected methods
 
-    proto._structuralTypeFromJson = function(json) {
-        var stype = this.getEntityType(json.name, true);
-        if (stype) return stype;
-        var config = {
-            shortName: json.shortName,
-            namespace: json.namespace
-        };
-        var isEntityType = !!json.navigationProperties;
-        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
-
-        json.validators = json.validators.map(Validator.fromJSON);
-
-        json.dataProperties = json.dataProperties.map(function(dp) {
-            return DataProperty.fromJSON(dp, stype);
-        });
-
-        if (isEntityType) {
-            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
-            json.navigationProperties = json.navigationProperties.map(function(np) {
-                return NavigationProperty.fromJSON(np, stype);
-            });
-        }
-        stype = __extend(stype, json);
-        this.addEntityType(stype);
-        return stype;
-    };
+    
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -4915,11 +4844,13 @@ var MetadataStore = (function () {
                 });
                 schema.cSpaceOSpaceMapping = newMap;
             }
+            var entityTypeDefaultResourceNameMap = {};
             if (schema.entityContainer) {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
                         that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
                     });
                 });
             }
@@ -4928,14 +4859,12 @@ var MetadataStore = (function () {
             if (schema.complexType) {
                 toArray(schema.complexType).forEach(function (ct) {
                     var complexType = convertFromODataComplexType(ct, schema, that);
-                    checkTypeRegistry(that, complexType);
                 });
             }
             if (schema.entityType) {
                 toArray(schema.entityType).forEach(function (et) {
                     var entityType = convertFromODataEntityType(et, schema, that);
-                    checkTypeRegistry(that, entityType);
-                           
+                    entityType.defaultResourceName = entityTypeDefaultResourceNameMap[entityType.name];
                 });
             }
 
@@ -4945,15 +4874,50 @@ var MetadataStore = (function () {
             throw new Error("Bad nav properties");
         }
     };
+
+    function structuralTypeFromJson(metadataStore, json) {
+        var typeName = qualifyTypeName(json.shortName, json.namespace);
+        var stype = metadataStore.getEntityType(typeName, true);
+        if (stype) return stype;
+        var config = {
+            shortName: json.shortName,
+            namespace: json.namespace
+        };
+        var isEntityType = !!json.autoGeneratedKeyType;
+        stype = isEntityType ? new EntityType(config) : new ComplexType(config);
+
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
+
+        if (json.dataProperties) {
+            json.dataProperties = json.dataProperties.map(function(dp) {
+                return DataProperty.fromJSON(dp, stype);
+            });
+        }
+        
+        if (isEntityType) {
+            json.autoGeneratedKeyType = AutoGeneratedKeyType.fromName(json.autoGeneratedKeyType);
+            if (json.navigationProperties) {
+                json.navigationProperties = json.navigationProperties.map(function(np) {
+                    return NavigationProperty.fromJSON(np, stype);
+                });
+            }
+        }
+        stype = __extend(stype, json);
+        metadataStore.addEntityType(stype);
+        return stype;
+    };
         
     function checkTypeRegistry(metadataStore, structuralType) {
         // check if this structural type's name, short version or qualified version has a registered ctor.
-        var typeCtor = metadataStore._typeRegistry[structuralType.name] || metadataStore._typeRegistry[structuralType.shortName];
+        var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
         if (typeCtor) {
             // next line is in case the entityType was originally registered with a shortname.
             typeCtor.prototype._$typeName = structuralType.name;
             structuralType._setCtor(typeCtor);
-            metadataStore._structuralTypeMap[structuralType.name] = structuralType;
+            //  not needed - should already have been done
+            // metadataStore._structuralTypeMap[structuralType.name] = structuralType;
         }
     }
 
@@ -5049,6 +5013,7 @@ var MetadataStore = (function () {
                     parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
                 }
             }
+            // TODO: don't set maxLength if null;
             var maxLength = odataProperty.maxLength;
             maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
             // can't set the name until we go thru namingConventions and these need the dp.
@@ -5311,7 +5276,7 @@ var DataService = function () {
     };
         
     proto.toJSON = function () {
-        var json = __toJson(this);
+        var json = __toJson(this, ["serviceName", "adapterName", "hasServerMetadata"]);
         json.jsonResultsAdapter = this.jsonResultsAdapter.name;
         return json;
     };
@@ -5656,8 +5621,8 @@ var EntityType = (function () {
     **/
     proto.getEntityCtor = function () {
         if (this._ctor) return this._ctor;
-        var typeRegistry = this.metadataStore._typeRegistry;
-        var aCtor = typeRegistry[this.name] || typeRegistry[this.shortName];
+        var ctorRegistry = this.metadataStore._ctorRegistry;
+        var aCtor = ctorRegistry[this.name] || ctorRegistry[this.shortName];
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             if (createCtor) {
@@ -5856,10 +5821,11 @@ var EntityType = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this, ["dataProperties", "navigationProperties", "validators"]);
+        return __toJson(this, ["shortName", "namespace", "autoGeneratedKeyType", "defaultResourceName",
+            "dataProperties", "navigationProperties", "validators"]);
     };
 
-    // fromJSON is handled by metadataStore._structuralTypeFromJson;
+    // fromJSON is handled by structuralTypeFromJson function.
         
     proto._clientPropertyPathToServer = function (propertyPath) {
         var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
@@ -6300,7 +6266,7 @@ var ComplexType = (function () {
     proto._setCtor = EntityType.prototype._setCtor;
         
     proto.toJSON = function () {
-        return __toJson(this, ["dataProperties", "validators"]);
+        return __toJson(this, ["shortName", "namespace", "dataProperties", "validators"]);
     };
        
     proto._fixup = function () {
@@ -6373,6 +6339,7 @@ var DataProperty = (function () {
         if (!hasName) {
             throw new Error("A DataProperty must be instantiated with either a 'name' or a 'nameOnServer' property");
         }
+        // name/nameOnServer is resolved later when a metadataStore is available.
             
         if (this.complexTypeName) {
             this.isComplexProperty = true;
@@ -6520,15 +6487,22 @@ var DataProperty = (function () {
     proto.isNavigationProperty = false;
 
     proto.toJSON = function () {
-        var json = __toJson(this, ["validators"]);
-        delete json.isComplexProperty;
-        return json;
+        return  __toJson(this, ["name", "nameOnServer", "dataType", "complexTypeName", "isNullable",
+            "defaultValue", "isPartOfKey", "isUnmapped", "concurrencyMode",
+            "maxLength", "fixedLength", "validators", "enumType", "rawTypeName"]);
     };
 
-    ctor.fromJSON = function (json, parentEntityType) {
+    ctor.fromJSON = function(json, parentEntityType) {
         json.dataType = DataType.fromName(json.dataType);
-        json.validators = json.validators.map(Validator.fromJSON);
-                
+        // dateTime instances require 'extra' work to deserialize properly.
+        if (json.defaultValue && json.dataType == DataType.DateTime) {
+            json.defaultValue = new Date(Date.parse(json.defaultValue));
+        }
+        
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
+
         var dp = new DataProperty(json);
         parentEntityType.addProperty(dp);
         return dp;
@@ -6688,16 +6662,19 @@ var NavigationProperty = (function () {
     proto.isNavigationProperty = true;
 
     proto.toJSON = function () {
-        return __toJson(this, ["validators", "foreignKeyNames", "foreignKeyNamesOnServer"]);
+        return __toJson(this, ["name", "nameOnServer", "entityTypeName", "isScalar",
+            "associationName", "validators", "foreignKeyNames", "foreignKeyNamesOnServer"]);
     };
 
     ctor.fromJSON = function (json, parentEntityType) {
-        json.validators = json.validators.map(Validator.fromJSON);
+        if (json.validators) {
+            json.validators = json.validators.map(Validator.fromJSON);
+        }
         var np = new NavigationProperty(json);
         parentEntityType.addProperty(np);
         return np;
     };
-
+    
     return ctor;
 })();
     
@@ -6774,8 +6751,8 @@ function isQualifiedTypeName(entityTypeName) {
     return entityTypeName.indexOf(":#") >= 0;
 }
     
-function qualifyTypeName(simpleTypeName, namespace) {
-    return simpleTypeName + ":#" + namespace;
+function qualifyTypeName(shortName, namespace) {
+    return shortName + ":#" + namespace;
 }
 
 // schema is only needed for navProperty type name
@@ -6795,19 +6772,19 @@ function normalizeTypeName(entityTypeName, schema) {
     var nameParts = entityTypeNameNoAssembly.split(".");
     if (nameParts.length > 1) {
             
-        var simpleTypeName = nameParts[nameParts.length - 1];
+        var shortName = nameParts[nameParts.length - 1];
 
         var ns;
         if (schema) {
-            ns = getNamespaceFor(simpleTypeName, schema);
+            ns = getNamespaceFor(shortName, schema);
         } else {
             var namespaceParts = nameParts.slice(0, nameParts.length - 1);
             ns = namespaceParts.join(".");
         }
         return {
-            shortTypeName: simpleTypeName,
+            shortTypeName: shortName,
             namespace: ns,
-            typeName: qualifyTypeName(simpleTypeName, ns)
+            typeName: qualifyTypeName(shortName, ns)
         };
     } else {
         return {
@@ -6867,7 +6844,7 @@ var EntityQuery = (function () {
     **/
     var ctor = function (resourceName) {
         assertParam(resourceName, "resourceName").isOptional().isString().check();
-        this.resourceName = normalizeResourceName(resourceName);
+        this.resourceName = resourceName;
         this.entityType = null;
         this.wherePredicate = null;
         this.orderByClause = null;
@@ -6958,7 +6935,6 @@ var EntityQuery = (function () {
     proto.from = function (resourceName) {
         // TODO: think about allowing entityType as well 
         assertParam(resourceName, "resourceName").isString().check();
-        resourceName = normalizeResourceName(resourceName);
         var currentName = this.resourceName;
         if (currentName && currentName !== resourceName) {
             throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
@@ -7716,14 +7692,6 @@ var EntityQuery = (function () {
 
     // private functions
         
-    function normalizeResourceName(resourceName) {
-        return resourceName;
-//            if (resourceName) {
-//                return resourceName.toLowerCase();
-//            } else {
-//                return undefined;
-//            }
-    }
         
     function normalizePropertyPaths(propertyPaths) {
         assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
@@ -8600,20 +8568,23 @@ var SimplePredicate = (function () {
         } else if (dataType === DataType.DateTime) {
             try {
                 return "datetime'" + val.toISOString() + "'";
-            } catch(e) {
-                msg = __formatString("'%1' is not a valid dateTime", val);
-                throw new Error(msg);
+            } catch (e) {
+                throwError("'%1' is not a valid dateTime", val);
+            }
+        } else if (dataType === DataType.DateTimeOffset) {
+            try {
+                return "datetimeoffset'" + val.toISOString() + "'";
+            } catch (e) {
+                throwError("'%1' is not a valid dateTimeoffset", val);
             }
         } else if (dataType == DataType.Time) {
             if (!__isDuration(val)) {
-                msg = __formatString("'%1' is not a valid ISO 8601 duration", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid ISO 8601 duration", val);
             }
             return "time'" + val + "'";
         } else if (dataType === DataType.Guid) {
             if (!__isGuid(val)) {
-                msg = __formatString("'%1' is not a valid guid", val);
-                throw new Error(msg);
+                throwError("'%1' is not a valid guid", val);
             }
             return "guid'" + val + "'";
         } else if (dataType === DataType.Boolean) {
@@ -8626,6 +8597,11 @@ var SimplePredicate = (function () {
             return val;
         }
 
+    }
+    
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
     }
 
     return ctor;
@@ -9755,17 +9731,6 @@ var EntityManager = (function () {
         return this;
     };
 
-    // Similar logic - but more performant is performed inside of importEntityGroup.
-    //function dateReviver(key, value) {
-    //    var a;
-    //    if (typeof value === 'string') {
-    //        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
-    //        if (a) {
-    //            return new Date(Date.parse(value));
-    //        }
-    //    }
-    //    return value;
-    //};
         
     /**
     Clears this EntityManager's cache but keeps all other settings. Note that this 
@@ -11116,8 +11081,8 @@ var EntityManager = (function () {
                     return { results: results, query: query };
                 });
             }
-            // _getJsonResultsAdapter does not exist on raw OData queries
-            var jsonResultsAdapter = (query._getJsonResultsAdapter && query._getJsonResultsAdapter(em)) || dataService.jsonResultsAdapter;
+            
+            var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
 
             var odataQuery = toOdataQueryString(query, metadataStore);
             var queryContext = {
@@ -11928,7 +11893,7 @@ var QueryOptions = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this);
+        return __toJson(this, ["fetchStrategy", "mergeStrategy"]);
     };
 
     ctor.fromJSON = function (json) {

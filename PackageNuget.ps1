@@ -23,7 +23,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
 function getBreezeVersion($srcDir) {
     $versionFile = "$srcDir\Breeze.Client\Scripts\IBlade\_head.jsfrag"
     $text = get-content $versionFile
-    $versionNum = (Select-String '\s*version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
+    $versionNum = (Select-String '\s+version:\s*"(?<version>\d.\d\d*.?\d*)"' $versionFile).Matches[0].Groups[1].Value
     return $versionNum
 }
 

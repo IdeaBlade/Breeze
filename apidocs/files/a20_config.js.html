@@ -412,19 +412,6 @@ var __config = function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    &#x2F;&#x2F;a_config._registerNamedInstance = function (instance, nameProperty) {
-    &#x2F;&#x2F;    a_config.registerFunction(function () { return instance; }, instance._$typeName + &quot;.&quot; + instance[nameProperty || &quot;name&quot;]);
-    &#x2F;&#x2F;};
-
-    &#x2F;&#x2F;a_config._namedInstanceFromJson = function (type, nameProperty, json) {
-    &#x2F;&#x2F;    var key = type.proto._$typeName + &quot;.&quot; + json[nameProperty || &quot;name&quot;];
-    &#x2F;&#x2F;    var fn = a_config.functionRegistry[key];
-    &#x2F;&#x2F;    if (!fn) {
-    &#x2F;&#x2F;        throw new Error(&quot;Unable to locate &quot; + key);
-    &#x2F;&#x2F;    }
-    &#x2F;&#x2F;    return fn(json);
-    &#x2F;&#x2F;};
-
     __config.stringifyPad = &quot;  &quot;;
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {

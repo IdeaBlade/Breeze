@@ -198,7 +198,6 @@ function __objectForEach(obj, kvFn) {
     }
 }
     
-    
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
         if (__hasOwnProperty.call(obj, key)) {
@@ -223,39 +222,6 @@ function __objectMapToArray(obj, kvFn) {
     }
     return results;
 }
-    
-&#x2F;&#x2F; Not yet needed 
-
-&#x2F;&#x2F;&#x2F;&#x2F; transform an object&#x27;s values
-&#x2F;&#x2F;function objectMapValue(obj, kvProjection) {
-&#x2F;&#x2F;    var value, newMap = {};
-&#x2F;&#x2F;    for (var key in obj) {
-&#x2F;&#x2F;        if (__hasOwnProperty.call(obj, key)) {
-&#x2F;&#x2F;            value = kvProjection(key, obj[key]);
-&#x2F;&#x2F;            if (value !== undefined) {
-&#x2F;&#x2F;                newMap[key] = value;
-&#x2F;&#x2F;            }
-&#x2F;&#x2F;        }
-&#x2F;&#x2F;    }
-&#x2F;&#x2F;    return newMap;
-&#x2F;&#x2F;}
-
-
-&#x2F;&#x2F;&#x2F;&#x2F; shrink an object&#x27;s surface
-&#x2F;&#x2F;function objectFilter(obj, kvPredicate) {
-&#x2F;&#x2F;    var result = {};
-&#x2F;&#x2F;    for (var key in obj) {
-&#x2F;&#x2F;        if (__hasOwnProperty.call(obj, key)) {
-&#x2F;&#x2F;            var value = obj[key];
-&#x2F;&#x2F;            if (kvPredicate(key, value)) {
-&#x2F;&#x2F;                result[key] = value;
-&#x2F;&#x2F;            }
-&#x2F;&#x2F;        }
-&#x2F;&#x2F;    }
-&#x2F;&#x2F;    return result;
-&#x2F;&#x2F;};
-    
-   
 
 &#x2F;&#x2F; Functional extensions 
 
@@ -294,26 +260,23 @@ function __extend(target, source) {
     return target;
 }
 
-function __toJson(source, addlPropNames) {
+function __toJson(source, propNames) {
     var target = {};
-    for (var name in source) {
-        if (__hasOwnProperty.call(source, name) &amp;&amp; name.substr(0, 1) != &quot;_&quot;) {
-            var value = source[name];
-            if (__isFunction(value)) continue;
-            if (typeof(value) === &quot;object&quot;) {
-                if (value &amp;&amp; value.parentEnum) {
-                    target[name] = value.name;
-                }
-            } else {
-                target[name] = value;
+    
+    propNames &amp;&amp; propNames.forEach(function (propName) {
+        if (!(propName in source)) return;
+        var value = source[propName];
+        if (Array.isArray(value) &amp;&amp; value.length === 0) return;
+        if (typeof(value) === &quot;object&quot;) {
+            if (value &amp;&amp; value.parentEnum) {
+                value = value.name;
             }
         }
-    }
-    addlPropNames &amp;&amp; addlPropNames.forEach(function(n) {
-        target[n] = source[n];
+        target[propName] = value;
     });
     return target;
 }
+
 
 &#x2F;&#x2F; array functions
 
