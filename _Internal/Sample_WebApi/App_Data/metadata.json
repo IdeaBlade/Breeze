@@ -1,5 +1,4 @@
 {
-
     "localQueryComparisonOptions": "caseInsensitiveSQL",
     "dataServices": [
         {
@@ -1939,7 +1938,7 @@
                     "name": "createdDate",
                     "dataType": "DateTime",
                     "isNullable": false,
-                    "defaultValue": "1900-01-01T08:00:00.000Z",
+                    "defaultValue": "2000-01-01T08:00:00.000Z",
                     "validators": [
                         {
                             "name": "required"
@@ -1983,7 +1982,7 @@
                     "name": "modifiedDate",
                     "dataType": "DateTime",
                     "isNullable": false,
-                    "defaultValue": "1900-01-01T08:00:00.000Z",
+                    "defaultValue": "2000-01-01T08:00:00.000Z",
                     "validators": [
                         {
                             "name": "required"
@@ -2255,6 +2254,6 @@
         "UserRoles": "UserRole:#Models.NorthwindIB.EDMX_2012",
         "Roles": "Role:#Models.NorthwindIB.EDMX_2012",
         "TimeLimits": "TimeLimit:#Models.NorthwindIB.EDMX_2012"
-    }
-
+    },
+    "incompleteTypeMap": {}
 }

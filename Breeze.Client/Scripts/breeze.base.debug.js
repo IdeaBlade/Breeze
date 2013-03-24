@@ -4450,7 +4450,6 @@ var MetadataStore = (function () {
             "dataServices": this.dataServices,
             "structuralTypeMap": this._structuralTypeMap,
             "resourceEntityTypeMap": this._resourceEntityTypeMap,
-            "incompleteTypeMap": this._incompleteTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -5955,30 +5954,9 @@ var EntityType = (function () {
         this.getProperties().forEach(function (property) {
             that._updateProperty(property);
         });
-        updateIncomplete(this);
+        updateIncomplete(this, true);
     };
-
-    function updateIncomplete(entityType) {
-        var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
-        var incompleteMap = incompleteTypeMap[entityType.name];
-        if (__isEmpty(incompleteMap)) {
-            delete incompleteTypeMap[entityType.name];
-            return;
-        }
-        if (incompleteMap) {
-            __objectForEach(incompleteMap, function (assocName, np) {
-                if (!np.entityType) {
-                    if (np.entityTypeName === entityType.name) {
-                        np.entityType = entityType;
-                        delete incompleteMap[assocName];
-                        updateIncomplete(np.parentType);
-                    }
-                }
-            });
-        }
-
-    }
-
+    
     function resolveFks(np) {
         if (np.foreignKeyProperties) return;
         var fkProps = getFkProps(np);
@@ -6027,6 +6005,25 @@ var EntityType = (function () {
             return null;
         }
     }
+    
+    function updateIncomplete(entityType) {
+        var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
+        var assocMap = incompleteTypeMap[entityType.name];
+
+        assocMap && __objectForEach(assocMap, function(assocName, np) {
+            if (np.entityTypeName === entityType.name) {
+                np.entityType = entityType;
+                deleteIncomplete(incompleteTypeMap, entityType.name, assocName);
+                
+                var altAssocMap = incompleteTypeMap[np.parentType.name];
+                altAssocMap && __objectForEach(altAssocMap, function(altAssocName, altNp) {
+                    if (altAssocName === assocName) {
+                        deleteIncomplete(incompleteTypeMap, np.parentType.name, assocName);
+                    }
+                });
+            }
+        });
+    }
 
     function updateCrossEntityRelationship(np) {
         var metadataStore = np.parentType.metadataStore;
@@ -6073,28 +6070,31 @@ var EntityType = (function () {
 
     function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
         np.inverse = inverse;
-        var assocMap = incompleteTypeMap[np.entityTypeName];
-
-        delete assocMap[np.associationName];
-        if (__isEmpty(assocMap)) {
-            delete incompleteTypeMap[np.entityTypeName];
-        }
+        deleteIncomplete(incompleteTypeMap, np.entityTypeName, np.associationName);
+        
         if (!inverse.inverse) {
             inverse.inverse = np;
             // not sure if these are needed
             if (inverse.entityType == null) {
                 inverse.entityType = np.parentType;
             }
-            var altAssocMap = incompleteTypeMap[np.parentType.name];
-            if (altAssocMap) {
-                delete altAssocMap[np.associationName];
-                if (__isEmpty(altAssocMap)) {
-                    delete incompleteTypeMap[np.parentType.name];
-                }
-            }
+            deleteIncomplete(incompleteTypeMap, np.parentType.name, np.associationName);
         }
     }
-        
+    
+    function deleteIncomplete(incompleteTypeMap, typeName, assocName) {
+        var assocMap = incompleteTypeMap[typeName];
+        if (!assocMap) return null;
+        delete assocMap[assocName];
+        if (__isEmpty(assocMap)) {
+            delete incompleteTypeMap[typeName];
+            return null;
+        } else {
+            return assocMap;
+        }
+    }
+    
+    
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
