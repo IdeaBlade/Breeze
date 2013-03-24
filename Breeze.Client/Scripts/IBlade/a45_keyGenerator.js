@@ -110,7 +110,7 @@ var KeyGenerator = function () {
             return __getUuid();
         }
 
-        if (dataType === DataType.DateTime) {
+        if (dataType.isDate) {
             return Date.now();
         }
 

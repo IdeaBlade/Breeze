@@ -147,7 +147,6 @@ var QueryOptions = (function () {
     };
 
     proto.toJSON = function () {
-        // return __toJson(this, ["fetchStrategy", "mergeStrategy"]);
         return __toJson(this, {
             fetchStrategy: null,
             mergeStrategy: null

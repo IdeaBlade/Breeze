@@ -126,6 +126,10 @@ var x = {
                     "type": "boolean",
                     "default": false
                 },
+                "concurrencyMode": {
+                    "enum": ["Fixed", "None"],
+                    "default": "None"
+                },
                 "maxLength": {
                     "description": "Only applicable to 'String' properties. This is the maximum string length allowed.",
                     "type": "number"

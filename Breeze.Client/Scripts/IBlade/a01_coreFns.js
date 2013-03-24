@@ -75,23 +75,8 @@ function __extend(target, source) {
     return target;
 }
 
-//function __toJson(source, propNames) {
-//    var target = {};
-    
-//    propNames && propNames.forEach(function (propName) {
-//        if (!(propName in source)) return;
-//        var value = source[propName];
-//        if (Array.isArray(value) && value.length === 0) return;
-//        if (typeof(value) === "object") {
-//            if (value && value.parentEnum) {
-//                value = value.name;
-//            }
-//        }
-//        target[propName] = value;
-//    });
-//    return target;
-//}
-
+// template keys are the keys to return
+// template values are the 'default' value of these keys - value is not serialized if it == the default value
 function __toJson(source, template) {
     var target = {};
 

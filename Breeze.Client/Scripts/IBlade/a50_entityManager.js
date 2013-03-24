@@ -1491,7 +1491,7 @@ var EntityManager = (function () {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
                     dataProperties.forEach(function (dp, ix) {
-                        if (dp.dataType == DataType.DateTime) {
+                        if (dp.dataType.isDate) {
                             targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
                         } else {
                             targetEntity.setProperty(dp.name, rawEntity[ix]);
@@ -1513,7 +1513,7 @@ var EntityManager = (function () {
             } else {
                 targetEntity = entityType._createEntityCore();
                 dataProperties.forEach(function (dp, ix) {
-                    if (dp.dataType == DataType.DateTime) {
+                    if (dp.dataType.isDate) {
                         targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
                     } else {
                         targetEntity.setProperty(dp.name, rawEntity[ix]);
@@ -1903,7 +1903,7 @@ var EntityManager = (function () {
         entityType.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped) return;
             var val = rawEntity[dp.nameOnServer];
-            if (dp.dataType === DataType.DateTime && val) {
+            if (dp.dataType.isDate && val) {
                 if (!__isDate(val)) {
                     val = DataType.parseDateFromServer(val);
                 }
@@ -2052,7 +2052,7 @@ var EntityManager = (function () {
         if (!value) value = property.dataType.defaultValue;
         if (property.dataType.isNumeric) {
             entity.setProperty(property.name, value + 1);
-        } else if (property.dataType === DataType.DateTime) {
+        } else if (property.dataType.isDate) {
             // use the current datetime but insure that it
             // is different from previous call.
             var dt = new Date();

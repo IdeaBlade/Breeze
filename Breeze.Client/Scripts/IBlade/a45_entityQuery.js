@@ -2182,7 +2182,7 @@ function getPropertyPathValue(obj, propertyPath) {
 }
    
 function getComparableFn(dataType) {
-    if (dataType === DataType.DateTime) {
+    if (dataType && dataType.isDate) {
         // dates don't perform equality comparisons properly 
         return function (value) { return value && value.getTime(); };
     } else if (dataType === DataType.Time) {
