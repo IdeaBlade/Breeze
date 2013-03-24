@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Mar 23 2013 14:13:44 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Sat Mar 23 2013 20:47:27 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1647,9 +1647,6 @@ intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   
   /// <field name="maxLength" type="Number" >The maximum length for the value of this property.</field>
   'maxLength': null,
-  
-  /// <field name="fixedLength" type="Boolean" >Whether this property is of 'fixed' length or not.</field>
-  'fixedLength': null,
   
   /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The  'Validator's that are associated with this property. Validators can be added and removed from this collection.</field>
   'validators': null,

@@ -332,7 +332,10 @@ var QueryOptions = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this, [&quot;fetchStrategy&quot;, &quot;mergeStrategy&quot;]);
+        return __toJson(this, {
+            fetchStrategy: null,
+            mergeStrategy: null
+        });
     };
 
     ctor.fromJSON = function (json) {
