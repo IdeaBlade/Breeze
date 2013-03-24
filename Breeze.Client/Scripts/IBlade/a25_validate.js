@@ -122,7 +122,7 @@ var Validator = function () {
     @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
     otherwise specified.
     @param validatorFn.context.value {Object} The value being validated.
-    @param validatorFn.context.validatorName {String} The name of the validator being executed.
+    @param validatorFn.context.name {String} The name of the validator being executed.
     @param validatorFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
     the value of its 'name' property or the string 'Value'
     @param validatorFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
@@ -138,7 +138,7 @@ var Validator = function () {
     var ctor = function (name, valFn, context) {
         // _baseContext is what will get serialized 
         this._baseContext = context || {};
-        this._baseContext.validatorName = name;
+        this._baseContext.name = name;
         context = __extend(Object.create(rootContext), this._baseContext);
         context.messageTemplate = context.messageTemplate || ctor.messageTemplates[name];
         this.name = name;
@@ -211,7 +211,7 @@ var Validator = function () {
             } else if (context.messageTemplate) {
                 return formatTemplate(context.messageTemplate, context);
             } else {
-                return "invalid value: " + this.validatorName || "{unnamed validator}";
+                return "invalid value: " + this.name || "{unnamed validator}";
             }
         } catch (e) {
             return "Unable to format error message" + e.toString();
@@ -223,10 +223,10 @@ var Validator = function () {
     };
 
     ctor.fromJSON = function (json) {
-        var validatorName = "Validator." + json.validatorName;
+        var validatorName = "Validator." + json.name;
         var fn = __config.functionRegistry[validatorName];
         if (!fn) {
-            throw new Error("Unable to locate a validator named:" + json.validatorName);
+            throw new Error("Unable to locate a validator named:" + json.name);
         }
         return fn(json);
     };

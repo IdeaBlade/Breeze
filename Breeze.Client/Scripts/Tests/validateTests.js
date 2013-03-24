@@ -61,7 +61,7 @@ define(["testFns"], function (testFns) {
         ok(r3.errorMessage.indexOf("Value") >= 0, v3.getMessage());
 
         var customMessageFn = function (args) {
-            return "Custom message: " + args.validatorName + " value:" + args.value +
+            return "Custom message: " + args.name + " value:" + args.value +
                     " messageTemplate: " + args.messageTemplate +
                     " displayName: " + args.displayName;
         };

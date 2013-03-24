@@ -76,6 +76,7 @@ gci $srcDir breeze-runtime*.zip -force | foreach ($_) {  remove-item $_.fullname
 new-item $destDir\Scripts -type Directory
 new-item $destDir\Scripts\Adapters -type Directory
 new-item $destDir\TypeScript -type Directory
+new-item $destDir\Metadata -type Directory
 copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\Scripts 
 
 # next 2 lines are a workaround because next line does not work

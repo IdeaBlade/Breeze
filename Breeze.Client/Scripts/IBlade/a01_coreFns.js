@@ -75,20 +75,43 @@ function __extend(target, source) {
     return target;
 }
 
-function __toJson(source, propNames) {
-    var target = {};
+//function __toJson(source, propNames) {
+//    var target = {};
     
-    propNames && propNames.forEach(function (propName) {
-        if (!(propName in source)) return;
+//    propNames && propNames.forEach(function (propName) {
+//        if (!(propName in source)) return;
+//        var value = source[propName];
+//        if (Array.isArray(value) && value.length === 0) return;
+//        if (typeof(value) === "object") {
+//            if (value && value.parentEnum) {
+//                value = value.name;
+//            }
+//        }
+//        target[propName] = value;
+//    });
+//    return target;
+//}
+
+function __toJson(source, template) {
+    var target = {};
+
+    for (var propName in template) {
+        if (!(propName in source)) continue;
         var value = source[propName];
-        if (Array.isArray(value) && value.length === 0) return;
-        if (typeof(value) === "object") {
+        var defaultValue = template[propName];
+        // == is deliberate here - idea is that null or undefined values will never get serialized if default value is set to null.
+        if (value == defaultValue) continue;
+        if (Array.isArray(value) && value.length === 0) continue;
+        if (typeof(defaultValue) === "function") {
+            value = defaultValue(value);
+        } else if (typeof (value) === "object") {
             if (value && value.parentEnum) {
                 value = value.name;
             }
         }
+        if (value === undefined) continue;
         target[propName] = value;
-    });
+    };
     return target;
 }
 

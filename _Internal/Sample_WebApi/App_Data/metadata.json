@@ -1,12 +1,9 @@
 {
-    "xxx_serializationVersion": "1.0.1",
-    "namingConvention": "camelCase",
+
     "localQueryComparisonOptions": "caseInsensitiveSQL",
     "dataServices": [
         {
             "serviceName": "api/NorthwindIBModel/",
-            "adapterName": null,
-            "hasServerMetadata": true,
             "jsonResultsAdapter": "webApi_default"
         }
     ],
@@ -18,75 +15,55 @@
                 {
                     "name": "address",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 60,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "city",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "region",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "postalCode",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "country",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 }
@@ -104,13 +81,12 @@
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -119,44 +95,32 @@
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "description",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
                 {
                     "name": "picture",
                     "dataType": "Binary",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
@@ -165,14 +129,12 @@
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -180,7 +142,6 @@
             "navigationProperties": [
                 {
                     "name": "products",
-                    "nameOnServer": "Products",
                     "entityTypeName": "Product:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Product_Category"
@@ -194,207 +155,160 @@
             "defaultResourceName": "Customers",
             "dataProperties": [
                 {
-                    "nameOnServer": "CustomerID",
+                    "name": "customerID",
                     "dataType": "Guid",
                     "isNullable": false,
                     "defaultValue": "00000000-0000-0000-0000-000000000000",
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "guid"
+                            "name": "guid"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "CustomerID_OLD",
+                    "name": "customerID_OLD",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 5,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 5,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "CompanyName",
+                    "name": "companyName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 40,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "ContactName",
+                    "name": "contactName",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "ContactTitle",
+                    "name": "contactTitle",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "Address",
+                    "name": "address",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 60,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "City",
+                    "name": "city",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "Region",
+                    "name": "region",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "PostalCode",
+                    "name": "postalCode",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "Country",
+                    "name": "country",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "Phone",
+                    "name": "phone",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "Fax",
+                    "name": "fax",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
-                    "nameOnServer": "RowVersion",
+                    "name": "rowVersion",
                     "dataType": "Int32",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "concurrencyMode": "Fixed",
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
             ],
             "navigationProperties": [
                 {
-                    "nameOnServer": "Orders",
+                    "name": "orders",
                     "entityTypeName": "Order:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Order_Customer"
@@ -413,13 +327,12 @@
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -428,16 +341,14 @@
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -446,233 +357,169 @@
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "title",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "titleOfCourtesy",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 25,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 25,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "birthDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "hireDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "address",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 60,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "city",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "region",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "postalCode",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "country",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "homePhone",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "extension",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 4,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 4,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "photo",
                     "dataType": "Binary",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
                 {
                     "name": "notes",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
                 {
                     "name": "photoPath",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 255,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 255,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "reportsToEmployeeID",
                     "dataType": "Int32",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -681,14 +528,12 @@
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -707,9 +552,6 @@
                     "associationName": "FK_Employee_Employee",
                     "foreignKeyNames": [
                         "reportsToEmployeeID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "ReportsToEmployeeID"
                     ]
                 },
                 {
@@ -740,69 +582,58 @@
             "dataProperties": [
                 {
                     "name": "iD",
-                    "nameOnServer": "ID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "employeeID",
-                    "nameOnServer": "EmployeeID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "territoryID",
-                    "nameOnServer": "TerritoryID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -810,28 +641,20 @@
             "navigationProperties": [
                 {
                     "name": "employee",
-                    "nameOnServer": "Employee",
                     "entityTypeName": "Employee:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_EmployeeTerritory_Employee",
                     "foreignKeyNames": [
                         "employeeID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "EmployeeID"
                     ]
                 },
                 {
                     "name": "territory",
-                    "nameOnServer": "Territory",
                     "entityTypeName": "Territory:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_EmployeeTerritory_Territory",
                     "foreignKeyNames": [
                         "territoryID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "TerritoryID"
                     ]
                 }
             ]
@@ -844,71 +667,60 @@
             "dataProperties": [
                 {
                     "name": "orderID",
-                    "nameOnServer": "OrderID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "customsDescription",
-                    "nameOnServer": "CustomsDescription",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "exciseTax",
-                    "nameOnServer": "ExciseTax",
                     "dataType": "Decimal",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -916,15 +728,11 @@
             "navigationProperties": [
                 {
                     "name": "order",
-                    "nameOnServer": "Order",
                     "entityTypeName": "Order:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_InternationalOrder_Order",
                     "foreignKeyNames": [
                         "orderID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "OrderID"
                     ]
                 }
             ]
@@ -937,37 +745,33 @@
             "dataProperties": [
                 {
                     "name": "name",
-                    "nameOnServer": "Name",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
                     "isPartOfKey": true,
                     "maxLength": 50,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 50,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "nextId1",
-                    "nameOnServer": "NextId1",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 }
@@ -981,215 +785,150 @@
             "dataProperties": [
                 {
                     "name": "orderID",
-                    "nameOnServer": "OrderID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "customerID",
-                    "nameOnServer": "CustomerID",
                     "dataType": "Guid",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "guid"
+                            "name": "guid"
                         }
                     ]
                 },
                 {
                     "name": "employeeID",
-                    "nameOnServer": "EmployeeID",
                     "dataType": "Int32",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "orderDate",
-                    "nameOnServer": "OrderDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "requiredDate",
-                    "nameOnServer": "RequiredDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "shippedDate",
-                    "nameOnServer": "ShippedDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "freight",
-                    "nameOnServer": "Freight",
                     "dataType": "Decimal",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "shipName",
-                    "nameOnServer": "ShipName",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 40,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "shipAddress",
-                    "nameOnServer": "ShipAddress",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 60,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "shipCity",
-                    "nameOnServer": "ShipCity",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "shipRegion",
-                    "nameOnServer": "ShipRegion",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "shipPostalCode",
-                    "nameOnServer": "ShipPostalCode",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "shipCountry",
-                    "nameOnServer": "ShipCountry",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1197,46 +936,33 @@
             "navigationProperties": [
                 {
                     "name": "customer",
-                    "nameOnServer": "Customer",
                     "entityTypeName": "Customer:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Order_Customer",
                     "foreignKeyNames": [
                         "customerID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "CustomerID"
                     ]
                 },
                 {
                     "name": "employee",
-                    "nameOnServer": "Employee",
                     "entityTypeName": "Employee:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Order_Employee",
                     "foreignKeyNames": [
                         "employeeID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "EmployeeID"
                     ]
                 },
                 {
                     "name": "internationalOrder",
-                    "nameOnServer": "InternationalOrder",
                     "entityTypeName": "InternationalOrder:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_InternationalOrder_Order",
                     "foreignKeyNames": [
                         "orderID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "OrderID"
                     ]
                 },
                 {
                     "name": "orderDetails",
-                    "nameOnServer": "OrderDetails",
                     "entityTypeName": "OrderDetail:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_OrderDetail_Order"
@@ -1251,103 +977,87 @@
             "dataProperties": [
                 {
                     "name": "orderID",
-                    "nameOnServer": "OrderID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "productID",
-                    "nameOnServer": "ProductID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "unitPrice",
-                    "nameOnServer": "UnitPrice",
                     "dataType": "Decimal",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "quantity",
-                    "nameOnServer": "Quantity",
                     "dataType": "Int16",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
                 {
                     "name": "discount",
-                    "nameOnServer": "Discount",
                     "dataType": "Single",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1355,28 +1065,20 @@
             "navigationProperties": [
                 {
                     "name": "order",
-                    "nameOnServer": "Order",
                     "entityTypeName": "Order:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_OrderDetail_Order",
                     "foreignKeyNames": [
                         "orderID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "OrderID"
                     ]
                 },
                 {
                     "name": "product",
-                    "nameOnServer": "Product",
                     "entityTypeName": "Product:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_OrderDetail_Product",
                     "foreignKeyNames": [
                         "productID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "ProductID"
                     ]
                 }
             ]
@@ -1389,291 +1091,208 @@
             "dataProperties": [
                 {
                     "name": "employeeID",
-                    "nameOnServer": "EmployeeID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "lastName",
-                    "nameOnServer": "LastName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 20,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 20,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "firstName",
-                    "nameOnServer": "FirstName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "title",
-                    "nameOnServer": "Title",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "titleOfCourtesy",
-                    "nameOnServer": "TitleOfCourtesy",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 25,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 25,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "birthDate",
-                    "nameOnServer": "BirthDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "hireDate",
-                    "nameOnServer": "HireDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "address",
-                    "nameOnServer": "Address",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 60,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "city",
-                    "nameOnServer": "City",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "region",
-                    "nameOnServer": "Region",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "postalCode",
-                    "nameOnServer": "PostalCode",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 10,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "country",
-                    "nameOnServer": "Country",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 15,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "homePhone",
-                    "nameOnServer": "HomePhone",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "extension",
-                    "nameOnServer": "Extension",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 4,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 4,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "photo",
-                    "nameOnServer": "Photo",
                     "dataType": "Binary",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
                 {
                     "name": "notes",
-                    "nameOnServer": "Notes",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
                 {
                     "name": "photoPath",
-                    "nameOnServer": "PhotoPath",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 255,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 255,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1687,185 +1306,134 @@
             "dataProperties": [
                 {
                     "name": "productID",
-                    "nameOnServer": "ProductID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "productName",
-                    "nameOnServer": "ProductName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 40,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "supplierID",
-                    "nameOnServer": "SupplierID",
                     "dataType": "Int32",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "categoryID",
-                    "nameOnServer": "CategoryID",
                     "dataType": "Int32",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "quantityPerUnit",
-                    "nameOnServer": "QuantityPerUnit",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 20,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 20,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "unitPrice",
-                    "nameOnServer": "UnitPrice",
                     "dataType": "Decimal",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "unitsInStock",
-                    "nameOnServer": "UnitsInStock",
                     "dataType": "Int16",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
                 {
                     "name": "unitsOnOrder",
-                    "nameOnServer": "UnitsOnOrder",
                     "dataType": "Int16",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
                 {
                     "name": "reorderLevel",
-                    "nameOnServer": "ReorderLevel",
                     "dataType": "Int16",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
                 {
                     "name": "isDiscontinued",
-                    "nameOnServer": "Discontinued",
                     "dataType": "Boolean",
                     "isNullable": false,
                     "defaultValue": false,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "bool"
+                            "name": "bool"
                         }
                     ]
                 },
                 {
                     "name": "discontinuedDate",
-                    "nameOnServer": "DiscontinuedDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1873,28 +1441,20 @@
             "navigationProperties": [
                 {
                     "name": "category",
-                    "nameOnServer": "Category",
                     "entityTypeName": "Category:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Product_Category",
                     "foreignKeyNames": [
                         "categoryID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "CategoryID"
                     ]
                 },
                 {
                     "name": "supplier",
-                    "nameOnServer": "Supplier",
                     "entityTypeName": "Supplier:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Product_Supplier",
                     "foreignKeyNames": [
                         "supplierID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "SupplierID"
                     ]
                 }
             ]
@@ -1902,59 +1462,51 @@
         "Region:#Models.NorthwindIB.EDMX_2012": {
             "shortName": "Region",
             "namespace": "Models.NorthwindIB.EDMX_2012",
-            "autoGeneratedKeyType": "KeyGenerator",
+            "autoGeneratedKeyType": "None",
             "defaultResourceName": "Regions",
             "dataProperties": [
                 {
                     "name": "regionID",
-                    "nameOnServer": "RegionID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "regionDescription",
-                    "nameOnServer": "RegionDescription",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 50,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 50,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1962,7 +1514,6 @@
             "navigationProperties": [
                 {
                     "name": "territories",
-                    "nameOnServer": "Territories",
                     "entityTypeName": "Territory:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Territory_Region"
@@ -1977,220 +1528,160 @@
             "dataProperties": [
                 {
                     "name": "supplierID",
-                    "nameOnServer": "SupplierID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "companyName",
-                    "nameOnServer": "CompanyName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 40,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "contactName",
-                    "nameOnServer": "ContactName",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "contactTitle",
-                    "nameOnServer": "ContactTitle",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 30,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "phone",
-                    "nameOnServer": "Phone",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "fax",
-                    "nameOnServer": "Fax",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 24,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "homePage",
-                    "nameOnServer": "HomePage",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "location",
-                    "nameOnServer": "Location",
                     "dataType": {
                         "shortName": "Location",
                         "namespace": "Models.NorthwindIB.EDMX_2012",
                         "dataProperties": [
                             {
                                 "name": "address",
-                                "nameOnServer": "Address",
                                 "dataType": "String",
-                                "isNullable": true,
-                                "defaultValue": null,
-                                "isPartOfKey": false,
                                 "maxLength": 60,
-                                "fixedLength": false,
                                 "validators": [
                                     {
                                         "maxLength": 60,
-                                        "validatorName": "maxLength"
+                                        "name": "maxLength"
                                     }
                                 ]
                             },
                             {
                                 "name": "city",
-                                "nameOnServer": "City",
                                 "dataType": "String",
-                                "isNullable": true,
-                                "defaultValue": null,
-                                "isPartOfKey": false,
                                 "maxLength": 15,
-                                "fixedLength": false,
                                 "validators": [
                                     {
                                         "maxLength": 15,
-                                        "validatorName": "maxLength"
+                                        "name": "maxLength"
                                     }
                                 ]
                             },
                             {
                                 "name": "region",
-                                "nameOnServer": "Region",
                                 "dataType": "String",
-                                "isNullable": true,
-                                "defaultValue": null,
-                                "isPartOfKey": false,
                                 "maxLength": 15,
-                                "fixedLength": false,
                                 "validators": [
                                     {
                                         "maxLength": 15,
-                                        "validatorName": "maxLength"
+                                        "name": "maxLength"
                                     }
                                 ]
                             },
                             {
                                 "name": "postalCode",
-                                "nameOnServer": "PostalCode",
                                 "dataType": "String",
-                                "isNullable": true,
-                                "defaultValue": null,
-                                "isPartOfKey": false,
                                 "maxLength": 10,
-                                "fixedLength": false,
                                 "validators": [
                                     {
                                         "maxLength": 10,
-                                        "validatorName": "maxLength"
+                                        "name": "maxLength"
                                     }
                                 ]
                             },
                             {
                                 "name": "country",
-                                "nameOnServer": "Country",
                                 "dataType": "String",
-                                "isNullable": true,
-                                "defaultValue": null,
-                                "isPartOfKey": false,
                                 "maxLength": 15,
-                                "fixedLength": false,
                                 "validators": [
                                     {
                                         "maxLength": 15,
-                                        "validatorName": "maxLength"
+                                        "name": "maxLength"
                                     }
                                 ]
                             }
@@ -2198,10 +1689,9 @@
                     },
                     "complexTypeName": "Location:#Models.NorthwindIB.EDMX_2012",
                     "isNullable": false,
-                    "defaultValue": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         }
                     ]
                 }
@@ -2209,7 +1699,6 @@
             "navigationProperties": [
                 {
                     "name": "products",
-                    "nameOnServer": "Products",
                     "entityTypeName": "Product:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_Product_Supplier"
@@ -2219,76 +1708,65 @@
         "Territory:#Models.NorthwindIB.EDMX_2012": {
             "shortName": "Territory",
             "namespace": "Models.NorthwindIB.EDMX_2012",
-            "autoGeneratedKeyType": "KeyGenerator",
+            "autoGeneratedKeyType": "None",
             "defaultResourceName": "Territories",
             "dataProperties": [
                 {
                     "name": "territoryID",
-                    "nameOnServer": "TerritoryID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "territoryDescription",
-                    "nameOnServer": "TerritoryDescription",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 50,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 50,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "regionID",
-                    "nameOnServer": "RegionID",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -2296,27 +1774,21 @@
             "navigationProperties": [
                 {
                     "name": "employeeTerritories",
-                    "nameOnServer": "EmployeeTerritories",
                     "entityTypeName": "EmployeeTerritory:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_EmployeeTerritory_Territory"
                 },
                 {
                     "name": "region",
-                    "nameOnServer": "Region",
                     "entityTypeName": "Region:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_Territory_Region",
                     "foreignKeyNames": [
                         "regionID"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "RegionID"
                     ]
                 },
                 {
                     "name": "employees",
-                    "nameOnServer": "Employees",
                     "entityTypeName": "Employee:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "EmployeeTerritoryNoPayload"
@@ -2331,233 +1803,193 @@
             "dataProperties": [
                 {
                     "name": "id",
-                    "nameOnServer": "Id",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "userName",
-                    "nameOnServer": "UserName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "userPassword",
-                    "nameOnServer": "UserPassword",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 200,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 200,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "firstName",
-                    "nameOnServer": "FirstName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "lastName",
-                    "nameOnServer": "LastName",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "email",
-                    "nameOnServer": "Email",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "rowVersion",
-                    "nameOnServer": "RowVersion",
                     "dataType": "Decimal",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
                 {
                     "name": "createdBy",
-                    "nameOnServer": "CreatedBy",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "createdByUserId",
-                    "nameOnServer": "CreatedByUserId",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "createdDate",
-                    "nameOnServer": "CreatedDate",
                     "dataType": "DateTime",
                     "isNullable": false,
-                    "defaultValue": "2000-01-01T08:00:00.000Z",
-                    "isPartOfKey": false,
-                    "maxLength": null,
+                    "defaultValue": "1900-01-01T08:00:00.000Z",
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "modifiedBy",
-                    "nameOnServer": "ModifiedBy",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 100,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 100,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "modifiedByUserId",
-                    "nameOnServer": "ModifiedByUserId",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "modifiedDate",
-                    "nameOnServer": "ModifiedDate",
                     "dataType": "DateTime",
                     "isNullable": false,
-                    "defaultValue": "2000-01-01T08:00:00.000Z",
-                    "isPartOfKey": false,
-                    "maxLength": null,
+                    "defaultValue": "1900-01-01T08:00:00.000Z",
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 }
@@ -2565,7 +1997,6 @@
             "navigationProperties": [
                 {
                     "name": "userRoles",
-                    "nameOnServer": "UserRoles",
                     "entityTypeName": "UserRole:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_UserRole_User"
@@ -2580,52 +2011,44 @@
             "dataProperties": [
                 {
                     "name": "iD",
-                    "nameOnServer": "ID",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "userId",
-                    "nameOnServer": "UserId",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "roleId",
-                    "nameOnServer": "RoleId",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 }
@@ -2633,28 +2056,20 @@
             "navigationProperties": [
                 {
                     "name": "user",
-                    "nameOnServer": "User",
                     "entityTypeName": "User:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_UserRole_User",
                     "foreignKeyNames": [
                         "userId"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "UserId"
                     ]
                 },
                 {
                     "name": "role",
-                    "nameOnServer": "Role",
                     "entityTypeName": "Role:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": true,
                     "associationName": "FK_UserRole_Role",
                     "foreignKeyNames": [
                         "roleId"
-                    ],
-                    "foreignKeyNamesOnServer": [
-                        "RoleId"
                     ]
                 }
             ]
@@ -2667,82 +2082,62 @@
             "dataProperties": [
                 {
                     "name": "id",
-                    "nameOnServer": "Id",
                     "dataType": "Int64",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "integer"
+                            "name": "integer"
                         }
                     ]
                 },
                 {
                     "name": "name",
-                    "nameOnServer": "Name",
                     "dataType": "String",
                     "isNullable": false,
                     "defaultValue": "",
-                    "isPartOfKey": false,
                     "maxLength": 50,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 50,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "description",
-                    "nameOnServer": "Description",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 2000,
-                    "fixedLength": false,
                     "validators": [
                         {
                             "maxLength": 2000,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
                 {
                     "name": "ts",
-                    "nameOnServer": "Ts",
                     "dataType": "Binary",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
                     "maxLength": 8,
-                    "fixedLength": false,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
                 {
                     "name": "roleType",
-                    "nameOnServer": "RoleType",
                     "dataType": "String",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ],
                     "enumType": "Edm.NorthwindIBModel.RoleType"
@@ -2751,7 +2146,6 @@
             "navigationProperties": [
                 {
                     "name": "userRoles",
-                    "nameOnServer": "UserRoles",
                     "entityTypeName": "UserRole:#Models.NorthwindIB.EDMX_2012",
                     "isScalar": false,
                     "associationName": "FK_UserRole_Role"
@@ -2766,106 +2160,76 @@
             "dataProperties": [
                 {
                     "name": "id",
-                    "nameOnServer": "Id",
                     "dataType": "Int32",
                     "isNullable": false,
                     "defaultValue": 0,
                     "isPartOfKey": true,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
                 {
                     "name": "maxTime",
-                    "nameOnServer": "MaxTime",
                     "dataType": "Time",
                     "isNullable": false,
                     "defaultValue": "PT0S",
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "duration"
+                            "name": "duration"
                         }
                     ]
                 },
                 {
                     "name": "minTime",
-                    "nameOnServer": "MinTime",
                     "dataType": "Time",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "duration"
+                            "name": "duration"
                         }
                     ]
                 },
                 {
                     "name": "creationDate",
-                    "nameOnServer": "CreationDate",
-                    "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
+                    "dataType": "DateTimeOffset",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "modificationDate",
-                    "nameOnServer": "ModificationDate",
                     "dataType": "DateTime",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
                 {
                     "name": "geometry1",
-                    "nameOnServer": "Geometry1",
                     "dataType": "Undefined",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ],
                     "rawTypeName": "Edm.Geometry"
                 },
                 {
                     "name": "geography1",
-                    "nameOnServer": "Geography1",
                     "dataType": "Undefined",
-                    "isNullable": true,
-                    "defaultValue": null,
-                    "isPartOfKey": false,
-                    "maxLength": null,
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ],
                     "rawTypeName": "Edm.Geography"
@@ -2891,22 +2255,6 @@
         "UserRoles": "UserRole:#Models.NorthwindIB.EDMX_2012",
         "Roles": "Role:#Models.NorthwindIB.EDMX_2012",
         "TimeLimits": "TimeLimit:#Models.NorthwindIB.EDMX_2012"
-    },
-    "incompleteTypeMap": {
-        "OrderDetail:#Models.NorthwindIB.EDMX_2012": {
-            "FK_OrderDetail_Product": {
-                "name": "product",
-                "nameOnServer": "Product",
-                "entityTypeName": "Product:#Models.NorthwindIB.EDMX_2012",
-                "isScalar": true,
-                "associationName": "FK_OrderDetail_Product",
-                "foreignKeyNames": [
-                    "productID"
-                ],
-                "foreignKeyNamesOnServer": [
-                    "ProductID"
-                ]
-            }
-        }
     }
+
 }

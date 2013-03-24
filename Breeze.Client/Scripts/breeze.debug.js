@@ -110,20 +110,43 @@ function __extend(target, source) {
     return target;
 }
 
-function __toJson(source, propNames) {
-    var target = {};
+//function __toJson(source, propNames) {
+//    var target = {};
     
-    propNames && propNames.forEach(function (propName) {
-        if (!(propName in source)) return;
+//    propNames && propNames.forEach(function (propName) {
+//        if (!(propName in source)) return;
+//        var value = source[propName];
+//        if (Array.isArray(value) && value.length === 0) return;
+//        if (typeof(value) === "object") {
+//            if (value && value.parentEnum) {
+//                value = value.name;
+//            }
+//        }
+//        target[propName] = value;
+//    });
+//    return target;
+//}
+
+function __toJson(source, template) {
+    var target = {};
+
+    for (var propName in template) {
+        if (!(propName in source)) continue;
         var value = source[propName];
-        if (Array.isArray(value) && value.length === 0) return;
-        if (typeof(value) === "object") {
+        var defaultValue = template[propName];
+        // == is deliberate here - idea is that null or undefined values will never get serialized if default value is set to null.
+        if (value == defaultValue) continue;
+        if (Array.isArray(value) && value.length === 0) continue;
+        if (typeof(defaultValue) === "function") {
+            value = defaultValue(value);
+        } else if (typeof (value) === "object") {
             if (value && value.parentEnum) {
                 value = value.name;
             }
         }
+        if (value === undefined) continue;
         target[propName] = value;
-    });
+    };
     return target;
 }
 
@@ -2016,7 +2039,7 @@ var Validator = function () {
     @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
     otherwise specified.
     @param validatorFn.context.value {Object} The value being validated.
-    @param validatorFn.context.validatorName {String} The name of the validator being executed.
+    @param validatorFn.context.name {String} The name of the validator being executed.
     @param validatorFn.context.displayName {String} This will be either the value of the property's 'displayName' property or
     the value of its 'name' property or the string 'Value'
     @param validatorFn.context.messageTemplate {String} This will either be the value of Validator.messageTemplates[ {this validators name}] or null. Validator.messageTemplates
@@ -2032,7 +2055,7 @@ var Validator = function () {
     var ctor = function (name, valFn, context) {
         // _baseContext is what will get serialized 
         this._baseContext = context || {};
-        this._baseContext.validatorName = name;
+        this._baseContext.name = name;
         context = __extend(Object.create(rootContext), this._baseContext);
         context.messageTemplate = context.messageTemplate || ctor.messageTemplates[name];
         this.name = name;
@@ -2105,7 +2128,7 @@ var Validator = function () {
             } else if (context.messageTemplate) {
                 return formatTemplate(context.messageTemplate, context);
             } else {
-                return "invalid value: " + this.validatorName || "{unnamed validator}";
+                return "invalid value: " + this.name || "{unnamed validator}";
             }
         } catch (e) {
             return "Unable to format error message" + e.toString();
@@ -2117,10 +2140,10 @@ var Validator = function () {
     };
 
     ctor.fromJSON = function (json) {
-        var validatorName = "Validator." + json.validatorName;
+        var validatorName = "Validator." + json.name;
         var fn = __config.functionRegistry[validatorName];
         if (!fn) {
-            throw new Error("Unable to locate a validator named:" + json.validatorName);
+            throw new Error("Unable to locate a validator named:" + json.name);
         }
         return fn(json);
     };
@@ -4436,7 +4459,7 @@ var MetadataStore = (function () {
     **/
     proto.exportMetadata = function () {
         var result = JSON.stringify({
-            "serializationVersion": breeze.serializationVersion,
+            "metadataVersion": breeze.metadataVersion,
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
@@ -4464,9 +4487,9 @@ var MetadataStore = (function () {
     **/
     proto.importMetadata = function (exportedMetadata) {
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
-        if (json.serializationVersion && json.serializationVersion !== breeze.serializationVersion) {
-            var msg = __formatString("Cannot import metadata with a different 'serializationVersion' (%1) than the current 'breeze.serializationVersion' (%2) ",
-                json.serializationVersion, breeze.serializationVersion);
+        if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
+            var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
+                json.metadataVersion, breeze.metadataVersion);
             throw new Error(msg);
         }
 
@@ -5276,9 +5299,14 @@ var DataService = function () {
     };
         
     proto.toJSON = function () {
-        var json = __toJson(this, ["serviceName", "adapterName", "hasServerMetadata"]);
-        json.jsonResultsAdapter = this.jsonResultsAdapter.name;
-        return json;
+        // var json = __toJson(this, ["serviceName", "adapterName", "hasServerMetadata"]);
+        return __toJson(this, {
+            serviceName: null,
+            adapterName: null,
+            hasServerMetadata: true,
+            jsonResultsAdapter: function(v) { return v && v.name; }
+        });
+        
     };
 
     ctor.fromJSON = function(json) {
@@ -5821,8 +5849,17 @@ var EntityType = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this, ["shortName", "namespace", "autoGeneratedKeyType", "defaultResourceName",
-            "dataProperties", "navigationProperties", "validators"]);
+        //return __toJson(this, ["shortName", "namespace", "autoGeneratedKeyType", "defaultResourceName",
+        //    "dataProperties", "navigationProperties", "validators"]);
+        return __toJson(this, {
+            shortName: null,
+            namespace: null,
+            autoGeneratedKeyType: null, // do not suppress default value
+            defaultResourceName: null,
+            dataProperties: null,
+            navigationProperties: null,
+            validators: null
+        });
     };
 
     // fromJSON is handled by structuralTypeFromJson function.
@@ -6266,7 +6303,13 @@ var ComplexType = (function () {
     proto._setCtor = EntityType.prototype._setCtor;
         
     proto.toJSON = function () {
-        return __toJson(this, ["shortName", "namespace", "dataProperties", "validators"]);
+        // return __toJson(this, ["shortName", "namespace", "dataProperties", "validators"]);
+        return __toJson(this, {
+            shortName: null,
+            namespace: null,
+            dataProperties: null,
+            validators: null
+        });
     };
        
     proto._fixup = function () {
@@ -6343,6 +6386,7 @@ var DataProperty = (function () {
             
         if (this.complexTypeName) {
             this.isComplexProperty = true;
+            this.dataType = null;
         } else if (!this.dataType) {
             this.dataType = DataType.String;
         }
@@ -6487,9 +6531,25 @@ var DataProperty = (function () {
     proto.isNavigationProperty = false;
 
     proto.toJSON = function () {
-        return  __toJson(this, ["name", "nameOnServer", "dataType", "complexTypeName", "isNullable",
-            "defaultValue", "isPartOfKey", "isUnmapped", "concurrencyMode",
-            "maxLength", "fixedLength", "validators", "enumType", "rawTypeName"]);
+        //return  __toJson(this, ["name", "nameOnServer", "dataType", "complexTypeName", "isNullable",
+        //    "defaultValue", "isPartOfKey", "isUnmapped", "concurrencyMode",
+        //    "maxLength", "fixedLength", "validators", "enumType", "rawTypeName"]);
+        return __toJson(this, {
+            name: null,
+            dataType: null,
+            complexTypeName: null,
+            isNullable: true,
+            defaultValue: null,
+            isPartOfKey: false,
+            isUnmapped: false,
+            concurrencyMode: null,
+            maxLength: null,
+            validators: null,
+            enumType: null,
+            rawTypeName: null
+        });
+        
+        
     };
 
     ctor.fromJSON = function(json, parentEntityType) {
@@ -6662,8 +6722,16 @@ var NavigationProperty = (function () {
     proto.isNavigationProperty = true;
 
     proto.toJSON = function () {
-        return __toJson(this, ["name", "nameOnServer", "entityTypeName", "isScalar",
-            "associationName", "validators", "foreignKeyNames", "foreignKeyNamesOnServer"]);
+        //return __toJson(this, ["name", "nameOnServer", "entityTypeName", "isScalar",
+        //    "associationName", "validators", "foreignKeyNames", "foreignKeyNamesOnServer"]);
+        return __toJson(this, {
+            name: null,
+            entityTypeName: null,
+            isScalar: null,
+            associationName: null,
+            validators: null,
+            foreignKeyNames: null
+        });
     };
 
     ctor.fromJSON = function (json, parentEntityType) {
@@ -11893,7 +11961,11 @@ var QueryOptions = (function () {
     };
 
     proto.toJSON = function () {
-        return __toJson(this, ["fetchStrategy", "mergeStrategy"]);
+        // return __toJson(this, ["fetchStrategy", "mergeStrategy"]);
+        return __toJson(this, {
+            fetchStrategy: null,
+            mergeStrategy: null
+        });
     };
 
     ctor.fromJSON = function (json) {

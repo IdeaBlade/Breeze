@@ -3,7 +3,7 @@ var x = {
     "type": "object",
     "properties": {
         "structuralTypeMap": {
-            "description": "Map of entity type/complex type names to their metadata definitions",
+            "description": "Map of entity type/complex type names to their metadata definitions.  The key is a structural type name and the value is either an entityType or a complexType",
             "type": "object",
             "additionalProperties": {
                 "type": "object",
@@ -18,11 +18,11 @@ var x = {
             "type": "object",
             "additionalProperties": {
                 "description": "Fully qualified Entity type names.",
-                "type": "string",
+                "$ref": "#/definitions/structuralTypeName"
             }
         },
     
-        "serializationVersion": {
+        "metadataVersion": {
             "description": "The serialization version for this document",
             "type": "string"
         },
@@ -41,7 +41,13 @@ var x = {
         
     },
     "required": ["structuralTypeMap"],
+    "additionalProperties": true,
     "definitions": {
+        "structuralTypeName": {
+            "description": "A fully qualified entity/complex type name - constructed as 'shortName' + ':#' + 'namespace'",
+            "type": "string",
+            "pattern": "\S+:#\S*"
+        },
         "entityType": {
             "properties": {
                 "shortName": {
@@ -89,20 +95,22 @@ var x = {
             "required": ["shortName", "dataProperties"]
         },
         "dataProperty": {
+            "description": "A single data property, at a minimum you must to define either a 'name' or a 'nameOnServer' and either a 'dataType' or a 'complexTypeName'.",
             "properties": {
                 "name": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "nameOnServer": {
                     "type": "string"
                 },
                 "dataType": {
+                    "description": "If present, the complexType name should be omitted.",
                     "enum": ["String", "Int16", "Int32", "Int64", "Single", "Double", "Decimal", "DateTime", "DateTimeOffset", "Time", "Boolean", "Guid", "Byte", "Binary", "Undefined"],
                     "default": "String"
                 },
                 "complexTypeName": {
                     "description":  "If present, this must be the fully qualified name of one of the 'complexTypes' defined within this document, and the 'dataType' property may be omitted",
-                    "type": "string"
+                    "$ref": "#/definitions/structuralTypeName" ,
                 },
                 "isNullable": {
                     "description": "Whether a null can be assigned to this property.",
@@ -130,15 +138,16 @@ var x = {
             }
         },
         "navigationProperty": {
+            "description": "A single navigation property, at a minimum you must to define the 'required' properties defined below AS WELL AS either a 'name' or a 'nameOnServer'..",
             "properties": {
                 "name": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "nameOnServer": {
                     "type": "string"
                 },
                 "entityTypeName": {
-                    "type": "string"
+                    "$ref": "#/definitions/structuralTypeName" 
                 },
                 "isScalar": {
                     "type": "boolean"
@@ -159,7 +168,8 @@ var x = {
                     "items": { "$ref": "#/definitions/validator" },
                     "uniqueItems": true
                 }
-            }
+            },
+            "required": ["entityTypeName", "isScalar", "associationName"]
         },
         "dataService": {
             "properties": {
@@ -191,7 +201,5 @@ var x = {
             "additionalProperties": true,
             "required": ["validatorName"]
         }
-    
-    },
-    "additionalProperties": true
+    }
 };

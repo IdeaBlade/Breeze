@@ -80,13 +80,13 @@ namespace Sample_WebApi.Controllers {
 
     NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
 
-    //[HttpGet]
-    //public String Metadata() {
-    //  var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
-    //  var fileName = Path.Combine(folder, "metadata.json");
-    //  var jsonMetadata = File.ReadAllText(fileName);
-    //  return jsonMetadata;
-    //}
+    [HttpGet]
+    public String Metadata() {
+      var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
+      var fileName = Path.Combine(folder, "metadata.json");
+      var jsonMetadata = File.ReadAllText(fileName);
+      return jsonMetadata;
+    }
 
 
     //[HttpGet]
@@ -94,12 +94,12 @@ namespace Sample_WebApi.Controllers {
     //  return ContextProvider.Metadata();
     //}
 
-    [HttpGet]
-    public HttpResponseMessage Metadata() {
-      var result = new HttpResponseMessage { Content = new StringContent(ContextProvider.Metadata())};
-      result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-      return result;
-    }
+    //[HttpGet]
+    //public HttpResponseMessage Metadata() {
+    //  var result = new HttpResponseMessage { Content = new StringContent(ContextProvider.Metadata())};
+    //  result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    //  return result;
+    //}
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
