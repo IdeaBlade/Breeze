@@ -1,10 +1,15 @@
 ﻿
 using System.Data.Services;
 using System.Data.Services.Common;
+using Models.NorthwindIB.CF;
 using Models.NorthwindIB.EDMX;
+using Models.NorthwindIB.EDMX_2012;
+using System.ServiceModel;
 
 namespace Breeze_OData {
-  public class ODataService : DataService<NorthwindIBContext_EDMX> {
+  // This attribute makes it possible to see errors on the client.
+  [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+  public class ODataService : DataService<NorthwindIBContext_CF> {
 
     // This method is called only once to initialize service-wide policies.
     public static void InitializeService(DataServiceConfiguration config) {
@@ -29,6 +34,11 @@ namespace Breeze_OData {
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
       config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+    }
+
+    protected override void HandleException(HandleExceptionArgs args) {
+      var x = args;
+      base.HandleException(args);
     }
 
   }

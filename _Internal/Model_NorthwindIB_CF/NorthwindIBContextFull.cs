@@ -1068,10 +1068,11 @@ namespace Foo {
     [Timestamp]
     public byte[] Ts { get; set; }
 
+#if !ODATA
     [DataMember]
     [Column("RoleType")]
     public Nullable<Models.NorthwindIB.RoleType> RoleType { get; set; }
-
+#endif
     #endregion Data Properties
 
     #region Navigation properties
@@ -1565,9 +1566,11 @@ namespace Foo {
   public partial class TimeLimit {
 
     public TimeLimit() {
-          this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
-          this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
-          // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
+#if !ODATA
+        this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
+        this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
+        // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
+#endif
     }
   
     [Key]
@@ -1592,6 +1595,7 @@ namespace Foo {
     [Column("ModificationDate")]
     public Nullable<System.DateTime> ModificationDate { get; set; }
 
+#if !ODATA
     [DataMember]
     [Column("Geometry1")]
     public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
@@ -1599,6 +1603,7 @@ namespace Foo {
     [DataMember]
     [Column("Geography1")]
     public System.Data.Spatial.DbGeography Geography1 { get; set; }
+#endif
   }
 
 }
