@@ -16,7 +16,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -27,7 +27,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -38,7 +38,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -49,7 +49,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -60,7 +60,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 }
@@ -80,10 +80,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -95,11 +95,11 @@ var x = {
                     "maxLength": 15,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -108,7 +108,7 @@ var x = {
                     "dataType": "String",
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
@@ -117,7 +117,7 @@ var x = {
                     "dataType": "Binary",
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
@@ -128,10 +128,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -159,10 +159,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "guid"
+                            "name": "guid"
                         }
                     ]
                 },
@@ -173,7 +173,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 5,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -185,11 +185,11 @@ var x = {
                     "maxLength": 40,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -200,7 +200,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -211,7 +211,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -222,7 +222,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -233,7 +233,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -244,7 +244,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -255,7 +255,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -266,7 +266,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -277,7 +277,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -288,7 +288,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -298,7 +298,7 @@ var x = {
                     "concurrencyMode": "Fixed",
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -326,10 +326,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -341,11 +341,11 @@ var x = {
                     "maxLength": 30,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -357,11 +357,11 @@ var x = {
                     "maxLength": 30,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -372,7 +372,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -383,7 +383,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 25,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -392,7 +392,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -401,7 +401,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -412,7 +412,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -423,7 +423,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -434,7 +434,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -445,7 +445,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -456,7 +456,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -467,7 +467,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -478,7 +478,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 4,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -487,7 +487,7 @@ var x = {
                     "dataType": "Binary",
                     "validators": [
                         {
-                            "validatorName": "none"
+                            "name": "none"
                         }
                     ]
                 },
@@ -496,7 +496,7 @@ var x = {
                     "dataType": "String",
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
@@ -507,7 +507,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 255,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -516,7 +516,7 @@ var x = {
                     "dataType": "Int32",
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -527,10 +527,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -585,10 +585,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -597,7 +597,7 @@ var x = {
                     "dataType": "Guid",
                     "validators": [
                         {
-                            "validatorName": "guid"
+                            "name": "guid"
                         }
                     ]
                 },
@@ -606,7 +606,7 @@ var x = {
                     "dataType": "Int32",
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -615,7 +615,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -624,7 +624,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -633,7 +633,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -642,7 +642,7 @@ var x = {
                     "dataType": "Decimal",
                     "validators": [
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
@@ -653,7 +653,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -664,7 +664,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 60,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -675,7 +675,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -686,7 +686,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -697,7 +697,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 10,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -708,7 +708,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 15,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -719,10 +719,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -777,10 +777,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -792,10 +792,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -806,10 +806,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
@@ -820,10 +820,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
@@ -834,10 +834,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
@@ -848,10 +848,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -891,10 +891,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -906,11 +906,11 @@ var x = {
                     "maxLength": 40,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -919,7 +919,7 @@ var x = {
                     "dataType": "Int32",
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -928,7 +928,7 @@ var x = {
                     "dataType": "Int32",
                     "validators": [
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -939,7 +939,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 20,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -948,7 +948,7 @@ var x = {
                     "dataType": "Decimal",
                     "validators": [
                         {
-                            "validatorName": "number"
+                            "name": "number"
                         }
                     ]
                 },
@@ -957,7 +957,7 @@ var x = {
                     "dataType": "Int16",
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
@@ -966,7 +966,7 @@ var x = {
                     "dataType": "Int16",
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
@@ -975,7 +975,7 @@ var x = {
                     "dataType": "Int16",
                     "validators": [
                         {
-                            "validatorName": "int16"
+                            "name": "int16"
                         }
                     ]
                 },
@@ -986,10 +986,10 @@ var x = {
                     "defaultValue": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "bool"
+                            "name": "bool"
                         }
                     ]
                 },
@@ -998,7 +998,7 @@ var x = {
                     "dataType": "DateTime",
                     "validators": [
                         {
-                            "validatorName": "date"
+                            "name": "date"
                         }
                     ]
                 },
@@ -1009,10 +1009,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 }
@@ -1052,10 +1052,10 @@ var x = {
                     "isPartOfKey": true,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -1067,11 +1067,11 @@ var x = {
                     "maxLength": 40,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
                             "maxLength": 40,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -1082,7 +1082,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -1093,7 +1093,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 30,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -1104,7 +1104,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -1115,7 +1115,7 @@ var x = {
                     "validators": [
                         {
                             "maxLength": 24,
-                            "validatorName": "maxLength"
+                            "name": "maxLength"
                         }
                     ]
                 },
@@ -1124,7 +1124,7 @@ var x = {
                     "dataType": "String",
                     "validators": [
                         {
-                            "validatorName": "string"
+                            "name": "string"
                         }
                     ]
                 },
@@ -1135,10 +1135,10 @@ var x = {
                     "defaultValue": 0,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         },
                         {
-                            "validatorName": "int32"
+                            "name": "int32"
                         }
                     ]
                 },
@@ -1148,7 +1148,7 @@ var x = {
                     "isNullable": false,
                     "validators": [
                         {
-                            "validatorName": "required"
+                            "name": "required"
                         }
                     ]
                 }

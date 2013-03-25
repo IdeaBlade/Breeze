@@ -218,13 +218,13 @@ var x = {
         },
         "validator": {
             "properties": {
-                "validatorName": {
+                "name": {
                     "description": "On deserialization, this must match the name of some validator already registered on the breeze client.",
                     "type": "string"
                 }
             },
             "additionalProperties": true,
-            "required": ["validatorName"]
+            "required": ["name"]
         }
     }
 };

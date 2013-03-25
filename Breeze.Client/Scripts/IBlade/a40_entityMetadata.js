@@ -606,7 +606,7 @@ var MetadataStore = (function () {
     @return {Boolean}
     **/
     proto.isEmpty = function () {
-        return this.dataServices.length === 0;
+        return __isEmpty(this._structuralTypeMap);
     };
 
 
@@ -817,14 +817,13 @@ var MetadataStore = (function () {
     };
         
     function checkTypeRegistry(metadataStore, structuralType) {
+        structuralType.defaultResourceName && metadataStore.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
         // check if this structural type's name, short version or qualified version has a registered ctor.
         var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
         if (typeCtor) {
             // next line is in case the entityType was originally registered with a shortname.
             typeCtor.prototype._$typeName = structuralType.name;
             structuralType._setCtor(typeCtor);
-            //  not needed - should already have been done
-            // metadataStore._structuralTypeMap[structuralType.name] = structuralType;
         }
     }
 
