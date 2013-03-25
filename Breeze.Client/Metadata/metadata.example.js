@@ -7,6 +7,7 @@ var x = {
         "Location:#Models.NorthwindIB.EDMX_2012": {
             "shortName": "Location",
             "namespace": "Models.NorthwindIB.EDMX_2012",
+            "isComplexType": true,
             "dataProperties": [
                 {
                     "name": "address",
@@ -1143,67 +1144,6 @@ var x = {
                 },
                 {
                     "name": "location",
-                    "dataType": {
-                        "shortName": "Location",
-                        "namespace": "Models.NorthwindIB.EDMX_2012",
-                        "dataProperties": [
-                            {
-                                "name": "address",
-                                "dataType": "String",
-                                "maxLength": 60,
-                                "validators": [
-                                    {
-                                        "maxLength": 60,
-                                        "validatorName": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "city",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "validatorName": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "region",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "validatorName": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "postalCode",
-                                "dataType": "String",
-                                "maxLength": 10,
-                                "validators": [
-                                    {
-                                        "maxLength": 10,
-                                        "validatorName": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "country",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "validatorName": "maxLength"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
                     "complexTypeName": "Location:#Models.NorthwindIB.EDMX_2012",
                     "isNullable": false,
                     "validators": [

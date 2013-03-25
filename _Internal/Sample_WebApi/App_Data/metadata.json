@@ -10,6 +10,7 @@
         "Location:#Models.NorthwindIB.EDMX_2012": {
             "shortName": "Location",
             "namespace": "Models.NorthwindIB.EDMX_2012",
+            "isComplexType": true,
             "dataProperties": [
                 {
                     "name": "address",
@@ -1625,67 +1626,6 @@
                 },
                 {
                     "name": "location",
-                    "dataType": {
-                        "shortName": "Location",
-                        "namespace": "Models.NorthwindIB.EDMX_2012",
-                        "dataProperties": [
-                            {
-                                "name": "address",
-                                "dataType": "String",
-                                "maxLength": 60,
-                                "validators": [
-                                    {
-                                        "maxLength": 60,
-                                        "name": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "city",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "name": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "region",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "name": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "postalCode",
-                                "dataType": "String",
-                                "maxLength": 10,
-                                "validators": [
-                                    {
-                                        "maxLength": 10,
-                                        "name": "maxLength"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "country",
-                                "dataType": "String",
-                                "maxLength": 15,
-                                "validators": [
-                                    {
-                                        "maxLength": 15,
-                                        "name": "maxLength"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
                     "complexTypeName": "Location:#Models.NorthwindIB.EDMX_2012",
                     "isNullable": false,
                     "validators": [
@@ -2254,6 +2194,5 @@
         "UserRoles": "UserRole:#Models.NorthwindIB.EDMX_2012",
         "Roles": "Role:#Models.NorthwindIB.EDMX_2012",
         "TimeLimits": "TimeLimit:#Models.NorthwindIB.EDMX_2012"
-    },
-    "incompleteTypeMap": {}
+    }
 }

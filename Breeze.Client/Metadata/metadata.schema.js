@@ -90,6 +90,11 @@ var x = {
                     "type": "string",
                     "default": ""
                 },
+                "isCompleType": {
+                    "description": "This must be 'true'.  This field is what distinguishes an entityType from a complexType. ",
+                    "type": "boolean"
+                },
+            
                 "dataProperties": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/dataProperty" },
