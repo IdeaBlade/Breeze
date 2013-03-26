@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Mar 23 2013 20:47:27 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Tue Mar 26 2013 10:49:30 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -670,6 +670,12 @@ intellisense.annotate(breeze.breeze.Validator.prototype, {
     
     /// </signature>
   },
+  
+  /// <field name="name" type="String" >The name of this validator.</field>
+  'name': null,
+  
+  /// <field name="context" type="Object" >The context for this validator.      This object will typically contain at a minimum the following properties. 'name', 'displayName', and 'message' or 'messageTemplate'. __readOnly__</field>
+  'context': null,
   
 });
 intellisense.annotate(breeze.breeze.Validator, {

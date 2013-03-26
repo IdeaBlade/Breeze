@@ -21,8 +21,8 @@
 
 })(function () {  
     var breeze = {
-        version: "1.2.6",
-        serializationVersion: "1.0.2"
+        version: "1.2.7",
+        metadataVersion: "1.0.2"
     };
 
     // legacy properties - will not be supported after 6/1/2013

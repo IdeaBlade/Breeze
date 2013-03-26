@@ -332,6 +332,22 @@ var Validator = function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;Validator&quot;;
+    
+    &#x2F;**
+    The name of this validator.
+
+    __readOnly__
+    @property name {String}
+    **&#x2F;
+
+    &#x2F;**
+    The context for this validator.
+        
+    This object will typically contain at a minimum the following properties. &quot;name&quot;, &quot;displayName&quot;, and &quot;message&quot; or &quot;messageTemplate&quot;.
+    __readOnly__
+    @property context {Object}
+    **&#x2F;
+
 
     &#x2F;**
     Run this validator against the specified value.  This method will usually be called internally either
