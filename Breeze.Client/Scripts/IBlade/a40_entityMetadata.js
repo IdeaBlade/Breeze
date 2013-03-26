@@ -590,6 +590,19 @@ var MetadataStore = (function () {
             aCtor._$initializationFn = initializationFn;
         }
     };
+    
+    proto.toQueryString = function(query) {
+        if (!query) {
+            throw new Error("query cannot be empty");
+        }
+        if (typeof query === 'string') {
+            return query;
+        } else if (query instanceof EntityQuery) {
+            return query._toUri(this);
+        } else {
+            throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
+        }
+    }
       
     function createEmptyCtor() {
         return function() {};

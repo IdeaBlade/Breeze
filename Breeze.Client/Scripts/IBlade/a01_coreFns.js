@@ -2,12 +2,13 @@
  @module core
  **/
 
-var __hasOwnProperty = Object.prototype.hasOwnProperty;
+var __hasOwnProperty = uncurry(Object.prototype.hasOwnProperty);
+var __arraySlice = uncurry(Array.prototype.slice);
 
 // iterate over object
 function __objectForEach(obj, kvFn) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
         }
     }
@@ -15,7 +16,7 @@ function __objectForEach(obj, kvFn) {
     
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var value = obj[key];
             if (kvPredicate(key, value)) {
                 return { key: key, value: value };
@@ -28,7 +29,7 @@ function __objectFirst(obj, kvPredicate) {
 function __objectMapToArray(obj, kvFn) {
     var results = [];
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var result = kvFn(key, obj[key]);
             if (result) {
                 results.push(result);
@@ -58,7 +59,7 @@ function __pluck(propertyName) {
 function __getOwnPropertyValues(source) {
     var result = [];
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             result.push(source[name]);
         }
     }
@@ -68,7 +69,7 @@ function __getOwnPropertyValues(source) {
 function __extend(target, source) {
     if (!source) return target;
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             target[name] = source[name];
         }
     }
@@ -240,7 +241,7 @@ function __wrapExecution(startFn, endFn, fn) {
 
 function __memoize(fn) {
     return function () {
-        var args = Array.prototype.slice.call(arguments),
+        var args = __arraySlice(arguments),
             hash = "",
             i = args.length,
             currentArg = null;
@@ -323,7 +324,7 @@ function __isEmpty(obj) {
         return true;
     }
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             return false;
         }
     }
@@ -361,6 +362,16 @@ function __formatString(string) {
 };
 
 // end of string functions
+
+// See Mark Miller’s explanation of what this does.
+// http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming
+function uncurry(f) {
+    var call = Function.call;
+    return function () {
+        return call.apply(f, arguments);
+    };
+}
+
 
 // shims
 

@@ -575,21 +575,19 @@ var EntityManager = (function () {
         promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
         it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
     **/
-    proto.fetchMetadata = function (callback, errorCallback) {
-        assertParam(callback, "callback").isFunction().isOptional().check();
-        assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+    proto.fetchMetadata = function (dataService, callback, errorCallback) {
+        if (typeof (dataService) == "function") {
+            // legacy support for when dataService was not an arg. i.e. first arg was callback
+            errorCallback = callback;
+            callback = dataService;
+            dataService = null;
+        } else {
+            assertParam(dataService, "dataService").isInstanceOf(DataService).isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+        }
 
-        var promise = this.metadataStore.fetchMetadata(this.dataService);
-
-        // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
-        // TEST::: see if serialization actually works completely
-//            var that = this;
-//            promise = promise.then(function () {
-//                var stringified = that.metadataStore.exportMetadata();
-//                that.metadataStore = new MetadataStore();
-//                that.metadataStore.importMetadata(stringified);
-//            });
-
+        var promise = this.metadataStore.fetchMetadata(dataService || this.dataService);
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
 
@@ -668,11 +666,12 @@ var EntityManager = (function () {
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
         var promise;
-        if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.dataService.serviceName)) {
+        var dataService = query.dataService || this.dataService;
+        if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
             promise = executeQueryCore(this, query);
         } else {
             var that = this;
-            promise = this.fetchMetadata().then(function () {
+            promise = this.fetchMetadata(dataService).then(function () {
                 return executeQueryCore(that, query);
             }).fail(function (error) {
                 return Q.reject(error);
@@ -854,11 +853,17 @@ var EntityManager = (function () {
         // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
         // are referenced are also in the partial save group
 
-        var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: saveOptions};
+        var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: { tag: saveOptions.tag }};
         var saveBundleStringified = JSON.stringify(saveBundle);
 
         var deferred = Q.defer();
-        this.dataService.adapterInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+        var dataService = saveOptions.dataService || this.dataService;
+        var saveContext = {
+            entityManager: this,
+            dataService: dataService,
+            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
+        };
+        dataService.adapterInstance.saveChanges(saveContext, saveBundleStringified, deferred.resolve, deferred.reject);
         var that = this;
         return deferred.promise.then(function (rawSaveResult) {
             // HACK: simply to change the 'case' of properties in the saveResult
@@ -1360,10 +1365,10 @@ var EntityManager = (function () {
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
-            return { entityKey: args[0], remainingArgs: Array.prototype.slice.call(args, 1) };
+            return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
         } else if (typeof args[0] === 'string' && args.length >= 2) {
             var entityType = em.metadataStore.getEntityType(args[0], false);
-            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: Array.prototype.slice.call(args, 2) };
+            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
         } else {
             throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
         }
@@ -1691,11 +1696,12 @@ var EntityManager = (function () {
                     return { results: results, query: query };
                 });
             }
-            
+
+            var url = dataService.serviceName + metadataStore.toQueryString(query);
             var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
 
-            var odataQuery = toOdataQueryString(query, metadataStore);
             var queryContext = {
+                    url: url,
                     query: query,
                     entityManager: em,
                     dataService: dataService,
@@ -1707,8 +1713,9 @@ var EntityManager = (function () {
             var deferred = Q.defer();
             var validateOnQuery = em.validationOptions.validateOnQuery;
             var promise = deferred.promise;
+
                 
-            dataService.adapterInstance.executeQuery(em, odataQuery, function (data) {
+            dataService.adapterInstance.executeQuery(queryContext, function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -2072,19 +2079,6 @@ var EntityManager = (function () {
             // type for a concurrency column.
             // NOTE: thought about just returning here but would rather be safe for now. 
             throw new Error("Unable to update the value of concurrency property before saving: " + property.name);
-        }
-    }
-
-    function toOdataQueryString(query, metadataStore) {
-        if (!query) {
-            throw new Error("query cannot be empty");
-        }
-        if (typeof query === 'string') {
-            return query;
-        } else if (query instanceof EntityQuery) {
-            return query._toUri(metadataStore);
-        } else {
-            throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
         }
     }
 

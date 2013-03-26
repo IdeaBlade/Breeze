@@ -37,12 +37,13 @@
  @module core
  **/
 
-var __hasOwnProperty = Object.prototype.hasOwnProperty;
+var __hasOwnProperty = uncurry(Object.prototype.hasOwnProperty);
+var __arraySlice = uncurry(Array.prototype.slice);
 
 // iterate over object
 function __objectForEach(obj, kvFn) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
         }
     }
@@ -50,7 +51,7 @@ function __objectForEach(obj, kvFn) {
     
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var value = obj[key];
             if (kvPredicate(key, value)) {
                 return { key: key, value: value };
@@ -63,7 +64,7 @@ function __objectFirst(obj, kvPredicate) {
 function __objectMapToArray(obj, kvFn) {
     var results = [];
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var result = kvFn(key, obj[key]);
             if (result) {
                 results.push(result);
@@ -93,7 +94,7 @@ function __pluck(propertyName) {
 function __getOwnPropertyValues(source) {
     var result = [];
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             result.push(source[name]);
         }
     }
@@ -103,7 +104,7 @@ function __getOwnPropertyValues(source) {
 function __extend(target, source) {
     if (!source) return target;
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             target[name] = source[name];
         }
     }
@@ -275,7 +276,7 @@ function __wrapExecution(startFn, endFn, fn) {
 
 function __memoize(fn) {
     return function () {
-        var args = Array.prototype.slice.call(arguments),
+        var args = __arraySlice(arguments),
             hash = "",
             i = args.length,
             currentArg = null;
@@ -358,7 +359,7 @@ function __isEmpty(obj) {
         return true;
     }
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             return false;
         }
     }
@@ -396,6 +397,16 @@ function __formatString(string) {
 };
 
 // end of string functions
+
+// See Mark Miller’s explanation of what this does.
+// http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming
+function uncurry(f) {
+    var call = Function.call;
+    return function () {
+        return call.apply(f, arguments);
+    };
+}
+
 
 // shims
 
@@ -942,7 +953,7 @@ var Enum = function() {
     //Enum.prototype.combineSymbols = function () {
     //    var proto = this._symbolPrototype;
     //    var newSymbol = Object.create(proto);
-    //    newSymbol._symbols = Array.prototype.slice.call(arguments);
+    //    newSymbol._symbols = __arraySlice(arguments);
 
     //    Object.keys(proto).forEach(function (key) {
     //        var result;
@@ -3733,7 +3744,7 @@ var EntityKey = (function () {
         // can't ref EntityType here because of module circularity
         // assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
         if (!Array.isArray(keyValues)) {
-            keyValues = Array.prototype.slice.call(arguments, 1);
+            keyValues = __arraySlice(arguments, 1);
         }
         // fluff
         //if (!(this instanceof ctor)) {
@@ -4706,6 +4717,19 @@ var MetadataStore = (function () {
             aCtor._$initializationFn = initializationFn;
         }
     };
+    
+    proto.toQueryString = function(query) {
+        if (!query) {
+            throw new Error("query cannot be empty");
+        }
+        if (typeof query === 'string') {
+            return query;
+        } else if (query instanceof EntityQuery) {
+            return query._toUri(this);
+        } else {
+            throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
+        }
+    }
       
     function createEmptyCtor() {
         return function() {};
@@ -7096,7 +7120,7 @@ var EntityQuery = (function () {
         if (Predicate.isPredicate(predicate)) {
             pred = predicate;
         } else {
-            pred = Predicate.create(Array.prototype.slice.call(arguments));
+            pred = Predicate.create(__arraySlice(arguments));
         }
         if (eq.entityType) pred.validate(eq.entityType);
         if (eq.wherePredicate) {
@@ -7493,7 +7517,7 @@ var EntityQuery = (function () {
     ctor.fromEntities = function (entities) {
         assertParam(entities, "entities").isEntity().or().isNonEmptyArray().isEntity().check();
         if (!Array.isArray(entities)) {
-            entities = Array.prototype.slice.call(arguments);
+            entities = __arraySlice(arguments);
         }
         var firstEntity = entities[0];
         var q = new EntityQuery(firstEntity.entityType.defaultResourceName);
@@ -8411,7 +8435,7 @@ var Predicate = (function () {
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
             return argsx[0];
         } else {
-            var args = Array.prototype.slice.call(argsx);
+            var args = __arraySlice(argsx);
             if (Predicate.isPredicate(args[0])) {
                 return args;
             } else {
@@ -9253,7 +9277,7 @@ breeze.makeRelationArray = function() {
             return -1;
         }
 
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
         if (!goodAdds.length) {
             return this.length;
         }
@@ -9264,13 +9288,13 @@ breeze.makeRelationArray = function() {
 
 
     relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
         if (!goodAdds.length) {
             return this.length;
         }
 
         var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, Array.prototype.slice.call(goodAdds));
+        processAdds(this, __arraySlice(goodAdds));
         return result;
     };
 
@@ -9287,8 +9311,8 @@ breeze.makeRelationArray = function() {
     };
 
     relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
-        var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
 
         var result = Array.prototype.splice.apply(this, newArgs);
         processRemoves(this, result);
@@ -10018,21 +10042,19 @@ var EntityManager = (function () {
         promiseData.schema {Object} The raw Schema object from metadata provider - Because this schema will differ depending on the metadata provider
         it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
     **/
-    proto.fetchMetadata = function (callback, errorCallback) {
-        assertParam(callback, "callback").isFunction().isOptional().check();
-        assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+    proto.fetchMetadata = function (dataService, callback, errorCallback) {
+        if (typeof (dataService) == "function") {
+            // legacy support for when dataService was not an arg. i.e. first arg was callback
+            errorCallback = callback;
+            callback = dataService;
+            dataService = null;
+        } else {
+            assertParam(dataService, "dataService").isInstanceOf(DataService).isOptional().check();
+            assertParam(callback, "callback").isFunction().isOptional().check();
+            assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
+        }
 
-        var promise = this.metadataStore.fetchMetadata(this.dataService);
-
-        // TODO: WARNING: DO NOT LEAVE THIS CODE IN PRODUCTION.
-        // TEST::: see if serialization actually works completely
-//            var that = this;
-//            promise = promise.then(function () {
-//                var stringified = that.metadataStore.exportMetadata();
-//                that.metadataStore = new MetadataStore();
-//                that.metadataStore.importMetadata(stringified);
-//            });
-
+        var promise = this.metadataStore.fetchMetadata(dataService || this.dataService);
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
 
@@ -10111,11 +10133,12 @@ var EntityManager = (function () {
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
         var promise;
-        if ( (!this.dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(this.dataService.serviceName)) {
+        var dataService = query.dataService || this.dataService;
+        if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
             promise = executeQueryCore(this, query);
         } else {
             var that = this;
-            promise = this.fetchMetadata().then(function () {
+            promise = this.fetchMetadata(dataService).then(function () {
                 return executeQueryCore(that, query);
             }).fail(function (error) {
                 return Q.reject(error);
@@ -10297,11 +10320,17 @@ var EntityManager = (function () {
         // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
         // are referenced are also in the partial save group
 
-        var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: saveOptions};
+        var saveBundle = { entities: unwrapEntities(entitiesToSave, this.metadataStore), saveOptions: { tag: saveOptions.tag }};
         var saveBundleStringified = JSON.stringify(saveBundle);
 
         var deferred = Q.defer();
-        this.dataService.adapterInstance.saveChanges(this, saveBundleStringified, deferred.resolve, deferred.reject);
+        var dataService = saveOptions.dataService || this.dataService;
+        var saveContext = {
+            entityManager: this,
+            dataService: dataService,
+            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
+        };
+        dataService.adapterInstance.saveChanges(saveContext, saveBundleStringified, deferred.resolve, deferred.reject);
         var that = this;
         return deferred.promise.then(function (rawSaveResult) {
             // HACK: simply to change the 'case' of properties in the saveResult
@@ -10803,10 +10832,10 @@ var EntityManager = (function () {
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
-            return { entityKey: args[0], remainingArgs: Array.prototype.slice.call(args, 1) };
+            return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
         } else if (typeof args[0] === 'string' && args.length >= 2) {
             var entityType = em.metadataStore.getEntityType(args[0], false);
-            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: Array.prototype.slice.call(args, 2) };
+            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
         } else {
             throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
         }
@@ -11134,11 +11163,12 @@ var EntityManager = (function () {
                     return { results: results, query: query };
                 });
             }
-            
+
+            var url = dataService.serviceName + metadataStore.toQueryString(query);
             var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
 
-            var odataQuery = toOdataQueryString(query, metadataStore);
             var queryContext = {
+                    url: url,
                     query: query,
                     entityManager: em,
                     dataService: dataService,
@@ -11150,8 +11180,9 @@ var EntityManager = (function () {
             var deferred = Q.defer();
             var validateOnQuery = em.validationOptions.validateOnQuery;
             var promise = deferred.promise;
+
                 
-            dataService.adapterInstance.executeQuery(em, odataQuery, function (data) {
+            dataService.adapterInstance.executeQuery(queryContext, function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -11515,19 +11546,6 @@ var EntityManager = (function () {
             // type for a concurrency column.
             // NOTE: thought about just returning here but would rather be safe for now. 
             throw new Error("Unable to update the value of concurrency property before saving: " + property.name);
-        }
-    }
-
-    function toOdataQueryString(query, metadataStore) {
-        if (!query) {
-            throw new Error("query cannot be empty");
-        }
-        if (typeof query === 'string') {
-            return query;
-        } else if (query instanceof EntityQuery) {
-            return query._toUri(metadataStore);
-        } else {
-            throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
         }
     }
 
@@ -11988,6 +12006,8 @@ var SaveOptions = (function () {
     var ctor = function (config) {
         config = config || {};
         assertConfig(config)
+            .whereParam("resourceName").isOptional().isString()
+            .whereParam("dataService").isOptional().isInstanceOf(DataService)
             .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
             .whereParam("tag").isOptional()
             .applyAll(this);
@@ -12230,9 +12250,9 @@ breeze.MergeStrategy = MergeStrategy;
     };
     
     
-    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
-        var url = entityManager.serviceName + odataQuery;
-        OData.read(url,
+    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
+    
+        OData.read(queryContext.url,
             function (data, response) {
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
@@ -12279,7 +12299,7 @@ breeze.MergeStrategy = MergeStrategy;
 
     };
 
-    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
     
@@ -12439,11 +12459,10 @@ breeze.MergeStrategy = MergeStrategy;
     };
     
 
-    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
 
-        var url = entityManager.serviceName + odataQuery;
         ajaxImpl.ajax({
-            url: url,
+            url: queryContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
@@ -12471,8 +12490,9 @@ breeze.MergeStrategy = MergeStrategy;
         });
     };
 
-    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
-        var url = entityManager.serviceName + "SaveChanges";
+    ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {
+        var url = saveContext.dataService.serviceName + saveContext.resourceName;
+        // var url = entityManager.serviceName + "SaveChanges";
         ajaxImpl.ajax({
             url: url,
             type: "POST",

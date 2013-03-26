@@ -189,6 +189,8 @@ var SaveOptions = (function () {
     var ctor = function (config) {
         config = config || {};
         assertConfig(config)
+            .whereParam("resourceName").isOptional().isString()
+            .whereParam("dataService").isOptional().isInstanceOf(DataService)
             .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
             .whereParam("tag").isOptional()
             .applyAll(this);

@@ -320,7 +320,7 @@ namespace Breeze.WebApi {
               originalValuesRecord.SetValue(ordinal, originalValueConverted);
             }
           }
-        } catch (Exception e) {
+        } catch (Exception) {
           // this can happen for "custom" data entity properties.
         }
       });

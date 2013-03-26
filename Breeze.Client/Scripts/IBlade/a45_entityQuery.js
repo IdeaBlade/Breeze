@@ -223,7 +223,7 @@ var EntityQuery = (function () {
         if (Predicate.isPredicate(predicate)) {
             pred = predicate;
         } else {
-            pred = Predicate.create(Array.prototype.slice.call(arguments));
+            pred = Predicate.create(__arraySlice(arguments));
         }
         if (eq.entityType) pred.validate(eq.entityType);
         if (eq.wherePredicate) {
@@ -620,7 +620,7 @@ var EntityQuery = (function () {
     ctor.fromEntities = function (entities) {
         assertParam(entities, "entities").isEntity().or().isNonEmptyArray().isEntity().check();
         if (!Array.isArray(entities)) {
-            entities = Array.prototype.slice.call(arguments);
+            entities = __arraySlice(arguments);
         }
         var firstEntity = entities[0];
         var q = new EntityQuery(firstEntity.entityType.defaultResourceName);
@@ -1538,7 +1538,7 @@ var Predicate = (function () {
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
             return argsx[0];
         } else {
-            var args = Array.prototype.slice.call(argsx);
+            var args = __arraySlice(argsx);
             if (Predicate.isPredicate(args[0])) {
                 return args;
             } else {

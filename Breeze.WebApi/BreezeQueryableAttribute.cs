@@ -70,7 +70,7 @@ namespace Breeze.WebApi {
       IQueryable result;
       try {
         result = base.ApplyQuery(queryable, queryOptions);
-      } catch (Exception e) {
+      } catch (Exception) {
         result = ApplyExtendedOrderBy(queryable, queryOptions);
         if (result == null) {
           throw;

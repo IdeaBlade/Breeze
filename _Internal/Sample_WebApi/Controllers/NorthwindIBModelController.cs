@@ -42,29 +42,13 @@ namespace Sample_WebApi.Controllers {
     public NorthwindContextProvider() : base() { }
 #endif
 
-
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       // prohibit any additions of entities of type 'Region'
-      if (entityInfo.Entity.GetType() == typeof(Region) && entityInfo.EntityState == EntityState.Added) {
+      if (entityInfo.Entity.GetType() == typeof (Region) && entityInfo.EntityState == EntityState.Added) {
         var region = entityInfo.Entity as Region;
-        return !region.RegionDescription.ToLowerInvariant().StartsWith("error");
-        
-        
-      } else {
-        if ((SaveOptions.Tag as String) == "freight update") {
-          var order = entityInfo.Entity as Order;
-          order.Freight = order.Freight + 1;
-        } else if ((SaveOptions.Tag as String) == "freight update-ov") {
-          var order = entityInfo.Entity as Order;
-          order.Freight = order.Freight + 1;
-          entityInfo.OriginalValuesMap["Freight"] = null;
-        } else if ((SaveOptions.Tag as String) == "freight update-force") {
-          var order = entityInfo.Entity as Order;
-          order.Freight = order.Freight + 1;
-          entityInfo.ForceUpdate = true;
-        }
-        return true;
+        if (region.RegionDescription.ToLowerInvariant().StartsWith("error")) return false;
       }
+      return base.BeforeSaveEntity(entityInfo);
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
@@ -77,8 +61,11 @@ namespace Sample_WebApi.Controllers {
 
   [BreezeController]
   public class NorthwindIBModelController : ApiController {
+    private NorthwindContextProvider ContextProvider;
 
-    NorthwindContextProvider ContextProvider = new NorthwindContextProvider();
+    public NorthwindIBModelController() {
+      ContextProvider = new NorthwindContextProvider();
+    }
 
     //[HttpGet]
     //public String Metadata() {
@@ -102,14 +89,36 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
-      var saveOptions = Breeze.WebApi.ContextProvider.ExtractSaveOptions(saveBundle);
-      var tag = saveOptions.Tag as String;
-      if (tag == "exit") {
-        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
-      } else {
         return ContextProvider.SaveChanges(saveBundle);
-      }
     }
+
+    [HttpPost]
+    public SaveResult SaveWithExit(JObject saveBundle) {
+        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
+    }
+
+    [HttpPost]
+    public SaveResult SaveWithFreight(JObject saveBundle) {
+      ContextProvider.OnBeforeSaveEntity = CheckFreight;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private bool CheckFreight(EntityInfo entityInfo) {
+      if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-ov") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.OriginalValuesMap["Freight"] = null;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-force") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.ForceUpdate = true;
+      }
+      return true;
+    }
+
 
     #region standard queries
 

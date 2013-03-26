@@ -1065,7 +1065,7 @@ var EntityKey = (function () {
         // can't ref EntityType here because of module circularity
         // assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
         if (!Array.isArray(keyValues)) {
-            keyValues = Array.prototype.slice.call(arguments, 1);
+            keyValues = __arraySlice(arguments, 1);
         }
         // fluff
         //if (!(this instanceof ctor)) {

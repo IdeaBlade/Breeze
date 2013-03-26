@@ -94,11 +94,10 @@
     };
     
 
-    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
 
-        var url = entityManager.serviceName + odataQuery;
         ajaxImpl.ajax({
-            url: url,
+            url: queryContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
@@ -126,8 +125,9 @@
         });
     };
 
-    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
-        var url = entityManager.serviceName + "SaveChanges";
+    ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {
+        var url = saveContext.dataService.serviceName + saveContext.resourceName;
+        // var url = entityManager.serviceName + "SaveChanges";
         ajaxImpl.ajax({
             url: url,
             type: "POST",

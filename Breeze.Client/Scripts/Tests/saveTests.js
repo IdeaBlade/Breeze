@@ -58,7 +58,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save data with server update", function() {
+    test("save data with alt resource and server update", function() {
         var em = newEm();
 
         var q = new EntityQuery("Orders").take(1);
@@ -69,7 +69,8 @@ define(["testFns"], function (testFns) {
             order = data.results[0];
             freight = order.getProperty("freight") + .5;
             order.setProperty("freight", freight);
-            var so = new SaveOptions({ tag: "freight update" });
+            
+            var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update" });
             return em.saveChanges(null, so);
         }).then(function(sr) {
             ok(sr.entities.length == 1, "should have saved one entity");
@@ -82,7 +83,7 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("save data with server update - ForceUpdate", function () {
+    test("save data with alt resource and server update - ForceUpdate", function () {
         var em = newEm();
 
         var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
@@ -93,7 +94,7 @@ define(["testFns"], function (testFns) {
             freight = order.getProperty("freight");
             shipCity = testFns.morphString(order.getProperty("shipCity"));
             order.setProperty("shipCity", shipCity);
-            var so = new SaveOptions({ tag: "freight update-force" });
+            var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-force" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
             ok(sr.entities.length == 1, "should have saved one entity");
@@ -117,7 +118,7 @@ define(["testFns"], function (testFns) {
             freight = order.getProperty("freight");
             shipCity = testFns.morphString(order.getProperty("shipCity"));
             order.setProperty("shipCity", shipCity);
-            var so = new SaveOptions({ tag: "freight update-ov" });
+            var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-ov" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
             ok(sr.entities.length == 1, "should have saved one entity");
@@ -130,11 +131,11 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("save with saveOptions", function () {
+    test("save with saveOptions exit", function () {
         var em = newEm();
         var zzz = createParentAndChildren(em);
         var cust1 = zzz.cust1;
-        var so = new SaveOptions({ tag: "exit" });
+        var so = new SaveOptions({ resourceName: "SaveWithExit", tag: "exit" });
         stop();
         em.saveChanges(null, so).then(function(sr) {
             ok(sr.entities.length == 0);

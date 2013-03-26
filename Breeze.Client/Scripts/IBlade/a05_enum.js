@@ -141,7 +141,7 @@ var Enum = function() {
     //Enum.prototype.combineSymbols = function () {
     //    var proto = this._symbolPrototype;
     //    var newSymbol = Object.create(proto);
-    //    newSymbol._symbols = Array.prototype.slice.call(arguments);
+    //    newSymbol._symbols = __arraySlice(arguments);
 
     //    Object.keys(proto).forEach(function (key) {
     //        var result;

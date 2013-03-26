@@ -1,0 +1,8 @@
+﻿Ideas for SaveChanges enh.
+
+1) Client side - Support ability to configure SaveChanges with both/either a ResourceName and a DataService 
+2) Server side - ContextProvider.BeforeSave and ContextProvider.BeforeSaveEntity lambdas. 
+    a) Non breaking - One BeforeSave and one BeforeSaveEntity virtual method on the ContextProvider... but 
+    a) ContextProvider - BeforeSave method base impl calls any registered BeforeSave lambda. ( same with BeforeSaveEntity).
+
+ 

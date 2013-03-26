@@ -28,9 +28,9 @@
     };
     
     
-    ctor.prototype.executeQuery = function (entityManager, odataQuery, collectionCallback, errorCallback) {
-        var url = entityManager.serviceName + odataQuery;
-        OData.read(url,
+    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
+    
+        OData.read(queryContext.url,
             function (data, response) {
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
@@ -77,7 +77,7 @@
 
     };
 
-    ctor.prototype.saveChanges = function (entityManager, saveBundleStringified, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {
         throw new Error("Breeze does not yet support saving thru OData");
     };
     
