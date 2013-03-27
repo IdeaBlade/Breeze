@@ -91,7 +91,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("custom timeout cancels 'all customers' query", 1,
         function () {
-            var timeoutMs = 0; // ridiculously short ... should time out
+            var timeoutMs = 1; // ridiculously short ... should time out
             allCustomerTimeoutQuery(timeoutMs, true);
     });
     /*********************************************************
@@ -112,13 +112,16 @@ define(["testFns"], function (testFns) {
 
         stop(); // going async ... tell testrunner to wait
 
-        Q.timeout(query.execute, timeoutMs)
+        Q.timeout(query.execute(), timeoutMs)
             .then(queryFinishedBeforeTimeout)
             .fail(queryTimedout)
             .fin(start);
         
-        function queryFinishedBeforeTimeout() {
-            ok(!shouldTimeout, "Query succeeded" + expectTimeoutMsg);
+        function queryFinishedBeforeTimeout(data) {
+            var count = data.results.length;
+            ok(!shouldTimeout,
+                "Query succeeded and got {0} records; {1}.".
+                format(count, expectTimeoutMsg));
         }
 
         function queryTimedout(error) {
