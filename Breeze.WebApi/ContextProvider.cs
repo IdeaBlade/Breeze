@@ -99,8 +99,8 @@ namespace Breeze.WebApi {
       return new EntityInfo();
     }
 
-    public Func<EntityInfo, bool> OnBeforeSaveEntity { get; set; }
-    public Func<Dictionary<Type, List<EntityInfo>>, Dictionary<Type, List<EntityInfo>>>  OnBeforeSaveEntities { get; set; }
+    public Func<EntityInfo, bool> BeforeSaveEntityDelegate { get; set; }
+    public Func<Dictionary<Type, List<EntityInfo>>, Dictionary<Type, List<EntityInfo>>>  BeforeSaveEntitiesDelegate { get; set; }
     
     /// <summary>
     /// The method is called for each entity to be saved before the save occurs.  If this method returns 'false'
@@ -110,16 +110,16 @@ namespace Breeze.WebApi {
     /// <param name="entityInfo"></param>
     /// <returns></returns>
     protected virtual bool BeforeSaveEntity(EntityInfo entityInfo) {
-      if (OnBeforeSaveEntity != null) {
-        return OnBeforeSaveEntity(entityInfo);
+      if (BeforeSaveEntityDelegate != null) {
+        return BeforeSaveEntityDelegate(entityInfo);
       } else {
         return true;
       }
     }
 
     protected virtual Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
-      if (OnBeforeSaveEntity != null) {
-        return OnBeforeSaveEntities(saveMap);
+      if (BeforeSaveEntitiesDelegate != null) {
+        return BeforeSaveEntitiesDelegate(saveMap);
       } else {
         return saveMap;
       }

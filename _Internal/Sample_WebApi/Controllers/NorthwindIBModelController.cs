@@ -44,7 +44,8 @@ namespace Sample_WebApi.Controllers {
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       // prohibit any additions of entities of type 'Region'
-      if (entityInfo.Entity.GetType() == typeof (Region) && entityInfo.EntityState == EntityState.Added) {
+
+      if (entityInfo.Entity.GetType() == typeof(Region) && entityInfo.EntityState == EntityState.Added) {
         var region = entityInfo.Entity as Region;
         if (region.RegionDescription.ToLowerInvariant().StartsWith("error")) return false;
       }
@@ -52,7 +53,8 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
-      return saveMap;
+      return base.BeforeSaveEntities(saveMap);
+      // return saveMap;
     }
 
   }
@@ -99,8 +101,25 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveWithFreight(JObject saveBundle) {
-      ContextProvider.OnBeforeSaveEntity = CheckFreight;
+      ContextProvider.BeforeSaveEntityDelegate = CheckFreight;
       return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    [HttpPost]
+    public SaveResult SaveWithFreight2(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = CheckFreightOnOrders;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private Dictionary<Type, List<EntityInfo>> CheckFreightOnOrders(Dictionary<Type, List<EntityInfo>> saveMap) {
+      List<EntityInfo> entityInfos;
+      if (saveMap.TryGetValue(typeof(Order), out entityInfos)) {
+        foreach (var entityInfo in entityInfos) {
+          CheckFreight(entityInfo);
+        }  
+      }
+      
+      return saveMap;
     }
 
     private bool CheckFreight(EntityInfo entityInfo) {
@@ -128,6 +147,23 @@ namespace Sample_WebApi.Controllers {
       var custs = ContextProvider.Context.Customers;
       return custs;
     }
+
+    //public class CustomerDTO {
+    //  public CustomerDTO(Customer cust) {
+    //    CompanyName = cust.CompanyName;
+    //    ContactName = cust.ContactName;
+    //  }
+
+    //  public String CompanyName { get; set; }
+    //  public String ContactName { get; set; }
+    //}
+
+    //[HttpGet]
+    //// [BreezeQueryable]
+    //public IQueryable<CustomerDTO> CustomerDTOs() {
+    //  var custs = ContextProvider.Context.Customers.Select(c => new CustomerDTO(c));
+    //  return custs;
+    //}
 
     [HttpGet]
     public IQueryable<Customer> CustomersStartingWith(string companyName) {

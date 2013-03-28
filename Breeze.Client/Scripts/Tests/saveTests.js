@@ -70,7 +70,7 @@ define(["testFns"], function (testFns) {
             freight = order.getProperty("freight") + .5;
             order.setProperty("freight", freight);
             
-            var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update" });
+            var so = new SaveOptions({ resourceName: "SaveWithFreight2", tag: "freight update" });
             return em.saveChanges(null, so);
         }).then(function(sr) {
             ok(sr.entities.length == 1, "should have saved one entity");
