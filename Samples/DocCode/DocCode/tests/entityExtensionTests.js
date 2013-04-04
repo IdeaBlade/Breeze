@@ -46,9 +46,9 @@ define(["testFns"], function (testFns) {
     });
     
     /*********************************************************
-    * add property via constructor
+    * add unmapped property via constructor
     *********************************************************/
-    test("add property via constructor", 3, function () {
+    test("add unmapped property via constructor", 3, function () {
         var store = cloneModuleMetadataStore();
         
         var Customer = function() {
@@ -59,15 +59,15 @@ define(["testFns"], function (testFns) {
         
         var customerType = store.getEntityType("Customer");
         var unmapped = customerType.unmappedProperties;
-        
+
+        // Breeze identified the property as "unmapped"
+        ok(unmapped.length === 1 && unmapped[0].name === "isBeingEdited",
+            "'isBeingEdited' should be the lone unmapped property");
+
         var cust = customerType.createEntity();
 
         ok(typeof cust["isBeingEdited"] === "function",
             "should have 'isBeingEdited' KO property via constructor");
-        
-        // Breeze identified the property as "unmapped"
-        ok(unmapped.length === 1 && unmapped[0].name === "isBeingEdited",
-            "'isBeingEdited' should be the lone unmapped property");
         
         // Breeze converted it into a KO property and initialized it
         equal(cust.isBeingEdited(), false,
@@ -98,31 +98,70 @@ define(["testFns"], function (testFns) {
 
     });
     /*********************************************************
-    * add KO property via constructor
+    * add unmapped property via constructor
     *********************************************************/
-    test("add KO property via constructor", 3, function () {
+    test("add unmapped property via constructor", 3, function () {
         var store = cloneModuleMetadataStore();
 
         var Customer = function () {
-            this.foo = ko.observable(42);
+            this.foo = 42; // doesn't have to be KO observable; will become observable
         };
 
         store.registerEntityTypeCtor("Customer", Customer);
 
         var customerType = store.getEntityType("Customer");
-        var unmapped = customerType.unmappedProperties;
 
+        var unmapped = customerType.unmappedProperties[0];
+
+        // Although 'foo' is a function, it is listed as an unmapped property
+        ok(unmapped && unmapped.name === 'foo', "foo should be an unmapped property");
         var cust = customerType.createEntity();
         
         ok(cust["foo"],
             "should have 'foo' property via constructor");
 
-        // Although 'foo' is a function, it is listed as an unmapped property
-        equal(unmapped.length, 1, "foo should be an unmapped property");
-
         equal(cust.foo(), 42,
             "'foo' should be a KO 'property' returning 42");
     });
+    /*********************************************************
+    * unmapped 'foo' property is validated
+    *********************************************************/
+    test("unmapped 'foo' property is validated", 4, function () {
+        // Arrange for 'foo' to be an unmapped Customer property
+        var store = cloneModuleMetadataStore();
+        var Customer = function () {
+            this.foo = "";
+        };
+        store.registerEntityTypeCtor("Customer", Customer);
+        var customerType = store.getEntityType("Customer");
+
+        var unmapped = customerType.unmappedProperties[0];
+        ok(unmapped && unmapped.name==='foo', "foo should be an unmapped property");
+
+        var maxLengthValidator = breeze.Validator.maxLength({maxLength:5});
+        unmapped.validators.push(maxLengthValidator)
+
+        // create new customer
+        var manager = newEm(store);
+        var cust = manager.createEntity(customerType.name);
+
+        cust.foo("funky");
+        var errs = cust.entityAspect.getValidationErrors(unmapped);
+        ok(0 === errs.length,
+            "should not have validation errors about 'foo'.");
+
+        cust.foo("funky and fresh");
+        errs = cust.entityAspect.getValidationErrors(unmapped);
+        equal(errs.length, 1,
+            "should have one validation error about 'foo'.");
+
+        var errMsg = errs[0].errorMessage;
+        ok(/foo.*less than/.test(errMsg),
+            "error message, \"{0}\", should complain that 'foo' is too long."
+            .format(errMsg));
+
+    });
+
     /*********************************************************
     * when unmapped property changes, what happens to 
     * notifications, EntityState, and originalValues
@@ -132,17 +171,17 @@ define(["testFns"], function (testFns) {
         // Arrange for 'foo' to be an unmapped Customer property
         var store = cloneModuleMetadataStore();
         var Customer = function () {
-            this.foo = ko.observable(42);
+            this.foo = 42;
         };
         store.registerEntityTypeCtor("Customer", Customer);
         var customerType = store.getEntityType("Customer");
-        var unmapped = customerType.unmappedProperties;
-        equal(unmapped.length, 1, "foo should be an unmapped property");
+        var unmapped = customerType.unmappedProperties[0];
+        ok(unmapped && unmapped.name === 'foo', "foo should be an unmapped property");
 
         // Fake an existing customer
         var manager = newEm(store);
-        var cust = manager.createEntity(customerType.name);
-        cust.entityAspect.acceptChanges(); // pretend was saved
+        var cust = manager.createEntity(
+            customerType.name, {}, breeze.EntityState.Unchanged);
 
         // Listen for foo changes
         var koFooNotified, breezeFooNotified;
@@ -212,7 +251,7 @@ define(["testFns"], function (testFns) {
         // Arrange for 'foo' to be an unmapped TodoItem property
         var store = cloneModuleMetadataStore();
         var TodoItemCtor = function () {
-            this.foo = ko.observable(0);
+            this.foo = 0;
         };
         store.registerEntityTypeCtor("TodoItem", TodoItemCtor);
         var todoType = store.getEntityType("TodoItem");
