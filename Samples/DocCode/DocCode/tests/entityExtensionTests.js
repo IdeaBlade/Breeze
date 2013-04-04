@@ -202,18 +202,20 @@ define(["testFns"], function (testFns) {
 
         var originalValues = cust.entityAspect.originalValues;
         var hasOriginalValues;
-        for (var key in originalValues){
-            hasOriginalValues = true;
-            break;
+        for (var key in originalValues) {
+            if (key === 'foo') {
+                hasOriginalValues = true;
+                break;
+            }
         }
 
-        ok(!hasOriginalValues,
-            "'originalValues' should be empty; it is " + JSON.stringify(originalValues));
+        ok(hasOriginalValues,
+            "'originalValues' have 'foo'; it is " + JSON.stringify(originalValues));
     });
     /*********************************************************
-    * reject changes should have no effect on an unmapped property
+    * reject changes should revert an unmapped property
     *********************************************************/
-    test("reject changes does NOT revert changes to an unmapped property", 2, function () {
+    test("reject changes reverts an unmapped property", 2, function () {
         var store = cloneModuleMetadataStore();
 
         var originalTime = new Date(2013, 0, 1);
@@ -239,8 +241,8 @@ define(["testFns"], function (testFns) {
         cust.entityAspect.rejectChanges(); // roll back name change
 
         equal(cust.CompanyName(), "Acme", "'name' data property should be rolled back");
-        ok(originalTime !== cust.lastTouched(),
-            "'lastTouched' unmapped property should NOT be rolled back. Started as {0}; now is {1}"
+        ok(originalTime === cust.lastTouched(),
+            "'lastTouched' unmapped property should be rolled back. Started as {0}; now is {1}"
             .format(originalTime,  cust.lastTouched()));
     });
     /*********************************************************
