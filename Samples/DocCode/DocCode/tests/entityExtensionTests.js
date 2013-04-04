@@ -13,6 +13,7 @@ define(["testFns"], function (testFns) {
 
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
+    var todoService = testFns.todosServiceName;
     var handleFail = testFns.handleFail;
 
     module("entityExtensionTests", { setup: moduleMetadataStoreSetup });
@@ -22,7 +23,9 @@ define(["testFns"], function (testFns) {
         if (!moduleMetadataStore.isEmpty()) return; // got it already
 
         stop(); // going async for metadata ...
-        moduleMetadataStore.fetchMetadata(northwindService)
+        Q.all(
+            moduleMetadataStore.fetchMetadata(northwindService),
+            moduleMetadataStore.fetchMetadata(todoService))
         .fail(handleFail)
         .fin(start);
     }
@@ -121,9 +124,57 @@ define(["testFns"], function (testFns) {
             "'foo' should be a KO 'property' returning 42");
     });
     /*********************************************************
-    * reject changes reverts changes to an unmapped property
+    * when unmapped property changes, what happens to 
+    * notifications, EntityState, and originalValues
     *********************************************************/
-    test("reject changes reverts changes to an unmapped property", 2, function () {
+    test("change to unmapped 'foo' property does not change EntityState", 5, function () {
+
+        // Arrange for 'foo' to be an unmapped Customer property
+        var store = cloneModuleMetadataStore();
+        var Customer = function () {
+            this.foo = ko.observable(42);
+        };
+        store.registerEntityTypeCtor("Customer", Customer);
+        var customerType = store.getEntityType("Customer");
+        var unmapped = customerType.unmappedProperties;
+        equal(unmapped.length, 1, "foo should be an unmapped property");
+
+        // Fake an existing customer
+        var manager = newEm(store);
+        var cust = manager.createEntity(customerType.name);
+        cust.entityAspect.acceptChanges(); // pretend was saved
+
+        // Listen for foo changes
+        var koFooNotified, breezeFooNotified;
+        cust.foo.subscribe(function () { koFooNotified = true; });
+        cust.entityAspect.propertyChanged.subscribe(function (args) {
+            if (args.propertyName === "foo") { breezeFooNotified = true; }
+        });
+
+        // Act
+        cust.foo(12345);
+
+        ok(koFooNotified, "KO should have raised property changed for 'foo'.");
+        ok(breezeFooNotified, "Breeze should have raised its property changed for 'foo'.")
+
+        var stateName = cust.entityAspect.entityState.name;
+        equal(stateName, "Unchanged",
+            "cust's EntityState should still be 'Unchanged'; it is " + stateName);
+
+        var originalValues = cust.entityAspect.originalValues;
+        var hasOriginalValues;
+        for (var key in originalValues){
+            hasOriginalValues = true;
+            break;
+        }
+
+        ok(!hasOriginalValues,
+            "'originalValues' should be empty; it is " + JSON.stringify(originalValues));
+    });
+    /*********************************************************
+    * reject changes should have no effect on an unmapped property
+    *********************************************************/
+    test("reject changes does NOT revert changes to an unmapped property", 2, function () {
         var store = cloneModuleMetadataStore();
 
         var originalTime = new Date(2013, 0, 1);
@@ -148,9 +199,99 @@ define(["testFns"], function (testFns) {
         cust.lastTouched(touched = new Date(touched.getTime() + 60000));
         cust.entityAspect.rejectChanges(); // roll back name change
 
-        equal(cust.CompanyName(), "Acme", "name should be rolled back");
-        equal(originalTime - cust.lastTouched(), 0,
-            "unmapped property, 'lastTouched', was rolled back");
+        equal(cust.CompanyName(), "Acme", "'name' data property should be rolled back");
+        ok(originalTime !== cust.lastTouched(),
+            "'lastTouched' unmapped property should NOT be rolled back. Started as {0}; now is {1}"
+            .format(originalTime,  cust.lastTouched()));
+    });
+    /*********************************************************
+    * unmapped properties are not persisted
+    *********************************************************/
+    test("unmapped properties are not persisted", 9, function () {
+
+        // Arrange for 'foo' to be an unmapped TodoItem property
+        var store = cloneModuleMetadataStore();
+        var TodoItemCtor = function () {
+            this.foo = ko.observable(0);
+        };
+        store.registerEntityTypeCtor("TodoItem", TodoItemCtor);
+        var todoType = store.getEntityType("TodoItem");
+        var unmapped = todoType.unmappedProperties;
+        equal(unmapped.length, 1, "foo should be an unmapped property");
+
+        // Create manager that uses this extended TodoItem
+        var manager = new EntityManager({
+            serviceName: todoService,
+            metadataStore: store
+        });
+
+        // Add new Todo
+        var todo = manager.createEntity(todoType.name);
+        var operation, description; // testing capture vars
+
+        stop(); // going async
+
+        saveAddedTodo()
+            .then(saveModifiedTodo)
+            .then(saveDeletedTodo)
+            .fail(handleFail)
+            .fin(start);
+
+        function saveAddedTodo() {
+            changeDescription("add");
+            todo.foo(42);
+            return manager.saveChanges().then(saveSucceeded);
+        }
+        function saveModifiedTodo() {
+            changeDescription("update");
+            todo.foo(84);
+            return manager.saveChanges().then(saveSucceeded);
+        }
+        function saveDeletedTodo() {
+            changeDescription("delete");
+            todo.foo(21);
+            todo.entityAspect.setDeleted();
+            DEFECT_2382_MUST_CLEAR_ORIGINAL_VALUES_FOR_DELETE()
+            return manager.saveChanges().then(saveSucceeded);
+        }
+        function DEFECT_2382_MUST_CLEAR_ORIGINAL_VALUES_FOR_DELETE() {
+            // Defect #2382: unmapped 'foo' is in original values
+            // which is sent to server and causes EFContextProvider to fail
+            // with null reference exception.
+            // Clear original values get this test to pass
+            todo.entityAspect.originalValues = {};
+        }
+
+        function changeDescription(op) {
+            operation = op;
+            description = op + " entityExtensionTest";
+            todo.Description(description);
+        }
+        function saveSucceeded(saveResult) {
+
+            notEqual(todo.foo(), 0, "'foo' retains its '{0}' value after '{1}' save succeeded but ..."
+                .format(todo.foo(), operation));
+
+            // clear the cache and requery the Todo
+            manager.clear();
+            return EntityQuery.fromEntities(todo).using(manager).execute().then(requerySucceeded);
+
+        }
+        function requerySucceeded(data) {
+            if (data.results.length === 0) {
+                if (operation === "delete") {
+                    ok(true, "todo should be gone from the database after 'delete' save succeeds.");
+                }else {
+                    ok(false, "todo should still be in the database after '{0}' save.".format(operation));
+                }
+                return;
+            }
+
+            todo = data.results[0];
+            equal(todo.foo(), 0, "'foo' should have reverted to '0' after cache-clear and re-query.");
+            equal(todo.Description(), description,
+                    "'Description' should be '{0}' after {1} succeeded and re-query".format(description, operation));
+        }
     });
     /*********************************************************
     * add instance function via constructor
