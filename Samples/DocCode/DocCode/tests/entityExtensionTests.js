@@ -292,15 +292,7 @@ define(["testFns"], function (testFns) {
             changeDescription("delete");
             todo.foo(21);
             todo.entityAspect.setDeleted();
-            DEFECT_2382_MUST_CLEAR_ORIGINAL_VALUES_FOR_DELETE()
             return manager.saveChanges().then(saveSucceeded);
-        }
-        function DEFECT_2382_MUST_CLEAR_ORIGINAL_VALUES_FOR_DELETE() {
-            // Defect #2382: unmapped 'foo' is in original values
-            // which is sent to server and causes EFContextProvider to fail
-            // with null reference exception.
-            // Clear original values get this test to pass
-            todo.entityAspect.originalValues = {};
         }
 
         function changeDescription(op) {

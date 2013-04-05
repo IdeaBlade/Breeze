@@ -13,6 +13,10 @@ using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 using System.Web.Http.OData.Query;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.IO;
+using System.Web;
 
 #if CODEFIRST_PROVIDER
 using Models.NorthwindIB.CF;
@@ -22,10 +26,6 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.IO;
-using System.Web;
 #endif
 
 namespace Sample_WebApi.Controllers {

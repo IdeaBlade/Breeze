@@ -76,6 +76,27 @@ function __extend(target, source) {
     return target;
 }
 
+function __updateWithDefaults(target, defaults) {
+    for (var name in defaults) {
+        if (target[name] === undefined) {
+            target[name] = defaults[name];
+        }
+    }
+    return target;
+}
+
+
+function __setAsDefault(target, ctor) {
+    // we want to insure that the object returned by ctor.defaultInstance is always immutable
+    // Use 'target' as the primary template for the ctor.defaultInstance; 
+    // Use current 'ctor.defaultInstance' as the template for any missing properties
+    // creates a new instance for ctor.defaultInstance
+    // returns target unchanged 
+    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+    return target;
+}
+
+
 // template keys are the keys to return
 // template values are the 'default' value of these keys - value is not serialized if it == the default value
 function __toJson(source, template) {

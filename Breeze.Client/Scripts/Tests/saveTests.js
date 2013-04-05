@@ -39,6 +39,54 @@ define(["testFns"], function (testFns) {
         });
         return testFns;
     }
+
+    test("save update with unmapped changes", function() {
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers").take(1);
+        em1.executeQuery(q).then(function(data) {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = data.results[0];
+            var oldContactName = cust.getProperty("contactName");
+            var oldMiscData = cust.getProperty("miscData");
+            testFns.morphStringProp(cust, "contactName");
+            testFns.morphStringProp(cust, "miscData");
+            return em1.saveChanges();
+        }).then(function (sr) {
+            
+            var e = sr.entities;
+            ok(e.length === 1, "1 record should have been saved");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save delete with unmapped changes", function () {
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var zzz;
+        em1.fetchMetadata().then(function() {
+            zzz = createParentAndChildren(em1);
+            return em1.saveChanges();
+        }).then(function (saveResult) {
+            var cust = zzz.cust1;
+            var oldContactName = cust.getProperty("contactName");
+            var oldMiscData = cust.getProperty("miscData");
+            testFns.morphStringProp(cust, "contactName");
+            testFns.morphStringProp(cust, "miscData");
+            zzz.cust1.entityAspect.setDeleted();
+            
+            return em1.saveChanges();
+        }).then(function (sr) {
+            var r = sr.entities;
+            ok(zzz.cust1.entityAspect.entityState.isDetached());
+            ok(r.length === 3, "3 child records should have been modified ( stranded)");
+        }).fail(testFns.handleFail).fin(start);
+        
+
+    });
     
     test("save data with server reject", function () {
         var em = newEm();
@@ -911,7 +959,7 @@ define(["testFns"], function (testFns) {
     });
 
      function createParentAndChildren(em) {
-        var metadataStore = testFns.metadataStore;
+        var metadataStore = em.metadataStore;
         var custType = metadataStore.getEntityType("Customer");
         var orderType = metadataStore.getEntityType("Order");
         var cust1 = custType.createEntity();
@@ -945,7 +993,7 @@ define(["testFns"], function (testFns) {
      }
     
      function createParentAndManyChildren(em) {
-         var metadataStore = testFns.metadataStore;
+         var metadataStore = em.metadataStore;
          var custType = metadataStore.getEntityType("Customer");
          var orderType = metadataStore.getEntityType("Order");
          var cust1 = custType.createEntity();

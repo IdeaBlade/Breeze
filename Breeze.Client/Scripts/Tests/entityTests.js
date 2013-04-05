@@ -24,6 +24,25 @@ define(["testFns"], function (testFns) {
 
         }
     });
+
+    test("rejectChanges on unmapped property", function() {
+        var em1 = newEm(newMs());
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em1.fetchMetadata().then(function() {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = custType.createEntity();
+            em1.addEntity(cust);
+            cust.setProperty("companyName", "foo2");
+            cust.setProperty("miscData", "zzz");
+            cust.entityAspect.acceptChanges();
+            cust.setProperty("miscData", "xxx");
+            cust.entityAspect.rejectChanges();
+            var miscData = cust.getProperty("miscData");
+            ok(miscData === 'zzz', "miscData should be zzz");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("set foreign key property to null", function () {
         var productQuery = new EntityQuery("Products").take(1)

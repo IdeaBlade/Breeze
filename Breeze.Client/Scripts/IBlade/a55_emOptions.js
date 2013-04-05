@@ -73,19 +73,25 @@ var QueryOptions = (function () {
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
         // assume em1 is a preexisting EntityManager
         em1.setProperties( { queryOptions: newQo });
+
+    Any QueryOptions property that is not defined will be defaulted from any QueryOptions defined at a higher level in the breeze hierarchy, i.e. 
+    -  from query.queryOptions 
+    -  to   entityManager.queryOptions 
+    -  to   QueryOptions.defaultInstance;
+
     @method <ctor> QueryOptions
     @param [config] {Object}
-    @param [config.fetchStrategy=FetchStrategy.FromServer] {FetchStrategy}  
-    @param [config.mergeStrategy=MergeStrategy.PreserveChanges] {MergeStrategy}  
+    @param [config.fetchStrategy] {FetchStrategy}  
+    @param [config.mergeStrategy] {MergeStrategy}  
+    @param [config.dataService] {DataService}  
+    @param [config.jsonResultsAdapter] {JsonResultsAdapter}  
     **/
     var ctor = function (config) {
-        this.fetchStrategy = FetchStrategy.FromServer;
-        this.mergeStrategy = MergeStrategy.PreserveChanges;
         updateWithConfig(this, config);
     };
     var proto = ctor.prototype;
      
-
+    
     /**
     A {{#crossLink "FetchStrategy"}}{{/crossLink}}
     __readOnly__
@@ -100,12 +106,17 @@ var QueryOptions = (function () {
 
     proto._$typeName = "QueryOptions";
 
+
+    
     /**
     The default value whenever QueryOptions are not specified.
     @property defaultInstance {QueryOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    ctor.defaultInstance = new ctor({
+        fetchStrategy: FetchStrategy.FromServer,
+        mergeStrategy: MergeStrategy.PreserveChanges
+    });
 
     /**
     Returns a copy of this QueryOptions with the specified {{#crossLink "MergeStrategy"}}{{/crossLink}} 
@@ -119,22 +130,27 @@ var QueryOptions = (function () {
     @example
         var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
     @method using
-    @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
+    @param config {Configuration Object|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to apply to create a new QueryOptions.
     @return {QueryOptions}
     @chainable
     **/
-    proto.using = function(config) {
+    proto.using = function (config) {
+        if (!config) return this;
         var result = new QueryOptions(this);
         if (MergeStrategy.contains(config)) {
             config = { mergeStrategy: config };
         } else if (FetchStrategy.contains(config)) {
             config = { fetchStrategy: config };
+        } else if (config instanceof DataService) {
+            config = { dataService: config };
+        } else if (config instanceof JsonResultsAdapter) {
+            config = { jsonResultsAdapter: config };
         } 
         return updateWithConfig(result, config);
     };
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
@@ -142,22 +158,25 @@ var QueryOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
     proto.toJSON = function () {
         return __toJson(this, {
             fetchStrategy: null,
-            mergeStrategy: null
+            mergeStrategy: null,
+            dataService: null,
+            jsonResultsAdapter: function (v) { return v && v.name; }
         });
     };
 
     ctor.fromJSON = function (json) {
         return new QueryOptions({
             fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
-            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy)
-        });
+            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+            dataService: json.dataService && DataService.fromJSON(json.dataService),
+            jsonResultsAdapter: __config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter)
+        });       
     };
         
     function updateWithConfig( obj, config ) {
@@ -165,6 +184,8 @@ var QueryOptions = (function () {
             assertConfig(config)
                 .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
+                .whereParam("dataService").isInstanceOf(DataService).isOptional()
+                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
                 .applyAll(obj);
         }
         return obj;
@@ -183,32 +204,27 @@ var SaveOptions = (function () {
     /**
     @method <ctor> SaveOptions
     @param config {Object}
-    @param [config.allowConcurrentSaves] {Boolean}
-    @param [config.tag] {Object} Free form value that will be sent to the server. 
+    @param [config.allowConcurrentSaves] {Boolean} Whether multiple saves can be in-flight at the same time. The default is false.
+    @param [config.resourceName] {String} Resource name to be used during the save - this defaults to "SaveChanges"
+    @param [config.dataService] {DataService} The DataService to be used for this save.
+    @param [config.tag] {Object} Free form value that will be sent to the server during the save. 
     **/
     var ctor = function (config) {
-        config = config || {};
-        assertConfig(config)
-            .whereParam("resourceName").isOptional().isString()
-            .whereParam("dataService").isOptional().isInstanceOf(DataService)
-            .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
-            .whereParam("tag").isOptional()
-            .applyAll(this);
-                        
+        updateWithConfig(this, config);
     };
+    
     var proto = ctor.prototype;
     proto._$typeName = "SaveOptions";
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
-        
+    
     /**
     Whether another save can be occuring at the same time as this one - default is false.
 
@@ -228,7 +244,34 @@ var SaveOptions = (function () {
     @property defaultInstance {SaveOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    
+    /**
+    Returns a copy of this SaveOptions with the specified config options applied.
+    @example
+        var saveOptions = em1.saveOptions.using( {resourceName: "anotherResource" });
+    
+    @method using
+    @param config {Configuration Object|} The object to apply to create a new SaveOptions.
+    @return {SaveOptions}
+    @chainable
+    **/
+    proto.using = function (config) {
+        return updateWithConfig(this, config);
+    };
+
+    function updateWithConfig(obj, config) {
+        if (config) {
+            assertConfig(config)
+              .whereParam("resourceName").isOptional().isString()
+              .whereParam("dataService").isOptional().isInstanceOf(DataService)
+              .whereParam("allowConcurrentSaves").isBoolean().isOptional()
+              .whereParam("tag").isOptional()
+              .applyAll(obj);
+        }
+        return obj;
+    }
+
+    ctor.defaultInstance = new ctor({ allowConcurrentSaves: false});
     return ctor;
 })();
 
@@ -254,10 +297,6 @@ var ValidationOptions = (function () {
     @param [config.validateOnPropertyChange=true] {Boolean}
     **/
     var ctor = function (config) {
-        this.validateOnAttach = true;
-        this.validateOnSave = true;
-        this.validateOnQuery = false;
-        this.validateOnPropertyChange = true;
         updateWithConfig(this, config);
     };
     var proto = ctor.prototype;
@@ -306,14 +345,15 @@ var ValidationOptions = (function () {
     @return {ValidationOptions}
     @chainable
     **/
-    proto.using = function(config) {
+    proto.using = function (config) {
+        if (!config) return this;
         var result = new ValidationOptions(this);
         updateWithConfig(result, config);
         return result;
     };
 
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @example
         var validationOptions = new ValidationOptions()
         var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
@@ -322,8 +362,7 @@ var ValidationOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
     /**
@@ -331,7 +370,12 @@ var ValidationOptions = (function () {
     @property defaultInstance {ValidationOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    ctor.defaultInstance = new ctor({
+            validateOnAttach: true,
+            validateOnSave: true,
+            validateOnQuery: false,
+            validateOnPropertyChange: true
+    });
         
     function updateWithConfig( obj, config ) {
         if (config) {

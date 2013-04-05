@@ -111,6 +111,27 @@ function __extend(target, source) {
     return target;
 }
 
+function __updateWithDefaults(target, defaults) {
+    for (var name in defaults) {
+        if (target[name] === undefined) {
+            target[name] = defaults[name];
+        }
+    }
+    return target;
+}
+
+
+function __setAsDefault(target, ctor) {
+    // we want to insure that the object returned by ctor.defaultInstance is always immutable
+    // Use 'target' as the primary template for the ctor.defaultInstance; 
+    // Use current 'ctor.defaultInstance' as the template for any missing properties
+    // creates a new instance for ctor.defaultInstance
+    // returns target unchanged 
+    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+    return target;
+}
+
+
 // template keys are the keys to return
 // template values are the 'default' value of these keys - value is not serialized if it == the default value
 function __toJson(source, template) {
@@ -742,12 +763,14 @@ var Param = function () {
         return this.parent.whereParam(propName);
     };
 
-    proto.applyAll = function(instance, throwIfUnknownProperty) {
+
+    proto.applyAll = function(instance, checkOnly, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
             if (throwIfUnknownProperty) delete clone[p.name];
-            p._applyOne(instance);
+            p.check();
+            (!checkOnly) && p._applyOne(instance);
         });
         // should be no properties left in the clone
         if (throwIfUnknownProperty) {
@@ -761,7 +784,6 @@ var Param = function () {
     };
 
     proto._applyOne = function(instance) {
-        this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {
@@ -1523,7 +1545,8 @@ var __config = function () {
         assertConfig(config)
             .whereParam("dataService").isOptional()
             .whereParam("modelLibrary").isOptional()
-            .whereParam("ajax").isOptional();
+            .whereParam("ajax").isOptional()
+            .applyAll(this, false);
         return __objectMapToArray(config, __config.initializeAdapterInstance);
 
     };
@@ -4173,8 +4196,8 @@ var LocalQueryComparisonOptions = (function () {
     var ctor = function (config) {
         assertConfig(config || {})
             .whereParam("name").isOptional().isString()
-            .whereParam("isCaseSensitive").isOptional().isBoolean().withDefault(false)
-            .whereParam("usesSql92CompliantStringComparison").isBoolean().withDefault(true)
+            .whereParam("isCaseSensitive").isOptional().isBoolean()
+            .whereParam("usesSql92CompliantStringComparison").isBoolean()
             .applyAll(this);
         if (!this.name) {
             this.name = __getUuid();
@@ -4201,10 +4224,10 @@ var LocalQueryComparisonOptions = (function () {
     @property defaultInstance {LocalQueryComparisonOptions}
     @static
     **/
-    ctor.defaultInstance = ctor.caseInsensitiveSQL;
+    ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
 
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var lqco = new LocalQueryComparisonOptions({
@@ -4215,8 +4238,7 @@ var LocalQueryComparisonOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function () {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
 
@@ -4322,10 +4344,10 @@ var NamingConvention = (function () {
     @property defaultInstance {NamingConvention}
     @static
     **/
-    ctor.defaultInstance = ctor.none;
+    ctor.defaultInstance = new ctor(ctor.none);
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var namingConv = new NamingConvention({
@@ -4339,9 +4361,8 @@ var NamingConvention = (function () {
         namingConv.setAsDefault();
     @chainable
     **/
-    proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+    proto.setAsDefault = function () {
+        return __setAsDefault(this, ctor);
     };
         
     return ctor;
@@ -5212,7 +5233,7 @@ var MetadataStore = (function () {
     return ctor;
 })();
 
-var DataService = function () {
+var DataService = (function () {
         
     /**
     A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
@@ -5337,7 +5358,7 @@ var DataService = function () {
     };
 
     return ctor;
-}();
+})();
     
 var JsonResultsAdapter = (function () {
 
@@ -6932,9 +6953,9 @@ var EntityQuery = (function () {
         this.parameters = {};
         this.inlineCountEnabled = false;
         // default is to get queryOptions from the entityManager.
-        this.queryOptions = null;
+        this.queryOptions = new QueryOptions();
         this.entityManager = null;
-        this.dataService = null;
+        // this.dataService = null;
     };
     var proto = ctor.prototype;
 
@@ -7391,18 +7412,12 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.using = function (obj) {
+        if (!obj) return this;
         var eq = this._clone();
         if (obj instanceof EntityManager) {
             eq.entityManager = obj;
-        } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
-            var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
-            eq.queryOptions = queryOptions.using(obj);
-        } else if (obj instanceof DataService) {
-            eq.dataService = obj;
-        } else if (obj instanceof JsonResultsAdapter) {
-            eq.jsonResultsAdapter = obj;
         } else {
-            throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy, a FetchStrategy, a DataService or a JsonResultsAdapter");
+            eq.queryOptions = this.queryOptions.using(obj);
         }
         return eq;
     };
@@ -7655,7 +7670,7 @@ var EntityQuery = (function () {
         copy.inlineCountEnabled = this.inlineCountEnabled;
         copy.parameters = __extend({}, this.parameters);
         // default is to get queryOptions from the entityManager.
-        copy.queryOptions = this.queryOptions;
+        copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
 
         return copy;
@@ -9515,13 +9530,13 @@ var EntityManager = (function () {
     @param [config.serviceName] {String}
     @param [config.dataService] {DataService} An entire DataService (instead of just the serviceName above).
     @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
-    @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
-    @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
+    @param [config.queryOptions] {QueryOptions}
+    @param [config.saveOptions] {SaveOptions}
     @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
     @param [config.keyGeneratorCtor] {Function}
     **/
-    var ctor = function (config) {
-            
+    var ctor = function(config) {
+
         if (arguments.length > 1) {
             throw new Error("The EntityManager ctor has a single optional argument that is either a 'serviceName' or a configuration object.");
         }
@@ -9530,25 +9545,9 @@ var EntityManager = (function () {
         } else if (typeof config === 'string') {
             config = { serviceName: config };
         }
-            
-        assertConfig(config)
-            .whereParam("serviceName").isOptional().isString()
-            .whereParam("dataService").isOptional().isInstanceOf(DataService)
-            .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore())
-            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
-            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
-            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
-            .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
-            .applyAll(this);
 
-                
-        if (config.serviceName) {
-            this.dataService = new DataService({
-                serviceName: this.serviceName
-            });
-        }
-        this.serviceName = this.dataService && this.dataService.serviceName;
-            
+        updateWithConfig(this, config, true);
+
         this.entityChanged = new Event("entityChanged_entityManager", this);
         this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
@@ -9556,13 +9555,69 @@ var EntityManager = (function () {
             
     };
     var proto = ctor.prototype;
-        
-        
-        
     proto._$typeName = "EntityManager";
+    Event.bubbleEvent(proto, null);
+    
+    /**
+    General purpose property set method.  Any of the properties documented below 
+    may be set.
+    @example
+            // assume em1 is a previously created EntityManager
+            // where we want to change some of its settings.
+            em1.setProperties( {
+                serviceName: "api/foo"
+            });
+    @method setProperties
+    @param config {Object}
+        @param [config.serviceName] {String}
+        @param [config.dataService] {DataService}
+        @param [config.queryOptions] {QueryOptions}
+        @param [config.saveOptions] {SaveOptions}
+        @param [config.validationOptions] {ValidationOptions}
+        @param [config.keyGeneratorCtor] {Function}
+    **/
+    proto.setProperties = function (config) {
+        updateWithConfig(this, config, false);
+        
+    };
+    
+    function updateWithConfig(em, config, isCtor) {
+        var defaultQueryOptions = isCtor ? QueryOptions.defaultInstance : em.queryOptions;
+        var defaultSaveOptions = isCtor ? SaveOptions.defaultInstance : em.saveOptions;
+        var defaultValidationOptions = isCtor ? ValidationOptions.defaultInstance : em.validationOptions;
         
 
-    Event.bubbleEvent(proto, null);
+        var configParam = assertConfig(config)
+            .whereParam("serviceName").isOptional().isString()
+            .whereParam("dataService").isOptional().isInstanceOf(DataService)
+            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(defaultQueryOptions)
+            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(defaultSaveOptions)
+            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(defaultValidationOptions)
+            .whereParam("keyGeneratorCtor").isFunction().isOptional();
+        if (isCtor) {
+            configParam = configParam
+                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore());
+        } 
+        configParam.applyAll(em);
+        
+        
+        // insure that entityManager's options versions are completely populated
+        __updateWithDefaults(em.queryOptions, defaultQueryOptions);
+        __updateWithDefaults(em.saveOptions, defaultSaveOptions);
+        __updateWithDefaults(em.validationOptions, defaultValidationOptions);
+
+        if (config.serviceName) {
+            em.dataService = new DataService({
+                serviceName: em.serviceName
+            });
+        }
+        em.serviceName = em.dataService && em.dataService.serviceName;
+
+        em.keyGeneratorCtor = em.keyGeneratorCtor || KeyGenerator;
+        if (isCtor || config.keyGeneratorCtor) {
+            em.keyGenerator = new em.keyGeneratorCtor();
+        } 
+    }
         
     /**
     The service name associated with this EntityManager.
@@ -9835,47 +9890,7 @@ var EntityManager = (function () {
         }
     };
 
-    /**
-    General purpose property set method.  Any of the properties documented below 
-    may be set.
-    @example
-            // assume em1 is a previously created EntityManager
-            // where we want to change some of its settings.
-            em1.setProperties( {
-            serviceName: "api/foo"
-            });
-    @method setProperties
-    @param config {Object}
-        @param [config.serviceName] {String}
-        @param [config.dataService] {DataService}
-        @param [config.queryOptions] {QueryOptions}
-        @param [config.saveOptions] {SaveOptions}
-        @param [config.validationOptions] {ValidationOptions}
-        @param [config.keyGeneratorCtor] {Function}
-
-    **/
-    proto.setProperties = function (config) {
-        assertConfig(config)
-            .whereParam("serviceName").isString().isOptional()
-            .whereParam("dataService").isInstanceOf(DataService).isOptional()
-            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
-            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
-            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-            .whereParam("keyGeneratorCtor").isOptional()
-            .applyAll(this);
-                
-        if (config.serviceName) {
-            this.dataService = new DataService({
-                serviceName: this.serviceName,
-            });
-        }
-        this.serviceName = this.dataService && this.dataService.serviceName;
-            
-        if (config.keyGeneratorCtor) {
-            this.keyGenerator = new this.keyGeneratorCtor();
-        }
-            
-    };
+  
 
     /**
     Creates an empty copy of this EntityManager
@@ -10133,19 +10148,42 @@ var EntityManager = (function () {
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
         var promise;
-        var dataService = query.dataService || this.dataService;
+        // 'normalizeQueryOptions' creates a new QueryOptions object with all of its properties fully resolved against this entityManager and the queryOptions defaults.
+        // Thought about creating a 'normalized' query with this 'normalized' queryOptions
+        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions property on it.
+        // It can be a string.
+        var queryOptions = normalizeQueryOptions(query, this);
+        var dataService = queryOptions.dataService;
         if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
-            promise = executeQueryCore(this, query);
+            promise = executeQueryCore(this, query, queryOptions);
         } else {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
-                return executeQueryCore(that, query);
+                return executeQueryCore(that, query, queryOptions);
             }).fail(function (error) {
                 return Q.reject(error);
             });
         }
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
+    
+    function normalizeQueryOptions(query, entityManager) {
+        var qo1 = query.queryOptions || {};
+        var qo2 = entityManager.queryOptions;
+        var qo3 = QueryOptions.defaultInstance;       
+        // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
+        var qo = new QueryOptions({
+            fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
+            mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
+            dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
+            jsonResultsAdapter: getJra(qo1) || getJra(qo2) || getJra(entityManager) || getJra(qo3)
+        });
+        return qo;
+    };
+    
+    function getJra(obj) {
+        return obj.jsonResultsAdapter || (obj.dataService && obj.dataService.jsonResultsAdapter);
+    }
 
     /**
     Executes the specified query against this EntityManager's local cache.
@@ -10295,7 +10333,7 @@ var EntityManager = (function () {
                 return entity.entityAspect.isBeingSaved;
             });                
             if (anyPendingSaves) {
-                var err = new Error("ConcurrentSaves not allowed - SaveOptions.allowConcurrentSaves is false");
+                var err = new Error("Concurrent saves not allowed - SaveOptions.allowConcurrentSaves is false");
                 if (errorCallback) errorCallback(err);
                 return Q.reject(err);
             }
@@ -10476,6 +10514,7 @@ var EntityManager = (function () {
             isDeleted = entity && entity.entityAspect.entityState.isDeleted();
             if (isDeleted) {
                 entity = null;
+                // entityManager.queryOptions is always  fully resolved 
                 if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
                     isDeleted = false;
                 }
@@ -11149,14 +11188,14 @@ var EntityManager = (function () {
     }
 
     // returns a promise
-    function executeQueryCore(em, query) {
+    function executeQueryCore(em, query, queryOptions) {
         try {
             var metadataStore = em.metadataStore;
-            var dataService = query.dataService || em.dataService;
+            var dataService = queryOptions.dataService;
             if (metadataStore.isEmpty() && dataService.hasServerMetadata) {
                 throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
             }
-            var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
+            
             if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
                 return Q.fcall(function () {
                     var results = em.executeQueryLocally(query);
@@ -11165,7 +11204,7 @@ var EntityManager = (function () {
             }
 
             var url = dataService.serviceName + metadataStore.toQueryString(query);
-            var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
+            var jsonResultsAdapter = queryOptions.jsonResultsAdapter;
 
             var queryContext = {
                     url: url,
@@ -11890,19 +11929,25 @@ var QueryOptions = (function () {
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
         // assume em1 is a preexisting EntityManager
         em1.setProperties( { queryOptions: newQo });
+
+    Any QueryOptions property that is not defined will be defaulted from any QueryOptions defined at a higher level in the breeze hierarchy, i.e. 
+    -  from query.queryOptions 
+    -  to   entityManager.queryOptions 
+    -  to   QueryOptions.defaultInstance;
+
     @method <ctor> QueryOptions
     @param [config] {Object}
-    @param [config.fetchStrategy=FetchStrategy.FromServer] {FetchStrategy}  
-    @param [config.mergeStrategy=MergeStrategy.PreserveChanges] {MergeStrategy}  
+    @param [config.fetchStrategy] {FetchStrategy}  
+    @param [config.mergeStrategy] {MergeStrategy}  
+    @param [config.dataService] {DataService}  
+    @param [config.jsonResultsAdapter] {JsonResultsAdapter}  
     **/
     var ctor = function (config) {
-        this.fetchStrategy = FetchStrategy.FromServer;
-        this.mergeStrategy = MergeStrategy.PreserveChanges;
         updateWithConfig(this, config);
     };
     var proto = ctor.prototype;
      
-
+    
     /**
     A {{#crossLink "FetchStrategy"}}{{/crossLink}}
     __readOnly__
@@ -11917,12 +11962,17 @@ var QueryOptions = (function () {
 
     proto._$typeName = "QueryOptions";
 
+
+    
     /**
     The default value whenever QueryOptions are not specified.
     @property defaultInstance {QueryOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    ctor.defaultInstance = new ctor({
+        fetchStrategy: FetchStrategy.FromServer,
+        mergeStrategy: MergeStrategy.PreserveChanges
+    });
 
     /**
     Returns a copy of this QueryOptions with the specified {{#crossLink "MergeStrategy"}}{{/crossLink}} 
@@ -11936,22 +11986,27 @@ var QueryOptions = (function () {
     @example
         var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
     @method using
-    @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
+    @param config {Configuration Object|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to apply to create a new QueryOptions.
     @return {QueryOptions}
     @chainable
     **/
-    proto.using = function(config) {
+    proto.using = function (config) {
+        if (!config) return this;
         var result = new QueryOptions(this);
         if (MergeStrategy.contains(config)) {
             config = { mergeStrategy: config };
         } else if (FetchStrategy.contains(config)) {
             config = { fetchStrategy: config };
+        } else if (config instanceof DataService) {
+            config = { dataService: config };
+        } else if (config instanceof JsonResultsAdapter) {
+            config = { jsonResultsAdapter: config };
         } 
         return updateWithConfig(result, config);
     };
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
@@ -11959,22 +12014,25 @@ var QueryOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
     proto.toJSON = function () {
         return __toJson(this, {
             fetchStrategy: null,
-            mergeStrategy: null
+            mergeStrategy: null,
+            dataService: null,
+            jsonResultsAdapter: function (v) { return v && v.name; }
         });
     };
 
     ctor.fromJSON = function (json) {
         return new QueryOptions({
             fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
-            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy)
-        });
+            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+            dataService: json.dataService && DataService.fromJSON(json.dataService),
+            jsonResultsAdapter: __config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter)
+        });       
     };
         
     function updateWithConfig( obj, config ) {
@@ -11982,6 +12040,8 @@ var QueryOptions = (function () {
             assertConfig(config)
                 .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
+                .whereParam("dataService").isInstanceOf(DataService).isOptional()
+                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
                 .applyAll(obj);
         }
         return obj;
@@ -12000,32 +12060,27 @@ var SaveOptions = (function () {
     /**
     @method <ctor> SaveOptions
     @param config {Object}
-    @param [config.allowConcurrentSaves] {Boolean}
-    @param [config.tag] {Object} Free form value that will be sent to the server. 
+    @param [config.allowConcurrentSaves] {Boolean} Whether multiple saves can be in-flight at the same time. The default is false.
+    @param [config.resourceName] {String} Resource name to be used during the save - this defaults to "SaveChanges"
+    @param [config.dataService] {DataService} The DataService to be used for this save.
+    @param [config.tag] {Object} Free form value that will be sent to the server during the save. 
     **/
     var ctor = function (config) {
-        config = config || {};
-        assertConfig(config)
-            .whereParam("resourceName").isOptional().isString()
-            .whereParam("dataService").isOptional().isInstanceOf(DataService)
-            .whereParam("allowConcurrentSaves").isBoolean().isOptional().withDefault(false)
-            .whereParam("tag").isOptional()
-            .applyAll(this);
-                        
+        updateWithConfig(this, config);
     };
+    
     var proto = ctor.prototype;
     proto._$typeName = "SaveOptions";
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
-        
+    
     /**
     Whether another save can be occuring at the same time as this one - default is false.
 
@@ -12045,7 +12100,34 @@ var SaveOptions = (function () {
     @property defaultInstance {SaveOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    
+    /**
+    Returns a copy of this SaveOptions with the specified config options applied.
+    @example
+        var saveOptions = em1.saveOptions.using( {resourceName: "anotherResource" });
+    
+    @method using
+    @param config {Configuration Object|} The object to apply to create a new SaveOptions.
+    @return {SaveOptions}
+    @chainable
+    **/
+    proto.using = function (config) {
+        return updateWithConfig(this, config);
+    };
+
+    function updateWithConfig(obj, config) {
+        if (config) {
+            assertConfig(config)
+              .whereParam("resourceName").isOptional().isString()
+              .whereParam("dataService").isOptional().isInstanceOf(DataService)
+              .whereParam("allowConcurrentSaves").isBoolean().isOptional()
+              .whereParam("tag").isOptional()
+              .applyAll(obj);
+        }
+        return obj;
+    }
+
+    ctor.defaultInstance = new ctor({ allowConcurrentSaves: false});
     return ctor;
 })();
 
@@ -12071,10 +12153,6 @@ var ValidationOptions = (function () {
     @param [config.validateOnPropertyChange=true] {Boolean}
     **/
     var ctor = function (config) {
-        this.validateOnAttach = true;
-        this.validateOnSave = true;
-        this.validateOnQuery = false;
-        this.validateOnPropertyChange = true;
         updateWithConfig(this, config);
     };
     var proto = ctor.prototype;
@@ -12123,14 +12201,15 @@ var ValidationOptions = (function () {
     @return {ValidationOptions}
     @chainable
     **/
-    proto.using = function(config) {
+    proto.using = function (config) {
+        if (!config) return this;
         var result = new ValidationOptions(this);
         updateWithConfig(result, config);
         return result;
     };
 
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @example
         var validationOptions = new ValidationOptions()
         var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );
@@ -12139,8 +12218,7 @@ var ValidationOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
     /**
@@ -12148,7 +12226,12 @@ var ValidationOptions = (function () {
     @property defaultInstance {ValidationOptions}
     @static
     **/
-    ctor.defaultInstance = new ctor();
+    ctor.defaultInstance = new ctor({
+            validateOnAttach: true,
+            validateOnSave: true,
+            validateOnQuery: false,
+            validateOnPropertyChange: true
+    });
         
     function updateWithConfig( obj, config ) {
         if (config) {

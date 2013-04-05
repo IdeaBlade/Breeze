@@ -42,8 +42,22 @@ define(["testFns"], function (testFns) {
             start();
         });
     });
-    
 
+    test("nested expand", function() {
+        var em = newEm();
+        var em2 = newEm();
+        var query = EntityQuery.from("OrderDetails").take(5).expand("order.customer");
+        stop();
+
+        em.executeQuery(query).then(function (data) {
+            var details = data.results;
+            var order = details[0].getProperty("order");
+            ok(order, "should have found an order");
+            var customer = order.getProperty("customer");
+            ok(customer, "should have found a customer");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("query using jsonResultsAdapter", function() {
         var em = newEm();
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({
@@ -474,7 +488,8 @@ define(["testFns"], function (testFns) {
             var alfred3 = data3.entity;
             ok(alfred3 === null, "alfred3 should = alfred");
             ok(data3.fromCache === true, "should not have been from cache");
-            em.queryOptions.mergeStrategy = MergeStrategy.OverwriteChanges;
+            
+            em.setProperties({ queryOptions: em.queryOptions.using(MergeStrategy.OverwriteChanges) });
             return em.fetchEntityByKey(data3.entityKey, true);
         }).then(function (data4) {
             var alfred4 = data4.entity;
@@ -917,7 +932,7 @@ define(["testFns"], function (testFns) {
 
     
     test("queryOptions using", function() {
-        var qo = new QueryOptions();
+        var qo = QueryOptions.defaultInstance;
         ok(qo.fetchStrategy === FetchStrategy.FromServer, "fetchStrategy.FromServer");
         ok(qo.mergeStrategy === MergeStrategy.PreserveChanges, "mergeStrategy.PreserveChanges");
         qo = qo.using(FetchStrategy.FromLocalCache);

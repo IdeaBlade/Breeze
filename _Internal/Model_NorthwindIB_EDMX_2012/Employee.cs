@@ -41,6 +41,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public string PhotoPath { get; set; }
         public Nullable<int> ReportsToEmployeeID { get; set; }
         public int RowVersion { get; set; }
+        public string FullName { get; set; }
     
         public virtual ICollection<Employee> DirectReports { get; set; }
         public virtual Employee Manager { get; set; }

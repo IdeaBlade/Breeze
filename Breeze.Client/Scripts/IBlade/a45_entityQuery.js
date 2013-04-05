@@ -35,9 +35,9 @@ var EntityQuery = (function () {
         this.parameters = {};
         this.inlineCountEnabled = false;
         // default is to get queryOptions from the entityManager.
-        this.queryOptions = null;
+        this.queryOptions = new QueryOptions();
         this.entityManager = null;
-        this.dataService = null;
+        // this.dataService = null;
     };
     var proto = ctor.prototype;
 
@@ -494,18 +494,12 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.using = function (obj) {
+        if (!obj) return this;
         var eq = this._clone();
         if (obj instanceof EntityManager) {
             eq.entityManager = obj;
-        } else if (MergeStrategy.contains(obj) || FetchStrategy.contains(obj)) {
-            var queryOptions = this.queryOptions || QueryOptions.defaultInstance;
-            eq.queryOptions = queryOptions.using(obj);
-        } else if (obj instanceof DataService) {
-            eq.dataService = obj;
-        } else if (obj instanceof JsonResultsAdapter) {
-            eq.jsonResultsAdapter = obj;
         } else {
-            throw new Error("EntityQuery.using parameter must be either an EntityManager, a Query Strategy, a FetchStrategy, a DataService or a JsonResultsAdapter");
+            eq.queryOptions = this.queryOptions.using(obj);
         }
         return eq;
     };
@@ -758,7 +752,7 @@ var EntityQuery = (function () {
         copy.inlineCountEnabled = this.inlineCountEnabled;
         copy.parameters = __extend({}, this.parameters);
         // default is to get queryOptions from the entityManager.
-        copy.queryOptions = this.queryOptions;
+        copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
 
         return copy;

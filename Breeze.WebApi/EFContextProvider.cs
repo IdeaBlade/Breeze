@@ -360,6 +360,8 @@ namespace Breeze.WebApi {
     private void SetPropertyValue(Object entity, String propertyName, Object value) {
       var propInfo = entity.GetType().GetProperty(propertyName,
                                                   BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+      // exit if unmapped property.
+      if (propInfo == null) return;
       if (propInfo.CanWrite) {
         var val = ConvertValue(value, propInfo.PropertyType);
         propInfo.SetValue(entity, val, null);

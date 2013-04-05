@@ -141,6 +141,7 @@
           <Property Name="PhotoPath" Type="nvarchar" MaxLength="255" />
           <Property Name="ReportsToEmployeeID" Type="int" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+          <Property Name="FullName" Type="nvarchar" Nullable="false" MaxLength="62" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="EmployeeTerritory">
           <Key>
@@ -265,8 +266,8 @@
           <Property Name="Id" Type="bigint" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
           <Property Name="Description" Type="nvarchar" MaxLength="2000" />
-          <Property Name="Ts" Type="timestamp" StoreGeneratedPattern="Computed" />
           <Property Name="RoleType" Type="int" />
+          <Property Name="Ts" Type="timestamp" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="Supplier">
           <Key>
@@ -650,6 +651,7 @@
           <NavigationProperty Name="EmployeeTerritories" Relationship="NorthwindIBModel.FK_EmployeeTerritory_Employee" FromRole="Employee" ToRole="EmployeeTerritory" />
           <NavigationProperty Name="Orders" Relationship="NorthwindIBModel.FK_Order_Employee" FromRole="Employee" ToRole="Order" />
           <NavigationProperty Name="Territories" Relationship="NorthwindIBModel.EmployeeTerritoryNoPayload" FromRole="Employee" ToRole="Territory" />
+          <Property Type="String" Name="FullName" Nullable="false" MaxLength="62" FixedLength="false" Unicode="true" annotation:StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="EmployeeTerritory">
           <Key>
@@ -1055,6 +1057,7 @@
           <EntitySetMapping Name="Employees">
             <EntityTypeMapping TypeName="NorthwindIBModel.Employee">
               <MappingFragment StoreEntitySet="Employee">
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="LastName" ColumnName="LastName" />
                 <ScalarProperty Name="FirstName" ColumnName="FirstName" />

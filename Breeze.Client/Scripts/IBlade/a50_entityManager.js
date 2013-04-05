@@ -48,13 +48,13 @@ var EntityManager = (function () {
     @param [config.serviceName] {String}
     @param [config.dataService] {DataService} An entire DataService (instead of just the serviceName above).
     @param [config.metadataStore=MetadataStore.defaultInstance] {MetadataStore}
-    @param [config.queryOptions=QueryOptions.defaultInstance] {QueryOptions}
-    @param [config.saveOptions=SaveOptions.defaultInstance] {SaveOptions}
+    @param [config.queryOptions] {QueryOptions}
+    @param [config.saveOptions] {SaveOptions}
     @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
     @param [config.keyGeneratorCtor] {Function}
     **/
-    var ctor = function (config) {
-            
+    var ctor = function(config) {
+
         if (arguments.length > 1) {
             throw new Error("The EntityManager ctor has a single optional argument that is either a 'serviceName' or a configuration object.");
         }
@@ -63,25 +63,9 @@ var EntityManager = (function () {
         } else if (typeof config === 'string') {
             config = { serviceName: config };
         }
-            
-        assertConfig(config)
-            .whereParam("serviceName").isOptional().isString()
-            .whereParam("dataService").isOptional().isInstanceOf(DataService)
-            .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore())
-            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(QueryOptions.defaultInstance)
-            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(SaveOptions.defaultInstance)
-            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(ValidationOptions.defaultInstance)
-            .whereParam("keyGeneratorCtor").isFunction().isOptional().withDefault(KeyGenerator)
-            .applyAll(this);
 
-                
-        if (config.serviceName) {
-            this.dataService = new DataService({
-                serviceName: this.serviceName
-            });
-        }
-        this.serviceName = this.dataService && this.dataService.serviceName;
-            
+        updateWithConfig(this, config, true);
+
         this.entityChanged = new Event("entityChanged_entityManager", this);
         this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
             
@@ -89,13 +73,69 @@ var EntityManager = (function () {
             
     };
     var proto = ctor.prototype;
-        
-        
-        
     proto._$typeName = "EntityManager";
+    Event.bubbleEvent(proto, null);
+    
+    /**
+    General purpose property set method.  Any of the properties documented below 
+    may be set.
+    @example
+            // assume em1 is a previously created EntityManager
+            // where we want to change some of its settings.
+            em1.setProperties( {
+                serviceName: "api/foo"
+            });
+    @method setProperties
+    @param config {Object}
+        @param [config.serviceName] {String}
+        @param [config.dataService] {DataService}
+        @param [config.queryOptions] {QueryOptions}
+        @param [config.saveOptions] {SaveOptions}
+        @param [config.validationOptions] {ValidationOptions}
+        @param [config.keyGeneratorCtor] {Function}
+    **/
+    proto.setProperties = function (config) {
+        updateWithConfig(this, config, false);
+        
+    };
+    
+    function updateWithConfig(em, config, isCtor) {
+        var defaultQueryOptions = isCtor ? QueryOptions.defaultInstance : em.queryOptions;
+        var defaultSaveOptions = isCtor ? SaveOptions.defaultInstance : em.saveOptions;
+        var defaultValidationOptions = isCtor ? ValidationOptions.defaultInstance : em.validationOptions;
         
 
-    Event.bubbleEvent(proto, null);
+        var configParam = assertConfig(config)
+            .whereParam("serviceName").isOptional().isString()
+            .whereParam("dataService").isOptional().isInstanceOf(DataService)
+            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(defaultQueryOptions)
+            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional().withDefault(defaultSaveOptions)
+            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional().withDefault(defaultValidationOptions)
+            .whereParam("keyGeneratorCtor").isFunction().isOptional();
+        if (isCtor) {
+            configParam = configParam
+                .whereParam("metadataStore").isInstanceOf(MetadataStore).isOptional().withDefault(new MetadataStore());
+        } 
+        configParam.applyAll(em);
+        
+        
+        // insure that entityManager's options versions are completely populated
+        __updateWithDefaults(em.queryOptions, defaultQueryOptions);
+        __updateWithDefaults(em.saveOptions, defaultSaveOptions);
+        __updateWithDefaults(em.validationOptions, defaultValidationOptions);
+
+        if (config.serviceName) {
+            em.dataService = new DataService({
+                serviceName: em.serviceName
+            });
+        }
+        em.serviceName = em.dataService && em.dataService.serviceName;
+
+        em.keyGeneratorCtor = em.keyGeneratorCtor || KeyGenerator;
+        if (isCtor || config.keyGeneratorCtor) {
+            em.keyGenerator = new em.keyGeneratorCtor();
+        } 
+    }
         
     /**
     The service name associated with this EntityManager.
@@ -368,47 +408,7 @@ var EntityManager = (function () {
         }
     };
 
-    /**
-    General purpose property set method.  Any of the properties documented below 
-    may be set.
-    @example
-            // assume em1 is a previously created EntityManager
-            // where we want to change some of its settings.
-            em1.setProperties( {
-            serviceName: "api/foo"
-            });
-    @method setProperties
-    @param config {Object}
-        @param [config.serviceName] {String}
-        @param [config.dataService] {DataService}
-        @param [config.queryOptions] {QueryOptions}
-        @param [config.saveOptions] {SaveOptions}
-        @param [config.validationOptions] {ValidationOptions}
-        @param [config.keyGeneratorCtor] {Function}
-
-    **/
-    proto.setProperties = function (config) {
-        assertConfig(config)
-            .whereParam("serviceName").isString().isOptional()
-            .whereParam("dataService").isInstanceOf(DataService).isOptional()
-            .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional()
-            .whereParam("saveOptions").isInstanceOf(SaveOptions).isOptional()
-            .whereParam("validationOptions").isInstanceOf(ValidationOptions).isOptional()
-            .whereParam("keyGeneratorCtor").isOptional()
-            .applyAll(this);
-                
-        if (config.serviceName) {
-            this.dataService = new DataService({
-                serviceName: this.serviceName,
-            });
-        }
-        this.serviceName = this.dataService && this.dataService.serviceName;
-            
-        if (config.keyGeneratorCtor) {
-            this.keyGenerator = new this.keyGeneratorCtor();
-        }
-            
-    };
+  
 
     /**
     Creates an empty copy of this EntityManager
@@ -666,19 +666,42 @@ var EntityManager = (function () {
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
         var promise;
-        var dataService = query.dataService || this.dataService;
+        // 'normalizeQueryOptions' creates a new QueryOptions object with all of its properties fully resolved against this entityManager and the queryOptions defaults.
+        // Thought about creating a 'normalized' query with this 'normalized' queryOptions
+        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions property on it.
+        // It can be a string.
+        var queryOptions = normalizeQueryOptions(query, this);
+        var dataService = queryOptions.dataService;
         if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
-            promise = executeQueryCore(this, query);
+            promise = executeQueryCore(this, query, queryOptions);
         } else {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
-                return executeQueryCore(that, query);
+                return executeQueryCore(that, query, queryOptions);
             }).fail(function (error) {
                 return Q.reject(error);
             });
         }
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
+    
+    function normalizeQueryOptions(query, entityManager) {
+        var qo1 = query.queryOptions || {};
+        var qo2 = entityManager.queryOptions;
+        var qo3 = QueryOptions.defaultInstance;       
+        // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
+        var qo = new QueryOptions({
+            fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
+            mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
+            dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
+            jsonResultsAdapter: getJra(qo1) || getJra(qo2) || getJra(entityManager) || getJra(qo3)
+        });
+        return qo;
+    };
+    
+    function getJra(obj) {
+        return obj.jsonResultsAdapter || (obj.dataService && obj.dataService.jsonResultsAdapter);
+    }
 
     /**
     Executes the specified query against this EntityManager's local cache.
@@ -828,7 +851,7 @@ var EntityManager = (function () {
                 return entity.entityAspect.isBeingSaved;
             });                
             if (anyPendingSaves) {
-                var err = new Error("ConcurrentSaves not allowed - SaveOptions.allowConcurrentSaves is false");
+                var err = new Error("Concurrent saves not allowed - SaveOptions.allowConcurrentSaves is false");
                 if (errorCallback) errorCallback(err);
                 return Q.reject(err);
             }
@@ -1009,6 +1032,7 @@ var EntityManager = (function () {
             isDeleted = entity && entity.entityAspect.entityState.isDeleted();
             if (isDeleted) {
                 entity = null;
+                // entityManager.queryOptions is always  fully resolved 
                 if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
                     isDeleted = false;
                 }
@@ -1682,14 +1706,14 @@ var EntityManager = (function () {
     }
 
     // returns a promise
-    function executeQueryCore(em, query) {
+    function executeQueryCore(em, query, queryOptions) {
         try {
             var metadataStore = em.metadataStore;
-            var dataService = query.dataService || em.dataService;
+            var dataService = queryOptions.dataService;
             if (metadataStore.isEmpty() && dataService.hasServerMetadata) {
                 throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
             }
-            var queryOptions = query.queryOptions || em.queryOptions || QueryOptions.defaultInstance;
+            
             if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
                 return Q.fcall(function () {
                     var results = em.executeQueryLocally(query);
@@ -1698,7 +1722,7 @@ var EntityManager = (function () {
             }
 
             var url = dataService.serviceName + metadataStore.toQueryString(query);
-            var jsonResultsAdapter = query.jsonResultsAdapter || dataService.jsonResultsAdapter;
+            var jsonResultsAdapter = queryOptions.jsonResultsAdapter;
 
             var queryContext = {
                     url: url,

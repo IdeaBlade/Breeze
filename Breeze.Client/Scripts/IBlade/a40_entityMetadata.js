@@ -46,8 +46,8 @@ var LocalQueryComparisonOptions = (function () {
     var ctor = function (config) {
         assertConfig(config || {})
             .whereParam("name").isOptional().isString()
-            .whereParam("isCaseSensitive").isOptional().isBoolean().withDefault(false)
-            .whereParam("usesSql92CompliantStringComparison").isBoolean().withDefault(true)
+            .whereParam("isCaseSensitive").isOptional().isBoolean()
+            .whereParam("usesSql92CompliantStringComparison").isBoolean()
             .applyAll(this);
         if (!this.name) {
             this.name = __getUuid();
@@ -74,10 +74,10 @@ var LocalQueryComparisonOptions = (function () {
     @property defaultInstance {LocalQueryComparisonOptions}
     @static
     **/
-    ctor.defaultInstance = ctor.caseInsensitiveSQL;
+    ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
 
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var lqco = new LocalQueryComparisonOptions({
@@ -88,8 +88,7 @@ var LocalQueryComparisonOptions = (function () {
     @chainable
     **/
     proto.setAsDefault = function () {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
 
@@ -195,10 +194,10 @@ var NamingConvention = (function () {
     @property defaultInstance {NamingConvention}
     @static
     **/
-    ctor.defaultInstance = ctor.none;
+    ctor.defaultInstance = new ctor(ctor.none);
         
     /**
-    Makes this instance the default instance.
+    Make this instance to the default instance and populates all unset properties with existing default values.
     @method setAsDefault
     @example
         var namingConv = new NamingConvention({
@@ -212,9 +211,8 @@ var NamingConvention = (function () {
         namingConv.setAsDefault();
     @chainable
     **/
-    proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+    proto.setAsDefault = function () {
+        return __setAsDefault(this, ctor);
     };
         
     return ctor;
@@ -1085,7 +1083,7 @@ var MetadataStore = (function () {
     return ctor;
 })();
 
-var DataService = function () {
+var DataService = (function () {
         
     /**
     A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
@@ -1210,7 +1208,7 @@ var DataService = function () {
     };
 
     return ctor;
-}();
+})();
     
 var JsonResultsAdapter = (function () {
 
