@@ -231,8 +231,8 @@ var LocalQueryComparisonOptions = (function () {
     var ctor = function (config) {
         assertConfig(config || {})
             .whereParam(&quot;name&quot;).isOptional().isString()
-            .whereParam(&quot;isCaseSensitive&quot;).isOptional().isBoolean().withDefault(false)
-            .whereParam(&quot;usesSql92CompliantStringComparison&quot;).isBoolean().withDefault(true)
+            .whereParam(&quot;isCaseSensitive&quot;).isOptional().isBoolean()
+            .whereParam(&quot;usesSql92CompliantStringComparison&quot;).isBoolean()
             .applyAll(this);
         if (!this.name) {
             this.name = __getUuid();
@@ -259,10 +259,11 @@ var LocalQueryComparisonOptions = (function () {
     @property defaultInstance {LocalQueryComparisonOptions}
     @static
     **&#x2F;
-    ctor.defaultInstance = ctor.caseInsensitiveSQL;
+    ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
 
     &#x2F;**
-    Makes this instance the default instance.
+    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var lqco = new LocalQueryComparisonOptions({
@@ -273,8 +274,7 @@ var LocalQueryComparisonOptions = (function () {
     @chainable
     **&#x2F;
     proto.setAsDefault = function () {
-        ctor.defaultInstance = this;
-        return this;
+        return __setAsDefault(this, ctor);
     };
 
 
@@ -380,10 +380,11 @@ var NamingConvention = (function () {
     @property defaultInstance {NamingConvention}
     @static
     **&#x2F;
-    ctor.defaultInstance = ctor.none;
+    ctor.defaultInstance = new ctor(ctor.none);
         
     &#x2F;**
-    Makes this instance the default instance.
+    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var namingConv = new NamingConvention({
@@ -397,9 +398,8 @@ var NamingConvention = (function () {
         namingConv.setAsDefault();
     @chainable
     **&#x2F;
-    proto.setAsDefault = function() {
-        ctor.defaultInstance = this;
-        return this;
+    proto.setAsDefault = function () {
+        return __setAsDefault(this, ctor);
     };
         
     return ctor;
@@ -775,6 +775,19 @@ var MetadataStore = (function () {
             aCtor._$initializationFn = initializationFn;
         }
     };
+    
+    proto.toQueryString = function(query) {
+        if (!query) {
+            throw new Error(&quot;query cannot be empty&quot;);
+        }
+        if (typeof query === &#x27;string&#x27;) {
+            return query;
+        } else if (query instanceof EntityQuery) {
+            return query._toUri(this);
+        } else {
+            throw new Error(&quot;unable to recognize query parameter as either a string or an EntityQuery&quot;);
+        }
+    }
       
     function createEmptyCtor() {
         return function() {};
@@ -1218,6 +1231,7 @@ var MetadataStore = (function () {
         }
     }
 
+    
     &#x2F;&#x2F; Fast version
     &#x2F;&#x2F; np: schema.entityType[].navigationProperty.relationship -&gt; schema.association
     &#x2F;&#x2F;   match( shortName(np.relationship) == schema.association[].name
@@ -1257,7 +1271,7 @@ var MetadataStore = (function () {
     return ctor;
 })();
 
-var DataService = function () {
+var DataService = (function () {
         
     &#x2F;**
     A DataService instance is used to encapsulate the details of a single &#x27;service&#x27;; this includes a serviceName, a dataService adapterInstance, 
@@ -1382,7 +1396,7 @@ var DataService = function () {
     };
 
     return ctor;
-}();
+})();
     
 var JsonResultsAdapter = (function () {
 

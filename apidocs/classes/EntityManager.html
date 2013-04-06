@@ -380,14 +380,14 @@
                                 <a href="#method_importEntities">importEntities</a>
 
                                 
+                                    <span class="flag static">static</span>
+                                
                                 
                             </li>
                         
                             <li class="index-item method">
                                 <a href="#method_importEntities">importEntities</a>
 
-                                
-                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -630,7 +630,7 @@
                             
                             <li class="param">
                                 
-                                    <code class="param-name optional">[queryOptions=QueryOptions.defaultInstance]</code>
+                                    <code class="param-name optional">[queryOptions]</code>
                                     <span class="type"><a href="..\classes\QueryOptions.html" class="crosslink">QueryOptions</a></span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
@@ -644,7 +644,7 @@
                             
                             <li class="param">
                                 
-                                    <code class="param-name optional">[saveOptions=SaveOptions.defaultInstance]</code>
+                                    <code class="param-name optional">[saveOptions]</code>
                                     <span class="type"><a href="..\classes\SaveOptions.html" class="crosslink">SaveOptions</a></span>
                                     <span class="flag optional" title="This parameter is optional.">optional</span>
                                 
@@ -1029,7 +1029,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l345"><code>a50_entityManager.js:345</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l385"><code>a50_entityManager.js:385</code></a>
         
         </p>
 
@@ -1205,7 +1205,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l173"><code>a50_entityManager.js:173</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l213"><code>a50_entityManager.js:213</code></a>
         
         </p>
 
@@ -1495,7 +1495,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l596"><code>a50_entityManager.js:596</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l594"><code>a50_entityManager.js:594</code></a>
         
         </p>
 
@@ -1798,7 +1798,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l684"><code>a50_entityManager.js:684</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l706"><code>a50_entityManager.js:706</code></a>
         
         </p>
 
@@ -1925,7 +1925,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l233"><code>a50_entityManager.js:233</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l273"><code>a50_entityManager.js:273</code></a>
         
         </p>
 
@@ -2071,7 +2071,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l949"><code>a50_entityManager.js:949</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l977"><code>a50_entityManager.js:977</code></a>
         
         </p>
 
@@ -2234,7 +2234,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l974"><code>a50_entityManager.js:974</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1002"><code>a50_entityManager.js:1002</code></a>
         
         </p>
 
@@ -2571,7 +2571,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1022"><code>a50_entityManager.js:1022</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1051"><code>a50_entityManager.js:1051</code></a>
         
         </p>
 
@@ -2690,7 +2690,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1039"><code>a50_entityManager.js:1039</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1068"><code>a50_entityManager.js:1068</code></a>
         
         </p>
 
@@ -2824,7 +2824,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1142"><code>a50_entityManager.js:1142</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1171"><code>a50_entityManager.js:1171</code></a>
         
         </p>
 
@@ -2958,7 +2958,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1195"><code>a50_entityManager.js:1195</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1224"><code>a50_entityManager.js:1224</code></a>
         
         </p>
 
@@ -3114,7 +3114,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l915"><code>a50_entityManager.js:915</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l943"><code>a50_entityManager.js:943</code></a>
         
         </p>
 
@@ -3244,7 +3244,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l927"><code>a50_entityManager.js:927</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l955"><code>a50_entityManager.js:955</code></a>
         
         </p>
 
@@ -3361,7 +3361,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1080"><code>a50_entityManager.js:1080</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1109"><code>a50_entityManager.js:1109</code></a>
         
         </p>
 
@@ -3473,163 +3473,6 @@ if ( em1.hasChanges( [custType, orderType]) {
     
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag chainable">chainable</span>
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l276"><code>a50_entityManager.js:276</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Imports a previously exported result into this EntityManager.</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">exportedString</code>
-                        <span class="type">String</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The result of a previous 'export' call.</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[config]</code>
-                        <span class="type">Object</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>A configuration object.</p>
-                    </div>
-
-                    
-                        <ul class="params-list">
-                            
-                            <li class="param">
-                                
-                                    <code class="param-name optional">[mergeStrategy]</code>
-                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-                                    <span class="flag optional" title="This parameter is optional.">optional</span>
-                                
-
-                                <div class="param-description">
-                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
-    merging into an existing EntityManager.</p>
-                                </div>
-
-                                
-                            </li>
-                            
-                        </ul>
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
-in a previous session and stored in localStorage. The static version of this method performs a
-very similar process. </p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
-var bundle = em1.exportEntities();
-// bundle can be stored in window.localStorage or just held in memory.
-var em2 = new EntityManager({ 
-    serviceName: em1.serviceName, 
-    metadataStore: em1.metadataStore 
-});
-em2.importEntities(bundle);
-// em2 will now have a complete copy of what was in em1
-</code></pre>
-
-<p>It can also be used to merge the contents of a previously created EntityManager with an 
-existing EntityManager with control over how the two are merged.</p><pre class="code prettyprint"><code>var bundle = em1.exportEntities();
-// assume em2 is another entityManager containing some of the same entities possibly with modifications.
-em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
-// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
-// made modifications will not have been touched, but all other entities from em1 will have been imported.
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
-                    <div id="method_importEntities" class="method item">
-    <h3 class="name"><code>importEntities</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>exportedString</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code class="optional">[config]</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
         <span class="returns-inline">
             <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a></span>
         </span>
@@ -3660,7 +3503,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l205"><code>a50_entityManager.js:205</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l245"><code>a50_entityManager.js:245</code></a>
         
         </p>
 
@@ -3770,6 +3613,163 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
 </div>
 
                 
+                    <div id="method_importEntities" class="method item">
+    <h3 class="name"><code>importEntities</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>exportedString</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[config]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l316"><code>a50_entityManager.js:316</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Imports a previously exported result into this EntityManager.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">exportedString</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The result of a previous 'export' call.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[config]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A configuration object.</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[mergeStrategy]</code>
+                                    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>A  <a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a> to use when 
+    merging into an existing EntityManager.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>This method can be used to make a complete copy of any previously created entityManager, even if created
+in a previous session and stored in localStorage. The static version of this method performs a
+very similar process. </p><pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of existing entities.
+var bundle = em1.exportEntities();
+// bundle can be stored in window.localStorage or just held in memory.
+var em2 = new EntityManager({ 
+    serviceName: em1.serviceName, 
+    metadataStore: em1.metadataStore 
+});
+em2.importEntities(bundle);
+// em2 will now have a complete copy of what was in em1
+</code></pre>
+
+<p>It can also be used to merge the contents of a previously created EntityManager with an 
+existing EntityManager with control over how the two are merged.</p><pre class="code prettyprint"><code>var bundle = em1.exportEntities();
+// assume em2 is another entityManager containing some of the same entities possibly with modifications.
+em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
+// em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
+// made modifications will not have been touched, but all other entities from em1 will have been imported.
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_rejectChanges" class="method item">
     <h3 class="name"><code>rejectChanges</code></h3>
 
@@ -3806,7 +3806,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1172"><code>a50_entityManager.js:1172</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1201"><code>a50_entityManager.js:1201</code></a>
         
         </p>
 
@@ -3918,7 +3918,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l753"><code>a50_entityManager.js:753</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l775"><code>a50_entityManager.js:775</code></a>
         
         </p>
 
@@ -4207,7 +4207,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l371"><code>a50_entityManager.js:371</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l79"><code>a50_entityManager.js:79</code></a>
         
         </p>
 
@@ -4345,7 +4345,7 @@ may be set.</p>
                 <pre class="code prettyprint"><code>    // assume em1 is a previously created EntityManager
     // where we want to change some of its settings.
     em1.setProperties( {
-    serviceName: "api/foo"
+        serviceName: "api/foo"
     });
 </code></pre>
             </div>
@@ -4385,7 +4385,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l107"><code>a50_entityManager.js:107</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l147"><code>a50_entityManager.js:147</code></a>
         
         </p>
 
@@ -4431,7 +4431,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l142"><code>a50_entityManager.js:142</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l182"><code>a50_entityManager.js:182</code></a>
         
         </p>
 
@@ -4477,7 +4477,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l114"><code>a50_entityManager.js:114</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l154"><code>a50_entityManager.js:154</code></a>
         
         </p>
 
@@ -4524,7 +4524,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l121"><code>a50_entityManager.js:121</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l161"><code>a50_entityManager.js:161</code></a>
         
         </p>
 
@@ -4570,7 +4570,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l128"><code>a50_entityManager.js:128</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l168"><code>a50_entityManager.js:168</code></a>
         
         </p>
 
@@ -4616,7 +4616,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l100"><code>a50_entityManager.js:100</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l140"><code>a50_entityManager.js:140</code></a>
         
         </p>
 
@@ -4662,7 +4662,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l135"><code>a50_entityManager.js:135</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l175"><code>a50_entityManager.js:175</code></a>
         
         </p>
 
@@ -4718,7 +4718,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l152"><code>a50_entityManager.js:152</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l192"><code>a50_entityManager.js:192</code></a>
         
         </p>
 
@@ -4831,7 +4831,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1116"><code>a50_entityManager.js:1116</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1145"><code>a50_entityManager.js:1145</code></a>
         
         </p>
 

@@ -77,7 +77,8 @@ var LocalQueryComparisonOptions = (function () {
     ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
 
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var lqco = new LocalQueryComparisonOptions({
@@ -197,7 +198,8 @@ var NamingConvention = (function () {
     ctor.defaultInstance = new ctor(ctor.none);
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var namingConv = new NamingConvention({

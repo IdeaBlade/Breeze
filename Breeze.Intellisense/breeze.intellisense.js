@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Mar 26 2013 10:49:30 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Fri Apr 05 2013 23:04:48 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1142,7 +1142,8 @@ intellisense.annotate(breeze.breeze.LocalQueryComparisonOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    ///   The current instance is returned unchanged.
     ///   </summary>
     
     /// </signature>
@@ -1185,7 +1186,8 @@ intellisense.annotate(breeze.breeze.NamingConvention.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    ///   The current instance is returned unchanged.
     ///   </summary>
     
     /// </signature>
@@ -2096,6 +2098,16 @@ intellisense.annotate(breeze.breeze.Predicate, {
 
 intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method.  Any of the properties documented below 
+    ///   may be set.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    
+    /// </signature>
+  },
   'createEntity': function() {
     /// <signature>
     ///   <summary>
@@ -2135,16 +2147,6 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   method is not as fast as creating a new EntityManager via 'new EntityManager'.
     ///   This is because clear actually detaches all of the entities from the EntityManager.
     ///   </summary>
-    
-    /// </signature>
-  },
-  'setProperties': function() {
-    /// <signature>
-    ///   <summary>
-    ///   General purpose property set method.  Any of the properties documented below 
-    ///   may be set.
-    ///   </summary>
-    ///   <param name="config" type="Object" optional="true"></param>
     
     /// </signature>
   },
@@ -2406,14 +2408,15 @@ intellisense.annotate(breeze.breeze.QueryOptions.prototype, {
     ///   Returns a copy of this QueryOptions with the specified  'MergeStrategy' 
     ///   or  'FetchStrategy' applied.
     ///   </summary>
-    ///   <param name="config" type="Configuration Object|MergeStrategy|FetchStrategy" optional="true">The object to apply to create a new QueryOptions.</param>
+    ///   <param name="config" type="Configuration Object|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter" optional="true">The object to apply to create a new QueryOptions.</param>
     ///   <returns type="breeze.breeze.QueryOptions" ></returns>
     /// </signature>
   },
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    ///   The current instance is returned unchanged.
     ///   </summary>
     
     /// </signature>
@@ -2424,6 +2427,12 @@ intellisense.annotate(breeze.breeze.QueryOptions.prototype, {
   
   /// <field name="mergeStrategy" type="breeze.breeze.MergeStrategy" >A  'MergeStrategy' __readOnly__</field>
   'mergeStrategy': null,
+  
+  /// <field name="dataService" type="breeze.breeze.DataService" >A  'DataService'.  __readOnly__</field>
+  'dataService': null,
+  
+  /// <field name="jsonResultsAdapter" type="breeze.breeze.JsonResultsAdapter" >A  'JsonResultsAdapter'. __readOnly__</field>
+  'jsonResultsAdapter': null,
   
 });
 intellisense.annotate(breeze.breeze.QueryOptions, {
@@ -2439,14 +2448,30 @@ intellisense.annotate(breeze.breeze.SaveOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    ///   The current instance is returned unchanged.
     ///   </summary>
+    
+    /// </signature>
+  },
+  'using': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a copy of this SaveOptions with the specified config options applied.
+    ///   </summary>
+    ///   <param name="config" type="Configuration Object|" optional="true">The object to apply to create a new SaveOptions.</param>
     
     /// </signature>
   },
   
   /// <field name="allowConcurrentSaves" type="Boolean" >Whether another save can be occuring at the same time as this one - default is false.</field>
   'allowConcurrentSaves': null,
+  
+  /// <field name="dataService" type="breeze.breeze.DataService" >A  'DataService'.  __readOnly__</field>
+  'dataService': null,
+  
+  /// <field name="resourceName" type="String" >The resource name to call to perform the save. __readOnly__</field>
+  'resourceName': null,
   
   /// <field name="tag" type="Object" >A free form value that will be sent to the server.</field>
   'tag': null,
@@ -2474,7 +2499,8 @@ intellisense.annotate(breeze.breeze.ValidationOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    ///   The current instance is returned unchanged.
     ///   </summary>
     
     /// </signature>

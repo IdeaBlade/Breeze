@@ -326,7 +326,7 @@ var Enum = function() {
     &#x2F;&#x2F;Enum.prototype.combineSymbols = function () {
     &#x2F;&#x2F;    var proto = this._symbolPrototype;
     &#x2F;&#x2F;    var newSymbol = Object.create(proto);
-    &#x2F;&#x2F;    newSymbol._symbols = Array.prototype.slice.call(arguments);
+    &#x2F;&#x2F;    newSymbol._symbols = __arraySlice(arguments);
 
     &#x2F;&#x2F;    Object.keys(proto).forEach(function (key) {
     &#x2F;&#x2F;        var result;

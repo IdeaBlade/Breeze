@@ -103,6 +103,18 @@ var QueryOptions = (function () {
     __readOnly__
     @property mergeStrategy {MergeStrategy}
     **/
+    
+    /**
+    A {{#crossLink "DataService"}}{{/crossLink}}. 
+    __readOnly__
+    @property dataService {DataService}
+    **/
+    
+    /**
+    A {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}.
+    __readOnly__
+    @property jsonResultsAdapter {JsonResultsAdapter}
+    **/
 
     proto._$typeName = "QueryOptions";
 
@@ -150,7 +162,8 @@ var QueryOptions = (function () {
     };
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
@@ -217,7 +230,8 @@ var SaveOptions = (function () {
     proto._$typeName = "SaveOptions";
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @chainable
     **/
@@ -230,6 +244,18 @@ var SaveOptions = (function () {
 
     __readOnly__
     @property allowConcurrentSaves {Boolean}
+    **/
+    
+    /**
+    A {{#crossLink "DataService"}}{{/crossLink}}. 
+    __readOnly__
+    @property dataService {DataService}
+    **/
+
+    /**
+    The resource name to call to perform the save.
+    __readOnly__
+    @property resourceName {String}
     **/
 
     /**
@@ -252,7 +278,10 @@ var SaveOptions = (function () {
     
     @method using
     @param config {Configuration Object|} The object to apply to create a new SaveOptions.
-    @return {SaveOptions}
+    @param [config.allowConcurrentSaves] {Boolean} Whether multiple saves can be in-flight at the same time. The default is false.
+    @param [config.resourceName] {String} Resource name to be used during the save - this defaults to "SaveChanges"
+    @param [config.dataService] {DataService} The DataService to be used for this save.
+    @param [config.tag] {Object} Free form value that will be sent to the server during the save. 
     @chainable
     **/
     proto.using = function (config) {
@@ -353,7 +382,8 @@ var ValidationOptions = (function () {
     };
 
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @example
         var validationOptions = new ValidationOptions()
         var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );

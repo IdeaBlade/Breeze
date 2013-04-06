@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Mar 26 2013 10:49:30 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Fri Apr 05 2013 22:43:48 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1142,7 +1142,7 @@ intellisense.annotate(breeze.breeze.LocalQueryComparisonOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Make this instance to the default instance and populates all unset properties with existing default values.
     ///   </summary>
     
     /// </signature>
@@ -1185,7 +1185,7 @@ intellisense.annotate(breeze.breeze.NamingConvention.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Make this instance to the default instance and populates all unset properties with existing default values.
     ///   </summary>
     
     /// </signature>
@@ -2096,6 +2096,16 @@ intellisense.annotate(breeze.breeze.Predicate, {
 
 intellisense.annotate(breeze.breeze.EntityManager.prototype, {
   
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method.  Any of the properties documented below 
+    ///   may be set.
+    ///   </summary>
+    ///   <param name="config" type="Object" optional="true"></param>
+    
+    /// </signature>
+  },
   'createEntity': function() {
     /// <signature>
     ///   <summary>
@@ -2135,16 +2145,6 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   method is not as fast as creating a new EntityManager via 'new EntityManager'.
     ///   This is because clear actually detaches all of the entities from the EntityManager.
     ///   </summary>
-    
-    /// </signature>
-  },
-  'setProperties': function() {
-    /// <signature>
-    ///   <summary>
-    ///   General purpose property set method.  Any of the properties documented below 
-    ///   may be set.
-    ///   </summary>
-    ///   <param name="config" type="Object" optional="true"></param>
     
     /// </signature>
   },
@@ -2406,14 +2406,14 @@ intellisense.annotate(breeze.breeze.QueryOptions.prototype, {
     ///   Returns a copy of this QueryOptions with the specified  'MergeStrategy' 
     ///   or  'FetchStrategy' applied.
     ///   </summary>
-    ///   <param name="config" type="Configuration Object|MergeStrategy|FetchStrategy" optional="true">The object to apply to create a new QueryOptions.</param>
+    ///   <param name="config" type="Configuration Object|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter" optional="true">The object to apply to create a new QueryOptions.</param>
     ///   <returns type="breeze.breeze.QueryOptions" ></returns>
     /// </signature>
   },
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Make this instance to the default instance and populates all unset properties with existing default values.
     ///   </summary>
     
     /// </signature>
@@ -2439,9 +2439,18 @@ intellisense.annotate(breeze.breeze.SaveOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Make this instance to the default instance and populates all unset properties with existing default values.
     ///   </summary>
     
+    /// </signature>
+  },
+  'using': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Returns a copy of this SaveOptions with the specified config options applied.
+    ///   </summary>
+    ///   <param name="config" type="Configuration Object|" optional="true">The object to apply to create a new SaveOptions.</param>
+    ///   <returns type="breeze.breeze.SaveOptions" ></returns>
     /// </signature>
   },
   
@@ -2474,7 +2483,7 @@ intellisense.annotate(breeze.breeze.ValidationOptions.prototype, {
   'setAsDefault': function() {
     /// <signature>
     ///   <summary>
-    ///   Makes this instance the default instance.
+    ///   Make this instance to the default instance and populates all unset properties with existing default values.
     ///   </summary>
     
     /// </signature>

@@ -466,12 +466,14 @@ var Param = function () {
         return this.parent.whereParam(propName);
     };
 
-    proto.applyAll = function(instance, throwIfUnknownProperty) {
+
+    proto.applyAll = function(instance, checkOnly, throwIfUnknownProperty) {
         throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
             if (throwIfUnknownProperty) delete clone[p.name];
-            p._applyOne(instance);
+            p.check();
+            (!checkOnly) &amp;&amp; p._applyOne(instance);
         });
         &#x2F;&#x2F; should be no properties left in the clone
         if (throwIfUnknownProperty) {
@@ -485,7 +487,6 @@ var Param = function () {
     };
 
     proto._applyOne = function(instance) {
-        this.check();
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {

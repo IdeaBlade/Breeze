@@ -218,7 +218,7 @@ breeze.makeRelationArray = function() {
             return -1;
         }
 
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
         if (!goodAdds.length) {
             return this.length;
         }
@@ -229,13 +229,13 @@ breeze.makeRelationArray = function() {
 
 
     relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments));
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
         if (!goodAdds.length) {
             return this.length;
         }
 
         var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, Array.prototype.slice.call(goodAdds));
+        processAdds(this, __arraySlice(goodAdds));
         return result;
     };
 
@@ -252,8 +252,8 @@ breeze.makeRelationArray = function() {
     };
 
     relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, Array.prototype.slice.call(arguments, 2));
-        var newArgs = Array.prototype.slice.call(arguments, 0, 2).concat(goodAdds);
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
 
         var result = Array.prototype.splice.apply(this, newArgs);
         processRemoves(this, result);

@@ -187,7 +187,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l177"><code>a55_emOptions.js:177</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l211"><code>a55_emOptions.js:211</code></a>
         </div>
     
 
@@ -246,6 +246,13 @@
                                 
                             </li>
                         
+                            <li class="index-item method">
+                                <a href="#method_using">using</a>
+
+                                
+                                
+                            </li>
+                        
                     </ul>
                 </div>
             
@@ -264,10 +271,24 @@
                             </li>
                         
                             <li class="index-item property">
+                                <a href="#property_dataService">dataService</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_defaultInstance">defaultInstance</a>
 
                                 
                                     <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_resourceName">resourceName</a>
+
                                 
                                 
                             </li>
@@ -335,7 +356,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l183"><code>a55_emOptions.js:183</code></a>
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l217"><code>a55_emOptions.js:217</code></a>
         
         </p>
 
@@ -378,7 +399,35 @@
                                 
 
                                 <div class="param-description">
-                                    
+                                    <p>Whether multiple saves can be in-flight at the same time. The default is false.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[resourceName]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Resource name to be used during the save - this defaults to "SaveChanges"</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[dataService]</code>
+                                    <span class="type"><a href="..\classes\DataService.html" class="crosslink">DataService</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The DataService to be used for this save.</p>
                                 </div>
 
                                 
@@ -392,7 +441,7 @@
                                 
 
                                 <div class="param-description">
-                                    <p>Free form value that will be sent to the server.</p>
+                                    <p>Free form value that will be sent to the server during the save.</p>
                                 </div>
 
                                 
@@ -446,7 +495,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l200"><code>a55_emOptions.js:200</code></a>
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l232"><code>a55_emOptions.js:232</code></a>
         
         </p>
 
@@ -457,13 +506,172 @@
     </div>
 
     <div class="description">
-        <p>Makes this instance the default instance.</p>
+        <p>Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+The current instance is returned unchanged.</p>
     </div>
 
     
 
     
 
+    
+</div>
+
+                
+                    <div id="method_using" class="method item">
+    <h3 class="name"><code>using</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>config</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag chainable">chainable</span>
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l274"><code>a55_emOptions.js:274</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a copy of this SaveOptions with the specified config options applied.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">config</code>
+                        <span class="type">Configuration Object | </span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The object to apply to create a new SaveOptions.</p>
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[allowConcurrentSaves]</code>
+                                    <span class="type">Boolean</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Whether multiple saves can be in-flight at the same time. The default is false.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[resourceName]</code>
+                                    <span class="type">String</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Resource name to be used during the save - this defaults to "SaveChanges"</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[dataService]</code>
+                                    <span class="type"><a href="..\classes\DataService.html" class="crosslink">DataService</a></span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>The DataService to be used for this save.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[tag]</code>
+                                    <span class="type">Object</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    <p>Free form value that will be sent to the server during the save.</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var saveOptions = em1.saveOptions.using( {resourceName: "anotherResource" });
+</code></pre>
+            </div>
+        </div>
     
 </div>
 
@@ -499,7 +707,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l210"><code>a55_emOptions.js:210</code></a>
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l242"><code>a55_emOptions.js:242</code></a>
         
         </p>
 
@@ -512,6 +720,51 @@
         <p>Whether another save can be occuring at the same time as this one - default is false.</p>
 
 <p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_dataService" class="property item">
+    <h3 class="name"><code>dataService</code></h3>
+    <span class="type"><a href="..\classes\DataService.html" class="crosslink">DataService</a></span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l249"><code>a55_emOptions.js:249</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>A <a href="..\classes\DataService.html" class="crosslink">DataService</a>. 
+<strong>readOnly</strong></p>
     </div>
 
     
@@ -547,7 +800,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l224"><code>a55_emOptions.js:224</code></a>
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l268"><code>a55_emOptions.js:268</code></a>
         
         </p>
 
@@ -558,6 +811,51 @@
 
     <div class="description">
         <p>The default value whenever SaveOptions are not specified.</p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_resourceName" class="property item">
+    <h3 class="name"><code>resourceName</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l255"><code>a55_emOptions.js:255</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The resource name to call to perform the save.
+<strong>readOnly</strong></p>
     </div>
 
     
@@ -591,7 +889,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l217"><code>a55_emOptions.js:217</code></a>
+        <a href="..&#x2F;files&#x2F;a55_emOptions.js.html#l261"><code>a55_emOptions.js:261</code></a>
         
         </p>
 

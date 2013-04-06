@@ -319,7 +319,8 @@ var __config = function () {
         assertConfig(config)
             .whereParam(&quot;dataService&quot;).isOptional()
             .whereParam(&quot;modelLibrary&quot;).isOptional()
-            .whereParam(&quot;ajax&quot;).isOptional();
+            .whereParam(&quot;ajax&quot;).isOptional()
+            .applyAll(this, false);
         return __objectMapToArray(config, __config.initializeAdapterInstance);
 
     };

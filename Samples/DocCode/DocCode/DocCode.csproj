@@ -45,14 +45,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.WebApi.1.2.7\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.WebApi.1.2.8\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.1.2.7\lib\Irony.dll</HintPath>
+      <HintPath>..\packages\Breeze.WebApi.1.2.8\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -93,7 +93,7 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.20710.0\lib\net40\System.Web.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Http.OData">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.OData.4.0.0\lib\net40\System.Web.Http.OData.dll</HintPath>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.OData.4.0.1\lib\net40\System.Web.Http.OData.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.20710.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>

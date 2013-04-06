@@ -106,7 +106,6 @@ prepareSample $srcDir $destDir "Todo-Angular"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-AngularWithDI"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Require"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "NoDb"          "*.suo"
-prepareSample $srcDir $destDir "BreezyDevices" "*.mdf, *.ldf, *.suo"
 prepareSample $srcDir $destDir "CarBones"      "*.mdf, *.ldf, *.suo"
 
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt

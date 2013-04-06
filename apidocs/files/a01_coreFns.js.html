@@ -187,12 +187,13 @@
  @module core
  **&#x2F;
 
-var __hasOwnProperty = Object.prototype.hasOwnProperty;
+var __hasOwnProperty = uncurry(Object.prototype.hasOwnProperty);
+var __arraySlice = uncurry(Array.prototype.slice);
 
 &#x2F;&#x2F; iterate over object
 function __objectForEach(obj, kvFn) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
         }
     }
@@ -200,7 +201,7 @@ function __objectForEach(obj, kvFn) {
     
 function __objectFirst(obj, kvPredicate) {
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var value = obj[key];
             if (kvPredicate(key, value)) {
                 return { key: key, value: value };
@@ -213,7 +214,7 @@ function __objectFirst(obj, kvPredicate) {
 function __objectMapToArray(obj, kvFn) {
     var results = [];
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             var result = kvFn(key, obj[key]);
             if (result) {
                 results.push(result);
@@ -243,7 +244,7 @@ function __pluck(propertyName) {
 function __getOwnPropertyValues(source) {
     var result = [];
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             result.push(source[name]);
         }
     }
@@ -253,12 +254,33 @@ function __getOwnPropertyValues(source) {
 function __extend(target, source) {
     if (!source) return target;
     for (var name in source) {
-        if (__hasOwnProperty.call(source, name)) {
+        if (__hasOwnProperty(source, name)) {
             target[name] = source[name];
         }
     }
     return target;
 }
+
+function __updateWithDefaults(target, defaults) {
+    for (var name in defaults) {
+        if (target[name] === undefined) {
+            target[name] = defaults[name];
+        }
+    }
+    return target;
+}
+
+
+function __setAsDefault(target, ctor) {
+    &#x2F;&#x2F; we want to insure that the object returned by ctor.defaultInstance is always immutable
+    &#x2F;&#x2F; Use &#x27;target&#x27; as the primary template for the ctor.defaultInstance; 
+    &#x2F;&#x2F; Use current &#x27;ctor.defaultInstance&#x27; as the template for any missing properties
+    &#x2F;&#x2F; creates a new instance for ctor.defaultInstance
+    &#x2F;&#x2F; returns target unchanged 
+    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+    return target;
+}
+
 
 &#x2F;&#x2F; template keys are the keys to return
 &#x2F;&#x2F; template values are the &#x27;default&#x27; value of these keys - value is not serialized if it == the default value
@@ -425,7 +447,7 @@ function __wrapExecution(startFn, endFn, fn) {
 
 function __memoize(fn) {
     return function () {
-        var args = Array.prototype.slice.call(arguments),
+        var args = __arraySlice(arguments),
             hash = &quot;&quot;,
             i = args.length,
             currentArg = null;
@@ -508,7 +530,7 @@ function __isEmpty(obj) {
         return true;
     }
     for (var key in obj) {
-        if (__hasOwnProperty.call(obj, key)) {
+        if (__hasOwnProperty(obj, key)) {
             return false;
         }
     }
@@ -546,6 +568,16 @@ function __formatString(string) {
 };
 
 &#x2F;&#x2F; end of string functions
+
+&#x2F;&#x2F; See Mark Miller’s explanation of what this does.
+&#x2F;&#x2F; http:&#x2F;&#x2F;wiki.ecmascript.org&#x2F;doku.php?id=conventions:safe_meta_programming
+function uncurry(f) {
+    var call = Function.call;
+    return function () {
+        return call.apply(f, arguments);
+    };
+}
+
 
 &#x2F;&#x2F; shims
 
