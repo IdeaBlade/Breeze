@@ -120,6 +120,7 @@
           <Property Name="PhotoPath" Type="nvarchar" MaxLength="255" />
           <Property Name="ReportsToEmployeeID" Type="int" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+          <Property Name="FullName" Type="nvarchar" Nullable="false" MaxLength="62" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="EmployeeTerritory">
           <Key>
@@ -523,6 +524,7 @@
           <NavigationProperty Name="Manager" Relationship="Models.NorthwindIB.EDMX.FK_Employee_Employee" FromRole="Employee1" ToRole="Employee" />
           <NavigationProperty Name="EmployeeTerritories" Relationship="Models.NorthwindIB.EDMX.FK_EmployeeTerritory_Employee" FromRole="Employee" ToRole="EmployeeTerritory" />
           <NavigationProperty Name="Orders" Relationship="Models.NorthwindIB.EDMX.FK_Order_Employee" FromRole="Employee" ToRole="Order" />
+          <Property Type="String" Name="FullName" Nullable="false" MaxLength="62" FixedLength="false" Unicode="true" a:StoreGeneratedPattern="Computed" xmlns:a="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
         </EntityType>
         <EntityType Name="EmployeeTerritory">
           <Key>
@@ -861,6 +863,7 @@
           <EntitySetMapping Name="Employees">
             <EntityTypeMapping TypeName="Models.NorthwindIB.EDMX.Employee">
               <MappingFragment StoreEntitySet="Employee">
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
                 <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
                 <ScalarProperty Name="ReportsToEmployeeID" ColumnName="ReportsToEmployeeID" />
                 <ScalarProperty Name="PhotoPath" ColumnName="PhotoPath" />

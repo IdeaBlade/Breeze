@@ -1,7 +1,7 @@
 
 
 QUnit.config.autostart = false;
-QUnit.config.testTimeout = 5000;
+// QUnit.config.testTimeout = 5000;
 QUnit.config.urlConfig.push({
     id: "canStart",
     label: "Start the tests",

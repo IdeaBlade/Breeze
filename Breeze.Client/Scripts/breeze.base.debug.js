@@ -5194,6 +5194,7 @@ var MetadataStore = (function () {
         }
     }
 
+    
     // Fast version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
     //   match( shortName(np.relationship) == schema.association[].name

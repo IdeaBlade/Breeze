@@ -40,6 +40,58 @@ define(["testFns"], function (testFns) {
         return testFns;
     }
 
+    test("save computed update", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").take(3);
+        stop();
+        em.executeQuery(q).then(function(data) {
+            var emps = data.results;
+            testFns.morphStringProp(emps[0], "lastName");
+            return em.saveChanges();
+        }).then(function(sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            var emp = ents[0];
+            var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
+            ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save computed update - mod computed", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").take(3);
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var emps = data.results;
+            testFns.morphStringProp(emps[0], "lastName");
+            emps[0].setProperty("fullName", "xxx");
+            return em.saveChanges();
+        }).then(function (sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            var emp = ents[0];
+            var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
+            ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
+    test("save computed insert" , function () {
+        var em = newEm();
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+        em.addEntity(emp);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var ents = sr.entities;
+            ok(ents.length === 1);
+            ok(ents[0] === emp, "should be the same emp");
+            var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
+            ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("save update with unmapped changes", function() {
         var em1 = newEm(testFns.newMs());
         var Customer = testFns.models.CustomerWithMiscData();

@@ -318,95 +318,80 @@ namespace Foo {
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("EmployeeID")]
-    // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Employee_EmployeeID")]
     public int EmployeeID { get; set; }
 
     /// <summary>Gets or sets the LastName. </summary>
     [DataMember]
     [Column("LastName")]
-    // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=true, ErrorMessageResourceName="Employee_LastName")]
     [MaxLength(30)]
     [Required]
     public string LastName { get; set; }
 
-    /// <summary>Gets or sets the FirstName. </summary>
+
     [DataMember]
     [Column("FirstName")]
-    // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=true, ErrorMessageResourceName="Employee_FirstName")]
     [MaxLength(30)]
     [Required]
     public string FirstName { get; set; }
 
-    /// <summary>Gets or sets the Title. </summary>
+
     [DataMember]
     [Column("Title")]
-    // [IbVal.StringLengthVerifier(MaxValue=30, IsRequired=false, ErrorMessageResourceName="Employee_Title")]
     [MaxLength(30)]
     public string Title { get; set; }
 
-    /// <summary>Gets or sets the TitleOfCourtesy. </summary>
+
     [DataMember]
     [Column("TitleOfCourtesy")]
-    // [IbVal.StringLengthVerifier(MaxValue=25, IsRequired=false, ErrorMessageResourceName="Employee_TitleOfCourtesy")]
     [MaxLength(25)]
     public string TitleOfCourtesy { get; set; }
 
-    /// <summary>Gets or sets the BirthDate. </summary>
+
     [DataMember]
     [Column("BirthDate")]
     public System.Nullable<System.DateTime> BirthDate { get; set; }
 
-    /// <summary>Gets or sets the HireDate. </summary>
+
     [DataMember]
     [Column("HireDate")]
     public System.Nullable<System.DateTime> HireDate { get; set; }
 
-    /// <summary>Gets or sets the Address. </summary>
+
     [DataMember]
     [Column("Address")]
-    // [IbVal.StringLengthVerifier(MaxValue=60, IsRequired=false, ErrorMessageResourceName="Employee_Address")]
     [MaxLength(60)]
     public string Address { get; set; }
 
-    /// <summary>Gets or sets the City. </summary>
+
     [DataMember]
     [Column("City")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_City")]
     [MaxLength(15)]
     public string City { get; set; }
 
-    /// <summary>Gets or sets the Region. </summary>
     [DataMember]
     [Column("Region")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_Region")]
     [MaxLength(15)]
     public string Region { get; set; }
 
-    /// <summary>Gets or sets the PostalCode. </summary>
     [DataMember]
     [Column("PostalCode")]
-    // [IbVal.StringLengthVerifier(MaxValue=10, IsRequired=false, ErrorMessageResourceName="Employee_PostalCode")]
     [MaxLength(10)]
     public string PostalCode { get; set; }
 
-    /// <summary>Gets or sets the Country. </summary>
     [DataMember]
     [Column("Country")]
-    // [IbVal.StringLengthVerifier(MaxValue=15, IsRequired=false, ErrorMessageResourceName="Employee_Country")]
     [MaxLength(15)]
     public string Country { get; set; }
 
-    /// <summary>Gets or sets the HomePhone. </summary>
+
     [DataMember]
     [Column("HomePhone")]
-    // [IbVal.StringLengthVerifier(MaxValue=24, IsRequired=false, ErrorMessageResourceName="Employee_HomePhone")]
     [MaxLength(24)]
     public string HomePhone { get; set; }
 
     /// <summary>Gets or sets the Extension. </summary>
     [DataMember]
     [Column("Extension")]
-    // [IbVal.StringLengthVerifier(MaxValue=4, IsRequired=false, ErrorMessageResourceName="Employee_Extension")]
     [MaxLength(4)]
     public string Extension { get; set; }
 
@@ -423,21 +408,23 @@ namespace Foo {
     /// <summary>Gets or sets the PhotoPath. </summary>
     [DataMember]
     [Column("PhotoPath")]
-    // [IbVal.StringLengthVerifier(MaxValue=255, IsRequired=false, ErrorMessageResourceName="Employee_PhotoPath")]
     [MaxLength(255)]
     public string PhotoPath { get; set; }
 
     /// <summary>Gets or sets the ReportsToEmployeeID. </summary>
     [DataMember]
-    // [ForeignKey("Manager")]
     [Column("ReportsToEmployeeID")]
     public System.Nullable<int> ReportsToEmployeeID { get; set; }
 
     /// <summary>Gets or sets the RowVersion. </summary>
     [DataMember]
     [Column("RowVersion")]
-    // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="Employee_RowVersion")]
     public int RowVersion { get; set; }
+
+    [DataMember]
+    [Column("FullName")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    public String FullName { get; set; }
 
     #endregion Data Properties
 

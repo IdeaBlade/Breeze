@@ -1001,13 +1001,15 @@ namespace Models.NorthwindIB.EDMX
         /// <param name="lastName">Initial value of the LastName property.</param>
         /// <param name="firstName">Initial value of the FirstName property.</param>
         /// <param name="rowVersion">Initial value of the RowVersion property.</param>
-        public static Employee CreateEmployee(global::System.Int32 employeeID, global::System.String lastName, global::System.String firstName, global::System.Int32 rowVersion)
+        /// <param name="fullName">Initial value of the FullName property.</param>
+        public static Employee CreateEmployee(global::System.Int32 employeeID, global::System.String lastName, global::System.String firstName, global::System.Int32 rowVersion, global::System.String fullName)
         {
             Employee employee = new Employee();
             employee.EmployeeID = employeeID;
             employee.LastName = lastName;
             employee.FirstName = firstName;
             employee.RowVersion = rowVersion;
+            employee.FullName = fullName;
             return employee;
         }
 
@@ -1473,6 +1475,30 @@ namespace Models.NorthwindIB.EDMX
         private global::System.Int32 _RowVersion;
         partial void OnRowVersionChanging(global::System.Int32 value);
         partial void OnRowVersionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String FullName
+        {
+            get
+            {
+                return _FullName;
+            }
+            set
+            {
+                OnFullNameChanging(value);
+                ReportPropertyChanging("FullName");
+                _FullName = StructuralObject.SetValidValue(value, true, "FullName");
+                ReportPropertyChanged("FullName");
+                OnFullNameChanged();
+            }
+        }
+        private global::System.String _FullName;
+        partial void OnFullNameChanging(global::System.String value);
+        partial void OnFullNameChanged();
 
         #endregion
 
