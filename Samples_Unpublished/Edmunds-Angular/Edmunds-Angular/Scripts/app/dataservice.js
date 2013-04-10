@@ -4,10 +4,8 @@ app.dataservice = (function(breeze, logger) {
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
 
-
     var serviceName = "http://api.edmunds.com/v1/api/"; // edmunds
-    // http://api.edmunds.com/{version}/api/vehicle/makerepository/findall?api_key=xxxxxxxxxx&fmt=json
-    // resource names = 'commits'. 'events'
+
     var ds = new breeze.DataService({
         serviceName: serviceName,
         hasServerMetadata: false
@@ -44,7 +42,9 @@ app.dataservice = (function(breeze, logger) {
                     { "name": "makeNiceName", "dataType": "String" },
                     { "name": "id", "dataType": "String", "isPartOfKey": true},
                     { "name": "name", "dataType": "String" },
-                    { "name": "niceName", "dataType": "String" }
+                    { "name": "niceName", "dataType": "String" },
+                    { "name": "vehicleStyles", "dataType": "String" },
+                    { "name": "vehicleSizes", "dataType": "String" }
                 ],
                 "navigationProperties": [{
                     "name": "make",
@@ -53,9 +53,7 @@ app.dataservice = (function(breeze, logger) {
                     "associationName": "Make_Models",
                     "foreignKeyNames": ["makeId"]
                 }]
-                
             }
-                        
         }
     };
     
@@ -66,23 +64,27 @@ app.dataservice = (function(breeze, logger) {
         extractResults: function(data) {
             var results = data.results;
             if (!results) throw new Error("Unable to resolve 'results' property");
-            if (results.makeHolder) {
-                return results.makeHolder;
-            } else if (results.modelHolder) {
-                return results.modelHolder;
-            }
+            return results && (results.makeHolder || results.modelHolder);
         },
 
         visitNode: function (node, queryContext, nodeContext) {
             var entityType;
             if (node.id && node.models) {
                 entityType = queryContext.entityManager.metadataStore.getEntityType("Make", true);
+                // rename node.models so that it doesn't get loaded into .models property
                 node.modelLinks = node.models;
                 node.models = [];
             } else if (node.id && node.makeId) {
                 entityType = queryContext.entityManager.metadataStore.getEntityType("Model", true);
+                // 
+                // rename node.make so that it doesn't get loaded into .make property
                 node.makeLink = node.make;
                 node.make = null;
+                
+                var styles  = node.categories && node.categories["Vehicle Style"];
+                node.vehicleStyles = styles && styles.join(", ");
+                var sizes = node.categories && node.categories["Vehicle Size"];
+                node.vehicleSizes = sizes && sizes.join(", ");
             }
             if (entityType) {
                 return {
@@ -100,7 +102,6 @@ app.dataservice = (function(breeze, logger) {
     
     manager.metadataStore.importMetadata(metadata);
     
-    
     var dataservice = {
         getMakes: getMakes,
         getModels: getModels
@@ -112,9 +113,8 @@ app.dataservice = (function(breeze, logger) {
     /*** implementation details ***/
 
     function getMakes() {
-        
         // vehicle/makerepository/findall
-        var parameters = extendParameters();
+        var parameters = makeParameters();
         var query = breeze.EntityQuery.from("vehicle/makerepository/findall")
             .withParameters(parameters)
             .using(queryOptions);
@@ -123,8 +123,7 @@ app.dataservice = (function(breeze, logger) {
 
     function getModels(make) {
         // vehicle/modelrepository/findbymakeid?makeid=xxx
-        
-        var parameters = extendParameters({
+        var parameters = makeParameters({
             makeid: make.id
         });
         var query = breeze.EntityQuery.from("vehicle/modelrepository/findbymakeid")
@@ -133,7 +132,7 @@ app.dataservice = (function(breeze, logger) {
         return manager.executeQuery(query);
     }
    
-    function extendParameters(addlParameters) {
+    function makeParameters(addlParameters) {
         var parameters = {
             fmt: "json",
             api_key: "z35zpey2s8sbj4d3g3fxsqdx"

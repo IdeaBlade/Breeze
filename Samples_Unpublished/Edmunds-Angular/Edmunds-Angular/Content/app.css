@@ -5,8 +5,6 @@
 
 .ng-cloak { display: none; }
 
-.ng-scope { margin: 0px; }
-
 #applicationHost {
     position: absolute;
     left: 50%;
@@ -35,9 +33,14 @@ header h1,h2 {
 }
 header h2 { font-size: 2em;}
 
+.mainbody { margin: 10px; }
 .filter { font-size: 1.5em; margin: 20px;}
-.make {  font-size: 1.5em; margin: 20px 20px 0px 30px;}
-.model { font-size: 1em; margin: 7px 20px 7px 50px; }
+.make   { font-size: 1.5em; margin: 20px 20px 0px 30px; clear: both; }
+.models { width: 100%;clear: both;}
+.model1 { width: 20%; font-size: 1em; margin: 7px 20px 7px 50px;float: left;}
+.model2 { width: 20%; font-size: 1em; margin: 7px 20px 7px 10px;float: left;}
+.model3 { width: 30%; font-size: 1em; margin: 7px 20px 7px 10px;float: left;}
+.model4 { clear: both; }
 
 header input {
     font-size: 3em;

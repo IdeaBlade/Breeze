@@ -19,6 +19,10 @@ app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
             // if there is search text, look for it in the description; else return true
             make.name.toLowerCase().indexOf(searchText.toLowerCase()) >= 0 : true;
     };
+    
+    $scope.orderModels = function (model) {
+        return model.name;
+    };
 
     
     $scope.makes = [];
@@ -37,12 +41,17 @@ app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
     };
     
     $scope.showModels = function (make) {
-        if (make.models.length > 0) return;
+        if (!make.shouldShowModels) return;
+        if (make.models.length > 0) {
+            logger.info("Already fetched " + make.models.length + " models");
+            return;
+        }
+        make.isLoading = true;
         dataservice.getModels(make).then(function(data) {
             // models will automatically link up with makes via fk    
-            make.shouldShowModels = true;
+            make.isLoading = false;
             $scope.$apply();
-            logger.info("Fetched Models for " + make.name);
+            logger.info("Fetched " + make.models.length + " Models for " + make.name);
         }).fail(queryFailed);
     };
 

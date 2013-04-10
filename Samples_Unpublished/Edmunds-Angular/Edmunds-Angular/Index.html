@@ -18,31 +18,35 @@
             <h2>with AngularJs</h2>
         </header>
         
+        <div class="mainbody">
             <div>
-              <!--[if lte IE 9]><span style='font-size:.5em;'>Filter </span><![endif]-->
-              <input class="filter" data-ng-model="searchText" type="search" placeholder="Filter by make ..." />
+              <!--[if lte IE 9]><span style='font-size:1em;'>Filter by Make </span><![endif]-->
+              <input class="filter" data-ng-model="searchText" type="search" placeholder="Filter by Make ..." />
             </div>
             
             <div  data-ng-repeat="make in makes| filter:makeFilter">
                 <input id="shouldShowModels" type="checkbox" data-ng-model="make.shouldShowModels" data-ng-click="showModels(make)" />
-                <span class="make">{{make.name}}</span> 
+                <span data-ng-show="make.isLoading">
+                    <span class="make">{{make.name}} ... (loading models)... </span> 
+                </span>
+                <span data-ng-show="!(make.isLoading)">
+                    <span class="make">{{make.name}}</span> 
+                </span>
                 <div data-ng-show="make.shouldShowModels">
-                    <div  data-ng-repeat="model in make.models">
-                        <span class="model">{{model.name}}</span> 
+                    <div  data-ng-repeat="model in make.models| orderBy:orderModels">
+                        <div class="models">
+                            <div class="model1">{{model.name}}</div> 
+                            <div class="model2">{{model.vehicleSizes}}</div>
+                            <div class="model3">{{model.vehicleStyles}}</div>
+                            <div class="model4"></div>
+                        </div>
                     </div>
                 </div>
 
             </div>
-
-            <div class="controlLinks">
-                <a href="#" data-ng-click="purge()">Purge</a>&nbsp;&nbsp;
-                <a href="#" data-ng-click="reset()">Reset</a>
-            </div>
-        
+        </div>
 
         <footer>
-            <div data-ng-show="itemsLeftMessage()">{{itemsLeftMessage()}}</div>
-            <a href="#" data-ng-show="archiveCompletedMessage()" data-ng-click="archiveCompletedItems()">{{archiveCompletedMessage()}}</a>
         </footer>
 
     </div>
