@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{63D8C4
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHub-Angular", "GitHub-Angular\GitHub-Angular.csproj", "{637A5817-2159-4612-AFB8-587B26C79097}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Edmunds-Angular", "Edmunds-Angular\Edmunds-Angular.csproj", "{637A5817-2159-4612-AFB8-587B26C79097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

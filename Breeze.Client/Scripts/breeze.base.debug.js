@@ -549,11 +549,12 @@ var Param = function () {
         return false;
     }
 
-    proto.isInstanceOf = function(type, typeName) {
+    proto.isInstanceOf = function (type, typeName) {
+        typeName = typeName || type.prototype._$typeName;
         return addContext(this, {
             fn: isInstanceOf,
             type: type,
-            typeName: typeName || type.prototype._$typeName,
+            typeName: typeName,
             msg: __formatString("must be an instance of '%1'", typeName)
         });
     };
@@ -4227,7 +4228,8 @@ var LocalQueryComparisonOptions = (function () {
     ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
 
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var lqco = new LocalQueryComparisonOptions({
@@ -4347,7 +4349,8 @@ var NamingConvention = (function () {
     ctor.defaultInstance = new ctor(ctor.none);
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var namingConv = new NamingConvention({
@@ -10174,6 +10177,7 @@ var EntityManager = (function () {
         var qo3 = QueryOptions.defaultInstance;       
         // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
         var qo = new QueryOptions({
+            useJsonp: qo1.useJsonp !== undefined ? qo1.useJsonp : (qo2.useJsonp !== undefined ? qo2.useJsonp : qo3.useJsonp),
             fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
             mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
             dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
@@ -10369,6 +10373,11 @@ var EntityManager = (function () {
             dataService: dataService,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };
+        var queryOptions = {
+            // TODO: what if em has its own jsonResultsAdapter
+            jsonResultsAdapter: dataService.jsonResultsAdapter,
+            mergeStrategy: MergeStrategy.OverwriteChanges
+        };
         dataService.adapterInstance.saveChanges(saveContext, saveBundleStringified, deferred.resolve, deferred.reject);
         var that = this;
         return deferred.promise.then(function (rawSaveResult) {
@@ -10380,8 +10389,7 @@ var EntityManager = (function () {
             var queryContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
-                jsonResultsAdapter: that.dataService.jsonResultsAdapter,
-                mergeStrategy: MergeStrategy.OverwriteChanges,
+                queryOptions: queryOptions,
                 refMap: {},
                 deferredFns: []
             };
@@ -11205,15 +11213,12 @@ var EntityManager = (function () {
             }
 
             var url = dataService.serviceName + metadataStore.toQueryString(query);
-            var jsonResultsAdapter = queryOptions.jsonResultsAdapter;
 
             var queryContext = {
                     url: url,
                     query: query,
                     entityManager: em,
-                    dataService: dataService,
-                    mergeStrategy: queryOptions.mergeStrategy,
-                    jsonResultsAdapter: jsonResultsAdapter,
+                    queryOptions: queryOptions,
                     refMap: {}, 
                     deferredFns: []
             };
@@ -11240,7 +11245,7 @@ var EntityManager = (function () {
                     if (state.error) deferred.reject(state.error);
 
                 }, function () {
-                    var nodes = jsonResultsAdapter.extractResults(data);
+                    var nodes = queryOptions.jsonResultsAdapter.extractResults(data);
                     if (!Array.isArray(nodes)) {
                         nodes = [nodes];
                     }
@@ -11277,7 +11282,7 @@ var EntityManager = (function () {
                
     function visitAndMerge(node, queryContext, nodeContext) {
         nodeContext = nodeContext || {};
-        var meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, nodeContext);
+        var meta = queryContext.queryOptions.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
         if (queryContext.query && nodeContext.isTopLevel && !meta.entityType) {
             meta.entityType = queryContext.query._getToEntityType && queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
         }
@@ -11328,7 +11333,7 @@ var EntityManager = (function () {
         node.entityType = entityType;
             
         var em = queryContext.entityManager;
-        var mergeStrategy = queryContext.mergeStrategy;
+        var mergeStrategy = queryContext.queryOptions.mergeStrategy;
         var isSaving = queryContext.query == null;
 
             
@@ -11385,18 +11390,18 @@ var EntityManager = (function () {
     function processAnonType(node, queryContext) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
         var em = queryContext.entityManager;
-        var jsonResultsAdapter = queryContext.jsonResultsAdapter;
+        var jsonResultsAdapter = queryContext.queryOptions.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = { };
         __objectForEach(node, function(key, value) {
-            var meta = jsonResultsAdapter.visitNode(value, queryContext, { nodeType: "anonProp", propertyName: key });
+            var meta = jsonResultsAdapter.visitNode(value, queryContext, { nodeType: "anonProp", propertyName: key }) || {};
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
                 
             if (Array.isArray(value)) {
                 result[newKey] = value.map(function(v, ix) {
-                    meta = jsonResultsAdapter.visitNode(v, queryContext, { nodeType: "anonPropItem", propertyName: key });
+                    meta = jsonResultsAdapter.visitNode(v, queryContext, { nodeType: "anonPropItem", propertyName: key }) || {};
                     return processMeta(v, queryContext, meta, function(refValue) {
                         result[newKey][ix] = refValue();
                     });
@@ -11941,6 +11946,7 @@ var QueryOptions = (function () {
     @param [config.fetchStrategy] {FetchStrategy}  
     @param [config.mergeStrategy] {MergeStrategy}  
     @param [config.dataService] {DataService}  
+    @param [config.useJsonp} {Boolean}
     @param [config.jsonResultsAdapter] {JsonResultsAdapter}  
     **/
     var ctor = function (config) {
@@ -11959,6 +11965,18 @@ var QueryOptions = (function () {
     A {{#crossLink "MergeStrategy"}}{{/crossLink}}
     __readOnly__
     @property mergeStrategy {MergeStrategy}
+    **/
+    
+    /**
+    A {{#crossLink "DataService"}}{{/crossLink}}. 
+    __readOnly__
+    @property dataService {DataService}
+    **/
+    
+    /**
+    A {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}.
+    __readOnly__
+    @property jsonResultsAdapter {JsonResultsAdapter}
     **/
 
     proto._$typeName = "QueryOptions";
@@ -12007,7 +12025,8 @@ var QueryOptions = (function () {
     };
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @example
         var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
@@ -12023,6 +12042,7 @@ var QueryOptions = (function () {
             fetchStrategy: null,
             mergeStrategy: null,
             dataService: null,
+            useJsonp: null,
             jsonResultsAdapter: function (v) { return v && v.name; }
         });
     };
@@ -12042,6 +12062,7 @@ var QueryOptions = (function () {
                 .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
                 .whereParam("dataService").isInstanceOf(DataService).isOptional()
+                .whereParam("useJsonp").isBoolean().isOptional()
                 .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
                 .applyAll(obj);
         }
@@ -12074,7 +12095,8 @@ var SaveOptions = (function () {
     proto._$typeName = "SaveOptions";
         
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @method setAsDefault
     @chainable
     **/
@@ -12087,6 +12109,18 @@ var SaveOptions = (function () {
 
     __readOnly__
     @property allowConcurrentSaves {Boolean}
+    **/
+    
+    /**
+    A {{#crossLink "DataService"}}{{/crossLink}}. 
+    __readOnly__
+    @property dataService {DataService}
+    **/
+
+    /**
+    The resource name to call to perform the save.
+    __readOnly__
+    @property resourceName {String}
     **/
 
     /**
@@ -12109,7 +12143,10 @@ var SaveOptions = (function () {
     
     @method using
     @param config {Configuration Object|} The object to apply to create a new SaveOptions.
-    @return {SaveOptions}
+    @param [config.allowConcurrentSaves] {Boolean} Whether multiple saves can be in-flight at the same time. The default is false.
+    @param [config.resourceName] {String} Resource name to be used during the save - this defaults to "SaveChanges"
+    @param [config.dataService] {DataService} The DataService to be used for this save.
+    @param [config.tag] {Object} Free form value that will be sent to the server during the save. 
     @chainable
     **/
     proto.using = function (config) {
@@ -12210,7 +12247,8 @@ var ValidationOptions = (function () {
     };
 
     /**
-    Make this instance to the default instance and populates all unset properties with existing default values.
+    Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
     @example
         var validationOptions = new ValidationOptions()
         var newOptions = validationOptions.using( { validateOnQuery: true, validateOnSave: false} );

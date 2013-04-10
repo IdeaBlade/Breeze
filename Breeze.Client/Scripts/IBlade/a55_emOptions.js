@@ -84,6 +84,7 @@ var QueryOptions = (function () {
     @param [config.fetchStrategy] {FetchStrategy}  
     @param [config.mergeStrategy] {MergeStrategy}  
     @param [config.dataService] {DataService}  
+    @param [config.useJsonp} {Boolean}
     @param [config.jsonResultsAdapter] {JsonResultsAdapter}  
     **/
     var ctor = function (config) {
@@ -179,6 +180,7 @@ var QueryOptions = (function () {
             fetchStrategy: null,
             mergeStrategy: null,
             dataService: null,
+            useJsonp: null,
             jsonResultsAdapter: function (v) { return v && v.name; }
         });
     };
@@ -198,6 +200,7 @@ var QueryOptions = (function () {
                 .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
                 .whereParam("dataService").isInstanceOf(DataService).isOptional()
+                .whereParam("useJsonp").isBoolean().isOptional()
                 .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
                 .applyAll(obj);
         }

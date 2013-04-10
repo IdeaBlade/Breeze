@@ -1,7 +1,7 @@
-﻿/* main: startup script creates the 'todo' module and its Angular directives */
+﻿/* main: startup script creates the 'Edmunds' module and its Angular directives */
 app = {}; // establish application global namespace
 
-app.todoMain = angular.module('TodoMain', [])
+app.EdmundsMain = angular.module('EdmundsMain', [])
     .directive('onFocus', function () {
         return {
             restrict: 'A',

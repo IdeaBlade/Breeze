@@ -96,11 +96,10 @@
 
     ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
 
-        ajaxImpl.ajax({
+        var params = {
             url: queryContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
-                // jQuery.getJSON(url).done(function (data, textStatus, jqXHR) {
                 try {
                     var inlineCount = XHR.getResponseHeader("X-InlineCount");
 
@@ -110,19 +109,24 @@
                     collectionCallback({ results: data, XHR: XHR, inlineCount: inlineCount });
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
-                } catch (e) {
+                } catch(e) {
                     var error = e instanceof Error ? e : createError(XHR);
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
                     if (errorCallback) errorCallback(error);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 }
-                
+
             },
-            error: function (XHR, textStatus, errorThrown) {
+            error: function(XHR, textStatus, errorThrown) {
                 handleXHRError(XHR, errorCallback);
             }
-        });
+        };
+        if (queryContext.queryOptions.useJsonp) {
+            params.dataType = 'jsonp';
+            params.crossDomain = true;
+        }
+        ajaxImpl.ajax(params);
     };
 
     ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {

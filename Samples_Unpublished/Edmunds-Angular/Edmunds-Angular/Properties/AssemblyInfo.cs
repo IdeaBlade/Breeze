@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Todo_Angular")]
+[assembly: AssemblyTitle("Edmunds_Angular")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IdeaBlade")]
-[assembly: AssemblyProduct("Todo_Angular")]
+[assembly: AssemblyProduct("Edmunds_Angular")]
 [assembly: AssemblyCopyright("Copyright IdeaBlade ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

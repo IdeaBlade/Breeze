@@ -5,6 +5,8 @@
 
 .ng-cloak { display: none; }
 
+.ng-scope { margin: 0px; }
+
 #applicationHost {
     position: absolute;
     left: 50%;
@@ -33,6 +35,10 @@ header h1,h2 {
 }
 header h2 { font-size: 2em;}
 
+.filter { font-size: 1.5em; margin: 20px;}
+.make {  font-size: 1.5em; margin: 20px 20px 0px 30px;}
+.model { font-size: 1em; margin: 7px 20px 7px 50px; }
+
 header input {
     font-size: 3em;
     margin: 0.25em 0 0.5em 0;
@@ -44,7 +50,7 @@ section {
     left: 50%;
     margin-left: -275px;
     margin-bottom: 1em;
-    font-size: 2em;
+    font-size: 13px;
     width: 550px;
 }
 
