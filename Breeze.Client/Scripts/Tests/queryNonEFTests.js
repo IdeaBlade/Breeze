@@ -89,8 +89,82 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
 
     });
-    
+
+    test("getSimple - typed - Persons - long form metadata", function () {
+        var em = newAltEm();
+
+        initializeMetadataStore_long(em.metadataStore);
+        var query = breeze.EntityQuery.from("Persons");
+        stop();
+
+        em.executeQuery(query).then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            ok(data.results.length > 0);
+            var person = data.results[0];
+            var meals = person.getProperty("meals");
+            ok(meals.length > 0, "person should have meals");
+            ok(meals[0].getProperty("person") === person, "check internal consistency");
+            var ents = em.getEntities();
+            ok(ents.length > 0, "should return some entities");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     function initializeMetadataStore(metadataStore) {
+        metadataStore.addEntityType({
+            shortName: "Person",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: {
+                personId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
+                firstName: { dataType: DataType.String, isNullable: false },
+                lastName: { dataType: DataType.String, isNullable: false },
+                birthDate: { dataType: DataType.DateTime }
+            },
+            navigationProperties: {
+                meals: { entityTypeName: "Meal", isScalar: false, associationName: "personMeals" }
+            }
+        });
+
+        metadataStore.addEntityType({
+            shortName: "Meal",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: {
+                mealId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
+                personId: { dataType: DataType.Int32, isNullable: false },
+                dateConsumed: { dataType: DataType.DateTime, isNullable: false }
+            },
+            navigationProperties: {
+                person: { entityTypeName: "Person", isScalar: true, associationName: "personMeals", foreignKeyNames: ["personId"] },
+                dishes: { entityTypeName: "Dish", isScalar: false, associationName: "mealDishes" }
+            }
+        });
+
+        et = new EntityType({
+            shortName: "Dish",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: {
+                dishId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
+                foodName: { dataType: DataType.String, isNullable: false },
+                servingSize: { dataType: DataType.Double, isNullable: false }
+            },
+            navigationProperties: {
+                food: { entityTypeName: "Food", isScalar: true, associationName: "DishFood", foreignKeyNames: ["foodName"] }
+            }
+        });
+        metadataStore.addEntityType(et);
+
+        et = new EntityType({
+            shortName: "Food",
+            namespace: "Sample_WebApi.Models",
+            dataProperties: {
+                foodName: { dataType: DataType.String, isNullable: false, isPartOfKey: true },
+                calories: { dataType: DataType.Int32, isNullable: false }
+            }
+        });
+        metadataStore.addEntityType(et);
+    }
+    
+    function initializeMetadataStore_long(metadataStore) {
         var et = new EntityType({
             shortName: "Person",
             namespace: "Sample_WebApi.Models"
@@ -206,102 +280,102 @@ define(["testFns"], function (testFns) {
         metadataStore.addEntityType(et);
     }
     
-    function initializeMetadataStore2(metadataStore, serviceName) {
-        var entityTypes = [ {
-            shortName: "Person",
-            namespace: "Sample_WebApi.Models",
-            dataProperties: [{
-                    name: "personId",
-                    dataType: DataType.Int32,
-                    isNullable: false,
-                    isPartOfKey: true,
-                }, {
-                    name: "firstName",
-                    dataType: DataType.String,
-                    isNullable: false,
-                }, {
-                    name: "lastName",
-                    dataType: DataType.String,
-                    isNullable: false,
-                }, {
-                    name: "birthDate",
-                    dataType: DataType.DateTime,
-                    isNullable: true
-                }],
-            navigationProperties: [{
-                name: "meals",
-                entityTypeName: "Meal",
-                isScalar: false,
-                associationName: "personMeals"
-            }]
-        }, {
-            shortName: "Meal",
-            namespace: "Sample_WebApi.Models",
-            dataProperties: [{
-                    name: "mealId",
-                    dataType: DataType.Int32,
-                    isNullable: false,
-                    isPartOfKey: true,
-                }, {
-                    name: "personId",
-                    dataType: DataType.Int32,
-                    isNullable: false,
-                }, {
-                    name: "dateConsumed",
-                    dataType: DataType.DateTime,
-                    isNullable: false,
-                }],
-            navigationProperties: [{
-                    name: "person",
-                    entityTypeName: "Person",
-                    isScalar: true,
-                    associationName: "personMeals",
-                    foreignKeyNames: ["personId"]
-                }, {
-                    name: "dishes",
-                    entityTypeName: "Dish",
-                    isScalar: false,
-                    associationName: "mealDishes",
-                }]
-        }, {
-            shortName: "Dish",
-            namespace: "Sample_WebApi.Models",
-            dataProperties: [{
-                    name: "dishId",
-                    dataType: DataType.Int32,
-                    isNullable: false,
-                    isPartOfKey: true,
-                }, {
-                    name: "foodName",
-                    dataType: DataType.String,
-                    isNullable: false,
-                }, {
-                    name: "servingSize",
-                    dataType: DataType.Double,
-                    isNullable: false,
-                }],
-            navigationProperties: [{
-                name: "food",
-                entityTypeName: "Food",
-                isScalar: true,
-                associationName: "DishFood",
-                foreignKeyNames: ["foodName"]
-            }]
-        }, {
-            shortName: "Food",
-            namespace: "Sample_WebApi.Models",
-            dataProperties: [{
-                    name: "foodName",
-                    dataType: DataType.String,
-                    isNullable: false,
-                    isPartOfKey: true,
-                }, {
-                    name: "calories",
-                    dataType: DataType.Int32,
-                    isNullable: false,
-                }]
-        }];
-    }
+    //function initializeMetadataStore_import(metadataStore, serviceName) {
+    //    var entityTypes = [ {
+    //        shortName: "Person",
+    //        namespace: "Sample_WebApi.Models",
+    //        dataProperties: [{
+    //                name: "personId",
+    //                dataType: DataType.Int32,
+    //                isNullable: false,
+    //                isPartOfKey: true,
+    //            }, {
+    //                name: "firstName",
+    //                dataType: DataType.String,
+    //                isNullable: false,
+    //            }, {
+    //                name: "lastName",
+    //                dataType: DataType.String,
+    //                isNullable: false,
+    //            }, {
+    //                name: "birthDate",
+    //                dataType: DataType.DateTime,
+    //                isNullable: true
+    //            }],
+    //        navigationProperties: [{
+    //            name: "meals",
+    //            entityTypeName: "Meal",
+    //            isScalar: false,
+    //            associationName: "personMeals"
+    //        }]
+    //    }, {
+    //        shortName: "Meal",
+    //        namespace: "Sample_WebApi.Models",
+    //        dataProperties: [{
+    //                name: "mealId",
+    //                dataType: DataType.Int32,
+    //                isNullable: false,
+    //                isPartOfKey: true,
+    //            }, {
+    //                name: "personId",
+    //                dataType: DataType.Int32,
+    //                isNullable: false,
+    //            }, {
+    //                name: "dateConsumed",
+    //                dataType: DataType.DateTime,
+    //                isNullable: false,
+    //            }],
+    //        navigationProperties: [{
+    //                name: "person",
+    //                entityTypeName: "Person",
+    //                isScalar: true,
+    //                associationName: "personMeals",
+    //                foreignKeyNames: ["personId"]
+    //            }, {
+    //                name: "dishes",
+    //                entityTypeName: "Dish",
+    //                isScalar: false,
+    //                associationName: "mealDishes",
+    //            }]
+    //    }, {
+    //        shortName: "Dish",
+    //        namespace: "Sample_WebApi.Models",
+    //        dataProperties: [{
+    //                name: "dishId",
+    //                dataType: DataType.Int32,
+    //                isNullable: false,
+    //                isPartOfKey: true,
+    //            }, {
+    //                name: "foodName",
+    //                dataType: DataType.String,
+    //                isNullable: false,
+    //            }, {
+    //                name: "servingSize",
+    //                dataType: DataType.Double,
+    //                isNullable: false,
+    //            }],
+    //        navigationProperties: [{
+    //            name: "food",
+    //            entityTypeName: "Food",
+    //            isScalar: true,
+    //            associationName: "DishFood",
+    //            foreignKeyNames: ["foodName"]
+    //        }]
+    //    }, {
+    //        shortName: "Food",
+    //        namespace: "Sample_WebApi.Models",
+    //        dataProperties: [{
+    //                name: "foodName",
+    //                dataType: DataType.String,
+    //                isNullable: false,
+    //                isPartOfKey: true,
+    //            }, {
+    //                name: "calories",
+    //                dataType: DataType.Int32,
+    //                isNullable: false,
+    //            }]
+    //    }];
+    //}
     
     return testFns;
 
