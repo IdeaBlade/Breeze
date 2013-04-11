@@ -688,22 +688,19 @@ var EntityManager = (function () {
     function normalizeQueryOptions(query, entityManager) {
         var qo1 = query.queryOptions || {};
         var qo2 = entityManager.queryOptions;
-        var qo3 = QueryOptions.defaultInstance;       
+        var qo3 = QueryOptions.defaultInstance;
+        var qArray = [qo1, qo1.dataService, qo2, qo2.dataService, entityManager.dataService, qo3, qo3.dataService];
         // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
         var qo = new QueryOptions({
-            useJsonp: qo1.useJsonp !== undefined ? qo1.useJsonp : (qo2.useJsonp !== undefined ? qo2.useJsonp : qo3.useJsonp),
-            fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
-            mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
-            dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
-            jsonResultsAdapter: getJra(qo1) || getJra(qo2) || getJra(entityManager) || getJra(qo3)
+            useJsonp: __resolveProperty("useJsonp", qArray),
+            fetchStrategy: __resolveProperty("fetchStrategy", [qo1, qo2]),
+            mergeStrategy: __resolveProperty("mergeStrategy", [qo1, qo2]),
+            dataService: __resolveProperty("dataService", [qo1, qo2, entityManager, qo3]),
+            jsonResultsAdapter: __resolveProperty("jsonResultsAdapter", qArray)
         });
         return qo;
     };
     
-    function getJra(obj) {
-        return obj.jsonResultsAdapter || (obj.dataService && obj.dataService.jsonResultsAdapter);
-    }
-
     /**
     Executes the specified query against this EntityManager's local cache.
 

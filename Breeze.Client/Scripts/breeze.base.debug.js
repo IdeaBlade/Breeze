@@ -158,6 +158,16 @@ function __toJson(source, template) {
 }
 
 
+function __resolveProperty(propertyName, sources) {
+    for (var i = 0, j = sources.length; i < j; i++) {
+        var src = sources[i];
+        if (src) {
+            var r = src[propertyName];
+            if (r !== undefined) return r;
+        }
+    }
+}
+
 // array functions
 
 function __arrayFirst(array, predicate) {
@@ -5290,6 +5300,7 @@ var DataService = (function () {
     @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
     @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
     @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
+    @param [config.useJsonp] {Boolean}  Whether to use JSONP when making a 'get' request against this service.
     **/
         
     var ctor = function(config) {
@@ -5302,6 +5313,7 @@ var DataService = (function () {
             .whereParam("adapterName").isString().isOptional().withDefault(null)
             .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
             .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
+            .whereParam("useJsonp").isBoolean().isOptional().withDefault(false)
             .applyAll(this);
         this.serviceName = DataService._normalizeServiceName(this.serviceName);
         this.adapterInstance = __config.getAdapterInstance("dataService", this.adapterName);
@@ -5362,7 +5374,8 @@ var DataService = (function () {
             serviceName: null,
             adapterName: null,
             hasServerMetadata: true,
-            jsonResultsAdapter: function(v) { return v && v.name; }
+            jsonResultsAdapter: function (v) { return v && v.name; },
+            useJsonp: false,
         });
         
     };
@@ -10217,22 +10230,19 @@ var EntityManager = (function () {
     function normalizeQueryOptions(query, entityManager) {
         var qo1 = query.queryOptions || {};
         var qo2 = entityManager.queryOptions;
-        var qo3 = QueryOptions.defaultInstance;       
+        var qo3 = QueryOptions.defaultInstance;
+        var qArray = [qo1, qo1.dataService, qo2, qo2.dataService, entityManager.dataService, qo3, qo3.dataService];
         // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
         var qo = new QueryOptions({
-            useJsonp: qo1.useJsonp !== undefined ? qo1.useJsonp : (qo2.useJsonp !== undefined ? qo2.useJsonp : qo3.useJsonp),
-            fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
-            mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
-            dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
-            jsonResultsAdapter: getJra(qo1) || getJra(qo2) || getJra(entityManager) || getJra(qo3)
+            useJsonp: __resolveProperty("useJsonp", qArray),
+            fetchStrategy: __resolveProperty("fetchStrategy", [qo1, qo2]),
+            mergeStrategy: __resolveProperty("mergeStrategy", [qo1, qo2]),
+            dataService: __resolveProperty("dataService", [qo1, qo2, entityManager, qo3]),
+            jsonResultsAdapter: __resolveProperty("jsonResultsAdapter", qArray)
         });
         return qo;
     };
     
-    function getJra(obj) {
-        return obj.jsonResultsAdapter || (obj.dataService && obj.dataService.jsonResultsAdapter);
-    }
-
     /**
     Executes the specified query against this EntityManager's local cache.
 

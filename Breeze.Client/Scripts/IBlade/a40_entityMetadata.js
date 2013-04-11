@@ -1139,6 +1139,7 @@ var DataService = (function () {
     @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
     @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
     @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
+    @param [config.useJsonp] {Boolean}  Whether to use JSONP when making a 'get' request against this service.
     **/
         
     var ctor = function(config) {
@@ -1151,6 +1152,7 @@ var DataService = (function () {
             .whereParam("adapterName").isString().isOptional().withDefault(null)
             .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
             .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
+            .whereParam("useJsonp").isBoolean().isOptional().withDefault(false)
             .applyAll(this);
         this.serviceName = DataService._normalizeServiceName(this.serviceName);
         this.adapterInstance = __config.getAdapterInstance("dataService", this.adapterName);
@@ -1211,7 +1213,8 @@ var DataService = (function () {
             serviceName: null,
             adapterName: null,
             hasServerMetadata: true,
-            jsonResultsAdapter: function(v) { return v && v.name; }
+            jsonResultsAdapter: function (v) { return v && v.name; },
+            useJsonp: false,
         });
         
     };

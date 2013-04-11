@@ -123,6 +123,16 @@ function __toJson(source, template) {
 }
 
 
+function __resolveProperty(propertyName, sources) {
+    for (var i = 0, j = sources.length; i < j; i++) {
+        var src = sources[i];
+        if (src) {
+            var r = src[propertyName];
+            if (r !== undefined) return r;
+        }
+    }
+}
+
 // array functions
 
 function __arrayFirst(array, predicate) {
