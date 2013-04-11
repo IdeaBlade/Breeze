@@ -69,6 +69,25 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    test("create complexType - compact form", function () {
+        var ms = new MetadataStore();
+        try {
+            ms.addEntityType({
+                shortName: "Foo",
+                namespace: "Sample_WebApi.Models",
+                isComplexType: true,
+                dataProperties: {
+                    firstName: { dataType: DataType.String, isNullable: false },
+                    lastName: { dataType: DataType.String, isNullable: false },
+                    birthDate: { dataType: DataType.DateTime }
+                },
+            });
+            ok(true, "should get here")
+        } catch (e) {
+            ok(false, "should not get here");
+        }
+    });
+
     
     test("getSimple - anonymous - Persons", function() {
         var em = newAltEm();
