@@ -1797,7 +1797,7 @@ var EntityManager = (function () {
     function visitAndMerge(node, queryContext, nodeContext) {
         nodeContext = nodeContext || {};
         var meta = queryContext.queryOptions.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
-        if (queryContext.query && nodeContext.isTopLevel && !meta.entityType) {
+        if (queryContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
             meta.entityType = queryContext.query._getToEntityType && queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
         }
         return processMeta(node, queryContext, meta);
@@ -1934,8 +1934,10 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped) return;
             var val = rawEntity[dp.nameOnServer];
+            // undefined values will be the default for most unmapped properties EXCEPT when they are set
+            // in a jsonResultsAdapter ( an unusual use case).
+            if (val === undefined) return;  
             if (dp.dataType.isDate && val) {
                 if (!__isDate(val)) {
                     val = DataType.parseDateFromServer(val);

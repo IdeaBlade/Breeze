@@ -27,6 +27,24 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("query with quotes", function () {
+        var em = newEm();
+
+        var q = EntityQuery.from("Employees")
+            .where("firstName", 'contains', "abc''defg")
+            .using(em);
+        stop();
+
+        q.execute().then(function (data) {
+            ok(data.results.length == 0);
+            var r = em.executeQueryLocally(q);
+            ok(r.length == 0);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+            
+    });
+
     test("bad query test", function () {
         var em = newEm();
         
