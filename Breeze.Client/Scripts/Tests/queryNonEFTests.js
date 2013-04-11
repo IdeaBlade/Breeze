@@ -49,6 +49,25 @@ define(["testFns"], function (testFns) {
             metadataStore: altMs
         });
     }
+
+    test("bad addEntityType - no key", function () {
+        var ms = new MetadataStore();
+        try {
+            ms.addEntityType({
+                shortName: "Person",
+                namespace: "Sample_WebApi.Models",
+                dataProperties: {
+                    personId: { dataType: DataType.Int32, isNullable: false },
+                    firstName: { dataType: DataType.String, isNullable: false },
+                    lastName: { dataType: DataType.String, isNullable: false },
+                    birthDate: { dataType: DataType.DateTime }
+                },
+            });
+            ok(false, "should not get here")
+        } catch (e) {
+            ok(e.message.toLowerCase().indexOf("ispartofkey") >= 0, "message should mention 'isPartOfKey'");
+        }
+    });
     
     
     test("getSimple - anonymous - Persons", function() {
