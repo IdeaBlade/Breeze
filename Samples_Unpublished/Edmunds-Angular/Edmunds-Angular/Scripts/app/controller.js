@@ -5,8 +5,8 @@
  */
 app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
 
-    var dataservice = window.app.dataservice;
-    dataservice.$timeout = $timeout; // inject into dataservice
+    var dataAccess = window.app.dataAccess;
+    dataAccess.$timeout = $timeout; // inject into dataAccess
     var logger = window.app.logger;
     
 
@@ -28,7 +28,7 @@ app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
     $scope.makes = [];
 
     $scope.getMakes = function () {
-        dataservice.getMakes().then(function(data) {
+        dataAccess.getMakes().then(function(data) {
             $scope.makes = [];
             data.results.forEach(function(item) {
                 $scope.makes.push(item);
@@ -43,15 +43,15 @@ app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
     $scope.showModels = function (make) {
         if (!make.shouldShowModels) return;
         if (make.models.length > 0) {
-            logger.info("Already fetched " + make.models.length + " models");
+            logger.info("Retrieved from cache: " + make.models.length + " models for " + make.name);
             return;
         }
         make.isLoading = true;
-        dataservice.getModels(make).then(function(data) {
+        dataAccess.getModels(make).then(function(data) {
             // models will automatically link up with makes via fk    
             make.isLoading = false;
             $scope.$apply();
-            logger.info("Fetched " + make.models.length + " Models for " + make.name);
+            logger.info("Fetched via web service call: " + make.models.length + " models for " + make.name);
         }).fail(queryFailed);
     };
 

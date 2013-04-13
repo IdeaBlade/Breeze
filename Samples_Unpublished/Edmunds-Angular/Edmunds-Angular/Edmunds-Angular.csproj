@@ -126,7 +126,7 @@
     <Content Include="Index.html" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js" />
-    <Content Include="Scripts\app\dataservice.js" />
+    <Content Include="Scripts\app\dataAccess.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\controller.js" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />

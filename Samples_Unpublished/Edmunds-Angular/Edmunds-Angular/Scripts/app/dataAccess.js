@@ -1,14 +1,53 @@
-/* dataservice: data access and model management layer */
-app.dataservice = (function(breeze, logger) {
-
+/* dataAccess: data access and model management layer */
+app.dataAccess = (function(breeze, logger) {
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
 
     var serviceName = "http://api.edmunds.com/v1/api/"; // edmunds
 
+    var jsonResultsAdapter = new breeze.JsonResultsAdapter({
+
+        name: "edmunds",
+
+        extractResults: function (data) {
+            var results = data.results;
+            if (!results) throw new Error("Unable to resolve 'results' property");
+            return results && (results.makeHolder || results.modelHolder);
+        },
+
+        visitNode: function (node, queryContext, nodeContext) {
+            var entityType;
+            if (node.id && node.models) {
+                entityType = queryContext.entityManager.metadataStore.getEntityType("Make", true);
+                // rename node.models so that it doesn't get loaded into .models property
+                node.modelLinks = node.models;
+                node.models = [];
+            } else if (node.id && node.makeId) {
+                entityType = queryContext.entityManager.metadataStore.getEntityType("Model", true);
+                // 
+                // rename node.make so that it doesn't get loaded into .make property
+                node.makeLink = node.make;
+                node.make = null;
+
+                var styles = node.categories && node.categories["Vehicle Style"];
+                node.vehicleStyles = styles && styles.join(", ");
+                var sizes = node.categories && node.categories["Vehicle Size"];
+                node.vehicleSizes = sizes && sizes.join(", ");
+            }
+            if (entityType) {
+                return {
+                    entityType: entityType,
+                };
+            }
+        }
+
+    });
+
     var ds = new breeze.DataService({
         serviceName: serviceName,
-        hasServerMetadata: false
+        hasServerMetadata: false,
+        useJsonp: true,
+        jsonResultsAdapter: jsonResultsAdapter
     });
 
     var manager = new breeze.EntityManager({
@@ -56,59 +95,13 @@ app.dataservice = (function(breeze, logger) {
             }
         }
     };
-    
-    var jsonResultsAdapter = new breeze.JsonResultsAdapter({
-
-        name: "edmunds",
-        
-        extractResults: function(data) {
-            var results = data.results;
-            if (!results) throw new Error("Unable to resolve 'results' property");
-            return results && (results.makeHolder || results.modelHolder);
-        },
-
-        visitNode: function (node, queryContext, nodeContext) {
-            var entityType;
-            if (node.id && node.models) {
-                entityType = queryContext.entityManager.metadataStore.getEntityType("Make", true);
-                // rename node.models so that it doesn't get loaded into .models property
-                node.modelLinks = node.models;
-                node.models = [];
-            } else if (node.id && node.makeId) {
-                entityType = queryContext.entityManager.metadataStore.getEntityType("Model", true);
-                // 
-                // rename node.make so that it doesn't get loaded into .make property
-                node.makeLink = node.make;
-                node.make = null;
-                
-                var styles  = node.categories && node.categories["Vehicle Style"];
-                node.vehicleStyles = styles && styles.join(", ");
-                var sizes = node.categories && node.categories["Vehicle Size"];
-                node.vehicleSizes = sizes && sizes.join(", ");
-            }
-            if (entityType) {
-                return {
-                    entityType: entityType,
-                };
-            }
-        }
-
-    });
-
-    var queryOptions = new breeze.QueryOptions({
-        jsonResultsAdapter: jsonResultsAdapter,
-        useJsonp: true,
-    });
-    
+       
     manager.metadataStore.importMetadata(metadata);
     
-    var dataservice = {
+    return {
         getMakes: getMakes,
         getModels: getModels
     };
-    
-
-    return dataservice;
 
     /*** implementation details ***/
 
@@ -116,8 +109,8 @@ app.dataservice = (function(breeze, logger) {
         // vehicle/makerepository/findall
         var parameters = makeParameters();
         var query = breeze.EntityQuery.from("vehicle/makerepository/findall")
-            .withParameters(parameters)
-            .using(queryOptions);
+            .withParameters(parameters);
+            
         return manager.executeQuery(query);
     }
 
@@ -127,8 +120,7 @@ app.dataservice = (function(breeze, logger) {
             makeid: make.id
         });
         var query = breeze.EntityQuery.from("vehicle/modelrepository/findbymakeid")
-            .withParameters(parameters)
-            .using(queryOptions);
+            .withParameters(parameters);
         return manager.executeQuery(query);
     }
    
