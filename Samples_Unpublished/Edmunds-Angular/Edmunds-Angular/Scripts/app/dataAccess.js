@@ -18,12 +18,12 @@ app.dataAccess = (function(breeze, logger) {
         visitNode: function (node, queryContext, nodeContext) {
             var entityType;
             if (node.id && node.models) {
-                entityType = queryContext.entityManager.metadataStore.getEntityType("Make", true);
+                entityType = "Make";
                 // rename node.models so that it doesn't get loaded into .models property
                 node.modelLinks = node.models;
                 node.models = [];
             } else if (node.id && node.makeId) {
-                entityType = queryContext.entityManager.metadataStore.getEntityType("Model", true);
+                entityType = "Model";
                 // 
                 // rename node.make so that it doesn't get loaded into .make property
                 node.makeLink = node.make;
@@ -75,14 +75,14 @@ app.dataAccess = (function(breeze, logger) {
         shortName: "Model",
         namespace: "Foo",
         dataProperties: {
-            makeId:        { dataType: DataType.Decimal },
-            makeName:      { dataType: DataType.String },
-            makeNiceName:  { dataType: DataType.String },
-            id:            { dataType: DataType.String, isPartOfKey: true },
-            name:          { dataType: DataType.String },
-            niceName:      { dataType: DataType.String },
-            vehicleStyles: { dataType: DataType.String },
-            vehicleSizes:  { dataType: DataType.String }
+            makeId:        { dataType: "Decimal" },
+            makeName:      { dataType: "String" },
+            makeNiceName:  { dataType: "String" },
+            id:            { dataType: "String", isPartOfKey: true },
+            name:          { dataType: "String" },
+            niceName:      { dataType: "String" },
+            vehicleStyles: { dataType: "String" },
+            vehicleSizes:  { dataType: "String" }
         },
         navigationProperties: {
             make: { entityTypeName: "Make:#Foo", isScalar: true,  associationName: "Make_Models", foreignKeyNames: ["makeId"] }

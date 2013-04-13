@@ -234,7 +234,7 @@ var EntityManager = (function () {
     proto.createEntity = function (typeName, initialValues, entityState) {
         entityState = entityState || EntityState.Added;
         var entity = this.metadataStore
-            .getEntityType(typeName)
+            ._getEntityType(typeName)
             .createEntity(initialValues);
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
@@ -373,7 +373,7 @@ var EntityManager = (function () {
             that._pendingPubs = null;
         }, function() {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
                 importEntityGroup(targetEntityGroup, jsonGroup, config);
             });
@@ -1254,10 +1254,10 @@ var EntityManager = (function () {
         assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
             .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
         if (typeof entityTypes === "string") {
-            entityTypes = em.metadataStore.getEntityType(entityTypes, false);
+            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
         } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
             entityTypes = entityTypes.map(function(etName) {
-                return em.metadataStore.getEntityType(etName, false);
+                return em.metadataStore._getEntityType(etName, false);
             });
         }
         return entityTypes;
@@ -1377,7 +1377,7 @@ var EntityManager = (function () {
         if (args[0] instanceof EntityKey) {
             return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
         } else if (typeof args[0] === 'string' && args.length >= 2) {
-            var entityType = em.metadataStore.getEntityType(args[0], false);
+            var entityType = em.metadataStore._getEntityType(args[0], false);
             return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
         } else {
             throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
@@ -1825,10 +1825,14 @@ var EntityManager = (function () {
         
     function mergeEntity(node, queryContext, meta) {
         node._$meta = meta;
-        var entityType = meta.entityType;
-        node.entityType = entityType;
-            
         var em = queryContext.entityManager;
+
+        var entityType = meta.entityType;
+        if (typeof (entityType) === 'string') {
+            entityType = em.metadataStore._getEntityType(entityType, false);
+        }
+        node.entityType = entityType;
+        
         var mergeStrategy = queryContext.queryOptions.mergeStrategy;
         var isSaving = queryContext.query == null;
 

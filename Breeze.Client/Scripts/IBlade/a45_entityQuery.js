@@ -737,7 +737,7 @@ var EntityQuery = (function () {
                     return null;
                 }
             }
-            entityType = metadataStore.getEntityType(entityTypeName);
+            entityType = metadataStore._getEntityType(entityTypeName);
             if (!entityType) {
                 if (throwErrorIfNotFound) {
                     throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
@@ -755,7 +755,7 @@ var EntityQuery = (function () {
             return this.toEntityType;
         } else if (this.toEntityType) {
             // toEntityType is a string
-            this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
             return this.toEntityType;
         } else {
             // resolve it, if possible, via the resourceName

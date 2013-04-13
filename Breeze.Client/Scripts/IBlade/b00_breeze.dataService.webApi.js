@@ -161,7 +161,7 @@
         
         visitNode: function (node, queryContext, nodeContext ) {
             var entityTypeName = EntityType._getNormalizedTypeName(node.$type);
-            var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && queryContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 

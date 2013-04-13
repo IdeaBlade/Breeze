@@ -6480,7 +6480,7 @@ var DataProperty = (function () {
         assertConfig(config)
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
-            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
+            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
             .whereParam("defaultValue").isOptional()
@@ -6501,6 +6501,12 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
+        } else if (typeof(this.dataType) == "string" ) {
+            var dt = DataType.fromName(this.dataType);
+            if (!dt) {
+                throw new Error("Unable to find a DataType enumeration by the name of: " + this.dataType);
+            }
+            this.dataType = dt;
         } else if (!this.dataType) {
             this.dataType = DataType.String;
         }
@@ -11429,10 +11435,14 @@ var EntityManager = (function () {
         
     function mergeEntity(node, queryContext, meta) {
         node._$meta = meta;
-        var entityType = meta.entityType;
-        node.entityType = entityType;
-            
         var em = queryContext.entityManager;
+
+        var entityType = meta.entityType;
+        if (typeof (entityType) === 'string') {
+            entityType = em.metadataStore.getEntityType(entityType, false);
+        }
+        node.entityType = entityType;
+        
         var mergeStrategy = queryContext.queryOptions.mergeStrategy;
         var isSaving = queryContext.query == null;
 

@@ -3808,7 +3808,7 @@ var EntityKey = (function () {
     };
 
     ctor.fromJSON = function (json, metadataStore) {
-        var et = metadataStore.getEntityType(json.entityType, true);
+        var et = metadataStore._getEntityType(json.entityType, true);
         return new EntityKey(et, json.values);
     };
 
@@ -4816,7 +4816,7 @@ var MetadataStore = (function () {
     proto.getEntityType = function (structuralTypeName, okIfNotFound) {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-        return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
+        return this._getEntityType(structuralTypeName, okIfNotFound);
     };
 
     /**
@@ -4831,11 +4831,9 @@ var MetadataStore = (function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
         
-        
-    function getTypeFromMap(metadataStore, typeMap, typeName, okIfNotFound) {
-            
-        var qualTypeName = getQualifiedTypeName(metadataStore, typeName, false);
-        var type = typeMap[qualTypeName];
+    proto._getEntityType = function(typeName, okIfNotFound) {
+        var qualTypeName = getQualifiedTypeName(this, typeName, false);
+        var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
             throw new Error("Unable to locate a 'Type' by the name: " + typeName);
@@ -4845,8 +4843,9 @@ var MetadataStore = (function () {
             throw new Error("There are multiple types with this 'shortName': " + typeNames);
         }
         return type;
-    };
-        
+
+    }
+               
     function getTypesFromMap(typeMap) {
         var types = [];
         for (var key in typeMap) {
@@ -4904,7 +4903,7 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        var entityType = this.getEntityType(entityTypeName, true);
+        var entityType = this._getEntityType(entityTypeName, true);
         if (entityType && !entityType.defaultResourceName) {
             entityType.defaultResourceName = resourceName;
         }
@@ -4925,7 +4924,7 @@ var MetadataStore = (function () {
         if (!typeName) {
             throw new Error("This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method");
         }
-        var entityType = this.getEntityType(typeName);
+        var entityType = this._getEntityType(typeName);
         if (entityType) {
             entity.entityType = entityType;
         }
@@ -4977,7 +4976,7 @@ var MetadataStore = (function () {
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
-        var stype = metadataStore.getEntityType(typeName, true);
+        var stype = metadataStore._getEntityType(typeName, true);
         if (stype) return stype;
         var config = {
             shortName: json.shortName,
@@ -5442,8 +5441,7 @@ var JsonResultsAdapter = (function () {
                 return json.results;
             },
             visitNode: function(node, queryContext, nodeContext) {
-                var entityTypeName = normalizeTypeName(node.$type);
-                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityTyp = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
 
@@ -6007,7 +6005,7 @@ var EntityType = (function () {
             
         if (property.isComplexProperty) {
             // Not ok to not find it. - all complex types should be resolved before they are ref'd.
-            var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
+            var targetComplexType = this.metadataStore._getEntityType(property.complexTypeName, false);
             if (targetComplexType && targetComplexType instanceof ComplexType) {
                 property.dataType = targetComplexType;
                 property.defaultValue = null;
@@ -6159,7 +6157,7 @@ var EntityType = (function () {
         var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
         // ok to not find it yet
-        var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
+        var targetEntityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (targetEntityType) {
             np.entityType = targetEntityType;
         }
@@ -6480,7 +6478,7 @@ var DataProperty = (function () {
         assertConfig(config)
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
-            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
+            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
             .whereParam("defaultValue").isOptional()
@@ -6501,6 +6499,12 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
+        } else if (typeof(this.dataType) == "string" ) {
+            var dt = DataType.fromName(this.dataType);
+            if (!dt) {
+                throw new Error("Unable to find a DataType enumeration by the name of: " + this.dataType);
+            }
+            this.dataType = dt;
         } else if (!this.dataType) {
             this.dataType = DataType.String;
         }
@@ -7751,7 +7755,7 @@ var EntityQuery = (function () {
                     return null;
                 }
             }
-            entityType = metadataStore.getEntityType(entityTypeName);
+            entityType = metadataStore._getEntityType(entityTypeName);
             if (!entityType) {
                 if (throwErrorIfNotFound) {
                     throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
@@ -7769,7 +7773,7 @@ var EntityQuery = (function () {
             return this.toEntityType;
         } else if (this.toEntityType) {
             // toEntityType is a string
-            this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
             return this.toEntityType;
         } else {
             // resolve it, if possible, via the resourceName
@@ -9838,7 +9842,7 @@ var EntityManager = (function () {
     proto.createEntity = function (typeName, initialValues, entityState) {
         entityState = entityState || EntityState.Added;
         var entity = this.metadataStore
-            .getEntityType(typeName)
+            ._getEntityType(typeName)
             .createEntity(initialValues);
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
@@ -9977,7 +9981,7 @@ var EntityManager = (function () {
             that._pendingPubs = null;
         }, function() {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
                 importEntityGroup(targetEntityGroup, jsonGroup, config);
             });
@@ -10858,10 +10862,10 @@ var EntityManager = (function () {
         assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
             .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
         if (typeof entityTypes === "string") {
-            entityTypes = em.metadataStore.getEntityType(entityTypes, false);
+            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
         } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
             entityTypes = entityTypes.map(function(etName) {
-                return em.metadataStore.getEntityType(etName, false);
+                return em.metadataStore._getEntityType(etName, false);
             });
         }
         return entityTypes;
@@ -10981,7 +10985,7 @@ var EntityManager = (function () {
         if (args[0] instanceof EntityKey) {
             return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
         } else if (typeof args[0] === 'string' && args.length >= 2) {
-            var entityType = em.metadataStore.getEntityType(args[0], false);
+            var entityType = em.metadataStore._getEntityType(args[0], false);
             return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
         } else {
             throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
@@ -11429,10 +11433,14 @@ var EntityManager = (function () {
         
     function mergeEntity(node, queryContext, meta) {
         node._$meta = meta;
-        var entityType = meta.entityType;
-        node.entityType = entityType;
-            
         var em = queryContext.entityManager;
+
+        var entityType = meta.entityType;
+        if (typeof (entityType) === 'string') {
+            entityType = em.metadataStore._getEntityType(entityType, false);
+        }
+        node.entityType = entityType;
+        
         var mergeStrategy = queryContext.queryOptions.mergeStrategy;
         var isSaving = queryContext.query == null;
 
@@ -12725,7 +12733,7 @@ breeze.MergeStrategy = MergeStrategy;
         
         visitNode: function (node, queryContext, nodeContext ) {
             var entityTypeName = EntityType._getNormalizedTypeName(node.$type);
-            var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && queryContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 

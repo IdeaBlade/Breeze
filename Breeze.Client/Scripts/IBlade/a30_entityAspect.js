@@ -1086,7 +1086,7 @@ var EntityKey = (function () {
     };
 
     ctor.fromJSON = function (json, metadataStore) {
-        var et = metadataStore.getEntityType(json.entityType, true);
+        var et = metadataStore._getEntityType(json.entityType, true);
         return new EntityKey(et, json.values);
     };
 

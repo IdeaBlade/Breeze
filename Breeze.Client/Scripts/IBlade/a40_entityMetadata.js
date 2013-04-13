@@ -646,7 +646,7 @@ var MetadataStore = (function () {
     proto.getEntityType = function (structuralTypeName, okIfNotFound) {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-        return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
+        return this._getEntityType(structuralTypeName, okIfNotFound);
     };
 
     /**
@@ -661,11 +661,9 @@ var MetadataStore = (function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
         
-        
-    function getTypeFromMap(metadataStore, typeMap, typeName, okIfNotFound) {
-            
-        var qualTypeName = getQualifiedTypeName(metadataStore, typeName, false);
-        var type = typeMap[qualTypeName];
+    proto._getEntityType = function(typeName, okIfNotFound) {
+        var qualTypeName = getQualifiedTypeName(this, typeName, false);
+        var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
             throw new Error("Unable to locate a 'Type' by the name: " + typeName);
@@ -675,8 +673,9 @@ var MetadataStore = (function () {
             throw new Error("There are multiple types with this 'shortName': " + typeNames);
         }
         return type;
-    };
-        
+
+    }
+               
     function getTypesFromMap(typeMap) {
         var types = [];
         for (var key in typeMap) {
@@ -734,7 +733,7 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        var entityType = this.getEntityType(entityTypeName, true);
+        var entityType = this._getEntityType(entityTypeName, true);
         if (entityType && !entityType.defaultResourceName) {
             entityType.defaultResourceName = resourceName;
         }
@@ -755,7 +754,7 @@ var MetadataStore = (function () {
         if (!typeName) {
             throw new Error("This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method");
         }
-        var entityType = this.getEntityType(typeName);
+        var entityType = this._getEntityType(typeName);
         if (entityType) {
             entity.entityType = entityType;
         }
@@ -807,7 +806,7 @@ var MetadataStore = (function () {
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
-        var stype = metadataStore.getEntityType(typeName, true);
+        var stype = metadataStore._getEntityType(typeName, true);
         if (stype) return stype;
         var config = {
             shortName: json.shortName,
@@ -1272,8 +1271,7 @@ var JsonResultsAdapter = (function () {
                 return json.results;
             },
             visitNode: function(node, queryContext, nodeContext) {
-                var entityTypeName = normalizeTypeName(node.$type);
-                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityTyp = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
 
@@ -1837,7 +1835,7 @@ var EntityType = (function () {
             
         if (property.isComplexProperty) {
             // Not ok to not find it. - all complex types should be resolved before they are ref'd.
-            var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
+            var targetComplexType = this.metadataStore._getEntityType(property.complexTypeName, false);
             if (targetComplexType && targetComplexType instanceof ComplexType) {
                 property.dataType = targetComplexType;
                 property.defaultValue = null;
@@ -1989,7 +1987,7 @@ var EntityType = (function () {
         var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
         // ok to not find it yet
-        var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
+        var targetEntityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (targetEntityType) {
             np.entityType = targetEntityType;
         }
@@ -2310,7 +2308,7 @@ var DataProperty = (function () {
         assertConfig(config)
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
-            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
+            .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
             .whereParam("defaultValue").isOptional()
@@ -2331,6 +2329,12 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
+        } else if (typeof(this.dataType) == "string" ) {
+            var dt = DataType.fromName(this.dataType);
+            if (!dt) {
+                throw new Error("Unable to find a DataType enumeration by the name of: " + this.dataType);
+            }
+            this.dataType = dt;
         } else if (!this.dataType) {
             this.dataType = DataType.String;
         }
