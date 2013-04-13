@@ -797,7 +797,7 @@ var Param = function () {
             for (var key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throw new Error("Invalid property in config: " + key);
+                    throw new Error(__formatString("Unknown property '%1' found while configuring an instance of '%2'.", key, (instance && instance._$typeName) || "object"));
                 }
             }
         }

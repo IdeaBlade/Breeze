@@ -58,7 +58,7 @@ app.dataAccess = (function(breeze, logger) {
         shortName: "Make",
         namespace: "Foo",
         dataProperties: {
-            id:         { dataType: DataType.Decimal, isPartOfKey: true },
+            id:         { dataType: DataType.Int64, isPartOfKey: true },
             name:       { dataType: DataType.String },
             niceName:   { dataType: DataType.String },
             modelLinks: { dataType: DataType.Undefined }
@@ -72,14 +72,15 @@ app.dataAccess = (function(breeze, logger) {
         shortName: "Model",
         namespace: "Foo",
         dataProperties: {
-            makeId:        { dataType: "Decimal" },
+            makeId:        { dataType: "Int64" },
             makeName:      { dataType: "String" },
             makeNiceName:  { dataType: "String" },
             id:            { dataType: "String", isPartOfKey: true },
             name:          { dataType: "String" },
             niceName:      { dataType: "String" },
             vehicleStyles: { dataType: "String" },
-            vehicleSizes:  { dataType: "String" }
+            vehicleSizes:  { dataType: "String" },
+            categories:    { dataType: "Undefined"}
         },
         navigationProperties: {
             make: { entityTypeName: "Make:#Foo", isScalar: true,  associationName: "Make_Models", foreignKeyNames: ["makeId"] }

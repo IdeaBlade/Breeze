@@ -797,7 +797,7 @@ var Param = function () {
             for (var key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throw new Error("Invalid property in config: " + key);
+                    throw new Error(__formatString("Unknown property '%1' found while configuring an instance of '%2'.", key, (instance && instance._$typeName) || "object"));
                 }
             }
         }
@@ -1813,6 +1813,12 @@ var DataType = function () {
     **/
     DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     /**
+    @property Byte {DataType}
+    @final
+    @static
+    **/
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    /**
     @property Decimal {DataType}
     @final
     @static
@@ -1861,12 +1867,7 @@ var DataType = function () {
     @static
     **/
     DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
-    /**
-    @property Byte {DataType}
-    @final
-    @static
-    **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
+  
     /**
     @property Binary {DataType}
     @final
@@ -3868,15 +3869,6 @@ var EntityKey = (function () {
         return this.values.join("").length === 0;
     };
 
-    ctor._fromRawEntity = function (rawEntity, entityType) {
-        var keyValues = entityType.keyProperties.map(function (p) {
-            return rawEntity[p.nameOnServer];
-        });
-        return new EntityKey(entityType, keyValues);
-    };
-
-
-
     function createKeyString(keyValues) {
         return keyValues.join(ENTITY_KEY_DELIMITER);
     }
@@ -3900,8 +3892,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         newValue = dataType.parse(newValue, typeof newValue);
     }
 
-    // exit if no change
-    if (newValue === oldValue) {
+    // exit if no change - extra cruft is because dateTimes don't compare cleanly.
+    if (newValue === oldValue || (dataType && dataType.isDate && newValue && oldValue && newValue.valueOf() === oldValue.valueOf())) {
         return;
     }
         
@@ -3930,9 +3922,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     }
         
         
-    // Note that we need to handle multiple properties in process. not just one
-    // NOTE: this may not be needed because of the newValue === oldValue test above.
-    // to avoid recursion. ( except in the case of null propagation with fks where null -> 0 in some cases.)
+    // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
+    // ( except in the case of null propagation with fks where null -> 0 in some cases.)
+    // (this may not be needed because of the newValue === oldValue test above)
     var inProcess = entityAspect._inProcess;
     if (inProcess) {
         // check for recursion
@@ -3944,7 +3936,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     }
         
     // entityAspect.entity used because of complexTypes
-    // 'this' != entity when 'this' is a complexObject; in that case this: complexObject and entity: entity
+    // 'this' != entity when 'this' is a complexObject; in that case 'this' is a complexObject and 'entity' is an entity
     var entity = entityAspect.entity;
 
     // We could use __using here but decided not to for perf reasons - this method runs a lot.
@@ -11445,7 +11437,7 @@ var EntityManager = (function () {
         var isSaving = queryContext.query == null;
 
             
-        var entityKey = EntityKey._fromRawEntity(node, entityType);
+        var entityKey = getEntityKeyFromRawEntity(node, entityType);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -11528,33 +11520,19 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            var val = rawEntity[dp.nameOnServer];
-            // undefined values will be the default for most unmapped properties EXCEPT when they are set
-            // in a jsonResultsAdapter ( an unusual use case).
-            if (val === undefined) return;  
-            if (dp.dataType.isDate && val) {
-                if (!__isDate(val)) {
-                    val = DataType.parseDateFromServer(val);
-                }
-            } else if (dp.dataType == DataType.Binary) {
-                if (val && val.$value !== undefined) {
-                    val = val.$value; // this will be a byte[] encoded as a string
-                }
-            } else if (dp.isComplexProperty) {
-                if (val != undefined) {
-                    var coVal = targetEntity.getProperty(dp.name);
-                    dp.dataType.dataProperties.forEach(function(cdp) {
-                        // recursive call
-                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                    });
-                }
-            }
-
-            if (!dp.isComplexProperty) {
+            var val = getPropertyFromRawEntity(rawEntity, dp);
+            if (val === undefined) return;
+            if (dp.isComplexProperty) {
+                var coVal = targetEntity.getProperty(dp.name);
+                dp.dataType.dataProperties.forEach(function(cdp) {
+                    // recursive call
+                    coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                });
+            } else {
                 targetEntity.setProperty(dp.name, val);
             }
         });
-            
+
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
                 mergeRelatedEntity(np, targetEntity, rawEntity, queryContext);
@@ -11562,6 +11540,30 @@ var EntityManager = (function () {
                 mergeRelatedEntities(np, targetEntity, rawEntity, queryContext);
             }
         });
+    }
+
+    function getEntityKeyFromRawEntity(rawEntity, entityType) {
+        var keyValues = entityType.keyProperties.map(function (p) {
+            return getPropertyFromRawEntity(rawEntity, p);
+        });
+        return new EntityKey(entityType, keyValues);
+    };
+
+    function getPropertyFromRawEntity(rawEntity, dp) {
+        var val = rawEntity[dp.nameOnServer];
+        // undefined values will be the default for most unmapped properties EXCEPT when they are set
+        // in a jsonResultsAdapter ( an unusual use case).
+        if (val === undefined) return;
+        if (dp.dataType.isDate && val) {
+            if (!__isDate(val)) {
+                val = DataType.parseDateFromServer(val);
+            }
+        } else if (dp.dataType == DataType.Binary) {
+            if (val && val.$value !== undefined) {
+                val = val.$value; // this will be a byte[] encoded as a string
+            }
+        }
+        return val;
     }
         
         
