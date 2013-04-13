@@ -1146,15 +1146,6 @@ var EntityKey = (function () {
         return this.values.join("").length === 0;
     };
 
-    ctor._fromRawEntity = function (rawEntity, entityType) {
-        var keyValues = entityType.keyProperties.map(function (p) {
-            return rawEntity[p.nameOnServer];
-        });
-        return new EntityKey(entityType, keyValues);
-    };
-
-
-
     function createKeyString(keyValues) {
         return keyValues.join(ENTITY_KEY_DELIMITER);
     }

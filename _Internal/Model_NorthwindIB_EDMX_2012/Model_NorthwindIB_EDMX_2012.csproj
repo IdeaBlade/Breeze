@@ -64,6 +64,9 @@
     <Compile Include="Category.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
+    <Compile Include="Comment.cs">
+      <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
+    </Compile>
     <Compile Include="Customer.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>

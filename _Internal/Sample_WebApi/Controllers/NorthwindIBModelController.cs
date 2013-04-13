@@ -244,6 +244,11 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 
+    [HttpGet]
+    public IQueryable<Comment> Comments() {
+      return ContextProvider.Context.Comments;
+    }
+
     #endregion
 
     #region named queries

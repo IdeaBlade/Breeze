@@ -9,8 +9,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         newValue = dataType.parse(newValue, typeof newValue);
     }
 
-    // exit if no change
-    if (newValue === oldValue) {
+    // exit if no change - extra cruft is because dateTimes don't compare cleanly.
+    if (newValue === oldValue || (dataType && dataType.isDate && newValue && oldValue && newValue.valueOf() === oldValue.valueOf())) {
         return;
     }
         
@@ -39,9 +39,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     }
         
         
-    // Note that we need to handle multiple properties in process. not just one
-    // NOTE: this may not be needed because of the newValue === oldValue test above.
-    // to avoid recursion. ( except in the case of null propagation with fks where null -> 0 in some cases.)
+    // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
+    // ( except in the case of null propagation with fks where null -> 0 in some cases.)
+    // (this may not be needed because of the newValue === oldValue test above)
     var inProcess = entityAspect._inProcess;
     if (inProcess) {
         // check for recursion
@@ -53,7 +53,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     }
         
     // entityAspect.entity used because of complexTypes
-    // 'this' != entity when 'this' is a complexObject; in that case this: complexObject and entity: entity
+    // 'this' != entity when 'this' is a complexObject; in that case 'this' is a complexObject and 'entity' is an entity
     var entity = entityAspect.entity;
 
     // We could use __using here but decided not to for perf reasons - this method runs a lot.

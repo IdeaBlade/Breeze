@@ -40,6 +40,25 @@ define(["testFns"], function (testFns) {
         return testFns;
     }
 
+    test("save with date as part of key", function () {
+        var em = newEm();
+        var dt = new Date();
+        dt.setUTCMilliseconds(100);
+        var c1 = em.createEntity("Comment", { createdOn: dt, seqNum: 1, comment1: "now is the time for" });
+        var c2 = em.createEntity("Comment", { createdOn: dt, seqNum: 2, comment1: "and again" });
+        stop();
+        em.saveChanges().then(function (sr) {
+            var comments = sr.entities;
+            ok(comments.length === 2, "should have saved 2 comments");
+            em2 = newEm();
+            var q = EntityQuery.from("Comments").where("createdOn", "==", dt);
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var comments2 = data.results;
+            ok(comments2.length === 2, "should have returned 2 comments");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("save computed update", function () {
         var em = newEm();
         var q = EntityQuery.from("Employees").take(3);

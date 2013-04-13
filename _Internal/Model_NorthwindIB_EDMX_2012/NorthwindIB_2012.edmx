@@ -7,6 +7,7 @@
     <Schema Namespace="NorthwindIBModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityContainer Name="NorthwindIBModelStoreContainer">
           <EntitySet Name="Category" EntityType="NorthwindIBModel.Store.Category" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Comment" EntityType="NorthwindIBModel.Store.Comment" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Customer" EntityType="NorthwindIBModel.Store.Customer" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Employee" EntityType="NorthwindIBModel.Store.Employee" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="EmployeeTerritory" EntityType="NorthwindIBModel.Store.EmployeeTerritory" store:Type="Tables" Schema="dbo" />
@@ -99,6 +100,15 @@
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="Picture" Type="varbinary(max)" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Comment">
+          <Key>
+            <PropertyRef Name="CreatedOn" />
+            <PropertyRef Name="SeqNum" />
+          </Key>
+          <Property Name="CreatedOn" Type="datetime" Nullable="false" />
+          <Property Name="Comment" Type="nvarchar(max)" />
+          <Property Name="SeqNum" Type="tinyint" Nullable="false" />
         </EntityType>
         <EntityType Name="Customer">
           <Key>
@@ -592,6 +602,7 @@
             <End Role="UserRole" EntitySet="UserRoles" />
           </AssociationSet>
           <EntitySet Name="TimeLimits" EntityType="NorthwindIBModel.TimeLimit" />
+          <EntitySet Name="Comments" EntityType="NorthwindIBModel.Comment" />
         </EntityContainer>
         <EntityType Name="Category">
           <Key>
@@ -1017,6 +1028,15 @@
           <Property Type="Geometry" Name="Geometry1" />
           <Property Type="Geography" Name="Geography1" />
         </EntityType>
+        <EntityType Name="Comment">
+          <Key>
+            <PropertyRef Name="CreatedOn" />
+            <PropertyRef Name="SeqNum" />
+          </Key>
+          <Property Type="DateTime" Name="CreatedOn" Nullable="false" Precision="3" />
+          <Property Type="String" Name="Comment1" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="Byte" Name="SeqNum" Nullable="false" />
+        </EntityType>
 
       </Schema>
     </edmx:ConceptualModels>
@@ -1279,6 +1299,15 @@
                 <ScalarProperty Name="MinTime" ColumnName="MinTime" />
                 <ScalarProperty Name="MaxTime" ColumnName="MaxTime" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Comments">
+            <EntityTypeMapping TypeName="NorthwindIBModel.Comment">
+              <MappingFragment StoreEntitySet="Comment">
+                <ScalarProperty Name="SeqNum" ColumnName="SeqNum" />
+                <ScalarProperty Name="Comment1" ColumnName="Comment" />
+                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
