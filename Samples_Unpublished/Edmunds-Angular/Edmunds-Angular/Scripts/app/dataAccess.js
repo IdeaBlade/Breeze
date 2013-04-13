@@ -16,15 +16,14 @@ app.dataAccess = (function(breeze, logger) {
         },
 
         visitNode: function (node, queryContext, nodeContext) {
-            var entityType;
             if (node.id && node.models) {
-                entityType = "Make";
                 // rename node.models so that it doesn't get loaded into .models property
                 node.modelLinks = node.models;
                 node.models = [];
+                return {
+                    entityType: "Make"
+                }
             } else if (node.id && node.makeId) {
-                entityType = "Model";
-                // 
                 // rename node.make so that it doesn't get loaded into .make property
                 node.makeLink = node.make;
                 node.make = null;
@@ -33,10 +32,8 @@ app.dataAccess = (function(breeze, logger) {
                 node.vehicleStyles = styles && styles.join(", ");
                 var sizes = node.categories && node.categories["Vehicle Size"];
                 node.vehicleSizes = sizes && sizes.join(", ");
-            }
-            if (entityType) {
                 return {
-                    entityType: entityType,
+                    entityType: "Model"
                 };
             }
         }
