@@ -34,6 +34,35 @@ define(["testFns"], function (testFns) {
 
     //    }).fail(testFns.handleFail).fin(start);
     //});
+
+    test("save and refetch byte", function () {
+        var em = newEm();
+        var dt = new Date();
+        dt.setUTCMilliseconds(100);
+        var c1 = em.createEntity("Comment", { createdOn: dt, seqNum: 11, comment1: "now is the time for" });
+        var c1 = em.createEntity("Comment", { createdOn: dt, seqNum: '7', comment1: "foo" });
+        stop();
+        em.saveChanges().then(function (sr) {
+            var comments = sr.entities;
+            ok(comments.length === 2, "should have saved 2 comments");
+            var em2 = newEm();
+            var pred2 = Predicate.create("createdOn", "==", dt).and("seqNum","==", 11);
+            var q2 = EntityQuery.from("Comments").where(pred2);
+            return em2.executeQuery(q2);
+        }).then(function (data) {
+            var comments2 = data.results;
+            ok(comments2.length === 1, "should have returned 1 comment - seqNum=11");
+            var em3 = newEm();
+            var pred3 = Predicate.create("createdOn", "==", dt).and("seqNum", "==", '7');
+            var q3 = EntityQuery.from("Comments").where(pred3);
+            return em3.executeQuery(q3);
+        }).then(function (data) {
+            var comments3 = data.results;
+            ok(comments3.length === 1, "should have returned 1 comment - seqNum='7'");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+   
     
     test("dateTimeOffset & dateTime2", function () {
         var em = newEm();

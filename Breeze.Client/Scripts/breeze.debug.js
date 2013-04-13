@@ -1813,6 +1813,12 @@ var DataType = function () {
     **/
     DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
     /**
+    @property Byte {DataType}
+    @final
+    @static
+    **/
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    /**
     @property Decimal {DataType}
     @final
     @static
@@ -1861,12 +1867,7 @@ var DataType = function () {
     @static
     **/
     DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
-    /**
-    @property Byte {DataType}
-    @final
-    @static
-    **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
+  
     /**
     @property Binary {DataType}
     @final
