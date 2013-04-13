@@ -54,50 +54,41 @@ app.dataAccess = (function(breeze, logger) {
         dataService: ds,
     });
 
-    var metadata = {
-        "structuralTypeMap": {
-            "Make:#Foo": {
-                "shortName": "Make",
-                "namespace": "Foo",
-                "dataProperties": [
-                    { "name": "id", "dataType": "Decimal", "isPartOfKey": true },
-                    { "name": "name", "dataType": "String" },
-                    { "name": "niceName", "dataType": "String" },
-                    { "name": "modelLinks", "dataType": "Undefined" }
-                ],
-                "navigationProperties": [{
-                    "name": "models",
-                    "entityTypeName": "Model:#Foo",
-                    "isScalar": false,
-                    "associationName": "Make_Models"
-                }]
-            },
-            "Model:#Foo": {
-                "shortName": "Model",
-                "namespace": "Foo",
-                "dataProperties": [
-                    { "name": "makeId", "dataType": "Decimal" },
-                    { "name": "makeName", "dataType": "String" },
-                    { "name": "makeNiceName", "dataType": "String" },
-                    { "name": "id", "dataType": "String", "isPartOfKey": true},
-                    { "name": "name", "dataType": "String" },
-                    { "name": "niceName", "dataType": "String" },
-                    { "name": "vehicleStyles", "dataType": "String" },
-                    { "name": "vehicleSizes", "dataType": "String" }
-                ],
-                "navigationProperties": [{
-                    "name": "make",
-                    "entityTypeName": "Make:#Foo",
-                    "isScalar": true,
-                    "associationName": "Make_Models",
-                    "foreignKeyNames": ["makeId"]
-                }]
-            }
+    var metadataStore = manager.metadataStore;
+    var DataType = breeze.DataType;
+
+    metadataStore.addEntityType({
+        shortName: "Make",
+        namespace: "Foo",
+        dataProperties: {
+            id:         { dataType: DataType.Decimal, isPartOfKey: true },
+            name:       { dataType: DataType.String },
+            niceName:   { dataType: DataType.String },
+            modelLinks: { dataType: DataType.Undefined }
+        },
+        navigationProperties: {
+            models: { entityTypeName: "Model:#Foo", isScalar: false, associationName: "Make_Models" }
         }
-    };
-       
-    manager.metadataStore.importMetadata(metadata);
-    
+    });
+
+    metadataStore.addEntityType({
+        shortName: "Model",
+        namespace: "Foo",
+        dataProperties: {
+            makeId:        { dataType: DataType.Decimal },
+            makeName:      { dataType: DataType.String },
+            makeNiceName:  { dataType: DataType.String },
+            id:            { dataType: DataType.String, isPartOfKey: true },
+            name:          { dataType: DataType.String },
+            niceName:      { dataType: DataType.String },
+            vehicleStyles: { dataType: DataType.String },
+            vehicleSizes:  { dataType: DataType.String }
+        },
+        navigationProperties: {
+            make: { entityTypeName: "Make:#Foo", isScalar: true,  associationName: "Make_Models", foreignKeyNames: ["makeId"] }
+        }
+    });
+          
     return {
         getMakes: getMakes,
         getModels: getModels
