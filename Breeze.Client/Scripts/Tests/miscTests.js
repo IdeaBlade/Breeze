@@ -28,7 +28,12 @@ define(["testFns"], function (testFns) {
     });
     
     test("mock metaDataService", function() {
-    
+
+        if (testFns.modelLibrary == "backbone") {
+            ok(true, "NOT APPLICABLE");
+            return;
+        }
+
         //1st step
         var mockDataService = new breeze.DataService({
             serviceName: "mockDataService",

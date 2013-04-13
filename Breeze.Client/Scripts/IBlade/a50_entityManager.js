@@ -666,39 +666,24 @@ var EntityManager = (function () {
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
         var promise;
-        // 'normalizeQueryOptions' creates a new QueryOptions object with all of its properties fully resolved against this entityManager and the queryOptions defaults.
-        // Thought about creating a 'normalized' query with this 'normalized' queryOptions
-        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions property on it.
+        // 'resolve' methods create a new typed object with all of its properties fully resolved against a list of sources.
+        // Thought about creating a 'normalized' query with these 'resolved' objects
+        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
         // It can be a string.
-        var queryOptions = normalizeQueryOptions(query, this);
-        var dataService = queryOptions.dataService;
+        var queryOptions = QueryOptions.resolve([ query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
+        var dataService = DataService.resolve([ query.dataService, this.dataService]);
+
         if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
-            promise = executeQueryCore(this, query, queryOptions);
+            promise = executeQueryCore(this, query, queryOptions, dataService);
         } else {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
-                return executeQueryCore(that, query, queryOptions);
+                return executeQueryCore(that, query, queryOptions, dataService);
             }).fail(function (error) {
                 return Q.reject(error);
             });
         }
         return promiseWithCallbacks(promise, callback, errorCallback);
-    };
-    
-    function normalizeQueryOptions(query, entityManager) {
-        var qo1 = query.queryOptions || {};
-        var qo2 = entityManager.queryOptions;
-        var qo3 = QueryOptions.defaultInstance;
-        var qArray = [qo1, qo1.dataService, qo2, qo2.dataService, entityManager.dataService, qo3, qo3.dataService];
-        // fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
-        var qo = new QueryOptions({
-            useJsonp: __resolveProperty("useJsonp", qArray),
-            fetchStrategy: __resolveProperty("fetchStrategy", [qo1, qo2]),
-            mergeStrategy: __resolveProperty("mergeStrategy", [qo1, qo2]),
-            dataService: __resolveProperty("dataService", [qo1, qo2, entityManager, qo3]),
-            jsonResultsAdapter: __resolveProperty("jsonResultsAdapter", qArray)
-        });
-        return qo;
     };
     
     /**
@@ -878,15 +863,13 @@ var EntityManager = (function () {
         var saveBundleStringified = JSON.stringify(saveBundle);
 
         var deferred = Q.defer();
-        var dataService = saveOptions.dataService || this.dataService;
+        var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
             entityManager: this,
             dataService: dataService,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };
         var queryOptions = {
-            // TODO: what if em has its own jsonResultsAdapter
-            jsonResultsAdapter: dataService.jsonResultsAdapter,
             mergeStrategy: MergeStrategy.OverwriteChanges
         };
         dataService.adapterInstance.saveChanges(saveContext, saveBundleStringified, deferred.resolve, deferred.reject);
@@ -901,6 +884,7 @@ var EntityManager = (function () {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
                 queryOptions: queryOptions,
+                dataService: dataService,
                 refMap: {},
                 deferredFns: []
             };
@@ -1708,10 +1692,10 @@ var EntityManager = (function () {
     }
 
     // returns a promise
-    function executeQueryCore(em, query, queryOptions) {
+    function executeQueryCore(em, query, queryOptions, dataService) {
         try {
             var metadataStore = em.metadataStore;
-            var dataService = queryOptions.dataService;
+            
             if (metadataStore.isEmpty() && dataService.hasServerMetadata) {
                 throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
             }
@@ -1729,6 +1713,7 @@ var EntityManager = (function () {
                     url: url,
                     query: query,
                     entityManager: em,
+                    dataService: dataService,
                     queryOptions: queryOptions,
                     refMap: {}, 
                     deferredFns: []
@@ -1756,7 +1741,7 @@ var EntityManager = (function () {
                     if (state.error) deferred.reject(state.error);
 
                 }, function () {
-                    var nodes = queryOptions.jsonResultsAdapter.extractResults(data);
+                    var nodes = dataService.jsonResultsAdapter.extractResults(data);
                     if (!Array.isArray(nodes)) {
                         nodes = [nodes];
                     }
@@ -1793,7 +1778,7 @@ var EntityManager = (function () {
                
     function visitAndMerge(node, queryContext, nodeContext) {
         nodeContext = nodeContext || {};
-        var meta = queryContext.queryOptions.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
+        var meta = queryContext.dataService.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
         if (queryContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
             meta.entityType = queryContext.query._getToEntityType && queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
         }
@@ -1901,7 +1886,7 @@ var EntityManager = (function () {
     function processAnonType(node, queryContext) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
         var em = queryContext.entityManager;
-        var jsonResultsAdapter = queryContext.queryOptions.jsonResultsAdapter;
+        var jsonResultsAdapter = queryContext.dataService.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = { };
         __objectForEach(node, function(key, value) {

@@ -83,9 +83,6 @@ var QueryOptions = (function () {
     @param [config] {Object}
     @param [config.fetchStrategy] {FetchStrategy}  
     @param [config.mergeStrategy] {MergeStrategy}  
-    @param [config.dataService] {DataService}  
-    @param [config.useJsonp} {Boolean}
-    @param [config.jsonResultsAdapter] {JsonResultsAdapter}  
     **/
     var ctor = function (config) {
         updateWithConfig(this, config);
@@ -105,21 +102,11 @@ var QueryOptions = (function () {
     @property mergeStrategy {MergeStrategy}
     **/
     
-    /**
-    A {{#crossLink "DataService"}}{{/crossLink}}. 
-    __readOnly__
-    @property dataService {DataService}
-    **/
-    
-    /**
-    A {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}.
-    __readOnly__
-    @property jsonResultsAdapter {JsonResultsAdapter}
-    **/
-
     proto._$typeName = "QueryOptions";
 
-
+    ctor.resolve = function (queryOptionsArray) {
+        return new QueryOptions(__resolveProperties(queryOptionsArray, ["fetchStrategy", "mergeStrategy"]));
+    }
     
     /**
     The default value whenever QueryOptions are not specified.
@@ -143,7 +130,7 @@ var QueryOptions = (function () {
     @example
         var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
     @method using
-    @param config {Configuration Object|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to apply to create a new QueryOptions.
+    @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
     @return {QueryOptions}
     @chainable
     **/
@@ -154,10 +141,6 @@ var QueryOptions = (function () {
             config = { mergeStrategy: config };
         } else if (FetchStrategy.contains(config)) {
             config = { fetchStrategy: config };
-        } else if (config instanceof DataService) {
-            config = { dataService: config };
-        } else if (config instanceof JsonResultsAdapter) {
-            config = { jsonResultsAdapter: config };
         } 
         return updateWithConfig(result, config);
     };
@@ -179,9 +162,6 @@ var QueryOptions = (function () {
         return __toJson(this, {
             fetchStrategy: null,
             mergeStrategy: null,
-            dataService: null,
-            useJsonp: null,
-            jsonResultsAdapter: function (v) { return v && v.name; }
         });
     };
 
@@ -189,8 +169,6 @@ var QueryOptions = (function () {
         return new QueryOptions({
             fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
             mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
-            dataService: json.dataService && DataService.fromJSON(json.dataService),
-            jsonResultsAdapter: __config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter)
         });       
     };
         
@@ -199,9 +177,6 @@ var QueryOptions = (function () {
             assertConfig(config)
                 .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
                 .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional()
-                .whereParam("dataService").isInstanceOf(DataService).isOptional()
-                .whereParam("useJsonp").isBoolean().isOptional()
-                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
                 .applyAll(obj);
         }
         return obj;

@@ -329,7 +329,12 @@ var MetadataStore = (function () {
                 structuralType._mappedPropertiesCount++;
             }
         });
-        checkTypeRegistry(this, structuralType);
+
+        if (!structuralType.isComplexType) {
+            structuralType.defaultResourceName && this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
+            // check if this structural type's name, short version or qualified version has a registered ctor.
+            structuralType.getEntityCtor();
+        }
     };
         
     /**
@@ -517,6 +522,8 @@ var MetadataStore = (function () {
             // use the dataService with a matching name or create a new one.
             dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
         }
+
+        dataService = DataService.resolve([dataService]);
            
         if (this.hasMetadataFor(dataService.serviceName)) {
             throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
@@ -581,25 +588,16 @@ var MetadataStore = (function () {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(aCtor, "aCtor").isFunction().isOptional().check();
         assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
-        if (!aCtor) {
-            aCtor = createEmptyCtor();
-        }
+        
         var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
-        var typeName;
+        var typeName = qualifiedTypeName || structuralTypeName;
+            
+        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initializationFn };
         if (qualifiedTypeName) {
             var stype = this._structuralTypeMap[qualifiedTypeName];
-            if (stype) {
-                stype._setCtor(aCtor);
-            }
-            typeName = qualifiedTypeName;
-        } else {
-            typeName = structuralTypeName;
+            stype && stype.getCtor(true); // this will complete the registration if avail now.
         }
-        aCtor.prototype._$typeName = typeName;
-        this._ctorRegistry[typeName] = aCtor;
-        if (initializationFn) {
-            aCtor._$initializationFn = initializationFn;
-        }
+        
     };
     
     proto.toQueryString = function(query) {
@@ -614,11 +612,7 @@ var MetadataStore = (function () {
             throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
         }
     }
-      
-    function createEmptyCtor() {
-        return function() {};
-    }
-        
+             
     /**
     Returns whether this MetadataStore contains any metadata yet.
     @example
@@ -748,7 +742,12 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    
+    proto._getCtorRegistration = function(structuralType) {
+        var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
+        if (!r.ctor) {
+            structuralType.getEntityCtor();
+        }
+    }
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -840,17 +839,6 @@ var MetadataStore = (function () {
         return stype;
     };
         
-    function checkTypeRegistry(metadataStore, structuralType) {
-        structuralType.defaultResourceName && metadataStore.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
-        // check if this structural type's name, short version or qualified version has a registered ctor.
-        var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
-        if (typeCtor) {
-            // next line is in case the entityType was originally registered with a shortname.
-            typeCtor.prototype._$typeName = structuralType.name;
-            structuralType._setCtor(typeCtor);
-        }
-    }
-
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
         var result = metadataStore._shortNameMap[structTypeName];
@@ -1142,24 +1130,8 @@ var DataService = (function () {
     @param [config.useJsonp] {Boolean}  Whether to use JSONP when making a 'get' request against this service.
     **/
         
-    var ctor = function(config) {
-        if (arguments.length != 1) {
-            throw new Error("The DataService ctor should be called with a single argument that is a configuration object.");
-        }
-
-        assertConfig(config)
-            .whereParam("serviceName").isNonEmptyString()
-            .whereParam("adapterName").isString().isOptional().withDefault(null)
-            .whereParam("hasServerMetadata").isBoolean().isOptional().withDefault(true)
-            .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
-            .whereParam("useJsonp").isBoolean().isOptional().withDefault(false)
-            .applyAll(this);
-        this.serviceName = DataService._normalizeServiceName(this.serviceName);
-        this.adapterInstance = __config.getAdapterInstance("dataService", this.adapterName);
-            
-        if (!this.jsonResultsAdapter) {
-            this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
-        }
+    var ctor = function (config) {
+        updateWithConfig(this, config);
     };
     var proto = ctor.prototype;
     proto._$typeName = "DataService";
@@ -1196,8 +1168,61 @@ var DataService = (function () {
     The JsonResultsAdapter used to process the results of any query against this DataService.
 
     __readOnly__
-    @property jsonResultsAdapter {Boolean}
+    @property jsonResultsAdapter {JsonResultsAdapter}
     **/
+
+    /**
+    Whether to use JSONP when performing a 'GET' request against this service.
+    
+    __readOnly__
+    @property useJsonP {Boolean}
+    **/
+
+    /**
+    Returns a copy of this DataService with the specified properties applied.
+    @method using
+    @param config {Configuration Object} The object to apply to create a new DataService.
+    @return {DataService}
+    @chainable
+    **/
+    proto.using = function (config) {
+        if (!config) return this;
+        var result = new DataService(this);
+        return updateWithConfig(result, config);
+    };
+
+    ctor.resolve = function (dataServices) {
+        // final defaults
+        dataServices.push({
+            hasServerMetadata: true,
+            useJsonp: false
+        });
+        var ds = new DataService(__resolveProperties(dataServices,
+            ["serviceName", "adapterName", "hasServerMetadata", "jsonResultsAdapter", "useJsonp"]));
+
+        if (!ds.serviceName) {
+            throw new Error("Unable to resolve a 'serviceName' for this dataService");
+        }
+        ds.adapterInstance = ds.adapterInstance || __config.getAdapterInstance("dataService", ds.adapterName);
+        ds.jsonResultsAdapter = ds.jsonResultsAdapter || ds.adapterInstance.jsonResultsAdapter;
+
+        return ds;
+    }
+
+    function updateWithConfig(obj, config) {
+        if (config) {
+            assertConfig(config)
+                .whereParam("serviceName").isOptional()
+                .whereParam("adapterName").isString().isOptional()
+                .whereParam("hasServerMetadata").isBoolean().isOptional()
+                .whereParam("jsonResultsAdapter").isInstanceOf(JsonResultsAdapter).isOptional()
+                .whereParam("useJsonp").isBoolean().isOptional()
+                .applyAll(obj);
+            obj.serviceName = obj.serviceName && DataService._normalizeServiceName(obj.serviceName);
+            obj.adapterInstance = obj.adapterName && __config.getAdapterInstance("dataService", obj.adapterName);
+        }
+        return obj;
+    }
         
     ctor._normalizeServiceName = function(serviceName) {
         serviceName = serviceName.trim();
@@ -1209,14 +1234,14 @@ var DataService = (function () {
     };
         
     proto.toJSON = function () {
+        // don't use default value here - because we want to be able to distinguish undefined props for inheritence purposes.
         return __toJson(this, {
             serviceName: null,
             adapterName: null,
-            hasServerMetadata: true,
+            hasServerMetadata: null,
             jsonResultsAdapter: function (v) { return v && v.name; },
-            useJsonp: false,
-        });
-        
+            useJsonp: null,
+        });       
     };
 
     ctor.fromJSON = function(json) {
@@ -1559,21 +1584,23 @@ var EntityType = (function () {
 
     /**
     Returns the constructor for this EntityType.
-    @method getEntityCtor
+    @method getCtor ( or obsolete getEntityCtor)
     @return {Function} The constructor for this EntityType.
     **/
-    proto.getEntityCtor = function () {
-        if (this._ctor) return this._ctor;
+    proto.getCtor = proto.getEntityCtor = function (forceRefresh) {
+        if (this._ctor && !forceRefresh) return this._ctor;
         var ctorRegistry = this.metadataStore._ctorRegistry;
-        var aCtor = ctorRegistry[this.name] || ctorRegistry[this.shortName];
+        var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
+        aCtor = r.ctor || this._ctor;
+        
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
-            if (createCtor) {
-                aCtor = createCtor(this);
-            } else {
-                aCtor = createEmptyCtor();
-            }
+            aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
+        if (r.initFn) {
+            aCtor._$initializationFn = r.initFn;
+        }
+        aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
         return aCtor;
     };

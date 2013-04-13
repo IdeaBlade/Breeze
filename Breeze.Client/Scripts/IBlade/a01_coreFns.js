@@ -122,16 +122,25 @@ function __toJson(source, template) {
     return target;
 }
 
-
-function __resolveProperty(propertyName, sources) {
-    for (var i = 0, j = sources.length; i < j; i++) {
-        var src = sources[i];
-        if (src) {
-            var r = src[propertyName];
-            if (r !== undefined) return r;
+// resolves the values of a list of properties by checking each property in multiple sources until a value is found.
+function __resolveProperties(sources, propertyNames) {
+    var r = {};
+    var length = sources.length;
+    propertyNames.forEach(function (pn) {
+        for (var i = 0; i < length; i++) {
+            var src = sources[i];
+            if (src) {
+                var val = src[pn];
+                if (val !== undefined) {
+                    r[pn] = val;
+                    break;
+                }
+            }
         }
-    }
+    });
+    return r;
 }
+
 
 // array functions
 
@@ -416,10 +425,10 @@ if (!Object.create) {
 
 var core = {};
 
-core.getOwnPropertyValues = __getOwnPropertyValues;
+// core.getOwnPropertyValues = __getOwnPropertyValues;
 core.objectForEach= __objectForEach;
-core.objectMapToArray= __objectMapToArray;
-core.objectFirst= __objectFirst;
+// core.objectMapToArray= __objectMapToArray;
+// core.objectFirst= __objectFirst;
 
 core.extend = __extend;
 core.propEq = __propEq;
@@ -434,7 +443,7 @@ core.arrayZip = __arrayZip;
 
 core.requireLib = __requireLib;
 core.using = __using;
-core.wrapExecution = __wrapExecution;
+// core.wrapExecution = __wrapExecution;
 core.memoize = __memoize;
 core.getUuid = __getUuid;
 core.durationToSeconds = __durationToSeconds;

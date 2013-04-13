@@ -34,10 +34,11 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
-        // default is to get queryOptions from the entityManager.
-        this.queryOptions = new QueryOptions();
+        // default is to get queryOptions and dataService from the entityManager.
+        // this.queryOptions = new QueryOptions();
+        // this.dataService = new DataService();
         this.entityManager = null;
-        // this.dataService = null;
+        
     };
     var proto = ctor.prototype;
 
@@ -489,20 +490,45 @@ var EntityQuery = (function () {
             .using(FetchStrategy.FromLocalCache);
     @example
     @method using
-    @param obj {EntityManager|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to update in creating a new EntityQuery from an existing one.
+    @param obj {EntityManager|QueryOptions|DataService|MergeStrategy|FetchStrategy|JsonResultsAdapter|config object} The object to update in creating a new EntityQuery from an existing one.
     @return {EntityQuery}
     @chainable
     **/
     proto.using = function (obj) {
         if (!obj) return this;
         var eq = this._clone();
-        if (obj instanceof EntityManager) {
-            eq.entityManager = obj;
-        } else {
-            eq.queryOptions = this.queryOptions.using(obj);
-        }
+        processUsing(eq, {
+            entityManager: null,
+            dataService: null,
+            queryOptions: null,
+            fetchStrategy: function (eq, val) { eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val) },
+            mergeStrategy: function (eq, val) { eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val) },
+            jsonResultsAdapter: function (eq, val) { eq.dataService = (eq.dataService || new DataService()).using({ jsonResultsAdapter: val }) }
+        }, obj);
         return eq;
     };
+
+    function processUsing(eq, map, value, propertyName) {
+        var typeName = value._$typeName || (value.parentEnum && value.parentEnum.name);
+        var key = typeName &&  typeName.substr(0, 1).toLowerCase() + typeName.substr(1);
+        if (propertyName && key != propertyName) {
+            throw new Error("Invalid value for property: " + propertyName);
+        }
+        if (key) {
+            var fn = map[key];
+            if (fn === undefined) {
+                throw new Error("Invalid config property: " + key);
+            } else if (fn === null) {
+                eq[key] = value;
+            } else {
+                fn(eq, value);
+            }
+        } else {
+            __objectForEach(val, function(propName,val) {
+                processUsing(eq, map, val, propName)
+            });
+        }
+    }
 
     /**
     Executes this query.  This method requires that an EntityManager has been previously specified via the "using" method.

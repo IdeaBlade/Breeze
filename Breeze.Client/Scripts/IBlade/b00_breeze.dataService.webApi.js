@@ -122,7 +122,7 @@
                 handleXHRError(XHR, errorCallback);
             }
         };
-        if (queryContext.queryOptions.useJsonp) {
+        if (queryContext.dataService.useJsonp) {
             params.dataType = 'jsonp';
             params.crossDomain = true;
         }
