@@ -76,7 +76,12 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("query using jsonResultsAdapter", function() {
+    test("query using jsonResultsAdapter", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Skipped tests - OData with jsonResultsAdapter");
+            return;
+        };
+
         var em = newEm();
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({
             name: "eventAdapter",
@@ -110,6 +115,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using dataService with jsonResultsAdapter", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Skipped tests - OData with jsonResultsAdapter");
+            return;
+        };
+
         var em = newEm();
         
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({
@@ -146,6 +156,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using em with dataService with jsonResultsAdapter", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Skipped tests - OData with jsonResultsAdapter");
+            return;
+        };
+
         var em = newEm();
 
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({

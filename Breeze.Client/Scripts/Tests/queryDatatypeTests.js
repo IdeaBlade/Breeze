@@ -231,6 +231,11 @@ define(["testFns"], function (testFns) {
     
     
     test("enums", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Skipped tests - OData does not yet support enums");
+            return;
+        };
+
         var em = newEm();
         var query = new EntityQuery("Roles").where("roleType", "==", 'Restricted');
         var roleType = em.metadataStore.getEntityType("Role");
@@ -265,6 +270,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("enums null", function () {
+        if (!testFns.DEBUG_WEBAPI) {
+            ok(true, "Skipped tests - OData does not yet support enums");
+            return;
+        };
+
         var em = newEm();
         var roleType = em.metadataStore.getEntityType("Role");
         var role = roleType.createEntity();
