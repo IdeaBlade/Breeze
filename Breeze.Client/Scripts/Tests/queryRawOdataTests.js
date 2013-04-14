@@ -39,8 +39,7 @@ define(["testFns"], function (testFns) {
                 var key = c.entityAspect.getKey();
                 ok(key, "missing key");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("select", function () {
@@ -65,8 +64,7 @@ define(["testFns"], function (testFns) {
                     ok(order.entityType === orderType);
                 });
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("bad expr", function () {
@@ -78,8 +76,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).fail(function (error) {
             ok(error instanceof Error, "should be an error");
             ok(error.message.indexOf("starxtswith") > -1, "error message has wrong text");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("raw ajax to web api - server side include many - customer and orders", function () {

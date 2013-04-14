@@ -2214,14 +2214,7 @@ function getComparableFn(dataType) {
         
 }
 
-// Fixup --- because EntityAspect does not have access to EntityQuery or EntityMetadata
 
-EntityAspect.prototype.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
-    var entity = this.entity;
-    var navProperty = entity.entityType._checkNavProperty(navigationProperty);
-    var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
-    return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
-};
 
 // expose
 // do not expose SimplePredicate and CompositePredicate 

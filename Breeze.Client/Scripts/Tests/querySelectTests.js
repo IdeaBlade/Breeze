@@ -21,7 +21,6 @@ define(["testFns"], function (testFns) {
     module("query select", {
         setup: function () {
             testFns.setup();
-            // testFns.DEBUG_WEBAPI = false;
         },
         teardown: function () {
         }
@@ -45,8 +44,7 @@ define(["testFns"], function (testFns) {
             anons.forEach(function (a) {
                 ok(a.companyName);
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("select - anon collection", function () {
@@ -68,12 +66,11 @@ define(["testFns"], function (testFns) {
             var anons = data.results;
             anons.forEach(function (a) {
                 ok(Array.isArray(a.orders));
-                a.orders.forEach(function(order) {
+                a.orders.forEach(function (order) {
                     ok(order.entityType === orderType);
                 });
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("select - anon simple, entity collection projection", function () {
@@ -95,15 +92,14 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
             anons.forEach(function (a) {
-                ok(Object.keys(a).length === 2,"should have 2 properties");
+                ok(Object.keys(a).length === 2, "should have 2 properties");
                 ok(a.companyName);
                 ok(Array.isArray(a.orders));
-                a.orders.forEach(function(order) {
+                a.orders.forEach(function (order) {
                     ok(order.entityType === orderType);
                 });
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("select - anon simple, entity scalar projection", function () {
@@ -165,14 +161,12 @@ define(["testFns"], function (testFns) {
             .expand("category")
             .select("productID, productName");
         stop();
-        em.executeQuery(query).then(function(data) {
+        em.executeQuery(query).then(function (data) {
             var r = data.results;
             ok(r.length > 0);
-            start();
-        }).fail(function(e) {
-            ok(e.message.indexOf("expand")>=0);
-            start();
-        });
+        }).fail(function (e) {
+            ok(e.message.indexOf("expand") >= 0);
+        }).fin(start);
     });
 
 

@@ -314,6 +314,33 @@ var EntityAspect = function() {
     };
 
     /**
+    Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+    @example
+            emp.entityAspect.loadNavigationProperty("Orders")
+            .then(function (data) {
+                var orders = data.results;
+            }).fail(function (exception) {
+                // handle exception here;
+            });
+    @method loadNavigationProperty
+    @async
+    @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
+    @param [callback] {Function} Function to call on success.
+    @param [errorCallback] {Function} Function to call on failure.
+    @return {Promise} 
+
+        promiseData.results {Array of Entity}
+        promiseData.query {EntityQuery} The original query
+        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+    **/
+    proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
+        var entity = this.entity;
+        var navProperty = entity.entityType._checkNavProperty(navigationProperty);
+        var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
+        return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
+    };
+
+    /**
     Performs validation on the entity, any errors encountered during the validation are available via the 
     {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating an entity means executing
     all of the validators on both the entity itself as well as those on each of its properties.
@@ -473,28 +500,7 @@ var EntityAspect = function() {
         });
     };
 
-    /**
-    Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
-    @example
-            emp.entityAspect.loadNavigationProperty("Orders")
-            .then(function (data) {
-                var orders = data.results;
-            }).fail(function (exception) {
-                // handle exception here;
-            });
-    @method loadNavigationProperty
-    @async
-    @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
-    @param [callback] {Function} Function to call on success.
-    @param [errorCallback] {Function} Function to call on failure.
-    @return {Promise} 
-
-        promiseData.results {Array of Entity}
-        promiseData.query {EntityQuery} The original query
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
-    **/
-    // This method is provided in entityQuery.js.
-    // proto.loadNavigationProperty = function(navigationProperty, callback, errorCallback) 
+   
 
     // returns null for np's that do not have a parentKey
     proto.getParentKey = function (navigationProperty) {

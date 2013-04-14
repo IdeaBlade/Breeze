@@ -1446,9 +1446,6 @@ var EntityType = (function () {
         }
     };
 
-
-   
-
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
             if (navigationProperty.parentType != this) {
