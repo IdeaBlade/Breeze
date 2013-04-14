@@ -1,12 +1,11 @@
 ﻿/**
-  @module breeze   
-  **/
+@module breeze   
+**/
 
-var __config = function () {
+var __config = (function () {
 
     // alias for within fns with a config param
     var __config = {};
-
 
     __config.functionRegistry = {};
     __config.typeRegistry = {};
@@ -271,7 +270,7 @@ var __config = function () {
     }
 
     return __config;
-}();
+})();
 
 var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 

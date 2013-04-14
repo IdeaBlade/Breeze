@@ -22,11 +22,11 @@ breeze.makeRelationArray = function() {
                 var addedEntities = arrayChangedArgs.added;
                 var removedEntities = arrayChanged.removed;
             });
-        @event arrayChanged 
-        @param added {Array of Entity} An array of all of the entities added to this collection.
-        @param removed {Array of Entity} An array of all of the removed from this collection.
-        @readOnly
-        **/
+    @event arrayChanged 
+    @param added {Array of Entity} An array of all of the entities added to this collection.
+    @param removed {Array of Entity} An array of all of the removed from this collection.
+    @readOnly
+    **/
 
     relationArrayMixin.push = function() {
         if (this._inProgress) {

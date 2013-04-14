@@ -2178,7 +2178,6 @@ var ExpandClause = (function () {
     return ctor;
 })();
     
-  
 function getPropertyPathValue(obj, propertyPath) {
     var properties;
     if (Array.isArray(propertyPath)) {
@@ -2213,8 +2212,6 @@ function getComparableFn(dataType) {
     }
         
 }
-
-
 
 // expose
 // do not expose SimplePredicate and CompositePredicate 

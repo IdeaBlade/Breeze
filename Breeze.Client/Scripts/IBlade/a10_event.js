@@ -1,8 +1,8 @@
 ﻿/**
-  @module core
-  **/
+@module core
+**/
 
-var Event = function() {
+var Event = (function() {
   
     var __eventNameMap = {};
 
@@ -298,6 +298,6 @@ var Event = function() {
 
     return ctor;
 
-}();
+})();
 
 core.Event = Event;

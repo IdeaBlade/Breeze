@@ -281,5 +281,6 @@ var DataType = function () {
     return DataType;
 
 }();
+
 breeze.DataType = DataType;
 

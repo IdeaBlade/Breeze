@@ -2,7 +2,7 @@
  @module core
  **/
 
-var Param = function () {
+var Param = (function () {
     // The %1 parameter 
     // is required
     // must be a %2
@@ -312,16 +312,15 @@ var Param = function () {
         }
     };
 
-
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
     return ctor;
-}();
+})();
 
 var assertParam = function (v, name) {
     return new Param(v, name);
 };
 
-var ConfigParam = function() {
+var ConfigParam = (function() {
     var ctor = function(config) {
         if (typeof(config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof(config));
@@ -338,7 +337,7 @@ var ConfigParam = function() {
         return param;
     };
     return ctor;
-}();
+})();
 
 var assertConfig = function(config) {
     return new ConfigParam(config);

@@ -1181,7 +1181,7 @@ var EntityManager = (function () {
     proto.getChanges = function (entityTypes) {
         entityTypes = checkEntityTypes(this, entityTypes);
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
 
     /**
@@ -1197,7 +1197,7 @@ var EntityManager = (function () {
     proto.rejectChanges = function () {
         if (!this._hasChanges) return [];
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        var changes = this._getEntitiesCore(null, entityStates);
+        var changes = getEntitiesCore(this, null, entityStates);
         // next line stops individual reject changes from each calling _hasChangesCore
         this._hasChanges = false;
         changes.forEach(function(e) {
@@ -1245,23 +1245,10 @@ var EntityManager = (function () {
         if (entityStates) {
             entityStates = validateEntityStates(this, entityStates);
         }
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
         
-    // takes in entityTypes as either strings or entityTypes or arrays of either
-    // and returns either an entityType or an array of entityTypes or throws an error
-    function checkEntityTypes(em, entityTypes) {
-        assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
-            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
-        if (typeof entityTypes === "string") {
-            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
-        } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
-            entityTypes = entityTypes.map(function(etName) {
-                return em.metadataStore._getEntityType(etName, false);
-            });
-        }
-        return entityTypes;
-    }
+   
 
     // protected methods
 
@@ -1285,33 +1272,17 @@ var EntityManager = (function () {
         }
     };
 
-    proto._getEntitiesCore = function (entityTypes, entityStates) {
-        var entityGroups = getEntityGroups(this, entityTypes);
 
-        // TODO: think about writing a core.mapMany method if we see more of these.
-        var selected;
-        entityGroups.forEach(function (eg) {
-            // eg may be undefined or null
-            if (!eg) return;
-            var entities = eg.getEntities(entityStates);
-            if (!selected) {
-                selected = entities;
-            } else {
-                selected.push.apply(selected, entities);
-            }
-        });
-        return selected || [];
-    };
 
-    proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
-        var key = parentEntityKey.toString();
-        var children = this._unattachedChildrenMap[key];
-        if (!children) {
-            children = [];
-            this._unattachedChildrenMap[key] = children;
-        }
-        children.push(child);
-    };
+    //proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
+    //    var key = parentEntityKey.toString();
+    //    var children = this._unattachedChildrenMap[key];
+    //    if (!children) {
+    //        children = [];
+    //        this._unattachedChildrenMap[key] = children;
+    //    }
+    //    children.push(child);
+    //};
 
         
     proto._linkRelatedEntities = function (entity) {
@@ -1372,6 +1343,39 @@ var EntityManager = (function () {
     };
 
     // private fns
+
+    // takes in entityTypes as either strings or entityTypes or arrays of either
+    // and returns either an entityType or an array of entityTypes or throws an error
+    function checkEntityTypes(em, entityTypes) {
+        assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
+            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+        if (typeof entityTypes === "string") {
+            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
+        } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
+            entityTypes = entityTypes.map(function (etName) {
+                return em.metadataStore._getEntityType(etName, false);
+            });
+        }
+        return entityTypes;
+    }
+
+    function getEntitiesCore(em, entityTypes, entityStates) {
+        var entityGroups = getEntityGroups(em, entityTypes);
+
+        // TODO: think about writing a core.mapMany method if we see more of these.
+        var selected;
+        entityGroups.forEach(function (eg) {
+            // eg may be undefined or null
+            if (!eg) return;
+            var entities = eg.getEntities(entityStates);
+            if (!selected) {
+                selected = entities;
+            } else {
+                selected.push.apply(selected, entities);
+            }
+        });
+        return selected || [];
+    };
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
@@ -1966,7 +1970,6 @@ var EntityManager = (function () {
         return val;
     }
         
-        
     function updateEntityRef(queryContext, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
         if (nodeId != null) {
@@ -2014,7 +2017,6 @@ var EntityManager = (function () {
             }
         }
     }
-
        
     function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
         var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
@@ -2170,7 +2172,6 @@ var EntityManager = (function () {
         });
         return result;
     }
-        
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }

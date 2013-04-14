@@ -503,7 +503,7 @@ breeze.core = core;
  @module core
  **/
 
-var Param = function () {
+var Param = (function () {
     // The %1 parameter 
     // is required
     // must be a %2
@@ -813,16 +813,15 @@ var Param = function () {
         }
     };
 
-
     proto.MESSAGE_PREFIX = "The '%1' parameter ";
     return ctor;
-}();
+})();
 
 var assertParam = function (v, name) {
     return new Param(v, name);
 };
 
-var ConfigParam = function() {
+var ConfigParam = (function() {
     var ctor = function(config) {
         if (typeof(config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof(config));
@@ -839,7 +838,7 @@ var ConfigParam = function() {
         return param;
     };
     return ctor;
-}();
+})();
 
 var assertConfig = function(config) {
     return new ConfigParam(config);
@@ -1127,10 +1126,10 @@ core.Enum = Enum;
 
 
 /**
-  @module core
-  **/
+@module core
+**/
 
-var Event = function() {
+var Event = (function() {
   
     var __eventNameMap = {};
 
@@ -1426,18 +1425,17 @@ var Event = function() {
 
     return ctor;
 
-}();
+})();
 
 core.Event = Event;
 /**
-  @module breeze   
-  **/
+@module breeze   
+**/
 
-var __config = function () {
+var __config = (function () {
 
     // alias for within fns with a config param
     var __config = {};
-
 
     __config.functionRegistry = {};
     __config.typeRegistry = {};
@@ -1702,7 +1700,7 @@ var __config = function () {
     }
 
     return __config;
-}();
+})();
 
 var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 
@@ -2560,7 +2558,7 @@ var ValidationOptions = (function () {
 // expose
 
 breeze.ValidationOptions = ValidationOptions;
-;
+
 
 
 /**
@@ -3767,11 +3765,11 @@ breeze.makeRelationArray = function() {
                 var addedEntities = arrayChangedArgs.added;
                 var removedEntities = arrayChanged.removed;
             });
-        @event arrayChanged 
-        @param added {Array of Entity} An array of all of the entities added to this collection.
-        @param removed {Array of Entity} An array of all of the removed from this collection.
-        @readOnly
-        **/
+    @event arrayChanged 
+    @param added {Array of Entity} An array of all of the entities added to this collection.
+    @param removed {Array of Entity} An array of all of the removed from this collection.
+    @readOnly
+    **/
 
     relationArrayMixin.push = function() {
         if (this._inProgress) {
@@ -4775,6 +4773,7 @@ var DataType = function () {
     return DataType;
 
 }();
+
 breeze.DataType = DataType;
 
 /**
@@ -7392,7 +7391,6 @@ var LocalQueryComparisonOptions = (function () {
     return ctor;
 })();
        
-
 breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
 
 
@@ -9707,7 +9705,6 @@ var ExpandClause = (function () {
     return ctor;
 })();
     
-  
 function getPropertyPathValue(obj, propertyPath) {
     var properties;
     if (Array.isArray(propertyPath)) {
@@ -9742,8 +9739,6 @@ function getComparableFn(dataType) {
     }
         
 }
-
-
 
 // expose
 // do not expose SimplePredicate and CompositePredicate 
@@ -11278,7 +11273,7 @@ var EntityManager = (function () {
     proto.getChanges = function (entityTypes) {
         entityTypes = checkEntityTypes(this, entityTypes);
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
 
     /**
@@ -11294,7 +11289,7 @@ var EntityManager = (function () {
     proto.rejectChanges = function () {
         if (!this._hasChanges) return [];
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        var changes = this._getEntitiesCore(null, entityStates);
+        var changes = getEntitiesCore(this, null, entityStates);
         // next line stops individual reject changes from each calling _hasChangesCore
         this._hasChanges = false;
         changes.forEach(function(e) {
@@ -11342,23 +11337,10 @@ var EntityManager = (function () {
         if (entityStates) {
             entityStates = validateEntityStates(this, entityStates);
         }
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
         
-    // takes in entityTypes as either strings or entityTypes or arrays of either
-    // and returns either an entityType or an array of entityTypes or throws an error
-    function checkEntityTypes(em, entityTypes) {
-        assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
-            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
-        if (typeof entityTypes === "string") {
-            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
-        } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
-            entityTypes = entityTypes.map(function(etName) {
-                return em.metadataStore._getEntityType(etName, false);
-            });
-        }
-        return entityTypes;
-    }
+   
 
     // protected methods
 
@@ -11382,33 +11364,17 @@ var EntityManager = (function () {
         }
     };
 
-    proto._getEntitiesCore = function (entityTypes, entityStates) {
-        var entityGroups = getEntityGroups(this, entityTypes);
 
-        // TODO: think about writing a core.mapMany method if we see more of these.
-        var selected;
-        entityGroups.forEach(function (eg) {
-            // eg may be undefined or null
-            if (!eg) return;
-            var entities = eg.getEntities(entityStates);
-            if (!selected) {
-                selected = entities;
-            } else {
-                selected.push.apply(selected, entities);
-            }
-        });
-        return selected || [];
-    };
 
-    proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
-        var key = parentEntityKey.toString();
-        var children = this._unattachedChildrenMap[key];
-        if (!children) {
-            children = [];
-            this._unattachedChildrenMap[key] = children;
-        }
-        children.push(child);
-    };
+    //proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
+    //    var key = parentEntityKey.toString();
+    //    var children = this._unattachedChildrenMap[key];
+    //    if (!children) {
+    //        children = [];
+    //        this._unattachedChildrenMap[key] = children;
+    //    }
+    //    children.push(child);
+    //};
 
         
     proto._linkRelatedEntities = function (entity) {
@@ -11469,6 +11435,39 @@ var EntityManager = (function () {
     };
 
     // private fns
+
+    // takes in entityTypes as either strings or entityTypes or arrays of either
+    // and returns either an entityType or an array of entityTypes or throws an error
+    function checkEntityTypes(em, entityTypes) {
+        assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
+            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+        if (typeof entityTypes === "string") {
+            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
+        } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
+            entityTypes = entityTypes.map(function (etName) {
+                return em.metadataStore._getEntityType(etName, false);
+            });
+        }
+        return entityTypes;
+    }
+
+    function getEntitiesCore(em, entityTypes, entityStates) {
+        var entityGroups = getEntityGroups(em, entityTypes);
+
+        // TODO: think about writing a core.mapMany method if we see more of these.
+        var selected;
+        entityGroups.forEach(function (eg) {
+            // eg may be undefined or null
+            if (!eg) return;
+            var entities = eg.getEntities(entityStates);
+            if (!selected) {
+                selected = entities;
+            } else {
+                selected.push.apply(selected, entities);
+            }
+        });
+        return selected || [];
+    };
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
@@ -12063,7 +12062,6 @@ var EntityManager = (function () {
         return val;
     }
         
-        
     function updateEntityRef(queryContext, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
         if (nodeId != null) {
@@ -12111,7 +12109,6 @@ var EntityManager = (function () {
             }
         }
     }
-
        
     function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
         var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
@@ -12267,7 +12264,6 @@ var EntityManager = (function () {
         });
         return result;
     }
-        
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }

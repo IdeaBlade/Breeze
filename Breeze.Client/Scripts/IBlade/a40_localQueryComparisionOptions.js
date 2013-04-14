@@ -92,7 +92,6 @@ var LocalQueryComparisonOptions = (function () {
     return ctor;
 })();
        
-
 breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
 
 

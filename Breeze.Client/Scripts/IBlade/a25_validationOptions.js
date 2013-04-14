@@ -122,6 +122,6 @@ var ValidationOptions = (function () {
 // expose
 
 breeze.ValidationOptions = ValidationOptions;
-;
+
 
 
