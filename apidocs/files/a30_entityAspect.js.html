@@ -187,273 +187,6 @@
 @module breeze   
 **&#x2F;
 
-var EntityState = (function () {
-    &#x2F;**
-    EntityState is an &#x27;Enum&#x27; containing all of the valid states for an &#x27;Entity&#x27;.
-
-    @class EntityState
-    @static
-    **&#x2F;
-    var entityStateMethods = {
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isUnchanged();
-        is the same as
-        @example
-            return es === EntityState.Unchanged;
-        @method isUnchanged
-        @return {Boolean} Whether an entityState instance is EntityState.Unchanged.
-        **&#x2F;
-        isUnchanged: function () { return this === EntityState.Unchanged; },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isAdded();
-        is the same as
-        @example
-            return es === EntityState.Added;
-        @method isAdded
-        @return {Boolean} Whether an entityState instance is EntityState.Added.
-        **&#x2F;
-        isAdded: function () { return this === EntityState.Added; },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isModified();
-        is the same as
-        @example
-            return es === EntityState.Modified;
-        @method isModified
-        @return {Boolean} Whether an entityState instance is EntityState.Modified.
-        **&#x2F;
-        isModified: function () { return this === EntityState.Modified; },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isDeleted();
-        is the same as
-        @example
-            return es === EntityState.Deleted;
-        @method isDeleted
-        @return  {Boolean} Whether an entityState instance is EntityState.Deleted.
-        **&#x2F;
-        isDeleted: function () { return this === EntityState.Deleted; },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isDetached();
-        is the same as
-        @example
-            return es === EntityState.Detached;
-        @method isDetached
-        @return  {Boolean} Whether an entityState instance is EntityState.Detached.
-        **&#x2F;
-        isDetached: function () { return this === EntityState.Detached; },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isUnchangedOrModified();
-        is the same as
-        @example
-            return es === EntityState.Unchanged || es === EntityState.Modified
-        @method isUnchangedOrModified
-        @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
-        **&#x2F;
-        isUnchangedOrModified: function () {
-            return this === EntityState.Unchanged || this === EntityState.Modified;
-        },
-        &#x2F;**
-        @example
-            var es = anEntity.entityAspect.entityState;
-            return es.isAddedModifiedOrDeleted();
-        is the same as
-        @example
-            return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
-        @method isAddedModifiedOrDeleted
-        @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
-        **&#x2F;
-        isAddedModifiedOrDeleted: function () {
-            return this === EntityState.Added ||
-                this === EntityState.Modified ||
-                this === EntityState.Deleted;
-        }
-    };
-
-    var EntityState = new Enum(&quot;EntityState&quot;, entityStateMethods);
-    &#x2F;**
-    The &#x27;Unchanged&#x27; state.
-
-    @property Unchanged {EntityState}
-    @final
-    @static
-    **&#x2F;
-    EntityState.Unchanged = EntityState.addSymbol();
-    &#x2F;**
-    The &#x27;Added&#x27; state.
-
-    @property Added {EntityState}
-    @final
-    @static
-    **&#x2F;
-    EntityState.Added = EntityState.addSymbol();
-    &#x2F;**
-    The &#x27;Modified&#x27; state.
-
-    @property Modified {EntityState}
-    @final
-    @static
-    **&#x2F;
-    EntityState.Modified = EntityState.addSymbol();
-    &#x2F;**
-    The &#x27;Deleted&#x27; state.
-
-    @property Deleted {EntityState}
-    @final
-    @static
-    **&#x2F;
-    EntityState.Deleted = EntityState.addSymbol();
-    &#x2F;**
-    The &#x27;Detached&#x27; state.
-
-    @property Detached {EntityState}
-    @final
-    @static
-    **&#x2F;
-    EntityState.Detached = EntityState.addSymbol();
-    EntityState.seal();
-    return EntityState;
-})();
-    
-var EntityAction = (function () {
-    &#x2F;**
-    EntityAction is an &#x27;Enum&#x27; containing all of the valid actions that can occur to an &#x27;Entity&#x27;.
-
-    @class EntityAction
-    @static
-    **&#x2F;
-    var entityActionMethods = {
-        isAttach: function () { return !!this.isAttach; },
-        isDetach: function () { return !!this.isDetach; },
-        isModification: function () { return !!this.isModification; }
-    };
-
-    var EntityAction = new Enum(&quot;EntityAction&quot;, entityActionMethods);
-        
-    &#x2F;**
-    Attach - Entity was attached via an AttachEntity call.
-
-    @property Attach {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.Attach = EntityAction.addSymbol({ isAttach: true});
-        
-    &#x2F;**
-    AttachOnQuery - Entity was attached as a result of a query.
-
-    @property AttachOnQuery {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.AttachOnQuery = EntityAction.addSymbol({ isAttach: true});
-        
-    &#x2F;**
-    AttachOnImport - Entity was attached as a result of an import.
-
-    @property AttachOnImport {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.AttachOnImport = EntityAction.addSymbol({ isAttach: true});
-        
-        
-    &#x2F;**
-    AttachOnQuery - Entity was detached.
-
-    @property Detach {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.Detach = EntityAction.addSymbol( { isDetach: true });
-        
-    &#x2F;**
-    MergeOnQuery - Properties on the entity were merged as a result of a query.
-
-    @property MergeOnQuery {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.MergeOnQuery = EntityAction.addSymbol( { isModification: true });
-        
-    &#x2F;**
-    MergeOnImport - Properties on the entity were merged as a result of an import.
-
-    @property MergeOnImport {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.MergeOnImport = EntityAction.addSymbol( { isModification: true });
-        
-    &#x2F;**
-    MergeOnImport - Properties on the entity were merged as a result of a save
-
-    @property MergeOnImport {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.MergeOnSave = EntityAction.addSymbol( { isModification: true });
-        
-    &#x2F;**
-    PropertyChange - A property on the entity was changed.
-
-    @property PropertyChange {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.PropertyChange = EntityAction.addSymbol({ isModification: true});
-        
-    &#x2F;**
-    EntityStateChange - The EntityState of the entity was changed.
-
-    @property EntityStateChange {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.EntityStateChange = EntityAction.addSymbol();
-        
-        
-    &#x2F;**
-    AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
-
-    @property AcceptChanges {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.AcceptChanges = EntityAction.addSymbol();
-
-    &#x2F;**
-    RejectChanges - RejectChanges was called on the entity.
-
-    @property RejectChanges {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.RejectChanges = EntityAction.addSymbol({ isModification: true});
-        
-    &#x2F;**
-    Clear - The EntityManager was cleared.  All entities detached.
-
-    @property Clear {EntityAction}
-    @final
-    @static
-    **&#x2F;
-    EntityAction.Clear = EntityAction.addSymbol({ isDetach: true});
-        
-    EntityAction.seal();
-    return EntityAction;
-})();
-
 var EntityAspect = function() {
     &#x2F;**
     An EntityAspect instance is associated with every attached entity and is accessed via the entity&#x27;s &#x27;entityAspect&#x27; property. 
@@ -766,6 +499,33 @@ var EntityAspect = function() {
     };
 
     &#x2F;**
+    Performs a query for the value of a specified {{#crossLink &quot;NavigationProperty&quot;}}{{&#x2F;crossLink}}.
+    @example
+            emp.entityAspect.loadNavigationProperty(&quot;Orders&quot;)
+            .then(function (data) {
+                var orders = data.results;
+            }).fail(function (exception) {
+                &#x2F;&#x2F; handle exception here;
+            });
+    @method loadNavigationProperty
+    @async
+    @param navigationProperty {NavigationProperty} The NavigationProperty to &#x27;load&#x27;.
+    @param [callback] {Function} Function to call on success.
+    @param [errorCallback] {Function} Function to call on failure.
+    @return {Promise} 
+
+        promiseData.results {Array of Entity}
+        promiseData.query {EntityQuery} The original query
+        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+    **&#x2F;
+    proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
+        var entity = this.entity;
+        var navProperty = entity.entityType._checkNavProperty(navigationProperty);
+        var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
+        return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
+    };
+
+    &#x2F;**
     Performs validation on the entity, any errors encountered during the validation are available via the 
     {{#crossLink &quot;EntityAspect.getValidationErrors&quot;}}{{&#x2F;crossLink}} method. Validating an entity means executing
     all of the validators on both the entity itself as well as those on each of its properties.
@@ -925,28 +685,7 @@ var EntityAspect = function() {
         });
     };
 
-    &#x2F;**
-    Performs a query for the value of a specified {{#crossLink &quot;NavigationProperty&quot;}}{{&#x2F;crossLink}}.
-    @example
-            emp.entityAspect.loadNavigationProperty(&quot;Orders&quot;)
-            .then(function (data) {
-                var orders = data.results;
-            }).fail(function (exception) {
-                &#x2F;&#x2F; handle exception here;
-            });
-    @method loadNavigationProperty
-    @async
-    @param navigationProperty {NavigationProperty} The NavigationProperty to &#x27;load&#x27;.
-    @param [callback] {Function} Function to call on success.
-    @param [errorCallback] {Function} Function to call on failure.
-    @return {Promise} 
-
-        promiseData.results {Array of Entity}
-        promiseData.query {EntityQuery} The original query
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
-    **&#x2F;
-    &#x2F;&#x2F; This method is provided in entityQuery.js.
-    &#x2F;&#x2F; proto.loadNavigationProperty = function(navigationProperty, callback, errorCallback) 
+   
 
     &#x2F;&#x2F; returns null for np&#x27;s that do not have a parentKey
     proto.getParentKey = function (navigationProperty) {
@@ -1215,143 +954,9 @@ var ComplexAspect = function() {
     return ctor;
 
 }();
-    
-var EntityKey = (function () {
-
-    var ENTITY_KEY_DELIMITER = &quot;:::&quot;;
-
-    &#x2F;**
-    An EntityKey is an object that represents the unique identity of an entity.  EntityKey&#x27;s are immutable. 
-
-    @class EntityKey
-    **&#x2F;
-        
-    &#x2F;** 
-    Constructs a new EntityKey.  Each entity within an EntityManager will have a unique EntityKey. 
-    @example
-        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
-        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
-        var entityKey = new EntityKey(empType, 1);
-    EntityKey&#x27;s may also be found by calling EntityAspect.getKey()
-    @example
-        &#x2F;&#x2F; assume employee1 is an existing Employee entity
-        var empKey = employee1.entityAspect.getKey();
-    Multipart keys are created by passing an array as the &#x27;keyValues&#x27; parameter
-    @example
-        var empTerrType = em1.metadataStore.getEntityType(&quot;EmployeeTerritory&quot;);            
-        var empTerrKey = new EntityKey(empTerrType, [ 1, 77]);
-        &#x2F;&#x2F; The order of the properties in the &#x27;keyValues&#x27; array must be the same as that 
-        &#x2F;&#x2F; returned by empTerrType.keyProperties
-    @method &lt;ctor&gt; EntityKey
-    @param entityType {EntityType} The {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}} of the entity.
-    @param keyValues {value|Array of values} A single value or an array of values.
-    **&#x2F;
-    var ctor = function (entityType, keyValues) {
-        &#x2F;&#x2F; can&#x27;t ref EntityType here because of module circularity
-        &#x2F;&#x2F; assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
-        if (!Array.isArray(keyValues)) {
-            keyValues = __arraySlice(arguments, 1);
-        }
-        &#x2F;&#x2F; fluff
-        &#x2F;&#x2F;if (!(this instanceof ctor)) {
-        &#x2F;&#x2F;    return new ctor(entityType, keyValues);
-        &#x2F;&#x2F;}
-        this.entityType = entityType;
-        this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
-    };
-    ctor._$typeName = &quot;EntityKey&quot;;
-    var proto = ctor.prototype;
-
-    proto.toJSON = function () {
-        return {
-            entityType: this.entityType.name,
-            values: this.values
-        };
-    };
-
-    ctor.fromJSON = function (json, metadataStore) {
-        var et = metadataStore.getEntityType(json.entityType, true);
-        return new EntityKey(et, json.values);
-    };
-
-    &#x2F;**
-    Used to compare EntityKeys are determine if they refer to the same Entity.
-    There is also an static version of &#x27;equals&#x27; with the same functionality. 
-    @example
-        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
-        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
-        var empKey1 = new EntityKey(empType, 1);
-        &#x2F;&#x2F; assume employee1 is an existing Employee entity
-        var empKey2 = employee1.entityAspect.getKey();
-        if (empKey1.equals(empKey2)) {
-            &#x2F;&#x2F; do something  ...
-        }
-    @method equals
-    @param entityKey {EntityKey}
-    **&#x2F;
-    proto.equals = function (entityKey) {
-        if (!(entityKey instanceof EntityKey)) return false;
-        return (this.entityType === entityKey.entityType) &amp;&amp;
-            __arrayEquals(this.values, entityKey.values);
-    };
-
-    &#x2F;*
-    Returns a human readable representation of this EntityKey.
-    @method toString
-    *&#x2F;
-    proto.toString = function () {
-        return this.entityType.name + &#x27;-&#x27; + this._keyInGroup;
-    };
-
-    &#x2F;**
-    Used to compare EntityKeys are determine if they refer to the same Entity. 
-    There is also an instance version of &#x27;equals&#x27; with the same functionality. 
-    @example
-        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
-        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
-        var empKey1 = new EntityKey(empType, 1);
-        &#x2F;&#x2F; assume employee1 is an existing Employee entity
-        var empKey2 = employee1.entityAspect.getKey();
-        if (EntityKey.equals(empKey1, empKey2)) {
-            &#x2F;&#x2F; do something  ...
-        }
-    @method equals
-    @static
-    @param k1 {EntityKey}
-    @param k2 {EntityKey}
-    **&#x2F;
-    ctor.equals = function (k1, k2) {
-        if (!(k1 instanceof EntityKey)) return false;
-        return k1.equals(k2);
-    };
-
-    &#x2F;&#x2F; TODO: we may want to compare to default values later.
-    proto._isEmpty = function () {
-        return this.values.join(&quot;&quot;).length === 0;
-    };
-
-    ctor._fromRawEntity = function (rawEntity, entityType) {
-        var keyValues = entityType.keyProperties.map(function (p) {
-            return rawEntity[p.nameOnServer];
-        });
-        return new EntityKey(entityType, keyValues);
-    };
-
-
-
-    function createKeyString(keyValues) {
-        return keyValues.join(ENTITY_KEY_DELIMITER);
-    }
-
-    return ctor;
-})();
 
 breeze.EntityAspect= EntityAspect;
 breeze.ComplexAspect= ComplexAspect;
-breeze.EntityState= EntityState;
-breeze.EntityAction= EntityAction;
-breeze.EntityKey = EntityKey;
 
     </pre>
 </div>

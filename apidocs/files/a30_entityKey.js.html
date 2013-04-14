@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>a45_relationArray.js - The Breeze API</title>
+    <title>a30_entityKey.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,233 +179,138 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: a45_relationArray.js</h1>
+                        <h1 class="file-heading">File: a30_entityKey.js</h1>
 
 <div class="file">
     <pre class="code prettyprint linenums">
-﻿
-breeze.makeRelationArray = function() {
-    var relationArrayMixin = {};
+﻿&#x2F;**
+@module breeze   
+**&#x2F;
+    
+var EntityKey = (function () {
+
+    var ENTITY_KEY_DELIMITER = &quot;:::&quot;;
 
     &#x2F;**
-    Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
-    entities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.
-    This collection looks like an array in that the basic methods on arrays such as &#x27;push&#x27;, &#x27;pop&#x27;, &#x27;shift&#x27;, &#x27;unshift&#x27;, &#x27;splice&#x27;
-    are all provided as well as several special purpose methods. 
-    @class ↈ_relationArray_
+    An EntityKey is an object that represents the unique identity of an entity.  EntityKey&#x27;s are immutable. 
+
+    @class EntityKey
     **&#x2F;
-
-    &#x2F;**
-    An {{#crossLink &quot;Event&quot;}}{{&#x2F;crossLink}} that fires whenever the contents of this array changed.  This event
-    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
-    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
-    collections are collected into a single notification event for each relation array.
+        
+    &#x2F;** 
+    Constructs a new EntityKey.  Each entity within an EntityManager will have a unique EntityKey. 
     @example
-        &#x2F;&#x2F; assume order is an order entity attached to an EntityManager.
-        orders.arrayChanged.subscribe(
-            function (arrayChangedArgs) {
-                var addedEntities = arrayChangedArgs.added;
-                var removedEntities = arrayChanged.removed;
-            });
-        @event arrayChanged 
-        @param added {Array of Entity} An array of all of the entities added to this collection.
-        @param removed {Array of Entity} An array of all of the removed from this collection.
-        @readOnly
-        **&#x2F;
-
-    relationArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
-
-
-    relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    relationArrayMixin.pop = function() {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.shift = function() {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-    &#x2F;**
-    Performs an asynchronous load of all other the entities associated with this relationArray.
+        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
+        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+        var entityKey = new EntityKey(empType, 1);
+    EntityKey&#x27;s may also be found by calling EntityAspect.getKey()
     @example
-        &#x2F;&#x2F; assume orders is an empty, as yet unpopulated, relation array of orders
-        &#x2F;&#x2F; associated with a specific customer.
-        orders.load().then(...)
-    @method load
-    @param [callback] {Function} 
-    @param [errorCallback] {Function}
-    @return {Promise} 
+        &#x2F;&#x2F; assume employee1 is an existing Employee entity
+        var empKey = employee1.entityAspect.getKey();
+    Multipart keys are created by passing an array as the &#x27;keyValues&#x27; parameter
+    @example
+        var empTerrType = em1.metadataStore.getEntityType(&quot;EmployeeTerritory&quot;);            
+        var empTerrKey = new EntityKey(empTerrType, [ 1, 77]);
+        &#x2F;&#x2F; The order of the properties in the &#x27;keyValues&#x27; array must be the same as that 
+        &#x2F;&#x2F; returned by empTerrType.keyProperties
+    @method &lt;ctor&gt; EntityKey
+    @param entityType {EntityType} The {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}} of the entity.
+    @param keyValues {value|Array of values} A single value or an array of values.
     **&#x2F;
-    relationArrayMixin.load = function(callback, errorCallback) {
-        var parent = this.parentEntity;
-        var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
-        var em = parent.entityAspect.entityManager;
-        return em.executeQuery(query, callback, errorCallback);
+    var ctor = function (entityType, keyValues) {
+        &#x2F;&#x2F; can&#x27;t ref EntityType here because of module circularity
+        &#x2F;&#x2F; assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
+        if (!Array.isArray(keyValues)) {
+            keyValues = __arraySlice(arguments, 1);
+        }
+        &#x2F;&#x2F; fluff
+        &#x2F;&#x2F;if (!(this instanceof ctor)) {
+        &#x2F;&#x2F;    return new ctor(entityType, keyValues);
+        &#x2F;&#x2F;}
+        this.entityType = entityType;
+        this.values = keyValues;
+        this._keyInGroup = createKeyString(keyValues);
+    };
+    ctor._$typeName = &quot;EntityKey&quot;;
+    var proto = ctor.prototype;
+
+    proto.toJSON = function () {
+        return {
+            entityType: this.entityType.name,
+            values: this.values
+        };
     };
 
-    relationArrayMixin._getEventParent = function() {
-        return this.parentEntity.entityAspect;
+    ctor.fromJSON = function (json, metadataStore) {
+        var et = metadataStore._getEntityType(json.entityType, true);
+        return new EntityKey(et, json.values);
     };
 
-    relationArrayMixin._getPendingPubs = function() {
-        var em = this.parentEntity.entityAspect.entityManager;
-        return em &amp;&amp; em._pendingPubs;
+    &#x2F;**
+    Used to compare EntityKeys are determine if they refer to the same Entity.
+    There is also an static version of &#x27;equals&#x27; with the same functionality. 
+    @example
+        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
+        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+        var empKey1 = new EntityKey(empType, 1);
+        &#x2F;&#x2F; assume employee1 is an existing Employee entity
+        var empKey2 = employee1.entityAspect.getKey();
+        if (empKey1.equals(empKey2)) {
+            &#x2F;&#x2F; do something  ...
+        }
+    @method equals
+    @param entityKey {EntityKey}
+    **&#x2F;
+    proto.equals = function (entityKey) {
+        if (!(entityKey instanceof EntityKey)) return false;
+        return (this.entityType === entityKey.entityType) &amp;&amp;
+            __arrayEquals(this.values, entityKey.values);
     };
 
-    function getGoodAdds(relationArray, adds) {
-        var goodAdds = checkForDups(relationArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
+    &#x2F;*
+    Returns a human readable representation of this EntityKey.
+    @method toString
+    *&#x2F;
+    proto.toString = function () {
+        return this.entityType.name + &#x27;-&#x27; + this._keyInGroup;
+    };
+
+    &#x2F;**
+    Used to compare EntityKeys are determine if they refer to the same Entity. 
+    There is also an instance version of &#x27;equals&#x27; with the same functionality. 
+    @example
+        &#x2F;&#x2F; assume em1 is an EntityManager containing a number of existing entities.
+        var empType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
+        var empKey1 = new EntityKey(empType, 1);
+        &#x2F;&#x2F; assume employee1 is an existing Employee entity
+        var empKey2 = employee1.entityAspect.getKey();
+        if (EntityKey.equals(empKey1, empKey2)) {
+            &#x2F;&#x2F; do something  ...
         }
-        var parentEntity = relationArray.parentEntity;
-        var entityManager = parentEntity.entityAspect.entityManager;
-        &#x2F;&#x2F; we do not want to attach an entity during loading
-        &#x2F;&#x2F; because these will all be &#x27;attached&#x27; at a later step.
-        if (entityManager &amp;&amp; !entityManager.isLoading) {
-            goodAdds.forEach(function(add) {
-                if (add.entityAspect.entityState.isDetached()) {
-                    relationArray._inProgress = true;
-                    try {
-                        entityManager.attachEntity(add, EntityState.Added);
-                    } finally {
-                        relationArray._inProgress = false;
-                    }
-                }
-            });
-        }
-        return goodAdds;
+    @method equals
+    @static
+    @param k1 {EntityKey}
+    @param k2 {EntityKey}
+    **&#x2F;
+    ctor.equals = function (k1, k2) {
+        if (!(k1 instanceof EntityKey)) return false;
+        return k1.equals(k2);
+    };
+
+    &#x2F;&#x2F; TODO: we may want to compare to default values later.
+    proto._isEmpty = function () {
+        return this.values.join(&quot;&quot;).length === 0;
+    };
+
+    function createKeyString(keyValues) {
+        return keyValues.join(ENTITY_KEY_DELIMITER);
     }
 
-    function checkForDups(relationArray, adds) {
-        &#x2F;&#x2F; don&#x27;t allow dups in this array. - also prevents recursion 
-        var inverseProp = relationArray.navigationProperty.inverse;
-        var goodAdds = adds.filter(function(a) {
-            if (relationArray._addsInProcess.indexOf(a) &gt;= 0) {
-                return false;
-            }
-            var inverseValue = a.getProperty(inverseProp.name);
-            return inverseValue != relationArray.parentEntity;
-        });
-        return goodAdds;
-    }
+    return ctor;
+})();
 
-    function processAdds(relationArray, adds) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            var addsInProcess = relationArray._addsInProcess;
-            var startIx = addsInProcess.length;
-            try {
-                adds.forEach(function(childEntity) {
-                    addsInProcess.push(childEntity);
-                    childEntity.setProperty(inp.name, relationArray.parentEntity);
-                });
-            } finally {
-                addsInProcess.splice(startIx, adds.length);
-            }
-            ;
-        }
+breeze.EntityKey = EntityKey;
 
-        &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, added: adds });
-
-    }
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== &quot;relationArray&quot; &amp;&amp; target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error(&quot;Cannot combine non array args&quot;);
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
-    }
-
-    function processRemoves(relationArray, removes) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            removes.forEach(function(childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
-        }
-        &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, removed: removes });
-    }
-
-
-    function makeRelationArray(arr, parentEntity, navigationProperty) {
-        arr.parentEntity = parentEntity;
-        arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event(&quot;arrayChanged_entityCollection&quot;, arr);
-        &#x2F;&#x2F; array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
-        return __extend(arr, relationArrayMixin);
-    }
-
-    return makeRelationArray;
-}();
     </pre>
 </div>
 

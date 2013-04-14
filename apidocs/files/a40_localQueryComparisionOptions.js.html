@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>FetchStrategy - The Breeze API</title>
+    <title>a40_localQueryComparisionOptions.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,196 +179,109 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>FetchStrategy Class</h1>
-<div class="box meta">
-    
+                        <h1 class="file-heading">File: a40_localQueryComparisionOptions.js</h1>
 
-    
+<div class="file">
+    <pre class="code prettyprint linenums">
+﻿&#x2F;**
+@module breeze
+**&#x2F;
 
-    
-        <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l38"><code>a45_queryOptions.js:38</code></a>
-        </div>
-    
+var LocalQueryComparisonOptions = (function () {
 
+    &#x2F;**
+    A LocalQueryComparisonOptions instance is used to specify the &quot;comparison rules&quot; used when performing &quot;local queries&quot; in order 
+    to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
+    manner in which your remote service interprets certain comparison operations.
     
+    The default LocalQueryComparisonOptions stipulates &#x27;caseInsensitive&quot; queries with ANSI SQL rules regarding comparisons of unequal
+    length strings. 
+    
+    @class LocalQueryComparisonOptions
+    **&#x2F;
+
+    &#x2F;**
+    LocalQueryComparisonOptions constructor
+    @example
+        &#x2F;&#x2F; create a &#x27;caseSensitive - non SQL&#x27; instance.
+        var lqco = new LocalQueryComparisonOptions({
+            name: &quot;caseSensitive-nonSQL&quot;
+            isCaseSensitive: true;
+            usesSql92CompliantStringComparison: false;
+        });
+        &#x2F;&#x2F; either apply it globally
+        lqco.setAsDefault();
+        &#x2F;&#x2F; or to a specific MetadataStore
+        var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
+        var em = new EntityManager( { metadataStore: ms });
+    
+    @method &lt;ctor&gt; LocalQueryComparisonOptions
+    @param config {Object}
+    @param [config.name] {String}
+    @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a &quot;caseSensitive&quot; manner. Default is &#x27;false&#x27;
+    @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
+        of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
+        inequality predicates, and not with operations like &#x27;startsWith&#x27;, &#x27;endsWith&#x27; or &#x27;contains&#x27;.  Default is true.
+    **&#x2F;
+
+    var ctor = function (config) {
+        assertConfig(config || {})
+            .whereParam(&quot;name&quot;).isOptional().isString()
+            .whereParam(&quot;isCaseSensitive&quot;).isOptional().isBoolean()
+            .whereParam(&quot;usesSql92CompliantStringComparison&quot;).isBoolean()
+            .applyAll(this);
+        if (!this.name) {
+            this.name = __getUuid();
+        }
+        __config._storeObject(this, proto._$typeName, this.name);
+    };
+    var proto = ctor.prototype;
+    proto._$typeName = &quot;LocalQueryComparisonOptions&quot;;
         
-            Module: <a href="../modules/breeze.html">breeze</a>
-        
-    
+    &#x2F;&#x2F; 
+    &#x2F;**
+    Case insensitive SQL compliant options - this is also the default unless otherwise changed.
+    @property caseInsensitiveSQL {LocalQueryComparisonOptions}
+    @static
+    **&#x2F;
+    ctor.caseInsensitiveSQL = new ctor({
+        name: &quot;caseInsensitiveSQL&quot;,
+        isCaseSensitive: false,
+        usesSql92CompliantStringComparison: true
+    });
 
-    
-</div>
+    &#x2F;**
+    The default value whenever LocalQueryComparisonOptions are not specified. By default this is &#x27;caseInsensitiveSQL&#x27;.
+    @property defaultInstance {LocalQueryComparisonOptions}
+    @static
+    **&#x2F;
+    ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
+
+    &#x2F;**
+    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
+    @method setAsDefault
+    @example
+        var lqco = new LocalQueryComparisonOptions({
+            isCaseSensitive: false;
+            usesSql92CompliantStringComparison: true;
+        });
+        lqco.setAsDefault();
+    @chainable
+    **&#x2F;
+    proto.setAsDefault = function () {
+        return __setAsDefault(this, ctor);
+    };
+
+
+    return ctor;
+})();
+       
+breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
 
 
 
-<div class="box intro">
-    <p>FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.</p>
-</div>
-
-
-
-<div id="classdocs" class="tabview">
-    <ul class="api-class-tabs">
-        <li class="api-class-tab index"><a href="#index">Index</a></li>
-
-        
-        
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
-        
-        
-        
-    </ul>
-
-    <div>
-        <div id="index" class="api-class-tabpanel index">
-            <h2 class="off-left">Item Index</h2>
-
-            
-
-            
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromLocalCache">FromLocalCache</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromServer">FromServer</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
-
-            
-
-            
-        </div>
-
-        
-
-        
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
-
-                
-                    <div id="property_FromLocalCache" class="property item">
-    <h3 class="name"><code>FromLocalCache</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l52"><code>a45_queryOptions.js:52</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_FromServer" class="property item">
-    <h3 class="name"><code>FromServer</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l45"><code>a45_queryOptions.js:45</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>FromServer is used to tell the query to execute the query against a remote data source on the server.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-            </div>
-        
-
-        
-
-        
-    </div>
+    </pre>
 </div>
 
                     </div>

@@ -811,6 +811,10 @@ function test_validator() {
         displayName: "Country"
     });
     breeze.Validator.messageTemplates["countryIsUS"] = "'%displayName%' must start with 'US'";
+    breeze.Validator.register(countryValidator);
+    breeze.Validator.registerFactory(function () {
+        return countryValidator;
+    }, "country");
 }
 function test_demo() {
     var manager = new breeze.EntityManager('api/northwind');

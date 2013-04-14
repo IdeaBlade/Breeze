@@ -187,7 +187,7 @@
  @module core
  **&#x2F;
 
-var Param = function () {
+var Param = (function () {
     &#x2F;&#x2F; The %1 parameter 
     &#x2F;&#x2F; is required
     &#x2F;&#x2F; must be a %2
@@ -252,11 +252,12 @@ var Param = function () {
         return false;
     }
 
-    proto.isInstanceOf = function(type, typeName) {
+    proto.isInstanceOf = function (type, typeName) {
+        typeName = typeName || type.prototype._$typeName;
         return addContext(this, {
             fn: isInstanceOf,
             type: type,
-            typeName: typeName || type.prototype._$typeName,
+            typeName: typeName,
             msg: __formatString(&quot;must be an instance of &#x27;%1&#x27;&quot;, typeName)
         });
     };
@@ -480,7 +481,7 @@ var Param = function () {
             for (var key in clone) {
                 &#x2F;&#x2F; allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throw new Error(&quot;Invalid property in config: &quot; + key);
+                    throw new Error(__formatString(&quot;Unknown property &#x27;%1&#x27; found while configuring an instance of &#x27;%2&#x27;.&quot;, key, (instance &amp;&amp; instance._$typeName) || &quot;object&quot;));
                 }
             }
         }
@@ -496,16 +497,15 @@ var Param = function () {
         }
     };
 
-
     proto.MESSAGE_PREFIX = &quot;The &#x27;%1&#x27; parameter &quot;;
     return ctor;
-}();
+})();
 
 var assertParam = function (v, name) {
     return new Param(v, name);
 };
 
-var ConfigParam = function() {
+var ConfigParam = (function() {
     var ctor = function(config) {
         if (typeof(config) !== &quot;object&quot;) {
             throw new Error(&quot;Configuration parameter should be an object, instead it is a: &quot; + typeof(config));
@@ -522,7 +522,7 @@ var ConfigParam = function() {
         return param;
     };
     return ctor;
-}();
+})();
 
 var assertConfig = function(config) {
     return new ConfigParam(config);

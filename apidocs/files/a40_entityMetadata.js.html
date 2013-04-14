@@ -190,221 +190,7 @@
 var Q = __requireLib(&quot;Q&quot;, &quot;See https:&#x2F;&#x2F;github.com&#x2F;kriskowal&#x2F;q &quot;);
 
 &#x2F;&#x2F; TODO: still need to handle inheritence here.
-
-var LocalQueryComparisonOptions = (function () {
-
-    &#x2F;**
-    A LocalQueryComparisonOptions instance is used to specify the &quot;comparison rules&quot; used when performing &quot;local queries&quot; in order 
-    to match the semantics of these same queries when executed against a remote service.  These options should be set based on the 
-    manner in which your remote service interprets certain comparison operations.
-    
-    The default LocalQueryComparisonOptions stipulates &#x27;caseInsensitive&quot; queries with ANSI SQL rules regarding comparisons of unequal
-    length strings. 
-    
-    @class LocalQueryComparisonOptions
-    **&#x2F;
-
-    &#x2F;**
-    LocalQueryComparisonOptions constructor
-    @example
-        &#x2F;&#x2F; create a &#x27;caseSensitive - non SQL&#x27; instance.
-        var lqco = new LocalQueryComparisonOptions({
-            name: &quot;caseSensitive-nonSQL&quot;
-            isCaseSensitive: true;
-            usesSql92CompliantStringComparison: false;
-        });
-        &#x2F;&#x2F; either apply it globally
-        lqco.setAsDefault();
-        &#x2F;&#x2F; or to a specific MetadataStore
-        var ms = new MetadataStore({ localQueryComparisonOptions: lqco });
-        var em = new EntityManager( { metadataStore: ms });
-    
-    @method &lt;ctor&gt; LocalQueryComparisonOptions
-    @param config {Object}
-    @param [config.name] {String}
-    @param [config.isCaseSensitive] {Boolean} Whether predicates that involve strings will be interpreted in a &quot;caseSensitive&quot; manner. Default is &#x27;false&#x27;
-    @param [config.usesSql92CompliantStringComparison] {Boolean} Whether of not to enforce the ANSI SQL standard 
-        of padding strings of unequal lengths before comparison with spaces. Note that per the standard, padding only occurs with equality and 
-        inequality predicates, and not with operations like &#x27;startsWith&#x27;, &#x27;endsWith&#x27; or &#x27;contains&#x27;.  Default is true.
-    **&#x2F;
-
-    var ctor = function (config) {
-        assertConfig(config || {})
-            .whereParam(&quot;name&quot;).isOptional().isString()
-            .whereParam(&quot;isCaseSensitive&quot;).isOptional().isBoolean()
-            .whereParam(&quot;usesSql92CompliantStringComparison&quot;).isBoolean()
-            .applyAll(this);
-        if (!this.name) {
-            this.name = __getUuid();
-        }
-        __config._storeObject(this, proto._$typeName, this.name);
-    };
-    var proto = ctor.prototype;
-    proto._$typeName = &quot;LocalQueryComparisonOptions&quot;;
-        
-    &#x2F;&#x2F; 
-    &#x2F;**
-    Case insensitive SQL compliant options - this is also the default unless otherwise changed.
-    @property caseInsensitiveSQL {LocalQueryComparisonOptions}
-    @static
-    **&#x2F;
-    ctor.caseInsensitiveSQL = new ctor({
-        name: &quot;caseInsensitiveSQL&quot;,
-        isCaseSensitive: false,
-        usesSql92CompliantStringComparison: true
-    });
-
-    &#x2F;**
-    The default value whenever LocalQueryComparisonOptions are not specified. By default this is &#x27;caseInsensitiveSQL&#x27;.
-    @property defaultInstance {LocalQueryComparisonOptions}
-    @static
-    **&#x2F;
-    ctor.defaultInstance = new ctor(ctor.caseInsensitiveSQL);
-
-    &#x2F;**
-    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
-    The current instance is returned unchanged.
-    @method setAsDefault
-    @example
-        var lqco = new LocalQueryComparisonOptions({
-            isCaseSensitive: false;
-            usesSql92CompliantStringComparison: true;
-        });
-        lqco.setAsDefault();
-    @chainable
-    **&#x2F;
-    proto.setAsDefault = function () {
-        return __setAsDefault(this, ctor);
-    };
-
-
-    return ctor;
-})();
-    
-var NamingConvention = (function () {
-    &#x2F;**
-    A NamingConvention instance is used to specify the naming conventions under which a MetadataStore 
-    will translate property names between the server and the javascript client. 
-    
-    The default NamingConvention does not perform any translation, it simply passes property names thru unchanged.
-    
-    @class NamingConvention
-    **&#x2F;
-        
-    &#x2F;**
-    NamingConvention constructor
-
-    @example
-        &#x2F;&#x2F; A naming convention that converts the first character of every property name to uppercase on the server
-        &#x2F;&#x2F; and lowercase on the client.
-        var namingConv = new NamingConvention({
-            serverPropertyNameToClient: function(serverPropertyName) {
-                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-            },
-            clientPropertyNameToServer: function(clientPropertyName) {
-                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-            }            
-        });
-    var ms = new MetadataStore({ namingConvention: namingConv });
-    var em = new EntityManager( { metadataStore: ms });
-    @method &lt;ctor&gt; NamingConvention
-    @param config {Object}
-    @param config.serverPropertyNameToClient {Function} Function that takes a server property name add converts it into a client side property name.  
-    @param config.clientPropertyNameToServer {Function} Function that takes a client property name add converts it into a server side property name.  
-    **&#x2F;
-    var ctor = function(config) {
-        assertConfig(config || {})
-            .whereParam(&quot;name&quot;).isOptional().isString()
-            .whereParam(&quot;serverPropertyNameToClient&quot;).isFunction()
-            .whereParam(&quot;clientPropertyNameToServer&quot;).isFunction()
-            .applyAll(this);
-        if (!this.name) {
-            this.name = __getUuid();
-        }
-        __config._storeObject(this, proto._$typeName, this.name);
-    };
-    var proto = ctor.prototype;
-    proto._$typeName = &quot;NamingConvention&quot;;
-        
-    &#x2F;**
-    The function used to convert server side property names to client side property names.
-
-    @method serverPropertyNameToClient
-    @param serverPropertyName {String}
-    @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
-    @return {String} The client side property name.
-    **&#x2F;
-
-    &#x2F;**
-    The function used to convert client side property names to server side property names.
-
-    @method clientPropertyNameToServer
-    @param clientPropertyName {String}
-    @param [property] {DataProperty|NavigationProperty} The actual DataProperty or NavigationProperty corresponding to the property name.
-    @return {String} The server side property name.
-    **&#x2F;
-        
-    &#x2F;**
-    A noop naming convention - This is the default unless another is specified.
-    @property none {NamingConvention}
-    @static
-    **&#x2F;
-    ctor.none = new ctor({
-        name: &quot;noChange&quot;,
-        serverPropertyNameToClient: function(serverPropertyName) {
-            return serverPropertyName;
-        },
-        clientPropertyNameToServer: function(clientPropertyName) {
-            return clientPropertyName;
-        }
-    });
-        
-    &#x2F;**
-    The &quot;camelCase&quot; naming convention - This implementation only lowercases the first character of the server property name
-    but leaves the rest of the property name intact.  If a more complicated version is needed then one should be created via the ctor.
-    @property camelCase {NamingConvention}
-    @static
-    **&#x2F;
-    ctor.camelCase = new ctor({
-        name: &quot;camelCase&quot;,
-        serverPropertyNameToClient: function (serverPropertyName) {
-            return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-        },
-        clientPropertyNameToServer: function (clientPropertyName) {
-            return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-        }
-    });
-        
-    &#x2F;**
-    The default value whenever NamingConventions are not specified.
-    @property defaultInstance {NamingConvention}
-    @static
-    **&#x2F;
-    ctor.defaultInstance = new ctor(ctor.none);
-        
-    &#x2F;**
-    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
-    The current instance is returned unchanged.
-    @method setAsDefault
-    @example
-        var namingConv = new NamingConvention({
-            serverPropertyNameToClient: function(serverPropertyName) {
-                return serverPropertyName.substr(0, 1).toLowerCase() + serverPropertyName.substr(1);
-            },
-            clientPropertyNameToServer: function(clientPropertyName) {
-                return clientPropertyName.substr(0, 1).toUpperCase() + clientPropertyName.substr(1);
-            }            
-        });
-        namingConv.setAsDefault();
-    @chainable
-    **&#x2F;
-    proto.setAsDefault = function () {
-        return __setAsDefault(this, ctor);
-    };
-        
-    return ctor;
-})();
-    
+             
 var MetadataStore = (function () {
 
     &#x2F;**
@@ -490,6 +276,17 @@ var MetadataStore = (function () {
     @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
     **&#x2F;
     proto.addEntityType = function (structuralType) {
+        if (!(structuralType instanceof EntityType || structuralType instanceof ComplexType)) {
+            structuralType = structuralType.isComplexType ? new ComplexType(structuralType) : new EntityType(structuralType);
+        }
+
+        if (!structuralType.isComplexType) {
+            if (structuralType.keyProperties.length === 0) {
+                throw new Error(&quot;Unable to add &quot; + structuralType.name +
+                    &quot; to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the &#x27;DataProperty.isPartOfKey&#x27; property.&quot;);
+            }
+        }
+
         structuralType.metadataStore = this;
         &#x2F;&#x2F; don&#x27;t register anon types
         if (!structuralType.isAnonymous) {
@@ -503,7 +300,12 @@ var MetadataStore = (function () {
                 structuralType._mappedPropertiesCount++;
             }
         });
-        checkTypeRegistry(this, structuralType);
+
+        if (!structuralType.isComplexType) {
+            structuralType.defaultResourceName &amp;&amp; this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
+            &#x2F;&#x2F; check if this structural type&#x27;s name, short version or qualified version has a registered ctor.
+            structuralType.getEntityCtor();
+        }
     };
         
     &#x2F;**
@@ -691,6 +493,8 @@ var MetadataStore = (function () {
             &#x2F;&#x2F; use the dataService with a matching name or create a new one.
             dataService = this.getDataService(dataService) || new DataService({ serviceName: dataService });
         }
+
+        dataService = DataService.resolve([dataService]);
            
         if (this.hasMetadataFor(dataService.serviceName)) {
             throw new Error(&quot;Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: &quot; + dataService.serviceName);
@@ -755,25 +559,16 @@ var MetadataStore = (function () {
         assertParam(structuralTypeName, &quot;structuralTypeName&quot;).isString().check();
         assertParam(aCtor, &quot;aCtor&quot;).isFunction().isOptional().check();
         assertParam(initializationFn, &quot;initializationFn&quot;).isOptional().isFunction().or().isString().check();
-        if (!aCtor) {
-            aCtor = createEmptyCtor();
-        }
+        
         var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
-        var typeName;
+        var typeName = qualifiedTypeName || structuralTypeName;
+            
+        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initializationFn };
         if (qualifiedTypeName) {
             var stype = this._structuralTypeMap[qualifiedTypeName];
-            if (stype) {
-                stype._setCtor(aCtor);
-            }
-            typeName = qualifiedTypeName;
-        } else {
-            typeName = structuralTypeName;
+            stype &amp;&amp; stype.getCtor(true); &#x2F;&#x2F; this will complete the registration if avail now.
         }
-        aCtor.prototype._$typeName = typeName;
-        this._ctorRegistry[typeName] = aCtor;
-        if (initializationFn) {
-            aCtor._$initializationFn = initializationFn;
-        }
+        
     };
     
     proto.toQueryString = function(query) {
@@ -788,11 +583,7 @@ var MetadataStore = (function () {
             throw new Error(&quot;unable to recognize query parameter as either a string or an EntityQuery&quot;);
         }
     }
-      
-    function createEmptyCtor() {
-        return function() {};
-    }
-        
+             
     &#x2F;**
     Returns whether this MetadataStore contains any metadata yet.
     @example
@@ -826,7 +617,7 @@ var MetadataStore = (function () {
     proto.getEntityType = function (structuralTypeName, okIfNotFound) {
         assertParam(structuralTypeName, &quot;structuralTypeName&quot;).isString().check();
         assertParam(okIfNotFound, &quot;okIfNotFound&quot;).isBoolean().isOptional().check(false);
-        return getTypeFromMap(this, this._structuralTypeMap, structuralTypeName, okIfNotFound);
+        return this._getEntityType(structuralTypeName, okIfNotFound);
     };
 
     &#x2F;**
@@ -841,11 +632,9 @@ var MetadataStore = (function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
         
-        
-    function getTypeFromMap(metadataStore, typeMap, typeName, okIfNotFound) {
-            
-        var qualTypeName = getQualifiedTypeName(metadataStore, typeName, false);
-        var type = typeMap[qualTypeName];
+    proto._getEntityType = function(typeName, okIfNotFound) {
+        var qualTypeName = getQualifiedTypeName(this, typeName, false);
+        var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
             throw new Error(&quot;Unable to locate a &#x27;Type&#x27; by the name: &quot; + typeName);
@@ -855,8 +644,9 @@ var MetadataStore = (function () {
             throw new Error(&quot;There are multiple types with this &#x27;shortName&#x27;: &quot; + typeNames);
         }
         return type;
-    };
-        
+
+    }
+               
     function getTypesFromMap(typeMap) {
         var types = [];
         for (var key in typeMap) {
@@ -914,7 +704,7 @@ var MetadataStore = (function () {
         }
 
         this._resourceEntityTypeMap[resourceName] = entityTypeName;
-        var entityType = this.getEntityType(entityTypeName, true);
+        var entityType = this._getEntityType(entityTypeName, true);
         if (entityType &amp;&amp; !entityType.defaultResourceName) {
             entityType.defaultResourceName = resourceName;
         }
@@ -922,7 +712,18 @@ var MetadataStore = (function () {
 
     &#x2F;&#x2F; protected methods
 
-    
+    ctor._getNormalizedTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName &amp;&amp; normalizeTypeName(rawTypeName).typeName;
+    });
+    &#x2F;&#x2F; for debugging use the line below instead.
+    &#x2F;&#x2F;ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
+
+    proto._getCtorRegistration = function(structuralType) {
+        var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
+        if (!r.ctor) {
+            structuralType.getEntityCtor();
+        }
+    }
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -930,7 +731,7 @@ var MetadataStore = (function () {
         if (!typeName) {
             throw new Error(&quot;This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method&quot;);
         }
-        var entityType = this.getEntityType(typeName);
+        var entityType = this._getEntityType(typeName);
         if (entityType) {
             entity.entityType = entityType;
         }
@@ -982,7 +783,7 @@ var MetadataStore = (function () {
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
-        var stype = metadataStore.getEntityType(typeName, true);
+        var stype = metadataStore._getEntityType(typeName, true);
         if (stype) return stype;
         var config = {
             shortName: json.shortName,
@@ -1013,18 +814,47 @@ var MetadataStore = (function () {
         metadataStore.addEntityType(stype);
         return stype;
     };
-        
-    function checkTypeRegistry(metadataStore, structuralType) {
-        structuralType.defaultResourceName &amp;&amp; metadataStore.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
-        &#x2F;&#x2F; check if this structural type&#x27;s name, short version or qualified version has a registered ctor.
-        var typeCtor = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
-        if (typeCtor) {
-            &#x2F;&#x2F; next line is in case the entityType was originally registered with a shortname.
-            typeCtor.prototype._$typeName = structuralType.name;
-            structuralType._setCtor(typeCtor);
+
+    &#x2F;&#x2F; schema is only needed for navProperty type name
+    function normalizeTypeName(entityTypeName, schema) {
+        if (!entityTypeName) {
+            return null;
+        }
+        if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: &quot;&quot;,
+                typeName: entityTypeName,
+                isAnon: true
+            };
+        }
+        var entityTypeNameNoAssembly = entityTypeName.split(&quot;,&quot;)[0];
+        var nameParts = entityTypeNameNoAssembly.split(&quot;.&quot;);
+        if (nameParts.length &gt; 1) {
+
+            var shortName = nameParts[nameParts.length - 1];
+
+            var ns;
+            if (schema) {
+                ns = getNamespaceFor(shortName, schema);
+            } else {
+                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+                ns = namespaceParts.join(&quot;.&quot;);
+            }
+            return {
+                shortTypeName: shortName,
+                namespace: ns,
+                typeName: qualifyTypeName(shortName, ns)
+            };
+        } else {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: &quot;&quot;,
+                typeName: entityTypeName
+            };
         }
     }
-
+        
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
         var result = metadataStore._shortNameMap[structTypeName];
@@ -1271,206 +1101,6 @@ var MetadataStore = (function () {
     return ctor;
 })();
 
-var DataService = (function () {
-        
-    &#x2F;**
-    A DataService instance is used to encapsulate the details of a single &#x27;service&#x27;; this includes a serviceName, a dataService adapterInstance, 
-    and whether the service has server side metadata.  
-
-    You can construct an EntityManager with either a serviceName or a DataService instance, if you use a serviceName then a DataService 
-    is constructed for you.  (It can also be set via the EntityManager.setProperties method).
-
-    The same applies to the MetadataStore.fetchMetadata method, i.e. it takes either a serviceName or a DataService instance.
-
-    Each metadataStore contains a list of DataServices, each accessible via its ‘serviceName’. 
-    ( see MetadataStore.getDataService and MetadataStore.addDataService).  The ‘addDataService’ method is called internally 
-    anytime a MetadataStore.fetchMetadata call occurs with a new dataService ( or service name).
-    @class DataService
-    **&#x2F;
-
-    &#x2F;**
-    DataService constructor
-
-    @example
-        &#x2F;&#x2F; 
-        var dataService = new DataService({
-            serviceName: altServiceName,
-            hasServerMetadata: false
-        });
-
-        var metadataStore = new MetadataStore({
-            namingConvention: NamingConvention.camelCase
-        });
-
-        return new EntityManager({
-            dataService: dataService,
-            metadataStore: metadataStore
-        });
-            
-    @method &lt;ctor&gt; DataService
-    @param config {Object}
-    @param config.serviceName {String} The name of the service. 
-    @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service. 
-    @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
-    @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
-    **&#x2F;
-        
-    var ctor = function(config) {
-        if (arguments.length != 1) {
-            throw new Error(&quot;The DataService ctor should be called with a single argument that is a configuration object.&quot;);
-        }
-
-        assertConfig(config)
-            .whereParam(&quot;serviceName&quot;).isNonEmptyString()
-            .whereParam(&quot;adapterName&quot;).isString().isOptional().withDefault(null)
-            .whereParam(&quot;hasServerMetadata&quot;).isBoolean().isOptional().withDefault(true)
-            .whereParam(&quot;jsonResultsAdapter&quot;).isInstanceOf(JsonResultsAdapter).isOptional().withDefault(null)
-            .applyAll(this);
-        this.serviceName = DataService._normalizeServiceName(this.serviceName);
-        this.adapterInstance = __config.getAdapterInstance(&quot;dataService&quot;, this.adapterName);
-            
-        if (!this.jsonResultsAdapter) {
-            this.jsonResultsAdapter = this.adapterInstance.jsonResultsAdapter;
-        }
-    };
-    var proto = ctor.prototype;
-    proto._$typeName = &quot;DataService&quot;;
-        
-    &#x2F;**
-    The serviceName for this DataService.
-
-    __readOnly__
-    @property serviceName {String}
-    **&#x2F;
-        
-    &#x2F;**
-    The adapter name for the dataServiceAdapter to be used with this service.
-
-    __readOnly__
-    @property adapterName {String}
-    **&#x2F;
-        
-    &#x2F;**
-    The &quot;dataService&quot; adapter implementation instance associated with this EntityManager.
-
-    __readOnly__
-    @property adapterInstance {an instance of the &quot;dataService&quot; adapter interface}
-    **&#x2F;
-
-    &#x2F;**
-    Whether the server can provide metadata for this service.
-
-    __readOnly__
-    @property hasServerMetadata {Boolean}
-    **&#x2F;
-        
-    &#x2F;**
-    The JsonResultsAdapter used to process the results of any query against this DataService.
-
-    __readOnly__
-    @property jsonResultsAdapter {Boolean}
-    **&#x2F;
-        
-    ctor._normalizeServiceName = function(serviceName) {
-        serviceName = serviceName.trim();
-        if (serviceName.substr(-1) !== &quot;&#x2F;&quot;) {
-            return serviceName + &#x27;&#x2F;&#x27;;
-        } else {
-            return serviceName;
-        }
-    };
-        
-    proto.toJSON = function () {
-        return __toJson(this, {
-            serviceName: null,
-            adapterName: null,
-            hasServerMetadata: true,
-            jsonResultsAdapter: function(v) { return v &amp;&amp; v.name; }
-        });
-        
-    };
-
-    ctor.fromJSON = function(json) {
-        json.jsonResultsAdapter = __config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
-        return new DataService(json);
-    };
-
-    return ctor;
-})();
-    
-var JsonResultsAdapter = (function () {
-
-    &#x2F;**
-    A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. 
-    This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class &#x27;breeze&#x27; citizens. 
-
-    @class JsonResultsAdapter
-    **&#x2F;
-
-    &#x2F;**
-    JsonResultsAdapter constructor
-
-    @example
-        &#x2F;&#x2F; 
-        var jsonResultsAdapter = new JsonResultsAdapter({
-            name: &quot;test1e&quot;,
-            extractResults: function(json) {
-                return json.results;
-            },
-            visitNode: function(node, queryContext, nodeContext) {
-                var entityTypeName = normalizeTypeName(node.$type);
-                var entityType = entityTypeName &amp;&amp; queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                var propertyName = nodeContext.propertyName;
-                var ignore = propertyName &amp;&amp; propertyName.substr(0, 1) === &quot;$&quot;;
-
-                return {
-                    entityType: entityType,
-                    nodeId: node.$id,
-                    nodeRefId: node.$ref,
-                    ignore: ignore
-                };
-            }
-        });
-
-        var dataService = new DataService( {
-                serviceName: &quot;api&#x2F;foo&quot;,
-                jsonResultsAdapter: jsonResultsAdapter
-        });
-
-        var entityManager = new EntityManager( {
-            dataService: dataService
-        });
-            
-    @method &lt;ctor&gt; JsonResultsAdapter
-    @param config {Object}
-    @param config.name {String} The name of this adapter.  This name is used to uniquely identify and locate this instance when an &#x27;exported&#x27; JsonResultsAdapter is later imported.
-    @param [config.extractResults] {Function} Called once per service operation to extract the &#x27;payload&#x27; from any json received over the wire. 
-    This method has a default implementation which to simply return the &quot;results&quot; property from any json returned as a result of executing the query.
-    @param config.visitNode {Function} A visitor method that will be called on each node of the returned payload. 
-    **&#x2F;
-    var ctor = function (config) {
-        if (arguments.length != 1) {
-            throw new Error(&quot;The JsonResultsAdapter ctor should be called with a single argument that is a configuration object.&quot;);
-        }
-
-        assertConfig(config)
-            .whereParam(&quot;name&quot;).isNonEmptyString()
-            .whereParam(&quot;extractResults&quot;).isFunction().isOptional().withDefault(extractResultsDefault)
-            .whereParam(&quot;visitNode&quot;).isFunction()
-            .applyAll(this);
-        __config._storeObject(this, proto._$typeName, this.name);
-    };
-        
-    var proto = ctor.prototype;
-    proto._$typeName = &quot;JsonResultsAdapter&quot;;
-        
-    function extractResultsDefault(data) {
-        return data.results;
-    }
-        
-    return ctor;
-})();
-
 var EntityType = (function () {
     &#x2F;**
     Container for all of the metadata about a specific type of Entity.
@@ -1509,13 +1139,14 @@ var EntityType = (function () {
                 .whereParam(&quot;namespace&quot;).isString().isOptional().withDefault(&quot;&quot;)
                 .whereParam(&quot;autoGeneratedKeyType&quot;).isEnumOf(AutoGeneratedKeyType).isOptional().withDefault(AutoGeneratedKeyType.None)
                 .whereParam(&quot;defaultResourceName&quot;).isNonEmptyString().isOptional().withDefault(null)
+                .whereParam(&quot;dataProperties&quot;).isOptional()
+                .whereParam(&quot;navigationProperties&quot;).isOptional()
                 .applyAll(this);
         }
 
         this.name = qualifyTypeName(this.shortName, this.namespace);
             
         &#x2F;&#x2F; the defaultResourceName may also be set up either via metadata lookup or first query or via the &#x27;setProperties&#x27; method
-            
         this.dataProperties = [];
         this.navigationProperties = [];
         this.complexProperties = [];
@@ -1526,11 +1157,15 @@ var EntityType = (function () {
         this.validators = [];
         this.warnings = [];
         this._mappedPropertiesCount = 0;
-            
+        &#x2F;&#x2F; now process any data&#x2F;nav props
+        addProperties(this, config.dataProperties, DataProperty);
+        addProperties(this, config.navigationProperties, NavigationProperty);
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;EntityType&quot;;
         
+    
+
         
     &#x2F;**
     The {{#crossLink &quot;MetadataStore&quot;}}{{&#x2F;crossLink}} that contains this EntityType
@@ -1725,21 +1360,23 @@ var EntityType = (function () {
 
     &#x2F;**
     Returns the constructor for this EntityType.
-    @method getEntityCtor
+    @method getCtor ( or obsolete getEntityCtor)
     @return {Function} The constructor for this EntityType.
     **&#x2F;
-    proto.getEntityCtor = function () {
-        if (this._ctor) return this._ctor;
+    proto.getCtor = proto.getEntityCtor = function (forceRefresh) {
+        if (this._ctor &amp;&amp; !forceRefresh) return this._ctor;
         var ctorRegistry = this.metadataStore._ctorRegistry;
-        var aCtor = ctorRegistry[this.name] || ctorRegistry[this.shortName];
+        var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
+        aCtor = r.ctor || this._ctor;
+        
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
-            if (createCtor) {
-                aCtor = createCtor(this);
-            } else {
-                aCtor = createEmptyCtor();
-            }
+            aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
+        if (r.initFn) {
+            aCtor._$initializationFn = r.initFn;
+        }
+        aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
         return aCtor;
     };
@@ -1976,7 +1613,7 @@ var EntityType = (function () {
             
         if (property.isComplexProperty) {
             &#x2F;&#x2F; Not ok to not find it. - all complex types should be resolved before they are ref&#x27;d.
-            var targetComplexType = this.metadataStore.getEntityType(property.complexTypeName, false);
+            var targetComplexType = this.metadataStore._getEntityType(property.complexTypeName, false);
             if (targetComplexType &amp;&amp; targetComplexType instanceof ComplexType) {
                 property.dataType = targetComplexType;
                 property.defaultValue = null;
@@ -1993,12 +1630,6 @@ var EntityType = (function () {
                 
         }
     };
-
-    ctor._getNormalizedTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName &amp;&amp; normalizeTypeName(rawTypeName).typeName;
-    });
-    &#x2F;&#x2F; for debugging use the line below instead.
-    &#x2F;&#x2F;ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
@@ -2128,7 +1759,7 @@ var EntityType = (function () {
         var incompleteTypeMap = metadataStore._incompleteTypeMap;
 
         &#x2F;&#x2F; ok to not find it yet
-        var targetEntityType = metadataStore.getEntityType(np.entityTypeName, true);
+        var targetEntityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (targetEntityType) {
             np.entityType = targetEntityType;
         }
@@ -2238,6 +1869,8 @@ var ComplexType = (function () {
         assertConfig(config)
             .whereParam(&quot;shortName&quot;).isNonEmptyString()
             .whereParam(&quot;namespace&quot;).isString().isOptional().withDefault(&quot;&quot;)
+            .whereParam(&quot;dataProperties&quot;).isOptional()
+            .whereParam(&quot;isComplexType&quot;).isOptional().isBoolean()   &#x2F;&#x2F; needed because this ctor can get called from the addEntityType method which needs the isComplexType prop
             .applyAll(this);
 
         this.name = qualifyTypeName(this.shortName, this.namespace);
@@ -2247,6 +1880,8 @@ var ComplexType = (function () {
         this.validators = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = [];
+
+        addProperties(this, config.dataProperties, DataProperty);
     };
     var proto = ctor.prototype;
     &#x2F;**
@@ -2445,7 +2080,7 @@ var DataProperty = (function () {
         assertConfig(config)
             .whereParam(&quot;name&quot;).isString().isOptional()
             .whereParam(&quot;nameOnServer&quot;).isString().isOptional()
-            .whereParam(&quot;dataType&quot;).isEnumOf(DataType).isOptional().or().isInstanceOf(ComplexType)
+            .whereParam(&quot;dataType&quot;).isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam(&quot;complexTypeName&quot;).isOptional()
             .whereParam(&quot;isNullable&quot;).isBoolean().isOptional().withDefault(true)
             .whereParam(&quot;defaultValue&quot;).isOptional()
@@ -2466,6 +2101,12 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
+        } else if (typeof(this.dataType) == &quot;string&quot; ) {
+            var dt = DataType.fromName(this.dataType);
+            if (!dt) {
+                throw new Error(&quot;Unable to find a DataType enumeration by the name of: &quot; + this.dataType);
+            }
+            this.dataType = dt;
         } else if (!this.dataType) {
             this.dataType = DataType.String;
         }
@@ -2490,6 +2131,8 @@ var DataProperty = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;DataProperty&quot;;
+
+    
 
     &#x2F;**
     The name of this property
@@ -2814,7 +2457,7 @@ var NavigationProperty = (function () {
     return ctor;
 })();
     
-var AutoGeneratedKeyType = function () {
+var AutoGeneratedKeyType = (function () {
     &#x2F;**
     AutoGeneratedKeyType is an &#x27;Enum&#x27; containing all of the valid states for an automatically generated key.
     @class AutoGeneratedKeyType
@@ -2851,7 +2494,7 @@ var AutoGeneratedKeyType = function () {
     ctor.seal();
 
     return ctor;
-}();
+})();
 
 &#x2F;&#x2F; mixin methods
 (function() {
@@ -2883,52 +2526,14 @@ var AutoGeneratedKeyType = function () {
     }
 })();
 
+&#x2F;&#x2F; functions shared between classes related to Metadata
+
 function isQualifiedTypeName(entityTypeName) {
     return entityTypeName.indexOf(&quot;:#&quot;) &gt;= 0;
 }
     
 function qualifyTypeName(shortName, namespace) {
     return shortName + &quot;:#&quot; + namespace;
-}
-
-&#x2F;&#x2F; schema is only needed for navProperty type name
-function normalizeTypeName(entityTypeName, schema) {
-    if (!entityTypeName) {
-        return null;
-    }
-    if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-        return {
-            shortTypeName: entityTypeName,
-            namespace: &quot;&quot;,
-            typeName: entityTypeName,
-            isAnon: true
-        };
-    }
-    var entityTypeNameNoAssembly = entityTypeName.split(&quot;,&quot;)[0];
-    var nameParts = entityTypeNameNoAssembly.split(&quot;.&quot;);
-    if (nameParts.length &gt; 1) {
-            
-        var shortName = nameParts[nameParts.length - 1];
-
-        var ns;
-        if (schema) {
-            ns = getNamespaceFor(shortName, schema);
-        } else {
-            var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-            ns = namespaceParts.join(&quot;.&quot;);
-        }
-        return {
-            shortTypeName: shortName,
-            namespace: ns,
-            typeName: qualifyTypeName(shortName, ns)
-        };
-    } else {
-        return {
-            shortTypeName: entityTypeName,
-            namespace: &quot;&quot;,
-            typeName: entityTypeName
-        };
-    }
 }
     
 function getNamespaceFor(shortName, schema) {
@@ -2941,17 +2546,31 @@ function getNamespaceFor(shortName, schema) {
     return ns || schema.namespace;
 }
 
+function addProperties(entityType, propObj, ctor) {
+
+    if (!propObj) return;
+    if (Array.isArray(propObj)) {
+        propObj.forEach(entityType.addProperty);
+    } else if (typeof (propObj) === &#x27;object&#x27;) {
+        for (var key in propObj) {
+            if (__hasOwnProperty(propObj, key)) {
+                var value = propObj[key];
+                value.name = key;
+                var prop = new ctor(value);
+                entityType.addProperty(prop);
+            }
+        }
+    } else {
+        throw new Error(&quot;The &#x27;dataProperties&#x27; or &#x27;navigationProperties&#x27; values must be either an array of data&#x2F;nav properties or an object where each property defines a data&#x2F;nav property&quot;);
+    }
+}
 
 breeze.MetadataStore= MetadataStore;
-breeze.DataService= DataService;
-breeze.JsonResultsAdapter = JsonResultsAdapter;
 breeze.EntityType = EntityType;
 breeze.ComplexType = ComplexType;
 breeze.DataProperty= DataProperty;
 breeze.NavigationProperty = NavigationProperty;
-breeze.DataType = DataType;
 breeze.AutoGeneratedKeyType = AutoGeneratedKeyType;
-breeze.NamingConvention = NamingConvention;
 
 
 

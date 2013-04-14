@@ -786,6 +786,9 @@ function test_validator() {
     };
     var countryValidator = new breeze.Validator("countryIsUS", valFn, { displayName: "Country" });
     breeze.Validator.messageTemplates["countryIsUS"] = "'%displayName%' must start with 'US'";
+
+    breeze.Validator.register(countryValidator);
+    breeze.Validator.registerFactory(() => countryValidator, "country");
 }
 
 function test_demo() {

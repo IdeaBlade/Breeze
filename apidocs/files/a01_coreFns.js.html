@@ -307,6 +307,25 @@ function __toJson(source, template) {
     return target;
 }
 
+&#x2F;&#x2F; resolves the values of a list of properties by checking each property in multiple sources until a value is found.
+function __resolveProperties(sources, propertyNames) {
+    var r = {};
+    var length = sources.length;
+    propertyNames.forEach(function (pn) {
+        for (var i = 0; i &lt; length; i++) {
+            var src = sources[i];
+            if (src) {
+                var val = src[pn];
+                if (val !== undefined) {
+                    r[pn] = val;
+                    break;
+                }
+            }
+        }
+    });
+    return r;
+}
+
 
 &#x2F;&#x2F; array functions
 
@@ -591,10 +610,10 @@ if (!Object.create) {
 
 var core = {};
 
-core.getOwnPropertyValues = __getOwnPropertyValues;
+&#x2F;&#x2F; core.getOwnPropertyValues = __getOwnPropertyValues;
 core.objectForEach= __objectForEach;
-core.objectMapToArray= __objectMapToArray;
-core.objectFirst= __objectFirst;
+&#x2F;&#x2F; core.objectMapToArray= __objectMapToArray;
+&#x2F;&#x2F; core.objectFirst= __objectFirst;
 
 core.extend = __extend;
 core.propEq = __propEq;
@@ -609,7 +628,7 @@ core.arrayZip = __arrayZip;
 
 core.requireLib = __requireLib;
 core.using = __using;
-core.wrapExecution = __wrapExecution;
+&#x2F;&#x2F; core.wrapExecution = __wrapExecution;
 core.memoize = __memoize;
 core.getUuid = __getUuid;
 core.durationToSeconds = __durationToSeconds;

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>FetchStrategy - The Breeze API</title>
+    <title>a50_entityGroup.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,196 +179,159 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>FetchStrategy Class</h1>
-<div class="box meta">
-    
+                        <h1 class="file-heading">File: a50_entityGroup.js</h1>
 
-    
+<div class="file">
+    <pre class="code prettyprint linenums">
+﻿&#x2F;**
+@module breeze
+**&#x2F;
 
-    
-        <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l38"><code>a45_queryOptions.js:38</code></a>
-        </div>
-    
+var EntityGroup = (function () {
 
-    
+    var __changedFilter = getFilter([EntityState.Added, EntityState.Modified, EntityState.Deleted]);
         
-            Module: <a href="../modules/breeze.html">breeze</a>
-        
-    
+    var ctor = function (entityManager, entityType) {
+        this.entityManager = entityManager;
+        this.entityType = entityType;
+        this._indexMap = {};
+        this._entities = [];
+        this._emptyIndexes = [];
+    };
+    var proto = ctor.prototype;
 
-    
-</div>
+    proto.attachEntity = function (entity, entityState) {
+        &#x2F;&#x2F; entity should already have an aspect.
+        var ix;
+        var aspect = entity.entityAspect;
+        var keyInGroup = aspect.getKey()._keyInGroup;
+        ix = this._indexMap[keyInGroup];
+        if (ix &gt;= 0) {
+            if (this._entities[ix] === entity) {
+                return entity;
+            }
+            throw new Error(&quot;This key is already attached: &quot; + aspect.getKey());
+        }
 
+        if (this._emptyIndexes.length === 0) {
+            ix = this._entities.push(entity) - 1;
+        } else {
+            ix = this._emptyIndexes.pop();
+            this._entities[ix] = entity;
+        }
+        this._indexMap[keyInGroup] = ix;
+        aspect.entityState = entityState;
+        aspect.entityGroup = this;
+        aspect.entityManager = this.entityManager;
+        return entity;
+    };
 
-
-<div class="box intro">
-    <p>FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.</p>
-</div>
-
-
-
-<div id="classdocs" class="tabview">
-    <ul class="api-class-tabs">
-        <li class="api-class-tab index"><a href="#index">Index</a></li>
-
-        
-        
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
-        
-        
-        
-    </ul>
-
-    <div>
-        <div id="index" class="api-class-tabpanel index">
-            <h2 class="off-left">Item Index</h2>
-
-            
-
-            
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromLocalCache">FromLocalCache</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromServer">FromServer</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
-
-            
-
-            
-        </div>
-
+    proto.detachEntity = function (entity) {
+        &#x2F;&#x2F; by this point we have already determined that this entity 
+        &#x2F;&#x2F; belongs to this group.
+        var aspect = entity.entityAspect;
+        var keyInGroup = aspect.getKey()._keyInGroup;
+        var ix = this._indexMap[keyInGroup];
+        if (ix === undefined) {
+            &#x2F;&#x2F; shouldn&#x27;t happen.
+            throw new Error(&quot;internal error - entity cannot be found in group&quot;);
+        }
+        delete this._indexMap[keyInGroup];
+        this._emptyIndexes.push(ix);
+        this._entities[ix] = null;
+        return entity;
+    };
         
 
+
+    &#x2F;&#x2F; returns entity based on an entity key defined either as an array of key values or an EntityKey
+    proto.findEntityByKey = function (entityKey) {
+        var keyInGroup;
+        if (entityKey instanceof EntityKey) {
+            keyInGroup = entityKey._keyInGroup;
+        } else {
+            keyInGroup = EntityKey.createKeyString(entityKey);
+        }
+        var ix = this._indexMap[keyInGroup];
+        &#x2F;&#x2F; can&#x27;t use just (ix) below because 0 is valid
+        return (ix !== undefined) ? this._entities[ix] : null;
+    };
+
+    proto.hasChanges = function() {
+        return this._entities.some(__changedFilter);
+    };
+
+    proto.getEntities = function (entityStates) {
+        var filter = getFilter(entityStates);
+        var changes = this._entities.filter(filter);
+        return changes;
+    };
         
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
+    &#x2F;&#x2F; do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
+    &#x2F;&#x2F; just for the entityManager clear method - the entityGroup will be in an inconsistent state
+    &#x2F;&#x2F; after this op, which is ok because it will be thrown away.
+    proto._clear = function() {
+        this._entities.forEach(function (entity) {
+            if (entity != null) {
+                entity.entityAspect._detach();
+            }
+        });
+        this._entities = null;
+        this._indexMap = null;
+        this._emptyIndexes = null;
+    };
 
-                
-                    <div id="property_FromLocalCache" class="property item">
-    <h3 class="name"><code>FromLocalCache</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+    proto._fixupKey = function (tempValue, realValue) {
+        &#x2F;&#x2F; single part keys appear directly in map
+        var ix = this._indexMap[tempValue];
+        if (ix === undefined) {
+            throw new Error(&quot;Internal Error in key fixup - unable to locate entity&quot;);
+        }
+        var entity = this._entities[ix];
+        var keyPropName = entity.entityType.keyProperties[0].name;
+        &#x2F;&#x2F; fks on related entities will automatically get updated by this as well
+        entity.setProperty(keyPropName, realValue);
+        delete entity.entityAspect.hasTempKey;
+        delete this._indexMap[tempValue];
+        this._indexMap[realValue] = ix;
+    };
 
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
+    proto._replaceKey = function(oldKey, newKey) {
+        var ix = this._indexMap[oldKey._keyInGroup];
+        delete this._indexMap[oldKey._keyInGroup];
+        this._indexMap[newKey._keyInGroup] = ix;
+    };
         
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l52"><code>a45_queryOptions.js:52</code></a>
-        
-        </p>
+    function getFilter(entityStates) {
+        if (!entityStates) {
+            return function (e) {
+                return !!e;
+            };
+        } else if (entityStates.length === 1) {
+            var entityState = entityStates[0];
+            return function (e) {
+                if (!e) return false;
+                return e.entityAspect.entityState === entityState;
+            };
+        } else {
+            return function (e) {
+                if (!e) return false;
+                return entityStates.some(function (es) {
+                    return e.entityAspect.entityState === es;
+                });
+            };
+        }
+    }
 
-        
+    return ctor;
 
-        
-    </div>
+})();
+   
+&#x2F;&#x2F; do not expose EntityGroup - internal only
 
-    <div class="description">
-        <p>FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.</p>
-    </div>
 
-    
 
-    
-
-    
-</div>
-
-                
-                    <div id="property_FromServer" class="property item">
-    <h3 class="name"><code>FromServer</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l45"><code>a45_queryOptions.js:45</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>FromServer is used to tell the query to execute the query against a remote data source on the server.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-            </div>
-        
-
-        
-
-        
-    </div>
+    </pre>
 </div>
 
                     </div>

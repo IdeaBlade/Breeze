@@ -184,10 +184,10 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿&#x2F;**
-  @module core
-  **&#x2F;
+@module core
+**&#x2F;
 
-var Event = function() {
+var Event = (function() {
   
     var __eventNameMap = {};
 
@@ -483,7 +483,7 @@ var Event = function() {
 
     return ctor;
 
-}();
+})();
 
 core.Event = Event;
     </pre>

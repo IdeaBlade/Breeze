@@ -184,14 +184,13 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿&#x2F;**
-  @module breeze   
-  **&#x2F;
+@module breeze   
+**&#x2F;
 
-var __config = function () {
+var __config = (function () {
 
     &#x2F;&#x2F; alias for within fns with a config param
     var __config = {};
-
 
     __config.functionRegistry = {};
     __config.typeRegistry = {};
@@ -456,7 +455,7 @@ var __config = function () {
     }
 
     return __config;
-}();
+})();
 
 var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 

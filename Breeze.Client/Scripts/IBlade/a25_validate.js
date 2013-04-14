@@ -250,6 +250,7 @@ var Validator = function () {
     /**
     Register a validator instance so that any deserialized metadata can reference it. 
     @method register
+    @static
     @param validator {Validator} Validator to register.
     **/
     ctor.register = function(validator) {
@@ -259,7 +260,9 @@ var Validator = function () {
     /**
     Register a validator factory so that any deserialized metadata can reference it. 
     @method registerFactory
+    @static
     @param validatorFactory {Function} A function that optionally takes a context property and returns a Validator instance.
+    @param name {String} The name of the validator.
     **/
     ctor.registerFactory = function(validatorFn, name) {
         __config.registerFunction(validatorFn, "Validator." + name);

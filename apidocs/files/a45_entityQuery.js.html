@@ -219,10 +219,11 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
-        &#x2F;&#x2F; default is to get queryOptions from the entityManager.
-        this.queryOptions = new QueryOptions();
+        &#x2F;&#x2F; default is to get queryOptions and dataService from the entityManager.
+        &#x2F;&#x2F; this.queryOptions = new QueryOptions();
+        &#x2F;&#x2F; this.dataService = new DataService();
         this.entityManager = null;
-        &#x2F;&#x2F; this.dataService = null;
+        
     };
     var proto = ctor.prototype;
 
@@ -674,20 +675,45 @@ var EntityQuery = (function () {
             .using(FetchStrategy.FromLocalCache);
     @example
     @method using
-    @param obj {EntityManager|MergeStrategy|FetchStrategy|DataService|JsonResultsAdapter} The object to update in creating a new EntityQuery from an existing one.
+    @param obj {EntityManager|QueryOptions|DataService|MergeStrategy|FetchStrategy|JsonResultsAdapter|config object} The object to update in creating a new EntityQuery from an existing one.
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.using = function (obj) {
         if (!obj) return this;
         var eq = this._clone();
-        if (obj instanceof EntityManager) {
-            eq.entityManager = obj;
-        } else {
-            eq.queryOptions = this.queryOptions.using(obj);
-        }
+        processUsing(eq, {
+            entityManager: null,
+            dataService: null,
+            queryOptions: null,
+            fetchStrategy: function (eq, val) { eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val) },
+            mergeStrategy: function (eq, val) { eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val) },
+            jsonResultsAdapter: function (eq, val) { eq.dataService = (eq.dataService || new DataService()).using({ jsonResultsAdapter: val }) }
+        }, obj);
         return eq;
     };
+
+    function processUsing(eq, map, value, propertyName) {
+        var typeName = value._$typeName || (value.parentEnum &amp;&amp; value.parentEnum.name);
+        var key = typeName &amp;&amp;  typeName.substr(0, 1).toLowerCase() + typeName.substr(1);
+        if (propertyName &amp;&amp; key != propertyName) {
+            throw new Error(&quot;Invalid value for property: &quot; + propertyName);
+        }
+        if (key) {
+            var fn = map[key];
+            if (fn === undefined) {
+                throw new Error(&quot;Invalid config property: &quot; + key);
+            } else if (fn === null) {
+                eq[key] = value;
+            } else {
+                fn(eq, value);
+            }
+        } else {
+            __objectForEach(val, function(propName,val) {
+                processUsing(eq, map, val, propName)
+            });
+        }
+    }
 
     &#x2F;**
     Executes this query.  This method requires that an EntityManager has been previously specified via the &quot;using&quot; method.
@@ -896,7 +922,7 @@ var EntityQuery = (function () {
                     return null;
                 }
             }
-            entityType = metadataStore.getEntityType(entityTypeName);
+            entityType = metadataStore._getEntityType(entityTypeName);
             if (!entityType) {
                 if (throwErrorIfNotFound) {
                     throw new Error(&quot;Cannot find an entityType for an entityTypeName of: &quot; + entityTypeName);
@@ -914,7 +940,7 @@ var EntityQuery = (function () {
             return this.toEntityType;
         } else if (this.toEntityType) {
             &#x2F;&#x2F; toEntityType is a string
-            this.toEntityType = metadataStore.getEntityType(this.toEntityType, false);
+            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
             return this.toEntityType;
         } else {
             &#x2F;&#x2F; resolve it, if possible, via the resourceName
@@ -2337,7 +2363,6 @@ var ExpandClause = (function () {
     return ctor;
 })();
     
-  
 function getPropertyPathValue(obj, propertyPath) {
     var properties;
     if (Array.isArray(propertyPath)) {
@@ -2372,15 +2397,6 @@ function getComparableFn(dataType) {
     }
         
 }
-
-&#x2F;&#x2F; Fixup --- because EntityAspect does not have access to EntityQuery or EntityMetadata
-
-EntityAspect.prototype.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
-    var entity = this.entity;
-    var navProperty = entity.entityType._checkNavProperty(navigationProperty);
-    var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
-    return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
-};
 
 &#x2F;&#x2F; expose
 &#x2F;&#x2F; do not expose SimplePredicate and CompositePredicate 

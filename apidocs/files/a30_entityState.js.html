@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>a20_dataType.js - The Breeze API</title>
+    <title>a30_entityState.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,254 +179,153 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: a20_dataType.js</h1>
+                        <h1 class="file-heading">File: a30_entityState.js</h1>
 
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿&#x2F;**
-  @module breeze
-  **&#x2F;
+@module breeze   
+**&#x2F;
 
-var DataType = function () {
-  
+var EntityState = (function () {
     &#x2F;**
-    DataType is an &#x27;Enum&#x27; containing all of the supported data types.
+    EntityState is an &#x27;Enum&#x27; containing all of the valid states for an &#x27;Entity&#x27;.
 
-    @class DataType
+    @class EntityState
     @static
     **&#x2F;
-
-    &#x2F;**
-    The default value of this DataType.
-    @property defaultValue {any}
-    **&#x2F;
-
-    &#x2F;**
-    Whether this is a &#x27;numeric&#x27; DataType. 
-    @property isNumeric {Boolean}
-    **&#x2F;
-
-    var dataTypeMethods = {
-        &#x2F;&#x2F; default
-    };
-
-    var coerceToString = function (source, sourceTypeName) {
-        return (source == null) ? source : source.toString();
-    };
-
-    var coerceToInt = function (source, sourceTypeName) {
-        if (sourceTypeName === &quot;string&quot;) {
-            var val = parseInt(source, 10);
-            return isNaN(val) ? source : val;
-        } else if (sourceTypeName === &quot;number&quot;) {
-            return Math.round(source);
+    var entityStateMethods = {
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isUnchanged();
+        is the same as
+        @example
+            return es === EntityState.Unchanged;
+        @method isUnchanged
+        @return {Boolean} Whether an entityState instance is EntityState.Unchanged.
+        **&#x2F;
+        isUnchanged: function () { return this === EntityState.Unchanged; },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isAdded();
+        is the same as
+        @example
+            return es === EntityState.Added;
+        @method isAdded
+        @return {Boolean} Whether an entityState instance is EntityState.Added.
+        **&#x2F;
+        isAdded: function () { return this === EntityState.Added; },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isModified();
+        is the same as
+        @example
+            return es === EntityState.Modified;
+        @method isModified
+        @return {Boolean} Whether an entityState instance is EntityState.Modified.
+        **&#x2F;
+        isModified: function () { return this === EntityState.Modified; },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isDeleted();
+        is the same as
+        @example
+            return es === EntityState.Deleted;
+        @method isDeleted
+        @return  {Boolean} Whether an entityState instance is EntityState.Deleted.
+        **&#x2F;
+        isDeleted: function () { return this === EntityState.Deleted; },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isDetached();
+        is the same as
+        @example
+            return es === EntityState.Detached;
+        @method isDetached
+        @return  {Boolean} Whether an entityState instance is EntityState.Detached.
+        **&#x2F;
+        isDetached: function () { return this === EntityState.Detached; },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isUnchangedOrModified();
+        is the same as
+        @example
+            return es === EntityState.Unchanged || es === EntityState.Modified
+        @method isUnchangedOrModified
+        @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified.
+        **&#x2F;
+        isUnchangedOrModified: function () {
+            return this === EntityState.Unchanged || this === EntityState.Modified;
+        },
+        &#x2F;**
+        @example
+            var es = anEntity.entityAspect.entityState;
+            return es.isAddedModifiedOrDeleted();
+        is the same as
+        @example
+            return es === EntityState.Added || es === EntityState.Modified || es === EntityState.Deleted
+        @method isAddedModifiedOrDeleted
+        @return {Boolean} Whether an entityState instance is EntityState.Unchanged or EntityState.Modified or EntityState.Deleted.
+        **&#x2F;
+        isAddedModifiedOrDeleted: function () {
+            return this === EntityState.Added ||
+                this === EntityState.Modified ||
+                this === EntityState.Deleted;
         }
-        &#x2F;&#x2F; do we want to coerce floats -&gt; ints
-        return source;
     };
 
-    var coerceToFloat = function (source, sourceTypeName) {
-        if (sourceTypeName === &quot;string&quot;) {
-            var val = parseFloat(source);
-            return isNaN(val) ? source : val;
-        }
-        return source;
-    };
+    var EntityState = new Enum(&quot;EntityState&quot;, entityStateMethods);
+    &#x2F;**
+    The &#x27;Unchanged&#x27; state.
 
-    var coerceToDate = function (source, sourceTypeName) {
-        if (sourceTypeName === &quot;string&quot;) {
-            var val = new Date(Date.parse(source));
-            return __isDate(val) ? val : source;
-        } else if (sourceTypeName === &quot;number&quot;) {
-            var val = new Date(source);
-            return __isDate(val) ? val : source;
-        }
-        return source;
-    };
+    @property Unchanged {EntityState}
+    @final
+    @static
+    **&#x2F;
+    EntityState.Unchanged = EntityState.addSymbol();
+    &#x2F;**
+    The &#x27;Added&#x27; state.
 
-    var coerceToBool = function (source, sourceTypeName) {
-        if (sourceTypeName === &quot;string&quot;) {
-            var src = source.trim().toLowerCase();
-            if (src === &#x27;false&#x27;) {
-                return false;
-            } else if (src === &quot;true&quot;) {
-                return true;
-            } else {
-                return source;
-            }
-        } 
-        return source;
-    };
+    @property Added {EntityState}
+    @final
+    @static
+    **&#x2F;
+    EntityState.Added = EntityState.addSymbol();
+    &#x2F;**
+    The &#x27;Modified&#x27; state.
 
-    var DataType = new Enum(&quot;DataType&quot;, dataTypeMethods);
-    
-    
-    &#x2F;**
-    @property String {DataType}
+    @property Modified {EntityState}
     @final
     @static
     **&#x2F;
-    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString });
+    EntityState.Modified = EntityState.addSymbol();
     &#x2F;**
-    @property Int64 {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
-    &#x2F;**
-    @property Int32 {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
-    &#x2F;**
-    @property Int16 {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
-    &#x2F;**
-    @property Decimal {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
-    &#x2F;**
-    @property Double {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
-    &#x2F;**
-    @property Single {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
-    &#x2F;**
-    @property DateTime {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
-    
-    &#x2F;**
-    @property DateTimeOffset {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
-    &#x2F;**
-    @property Time {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Time = DataType.addSymbol({ defaultValue: &quot;PT0S&quot; });
-    &#x2F;**
-    @property Boolean {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
-    &#x2F;**
-    @property Guid {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Guid = DataType.addSymbol({ defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot; });
-    &#x2F;**
-    @property Byte {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0 });
-    &#x2F;**
-    @property Binary {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Binary = DataType.addSymbol({ defaultValue: null });
-    &#x2F;**
-    @property Undefined {DataType}
-    @final
-    @static
-    **&#x2F;
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
-    DataType.seal();
+    The &#x27;Deleted&#x27; state.
 
-    &#x2F;**
-    Returns the DataType for a specified EDM type name.
-    @method fromEdmDataType
+    @property Deleted {EntityState}
+    @final
     @static
-    @param typeName {String}
-    @return {DataType} A DataType.
     **&#x2F;
-    DataType.fromEdmDataType = function (typeName) {
-        var dt = null;
-        var parts = typeName.split(&quot;.&quot;);
-        if (parts.length &gt; 1) {
-            var simpleName = parts[1];
-            if (simpleName === &quot;image&quot;) {
-                &#x2F;&#x2F; hack
-                dt = DataType.Byte;
-            } else if (parts.length == 2) {
-                dt = DataType.fromName(simpleName) || DataType.Undefined;
-            } else {
-                &#x2F;&#x2F; enum
-                &#x2F;&#x2F; dt = DataType.Int32;
-                dt = DataType.String;
-            }
-        }
+    EntityState.Deleted = EntityState.addSymbol();
+    &#x2F;**
+    The &#x27;Detached&#x27; state.
 
-        return dt;
-    };
-
-    DataType.fromValue = function(val) {
-        if (__isDate(val)) return DataType.DateTime;
-        switch (typeof val) {
-            case &quot;string&quot;:
-                if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
-                return DataType.String;
-            case &quot;boolean&quot;:
-                return DataType.Boolean;
-            case &quot;number&quot;:
-                return DataType.Int32;
-        }
-        return DataType.Undefined;
-    };
+    @property Detached {EntityState}
+    @final
+    @static
+    **&#x2F;
+    EntityState.Detached = EntityState.addSymbol();
+    EntityState.seal();
+    return EntityState;
+})();
    
-    var _localTimeRegex = &#x2F;.\d{3}$&#x2F;;
-
-    DataType.parseDateAsUTC = function (source) {
-        if (typeof source === &#x27;string&#x27;) {
-            &#x2F;&#x2F; convert to UTC string if no time zone specifier.
-            var isLocalTime = _localTimeRegex.test(source);
-            source = isLocalTime ? source + &#x27;Z&#x27; : source;
-        }
-        source = new Date(Date.parse(source));
-        return source;
-    };
-
-    &#x2F;&#x2F; NOT YET NEEDED --------------------------------------------------
-    &#x2F;&#x2F; var _utcOffsetMs = (new Date()).getTimezoneOffset() * 60000;
-    
-    &#x2F;&#x2F;DataType.parseDateAsLocal = function (source) {
-    &#x2F;&#x2F;    var dt = DataType.parseDatesAsUTC(source);
-    &#x2F;&#x2F;    if (__isDate(dt)) {
-    &#x2F;&#x2F;        dt = new Date(dt.getTime() + _utcOffsetMs);
-    &#x2F;&#x2F;    }
-    &#x2F;&#x2F;    return dt;
-    &#x2F;&#x2F;};
-    &#x2F;&#x2F; -----------------------------------------------------------------
-
-    DataType.parseDateFromServer = DataType.parseDateAsUTC;
-
-    return DataType;
-
-}();
-breeze.DataType = DataType;
-
+breeze.EntityState= EntityState;
 
     </pre>
 </div>

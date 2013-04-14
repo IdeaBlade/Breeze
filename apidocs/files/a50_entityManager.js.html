@@ -419,7 +419,7 @@ var EntityManager = (function () {
     proto.createEntity = function (typeName, initialValues, entityState) {
         entityState = entityState || EntityState.Added;
         var entity = this.metadataStore
-            .getEntityType(typeName)
+            ._getEntityType(typeName)
             .createEntity(initialValues);
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
@@ -558,7 +558,7 @@ var EntityManager = (function () {
             that._pendingPubs = null;
         }, function() {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
-                var entityType = that.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
                 importEntityGroup(targetEntityGroup, jsonGroup, config);
             });
@@ -851,18 +851,19 @@ var EntityManager = (function () {
         assertParam(callback, &quot;callback&quot;).isFunction().isOptional().check();
         assertParam(errorCallback, &quot;errorCallback&quot;).isFunction().isOptional().check();
         var promise;
-        &#x2F;&#x2F; &#x27;normalizeQueryOptions&#x27; creates a new QueryOptions object with all of its properties fully resolved against this entityManager and the queryOptions defaults.
-        &#x2F;&#x2F; Thought about creating a &#x27;normalized&#x27; query with this &#x27;normalized&#x27; queryOptions
-        &#x2F;&#x2F; but decided not to be the &#x27;query&#x27; may not be an EntityQuery (it can be a string) and hence might not have a queryOptions property on it.
+        &#x2F;&#x2F; &#x27;resolve&#x27; methods create a new typed object with all of its properties fully resolved against a list of sources.
+        &#x2F;&#x2F; Thought about creating a &#x27;normalized&#x27; query with these &#x27;resolved&#x27; objects
+        &#x2F;&#x2F; but decided not to be the &#x27;query&#x27; may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
         &#x2F;&#x2F; It can be a string.
-        var queryOptions = normalizeQueryOptions(query, this);
-        var dataService = queryOptions.dataService;
+        var queryOptions = QueryOptions.resolve([ query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
+        var dataService = DataService.resolve([ query.dataService, this.dataService]);
+
         if ( (!dataService.hasServerMetadata ) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
-            promise = executeQueryCore(this, query, queryOptions);
+            promise = executeQueryCore(this, query, queryOptions, dataService);
         } else {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
-                return executeQueryCore(that, query, queryOptions);
+                return executeQueryCore(that, query, queryOptions, dataService);
             }).fail(function (error) {
                 return Q.reject(error);
             });
@@ -870,24 +871,6 @@ var EntityManager = (function () {
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
     
-    function normalizeQueryOptions(query, entityManager) {
-        var qo1 = query.queryOptions || {};
-        var qo2 = entityManager.queryOptions;
-        var qo3 = QueryOptions.defaultInstance;       
-        &#x2F;&#x2F; fetchStrategy and mergeStrategy on qo2 will always be fully resolved.
-        var qo = new QueryOptions({
-            fetchStrategy: qo1.fetchStrategy || qo2.fetchStrategy, 
-            mergeStrategy: qo1.mergeStrategy || qo2.mergeStrategy,
-            dataService: qo1.dataService || qo2.dataService || entityManager.dataService || qo3.dataService,
-            jsonResultsAdapter: getJra(qo1) || getJra(qo2) || getJra(entityManager) || getJra(qo3)
-        });
-        return qo;
-    };
-    
-    function getJra(obj) {
-        return obj.jsonResultsAdapter || (obj.dataService &amp;&amp; obj.dataService.jsonResultsAdapter);
-    }
-
     &#x2F;**
     Executes the specified query against this EntityManager&#x27;s local cache.
 
@@ -1065,11 +1048,14 @@ var EntityManager = (function () {
         var saveBundleStringified = JSON.stringify(saveBundle);
 
         var deferred = Q.defer();
-        var dataService = saveOptions.dataService || this.dataService;
+        var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
             entityManager: this,
             dataService: dataService,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || &quot;SaveChanges&quot;
+        };
+        var queryOptions = {
+            mergeStrategy: MergeStrategy.OverwriteChanges
         };
         dataService.adapterInstance.saveChanges(saveContext, saveBundleStringified, deferred.resolve, deferred.reject);
         var that = this;
@@ -1082,8 +1068,8 @@ var EntityManager = (function () {
             var queryContext = {
                 query: null, &#x2F;&#x2F; tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
-                jsonResultsAdapter: that.dataService.jsonResultsAdapter,
-                mergeStrategy: MergeStrategy.OverwriteChanges,
+                queryOptions: queryOptions,
+                dataService: dataService,
                 refMap: {},
                 deferredFns: []
             };
@@ -1380,7 +1366,7 @@ var EntityManager = (function () {
     proto.getChanges = function (entityTypes) {
         entityTypes = checkEntityTypes(this, entityTypes);
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
 
     &#x2F;**
@@ -1396,7 +1382,7 @@ var EntityManager = (function () {
     proto.rejectChanges = function () {
         if (!this._hasChanges) return [];
         var entityStates = [EntityState.Added, EntityState.Modified, EntityState.Deleted];
-        var changes = this._getEntitiesCore(null, entityStates);
+        var changes = getEntitiesCore(this, null, entityStates);
         &#x2F;&#x2F; next line stops individual reject changes from each calling _hasChangesCore
         this._hasChanges = false;
         changes.forEach(function(e) {
@@ -1444,23 +1430,10 @@ var EntityManager = (function () {
         if (entityStates) {
             entityStates = validateEntityStates(this, entityStates);
         }
-        return this._getEntitiesCore(entityTypes, entityStates);
+        return getEntitiesCore(this, entityTypes, entityStates);
     };
         
-    &#x2F;&#x2F; takes in entityTypes as either strings or entityTypes or arrays of either
-    &#x2F;&#x2F; and returns either an entityType or an array of entityTypes or throws an error
-    function checkEntityTypes(em, entityTypes) {
-        assertParam(entityTypes, &quot;entityTypes&quot;).isString().isOptional().or().isNonEmptyArray().isString()
-            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
-        if (typeof entityTypes === &quot;string&quot;) {
-            entityTypes = em.metadataStore.getEntityType(entityTypes, false);
-        } else if (Array.isArray(entityTypes) &amp;&amp; typeof entityTypes[0] === &quot;string&quot;) {
-            entityTypes = entityTypes.map(function(etName) {
-                return em.metadataStore.getEntityType(etName, false);
-            });
-        }
-        return entityTypes;
-    }
+   
 
     &#x2F;&#x2F; protected methods
 
@@ -1484,33 +1457,17 @@ var EntityManager = (function () {
         }
     };
 
-    proto._getEntitiesCore = function (entityTypes, entityStates) {
-        var entityGroups = getEntityGroups(this, entityTypes);
 
-        &#x2F;&#x2F; TODO: think about writing a core.mapMany method if we see more of these.
-        var selected;
-        entityGroups.forEach(function (eg) {
-            &#x2F;&#x2F; eg may be undefined or null
-            if (!eg) return;
-            var entities = eg.getEntities(entityStates);
-            if (!selected) {
-                selected = entities;
-            } else {
-                selected.push.apply(selected, entities);
-            }
-        });
-        return selected || [];
-    };
 
-    proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
-        var key = parentEntityKey.toString();
-        var children = this._unattachedChildrenMap[key];
-        if (!children) {
-            children = [];
-            this._unattachedChildrenMap[key] = children;
-        }
-        children.push(child);
-    };
+    &#x2F;&#x2F;proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
+    &#x2F;&#x2F;    var key = parentEntityKey.toString();
+    &#x2F;&#x2F;    var children = this._unattachedChildrenMap[key];
+    &#x2F;&#x2F;    if (!children) {
+    &#x2F;&#x2F;        children = [];
+    &#x2F;&#x2F;        this._unattachedChildrenMap[key] = children;
+    &#x2F;&#x2F;    }
+    &#x2F;&#x2F;    children.push(child);
+    &#x2F;&#x2F;};
 
         
     proto._linkRelatedEntities = function (entity) {
@@ -1571,12 +1528,45 @@ var EntityManager = (function () {
     };
 
     &#x2F;&#x2F; private fns
+
+    &#x2F;&#x2F; takes in entityTypes as either strings or entityTypes or arrays of either
+    &#x2F;&#x2F; and returns either an entityType or an array of entityTypes or throws an error
+    function checkEntityTypes(em, entityTypes) {
+        assertParam(entityTypes, &quot;entityTypes&quot;).isString().isOptional().or().isNonEmptyArray().isString()
+            .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
+        if (typeof entityTypes === &quot;string&quot;) {
+            entityTypes = em.metadataStore._getEntityType(entityTypes, false);
+        } else if (Array.isArray(entityTypes) &amp;&amp; typeof entityTypes[0] === &quot;string&quot;) {
+            entityTypes = entityTypes.map(function (etName) {
+                return em.metadataStore._getEntityType(etName, false);
+            });
+        }
+        return entityTypes;
+    }
+
+    function getEntitiesCore(em, entityTypes, entityStates) {
+        var entityGroups = getEntityGroups(em, entityTypes);
+
+        &#x2F;&#x2F; TODO: think about writing a core.mapMany method if we see more of these.
+        var selected;
+        entityGroups.forEach(function (eg) {
+            &#x2F;&#x2F; eg may be undefined or null
+            if (!eg) return;
+            var entities = eg.getEntities(entityStates);
+            if (!selected) {
+                selected = entities;
+            } else {
+                selected.push.apply(selected, entities);
+            }
+        });
+        return selected || [];
+    };
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
             return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
         } else if (typeof args[0] === &#x27;string&#x27; &amp;&amp; args.length &gt;= 2) {
-            var entityType = em.metadataStore.getEntityType(args[0], false);
+            var entityType = em.metadataStore._getEntityType(args[0], false);
             return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
         } else {
             throw new Error(&quot;This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.&quot;);
@@ -1798,7 +1788,7 @@ var EntityManager = (function () {
 
     function fixupKeys(em, keyMappings) {
         keyMappings.forEach(function (km) {
-            var entityTypeName = EntityType._getNormalizedTypeName(km.EntityTypeName);
+            var entityTypeName = MetadataStore._getNormalizedTypeName(km.EntityTypeName);
             var group = em._entityGroupMap[entityTypeName];
             group._fixupKey(km.TempValue, km.RealValue);
         });
@@ -1891,10 +1881,10 @@ var EntityManager = (function () {
     }
 
     &#x2F;&#x2F; returns a promise
-    function executeQueryCore(em, query, queryOptions) {
+    function executeQueryCore(em, query, queryOptions, dataService) {
         try {
             var metadataStore = em.metadataStore;
-            var dataService = queryOptions.dataService;
+            
             if (metadataStore.isEmpty() &amp;&amp; dataService.hasServerMetadata) {
                 throw new Error(&quot;cannot execute _executeQueryCore until metadataStore is populated.&quot;);
             }
@@ -1907,15 +1897,13 @@ var EntityManager = (function () {
             }
 
             var url = dataService.serviceName + metadataStore.toQueryString(query);
-            var jsonResultsAdapter = queryOptions.jsonResultsAdapter;
 
             var queryContext = {
                     url: url,
                     query: query,
                     entityManager: em,
                     dataService: dataService,
-                    mergeStrategy: queryOptions.mergeStrategy,
-                    jsonResultsAdapter: jsonResultsAdapter,
+                    queryOptions: queryOptions,
                     refMap: {}, 
                     deferredFns: []
             };
@@ -1942,7 +1930,7 @@ var EntityManager = (function () {
                     if (state.error) deferred.reject(state.error);
 
                 }, function () {
-                    var nodes = jsonResultsAdapter.extractResults(data);
+                    var nodes = dataService.jsonResultsAdapter.extractResults(data);
                     if (!Array.isArray(nodes)) {
                         nodes = [nodes];
                     }
@@ -1979,8 +1967,8 @@ var EntityManager = (function () {
                
     function visitAndMerge(node, queryContext, nodeContext) {
         nodeContext = nodeContext || {};
-        var meta = queryContext.jsonResultsAdapter.visitNode(node, queryContext, nodeContext);
-        if (queryContext.query &amp;&amp; nodeContext.isTopLevel &amp;&amp; !meta.entityType) {
+        var meta = queryContext.dataService.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
+        if (queryContext.query &amp;&amp; nodeContext.nodeType === &quot;root&quot; &amp;&amp; !meta.entityType) {
             meta.entityType = queryContext.query._getToEntityType &amp;&amp; queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
         }
         return processMeta(node, queryContext, meta);
@@ -2026,15 +2014,19 @@ var EntityManager = (function () {
         
     function mergeEntity(node, queryContext, meta) {
         node._$meta = meta;
-        var entityType = meta.entityType;
-        node.entityType = entityType;
-            
         var em = queryContext.entityManager;
-        var mergeStrategy = queryContext.mergeStrategy;
+
+        var entityType = meta.entityType;
+        if (typeof (entityType) === &#x27;string&#x27;) {
+            entityType = em.metadataStore._getEntityType(entityType, false);
+        }
+        node.entityType = entityType;
+        
+        var mergeStrategy = queryContext.queryOptions.mergeStrategy;
         var isSaving = queryContext.query == null;
 
             
-        var entityKey = EntityKey._fromRawEntity(node, entityType);
+        var entityKey = getEntityKeyFromRawEntity(node, entityType);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving &amp;&amp; targetEntity.entityAspect.entityState.isDeleted()) {
@@ -2087,18 +2079,18 @@ var EntityManager = (function () {
     function processAnonType(node, queryContext) {
         &#x2F;&#x2F; node is guaranteed to be an object by this point, i.e. not a scalar          
         var em = queryContext.entityManager;
-        var jsonResultsAdapter = queryContext.jsonResultsAdapter;
+        var jsonResultsAdapter = queryContext.dataService.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = { };
         __objectForEach(node, function(key, value) {
-            var meta = jsonResultsAdapter.visitNode(value, queryContext, { nodeType: &quot;anonProp&quot;, propertyName: key });
+            var meta = jsonResultsAdapter.visitNode(value, queryContext, { nodeType: &quot;anonProp&quot;, propertyName: key }) || {};
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
                 
             if (Array.isArray(value)) {
                 result[newKey] = value.map(function(v, ix) {
-                    meta = jsonResultsAdapter.visitNode(v, queryContext, { nodeType: &quot;anonPropItem&quot;, propertyName: key });
+                    meta = jsonResultsAdapter.visitNode(v, queryContext, { nodeType: &quot;anonPropItem&quot;, propertyName: key }) || {};
                     return processMeta(v, queryContext, meta, function(refValue) {
                         result[newKey][ix] = refValue();
                     });
@@ -2117,31 +2109,19 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped) return;
-            var val = rawEntity[dp.nameOnServer];
-            if (dp.dataType.isDate &amp;&amp; val) {
-                if (!__isDate(val)) {
-                    val = DataType.parseDateFromServer(val);
-                }
-            } else if (dp.dataType == DataType.Binary) {
-                if (val &amp;&amp; val.$value !== undefined) {
-                    val = val.$value; &#x2F;&#x2F; this will be a byte[] encoded as a string
-                }
-            } else if (dp.isComplexProperty) {
-                if (val != undefined) {
-                    var coVal = targetEntity.getProperty(dp.name);
-                    dp.dataType.dataProperties.forEach(function(cdp) {
-                        &#x2F;&#x2F; recursive call
-                        coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                    });
-                }
-            }
-
-            if (!dp.isComplexProperty) {
+            var val = getPropertyFromRawEntity(rawEntity, dp);
+            if (val === undefined) return;
+            if (dp.isComplexProperty) {
+                var coVal = targetEntity.getProperty(dp.name);
+                dp.dataType.dataProperties.forEach(function(cdp) {
+                    &#x2F;&#x2F; recursive call
+                    coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
+                });
+            } else {
                 targetEntity.setProperty(dp.name, val);
             }
         });
-            
+
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
                 mergeRelatedEntity(np, targetEntity, rawEntity, queryContext);
@@ -2150,7 +2130,30 @@ var EntityManager = (function () {
             }
         });
     }
-        
+
+    function getEntityKeyFromRawEntity(rawEntity, entityType) {
+        var keyValues = entityType.keyProperties.map(function (p) {
+            return getPropertyFromRawEntity(rawEntity, p);
+        });
+        return new EntityKey(entityType, keyValues);
+    };
+
+    function getPropertyFromRawEntity(rawEntity, dp) {
+        var val = rawEntity[dp.nameOnServer];
+        &#x2F;&#x2F; undefined values will be the default for most unmapped properties EXCEPT when they are set
+        &#x2F;&#x2F; in a jsonResultsAdapter ( an unusual use case).
+        if (val === undefined) return;
+        if (dp.dataType.isDate &amp;&amp; val) {
+            if (!__isDate(val)) {
+                val = DataType.parseDateFromServer(val);
+            }
+        } else if (dp.dataType == DataType.Binary) {
+            if (val &amp;&amp; val.$value !== undefined) {
+                val = val.$value; &#x2F;&#x2F; this will be a byte[] encoded as a string
+            }
+        }
+        return val;
+    }
         
     function updateEntityRef(queryContext, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
@@ -2199,7 +2202,6 @@ var EntityManager = (function () {
             }
         }
     }
-
        
     function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
         var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
@@ -2355,7 +2357,6 @@ var EntityManager = (function () {
         });
         return result;
     }
-        
 
     function UnattachedChildrenMap() {
         &#x2F;&#x2F; key is EntityKey.toString(), value is array of { navigationProperty, children }
@@ -2410,149 +2411,8 @@ var EntityManager = (function () {
 
     return ctor;
 })();
-
-var EntityGroup = (function () {
-
-    var __changedFilter = getFilter([EntityState.Added, EntityState.Modified, EntityState.Deleted]);
-        
-    var ctor = function (entityManager, entityType) {
-        this.entityManager = entityManager;
-        this.entityType = entityType;
-        this._indexMap = {};
-        this._entities = [];
-        this._emptyIndexes = [];
-    };
-    var proto = ctor.prototype;
-
-    proto.attachEntity = function (entity, entityState) {
-        &#x2F;&#x2F; entity should already have an aspect.
-        var ix;
-        var aspect = entity.entityAspect;
-        var keyInGroup = aspect.getKey()._keyInGroup;
-        ix = this._indexMap[keyInGroup];
-        if (ix &gt;= 0) {
-            if (this._entities[ix] === entity) {
-                return entity;
-            }
-            throw new Error(&quot;This key is already attached: &quot; + aspect.getKey());
-        }
-
-        if (this._emptyIndexes.length === 0) {
-            ix = this._entities.push(entity) - 1;
-        } else {
-            ix = this._emptyIndexes.pop();
-            this._entities[ix] = entity;
-        }
-        this._indexMap[keyInGroup] = ix;
-        aspect.entityState = entityState;
-        aspect.entityGroup = this;
-        aspect.entityManager = this.entityManager;
-        return entity;
-    };
-
-    proto.detachEntity = function (entity) {
-        &#x2F;&#x2F; by this point we have already determined that this entity 
-        &#x2F;&#x2F; belongs to this group.
-        var aspect = entity.entityAspect;
-        var keyInGroup = aspect.getKey()._keyInGroup;
-        var ix = this._indexMap[keyInGroup];
-        if (ix === undefined) {
-            &#x2F;&#x2F; shouldn&#x27;t happen.
-            throw new Error(&quot;internal error - entity cannot be found in group&quot;);
-        }
-        delete this._indexMap[keyInGroup];
-        this._emptyIndexes.push(ix);
-        this._entities[ix] = null;
-        return entity;
-    };
-        
-
-
-    &#x2F;&#x2F; returns entity based on an entity key defined either as an array of key values or an EntityKey
-    proto.findEntityByKey = function (entityKey) {
-        var keyInGroup;
-        if (entityKey instanceof EntityKey) {
-            keyInGroup = entityKey._keyInGroup;
-        } else {
-            keyInGroup = EntityKey.createKeyString(entityKey);
-        }
-        var ix = this._indexMap[keyInGroup];
-        &#x2F;&#x2F; can&#x27;t use just (ix) below because 0 is valid
-        return (ix !== undefined) ? this._entities[ix] : null;
-    };
-
-    proto.hasChanges = function() {
-        return this._entities.some(__changedFilter);
-    };
-
-    proto.getEntities = function (entityStates) {
-        var filter = getFilter(entityStates);
-        var changes = this._entities.filter(filter);
-        return changes;
-    };
-        
-    &#x2F;&#x2F; do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
-    &#x2F;&#x2F; just for the entityManager clear method - the entityGroup will be in an inconsistent state
-    &#x2F;&#x2F; after this op, which is ok because it will be thrown away.
-    proto._clear = function() {
-        this._entities.forEach(function (entity) {
-            if (entity != null) {
-                entity.entityAspect._detach();
-            }
-        });
-        this._entities = null;
-        this._indexMap = null;
-        this._emptyIndexes = null;
-    };
-
-    proto._fixupKey = function (tempValue, realValue) {
-        &#x2F;&#x2F; single part keys appear directly in map
-        var ix = this._indexMap[tempValue];
-        if (ix === undefined) {
-            throw new Error(&quot;Internal Error in key fixup - unable to locate entity&quot;);
-        }
-        var entity = this._entities[ix];
-        var keyPropName = entity.entityType.keyProperties[0].name;
-        &#x2F;&#x2F; fks on related entities will automatically get updated by this as well
-        entity.setProperty(keyPropName, realValue);
-        delete entity.entityAspect.hasTempKey;
-        delete this._indexMap[tempValue];
-        this._indexMap[realValue] = ix;
-    };
-
-    proto._replaceKey = function(oldKey, newKey) {
-        var ix = this._indexMap[oldKey._keyInGroup];
-        delete this._indexMap[oldKey._keyInGroup];
-        this._indexMap[newKey._keyInGroup] = ix;
-    };
-        
-    function getFilter(entityStates) {
-        if (!entityStates) {
-            return function (e) {
-                return !!e;
-            };
-        } else if (entityStates.length === 1) {
-            var entityState = entityStates[0];
-            return function (e) {
-                if (!e) return false;
-                return e.entityAspect.entityState === entityState;
-            };
-        } else {
-            return function (e) {
-                if (!e) return false;
-                return entityStates.some(function (es) {
-                    return e.entityAspect.entityState === es;
-                });
-            };
-        }
-    }
-
-    return ctor;
-
-})();
    
 &#x2F;&#x2F; expose
-
 breeze.EntityManager = EntityManager;
 
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>FetchStrategy - The Breeze API</title>
+    <title>a45_queryOptions.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -179,196 +179,204 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>FetchStrategy Class</h1>
-<div class="box meta">
-    
+                        <h1 class="file-heading">File: a45_queryOptions.js</h1>
 
+<div class="file">
+    <pre class="code prettyprint linenums">
+﻿&#x2F;**
+@module breeze
+**&#x2F;
+   
+var MergeStrategy = (function() {
+    &#x2F;**
+    MergeStrategy is an &#x27;Enum&#x27; that determines how entities are merged into an EntityManager.
     
+    @class MergeStrategy
+    @static
+    **&#x2F;
+    var MergeStrategy = new Enum(&quot;MergeStrategy&quot;);
+    &#x2F;**
+    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
+    in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
+    EntityManager is not replaced by the &#x27;merging&#x27; entity.
+    
+    @property PreserveChanges {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
+    &#x2F;**
+    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
+    in a {{#crossLink &quot;EntityState&#x2F;Modified&quot;}}{{&#x2F;crossLink}} state. In this case, the existing entity in the 
+    EntityManager is replaced by the &#x27;merging&#x27; entity.
+    
+    @property OverwriteChanges {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+    MergeStrategy.seal();
+    return MergeStrategy;
+})();
 
+var FetchStrategy = (function() {
+    &#x2F;**
+    FetchStrategy is an &#x27;Enum&#x27; that determines how and where entities are retrieved from as a result of a query.
     
-        <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l38"><code>a45_queryOptions.js:38</code></a>
-        </div>
-    
+    @class FetchStrategy
+    @static
+    **&#x2F;
+    var FetchStrategy = new Enum(&quot;FetchStrategy&quot;);
+    &#x2F;**
+    FromServer is used to tell the query to execute the query against a remote data source on the server.
+    @property FromServer {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    FetchStrategy.FromServer = FetchStrategy.addSymbol();
+    &#x2F;**
+    FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
+    @property FromLocalCache {MergeStrategy}
+    @final
+    @static
+    **&#x2F;
+    FetchStrategy.FromLocalCache = FetchStrategy.addSymbol();
+    FetchStrategy.seal();
+    return FetchStrategy;
+})();
 
-    
+var QueryOptions = (function () {
+    &#x2F;**
+    A QueryOptions instance is used to specify the &#x27;options&#x27; under which a query will occur.
+
+    @class QueryOptions
+    **&#x2F;
         
-            Module: <a href="../modules/breeze.html">breeze</a>
-        
+    &#x2F;**
+    QueryOptions constructor
+    @example
+        var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+        &#x2F;&#x2F; assume em1 is a preexisting EntityManager
+        em1.setProperties( { queryOptions: newQo });
+
+    Any QueryOptions property that is not defined will be defaulted from any QueryOptions defined at a higher level in the breeze hierarchy, i.e. 
+    -  from query.queryOptions 
+    -  to   entityManager.queryOptions 
+    -  to   QueryOptions.defaultInstance;
+
+    @method &lt;ctor&gt; QueryOptions
+    @param [config] {Object}
+    @param [config.fetchStrategy] {FetchStrategy}  
+    @param [config.mergeStrategy] {MergeStrategy}  
+    **&#x2F;
+    var ctor = function (config) {
+        updateWithConfig(this, config);
+    };
+    var proto = ctor.prototype;
+     
     
+    &#x2F;**
+    A {{#crossLink &quot;FetchStrategy&quot;}}{{&#x2F;crossLink}}
+    __readOnly__
+    @property fetchStrategy {FetchStrategy}
+    **&#x2F;
 
+    &#x2F;**
+    A {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}}
+    __readOnly__
+    @property mergeStrategy {MergeStrategy}
+    **&#x2F;
     
-</div>
+    proto._$typeName = &quot;QueryOptions&quot;;
 
-
-
-<div class="box intro">
-    <p>FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.</p>
-</div>
-
-
-
-<div id="classdocs" class="tabview">
-    <ul class="api-class-tabs">
-        <li class="api-class-tab index"><a href="#index">Index</a></li>
-
-        
-        
-            <li class="api-class-tab properties"><a href="#properties">Properties</a></li>
-        
-        
-        
-    </ul>
-
-    <div>
-        <div id="index" class="api-class-tabpanel index">
-            <h2 class="off-left">Item Index</h2>
-
-            
-
-            
-                <div class="index-section properties">
-                    <h3>Properties</h3>
-
-                    <ul class="index-list properties">
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromLocalCache">FromLocalCache</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_FromServer">FromServer</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                    </ul>
-                </div>
-            
-
-            
-
-            
-        </div>
-
-        
-
-        
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
-
-                
-                    <div id="property_FromLocalCache" class="property item">
-    <h3 class="name"><code>FromLocalCache</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
+    ctor.resolve = function (queryOptionsArray) {
+        return new QueryOptions(__resolveProperties(queryOptionsArray, [&quot;fetchStrategy&quot;, &quot;mergeStrategy&quot;]));
+    }
     
+    &#x2F;**
+    The default value whenever QueryOptions are not specified.
+    @property defaultInstance {QueryOptions}
+    @static
+    **&#x2F;
+    ctor.defaultInstance = new ctor({
+        fetchStrategy: FetchStrategy.FromServer,
+        mergeStrategy: MergeStrategy.PreserveChanges
+    });
 
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
+    &#x2F;**
+    Returns a copy of this QueryOptions with the specified {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} 
+    or {{#crossLink &quot;FetchStrategy&quot;}}{{&#x2F;crossLink}} applied.
+    @example
+        var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);
+    or
+    @example
+        var queryOptions = em1.queryOptions.using(FetchStrategy.FromLocalCache);
+    or
+    @example
+        var queryOptions = em1.queryOptions.using( { mergeStrategy: OverwriteChanges });
+    @method using
+    @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
+    @return {QueryOptions}
+    @chainable
+    **&#x2F;
+    proto.using = function (config) {
+        if (!config) return this;
+        var result = new QueryOptions(this);
+        if (MergeStrategy.contains(config)) {
+            config = { mergeStrategy: config };
+        } else if (FetchStrategy.contains(config)) {
+            config = { fetchStrategy: config };
+        } 
+        return updateWithConfig(result, config);
+    };
         
-            
-                
-                <p>
-                
-                Defined in
-                
-            
+    &#x2F;**
+    Sets the &#x27;defaultInstance&#x27; by creating a copy of the current &#x27;defaultInstance&#x27; and then applying all of the properties of the current instance. 
+    The current instance is returned unchanged.
+    @method setAsDefault
+    @example
+        var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+        newQo.setAsDefault();
+    @chainable
+    **&#x2F;
+    proto.setAsDefault = function() {
+        return __setAsDefault(this, ctor);
+    };
+
+    proto.toJSON = function () {
+        return __toJson(this, {
+            fetchStrategy: null,
+            mergeStrategy: null,
+        });
+    };
+
+    ctor.fromJSON = function (json) {
+        return new QueryOptions({
+            fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
+            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+        });       
+    };
         
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l52"><code>a45_queryOptions.js:52</code></a>
-        
-        </p>
+    function updateWithConfig( obj, config ) {
+        if (config) {
+            assertConfig(config)
+                .whereParam(&quot;fetchStrategy&quot;).isEnumOf(FetchStrategy).isOptional()
+                .whereParam(&quot;mergeStrategy&quot;).isEnumOf(MergeStrategy).isOptional()
+                .applyAll(obj);
+        }
+        return obj;
+    }
+       
+    return ctor;
+})();
 
-        
+breeze.QueryOptions= QueryOptions;
+breeze.FetchStrategy= FetchStrategy;
+breeze.MergeStrategy = MergeStrategy;
 
-        
-    </div>
 
-    <div class="description">
-        <p>FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.</p>
-    </div>
 
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="property_FromServer" class="property item">
-    <h3 class="name"><code>FromServer</code></h3>
-    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
-
-    
-
-    
-
-    
-        <span class="flag final">final</span>
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;a45_queryOptions.js.html#l45"><code>a45_queryOptions.js:45</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>FromServer is used to tell the query to execute the query against a remote data source on the server.</p>
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-            </div>
-        
-
-        
-
-        
-    </div>
+    </pre>
 </div>
 
                     </div>
