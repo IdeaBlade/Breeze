@@ -1599,7 +1599,7 @@ var EntityManager = (function () {
 
     function fixupKeys(em, keyMappings) {
         keyMappings.forEach(function (km) {
-            var entityTypeName = EntityType._getNormalizedTypeName(km.EntityTypeName);
+            var entityTypeName = MetadataStore._getNormalizedTypeName(km.EntityTypeName);
             var group = em._entityGroupMap[entityTypeName];
             group._fixupKey(km.TempValue, km.RealValue);
         });

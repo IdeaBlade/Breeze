@@ -13,7 +13,7 @@
     
     var core = breeze.core;
  
-    var EntityType = breeze.EntityType;
+    var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
     var OData;
@@ -89,7 +89,7 @@
             
             if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = EntityType._getNormalizedTypeName(node.__metadata.type);
+                var entityTypeName = MetadataStore._getNormalizedTypeName(node.__metadata.type);
                 var et = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;

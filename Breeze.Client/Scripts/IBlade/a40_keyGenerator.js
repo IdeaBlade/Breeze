@@ -2,7 +2,7 @@
  @module breeze
  **/
 
-var KeyGenerator = function () {
+var KeyGenerator = (function () {
     
     /*
     @class KeyGenerator
@@ -126,6 +126,6 @@ var KeyGenerator = function () {
     __config.registerType(ctor, "KeyGenerator");
 
     return ctor;
-}();
+})();
 
 breeze.KeyGenerator = KeyGenerator;
