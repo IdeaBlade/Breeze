@@ -6,6 +6,8 @@ using Models.NorthwindIB.EDMX;
 using Models.NorthwindIB.EDMX_2012;
 using System.ServiceModel;
 
+// MAKE SURE YOU SET the ODATA define before running any ODATA tests.
+
 namespace Breeze_OData {
   // This attribute makes it possible to see errors on the client.
   [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
