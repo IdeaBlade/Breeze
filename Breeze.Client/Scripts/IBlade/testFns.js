@@ -244,6 +244,75 @@ define(["breeze.debug"], function (breeze) {
 
     };
 
+    testFns.assertIsSorted2 = function (collection, propertyName, dataType, isDescending, isCaseSensitive) {
+        isCaseSensitive = isCaseSensitive == null ? true : isCaseSensitive;
+        var fn = function (a, b) {
+            // localeCompare has issues in Chrome.
+            // var compareResult = a[propertyName].localeCompare(b.propertyName);
+            return compare(a, b, propertyName, dataType, isDescending, isCaseSensitive);
+        };
+        var firstTime = true;
+        var prevItem;
+        var isOk = collection.every(function (item) {
+            if (firstTime) {
+                firstTime = false;
+            } else {
+                var r = fn(item, prevItem);
+                if (isDescending) {
+                    if (r < 0) {
+                        return false;
+                    }
+                } else {
+                    if (r > 0) {
+                        return false;
+                    }
+                }
+            }
+            prevItem = item;
+            return true;
+        });
+
+        ok(isOk, propertyName + " not sorted correctly");
+
+    };
+
+    function compare(a, b, propertyName, dataType, isDescending, isCaseSensitive) {
+        var value1 = a.getProperty(propertyName);
+        var value2 = b.getProperty(propertyName);
+        value1 = value1 === undefined ? null : value1;
+        value2 = value2 === undefined ? null : value2;
+        if (dataType === DataType.String) {
+            if (!isCaseSensitive) {
+                value1 = (value1 || "").toLowerCase();
+                value2 = (value2 || "").toLowerCase();
+            }
+        } else {
+            var normalize = getComparableFn(dataType);
+            value1 = normalize(value1);
+            value2 = normalize(value2);
+        }
+        if (value1 == value2) {
+            return 0;
+        } else if (value1 > value2) {
+            return isDescending ? -1 : 1;
+        } else {
+            return isDescending ? 1 : -1;
+        }
+    }
+
+    function getComparableFn(dataType) {
+        if (dataType && dataType.isDate) {
+            // dates don't perform equality comparisons properly 
+            return function (value) { return value && value.getTime(); };
+        } else if (dataType === DataType.Time) {
+            // durations must be converted to compare them
+            return function (value) { return value && __durationToSeconds(value); };
+        } else {
+            return function (value) { return value; };
+        }
+
+    }
+
     testFns.StopCount = function (count) {
         this.count = count;
         stop();

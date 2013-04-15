@@ -286,6 +286,11 @@ define(["testFns"], function (testFns) {
         cust1.setProperty("country", "US");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "length should be 1");
+        cust1.setProperty("country", null);
+        valErrors = cust1.entityAspect.getValidationErrors();
+        ok(valErrors.length === 1, "length should be 1");
+        cust1.entityAspect.validateProperty("country");
+        ok(valErrors.length === 1, "length should be 1");
     });
 
     test("custom entity validation", function () {
