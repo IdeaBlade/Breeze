@@ -27,14 +27,14 @@
             };
 
             staffingResourceCtor.prototype.deletePhoneNumber = function (phoneNumber) {
-                ensureEntityType(phoneNumber, "PhoneNumber");
+                ensureEntityType(phoneNumber, 'PhoneNumber');
                 this.throwIfNotOwnerOf(phoneNumber);
 
                 phoneNumber.entityAspect.setDeleted();
             };
 
             staffingResourceCtor.prototype.setPrimaryPhoneNumber = function (phoneNumber) {
-                ensureEntityType(phoneNumber, "PhoneNumber");
+                ensureEntityType(phoneNumber, 'PhoneNumber');
                 this.throwIfNotOwnerOf(phoneNumber);
 
                 ko.utils.arrayForEach(this.phoneNumbers(), function (x) {
@@ -45,14 +45,14 @@
             };
 
             staffingResourceCtor.prototype.deleteAddress = function (address) {
-                ensureEntityType(address, "Address");
+                ensureEntityType(address, 'Address');
                 this.throwIfNotOwnerOf(address);
 
                 address.entityAspect.setDeleted();
             };
 
             staffingResourceCtor.prototype.setPrimaryAddress = function (address) {
-                ensureEntityType(address, "Address");
+                ensureEntityType(address, 'Address');
                 this.throwIfNotOwnerOf(address);
 
                 ko.utils.arrayForEach(this.addresses(), function (x) {
@@ -64,21 +64,21 @@
 
             staffingResourceCtor.prototype.throwIfNotOwnerOf = function (obj) {
                 if (!obj.staffingResourceId || obj.staffingResourceId() !== this.id()) {
-                    throw new Error("Object is not associated with current StaffingResource");
+                    throw new Error('Object is not associated with current StaffingResource');
                 }
             };
 
             var staffingResourceInitializer = function (staffingResource) {
                 staffingResource.fullName = ko.computed(function () {
                     if (staffingResource.middleName()) {
-                        return staffingResource.firstName() + " " + staffingResource.middleName() + " " + staffingResource.lastName();
+                        return staffingResource.firstName() + ' ' + staffingResource.middleName() + ' ' + staffingResource.lastName();
                     }
 
-                    return staffingResource.firstName() + " " + staffingResource.lastName();
+                    return staffingResource.firstName() + ' ' + staffingResource.lastName();
                 });
             };
 
-            metadataStore.registerEntityTypeCtor("StaffingResource", staffingResourceCtor, staffingResourceInitializer);
+            metadataStore.registerEntityTypeCtor('StaffingResource', staffingResourceCtor, staffingResourceInitializer);
         }
 
         function extendAddress(metadataStore) {
@@ -86,7 +86,7 @@
                 this.id = ko.observable(breeze.core.getUuid());
             };
 
-            metadataStore.registerEntityTypeCtor("Address", addressCtor);
+            metadataStore.registerEntityTypeCtor('Address', addressCtor);
         }
 
         function extendPhoneNumber(metadataStore) {
@@ -94,12 +94,12 @@
                 this.id = ko.observable(breeze.core.getUuid());
             };
 
-            metadataStore.registerEntityTypeCtor("PhoneNumber", phoneNumberCtor);
+            metadataStore.registerEntityTypeCtor('PhoneNumber', phoneNumberCtor);
         }
 
         function ensureEntityType(obj, entityTypeName) {
             if (!obj.entityType || obj.entityType.shortName !== entityTypeName) {
-                throw new Error("Object must be an entity of type " + entityTypeName);
+                throw new Error('Object must be an entity of type ' + entityTypeName);
             }
         }
     });

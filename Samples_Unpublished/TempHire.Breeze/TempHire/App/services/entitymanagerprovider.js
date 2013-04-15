@@ -2,7 +2,7 @@
     function(app) {
 
         breeze.NamingConvention.camelCase.setAsDefault();
-        var serviceName = "api";
+        var serviceName = 'api';
         var masterManager = new breeze.EntityManager(serviceName);
 
         var EntityManagerProvider = (function() {
@@ -49,7 +49,7 @@
                     }
 
                     var query = breeze.EntityQuery
-                        .from("Lookups");
+                        .from('resourcemgt/lookups');
 
                     return masterManager.executeQuery(query);
                 });

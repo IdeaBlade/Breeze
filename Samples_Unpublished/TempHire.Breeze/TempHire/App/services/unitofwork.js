@@ -13,9 +13,11 @@
                 };
                 
                 this.commit = function () {
-                    return provider.manager().saveChanges()
+                    var saveOptions = new breeze.SaveOptions({ resourceName: 'resourcemgt/savechanges' });
+
+                    return provider.manager().saveChanges(null, saveOptions)
                         .then(function(saveResult) {
-                            app.trigger("saved", saveResult.entities);
+                            app.trigger('saved', saveResult.entities);
                         });
                 };
 
@@ -23,14 +25,14 @@
                     provider.manager().rejectChanges();
                 };
 
-                this.staffingResourceListItems = repository.create(provider, null, 'ResourceMgt/StaffingResourceListItems');
-                this.staffingResources = repository.create(provider, 'StaffingResource', 'ResourceMgt/StaffingResources');
-                this.addresses = repository.create(provider, "Address", "ResourceMgt/Addresses");
-                this.addressTypes = repository.create(provider, "AddressType", "ResourceMgt/AddressTypes", breeze.FetchStrategy.FromLocalCache);
-                this.phoneNumbers = repository.create(provider, "PhoneNumber", "ResourceMgt/PhoneNumbers");
-                this.phoneNumberTypes = repository.create(provider, "PhoneNumberType", "ResourceMgt/PhoneNumberTypes", breeze.FetchStrategy.FromLocalCache);
+                this.staffingResourceListItems = repository.create(provider, null, 'resourcemgt/staffingresourcelistitems');
+                this.staffingResources = repository.create(provider, 'StaffingResource', 'resourcemgt/staffingresources');
+                this.addresses = repository.create(provider, 'Address', 'resourcemgt/addresses');
+                this.addressTypes = repository.create(provider, 'AddressType', 'resourcemgt/addresstypes', breeze.FetchStrategy.FromLocalCache);
+                this.phoneNumbers = repository.create(provider, 'PhoneNumber', 'resourcemgt/phonenumbers');
+                this.phoneNumberTypes = repository.create(provider, 'PhoneNumberType', 'resourcemgt/phonenumbertypes', breeze.FetchStrategy.FromLocalCache);
 
-                this.states = repository.create(provider, "State", "ResourceMgt/States", breeze.FetchStrategy.FromLocalCache);
+                this.states = repository.create(provider, 'State', 'resourcemgt/s tates', breeze.FetchStrategy.FromLocalCache);
             };
 
             return unitofwork;
