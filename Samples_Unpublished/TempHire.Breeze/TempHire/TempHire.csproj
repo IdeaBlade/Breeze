@@ -152,6 +152,7 @@
     <Content Include="App\durandal\viewModelBinder.js" />
     <Content Include="App\durandal\widget.js" />
     <Content Include="App\main.js" />
+    <Content Include="App\model\modelBuilder.js" />
     <Content Include="App\services\entitymanagerprovider.js" />
     <Content Include="App\services\logger.js" />
     <Content Include="App\services\repository.js" />
