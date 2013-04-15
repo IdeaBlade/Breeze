@@ -192,6 +192,7 @@ define(["testFns"], function (testFns) {
             order.setProperty("freight", freight);
             
             var so = new SaveOptions({ resourceName: "SaveWithFreight2", tag: "freight update" });
+            
             return em.saveChanges(null, so);
         }).then(function(sr) {
             ok(sr.entities.length == 1, "should have saved one entity");

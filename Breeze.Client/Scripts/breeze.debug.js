@@ -4436,7 +4436,7 @@ var JsonResultsAdapter = (function () {
             extractResults: function(json) {
                 return json.results;
             },
-            visitNode: function(node, queryContext, nodeContext) {
+            visitNode: function(node, parseContext, nodeContext) {
                 var entityType = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
@@ -10975,7 +10975,7 @@ var EntityManager = (function () {
             var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
             fixupKeys(that, saveResult.keyMappings);
                 
-            var queryContext = {
+            var parseContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
                 queryOptions: queryOptions,
@@ -10985,7 +10985,7 @@ var EntityManager = (function () {
             };
                 
             var savedEntities = saveResult.entities.map(function (rawEntity) {
-                return visitAndMerge(rawEntity, queryContext, { nodeType: "root" });
+                return visitAndMerge(rawEntity, parseContext, { nodeType: "root" });
             });
             markIsBeingSaved(entitiesToSave, false);
             // update _hasChanges after save.
@@ -11808,7 +11808,7 @@ var EntityManager = (function () {
 
             var url = dataService.serviceName + metadataStore.toQueryString(query);
 
-            var queryContext = {
+            var parseContext = {
                     url: url,
                     query: query,
                     entityManager: em,
@@ -11822,7 +11822,7 @@ var EntityManager = (function () {
             var promise = deferred.promise;
 
                 
-            dataService.adapterInstance.executeQuery(queryContext, function (data) {
+            dataService.adapterInstance.executeQuery(parseContext, function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -11835,7 +11835,7 @@ var EntityManager = (function () {
                     em._pendingPubs = null;
                     // HACK for GC
                     query = null;
-                    queryContext = null;
+                    parseContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
                     if (state.error) deferred.reject(state.error);
 
@@ -11845,15 +11845,15 @@ var EntityManager = (function () {
                         nodes = [nodes];
                     }
                     var results = nodes.map(function (node) {
-                        var r = visitAndMerge(node, queryContext, { nodeType: "root" });
+                        var r = visitAndMerge(node, parseContext, { nodeType: "root" });
                         // anon types and simple types will not have an entityAspect.
                         if (validateOnQuery && r.entityAspect) {
                             r.entityAspect.validateEntity();
                         }
                         return r;
                     });
-                    if (queryContext.deferredFns.length > 0) {
-                        queryContext.deferredFns.forEach(function(fn) {
+                    if (parseContext.deferredFns.length > 0) {
+                        parseContext.deferredFns.forEach(function(fn) {
                             fn();
                         });
                     }
@@ -11875,56 +11875,56 @@ var EntityManager = (function () {
         }
     }
                
-    function visitAndMerge(node, queryContext, nodeContext) {
+    function visitAndMerge(node, parseContext, nodeContext) {
         nodeContext = nodeContext || {};
-        var meta = queryContext.dataService.jsonResultsAdapter.visitNode(node, queryContext, nodeContext) || {};
-        if (queryContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
-            meta.entityType = queryContext.query._getToEntityType && queryContext.query._getToEntityType(queryContext.entityManager.metadataStore);
+        var meta = parseContext.dataService.jsonResultsAdapter.visitNode(node, parseContext, nodeContext) || {};
+        if (parseContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
+            meta.entityType = parseContext.query._getToEntityType && parseContext.query._getToEntityType(parseContext.entityManager.metadataStore);
         }
-        return processMeta(node, queryContext, meta);
+        return processMeta(node, parseContext, meta);
     }
         
-    function processMeta(node, queryContext, meta, assignFn) {
+    function processMeta(node, parseContext, meta, assignFn) {
         // == is deliberate here instead of ===
         if (meta.ignore || node == null) {
             return null;
         } else if (meta.nodeRefId) {
-            var refValue = resolveRefEntity(meta.nodeRefId, queryContext);
+            var refValue = resolveRefEntity(meta.nodeRefId, parseContext);
             if (typeof refValue == "function") {
-                queryContext.deferredFns.push(function () {
+                parseContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
                 return undefined; // deferred and will be set later;
             }
             return refValue;
         } else if (meta.entityType) {
-            return mergeEntity(node, queryContext, meta);
+            return mergeEntity(node, parseContext, meta);
         } else {
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
-                queryContext.refMap[meta.nodeId] = node;
+                parseContext.refMap[meta.nodeId] = node;
             }
                 
             if (typeof node === 'object') {
-                return processAnonType(node, queryContext);
+                return processAnonType(node, parseContext);
             } else {
                 return node;
             }
         }
     }
         
-    function resolveRefEntity(nodeRefId, queryContext) {
-        var entity = queryContext.refMap[nodeRefId];
+    function resolveRefEntity(nodeRefId, parseContext) {
+        var entity = parseContext.refMap[nodeRefId];
         if (entity === undefined) {
-            return function () { return queryContext.refMap[nodeRefId]; };
+            return function () { return parseContext.refMap[nodeRefId]; };
         } else {
             return entity;
         }
     }
         
-    function mergeEntity(node, queryContext, meta) {
+    function mergeEntity(node, parseContext, meta) {
         node._$meta = meta;
-        var em = queryContext.entityManager;
+        var em = parseContext.entityManager;
 
         var entityType = meta.entityType;
         if (typeof (entityType) === 'string') {
@@ -11932,8 +11932,8 @@ var EntityManager = (function () {
         }
         node.entityType = entityType;
         
-        var mergeStrategy = queryContext.queryOptions.mergeStrategy;
-        var isSaving = queryContext.query == null;
+        var mergeStrategy = parseContext.queryOptions.mergeStrategy;
+        var isSaving = parseContext.query == null;
 
             
         var entityKey = getEntityKeyFromRawEntity(node, entityType);
@@ -11946,7 +11946,7 @@ var EntityManager = (function () {
             var targetEntityState = targetEntity.entityAspect.entityState;
             if (mergeStrategy === MergeStrategy.OverwriteChanges
                     || targetEntityState.isUnchanged()) {
-                updateEntity(targetEntity, node, queryContext);
+                updateEntity(targetEntity, node, parseContext);
                 targetEntity.entityAspect.wasLoaded = true;
                     
                 targetEntity.entityAspect.entityState = EntityState.Unchanged;
@@ -11960,13 +11960,13 @@ var EntityManager = (function () {
                     em._notifyStateChange(targetEntity, false);
                 }
             } else {
-                updateEntityRef(queryContext, targetEntity, node);
+                updateEntityRef(parseContext, targetEntity, node);
                 // we still need to merge related entities even if top level entity wasn't modified.
                 entityType.navigationProperties.forEach(function (np) {
                     if (np.isScalar) {
-                        mergeRelatedEntityCore(node, np, queryContext);
+                        mergeRelatedEntityCore(node, np, parseContext);
                     } else {
-                        mergeRelatedEntitiesCore(node, np, queryContext);
+                        mergeRelatedEntitiesCore(node, np, parseContext);
                     }
                 });
             }
@@ -11977,7 +11977,7 @@ var EntityManager = (function () {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
             }
-            updateEntity(targetEntity, node, queryContext);
+            updateEntity(targetEntity, node, parseContext);
             targetEntity.entityAspect._postInitialize();
             attachEntityCore(em, targetEntity, EntityState.Unchanged);
             targetEntity.entityAspect.wasLoaded = true;
@@ -11986,27 +11986,27 @@ var EntityManager = (function () {
         return targetEntity;
     }
         
-    function processAnonType(node, queryContext) {
+    function processAnonType(node, parseContext) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
-        var em = queryContext.entityManager;
-        var jsonResultsAdapter = queryContext.dataService.jsonResultsAdapter;
+        var em = parseContext.entityManager;
+        var jsonResultsAdapter = parseContext.dataService.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = { };
         __objectForEach(node, function(key, value) {
-            var meta = jsonResultsAdapter.visitNode(value, queryContext, { nodeType: "anonProp", propertyName: key }) || {};
+            var meta = jsonResultsAdapter.visitNode(value, parseContext, { nodeType: "anonProp", propertyName: key }) || {};
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
                 
             if (Array.isArray(value)) {
                 result[newKey] = value.map(function(v, ix) {
-                    meta = jsonResultsAdapter.visitNode(v, queryContext, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return processMeta(v, queryContext, meta, function(refValue) {
+                    meta = jsonResultsAdapter.visitNode(v, parseContext, { nodeType: "anonPropItem", propertyName: key }) || {};
+                    return processMeta(v, parseContext, meta, function(refValue) {
                         result[newKey][ix] = refValue();
                     });
                 });
             } else {
-                result[newKey] = processMeta(value, queryContext, meta, function(refValue) {
+                result[newKey] = processMeta(value, parseContext, meta, function(refValue) {
                     result[newKey] = refValue();
                 });
             }
@@ -12014,8 +12014,8 @@ var EntityManager = (function () {
         return result;
     }
 
-    function updateEntity(targetEntity, rawEntity, queryContext) {
-        updateEntityRef(queryContext, targetEntity, rawEntity);
+    function updateEntity(targetEntity, rawEntity, parseContext) {
+        updateEntityRef(parseContext, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
@@ -12034,9 +12034,9 @@ var EntityManager = (function () {
 
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
-                mergeRelatedEntity(np, targetEntity, rawEntity, queryContext);
+                mergeRelatedEntity(np, targetEntity, rawEntity, parseContext);
             } else {
-                mergeRelatedEntities(np, targetEntity, rawEntity, queryContext);
+                mergeRelatedEntities(np, targetEntity, rawEntity, parseContext);
             }
         });
     }
@@ -12065,19 +12065,19 @@ var EntityManager = (function () {
         return val;
     }
         
-    function updateEntityRef(queryContext, targetEntity, rawEntity) {
+    function updateEntityRef(parseContext, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
         if (nodeId != null) {
-            queryContext.refMap[nodeId] = targetEntity;
+            parseContext.refMap[nodeId] = targetEntity;
         }
     }
 
-    function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, queryContext) {
+    function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, parseContext) {
           
-        var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext);
+        var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, parseContext);
         if (relatedEntity == null) return;
         if (typeof relatedEntity === 'function') {
-            queryContext.deferredFns.push(function() {
+            parseContext.deferredFns.push(function() {
                 relatedEntity = relatedEntity();
                 updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
             });
@@ -12086,11 +12086,11 @@ var EntityManager = (function () {
         }
     }
         
-    function mergeRelatedEntityCore(rawEntity, navigationProperty, queryContext) {
+    function mergeRelatedEntityCore(rawEntity, navigationProperty, parseContext) {
         var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntity) return null;
             
-        var relatedEntity = visitAndMerge(relatedRawEntity, queryContext, { nodeType: "navProp",  navigationProperty: navigationProperty });
+        var relatedEntity = visitAndMerge(relatedRawEntity, parseContext, { nodeType: "navProp",  navigationProperty: navigationProperty });
         return relatedEntity;
     }
         
@@ -12113,8 +12113,8 @@ var EntityManager = (function () {
         }
     }
        
-    function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, queryContext) {
-        var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext);
+    function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, parseContext) {
+        var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, parseContext);
         if (relatedEntities == null) return;
             
         var inverseProperty = navigationProperty.inverse;
@@ -12123,7 +12123,7 @@ var EntityManager = (function () {
         originalRelatedEntities.wasLoaded = true;
         relatedEntities.forEach(function (relatedEntity) {
             if (typeof relatedEntity === 'function') {
-                queryContext.deferredFns.push(function() {
+                parseContext.deferredFns.push(function() {
                     relatedEntity = relatedEntity();
                     updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                 });
@@ -12133,7 +12133,7 @@ var EntityManager = (function () {
         });
     }
 
-    function mergeRelatedEntitiesCore(rawEntity, navigationProperty, queryContext) {
+    function mergeRelatedEntitiesCore(rawEntity, navigationProperty, parseContext) {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntities) return null;
             
@@ -12141,7 +12141,7 @@ var EntityManager = (function () {
         if (!Array.isArray(relatedRawEntities)) return null;
 
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
-            return visitAndMerge(relatedRawEntity, queryContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
+            return visitAndMerge(relatedRawEntity, parseContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         });
         return relatedEntities;
 
@@ -12508,9 +12508,9 @@ breeze.SaveOptions= SaveOptions;
     };
     
     
-    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
     
-        OData.read(queryContext.url,
+        OData.read(parseContext.url,
             function (data, response) {
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
@@ -12564,13 +12564,13 @@ breeze.SaveOptions= SaveOptions;
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (node, queryContext, nodeContext) {
+        visitNode: function (node, parseContext, nodeContext) {
             var result = {};
             
             if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
                 var entityTypeName = MetadataStore._getNormalizedTypeName(node.__metadata.type);
-                var et = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
                 }
@@ -12717,10 +12717,10 @@ breeze.SaveOptions= SaveOptions;
     };
     
 
-    ctor.prototype.executeQuery = function (queryContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
 
         var params = {
-            url: queryContext.url,
+            url: parseContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {
@@ -12745,7 +12745,7 @@ breeze.SaveOptions= SaveOptions;
                 handleXHRError(XHR, errorCallback);
             }
         };
-        if (queryContext.dataService.useJsonp) {
+        if (parseContext.dataService.useJsonp) {
             params.dataType = 'jsonp';
             params.crossDomain = true;
         }
@@ -12782,9 +12782,9 @@ breeze.SaveOptions= SaveOptions;
         
         name: "webApi_default",
         
-        visitNode: function (node, queryContext, nodeContext ) {
+        visitNode: function (node, parseContext, nodeContext ) {
             var entityTypeName = MetadataStore._getNormalizedTypeName(node.$type);
-            var entityType = entityTypeName && queryContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && parseContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 

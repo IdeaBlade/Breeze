@@ -88,9 +88,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, queryContext, nodeContext) {
+            visitNode: function (node, parseContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
@@ -127,9 +127,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, queryContext, nodeContext) {
+            visitNode: function (node, parseContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
@@ -168,9 +168,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, queryContext, nodeContext) {
+            visitNode: function (node, parseContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && queryContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
