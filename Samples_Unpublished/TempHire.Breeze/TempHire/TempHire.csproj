@@ -111,6 +111,9 @@
     <Reference Include="System.Web.Optimization">
       <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.0.0\lib\net40\System.Web.Optimization.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Providers">
+      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.1.1\lib\net40\System.Web.Providers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20715.0\lib\net40\System.Web.Razor.dll</HintPath>
@@ -154,13 +157,17 @@
     <Content Include="App\main.js" />
     <Content Include="App\model\modelBuilder.js" />
     <Content Include="App\services\entitymanagerprovider.js" />
+    <Content Include="App\services\errorhandler.js" />
     <Content Include="App\services\logger.js" />
+    <Content Include="App\services\account.js" />
     <Content Include="App\services\repository.js" />
     <Content Include="App\services\unitofwork.js" />
+    <Content Include="App\services\utilities.js" />
     <Content Include="App\viewmodels\contacts.js" />
     <Content Include="App\viewmodels\details.js" />
     <Content Include="App\viewmodels\dialog.js" />
     <Content Include="App\viewmodels\home.js" />
+    <Content Include="App\viewmodels\login.js" />
     <Content Include="App\viewmodels\nameeditor.js" />
     <Content Include="App\viewmodels\optionselector.js" />
     <Content Include="App\viewmodels\resourcemgt.js" />
@@ -169,6 +176,7 @@
     <Content Include="App\views\details.html" />
     <Content Include="App\views\dialog.html" />
     <Content Include="App\views\home.html" />
+    <Content Include="App\views\login.html" />
     <Content Include="App\views\nameeditor.html" />
     <Content Include="App\views\nav.html" />
     <Content Include="App\views\optionselector.html" />
@@ -254,6 +262,8 @@
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\InfrastructureConfig.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\Credential.cs" />
     <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\LookupBundle.cs" />
     <Compile Include="Controllers\ResourceMgtController.cs" />

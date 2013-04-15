@@ -8,6 +8,7 @@ using TempHire.Services;
 namespace TempHire.Controllers
 {
     [BreezeController]
+    [Authorize]
     public class ResourceMgtController : ApiController
     {
         private readonly UnitOfWork _unitOfWork = new UnitOfWork();

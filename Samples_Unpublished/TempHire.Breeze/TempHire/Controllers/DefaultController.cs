@@ -5,6 +5,7 @@ using DomainModel;
 namespace TempHire.Controllers
 {
     [BreezeController]
+    [Authorize]
     public class DefaultController : ApiController
     {
         // ~/api/Metadata
