@@ -39,11 +39,6 @@ namespace TempHire.Services
 
         public IStaffingResourceListItemRepository StaffingResourceListItems { get; private set; }
 
-        public string Metadata()
-        {
-            return _contextProvider.Metadata();
-        }
-
         public SaveResult Commit(JObject changeSet)
         {
             return _contextProvider.SaveChanges(changeSet);

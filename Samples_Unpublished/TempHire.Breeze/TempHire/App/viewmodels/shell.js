@@ -1,5 +1,8 @@
-﻿define(['durandal/system', 'durandal/plugins/router', 'services/logger', 'services/entitymanagerprovider'],
-    function (system, router, logger, entitymanagerprovider) {
+﻿define(['durandal/system', 'durandal/plugins/router', 'services/logger', 'services/entitymanagerprovider', 'model/modelBuilder'],
+    function (system, router, logger, entitymanagerprovider, modelBuilder) {
+
+        entitymanagerprovider.modelBuilder = modelBuilder.extendMetadata;
+
         var shell = {
             activate: activate,
             router: router
