@@ -23,7 +23,7 @@
               <input class="filter" data-ng-model="searchText" type="search" placeholder="Filter by Make ..." />
             </div>
             <div data-ng-show="!makes.length" class="make">... loading makes ...</div>
-            <div  data-ng-repeat="make in makes | filter:makeFilter" class="make">
+            <div data-ng-repeat="make in makes | filter:makeFilter" class="make">
                 <input type="checkbox" data-ng-model="make.showModels" data-ng-click="getModels(make)" />
                 {{make.name}}
                 <span data-ng-show="make.isLoading"> ... (loading models)...</span>

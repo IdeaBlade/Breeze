@@ -1,6 +1,6 @@
 ﻿/* model: entity definitions */
 app.factory('model', function () {
-    var DataType = breeze.DataType;
+    var DT = breeze.DataType; // alias
     return {
         initialize: initialize
     }
@@ -10,13 +10,16 @@ app.factory('model', function () {
             shortName: "Make",
             namespace: "Edmunds",
             dataProperties: {
-                id: { dataType: DataType.Int64, isPartOfKey: true },
-                name: { dataType: DataType.String },
-                niceName: { dataType: DataType.String },
-                modelLinks: { dataType: DataType.Undefined }
+                id:         { dataType: DT.Int64, isPartOfKey: true },
+                name:       { dataType: DT.String },
+                niceName:   { dataType: DT.String },
+                modelLinks: { dataType: DT.Undefined }
             },
             navigationProperties: {
-                models: { entityTypeName: "Model:#Edmunds", isScalar: false, associationName: "Make_Models" }
+                models: {
+                    entityTypeName:  "Model:#Edmunds", isScalar: false,
+                    associationName: "Make_Models"
+                }
             }
         });
 
@@ -24,20 +27,20 @@ app.factory('model', function () {
             shortName: "Model",
             namespace: "Edmunds",
             dataProperties: {
-                makeId: { dataType: "Int64" },
-                makeName: { dataType: "String" },
-                makeNiceName: { dataType: "String" },
-                id: { dataType: "String", isPartOfKey: true },
-                name: { dataType: "String" },
-                niceName: { dataType: "String" },
+                id:            { dataType: "String", isPartOfKey: true },
+                makeId:        { dataType: "Int64" },
+                makeName:      { dataType: "String" },
+                makeNiceName:  { dataType: "String" },
+                name:          { dataType: "String" },
+                niceName:      { dataType: "String" },
                 vehicleStyles: { dataType: "String" },
-                vehicleSizes: { dataType: "String" },
-                categories: { dataType: "Undefined" }
+                vehicleSizes:  { dataType: "String" },
+                categories:    { dataType: "Undefined" }
             },
             navigationProperties: {
                 make: {
-                    entityTypeName: "Make:#Edmunds", isScalar: true, associationName: "Make_Models",
-                    foreignKeyNames: ["makeId"]
+                    entityTypeName:  "Make:#Edmunds", isScalar: true,
+                    associationName: "Make_Models",  foreignKeyNames: ["makeId"]
                 }
             }
         });
