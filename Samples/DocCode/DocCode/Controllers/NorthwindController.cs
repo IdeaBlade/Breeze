@@ -99,7 +99,7 @@ namespace DocCode.Controllers
     // UserPartial is not in Metadata and won't be client cached unless
     // you define metadata for it on the Breeze client
     [HttpGet]
-    public IQueryable<UserPartial> Users()
+    public IQueryable<UserPartial> UserPartials()
     {
         // Todo: move this logic into a custom EFContextProvider
         return _contextProvider.Context.Users

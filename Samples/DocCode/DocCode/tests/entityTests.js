@@ -678,7 +678,7 @@ define(["testFns"], function (testFns) {
     * Changing the whole date does trigger property changed
     * contrast with "Changing a part of a date doesn't trigger property changed"
     *********************************************************/
-    test("Changing the whole date does trigger property changed", 2, function () {
+    test("Changing the whole date does trigger property changed", 1, function () {
 
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
@@ -687,20 +687,18 @@ define(["testFns"], function (testFns) {
         order.setProperty("OrderID", 42);
         em.attachEntity(order); // unmodified state
 
-        var orderDate = order.getProperty("OrderDate");
-        var newDay = orderDate.getDate() + 1;
-        orderDate.setDate(newDay);
-
-        // set the date with a **clone** of the altered date
-        order.setProperty("OrderDate", new Date(orderDate));
-
-        var afterDate = order.getProperty("OrderDate");
-        equal(afterDate.getDate(), newDay,
-            "the day of the OrderDate should have changed");
+        var newOrderDate = getDifferentDate(order.getProperty("OrderDate"));
+        order.setProperty("OrderDate", newOrderDate);
 
         var entityStateName = order.entityAspect.entityState;
         equal(entityStateName, "Modified", "the entitystate should be 'Modified'");
     });
+
+    function getDifferentDate(date) {
+        var newDate = new Date(date);
+        newDate.setDate(1 + date.getDate());
+        return newDate;
+    }
     /*********************************************************
     * Store-managed int ID is a negative temp id after addEntity
     *********************************************************/

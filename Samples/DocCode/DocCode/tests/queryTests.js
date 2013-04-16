@@ -1121,10 +1121,10 @@ define(["testFns"], function (testFns) {
     /*********************************************************/
     test("'Users' query returns objects of type 'UserPartial'", 3, function () {
 
-        var query = EntityQuery.from("Users").top(1);
+        var query = EntityQuery.from("UserPartials").top(1);
         var em = newEm();
         
-        verifyQuery(em, query,"users",
+        verifyQuery(em, query,"userPartials",
             assertUserPartialIsNotAnEntity);
         
     });
