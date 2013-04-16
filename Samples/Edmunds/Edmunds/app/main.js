@@ -1,7 +1,7 @@
 ﻿/* main: startup script creates the 'Edmunds' module and its Angular directives */
 app = {}; // establish application global namespace
 
-app.EdmundsMain = angular.module('EdmundsMain', [])
+app.main = angular.module('main', [])
     .directive('onFocus', function () {
         return {
             restrict: 'A',

@@ -3,7 +3,7 @@
  *     $scope - context variable for the view to which the view binds
  *     $timeout - Angular equivalent of `setTimeout`
  */
-app.EdmundsMain.controller('EdmundsCtrl', function ($scope, $timeout) {
+app.main.controller('EdmundsCtrl', function ($scope, $timeout) {
 
     var dataAccess = window.app.dataAccess;
     dataAccess.$timeout = $timeout; // inject into dataAccess
