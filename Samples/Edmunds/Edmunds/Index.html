@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-ng-app="main">
+<html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
@@ -10,12 +10,10 @@
     <link rel="stylesheet" href="Content/toastr.css" />
     <link rel="stylesheet" href="Content/app.css" />
 </head>
-<body>
-
+<body data-ng-app="app">
     <div id="applicationHost" data-ng-controller="EdmundsCtrl" class="ng-cloak">
         <header>
             <h2>Edmunds Vehicle API</h2>
-            <h2>&nbsp</h2>
             <a href="http://developer.edmunds.com/docs" target="_blank">Edmunds API Documentation</a>
         </header>
         
@@ -24,15 +22,13 @@
               <!--[if lte IE 9]><span style='font-size:1em;'>Filter by Make </span><![endif]-->
               <input class="filter" data-ng-model="searchText" type="search" placeholder="Filter by Make ..." />
             </div>
-            
+            <div data-ng-show="!makes.length" class="make">... loading makes ...</div>
             <div  data-ng-repeat="make in makes | filter:makeFilter" class="make">
-                <input type="checkbox" data-ng-model="make.shouldShowModels" data-ng-click="showModels(make)" />
-                <span data-ng-show="make.isLoading">
-                    {{make.name}} ... (loading models)... 
-                </span>
-                <span data-ng-show="!(make.isLoading)"  >{{make.name}}</span>
-                <table data-ng-show="make.shouldShowModels"  class="models">
-                    <tr data-ng-repeat="model in make.models | orderBy:modelOrder">
+                <input type="checkbox" data-ng-model="make.showModels" data-ng-click="getModels(make)" />
+                {{make.name}}
+                <span data-ng-show="make.isLoading"> ... (loading models)...</span>
+                <table data-ng-show="make.showModels" class="models">
+                    <tr data-ng-repeat="model in make.models | orderBy: 'name'">
                         <td class="modelName">{{model.name}}</td> 
                         <td class="modelSize">{{model.vehicleSizes}}</td>
                         <td class="modelStyle">{{model.vehicleStyles}}</td>
@@ -50,10 +46,11 @@
     <script src="Scripts/angular.js"></script>
 
     <!-- App libraries -->
-    <script src="app/main.js"></script>
-    <script src="app/logger.js"></script>
-    <script src="app/dataAccess.js"></script>
     <script src="app/controller.js"></script>
+    <script src="app/datacontext.js"></script>
+    <script src="app/model.js"></script>
+    <script src="app/jsonResultsAdapter.js"></script>
+    <script src="app/logger.js"></script>
 
 </body>
 </html>

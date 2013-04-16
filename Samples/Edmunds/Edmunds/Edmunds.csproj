@@ -58,28 +58,28 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\controller.js" />
-    <Content Include="app\dataAccess.js" />
+    <Content Include="app\datacontext.js" />
+    <Content Include="app\jsonResultsAdapter.js" />
     <Content Include="app\logger.js" />
-    <Content Include="app\main.js" />
+    <Content Include="app\model.js" />
     <Content Include="Content\app.css" />
     <Content Include="Content\reset.css" />
     <Content Include="Content\toastr.css" />
     <Content Include="Content\toastr.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Index.html" />
-		
-    <Content Include="Scripts\_references.js" />	
+    <Content Include="Scripts\_references.js" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js">
       <DependentUpon>angular.js</DependentUpon>
     </Content>
     <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.min.js" >
+    <Content Include="Scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
-    <None Include="Scripts\breeze.intellisense.js" >
+    <None Include="Scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </None>	
+    </None>
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js">
       <DependentUpon>jquery-1.9.1.js</DependentUpon>
@@ -87,18 +87,17 @@
     <None Include="Scripts\jquery-1.9.1.intellisense.js">
       <DependentUpon>jquery-1.9.1.js</DependentUpon>
     </None>
-	<Content Include="Scripts\jquery-1.9.1.min.map">
+    <Content Include="Scripts\jquery-1.9.1.min.map">
       <DependentUpon>jquery-1.9.1.js</DependentUpon>
     </Content>
-	<Content Include="Scripts\q.js" />
-    <Content Include="Scripts\q.min.js" >
+    <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\q.min.js">
       <DependentUpon>q.js</DependentUpon>
     </Content>
-	<Content Include="Scripts\toastr.js" />
-    <Content Include="Scripts\toastr.min.js" >
+    <Content Include="Scripts\toastr.js" />
+    <Content Include="Scripts\toastr.min.js">
       <DependentUpon>toastr.js</DependentUpon>
     </Content>
-
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -146,8 +145,7 @@
       echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y      
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y     
       :done
 </PreBuildEvent>
   </PropertyGroup>

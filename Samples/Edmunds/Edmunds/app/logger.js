@@ -1,5 +1,5 @@
 ﻿/* logger: display color-coded messages in "toasts" and to console */
-app.logger = (function () {
+app.factory('logger', function () {
 
     // This logger wraps the toastr logger and also logs to console
     // toastr.js is library by John Papa that shows messages in pop up toast.
@@ -15,6 +15,7 @@ app.logger = (function () {
         warning: warning,
         log: log // straight to console; bypass toast
     };
+    return logger;
 
     function error(message, title) {
         toastr.error(message, title);
@@ -40,5 +41,4 @@ app.logger = (function () {
         !!console && console.log && console.log.apply && console.log.apply(console, arguments);
     }
 
-    return logger;
-})();
+});

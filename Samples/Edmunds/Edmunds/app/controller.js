@@ -1,69 +1,67 @@
-﻿/* Defines the "Edmunds" controller 
+﻿app = angular.module('app', [])
+
+/* Defines the "Edmunds" controller 
  * Constructor function relies on Ng injector to provide:
  *     $scope - context variable for the view to which the view binds
- *     $timeout - Angular equivalent of `setTimeout`
+ *     datacontext - the apps data access facility
+ *     logger - logs controller activities during development
  */
-app.main.controller('EdmundsCtrl', function ($scope, $timeout) {
-
-    var dataAccess = window.app.dataAccess;
-    dataAccess.$timeout = $timeout; // inject into dataAccess
-    var logger = window.app.logger;
-    
+app.controller('EdmundsCtrl', function ($scope, datacontext, logger) { 
 
     $scope.searchText = "";
-    
-    // Beware: this is called a lot!
-    $scope.makeFilter = function (make) {
-        var searchText = $scope.searchText;
-        return searchText ? 
-            // if there is search text, look for it in the description; else return true
-            make.name.toLowerCase().indexOf(searchText.toLowerCase()) >= 0 : true;
-    };
-    
-    $scope.modelOrder = function (model) {
-        return model.name;
-    };
-
-    
     $scope.makes = [];
-
-    $scope.getMakes = function () {
-        dataAccess.getMakes().then(function(data) {
-            $scope.makes = [];
-            data.results.forEach(function(item) {
-                $scope.makes.push(item);
-                item.shouldShowModels = false;
-            });
-            $scope.$apply();
-
-            logger.info("Fetched " + data.results.length + " Makes");
-        }).fail(queryFailed);
-    };
-    
-    $scope.showModels = function (make) {
-        if (!make.shouldShowModels) return;
-        if (make.models.length > 0) {
-            logger.info("Retrieved from cache: " + make.models.length + " models for " + make.name);
-            return;
-        }
-        make.isLoading = true;
-        dataAccess.getModels(make).then(function(data) {
-            // models will automatically link up with makes via fk    
-            make.isLoading = false;
-            $scope.$apply();
-            logger.info("Fetched via web service call: " + make.models.length + " models for " + make.name);
-        }).fail(queryFailed);
-    };
+    $scope.getMakes = getMakes;
+    $scope.getModels = getModels;
+    $scope.makeFilter = makeFilter; // Beware: called a lot!
 
     $scope.getMakes();
 
     //#region private functions
-    
+
+    function getMakes() {
+        datacontext.getMakes().then(succeeded).fail(queryFailed);
+
+        function succeeded(data) {
+            $scope.makes = data.results;
+            $scope.$apply();
+            logger.info("Fetched " + data.results.length + " Makes");
+        }
+    };
+
+    function getModels(make) {
+        if (!make.showModels) return; // don't bother if not showing
+
+        if (make.models.length > 0) {
+            logResults(true /*from cache*/);
+            return;
+        }
+
+        make.isLoading = true;
+        datacontext.getModels(make).then(succeeded).fail(queryFailed);
+
+        function succeeded(data) {
+            // models automatically link up with makes via fk    
+            make.isLoading = false;
+            $scope.$apply();
+            logResults(false /*from web*/);
+        }
+
+        function logResults(fromCache) {
+            var src = fromCache ? 'from cache' : 'via web service call';
+            logger.info("Fetched "+src+": " + make.models.length + " models for " + make.name);
+        }
+    };
+
+    function makeFilter(make) {
+        var searchText = $scope.searchText;
+        return searchText ?
+            // if there is search text, look for it in the description; else return true
+            make.name.toLowerCase().indexOf(searchText.toLowerCase()) >= 0 : true;
+    };
 
     function queryFailed(error) {
         logger.error(error.message, "Query failed");
     }
-
    
     //#endregion
 });
