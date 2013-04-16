@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog'],
-    function(unitofwork, logger, system, viewModel, contacts, app, nameeditor, dialog) {
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog', 'services/errorhandler'],
+    function(unitofwork, logger, system, viewModel, contacts, app, nameeditor, dialog, errorhandler) {
 
         var Details = (function() {
 
@@ -14,6 +14,8 @@
                 this.unitOfWork = ref.value();
 
                 this.contacts = viewModel.activator();
+
+                errorhandler.includeIn(this);
             };
 
             system.setModuleId(ctor, 'viewmodels/details');
@@ -42,7 +44,7 @@
                                     });
                             });
                     })
-                    .fail(this.handleError);
+                    .fail(self.handleError);
             };
 
             ctor.prototype.canDeactivate = function (close) {
@@ -78,7 +80,8 @@
             };
 
             ctor.prototype.save = function () {
-                this.unitOfWork.commit().fail(this.handleError);
+                var self = this;
+                this.unitOfWork.commit().fail(self.handleError);
             };
 
             ctor.prototype.cancel = function() {
@@ -97,15 +100,6 @@
                         }
                     })
                     .done();
-            };
-
-            ctor.prototype.handleError = function(error) {
-                logger.log(error.message, null, system.getModuleId(this), true);
-                throw error;
-            };
-
-            ctor.prototype.log = function(message, showToast) {
-                logger.log(message, null, system.getModuleId(this), showToast);
             };
 
             return ctor;
