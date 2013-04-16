@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/details', 'durandal/plugins/router', 'durandal/app'],
-    function (unitofwork, logger, system, viewModel, details, router, app) {
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/details', 'durandal/plugins/router', 'durandal/app', 'services/errorhandler'],
+    function (unitofwork, logger, system, viewModel, details, router, app, errorhandler) {
 
         return (function () {
 
@@ -15,16 +15,18 @@
                 this.canDeactivate = canDeactivate;
                 this.viewAttached = viewAttached;
 
+                errorhandler.includeIn(this);
+
                 function activate(splat) {
                     app.on('saved', function(entities) {
-                        loadList().fail(handleError);
+                        loadList().fail(self.handleError);
                     }, this);
 
                     return self.activeDetail.activate()
                         .then(function() {
                             return loadList()
                                 .then(querySucceeded)
-                                .fail(handleError);
+                                .fail(self.handleError);
                         });
 
                     function querySucceeded() {
@@ -45,7 +47,7 @@
                     return uow.staffingResourceListItems.all()
                         .then(function(data) {
                             self.staffingResources(data);
-                            log("StaffingResourceListItems loaded", true);
+                            self.log("StaffingResourceListItems loaded", true);
                         });
                 }
 
@@ -68,15 +70,6 @@
 
                         return false;
                     });
-                }
-
-                function handleError(error) {
-                    logger.log(error.message, null, system.getModuleId(self), true);
-                    throw error;
-                }
-
-                function log(message, showToast) {
-                    logger.log(message, null, system.getModuleId(self), showToast);
                 }
             };
 

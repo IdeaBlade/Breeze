@@ -1,5 +1,5 @@
-﻿define(['durandal/system', 'services/unitofwork', 'services/logger'],
-    function(system, unitofwork, logger) {
+﻿define(['durandal/system', 'services/unitofwork', 'services/logger', 'services/errorhandler'],
+    function(system, unitofwork, logger, errorhandler) {
 
         var NameEditor = (function() {
 
@@ -8,6 +8,8 @@
                 this.firstName = ko.observable();
                 this.middleName = ko.observable();
                 this.lastName = ko.observable();
+
+                errorhandler.includeIn(this);
             };
 
             system.setModuleId(ctor, 'viewmodels/nameeditor');
@@ -23,7 +25,7 @@
                         self.middleName(data.middleName());
                         self.lastName(data.lastName());
                     })
-                    .fail(handleError)
+                    .fail(self.handleError)
                     .finally(function() { ref.release(); });
             };
 
@@ -38,11 +40,6 @@
             };
 
             return ctor;
-            
-            function handleError(error) {
-                logger.log(error.message, null, system.getModuleId(ctor), true);
-                throw error;
-            }
         })();
 
         return {

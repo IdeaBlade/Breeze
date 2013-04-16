@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'viewmodels/dialog', 'viewmodels/optionselector'],
-    function(unitofwork, logger, system, dialog, optionselector) {
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'viewmodels/dialog', 'viewmodels/optionselector', 'services/errorhandler'],
+    function(unitofwork, logger, system, dialog, optionselector, errorhandler) {
 
         var Contacts = (function () {
 
@@ -12,6 +12,8 @@
 
                 var ref = unitofwork.get(id);
                 this.unitOfWork = ref.value();
+
+                errorhandler.includeIn(this);
 
                 this.addAddress = function() {
                     self.unitOfWork.addressTypes.all()
@@ -84,7 +86,7 @@
                 // Load phone numbers
                 var phoneNumbers = this.unitOfWork.phoneNumbers.find(predicate);
 
-                return Q.all([root, states, addresses, phoneNumbers]).fail(this.handleError);
+                return Q.all([root, states, addresses, phoneNumbers]).fail(self.handleError);
             };
 
             ctor.prototype.deactivate = function (close) {
@@ -93,15 +95,6 @@
                 }
 
                 return true;
-            };
-
-            ctor.prototype.handleError = function (error) {
-                logger.log(error.message, null, system.getModuleId(this), true);
-                throw error;
-            };
-
-            ctor.prototype.log = function (message, showToast) {
-                logger.log(message, null, system.getModuleId(this), showToast);
             };
 
             return ctor;
