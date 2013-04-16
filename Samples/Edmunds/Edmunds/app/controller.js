@@ -21,32 +21,39 @@ app.controller('EdmundsCtrl', function ($scope, datacontext, logger) {
     function getMakes() {
         datacontext.getMakes().then(succeeded).fail(queryFailed);
 
-        function succeeded(data) {
-            $scope.makes = data.results;
+        function succeeded(results) {
+            $scope.makes = results;
             $scope.$apply();
-            logger.info("Fetched " + data.results.length + " Makes");
+            logger.info("Fetched " + results.length + " Makes");
         }
     };
 
     function getModels(make) {
-        if (!make.showModels) return; // don't bother if not showing
 
-        if (make.models.length > 0) {
-            logResults(true /*from cache*/);
-            return;
+        if (!make.showModels) {
+            return; // don't bother if not showing
+        } else if (make.models.length > 0) {
+            // already in cache; no need to get them
+            logGetModelResults(true /*from cache*/);
+        } else {
+            getModelsFromEdmunds()
         }
 
-        make.isLoading = true;
-        datacontext.getModels(make).then(succeeded).fail(queryFailed);
+        function getModelsFromEdmunds() {
+            make.isLoading = true;
+            datacontext.getModels(make)
+                .then(succeeded).fail(queryFailed).fin(done);
 
-        function succeeded(data) {
-            // models automatically link up with makes via fk    
-            make.isLoading = false;
-            $scope.$apply();
-            logResults(false /*from web*/);
+            function succeeded(data) {
+                // models automatically link up with makes via fk              
+                $scope.$apply();
+                logGetModelResults(false /*from web*/);
+            }
+
+            function done() {  make.isLoading = false;  }
         }
 
-        function logResults(fromCache) {
+        function logGetModelResults(fromCache) {
             var src = fromCache ? 'from cache' : 'via web service call';
             logger.info("Fetched "+src+": " + make.models.length + " models for " + make.name);
         }
@@ -60,7 +67,7 @@ app.controller('EdmundsCtrl', function ($scope, datacontext, logger) {
     };
 
     function queryFailed(error) {
-        logger.error(error.message, "Query failed");
+        logger.error(error.message, "Query failed; please try it again.");
     }
    
     //#endregion

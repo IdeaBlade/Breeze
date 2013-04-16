@@ -29,7 +29,7 @@ app.factory('datacontext', function (logger, model, jsonResultsAdapter) {
         var query = breeze.EntityQuery
             .from("vehicle/makerepository/findall")
             .withParameters(parameters);
-        return manager.executeQuery(query);
+        return manager.executeQuery(query).then(returnResults);
     }
 
     function getModels(make) {
@@ -38,7 +38,7 @@ app.factory('datacontext', function (logger, model, jsonResultsAdapter) {
         var query = breeze.EntityQuery
             .from("vehicle/modelrepository/findbymakeid")
             .withParameters(parameters);
-        return manager.executeQuery(query);
+        return manager.executeQuery(query).then(returnResults);
     }
 
     function makeParameters(addlParameters) {
@@ -48,5 +48,7 @@ app.factory('datacontext', function (logger, model, jsonResultsAdapter) {
         };
         return breeze.core.extend(parameters, addlParameters);
     }
+
+    function returnResults(data){return data.results}
 
 });
