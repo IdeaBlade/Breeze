@@ -150,7 +150,8 @@ var MetadataStore = (function () {
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
-            "structuralTypeMap": this._structuralTypeMap,
+            "structuralTypes": __objectMapToArray(this._structuralTypeMap),
+            // "structuralTypeMap": this._structuralTypeMap,
             "resourceEntityTypeMap": this._resourceEntityTypeMap,
         }, __config.stringifyPad);
         return result;
@@ -200,8 +201,12 @@ var MetadataStore = (function () {
             that.addDataService(ds, true);
         });
         var structuralTypeMap = this._structuralTypeMap;
-        __objectForEach(json.structuralTypeMap, function (key, value) {
-            structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        //__objectForEach(json.structuralTypeMap, function (key, value) {
+        //    structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        //});
+        json.structuralTypes.forEach(function (stype) {
+            var structuralType = structuralTypeFromJson(that, stype);
+            structuralTypeMap[structuralType.name] = structuralType;
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -476,11 +481,11 @@ var MetadataStore = (function () {
 
     proto.getIncompleteNavigationProperties = function() {
         return __objectMapToArray(this._structuralTypeMap, function (key, value) {
-            if (value instanceof ComplexType) return null;
+            if (value instanceof ComplexType) return undefined;
             var badProps = value.navigationProperties.filter(function(np) {
                 return !np.entityType;
             });
-            return badProps.length === 0 ? null : badProps;
+            return badProps.length === 0 ? undefined : badProps;
         });
     };
 

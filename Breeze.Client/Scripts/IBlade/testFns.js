@@ -137,6 +137,7 @@ define(["breeze.debug"], function (breeze) {
 
     testFns.newMs = function() {
         var namingConv = new NamingConvention({
+            name: "camelCase2",
             serverPropertyNameToClient: function (serverPropertyName, prop) {
                 if (prop && prop.isDataProperty && prop.dataType === DataType.Boolean) {
                     return "is" + serverPropertyName;

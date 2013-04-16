@@ -61,7 +61,7 @@
                     return;
                 }
 
-                if (metadata.structuralTypeMap) {
+                if (metadata.structuralTypes) {
                     // breeze native metadata format.
                     metadataStore.importMetadata(metadata);
                 } else if (metadata.schema) {
