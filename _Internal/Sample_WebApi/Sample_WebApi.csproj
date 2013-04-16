@@ -274,12 +274,12 @@
       <Link>Scripts\ThirdParty\q.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.css">
-      <Link>Scripts\ThirdParty\qunit.css</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit-1.11.0.css">
+      <Link>Scripts\ThirdParty\qunit-1.11.0.css</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.js">
-      <Link>Scripts\ThirdParty\qunit.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit-1.11.0.js">
+      <Link>Scripts\ThirdParty\qunit-1.11.0.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\r.js">

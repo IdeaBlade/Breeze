@@ -118,9 +118,7 @@ define(["testFns"], function (testFns) {
             var names = data.results[0];
             ok(names.length > 0);
             ok(typeof names[0] === 'string');
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("project primitive objects", function () {
@@ -135,9 +133,7 @@ define(["testFns"], function (testFns) {
             ok(results.length === 5);
             ok(results[0].companyName, results[0].companyName);
             ok(results[0].customerID, results[0].customerID);
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
     
 
@@ -153,9 +149,7 @@ define(["testFns"], function (testFns) {
             ok(results[0].name);
             ok(results[0].namespace);
             ok(results[0].fullName);
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("project enumerables with filter", function () {
@@ -174,9 +168,8 @@ define(["testFns"], function (testFns) {
                 ok(r.fullName);
             });
             
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
+            
     });
     
     test("project primitive objects with filter", function () {
@@ -193,9 +186,7 @@ define(["testFns"], function (testFns) {
                 ok(r.companyName.substr(0, 1) === "A", "should start with an 'A'");
                 ok(r.customerID, "should have a customerId");
             });
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("project filtered collection", function () {
@@ -213,9 +204,7 @@ define(["testFns"], function (testFns) {
                 ok(r.customer.entityAspect, "customer doesn't have entityAspect");
                 ok(r.bigOrders, "can't find bigOrders");
             });
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     
@@ -237,9 +226,7 @@ define(["testFns"], function (testFns) {
                 ok(aspect.entityManager === em, "should have the correct em");
                 ok(aspect.entityState.isUnchanged(), "entity state should be unchanged");
             });
-        }).fail(function (e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     
@@ -252,8 +239,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "should have some results");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("server side include many with filter - customers and orders", function () {
@@ -285,8 +271,7 @@ define(["testFns"], function (testFns) {
                 var o2 = em.getEntityByKey(okey);
                 ok(o2 === orders[0], "order not cached");
             });
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("server side include many with take - customers and orders", function () {
@@ -362,8 +347,8 @@ define(["testFns"], function (testFns) {
                 var o2 = em.findEntityByKey(okey);
                 ok(o2 === orders[0], "order not cached");
             });
-            start();
-        }).fail(testFns.handleFail);
+            
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("select scalar anon with two collection props", function () {
@@ -375,7 +360,6 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function (data) {
             var r = data.results;
             ok(r.length > 0);
-            start();
         }).fail(testFns.handleFail).fin(start);
     });
     
