@@ -1125,7 +1125,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(query, function (data) {
             var customers = data.results;
-            testFns.assertIsSorted(customers, "companyName", false, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            testFns.assertIsSorted(customers, "companyName", breeze.DataType.String, false, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
             customers.forEach(function (c) {
                 ok(c.getProperty("companyName"), 'should have a companyName property');
                 var key = c.entityAspect.getKey();
@@ -1374,7 +1374,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query).then(function(data) {
             var products = data.results;
             var productName = products[0].getProperty("productName");
-            testFns.assertIsSorted(products, "productName", true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            testFns.assertIsSorted(products, "productName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -1493,7 +1493,7 @@ define(["testFns"], function (testFns) {
                 return product.getProperty("category");
             });
 
-            testFns.assertIsSorted(cats, "categoryName", true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
             start();
         }).fail(testFns.handleFail);
     });
@@ -1515,7 +1515,7 @@ define(["testFns"], function (testFns) {
                 return product.getProperty("category");
             });
 
-            testFns.assertIsSorted(cats, "categoryName", true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
             start();
         }).fail(testFns.handleFail);
     });

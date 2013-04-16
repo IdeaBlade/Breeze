@@ -145,11 +145,11 @@ define(["testFns"], function (testFns) {
         ok(OrderByClause.isOrderByClause(obc), "should be an OrderByClause");
         var comparer = obc.getComparer();
         var ents = this.entities.sort(comparer);
-        testFns.assertIsSorted(ents, "ShipCity", false);
+        testFns.assertIsSorted(ents, "ShipCity", breeze.DataType.String, false, false);
         var obc2 = OrderByClause.create(["ShipCity"], true);
         comparer = obc2.getComparer();
         ents = this.entities.sort(comparer);
-        testFns.assertIsSorted(ents, "ShipCity", true);
+        testFns.assertIsSorted(ents, "ShipCity", breeze.DataType.String, true, false);
     });
 
     test("orderByClause - comparer - 2 parts", function () {
@@ -158,14 +158,14 @@ define(["testFns"], function (testFns) {
         var comparer = obc.getComparer();
         this.entities.sort(comparer);
         var e1 = this.entities.slice(0);
-        testFns.assertIsSorted(e1, "Size", false);
+        testFns.assertIsSorted(e1, "Size", breeze.DataType.Int32, false, false);
         var cities = e1.filter(makeFilter("Size", 2000)).map(core.pluck("ShipCity"));
         ok(core.arrayEquals(cities, ["Cannes", "Fargo"]));
         var obc2 = OrderByClause.create(["Size", "ShipCity"], true);
         comparer = obc2.getComparer();
         this.entities.sort(comparer);
         var e2 = this.entities.slice(0);
-        testFns.assertIsSorted(e2, "Size", true);
+        testFns.assertIsSorted(e2, "Size", breeze.DataType.Int32, true, false);
         cities = e2.filter(makeFilter("Size", 2000)).map(core.pluck("ShipCity"));
         ok(core.arrayEquals(cities, ["Fargo", "Cannes"]));
     });

@@ -886,8 +886,8 @@ var EntityQuery = (function () {
         var orderByClause = this.orderByClause;
         if (!orderByClause) return null;
         // may throw an exception
-        orderByClause.validate(entityType);
-        return orderByClause.getComparer();
+        // getComparer performs validate
+        return orderByClause.getComparer(entityType);
     };
 
     // private functions
@@ -2016,9 +2016,7 @@ var SimpleOrderByClause = (function () {
     ctor.prototype = proto;
 
     proto.validate = function (entityType) {
-        if (!entityType) {
-            return;
-        } // can't validate yet
+        if (!entityType) return;  // can't validate yet
         // will throw an exception on bad propertyPath
         this.lastProperty = entityType.getProperty(this.propertyPath, true);
     };
@@ -2027,20 +2025,28 @@ var SimpleOrderByClause = (function () {
         return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
     };
 
-    proto.getComparer = function () {
+    proto.getComparer = function (entityType) {
+        if (!this.lastProperty) this.validate(entityType);
+        if (this.lastProperty) {
+            var propDataType = this.lastProperty.dataType;
+            var isCaseSensitive = this.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive;
+        }
         var propertyPath = this.propertyPath;
         var isDesc = this.isDesc;
         var that = this;
-            
+        
         return function (entity1, entity2) {
             var value1 = getPropertyPathValue(entity1, propertyPath);
             var value2 = getPropertyPathValue(entity2, propertyPath);
-            var dataType = (that.lastProperty || {}).dataType;
+            var dataType = propDataType || (value1 && DataType.fromValue(value1)) || DataType.fromValue(value2);
             if (dataType === DataType.String) {
-                if (!that.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive) {
+                if (isCaseSensitive) {
+                    value1 = value1 || "";
+                    value2 = value2 || "";
+                } else {
                     value1 = (value1 || "").toLowerCase();
                     value2 = (value2 || "").toLowerCase();
-                }
+                } 
             } else {
                 var normalize = getComparableFn(dataType);
                 value1 = normalize(value1);
@@ -2048,11 +2054,11 @@ var SimpleOrderByClause = (function () {
             }
             if (value1 == value2) {
                 return 0;
-            } else if (value1 > value2) {
+            } else if (value1 > value2 || value2 === undefined) {
                 return isDesc ? -1 : 1;
             } else {
                 return isDesc ? 1 : -1;
-            }
+            } 
         };
     };
 
@@ -2094,9 +2100,9 @@ var CompositeOrderByClause = (function () {
         return strings.join(',');
     };
 
-    proto.getComparer = function () {
+    proto.getComparer = function (entityType) {
         var orderByFuncs = this._orderByClauses.map(function (obc) {
-            return obc.getComparer();
+            return obc.getComparer(entityType);
         });
         return function (entity1, entity2) {
             for (var i = 0; i < orderByFuncs.length; i++) {

@@ -339,7 +339,7 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function (e) {
                 return e.getProperty("companyName");
             });
-            testFns.assertIsSorted(r2, "companyName", false, false);
+            testFns.assertIsSorted(r2, "companyName", breeze.DataType.String, false, false);
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -356,7 +356,7 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function (e) {
                 return e.getProperty("city");
             });
-            testFns.assertIsSorted(r2, "city", false, false);
+            testFns.assertIsSorted(r2, "city", breeze.DataType.String, false, false);
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -374,7 +374,7 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function(e) {
                 return e.getProperty("companyName");
             });
-            testFns.assertIsSorted(r2, "companyName", true, false);
+            testFns.assertIsSorted(r2, "companyName", breeze.DataType.String, true, false);
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -393,7 +393,7 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function (e) {
                 return e.getProperty("city");
             });
-            testFns.assertIsSorted(r2, "city", false, false);
+            testFns.assertIsSorted(r2, "city", breeze.DataType.String, false, false);
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -412,7 +412,7 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function (e) {
                 return e.getProperty("city");
             });
-            testFns.assertIsSorted(r2, "city", true, false);
+            testFns.assertIsSorted(r2, "city", breeze.DataType.String, true, false);
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -431,30 +431,11 @@ define(["testFns"], function (testFns) {
             var names = r2.map(function (e) {
                 return e.getProperty("city");
             });
-            testFns.assertIsSorted(r2, "city", false, false);
+            testFns.assertIsSorted(r2, "city", breeze.DataType.String, false, false);
         }).fail(testFns.handleFail).fin(start);
     });
 
-    // To run this test you need to rename on of the Customer entity properties to "Name".
-    //test("case sensitivity - order by 'name'", function () {
-    //    var em = newEm();
-    //    var baseQuery = EntityQuery.from("Customers")
-    //        .where("name", "!=", null);
-    //    stop();
-    //    em.executeQuery(baseQuery).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-
-    //        var query = EntityQuery.from("Customers").orderBy("name");
-
-    //        var r2 = em.executeQueryLocally(query);
-    //        var names = r2.map(function (e) {
-    //            return e.getProperty("name");
-    //        });
-    //        testFns.assertIsSorted(r2, "name", false, false);
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
+        
     test("case sensitivity - string padding", function () {
         var em = newEm();
         var origCompName = "Simons bistro";

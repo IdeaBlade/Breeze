@@ -256,7 +256,7 @@ define(["testFns"], function (testFns) {
         em.executeQuery(query, function (data) {
             var customers = data.results;
             ok(customers.length > 2, "no customers found");
-            testFns.assertIsSorted(customers, "companyName", em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            testFns.assertIsSorted(customers, "companyName", breeze.DataType.String, false, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
             customers.forEach(function (c) {
                 ok(c.getProperty("companyName"), 'should have a companyName property');
                 var orders = c.getProperty("orders");
