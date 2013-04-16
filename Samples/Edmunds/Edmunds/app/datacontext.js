@@ -45,6 +45,8 @@ app.factory('datacontext', function (logger, model, jsonResultsAdapter) {
         var parameters = {
             fmt: "json",
             api_key: "z35zpey2s8sbj4d3g3fxsqdx"
+            // Edmund throttles to 4000 requests per API key
+            // get your own key: http://developer.edmunds.com/apps/register
         };
         return breeze.core.extend(parameters, addlParameters);
     }
