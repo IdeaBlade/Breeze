@@ -225,26 +225,6 @@ define(["breeze.debug"], function (breeze) {
         }
     };
     
-    //testFns.assertIsSorted = function (collection, propertyName, isDescending, isCaseSensitive) {
-    //    isCaseSensitive = isCaseSensitive == null ? true : isCaseSensitive;
-    //    var fn = function (a, b) {
-    //        // localeCompare has issues in Chrome.
-    //        // var compareResult = a[propertyName].localeCompare(b.propertyName);
-    //        var av = a.getProperty(propertyName);
-    //        var bv = b.getProperty(propertyName);
-    //        if (typeof av === "string" && !isCaseSensitive) {
-    //            av = av.toLowerCase();
-    //            bv = (bv || "").toLowerCase();
-    //        }
-    //        var compareResult = av < bv ? -1 : (av > bv ? 1 : 0);
-    //        return isDescending ? compareResult*-1 : compareResult;
-    //    };
-    //    var arrayCopy = collection.map(function (o) { return o; });
-    //    arrayCopy.sort(fn);
-    //    ok(core.arrayEquals(collection, arrayCopy), propertyName + " not sorted correctly");
-
-    //};
-
     testFns.assertIsSorted = function (collection, propertyName, dataType, isDescending, isCaseSensitive) {
         isCaseSensitive = isCaseSensitive == null ? true : isCaseSensitive;
         var fn = function (a, b) {
@@ -288,7 +268,7 @@ define(["breeze.debug"], function (breeze) {
         }
         if (value1 == value2) {
             return 0;
-        } else if (value1 > value2) {
+        } else if (value1 > value2 || value2 === undefined) {
             return isDescending ? -1 : 1;
         } else {
             return isDescending ? 1 : -1;
