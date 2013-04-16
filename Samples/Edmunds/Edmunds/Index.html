@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-ng-app="EdmundsMain">
+<html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
@@ -10,14 +10,11 @@
     <link rel="stylesheet" href="Content/toastr.css" />
     <link rel="stylesheet" href="Content/app.css" />
 </head>
-<body>
-
+<body data-ng-app="app">
     <div id="applicationHost" data-ng-controller="EdmundsCtrl" class="ng-cloak">
         <header>
             <h2>Edmunds Vehicle API</h2>
-            <h2>with AngularJs</h2>
-            <h2>&nbsp</h2>
-            <a href="http://developer.edmunds.com/docs">Edmunds API Documentation</a>
+            <a href="http://developer.edmunds.com/docs" target="_blank">Edmunds API Documentation</a>
         </header>
         
         <div class="mainbody">
@@ -25,46 +22,35 @@
               <!--[if lte IE 9]><span style='font-size:1em;'>Filter by Make </span><![endif]-->
               <input class="filter" data-ng-model="searchText" type="search" placeholder="Filter by Make ..." />
             </div>
-            
-            <div  data-ng-repeat="make in makes| filter:makeFilter">
-                <input id="shouldShowModels" type="checkbox" data-ng-model="make.shouldShowModels" data-ng-click="showModels(make)" />
-                <span data-ng-show="make.isLoading">
-                    <span class="make">{{make.name}} ... (loading models)... </span> 
-                </span>
-                <span data-ng-show="!(make.isLoading)">
-                    <span class="make">{{make.name}}</span> 
-                </span>
-                <div data-ng-show="make.shouldShowModels">
-                    <div  data-ng-repeat="model in make.models| orderBy:orderModels">
-                        <div class="models">
-                            <div class="model1">{{model.name}}</div> 
-                            <div class="model2">{{model.vehicleSizes}}</div>
-                            <div class="model3">{{model.vehicleStyles}}</div>
-                            <div class="model4"></div>
-                        </div>
-                    </div>
-                </div>
-
+            <div data-ng-show="!makes.length" class="make">... loading makes ...</div>
+            <div  data-ng-repeat="make in makes | filter:makeFilter" class="make">
+                <input type="checkbox" data-ng-model="make.showModels" data-ng-click="getModels(make)" />
+                {{make.name}}
+                <span data-ng-show="make.isLoading"> ... (loading models)...</span>
+                <table data-ng-show="make.showModels" class="models">
+                    <tr data-ng-repeat="model in make.models | orderBy: 'name'">
+                        <td class="modelName">{{model.name}}</td> 
+                        <td class="modelSize">{{model.vehicleSizes}}</td>
+                        <td class="modelStyle">{{model.vehicleStyles}}</td>
+                    </tr>
+                </table>
             </div>
         </div>
-
-        <footer>
-        </footer>
-
     </div>
 
     <!-- 3rd party libraries -->
-    <script src="Scripts/jquery-1.8.3.min.js"></script>
+    <script src="Scripts/jquery-1.9.1.min.js"></script>
     <script src="Scripts/q.js"></script>
     <script src="Scripts/breeze.debug.js"></script>
     <script src="Scripts/toastr.js"></script>
     <script src="Scripts/angular.js"></script>
 
     <!-- App libraries -->
-    <script src="Scripts/app/main.js"></script>
-    <script src="Scripts/app/logger.js"></script>
-    <script src="Scripts/app/dataAccess.js"></script>
-    <script src="Scripts/app/controller.js"></script>
+    <script src="app/controller.js"></script>
+    <script src="app/datacontext.js"></script>
+    <script src="app/model.js"></script>
+    <script src="app/jsonResultsAdapter.js"></script>
+    <script src="app/logger.js"></script>
 
 </body>
 </html>
