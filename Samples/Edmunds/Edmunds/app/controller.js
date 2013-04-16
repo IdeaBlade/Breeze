@@ -62,8 +62,9 @@ app.controller('EdmundsCtrl', function ($scope, datacontext, logger) {
     function makeFilter(make) {
         var searchText = $scope.searchText;
         return searchText ?
-            // if there is search text, look for it in the description; else return true
-            make.name.toLowerCase().indexOf(searchText.toLowerCase()) >= 0 : true;
+            // if there is search text, look for it in the 'niceName'
+            // the property Edmunds intends for filtering; else return true
+            make.niceName.indexOf(searchText.toLowerCase()) >= 0 : true;
     };
 
     function queryFailed(error) {
