@@ -98,6 +98,7 @@
     <Content Include="Scripts\toastr.min.js">
       <DependentUpon>toastr.js</DependentUpon>
     </Content>
+    <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
