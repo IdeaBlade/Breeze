@@ -3879,14 +3879,20 @@ breeze.makeRelationArray = function() {
     function checkForDups(relationArray, adds) {
         // don't allow dups in this array. - also prevents recursion 
         var inverseProp = relationArray.navigationProperty.inverse;
-        var goodAdds = adds.filter(function(a) {
-            if (relationArray._addsInProcess.indexOf(a) >= 0) {
-                return false;
-            }
-            var inverseValue = a.getProperty(inverseProp.name);
-            return inverseValue != relationArray.parentEntity;
-        });
-        return goodAdds;
+        if (inverseProp) {
+            var goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                    return false;
+                }
+                var inverseValue = a.getProperty(inverseProp.name);
+                return inverseValue != relationArray.parentEntity;
+            });
+            return goodAdds;
+        } else {
+            // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
+            // TODO: This is not complete. We really do need to elim dups.
+            throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
+        }
     }
 
     function processAdds(relationArray, adds) {

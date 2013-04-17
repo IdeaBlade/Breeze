@@ -27,6 +27,12 @@
           <EntitySet Name="Role" EntityType="NorthwindIBModel.Store.Role" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Supplier" EntityType="NorthwindIBModel.Store.Supplier" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="Territory" EntityType="NorthwindIBModel.Store.Territory" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="TimeGroup" EntityType="NorthwindIBModel.Store.TimeGroup" store:Type="Tables" store:Schema="dbo" store:Name="TimeGroup">
+            <DefiningQuery>SELECT 
+      [TimeGroup].[Id] AS [Id], 
+      [TimeGroup].[Comment] AS [Comment]
+      FROM [dbo].[TimeGroup] AS [TimeGroup]</DefiningQuery>
+          </EntitySet>
           <EntitySet Name="TimeLimit" EntityType="NorthwindIBModel.Store.TimeLimit" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="User" EntityType="NorthwindIBModel.Store.User" store:Type="Tables" Schema="dbo" />
           <EntitySet Name="UserRole" EntityType="NorthwindIBModel.Store.UserRole" store:Type="Tables" Schema="dbo" />
@@ -306,6 +312,16 @@
           <Property Name="RegionID" Type="int" Nullable="false" />
           <Property Name="RowVersion" Type="int" Nullable="false" />
         </EntityType>
+        <!--Errors Found During Generation:
+      warning 6002: The table/view 'NorthwindIB.dbo.TimeGroup' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.
+      -->
+        <EntityType Name="TimeGroup">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Comment" Type="nvarchar" MaxLength="100" />
+        </EntityType>
         <EntityType Name="TimeLimit">
           <Key>
             <PropertyRef Name="Id" />
@@ -317,6 +333,7 @@
           <Property Name="ModificationDate" Type="datetime2" />
           <Property Name="Geometry1" Type="geometry" />
           <Property Name="Geography1" Type="geography" />
+          <Property Name="TimeGroupId" Type="int" />
         </EntityType>
         <EntityType Name="User">
           <Key>
@@ -603,6 +620,11 @@
           </AssociationSet>
           <EntitySet Name="TimeLimits" EntityType="NorthwindIBModel.TimeLimit" />
           <EntitySet Name="Comments" EntityType="NorthwindIBModel.Comment" />
+          <EntitySet Name="TimeGroups" EntityType="NorthwindIBModel.TimeGroup" />
+          <AssociationSet Name="TimeLimitTimeGroup" Association="NorthwindIBModel.TimeLimitTimeGroup">
+            <End Role="TimeLimit" EntitySet="TimeLimits" />
+            <End Role="TimeGroup" EntitySet="TimeGroups" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="Category">
           <Key>
@@ -1027,6 +1049,7 @@
           <Property Type="DateTime" Name="ModificationDate" Precision="7" />
           <Property Type="Geometry" Name="Geometry1" />
           <Property Type="Geography" Name="Geography1" />
+          <Property Type="Int32" Name="TimeGroupId" />
         </EntityType>
         <EntityType Name="Comment">
           <Key>
@@ -1037,6 +1060,26 @@
           <Property Type="String" Name="Comment1" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Type="Byte" Name="SeqNum" Nullable="false" />
         </EntityType>
+        <EntityType Name="TimeGroup">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="Comment" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="TimeLimits" Relationship="NorthwindIBModel.TimeLimitTimeGroup" FromRole="TimeGroup" ToRole="TimeLimit" />
+        </EntityType>
+        <Association Name="TimeLimitTimeGroup">
+          <End Type="NorthwindIBModel.TimeLimit" Role="TimeLimit" Multiplicity="*" />
+          <End Type="NorthwindIBModel.TimeGroup" Role="TimeGroup" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="TimeGroup">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TimeLimit">
+              <PropertyRef Name="TimeGroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
 
       </Schema>
     </edmx:ConceptualModels>
@@ -1292,6 +1335,7 @@
           <EntitySetMapping Name="TimeLimits">
             <EntityTypeMapping TypeName="NorthwindIBModel.TimeLimit">
               <MappingFragment StoreEntitySet="TimeLimit">
+                <ScalarProperty Name="TimeGroupId" ColumnName="TimeGroupId" />
                 <ScalarProperty Name="Geography1" ColumnName="Geography1" />
                 <ScalarProperty Name="Geometry1" ColumnName="Geometry1" />
                 <ScalarProperty Name="ModificationDate" ColumnName="ModificationDate" />
@@ -1308,6 +1352,14 @@
                 <ScalarProperty Name="SeqNum" ColumnName="SeqNum" />
                 <ScalarProperty Name="Comment1" ColumnName="Comment" />
                 <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TimeGroups">
+            <EntityTypeMapping TypeName="NorthwindIBModel.TimeGroup">
+              <MappingFragment StoreEntitySet="TimeGroup">
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

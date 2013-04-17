@@ -159,7 +159,7 @@ define(["testFns"], function (testFns) {
 
     });
 
-    test("unidirectional attach", function () {
+    test("unidirectional attach - n->1", function () {
         var em = newEm();
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var orderDetail = orderDetailType.createEntity();
@@ -176,6 +176,43 @@ define(["testFns"], function (testFns) {
         ok(product === sameProduct);
        
     });
+
+    // NOT YET WORKING
+
+    //test("unidirectional attach - 1->n", function () {
+    //    var em = newEm();
+
+    //    var tl1 = em.createEntity("TimeLimit");
+    //    var tl2 = em.createEntity("TimeLimit");
+    //    var tg1 = em.createEntity("TimeGroup");
+    //    var id = tg1.getProperty("id");
+    //    tl1.setProperty("timeGroupId", id);
+    //    var timeLimits = tg1.getProperty("timeLimits");
+    //    ok(timeLimits.length === 1, "should be 1 timelimit");
+    //    tl2.setProperty("timeGroupId", id);
+    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
+
+    //});
+
+    //test("unidirectional attach - 1->n - part 2", function () {
+    //    var em = newEm();
+
+    //    var tl1 = em.createEntity("TimeLimit");
+    //    var tl2 = em.createEntity("TimeLimit");
+    //    var tg1 = em.createEntity("TimeGroup");
+    //    var timeLimits = tg1.getProperty("timeLimits");
+    //    ok(timeLimits.length === 0, "should be 1 timelimit");
+    //    timeLimits.push(tl1);
+    //    ok(timeLimits.length === 1, "should be 1 timelimit");
+    //    timeLimits.push(tl2);
+    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
+    //    var timeLimits2 = tg1.getProperty("timeLimits");
+    //    ok(timeLimit1 === timeLimits2);
+    //    // add one that is already there
+    //    timeLimits.push(tl1);
+    //    ok(timeLimits.length === 2, "length should not change when adding a dup");
+
+    //});
 
     test("primary key fixup", function () {
         var em = newEm();

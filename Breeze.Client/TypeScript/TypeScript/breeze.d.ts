@@ -760,7 +760,7 @@ declare module breeze {
         static byte(): Validator;
         static date(): Validator;
         static duration(): Validator;
-        getMessage(): string;
+
         static guid(): Validator;
         static int16(): Validator;
         static int32(): Validator;
@@ -770,9 +770,12 @@ declare module breeze {
         static required(): Validator;
         static string(): Validator;
         static stringLength(context: { maxLength: number; minLength: number; }): Validator;
-        validate(value: any, context?: any): ValidationError;
+        
         static register(validator: Validator);
         static registerFactory(fn: () => Validator, name: string);
+
+        validate(value: any, context?: any): ValidationError;
+        getMessage(): string;
     }
 
     interface ValidatorFunction {

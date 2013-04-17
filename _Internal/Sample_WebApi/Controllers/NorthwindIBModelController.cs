@@ -71,18 +71,18 @@ namespace Sample_WebApi.Controllers {
       ContextProvider = new NorthwindContextProvider();
     }
 
-    [HttpGet]
-    public String Metadata() {
-      var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
-      var fileName = Path.Combine(folder, "metadata.json");
-      var jsonMetadata = File.ReadAllText(fileName);
-      return jsonMetadata;
-    }
-
     //[HttpGet]
     //public String Metadata() {
-    //  return ContextProvider.Metadata();
+    //  var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
+    //  var fileName = Path.Combine(folder, "metadata.json");
+    //  var jsonMetadata = File.ReadAllText(fileName);
+    //  return jsonMetadata;
     //}
+
+    [HttpGet]
+    public String Metadata() {
+      return ContextProvider.Metadata();
+    } 
 
     //[HttpGet]
     //public HttpResponseMessage Metadata() {
@@ -242,6 +242,11 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
+    }
+
+    [HttpGet]
+    public IQueryable<TimeGroup> TimeGroups() {
+      return ContextProvider.Context.TimeGroups;
     }
 
     [HttpGet]

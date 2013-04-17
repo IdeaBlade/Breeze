@@ -127,6 +127,9 @@
     <Compile Include="Territory.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
+    <Compile Include="TimeGroup.cs">
+      <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
+    </Compile>
     <Compile Include="TimeLimit.cs">
       <DependentUpon>NorthwindIB_2012.tt</DependentUpon>
     </Compile>
