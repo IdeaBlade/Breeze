@@ -46,11 +46,13 @@ app.controller('EdmundsCtrl', function ($scope, datacontext, logger) {
 
             function succeeded(data) {
                 // models automatically link up with makes via fk              
-                $scope.$apply();
                 logGetModelResults(false /*from web*/);
             }
 
-            function done() {  make.isLoading = false;  }
+            function done() {
+                make.isLoading = false;
+                $scope.$apply();
+            }
         }
 
         function logGetModelResults(fromCache) {
