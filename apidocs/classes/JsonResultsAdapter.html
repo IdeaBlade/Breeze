@@ -393,7 +393,7 @@ var jsonResultsAdapter = new JsonResultsAdapter({
     extractResults: function(json) {
         return json.results;
     },
-    visitNode: function(node, queryContext, nodeContext) {
+    visitNode: function(node, parseContext, nodeContext) {
         var entityType = normalizeTypeName(node.$type);
         var propertyName = nodeContext.propertyName;
         var ignore = propertyName &amp;&amp; propertyName.substr(0, 1) === "$";

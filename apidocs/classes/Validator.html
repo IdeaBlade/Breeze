@@ -351,12 +351,16 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                                 <a href="#method_register">register</a>
 
                                 
+                                    <span class="flag static">static</span>
+                                
                                 
                             </li>
                         
                             <li class="index-item method">
                                 <a href="#method_registerFactory">registerFactory</a>
 
+                                
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -785,7 +789,7 @@ freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l531"><code>a25_validate.js:531</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l534"><code>a25_validate.js:534</code></a>
         
         </p>
 
@@ -871,7 +875,7 @@ discontinuedProperty.validators.push(Validator.bool());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l514"><code>a25_validate.js:514</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l517"><code>a25_validate.js:517</code></a>
         
         </p>
 
@@ -958,7 +962,7 @@ regionProperty.validators.push(Validator.byte());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l558"><code>a25_validate.js:558</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l561"><code>a25_validate.js:561</code></a>
         
         </p>
 
@@ -1045,7 +1049,7 @@ orderDateProperty.validators.push(Validator.date());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l415"><code>a25_validate.js:415</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l418"><code>a25_validate.js:418</code></a>
         
         </p>
 
@@ -1212,7 +1216,7 @@ var errMessage = v0.getMessage());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l395"><code>a25_validate.js:395</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l398"><code>a25_validate.js:398</code></a>
         
         </p>
 
@@ -1298,7 +1302,7 @@ customerIdProperty.validators.push(Validator.guid());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l498"><code>a25_validate.js:498</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l501"><code>a25_validate.js:501</code></a>
         
         </p>
 
@@ -1384,7 +1388,7 @@ freightProperty.validators.push(Validator.int16());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l483"><code>a25_validate.js:483</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l486"><code>a25_validate.js:486</code></a>
         
         </p>
 
@@ -1469,7 +1473,7 @@ freightProperty.validators.push(Validator.int32());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l460"><code>a25_validate.js:460</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l463"><code>a25_validate.js:463</code></a>
         
         </p>
 
@@ -1565,7 +1569,7 @@ freightProperty.validators.push(Validator.int64());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l325"><code>a25_validate.js:325</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l328"><code>a25_validate.js:328</code></a>
         
         </p>
 
@@ -1691,7 +1695,7 @@ regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l435"><code>a25_validate.js:435</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l438"><code>a25_validate.js:438</code></a>
         
         </p>
 
@@ -1764,6 +1768,8 @@ freightProperty.validators.push(Validator.number());
 
     
 
+    
+        <span class="flag static">static</span>
     
 
     
@@ -1839,6 +1845,12 @@ freightProperty.validators.push(Validator.number());
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code>name</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -1851,6 +1863,8 @@ freightProperty.validators.push(Validator.number());
 
     
 
+    
+        <span class="flag static">static</span>
     
 
     
@@ -1868,7 +1882,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l259"><code>a25_validate.js:259</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l260"><code>a25_validate.js:260</code></a>
         
         </p>
 
@@ -1898,6 +1912,21 @@ freightProperty.validators.push(Validator.number());
 
                     <div class="param-description">
                         <p>A function that optionally takes a context property and returns a Validator instance.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">name</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the validator.</p>
                     </div>
 
                     
@@ -1951,7 +1980,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l301"><code>a25_validate.js:301</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l304"><code>a25_validate.js:304</code></a>
         
         </p>
 
@@ -2037,7 +2066,7 @@ regionProperty.validators.push(Validator.required());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l375"><code>a25_validate.js:375</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l378"><code>a25_validate.js:378</code></a>
         
         </p>
 
@@ -2133,7 +2162,7 @@ regionProperty.validators.push(Validator.string());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l348"><code>a25_validate.js:348</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l351"><code>a25_validate.js:351</code></a>
         
         </p>
 
@@ -2464,7 +2493,7 @@ var sameValidator = result.validator;
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l268"><code>a25_validate.js:268</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l271"><code>a25_validate.js:271</code></a>
         
         </p>
 

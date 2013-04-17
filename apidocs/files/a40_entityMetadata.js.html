@@ -335,7 +335,8 @@ var MetadataStore = (function () {
             &quot;namingConvention&quot;: this.namingConvention.name,
             &quot;localQueryComparisonOptions&quot;: this.localQueryComparisonOptions.name,
             &quot;dataServices&quot;: this.dataServices,
-            &quot;structuralTypeMap&quot;: this._structuralTypeMap,
+            &quot;structuralTypes&quot;: __objectMapToArray(this._structuralTypeMap),
+            &#x2F;&#x2F; &quot;structuralTypeMap&quot;: this._structuralTypeMap,
             &quot;resourceEntityTypeMap&quot;: this._resourceEntityTypeMap,
         }, __config.stringifyPad);
         return result;
@@ -385,8 +386,12 @@ var MetadataStore = (function () {
             that.addDataService(ds, true);
         });
         var structuralTypeMap = this._structuralTypeMap;
-        __objectForEach(json.structuralTypeMap, function (key, value) {
-            structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        &#x2F;&#x2F;__objectForEach(json.structuralTypeMap, function (key, value) {
+        &#x2F;&#x2F;    structuralTypeMap[key] = structuralTypeFromJson(that, value);
+        &#x2F;&#x2F;});
+        json.structuralTypes.forEach(function (stype) {
+            var structuralType = structuralTypeFromJson(that, stype);
+            structuralTypeMap[structuralType.name] = structuralType;
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -661,11 +666,11 @@ var MetadataStore = (function () {
 
     proto.getIncompleteNavigationProperties = function() {
         return __objectMapToArray(this._structuralTypeMap, function (key, value) {
-            if (value instanceof ComplexType) return null;
+            if (value instanceof ComplexType) return undefined;
             var badProps = value.navigationProperties.filter(function(np) {
                 return !np.entityType;
             });
-            return badProps.length === 0 ? null : badProps;
+            return badProps.length === 0 ? undefined : badProps;
         });
     };
 

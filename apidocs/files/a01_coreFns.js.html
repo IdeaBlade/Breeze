@@ -215,8 +215,8 @@ function __objectMapToArray(obj, kvFn) {
     var results = [];
     for (var key in obj) {
         if (__hasOwnProperty(obj, key)) {
-            var result = kvFn(key, obj[key]);
-            if (result) {
+            var result = kvFn ? kvFn(key, obj[key]) : obj[key];
+            if (result !== undefined) {
                 results.push(result);
             }
         }

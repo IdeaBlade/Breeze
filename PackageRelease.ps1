@@ -107,6 +107,7 @@ prepareSample $srcDir $destDir "Todo-AngularWithDI"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "Todo-Require"  "*.sdf, *.suo"
 prepareSample $srcDir $destDir "NoDb"          "*.suo"
 prepareSample $srcDir $destDir "CarBones"      "*.mdf, *.ldf, *.suo"
+prepareSample $srcDir $destDir "Edmunds"       "*.suo"
 
 copy-item $srcDir\readme-plus.txt $destDir\readme.txt
 $zipFile = "$srcDir\breeze-runtime-plus-$versionNum.zip"

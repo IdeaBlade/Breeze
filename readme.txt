@@ -17,7 +17,7 @@ Finally, the Scripts folder includes the "Q" promises library (plain and minifie
 
 Breeze Runtime Server Files
 ----------------------------
-WebApi/Breeze.webApi.dll and WebApi/Irony.dll for building backend services with an ASP Web API
+WebApi/Breeze.webApi.dll for building backend services with an ASP Web API. The WebApi/Irony.dll is there to provide legacy support for early versions of Breeze. 
 
 -------------------------------------------------------------------------------------
 

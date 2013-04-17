@@ -595,7 +595,7 @@ var EntityAspect = function() {
     **&#x2F;
     proto.validateProperty = function (property, context) {
         var value = this.getPropertyValue(property); &#x2F;&#x2F; performs validations
-        if (value.complexAspect) {
+        if (value &amp;&amp; value.complexAspect) {
             return validateTarget(value);
         }
         context = context || {};

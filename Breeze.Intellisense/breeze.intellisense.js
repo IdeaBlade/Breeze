@@ -1,4 +1,4 @@
-﻿// Generated on: Sun Apr 14 2013 00:09:39 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Tue Apr 16 2013 18:13:40 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -583,6 +583,16 @@ intellisense.annotate(breeze.breeze.Validator.prototype, {
     ///   <returns type="String" ></returns>
     /// </signature>
   },
+  
+  /// <field name="name" type="String" >The name of this validator.</field>
+  'name': null,
+  
+  /// <field name="context" type="Object" >The context for this validator.      This object will typically contain at a minimum the following properties. 'name', 'displayName', and 'message' or 'messageTemplate'. __readOnly__</field>
+  'context': null,
+  
+});
+intellisense.annotate(breeze.breeze.Validator, {
+  
   'register': function() {
     /// <signature>
     ///   <summary>
@@ -598,19 +608,10 @@ intellisense.annotate(breeze.breeze.Validator.prototype, {
     ///   Register a validator factory so that any deserialized metadata can reference it.
     ///   </summary>
     ///   <param name="validatorFactory" type="Function" optional="true">A function that optionally takes a context property and returns a Validator instance.</param>
+    ///   <param name="name" type="String" optional="true">The name of the validator.</param>
     
     /// </signature>
   },
-  
-  /// <field name="name" type="String" >The name of this validator.</field>
-  'name': null,
-  
-  /// <field name="context" type="Object" >The context for this validator.      This object will typically contain at a minimum the following properties. 'name', 'displayName', and 'message' or 'messageTemplate'. __readOnly__</field>
-  'context': null,
-  
-});
-intellisense.annotate(breeze.breeze.Validator, {
-  
   'required': function() {
     /// <signature>
     ///   <summary>
