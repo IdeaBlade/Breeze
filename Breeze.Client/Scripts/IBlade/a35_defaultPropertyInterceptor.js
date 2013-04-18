@@ -142,7 +142,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     }
                 }
             }
-
              
             rawAccessorFn(newValue);
             if (entityManager && !entityManager.isLoading) {
@@ -160,8 +159,11 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     var inverseKeyProps = property.entityType.keyProperties;
                     inverseKeyProps.forEach(function(keyProp, i ) {
                         var relatedDataProp = property.relatedDataProperties[i];
-                        var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
-                        that.setProperty(relatedDataProp.name, relatedValue);
+                        // Do not trash related property if it is part of that entity's key
+                        if (newValue || !relatedDataProp.isPartOfKey) {
+                            var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
+                            that.setProperty(relatedDataProp.name, relatedValue);
+                        }
                     });
                 }
             }

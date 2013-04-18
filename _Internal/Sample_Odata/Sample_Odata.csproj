@@ -238,12 +238,12 @@
       <Link>Scripts\ThirdParty\q.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.css">
-      <Link>Scripts\ThirdParty\qunit.css</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit-1.11.0.css">
+      <Link>Scripts\ThirdParty\qunit-1.11.0.css</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit.js">
-      <Link>Scripts\ThirdParty\qunit.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\qunit-1.11.0.js">
+      <Link>Scripts\ThirdParty\qunit-1.11.0.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\ThirdParty\r.js">
@@ -287,6 +287,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Breeze.Client\Breeze.Client.csproj">
+      <Project>{9bde026e-ce0a-42f1-a508-4be30124dd67}</Project>
+      <Name>Breeze.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj">
       <Project>{763b4341-7a4e-4880-a4e2-31aadc05f1ad}</Project>
       <Name>Model_NorthwindIB_CF</Name>

@@ -33,12 +33,12 @@ define(["testFns"], function (testFns) {
         teardown: function () { }
     });
     
-    if (!testFns.DEBUG_WEBAPI) {
-        test("OData saves not yet supported", function () {
-            ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
-        });
-        return testFns;
-    }
+    //if (!testFns.DEBUG_WEBAPI) {
+    //    test("OData saves not yet supported", function () {
+    //        ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
+    //    });
+    //    return testFns;
+    //}
 
     test("save with date as part of key", function () {
         var em = newEm();

@@ -77,10 +77,65 @@
 
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundleStringified, callback, errorCallback) {
-        throw new Error("Breeze does not yet support saving thru OData");
+    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+
+        var url = saveContext.dataService.serviceName + "$batch";
+        
+        var requestData = createChangeRequests(saveContext, saveBundle);
+        OData.request({
+            headers : { "DataServiceVersion": "2.0" } ,
+            requestUri: url,
+            method: "POST",
+            data: requestData
+        }, function (data, response) {
+            callback(data);
+        }, function (err) {
+            if (errorCallback) errorCallback(createError(error));
+        }, OData.batchHandler);
+
+        // throw new Error("Breeze does not yet support saving thru OData");
     };
-    
+
+    function createChangeRequests(saveContext, saveBundle) {
+        var changeRequests = [];
+        var entityManager = saveContext.entityManager;
+        saveBundle.entities.forEach(function (entity) {
+            var aspect = entity.entityAspect;
+            var uri = aspect.defaultResourceName;
+            if (aspect.entityState === "Added") {
+                changeRequests.push( { requestUri: uri, method: "POST", data: entity });
+            }
+        });
+        
+        return {
+            __batchRequests: [{
+                __changeRequests: changeRequests
+            }]
+        };
+        
+    }
+
+    //function test() {
+    //    var requestData1 = {
+    //        __batchRequests: [{
+    //            __changeRequests: [ {
+    //                requestUri: "Customers", method: "POST", headers: { "Content-ID": "1"  }, data: { CustomerID: 400, CustomerName: "John" }
+    //            }, {
+    //                requestUri: "Orders", method: "POST", data: { OrderID: 400, Total: "99.99", Customer: { __metadata: { uri: "$1" } }  }
+    //            }]
+    //        }]
+    //    };
+
+    //    var requestData2 =  {
+    //        __batchRequests: [{
+    //            __changeRequests: [
+    //              { requestUri: "BestMovies(0)", method: "PUT", data: { MovieTitle: 'Up' } },
+    //              { requestUri: "BestMovies", method: "POST", data: { ID: 2, MovieTitle: 'Samurai' } }
+    //            ]
+    //        } ]
+    //    };
+    //};
+
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 

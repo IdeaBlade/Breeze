@@ -4,7 +4,7 @@
 <head>
   <title>QUnit Test Suite</title>
   <link rel="stylesheet" href="Scripts/ThirdParty/qunit.css" type="text/css" media="screen"/>
-  <script type="text/javascript" src="Scripts/ThirdParty/qunit.js"></script> 
+  <script type="text/javascript" src="Scripts/ThirdParty/qunit-1.11.0.js"></script> 
   <script type="text/javascript" src="Scripts/ThirdParty/datajs-1.1.0.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/q.min.js"></script>
   <script type="text/javascript" src="Scripts/ThirdParty/knockout-2.1.0.debug.js"></script>

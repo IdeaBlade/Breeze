@@ -441,10 +441,6 @@ define(["testFns"], function (testFns) {
             var r = data.results;
             var count = data.inlineCount;
             ok(count > r.length);
-            if (testFns.DEBUG_WEBAPI) {
-                var count2 = data.XHR.getResponseHeader("X-InlineCount");
-                ok(parseInt(count2, 10) === count);
-            }
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -471,10 +467,6 @@ define(["testFns"], function (testFns) {
             var r = data.results;
             var count = data.inlineCount;
             ok(count > r.length);
-            if (testFns.DEBUG_WEBAPI) {
-                var count2 = data.XHR.getResponseHeader("X-InlineCount");
-                ok(parseInt(count2, 10) === count);
-            }
         }).fail(testFns.handleFail).fin(start);
     });
 

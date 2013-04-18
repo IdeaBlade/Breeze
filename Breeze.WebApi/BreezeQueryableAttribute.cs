@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http;
@@ -41,26 +42,34 @@ namespace Breeze.WebApi {
         return;
       }
 
+      dynamic rQuery = null;
       var queryable = ApplySelectAndExpand(responseObject as IQueryable, actionExecutedContext.Request);
       if (queryable != null) {
         // if a select or expand was encountered we need to
         // execute the DbQueries here, so that any exceptions thrown can be properly returned.
         // if we wait to have the query executed within the serializer, some exceptions will not
         // serialize properly.
-        var rQuery = Enumerable.ToList((dynamic) queryable);
-
-        var formatter = ((dynamic) actionExecutedContext.Response.Content).Formatter;
-        var oc = new ObjectContent(rQuery.GetType(), rQuery, formatter);
-        actionExecutedContext.Response.Content = oc;
-      }
+        rQuery = Enumerable.ToList((dynamic) queryable);
+      } 
 
       Object tmp;
       actionExecutedContext.Request.Properties.TryGetValue("MS_InlineCount", out tmp);
       var inlineCount = (Int64?) tmp;
       
-      if (inlineCount.HasValue) {
-        actionExecutedContext.Response.Headers.Add("X-InlineCount", inlineCount.ToString());
-      }
+      if (rQuery!=null || inlineCount.HasValue) {
+        if (rQuery == null) {
+          rQuery = responseObject;
+        }
+        if (inlineCount.HasValue) {
+          //actionExecutedContext.Response.Headers.Add("X-InlineCount", inlineCount.ToString());
+          rQuery = new QueryResult() { Results = rQuery, InlineCount = inlineCount};
+        }
+        
+        var formatter = ((dynamic) actionExecutedContext.Response.Content).Formatter;
+        var oc = new ObjectContent(rQuery.GetType(), rQuery, formatter);
+        actionExecutedContext.Response.Content = oc;
+      } 
+
       
     }
     
@@ -145,6 +154,11 @@ namespace Breeze.WebApi {
       
     }
 
+  }
+
+  public class QueryResult {
+    public dynamic Results { get; set; }
+    public Int64? InlineCount { get; set; }
   }
 }
 
