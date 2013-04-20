@@ -153,6 +153,7 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryCtorTests.js">
       <Link>Scripts\Tests\queryCtorTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryDatatypeTests.js">
       <Link>Scripts\Tests\queryDatatypeTests.js</Link>
@@ -160,15 +161,19 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryLocalTests.js">
       <Link>Scripts\Tests\queryLocalTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryNamedTests.js">
       <Link>Scripts\Tests\queryNamedTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryRawOdataTests.js">
       <Link>Scripts\Tests\queryRawOdataTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\querySelectTests.js">
       <Link>Scripts\Tests\querySelectTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryTests.js">
       <Link>Scripts\Tests\queryTests.js</Link>
