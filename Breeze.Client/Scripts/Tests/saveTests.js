@@ -68,7 +68,11 @@ define(["testFns"], function (testFns) {
             ok(ents.length === 1);
             var emp = ents[0];
             var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
-            ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+            if (testFns.DEBUG_ODATA) {
+                ok(fullName !== emp.getProperty("fullName"), "fullNames will not match with ODATA because no records are returned after save");
+            } else {
+                ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+            }
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -86,7 +90,11 @@ define(["testFns"], function (testFns) {
             ok(ents.length === 1);
             var emp = ents[0];
             var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
-            ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+            if (testFns.DEBUG_ODATA) {
+                ok(fullName !== emp.getProperty("fullName"), "fullNames will not match with ODATA because no records are returned after save");
+            } else {
+                ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+            }
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -104,6 +112,8 @@ define(["testFns"], function (testFns) {
             ok(ents[0] === emp, "should be the same emp");
             var fullName = emp.getProperty("lastName") + ", " + emp.getProperty("firstName");
             ok(fullName === emp.getProperty("fullName"), "fullNames do not match");
+            
+            
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -156,6 +166,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("save data with server reject", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception");
+            return;
+        };
+
         var em = newEm();
 
         var user = em.createEntity("Region");
@@ -932,6 +947,11 @@ define(["testFns"], function (testFns) {
     });
 
     test("insert with generated key", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server side key generator (except identity)");
+            return;
+        };
+
         var em = newEm();
 
         var region1 = createRegion(em, "1");
@@ -954,6 +974,11 @@ define(["testFns"], function (testFns) {
     });
 
     test("insert with relationships with generated key", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server side key generator (except identity)");
+            return;
+        };
+
         var em = newEm();
 
         var region1 = createRegion(em, "1");
@@ -1067,8 +1092,10 @@ define(["testFns"], function (testFns) {
         em.addEntity(cust1);
         em.addEntity(cust2);
         var order1 = orderType.createEntity();
+        order1.setProperty("orderDate", new Date());
         var order2 = orderType.createEntity();
         var orders = cust1.getProperty("orders");
+        order2.setProperty("orderDate", new Date());
         orders.push(order1);
         orders.push(order2);
         var keyValues = [cust1.getProperty("customerID"),

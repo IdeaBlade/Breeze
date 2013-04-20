@@ -32,7 +32,7 @@ namespace Breeze_OData {
       config.SetEntitySetAccessRule("Suppliers", EntitySetRights.All);
       config.SetEntitySetAccessRule("Users", EntitySetRights.All);
       config.SetEntitySetAccessRule("TimeLimits", EntitySetRights.All);
-
+      //config.SetEntitySetAccessRule("Comments", EntitySetRights.All);
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
       config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;

@@ -4605,15 +4605,16 @@ var DataType = function () {
     };
 
     var fmtString = function (val) {
-        return "'" + val + "'";
+        return val == null ? null : "'" + val + "'";
     };
 
     var fmtInt = function (val) {
-        return (typeof val === "string") ? parseInt(val) : val;
+        return val == null ? null : ((typeof val === "string") ? parseInt(val) : val);
     };
 
     var makeFloatFmt = function (fmtSuffix) {
         return function (val) {
+            if (val == null) return null;
             if (typeof val === "string") {
                 val = parseFloat(val);
             }
@@ -4622,6 +4623,7 @@ var DataType = function () {
     };
 
     var fmtDateTime = function (val) {
+        if (val == null) return null;
         try {
             return "datetime'" + val.toISOString() + "'";
         } catch (e) {
@@ -4630,6 +4632,7 @@ var DataType = function () {
     };
 
     var fmtDateTimeOffset = function (val) {
+        if (val == null) return null;
         try {
             return "datetimeoffset'" + val.toISOString() + "'";
         } catch (e) {
@@ -4638,6 +4641,7 @@ var DataType = function () {
     };
 
     var fmtTime = function (val) {
+        if (val == null) return null;
         if (!__isDuration(val)) {
             throwError("'%1' is not a valid ISO 8601 duration", val);
         }
@@ -4645,6 +4649,7 @@ var DataType = function () {
     };
 
     var fmtGuid = function (val) {
+        if (val == null) return null;
         if (!__isGuid(val)) {
             throwError("'%1' is not a valid guid", val);
         }
@@ -4652,14 +4657,16 @@ var DataType = function () {
     };
 
     var fmtBoolean = function (val) {
+        if (val == null) return null;
         if (typeof val === "string") {
             return val.trim().toLowerCase() === "true";
         } else {
-            return val;
+            return !!val;
         }
     };
     
     var fmtBinary = function (val) {
+        if (val == null) return val;
         return "binary'" + val + "'";
     };
 
@@ -4667,6 +4674,10 @@ var DataType = function () {
         return val;
     };
 
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
+    }
     
     var DataType = new Enum("DataType", dataTypeMethods);
     
@@ -9390,10 +9401,7 @@ var SimplePredicate = (function () {
         return dataType.format(val);
     }
     
-    function throwError(msg, val) {
-        msg = __formatString(msg, val);
-        throw new Error(msg);
-    }
+  
 
     return ctor;
 
@@ -12299,32 +12307,38 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj) {
+    function unwrapInstance(structObj, isOData) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        
         stype.dataProperties.forEach(function (dp) {
+            if (dp.isUnmapped && isOData) return;
             if (dp.isComplexProperty) {
-                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name));
+                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
             } else {
-                rawObject[dp.nameOnServer] = structObj.getProperty(dp.name);
+                var val = structObj.getProperty(dp.name);
+                rawObject[dp.nameOnServer] = val;
             }
         });
+        
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore) {
+    function unwrapOriginalValues(target, metadataStore, isOData) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
+            if (prop.isUnmapped && isOData) return;
             result[fn(propName, prop)] = value;
         });
-        stype.complexProperties.forEach(function(cp) {
+        stype.complexProperties.forEach(function (cp) {
+            // TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
             if (!__isEmpty(unwrappedCo)) {
                 result[fn(cp.name, cp)] = unwrappedCo;
             }
@@ -12709,12 +12723,12 @@ breeze.SaveOptions= SaveOptions;
             if (aspect.entityState.isAdded()) {
                 request.requestUri = entity.entityType.defaultResourceName;
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity);
+                request.data = helper.unwrapInstance(entity, true);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";
-                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore);
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
@@ -12804,9 +12818,16 @@ breeze.SaveOptions= SaveOptions;
         err.requestUri = response.requestUri;
         if (response.body) {
             try {
-                var responseObj = JSON.parse(response.body);
-                err.detail = responseObj;
-                err.message = responseObj.error.message.value;
+                var error = JSON.parse(response.body);
+                err.body = error;
+                do {
+                    var nextError = error.error || error.innererror;
+                    error = nextError || error;
+                } while (nextError)
+                var msg = error.message;
+                if (msg) {
+                    err.message = (typeof (msg) == "string") ? msg : msg.value;
+                }
             } catch (e) {
 
             }

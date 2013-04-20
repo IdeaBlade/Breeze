@@ -2137,32 +2137,38 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj) {
+    function unwrapInstance(structObj, isOData) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        
         stype.dataProperties.forEach(function (dp) {
+            if (dp.isUnmapped && isOData) return;
             if (dp.isComplexProperty) {
-                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name));
+                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
             } else {
-                rawObject[dp.nameOnServer] = structObj.getProperty(dp.name);
+                var val = structObj.getProperty(dp.name);
+                rawObject[dp.nameOnServer] = val;
             }
         });
+        
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore) {
+    function unwrapOriginalValues(target, metadataStore, isOData) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
+            if (prop.isUnmapped && isOData) return;
             result[fn(propName, prop)] = value;
         });
-        stype.complexProperties.forEach(function(cp) {
+        stype.complexProperties.forEach(function (cp) {
+            // TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
             if (!__isEmpty(unwrappedCo)) {
                 result[fn(cp.name, cp)] = unwrappedCo;
             }

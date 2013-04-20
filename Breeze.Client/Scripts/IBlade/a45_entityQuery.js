@@ -1754,10 +1754,7 @@ var SimplePredicate = (function () {
         return dataType.format(val);
     }
     
-    function throwError(msg, val) {
-        msg = __formatString(msg, val);
-        throw new Error(msg);
-    }
+  
 
     return ctor;
 

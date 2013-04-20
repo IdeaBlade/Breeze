@@ -146,12 +146,12 @@
             if (aspect.entityState.isAdded()) {
                 request.requestUri = entity.entityType.defaultResourceName;
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity);
+                request.data = helper.unwrapInstance(entity, true);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";
-                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore);
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
@@ -241,9 +241,16 @@
         err.requestUri = response.requestUri;
         if (response.body) {
             try {
-                var responseObj = JSON.parse(response.body);
-                err.detail = responseObj;
-                err.message = responseObj.error.message.value;
+                var error = JSON.parse(response.body);
+                err.body = error;
+                do {
+                    var nextError = error.error || error.innererror;
+                    error = nextError || error;
+                } while (nextError)
+                var msg = error.message;
+                if (msg) {
+                    err.message = (typeof (msg) == "string") ? msg : msg.value;
+                }
             } catch (e) {
 
             }
