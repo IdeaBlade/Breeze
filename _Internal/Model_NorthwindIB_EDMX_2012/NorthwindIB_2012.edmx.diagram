@@ -36,7 +36,7 @@
         <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="8.75" PointY="11.375" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" />
         <EntityTypeShape EntityType="NorthwindIBModel.TimeLimit" Width="1.5" PointX="2.75" PointY="13.625" />
-        <EntityTypeShape EntityType="NorthwindIBModel.Comment" Width="1.5" PointX="13.75" PointY="2.25" />
+        <EntityTypeShape EntityType="NorthwindIBModel.Comment" Width="1.5" PointX="5.5" PointY="2" />
         <EntityTypeShape EntityType="NorthwindIBModel.TimeGroup" Width="1.5" PointX="0.5" PointY="14.25" />
         <AssociationConnector Association="NorthwindIBModel.TimeLimitTimeGroup" />
       </Diagram>

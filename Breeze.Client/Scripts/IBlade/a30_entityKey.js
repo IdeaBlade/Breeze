@@ -48,6 +48,20 @@ var EntityKey = (function () {
     };
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
+    
+    /**
+    The 'EntityType' that this is a key for. 
+
+    __readOnly__
+    @property entityType {EntityType} 
+    **/
+    
+    /**
+    An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.
+
+    __readOnly__
+    @property values [Array} 
+    **/
 
     proto.toJSON = function () {
         return {

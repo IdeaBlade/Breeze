@@ -53,7 +53,7 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "C")
             .select("orders");
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             query = query.expand("orders");
         }
         var queryUrl = query._toUri(em.metadataStore);
@@ -80,7 +80,7 @@ define(["testFns"], function (testFns) {
             .where("companyName", "startsWith", "C")
             .orderBy("companyName")
             .select(["companyName", "orders"]);
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             query = query.expand("orders");
         }        
         var queryUrl = query._toUri(em.metadataStore);
@@ -112,7 +112,7 @@ define(["testFns"], function (testFns) {
             // .orderBy("customer.companyName");  - problem for the OData Web api provider.
         if (testFns.DEBUG_WEBAPI) {
             query = query.select("customer.companyName, customer, orderDate");
-        } else {
+        } else if (testFns.DEBUG_ODATA) {
             query = query.select("customer, orderDate");
             query = query.expand("customer");
         }
@@ -129,7 +129,7 @@ define(["testFns"], function (testFns) {
                 if (testFns.DEBUG_WEBAPI) {
                     ok(Object.keys(a).length === 3, "should have 3 properties");
                     ok(typeof(a.customer_CompanyName) === 'string', "customer_CompanyName is not a string");
-                } else {
+                } else if (testFns.DEBUG_ODATA) {
                     ok(Object.keys(a).length === 2, "should have 2 properties");
                 }
                 ok(a.customer.entityType === customerType, "a.customer is not of type Customer");

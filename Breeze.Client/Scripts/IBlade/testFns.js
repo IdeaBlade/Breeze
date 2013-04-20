@@ -30,6 +30,7 @@ define(["breeze.debug"], function (breeze) {
 
         value = value.toLowerCase();
         testFns.DEBUG_WEBAPI = value === "webapi";
+        testFns.DEBUG_ODATA = value === "odata";
         
         if (testFns.DEBUG_WEBAPI) {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "webApi").name;
@@ -176,7 +177,7 @@ define(["breeze.debug"], function (breeze) {
     testFns.handleFail = function (error) {
         if (!error) {
             ok(false, "unknown error");
-            start();
+            // start();
             return;
         }
         if (error.handled === true) return;
@@ -190,7 +191,7 @@ define(["breeze.debug"], function (breeze) {
         } else {
             ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);
         }
-        start();
+        // start();
         return;
     };
 

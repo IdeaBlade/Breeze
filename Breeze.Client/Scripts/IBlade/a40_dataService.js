@@ -166,6 +166,20 @@ var DataService = (function () {
         return new DataService(json);
     };
 
+    proto.makeUrl = function(suffix) {
+        var url = this.serviceName;
+        // remove any trailing "/"
+        if (core.stringEndsWith(url, "/")) {
+            url = url.substr(0, url.length - 1);
+        }
+        // ensure that it ends with "/" + suffix
+        suffix = "/" + suffix;
+        if (!core.stringEndsWith(url, suffix)) {
+            url = url + suffix;
+        }
+        return url;
+    };
+
     return ctor;
 })();
     

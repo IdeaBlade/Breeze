@@ -221,8 +221,8 @@ define(["testFns"], function (testFns) {
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.TempValue === -1);
-            ok(mapping.RealValue === orderId);
+            ok(mapping.tempValue === -1);
+            ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -246,8 +246,8 @@ define(["testFns"], function (testFns) {
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.TempValue === 42);
-            ok(mapping.RealValue === orderId);
+            ok(mapping.tempValue === 42);
+            ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });
     

@@ -36,7 +36,10 @@ namespace Breeze_OData {
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
       config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+      config.UseVerboseErrors = true;
     }
+
+    
 
     protected override void HandleException(HandleExceptionArgs args) {
       var x = args;

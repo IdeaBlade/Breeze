@@ -61,7 +61,6 @@ namespace Breeze.WebApi {
           rQuery = responseObject;
         }
         if (inlineCount.HasValue) {
-          //actionExecutedContext.Response.Headers.Add("X-InlineCount", inlineCount.ToString());
           rQuery = new QueryResult() { Results = rQuery, InlineCount = inlineCount};
         }
         

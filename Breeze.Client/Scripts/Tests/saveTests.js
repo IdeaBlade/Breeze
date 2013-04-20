@@ -33,12 +33,6 @@ define(["testFns"], function (testFns) {
         teardown: function () { }
     });
     
-    //if (!testFns.DEBUG_WEBAPI) {
-    //    test("OData saves not yet supported", function () {
-    //        ok(false, "Skipped tests - ok to fail - Breeze OData does not yet support Saves");
-    //    });
-    //    return testFns;
-    //}
 
     test("save with date as part of key", function () {
         var em = newEm();
@@ -179,7 +173,12 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save data with alt resource and server update", function() {
+    test("save data with alt resource and server update", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
 
         var q = new EntityQuery("Orders").take(1);
@@ -206,6 +205,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("save data with alt resource and server update - ForceUpdate", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
 
         var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
@@ -230,6 +234,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("save data with server update - original values fixup", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception");
+            return;
+        };
+
         var em = newEm();
 
         var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
@@ -254,6 +263,11 @@ define(["testFns"], function (testFns) {
     });
     
     test("save with saveOptions exit", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         var zzz = createParentAndChildren(em);
         var cust1 = zzz.cust1;
@@ -265,7 +279,12 @@ define(["testFns"], function (testFns) {
             
     });
 
-    test("save with server side entity level validation error", function() {
+    test("save with server side entity level validation error", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         var zzz = createParentAndChildren(em);
         var cust1 = zzz.cust1;
@@ -646,8 +665,9 @@ define(["testFns"], function (testFns) {
     test("modify parent and children", function () {
         var em = newEm();
         var query = new EntityQuery()
-            .from("CustomersAndOrders")
+            .from("Customers")
             .where("companyName", "startsWith", "C")
+            .expand("orders")
             .take(5);
         stop();
         var companyName, newCompanyName, orders, cust;
@@ -792,7 +812,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.saveChanges().then(function(saveResult) {
             var q = EntityQuery.fromEntities(zzz.cust1);
-            q = EntityQuery.from("CustomersAndOrders").where(q.wherePredicate);
+            q = EntityQuery.from("Customers").where(q.wherePredicate).expand("orders");
             return em2.executeQuery(q);
         }).then(function(data) {
             var cust = data.results[0];
@@ -1013,9 +1033,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var p = breeze.Predicate.create("companyName", FilterQueryOp.StartsWith, "Test")
             .or("companyName", FilterQueryOp.StartsWith, "foo");
-        var q = EntityQuery.from("CustomersAndOrders").where(p);
-        //var q = EntityQuery.from("CustomersAndOrders")
-        //    .where("companyName", FilterQueryOp.StartsWith, "Test");
+        var q = EntityQuery.from("Customers").where(p).expand("orders")
         stop();
         em.executeQuery(q).then(function(data) {
             data.results.forEach(function(cust) {

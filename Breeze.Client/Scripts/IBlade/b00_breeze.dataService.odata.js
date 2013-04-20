@@ -43,13 +43,13 @@
 
     ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
-        OData.read(metadataSvcUrl,
+        var url = dataService.makeUrl('$metadata');
+        OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
-                    var error = new Error("Metadata query failed for: " + metadataSvcUrl);
+                    var error = new Error("Metadata query failed for: " + url);
                     if (onError) {
                         onError(error);
                     } else {
@@ -69,7 +69,7 @@
                 }
             }, function (error) {
                 var err = createError(error);
-                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
+                err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
             },
             OData.metadataHandler
@@ -78,42 +78,111 @@
     };
 
     ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
-
-        var url = saveContext.dataService.serviceName + "$batch";
+        var helper = saveContext.entityManager.helper;
+        var url = saveContext.dataService.makeUrl("$batch");
         
         var requestData = createChangeRequests(saveContext, saveBundle);
+        var tempKeys = saveContext.tempKeys;
+        var contentKeys = saveContext.contentKeys;
         OData.request({
             headers : { "DataServiceVersion": "2.0" } ,
             requestUri: url,
             method: "POST",
             data: requestData
         }, function (data, response) {
-            callback(data);
+            var entities = [];
+            var keyMappings = [];
+            var saveResult = { entities: entities, keyMappings: keyMappings };
+            data.__batchResponses.forEach(function(br) {
+                br.__changeResponses.forEach(function (cr) {
+                    var response = cr.response || cr;
+                    var statusCode = response.statusCode;
+                    if ((!statusCode) || statusCode >= 400) {
+                        errorCallback(createError(cr));
+                        return;
+                    }
+                    var contentId = cr.headers["Content-ID"];
+                    if (contentId) {
+                        var origEntity = contentKeys[contentId];
+                    }
+                    var rawEntity = cr.data;
+                    if (rawEntity) {
+                        var tempKey = tempKeys[contentId];
+                        if (tempKey) {
+                            var entityType = tempKey.entityType;
+                            var tempValue = tempKey.values[0];
+                            var realKey = helper.getEntityKeyFromRawEntity(rawEntity, entityType);
+                            var keyMapping = { entityTypeName: entityType.name, tempValue: tempValue, realValue: realKey.values[0] };
+                            keyMappings.push(keyMapping);
+                        }
+                        entities.push(rawEntity);
+                    } else {
+                        entities.push(origEntity);
+                    }
+                });
+            });
+            callback(saveResult);
         }, function (err) {
-            if (errorCallback) errorCallback(createError(error));
+            errorCallback(createError(err));
         }, OData.batchHandler);
 
         // throw new Error("Breeze does not yet support saving thru OData");
     };
 
+
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
+        var tempKeys = [];
+        var contentKeys = [];
+        var prefix = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
+        var helper = entityManager.helper;
+        var id = 0; 
         saveBundle.entities.forEach(function (entity) {
             var aspect = entity.entityAspect;
-            var uri = aspect.defaultResourceName;
-            if (aspect.entityState === "Added") {
-                changeRequests.push( { requestUri: uri, method: "POST", data: entity });
+            id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
+            var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
+            contentKeys[id] = entity;
+            if (aspect.entityState.isAdded()) {
+                request.requestUri = entity.entityType.defaultResourceName;
+                request.method = "POST";
+                request.data = helper.unwrapInstance(entity);
+                tempKeys[id] = aspect.getKey();
+            } else if (aspect.entityState.isModified()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "MERGE";
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore);
+                // should be a PATCH/MERGE
+            } else if (aspect.entityState.isDeleted()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "DELETE";
+            } else {
+                return;
             }
+            changeRequests.push(request);
         });
-        
+        saveContext.contentKeys = contentKeys;
+        saveContext.tempKeys = tempKeys;
         return {
             __batchRequests: [{
                 __changeRequests: changeRequests
             }]
         };
-        
+
     }
+
+    function updateDeleteMergeRequest(request, aspect, prefix) {
+        var extraMetadata = aspect.extraMetadata;
+        uri = extraMetadata.uri;
+        if (__stringStartsWith(uri, prefix)) {
+            uri = uri.substring(prefix.length);
+        }
+        request.requestUri = uri;
+        if (extraMetadata.etag) {
+            request.headers["If-Match"] = extraMetadata.etag;
+        }
+    }
+
 
     //function test() {
     //    var requestData1 = {
@@ -141,15 +210,17 @@
 
         visitNode: function (node, parseContext, nodeContext) {
             var result = {};
-            
-            if (node.__metadata != null) {
+
+          if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = MetadataStore._getNormalizedTypeName(node.__metadata.type);
+                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
                 var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
+                    result.extra = node.__metadata;
                 }
             }
+
             var propertyName = nodeContext.propertyName;
             result.ignore = node.__deferred != null || propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
@@ -158,20 +229,7 @@
         },        
         
     });
-
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /$metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/$metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/$metadata";
-        }
-        return metadataSvcUrl;
-    };
-
+   
     function createError(error) {
         var err = new Error();
         var response = error.response;

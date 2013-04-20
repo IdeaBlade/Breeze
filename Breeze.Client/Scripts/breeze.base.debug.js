@@ -3524,6 +3524,20 @@ var EntityKey = (function () {
     };
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
+    
+    /**
+    The 'EntityType' that this is a key for. 
+
+    __readOnly__
+    @property entityType {EntityType} 
+    **/
+    
+    /**
+    An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.
+
+    __readOnly__
+    @property values [Array} 
+    **/
 
     proto.toJSON = function () {
         return {
@@ -4422,6 +4436,20 @@ var DataService = (function () {
         return new DataService(json);
     };
 
+    proto.makeUrl = function(suffix) {
+        var url = this.serviceName;
+        // remove any trailing "/"
+        if (core.stringEndsWith(url, "/")) {
+            url = url.substr(0, url.length - 1);
+        }
+        // ensure that it ends with "/" + suffix
+        suffix = "/" + suffix;
+        if (!core.stringEndsWith(url, suffix)) {
+            url = url + suffix;
+        }
+        return url;
+    };
+
     return ctor;
 })();
     
@@ -4576,6 +4604,70 @@ var DataType = function () {
         return source;
     };
 
+    var fmtString = function (val) {
+        return "'" + val + "'";
+    };
+
+    var fmtInt = function (val) {
+        return (typeof val === "string") ? parseInt(val) : val;
+    };
+
+    var makeFloatFmt = function (fmtSuffix) {
+        return function (val) {
+            if (typeof val === "string") {
+                val = parseFloat(val);
+            }
+            return val + fmtSuffix;
+        }
+    };
+
+    var fmtDateTime = function (val) {
+        try {
+            return "datetime'" + val.toISOString() + "'";
+        } catch (e) {
+            throwError("'%1' is not a valid dateTime", val);
+        }
+    };
+
+    var fmtDateTimeOffset = function (val) {
+        try {
+            return "datetimeoffset'" + val.toISOString() + "'";
+        } catch (e) {
+            throwError("'%1' is not a valid dateTime", val);
+        }
+    };
+
+    var fmtTime = function (val) {
+        if (!__isDuration(val)) {
+            throwError("'%1' is not a valid ISO 8601 duration", val);
+        }
+        return "time'" + val + "'";
+    };
+
+    var fmtGuid = function (val) {
+        if (!__isGuid(val)) {
+            throwError("'%1' is not a valid guid", val);
+        }
+        return "guid'" + val + "'";
+    };
+
+    var fmtBoolean = function (val) {
+        if (typeof val === "string") {
+            return val.trim().toLowerCase() === "true";
+        } else {
+            return val;
+        }
+    };
+    
+    var fmtBinary = function (val) {
+        return "binary'" + val + "'";
+    };
+
+    var fmtUndefined = function (val) {
+        return val;
+    };
+
+    
     var DataType = new Enum("DataType", dataTypeMethods);
     
     
@@ -4584,93 +4676,93 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString });
+    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, format: fmtString });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
     /**
     @property Byte {DataType}
     @final
     @static
     **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
     /**
     @property Decimal {DataType}
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m") });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("d") });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("f") });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, format: fmtDateTime });
     
     /**
     @property DateTimeOffset {DataType}
     @final
     @static
     **/
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, format: fmtDateTimeOffset });
     /**
     @property Time {DataType}
     @final
     @static
     **/
-    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S", format: fmtTime });
     /**
     @property Boolean {DataType}
     @final
     @static
     **/
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool, format: fmtBoolean });
     /**
     @property Guid {DataType}
     @final
     @static
     **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
+    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", format: fmtGuid });
   
     /**
     @property Binary {DataType}
     @final
     @static
     **/
-    DataType.Binary = DataType.addSymbol({ defaultValue: null });
+    DataType.Binary = DataType.addSymbol({ defaultValue: null, format: fmtBinary });
     /**
     @property Undefined {DataType}
     @final
     @static
     **/
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
+    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined , format: fmtUndefined});
     DataType.seal();
 
     /**
@@ -5321,11 +5413,11 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    ctor._getNormalizedTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName && normalizeTypeName(rawTypeName).typeName;
+    ctor.normalizeTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName && parseTypeName(rawTypeName).typeName;
     });
     // for debugging use the line below instead.
-    //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
+    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
 
     proto._getCtorRegistration = function(structuralType) {
         var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
@@ -5363,7 +5455,7 @@ var MetadataStore = (function () {
             if (schema.entityContainer) {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
-                        var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
+                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
                         that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
                     });
@@ -5425,10 +5517,11 @@ var MetadataStore = (function () {
     };
 
     // schema is only needed for navProperty type name
-    function normalizeTypeName(entityTypeName, schema) {
+    function parseTypeName(entityTypeName, schema) {
         if (!entityTypeName) {
             return null;
         }
+        
         if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
             return {
                 shortTypeName: entityTypeName,
@@ -5580,7 +5673,7 @@ var MetadataStore = (function () {
         // Complex properties are never nullable ( per EF specs)
         // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
         // var complexTypeName = odataProperty.type.split("Edm.")[1];
-        var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
+        var complexTypeName = parseTypeName(odataProperty.type, schema).typeName;
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
             nameOnServer: odataProperty.name,
@@ -5621,7 +5714,7 @@ var MetadataStore = (function () {
         });
             
         var isScalar = !(toEnd.multiplicity === "*");
-        var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+        var dataType = parseTypeName(toEnd.type, schema).typeName;
         var fkNamesOnServer = [];
         if (toEnd && isScalar) {
             var constraint = association.referentialConstraint;
@@ -5684,7 +5777,7 @@ var MetadataStore = (function () {
     //      -> association
 
     function getAssociation(odataNavProperty, schema) {
-        var assocName = normalizeTypeName(odataNavProperty.relationship, schema).shortTypeName;
+        var assocName = parseTypeName(odataNavProperty.relationship, schema).shortTypeName;
         var assocs = schema.association;
         if (!assocs) return null;
         if (!Array.isArray(assocs)) {
@@ -9293,53 +9386,8 @@ var SimplePredicate = (function () {
             return null;
         }
             
-        var msg;
-            
         dataType = dataType || DataType.fromValue(val);
-                       
-        if (dataType.isNumeric) {
-            if (typeof val === "string") {
-                if (dataType.isInteger) {
-                    val = parseInt(val);
-                } else {
-                    val = parseFloat(val);
-                }
-            }
-            return val;
-        } else if (dataType === DataType.String) {
-            return "'" + val + "'";
-        } else if (dataType === DataType.DateTime) {
-            try {
-                return "datetime'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTime", val);
-            }
-        } else if (dataType === DataType.DateTimeOffset) {
-            try {
-                return "datetimeoffset'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTimeoffset", val);
-            }
-        } else if (dataType == DataType.Time) {
-            if (!__isDuration(val)) {
-                throwError("'%1' is not a valid ISO 8601 duration", val);
-            }
-            return "time'" + val + "'";
-        } else if (dataType === DataType.Guid) {
-            if (!__isGuid(val)) {
-                throwError("'%1' is not a valid guid", val);
-            }
-            return "guid'" + val + "'";
-        } else if (dataType === DataType.Boolean) {
-            if (typeof val === "string") {
-                return val.trim().toLowerCase() === "true";
-            } else {
-                return val;
-            }
-        } else {
-            return val;
-        }
-
+        return dataType.format(val);
     }
     
     function throwError(msg, val) {
@@ -10988,10 +11036,8 @@ var EntityManager = (function () {
         var deferred = Q.defer();
         dataService.adapterInstance.saveChanges(saveContext, saveBundle, deferred.resolve, deferred.reject);
         var that = this;
-        return deferred.promise.then(function (rawSaveResult) {
-            // HACK: simply to change the 'case' of properties in the saveResult
-            // but KeyMapping properties are still ucase. ugh...
-            var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
+        return deferred.promise.then(function (saveResult) {
+            
             fixupKeys(that, saveResult.keyMappings);
                 
             var parseContext = {
@@ -11717,9 +11763,8 @@ var EntityManager = (function () {
 
     function fixupKeys(em, keyMappings) {
         keyMappings.forEach(function (km) {
-            var entityTypeName = MetadataStore._getNormalizedTypeName(km.EntityTypeName);
-            var group = em._entityGroupMap[entityTypeName];
-            group._fixupKey(km.TempValue, km.RealValue);
+            var group = em._entityGroupMap[km.entityTypeName];
+            group._fixupKey(km.tempValue, km.realValue);
         });
     }
 
@@ -11825,7 +11870,7 @@ var EntityManager = (function () {
                 });
             }
 
-            var url = dataService.serviceName + metadataStore.toQueryString(query);
+            var url = dataService.makeUrl(metadataStore.toQueryString(query));
 
             var parseContext = {
                     url: url,
@@ -11895,6 +11940,15 @@ var EntityManager = (function () {
     }
                
     function visitAndMerge(node, parseContext, nodeContext) {
+        if (parseContext.query == null && node.entityAspect) {
+            // don't bother merging a result from a save that was not returned from the server.
+            if (node.entityAspect.entityState.isDeleted()) {
+                parseContext.entityManager.detachEntity(node);
+            } else {
+                node.entityAspect.acceptChanges();
+            }
+            return node;
+        }
         nodeContext = nodeContext || {};
         var meta = parseContext.dataService.jsonResultsAdapter.visitNode(node, parseContext, nodeContext) || {};
         if (parseContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
@@ -11967,7 +12021,9 @@ var EntityManager = (function () {
                     || targetEntityState.isUnchanged()) {
                 updateEntity(targetEntity, node, parseContext);
                 targetEntity.entityAspect.wasLoaded = true;
-                    
+                if (meta.extra) {
+                    targetEntity.entityAspect.extraMetadata = meta.extra;
+                }
                 targetEntity.entityAspect.entityState = EntityState.Unchanged;
                 targetEntity.entityAspect.originalValues = {};
                 targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
@@ -11998,6 +12054,9 @@ var EntityManager = (function () {
             }
             updateEntity(targetEntity, node, parseContext);
             targetEntity.entityAspect._postInitialize();
+            if (meta.extra) {
+                targetEntity.entityAspect.extraMetadata = meta.extra;
+            }
             attachEntityCore(em, targetEntity, EntityState.Unchanged);
             targetEntity.entityAspect.wasLoaded = true;
             em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
@@ -12231,36 +12290,15 @@ var EntityManager = (function () {
         return group;
     }
         
-    function unwrapEntities(entities, metadataStore) {
-        var rawEntities = entities.map(function(e) {
-            var rawEntity = unwrapInstance(e);
-
-            var autoGeneratedKey = null;
-            if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                autoGeneratedKey = {
-                    propertyName: e.entityType.keyProperties[0].nameOnServer,
-                    autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
-                };
-            }
-                
-            var originalValuesOnServer = unwrapOriginalValues(e, metadataStore);
-            rawEntity.entityAspect = {
-                entityTypeName: e.entityType.name,
-                defaultResourceName: e.entityType.defaultResourceName,
-                entityState: e.entityAspect.entityState.name,
-                originalValuesMap: originalValuesOnServer,
-                autoGeneratedKey: autoGeneratedKey
-            };
-            return rawEntity;
-        });
-        return rawEntities;
-    }
 
     proto.helper = {
         unwrapInstance: unwrapInstance,
-        unwrapOriginalValues: unwrapOriginalValues
+        unwrapOriginalValues: unwrapOriginalValues,
+        unwrapChangedValues: unwrapChangedValues,
+        getEntityKeyFromRawEntity: getEntityKeyFromRawEntity
     };
     
+   
     function unwrapInstance(structObj) {
         
         var rawObject = {};
@@ -12287,6 +12325,25 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function(cp) {
             var nextTarget = target.getProperty(cp.name);
             var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+            if (!__isEmpty(unwrappedCo)) {
+                result[fn(cp.name, cp)] = unwrappedCo;
+            }
+        });
+        return result;
+    }
+    
+    function unwrapChangedValues(target, metadataStore) {
+        var stype = target.entityType || target.complexType;
+        var aspect = target.entityAspect || target.complexAspect;
+        var fn = metadataStore.namingConvention.clientPropertyNameToServer;
+        var result = {};
+        __objectForEach(aspect.originalValues, function (propName, value) {
+            var prop = stype.getProperty(propName);
+            result[fn(propName, prop)] = target.getProperty(propName);
+        });
+        stype.complexProperties.forEach(function (cp) {
+            var nextTarget = target.getProperty(cp.name);
+            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
             if (!__isEmpty(unwrappedCo)) {
                 result[fn(cp.name, cp)] = unwrappedCo;
             }

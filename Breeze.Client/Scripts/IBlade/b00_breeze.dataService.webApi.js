@@ -44,9 +44,10 @@
 
     ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
+        var url = dataService.makeUrl("Metadata");
+        
         ajaxImpl.ajax({
-            url: metadataSvcUrl,
+            url: url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 // might have been fetched by another query
@@ -57,7 +58,7 @@
                 var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
                 
                 if (!metadata) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
+                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + url));
                     return;
                 }
 
@@ -69,7 +70,7 @@
                     metadataStore._parseODataMetadata(serviceName, metadata.schema);
                 } else {
                     if (errorCallback) {
-                        errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to process returned metadata"));
+                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata"));
                     }
                     return;
                 }
@@ -88,7 +89,7 @@
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + metadataSvcUrl);
+                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + url);
             }
         });
     };
@@ -134,8 +135,8 @@
     ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
         
         var bundle = prepareSaveBundle(saveBundle, saveContext);
-
-        var url = saveContext.dataService.serviceName + saveContext.resourceName;
+        
+        var url = saveContext.dataService.makeUrl(saveContext.resourceName);
         
         ajaxImpl.ajax({
             url: url,
@@ -150,8 +151,14 @@
                     err.message = data.Error;
                     errorCallback(err);
                 } else {
-                    data.XHR = XHR;
-                    callback(data);
+                    // HACK: need to change the 'case' of properties in the saveResult
+                    // but KeyMapping properties internally are still ucase. ugh...
+                    var keyMappings = data.KeyMappings.map(function(km) {
+                        var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
+                        return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
+                    });
+                    var saveResult = { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+                    callback(saveResult);
                 }
             },
             error: function (XHR, textStatus, errorThrown) {
@@ -198,7 +205,7 @@
         name: "webApi_default",
         
         visitNode: function (node, parseContext, nodeContext ) {
-            var entityTypeName = MetadataStore._getNormalizedTypeName(node.$type);
+            var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
             var entityType = entityTypeName && parseContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
@@ -213,20 +220,7 @@
         
     });
     
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /Metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/Metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/Metadata";
-        }
-        return metadataSvcUrl;
-
-    }
-    
+   
     function handleXHRError(XHR, errorCallback, messagePrefix) {
 
         if (!errorCallback) return;

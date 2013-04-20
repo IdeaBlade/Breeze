@@ -1750,53 +1750,8 @@ var SimplePredicate = (function () {
             return null;
         }
             
-        var msg;
-            
         dataType = dataType || DataType.fromValue(val);
-                       
-        if (dataType.isNumeric) {
-            if (typeof val === "string") {
-                if (dataType.isInteger) {
-                    val = parseInt(val);
-                } else {
-                    val = parseFloat(val);
-                }
-            }
-            return val;
-        } else if (dataType === DataType.String) {
-            return "'" + val + "'";
-        } else if (dataType === DataType.DateTime) {
-            try {
-                return "datetime'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTime", val);
-            }
-        } else if (dataType === DataType.DateTimeOffset) {
-            try {
-                return "datetimeoffset'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTimeoffset", val);
-            }
-        } else if (dataType == DataType.Time) {
-            if (!__isDuration(val)) {
-                throwError("'%1' is not a valid ISO 8601 duration", val);
-            }
-            return "time'" + val + "'";
-        } else if (dataType === DataType.Guid) {
-            if (!__isGuid(val)) {
-                throwError("'%1' is not a valid guid", val);
-            }
-            return "guid'" + val + "'";
-        } else if (dataType === DataType.Boolean) {
-            if (typeof val === "string") {
-                return val.trim().toLowerCase() === "true";
-            } else {
-                return val;
-            }
-        } else {
-            return val;
-        }
-
+        return dataType.format(val);
     }
     
     function throwError(msg, val) {

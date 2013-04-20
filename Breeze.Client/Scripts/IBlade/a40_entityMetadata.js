@@ -532,11 +532,11 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    ctor._getNormalizedTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName && normalizeTypeName(rawTypeName).typeName;
+    ctor.normalizeTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName && parseTypeName(rawTypeName).typeName;
     });
     // for debugging use the line below instead.
-    //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
+    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
 
     proto._getCtorRegistration = function(structuralType) {
         var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
@@ -574,7 +574,7 @@ var MetadataStore = (function () {
             if (schema.entityContainer) {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
-                        var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
+                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
                         that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
                     });
@@ -636,10 +636,11 @@ var MetadataStore = (function () {
     };
 
     // schema is only needed for navProperty type name
-    function normalizeTypeName(entityTypeName, schema) {
+    function parseTypeName(entityTypeName, schema) {
         if (!entityTypeName) {
             return null;
         }
+        
         if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
             return {
                 shortTypeName: entityTypeName,
@@ -791,7 +792,7 @@ var MetadataStore = (function () {
         // Complex properties are never nullable ( per EF specs)
         // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
         // var complexTypeName = odataProperty.type.split("Edm.")[1];
-        var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
+        var complexTypeName = parseTypeName(odataProperty.type, schema).typeName;
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
             nameOnServer: odataProperty.name,
@@ -832,7 +833,7 @@ var MetadataStore = (function () {
         });
             
         var isScalar = !(toEnd.multiplicity === "*");
-        var dataType = normalizeTypeName(toEnd.type, schema).typeName;
+        var dataType = parseTypeName(toEnd.type, schema).typeName;
         var fkNamesOnServer = [];
         if (toEnd && isScalar) {
             var constraint = association.referentialConstraint;
@@ -895,7 +896,7 @@ var MetadataStore = (function () {
     //      -> association
 
     function getAssociation(odataNavProperty, schema) {
-        var assocName = normalizeTypeName(odataNavProperty.relationship, schema).shortTypeName;
+        var assocName = parseTypeName(odataNavProperty.relationship, schema).shortTypeName;
         var assocs = schema.association;
         if (!assocs) return null;
         if (!Array.isArray(assocs)) {

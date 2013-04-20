@@ -26,7 +26,7 @@ define(["testFns"], function (testFns) {
         }
     });
 
-    if (!testFns.DEBUG_WEBAPI) {
+    if (testFns.DEBUG_ODATA) {
         test("Skipping named query tests - not available for thru Odata", function () {
             ok(true, "Skipped tests - named queries not available in OData");
         });

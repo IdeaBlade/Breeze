@@ -77,7 +77,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -115,7 +115,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using dataService with jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -156,7 +156,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using em with dataService with jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -679,7 +679,7 @@ define(["testFns"], function (testFns) {
     
 
     test("scalar server query ", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Named queries not supported by OData");
             return;
         }
@@ -1296,7 +1296,7 @@ define(["testFns"], function (testFns) {
         }).fail(function(err) {
             if (testFns.DEBUG_WEBAPI) {
                 ok(err.message.indexOf("OrderDetails") >= 1, " message should be about missing OrderDetails property");
-            } else {
+            } else if (testFns.DEBUG_ODATA) {
                 ok(err.message.indexOf("Product") >= 1, "should be an error message about the Product query");
             }
             
@@ -1830,7 +1830,7 @@ define(["testFns"], function (testFns) {
 
 
     test("WebApi metadata", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "NA for OData impl");
             return;
         }
