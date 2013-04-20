@@ -25,7 +25,9 @@ namespace Models.NorthwindIB.CF {
 
   public class NorthwindIBContext_CF : DbContext {
     static NorthwindIBContext_CF() {
-      // InitializeTestContext();
+      // Uncomment this line if you are having testing issues with CodeFirst - errors will get eaten when
+      // exposed via a webService - this will expose them.
+      InitializeTestContext();
     }
 
 
@@ -89,11 +91,42 @@ namespace Models.NorthwindIB.CF {
 
     public DbSet<TimeLimit> TimeLimits { get; set; }
 
+    public DbSet<Comment> Comments { get; set; }
+
     #endregion EntityQueries
   }
 }
 
 namespace Foo {
+
+  [AttributeUsage(AttributeTargets.Class)] // NEW
+  public class CustomerValidator : ValidationAttribute {
+    public override Boolean IsValid(Object value) {
+      var cust = value as Customer;
+      if (cust != null && cust.CompanyName.ToLower() == "error") {
+        ErrorMessage = "This customer is not valid!";
+        return false;
+      }
+      return true;
+    }
+  }
+
+  [AttributeUsage(AttributeTargets.Property)]
+  public class CustomValidator : ValidationAttribute {
+    public override Boolean IsValid(Object value) {
+      try {
+        string val = (string)value;
+        if (!string.IsNullOrEmpty(val) && val.StartsWith("Error")) {
+          ErrorMessage = "{0} equals the word 'Error'";
+          return false;
+        }
+        return true;
+      } catch (Exception e) {
+        var x = e;
+        return false;
+      }
+    }
+  }
 
   #region Category class
 
@@ -151,35 +184,6 @@ namespace Foo {
   }
 
   #endregion Category class
-
-  [AttributeUsage(AttributeTargets.Class)] // NEW
-  public class CustomerValidator : ValidationAttribute {
-    public override Boolean IsValid(Object value) {
-      var cust = value as Customer;
-      if (cust != null && cust.CompanyName.ToLower() == "error") {
-        ErrorMessage = "This customer is not valid!";
-        return false;
-      }
-      return true;
-    }
-  }
-
-  [AttributeUsage(AttributeTargets.Property)]
-  public class CustomValidator : ValidationAttribute {
-    public override Boolean IsValid(Object value) {
-      try {
-        string val = (string)value;
-        if (!string.IsNullOrEmpty(val) && val.StartsWith("Error")) {
-          ErrorMessage = "{0} equals the word 'Error'";
-          return false;
-        }
-        return true;
-      } catch (Exception e) {
-        var x = e;
-        return false;
-      }
-    }
-  }
 
   #region Customer class
 
@@ -1206,6 +1210,8 @@ namespace Foo {
 
   #endregion Supplier class
 
+  #region Location class
+
   [ComplexType]
   public partial class Location {
     /// <summary>Gets or sets the Address. </summary>
@@ -1243,6 +1249,8 @@ namespace Foo {
     [MaxLength(15)]
     public string Country { get; set; }
   }
+
+  #endregion Location
 
   #region Territory class
 
@@ -1548,6 +1556,8 @@ namespace Foo {
 
   #endregion InternationalOrder class
 
+  #region TimeLimit class
+
   [DataContract(IsReference = true)]
   [Table("TimeLimit", Schema = "dbo")]
   public partial class TimeLimit {
@@ -1559,7 +1569,7 @@ namespace Foo {
         // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
 #endif
     }
-  
+
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -1593,4 +1603,41 @@ namespace Foo {
 #endif
   }
 
+  #endregion TimeList
+
+  #region Comment class
+
+  [DataContract(IsReference = true)]
+  [Table("Comment", Schema = "dbo")]
+  public partial class Comment {
+
+    #region Data Properties
+
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    [Column("CreatedOn", Order=1)]
+    public System.DateTime CreatedOn { get; set; }
+
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    [Column("SeqNum", Order = 2)]
+    public byte SeqNum { get; set; }
+
+    [DataMember]
+    [Column("Comment1")]
+    public string Comment1 { get; set; }
+
+    #endregion Data Properties
+
+    #region Navigation properties
+
+    #endregion Navigation properties
+
+  }
+  #endregion Comment
+
+
 }
+
