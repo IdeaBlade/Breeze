@@ -4693,7 +4693,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt, quoteJsonOData: true });
     /**
     @property Int32 {DataType}
     @final
@@ -4717,7 +4717,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m") });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m"), quoteJsonOData: true });
     /**
     @property Double {DataType}
     @final
@@ -12318,7 +12318,10 @@ var EntityManager = (function () {
                 rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
             } else {
                 var val = structObj.getProperty(dp.name);
-                rawObject[dp.nameOnServer] = val;
+                val = transformValue(val, dp, isOData);
+                if (val !== undefined) {
+                    rawObject[dp.nameOnServer] = val;
+                }
             }
         });
         
@@ -12330,10 +12333,12 @@ var EntityManager = (function () {
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
-        __objectForEach(aspect.originalValues, function (propName, value) {
+        __objectForEach(aspect.originalValues, function (propName, val) {
             var prop = stype.getProperty(propName);
-            if (prop.isUnmapped && isOData) return;
-            result[fn(propName, prop)] = value;
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
         });
         stype.complexProperties.forEach(function (cp) {
             // TODO: think about whether complexObjects can be unmapped 
@@ -12346,14 +12351,18 @@ var EntityManager = (function () {
         return result;
     }
     
-    function unwrapChangedValues(target, metadataStore) {
+    function unwrapChangedValues(target, metadataStore, isOData) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
-            result[fn(propName, prop)] = target.getProperty(propName);
+            var val = target.getProperty(propName);
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
@@ -12363,6 +12372,16 @@ var EntityManager = (function () {
             }
         });
         return result;
+    }
+
+    function transformValue(val, prop, isOData) {
+        if (isOData) {
+            if (prop.isUnmapped) return;
+            if (prop.dataType.quoteJsonOData) {
+                val = val != null ? val.toString() : val;
+            }
+        }
+        return val;
     }
 
     function UnattachedChildrenMap() {

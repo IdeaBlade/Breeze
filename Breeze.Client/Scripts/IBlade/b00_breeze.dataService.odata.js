@@ -35,7 +35,7 @@
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                if (errorCallback) errorCallback(createError(error, parseContext.url));
             }
         );
     };
@@ -68,7 +68,7 @@
                     callback(schema);
                 }
             }, function (error) {
-                var err = createError(error);
+                var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
             },
@@ -98,7 +98,7 @@
                     var response = cr.response || cr;
                     var statusCode = response.statusCode;
                     if ((!statusCode) || statusCode >= 400) {
-                        errorCallback(createError(cr));
+                        errorCallback(createError(cr, url));
                         return;
                     }
                     var contentId = cr.headers["Content-ID"];
@@ -125,7 +125,7 @@
             });
             callback(saveResult);
         }, function (err) {
-            errorCallback(createError(err));
+            errorCallback(createError(err, url));
         }, OData.batchHandler);
 
         // throw new Error("Breeze does not yet support saving thru OData");
@@ -232,32 +232,39 @@
         
     });
    
-    function createError(error) {
-        var err = new Error();
+    function createError(error, url) {
+        var result = new Error();
         var response = error.response;
-        err.message = response.statusText;
-        err.statusText = response.statusText;
-        err.status = response.statusCode;
+        result.message = response.statusText;
+        result.statusText = response.statusText;
+        result.status = response.statusCode;
         // non std
-        err.body = response.body;
-        err.requestUri = response.requestUri;
+        if (url) result.url = url;
+        result.body = response.body;
         if (response.body) {
             try {
-                var error = JSON.parse(response.body);
-                err.body = error;
+                var err = JSON.parse(response.body);
+                result.body = err;
+                var msg = "";
                 do {
-                    var nextError = error.error || error.innererror;
-                    error = nextError || error;
-                } while (nextError)
-                var msg = error.message;
-                if (msg) {
-                    err.message = (typeof (msg) == "string") ? msg : msg.value;
+                    var nextErr = err.error || err.innererror;
+                    if (!nextErr) msg = msg + getMessage(err);
+                    nextErr = nextErr || err.internalexception;
+                    err = nextErr || err;
+                } while (nextErr);
+                if (msg.length > 0) {
+                    result.message = msg;
                 }
             } catch (e) {
 
             }
         }
-        return err;
+        return result;
+    }
+
+    function getMessage(error) {
+        var msg = error.message;
+        return (msg == null) ? "" : ((typeof (msg) == "string") ? msg : msg.value) + "; "
     }
 
     breeze.config.registerAdapter("dataService", ctor);

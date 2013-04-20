@@ -4693,7 +4693,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt, quoteJsonOData: true });
     /**
     @property Int32 {DataType}
     @final
@@ -4717,7 +4717,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m") });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m"), quoteJsonOData: true });
     /**
     @property Double {DataType}
     @final
@@ -12318,7 +12318,10 @@ var EntityManager = (function () {
                 rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
             } else {
                 var val = structObj.getProperty(dp.name);
-                rawObject[dp.nameOnServer] = val;
+                val = transformValue(val, dp, isOData);
+                if (val !== undefined) {
+                    rawObject[dp.nameOnServer] = val;
+                }
             }
         });
         
@@ -12330,10 +12333,12 @@ var EntityManager = (function () {
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
-        __objectForEach(aspect.originalValues, function (propName, value) {
+        __objectForEach(aspect.originalValues, function (propName, val) {
             var prop = stype.getProperty(propName);
-            if (prop.isUnmapped && isOData) return;
-            result[fn(propName, prop)] = value;
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
         });
         stype.complexProperties.forEach(function (cp) {
             // TODO: think about whether complexObjects can be unmapped 
@@ -12346,14 +12351,18 @@ var EntityManager = (function () {
         return result;
     }
     
-    function unwrapChangedValues(target, metadataStore) {
+    function unwrapChangedValues(target, metadataStore, isOData) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
-            result[fn(propName, prop)] = target.getProperty(propName);
+            var val = target.getProperty(propName);
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
@@ -12363,6 +12372,16 @@ var EntityManager = (function () {
             }
         });
         return result;
+    }
+
+    function transformValue(val, prop, isOData) {
+        if (isOData) {
+            if (prop.isUnmapped) return;
+            if (prop.dataType.quoteJsonOData) {
+                val = val != null ? val.toString() : val;
+            }
+        }
+        return val;
     }
 
     function UnattachedChildrenMap() {
@@ -12612,7 +12631,7 @@ breeze.SaveOptions= SaveOptions;
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                if (errorCallback) errorCallback(createError(error, parseContext.url));
             }
         );
     };
@@ -12645,7 +12664,7 @@ breeze.SaveOptions= SaveOptions;
                     callback(schema);
                 }
             }, function (error) {
-                var err = createError(error);
+                var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
                 if (errorCallback) errorCallback(err);
             },
@@ -12675,7 +12694,7 @@ breeze.SaveOptions= SaveOptions;
                     var response = cr.response || cr;
                     var statusCode = response.statusCode;
                     if ((!statusCode) || statusCode >= 400) {
-                        errorCallback(createError(cr));
+                        errorCallback(createError(cr, url));
                         return;
                     }
                     var contentId = cr.headers["Content-ID"];
@@ -12702,7 +12721,7 @@ breeze.SaveOptions= SaveOptions;
             });
             callback(saveResult);
         }, function (err) {
-            errorCallback(createError(err));
+            errorCallback(createError(err, url));
         }, OData.batchHandler);
 
         // throw new Error("Breeze does not yet support saving thru OData");
@@ -12809,32 +12828,39 @@ breeze.SaveOptions= SaveOptions;
         
     });
    
-    function createError(error) {
-        var err = new Error();
+    function createError(error, url) {
+        var result = new Error();
         var response = error.response;
-        err.message = response.statusText;
-        err.statusText = response.statusText;
-        err.status = response.statusCode;
+        result.message = response.statusText;
+        result.statusText = response.statusText;
+        result.status = response.statusCode;
         // non std
-        err.body = response.body;
-        err.requestUri = response.requestUri;
+        if (url) result.url = url;
+        result.body = response.body;
         if (response.body) {
             try {
-                var error = JSON.parse(response.body);
-                err.body = error;
+                var err = JSON.parse(response.body);
+                result.body = err;
+                var msg = "";
                 do {
-                    var nextError = error.error || error.innererror;
-                    error = nextError || error;
-                } while (nextError)
-                var msg = error.message;
-                if (msg) {
-                    err.message = (typeof (msg) == "string") ? msg : msg.value;
+                    var nextErr = err.error || err.innererror;
+                    if (!nextErr) msg = msg + getMessage(err);
+                    nextErr = nextErr || err.internalexception;
+                    err = nextErr || err;
+                } while (nextErr);
+                if (msg.length > 0) {
+                    result.message = msg;
                 }
             } catch (e) {
 
             }
         }
-        return err;
+        return result;
+    }
+
+    function getMessage(error) {
+        var msg = error.message;
+        return (msg == null) ? "" : ((typeof (msg) == "string") ? msg : msg.value) + "; "
     }
 
     breeze.config.registerAdapter("dataService", ctor);

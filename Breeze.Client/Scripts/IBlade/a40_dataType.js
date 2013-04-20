@@ -162,7 +162,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt, quoteJsonOData: true });
     /**
     @property Int32 {DataType}
     @final
@@ -186,7 +186,7 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m") });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m"), quoteJsonOData: true });
     /**
     @property Double {DataType}
     @final
