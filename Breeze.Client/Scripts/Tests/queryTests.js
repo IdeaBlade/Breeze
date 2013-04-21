@@ -1087,7 +1087,8 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
-            .take(1);
+            .where("regionID", "==", 3);
+            
 
         stop();
         em.executeQuery(q).then(function (data) {
@@ -1099,7 +1100,7 @@ define(["testFns"], function (testFns) {
         }).then(function (data2) {
             ok(!em.hasChanges(), "should not have any changes");
             ok(em.getChanges().length === 0, "getChanges should return 0 results");
-            ok(data2.results.length > 0);
+            ok(data2.results.length > 0, "This may be a test bug - need a region with territories");
             start();
         }).fail(testFns.handleFail);
     });

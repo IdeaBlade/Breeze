@@ -196,9 +196,12 @@ define(["testFns"], function (testFns) {
         var locationType = em.metadataStore.getEntityType("Location");
         var newLocation = locationType.createInstance();
         newLocation.setProperty("city", "bar");
-
-        var q = EntityQuery.from("Suppliers")
-            .where("companyName", "startsWith", "P");
+        var pred = Predicate.create("companyName", "startsWith", "P")
+            .and("location.address", "!=", null)
+            .and("location.city", "!=", null)
+            
+        var q = EntityQuery.from("Suppliers").where(pred);
+            
 
         stop();
         var lastEcArgs;
@@ -219,23 +222,30 @@ define(["testFns"], function (testFns) {
                 propertyChangedArgs.push(args);
             });
             var location0 = supplier0.getProperty("location");
+            var nonnullCount = (location0.getProperty("address") ? 1 : 0) +
+                (location0.getProperty("city") ? 1 : 0) +
+                (location0.getProperty("region") ? 1 : 0) +
+                (location0.getProperty("postalCode") ? 1 : 0) +
+                (location0.getProperty("country") ? 1 : 0);
+            
             supplier0.setProperty("location", newLocation);
             // 6 = 5 properties + 1 for parent
-            ok(propertyChangedArgs.length === 6, "should have been 6 change events"); 
+            
+            ok(propertyChangedArgs.length === (nonnullCount + 1), "should have been " + (nonnullCount+1) + " pchange events");
             ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
             ok(lastPcArgs.property.name === "location");
             // 7 = 6 + 1 entityState change
-            ok(entityChangedArgs.length === 7, "should have been 7 change events");
+            ok(entityChangedArgs.length === (nonnullCount + 2), "should have been  " + (nonnullCount + 2) + " echange events");
             ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
             ok(lastEcArgs.args.property.name === "location");
             
             location0.setProperty("city", "newCity");
-            // + 1
-            ok(propertyChangedArgs.length === 7, "should have been 7 change events");
+            // + 1 (pchange and echange)
+            ok(propertyChangedArgs.length === nonnullCount + 2, "should have been  " + (nonnullCount + 2) + " pchange events");
             ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
             ok(lastPcArgs.property.name === "city");
             ok(lastPcArgs.propertyName === "location.city");
-            ok(entityChangedArgs.length === 8, "should have been 8 change events");
+            ok(entityChangedArgs.length === nonnullCount + 3, "should have been  " + (nonnullCount + 3) + " echange events");
             ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
             ok(lastEcArgs.args.propertyName === "location.city");
         }).fail(testFns.handleFail).fin(start);
