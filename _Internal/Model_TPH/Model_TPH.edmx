@@ -36,7 +36,7 @@
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="ProduceTPHModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:ib12="http://www.ideablade.com/edm/2012">
-        <EntityContainer Name="ProduceTPHEntities" annotation:LazyLoadingEnabled="true" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:ib12="http://www.ideablade.com/edm/2012" ib12:EntityManagerName="DomainModelEntityManager" ib12:DataSourceKey="ProduceTPH" ib12:DevForceEnabled="true">
+        <EntityContainer Name="ProduceTPHContext" annotation:LazyLoadingEnabled="true" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:ib12="http://www.ideablade.com/edm/2012" ib12:EntityManagerName="DomainModelEntityManager" ib12:DataSourceKey="ProduceTPH" ib12:DevForceEnabled="true">
           <EntitySet Name="ItemsOfProduce" EntityType="ProduceTPHModel.ItemOfProduce" />
         </EntityContainer>
         <EntityType Name="ItemOfProduce" Abstract="true" xmlns:ib12="http://www.ideablade.com/edm/2012" ib12:Tag="test">
@@ -85,7 +85,7 @@
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="ProduceTPHModelStoreContainer" CdmEntityContainer="ProduceTPHEntities">
+        <EntityContainerMapping StorageEntityContainer="ProduceTPHModelStoreContainer" CdmEntityContainer="ProduceTPHContext">
           <EntitySetMapping Name="ItemsOfProduce">
             <EntityTypeMapping TypeName="IsTypeOf(ProduceTPHModel.ItemOfProduce)">
               <MappingFragment StoreEntitySet="ItemOfProduce">

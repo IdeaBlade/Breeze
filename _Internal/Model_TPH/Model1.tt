@@ -2,7 +2,7 @@
 <#@ include file="EF.Utility.CS.ttinclude"#><#@ 
  output extension=".cs"#><#
 
-const string inputFile = @"ProduceTPH.edmx";
+const string inputFile = @"Model_TPH.edmx";
 var textTransform = DynamicTextTransformation.Create(this);
 var code = new CodeGenerationTools(this);
 var ef = new MetadataTools(this);

@@ -136,6 +136,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\BreezeConfig.cs" />
+    <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NonEFModelController.cs" />
@@ -172,6 +173,10 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\entityTests.js">
       <Link>Scripts\Tests\entityTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritTests.js">
+      <Link>Scripts\Tests\inheritTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\koSpecificTests.js">
@@ -390,6 +395,14 @@
     <ProjectReference Include="..\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj">
       <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
       <Name>Model_NorthwindIB_EDMX_2012</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_TPH\Model_TPH.csproj">
+      <Project>{73bb1c2b-bf56-4257-a3dc-56fe5163d2af}</Project>
+      <Name>Model_TPH</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_TPT\Model_TPT.csproj">
+      <Project>{0f11f026-78db-4b99-92c8-7b37ce997162}</Project>
+      <Name>Model_TPT</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

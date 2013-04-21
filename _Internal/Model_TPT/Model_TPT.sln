@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProduceTPT", "ProduceTPT.csproj", "{0F11F026-78DB-4B99-92C8-7B37CE997162}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPT", "Model_TPT.csproj", "{0F11F026-78DB-4B99-92C8-7B37CE997162}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

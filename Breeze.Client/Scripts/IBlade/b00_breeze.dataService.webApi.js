@@ -226,7 +226,7 @@
         if (!errorCallback) return;
         var err = createError(XHR);
         if (messagePrefix) {
-            err.message = messagePrefix + "; " + +err.message;
+            err.message = messagePrefix + "; " + err.message;
         }
         errorCallback(err);
         XHR.onreadystatechange = null;

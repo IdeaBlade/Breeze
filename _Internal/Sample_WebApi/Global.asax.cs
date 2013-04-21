@@ -58,13 +58,18 @@ namespace Sample_WebApi {
           defaults: new { controller = "NorthwindIBModel", filter = UrlParameter.Optional }
       );
 
-     
-
       routes.MapHttpRoute(
           name: "NonEFModel",
           routeTemplate: "api/NonEFModel/{action}/{filter}",
           defaults: new { controller = "NonEFModel", filter = UrlParameter.Optional }
       );
+
+      routes.MapHttpRoute(
+          name: "ProduceTPH",
+          routeTemplate: "api/ProduceTPH/{action}/{filter}",
+          defaults: new { controller = "ProduceTPH", filter = UrlParameter.Optional }
+      );
+
 
       routes.MapRoute(
           name: "Default",

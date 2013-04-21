@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProduceTPH", "ProduceTPH.csproj", "{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPH", "Model_TPH.csproj", "{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
