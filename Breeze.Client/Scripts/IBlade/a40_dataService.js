@@ -186,7 +186,7 @@ var DataService = (function () {
 var JsonResultsAdapter = (function () {
 
     /**
-    A JsonResultsAdapter instance is used to provide custom extraction, parsing, and mapping logic on the json results returned by any web service. 
+    A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. 
     This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens. 
 
     @class JsonResultsAdapter
@@ -202,7 +202,7 @@ var JsonResultsAdapter = (function () {
             extractResults: function(json) {
                 return json.results;
             },
-            visitNode: function(node, mappingContext, nodeContext) {
+            visitNode: function(node, parseContext, nodeContext) {
                 var entityType = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";

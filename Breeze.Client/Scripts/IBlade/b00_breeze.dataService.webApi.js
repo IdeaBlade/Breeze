@@ -95,10 +95,10 @@
     };
     
 
-    ctor.prototype.executeQuery = function (mappingContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
 
         var params = {
-            url: mappingContext.url,
+            url: parseContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {
@@ -125,7 +125,7 @@
                 handleXHRError(XHR, errorCallback);
             }
         };
-        if (mappingContext.dataService.useJsonp) {
+        if (parseContext.dataService.useJsonp) {
             params.dataType = 'jsonp';
             params.crossDomain = true;
         }
@@ -204,9 +204,9 @@
         
         name: "webApi_default",
         
-        visitNode: function (node, mappingContext, nodeContext ) {
+        visitNode: function (node, parseContext, nodeContext ) {
             var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
-            var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
+            var entityType = entityTypeName && parseContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 

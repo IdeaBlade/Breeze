@@ -11,7 +11,7 @@ app.value('jsonResultsAdapter',
             return results && (results.makeHolder || results.modelHolder);
         },
 
-        visitNode: function (node, mappingContext, nodeContext) {
+        visitNode: function (node, parseContext, nodeContext) {
             // Make parser
             if (node.id && node.models) {
                 // move 'node.models' links so 'models' can be empty array

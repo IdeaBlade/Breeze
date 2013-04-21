@@ -28,14 +28,14 @@
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
     
-        OData.read(mappingContext.url,
+        OData.read(parseContext.url,
             function (data, response) {
                 collectionCallback({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error, mappingContext.url));
+                if (errorCallback) errorCallback(createError(error, parseContext.url));
             }
         );
     };
@@ -210,13 +210,13 @@
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (node, mappingContext, nodeContext) {
+        visitNode: function (node, parseContext, nodeContext) {
             var result = {};
 
           if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
                 var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
-                var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
                     result.extra = node.__metadata;
