@@ -28,7 +28,7 @@ var EntityManager = (function () {
         return new QueryOptions({ 
             mergeStrategy: obj, 
             fetchStrategy: this.fetchStrategy 
-        });
+        });u
         var queryOptions = new QueryOptions({ 
             mergeStrategy: MergeStrategy.OverwriteChanges, 
             fetchStrategy: FetchStrategy.FromServer 
@@ -2207,7 +2207,11 @@ var EntityManager = (function () {
     function transformValue(val, prop, isOData) {
         if (isOData) {
             if (prop.isUnmapped) return;
-            if (prop.dataType.quoteJsonOData) {
+            if (prop.dataType == DataType.DateTimeOffset) {
+                // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
+                // from other dateTimes. This fix compensates before the save.
+                val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
+            } else if (prop.dataType.quoteJsonOData) {
                 val = val != null ? val.toString() : val;
             }
         }
