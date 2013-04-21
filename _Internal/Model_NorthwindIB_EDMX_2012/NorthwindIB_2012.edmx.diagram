@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="f6aea95e128b4081a92825b3a25aa2fd" Name="Diagram1">
+      <Diagram DiagramId="f6aea95e128b4081a92825b3a25aa2fd" Name="Diagram1" ZoomLevel="100">
         <EntityTypeShape EntityType="NorthwindIBModel.Category" Width="1.5" PointX="4.75" PointY="14.625" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Customer" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="NorthwindIBModel.Employee" Width="1.5" PointX="0.75" PointY="5.75" IsExpanded="true" />
@@ -36,9 +36,9 @@
         <EntityTypeShape EntityType="NorthwindIBModel.Role" Width="1.5" PointX="8.75" PointY="11.375" />
         <AssociationConnector Association="NorthwindIBModel.FK_UserRole_Role" />
         <EntityTypeShape EntityType="NorthwindIBModel.TimeLimit" Width="1.5" PointX="2.75" PointY="13.625" />
-        <EntityTypeShape EntityType="NorthwindIBModel.Comment" Width="1.5" PointX="5.5" PointY="2" />
         <EntityTypeShape EntityType="NorthwindIBModel.TimeGroup" Width="1.5" PointX="0.5" PointY="14.25" />
         <AssociationConnector Association="NorthwindIBModel.TimeLimitTimeGroup" />
+        <EntityTypeShape EntityType="NorthwindIBModel.Comment" Width="1.5" PointX="9.125" PointY="16" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

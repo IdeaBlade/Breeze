@@ -1,7 +1,7 @@
 ﻿// Only one of the next 3 should be uncommented.
-#define CODEFIRST_PROVIDER 
+//#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
-//#define DATABASEFIRST_NEW
+#define DATABASEFIRST_NEW
 
 
 #define CLASS_ACTIONFILTER
@@ -238,6 +238,10 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Roles;
     }
 
+    [HttpGet]
+    public IQueryable<User> Users() {
+      return ContextProvider.Context.Users;
+    }
 
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
