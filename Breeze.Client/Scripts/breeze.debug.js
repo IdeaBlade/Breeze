@@ -4689,93 +4689,93 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, format: fmtString });
+    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, fmtOData: fmtString });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt, quoteJsonOData: true });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Byte {DataType}
     @final
     @static
     **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, format: fmtInt });
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Decimal {DataType}
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("m"), quoteJsonOData: true });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("m"), quoteJsonOData: true });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("d") });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("d") });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, format: makeFloatFmt("f") });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("f") });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, format: fmtDateTime });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
     
     /**
     @property DateTimeOffset {DataType}
     @final
     @static
     **/
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, format: fmtDateTimeOffset });
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
     /**
     @property Time {DataType}
     @final
     @static
     **/
-    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S", format: fmtTime });
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S", fmtOData: fmtTime });
     /**
     @property Boolean {DataType}
     @final
     @static
     **/
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool, format: fmtBoolean });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool, fmtOData: fmtBoolean });
     /**
     @property Guid {DataType}
     @final
     @static
     **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", format: fmtGuid });
+    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", fmtOData: fmtGuid });
   
     /**
     @property Binary {DataType}
     @final
     @static
     **/
-    DataType.Binary = DataType.addSymbol({ defaultValue: null, format: fmtBinary });
+    DataType.Binary = DataType.addSymbol({ defaultValue: null, fmtOData: fmtBinary });
     /**
     @property Undefined {DataType}
     @final
     @static
     **/
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined , format: fmtUndefined});
+    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined , fmtOData: fmtUndefined});
     DataType.seal();
 
     /**
@@ -9252,7 +9252,8 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            v2Expr = formatValue(this._value, this._fnNode1.dataType);
+            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
             if (this._filterQueryOp == FilterQueryOp.Contains) {
@@ -9393,17 +9394,6 @@ var SimplePredicate = (function () {
         }
         return a.indexOf(b) >= 0;
     }
-
-    function formatValue(val, dataType) {
-        if (val == null) {
-            return null;
-        }
-            
-        dataType = dataType || DataType.fromValue(val);
-        return dataType.format(val);
-    }
-    
-  
 
     return ctor;
 
@@ -12648,11 +12638,7 @@ breeze.SaveOptions= SaveOptions;
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
                     var error = new Error("Metadata query failed for: " + url);
-                    if (onError) {
-                        onError(error);
-                    } else {
-                        callback(error);
-                    }
+                    callback(error);
                 }
                 var schema = data.dataServices.schema;
 
@@ -12662,13 +12648,12 @@ breeze.SaveOptions= SaveOptions;
                     metadataStore.addDataService(dataService);
                 }
 
-                if (callback) {
-                    callback(schema);
-                }
+                callback(schema);
+
             }, function (error) {
                 var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
-                if (errorCallback) errorCallback(err);
+                errorCallback(err);
             },
             OData.metadataHandler
         );
@@ -12699,10 +12684,9 @@ breeze.SaveOptions= SaveOptions;
                         errorCallback(createError(cr, url));
                         return;
                     }
+                    
                     var contentId = cr.headers["Content-ID"];
-                    if (contentId) {
-                        var origEntity = contentKeys[contentId];
-                    }
+                    
                     var rawEntity = cr.data;
                     if (rawEntity) {
                         var tempKey = tempKeys[contentId];
@@ -12717,6 +12701,7 @@ breeze.SaveOptions= SaveOptions;
                         }
                         entities.push(rawEntity);
                     } else {
+                        var origEntity = contentKeys[contentId];
                         entities.push(origEntity);
                     }
                 });
@@ -12726,9 +12711,32 @@ breeze.SaveOptions= SaveOptions;
             errorCallback(createError(err, url));
         }, OData.batchHandler);
 
-        // throw new Error("Breeze does not yet support saving thru OData");
     };
+ 
+    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+        name: "OData_default",
 
+        visitNode: function (node, parseContext, nodeContext) {
+            var result = {};
+
+          if (node.__metadata != null) {
+                // TODO: may be able to make this more efficient by caching of the previous value.
+                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
+                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
+                    result.entityType = et;
+                    result.extra = node.__metadata;
+                }
+            }
+
+            var propertyName = nodeContext.propertyName;
+            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
+                // EntityKey properties can be produced by EDMX models
+                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
+            return result;
+        },        
+        
+    });
 
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
@@ -12737,7 +12745,7 @@ breeze.SaveOptions= SaveOptions;
         var prefix = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
         var helper = entityManager.helper;
-        var id = 0; 
+        var id = 0;
         saveBundle.entities.forEach(function (entity) {
             var aspect = entity.entityAspect;
             id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
@@ -12782,55 +12790,10 @@ breeze.SaveOptions= SaveOptions;
             request.headers["If-Match"] = extraMetadata.etag;
         }
     }
-
-
-    //function test() {
-    //    var requestData1 = {
-    //        __batchRequests: [{
-    //            __changeRequests: [ {
-    //                requestUri: "Customers", method: "POST", headers: { "Content-ID": "1"  }, data: { CustomerID: 400, CustomerName: "John" }
-    //            }, {
-    //                requestUri: "Orders", method: "POST", data: { OrderID: 400, Total: "99.99", Customer: { __metadata: { uri: "$1" } }  }
-    //            }]
-    //        }]
-    //    };
-
-    //    var requestData2 =  {
-    //        __batchRequests: [{
-    //            __changeRequests: [
-    //              { requestUri: "BestMovies(0)", method: "PUT", data: { MovieTitle: 'Up' } },
-    //              { requestUri: "BestMovies", method: "POST", data: { ID: 2, MovieTitle: 'Samurai' } }
-    //            ]
-    //        } ]
-    //    };
-    //};
-
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
-        name: "OData_default",
-
-        visitNode: function (node, parseContext, nodeContext) {
-            var result = {};
-
-          if (node.__metadata != null) {
-                // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
-                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
-                    result.entityType = et;
-                    result.extra = node.__metadata;
-                }
-            }
-
-            var propertyName = nodeContext.propertyName;
-            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
-                // EntityKey properties can be produced by EDMX models
-                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
-            return result;
-        },        
-        
-    });
    
     function createError(error, url) {
+        // OData errors can have the message buried very deeply - and nonobviously
+        // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
         var response = error.response;
         result.message = response.statusText;
@@ -12868,6 +12831,7 @@ breeze.SaveOptions= SaveOptions;
     breeze.config.registerAdapter("dataService", ctor);
 
 }));
+
 (function(factory) {
     if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"

@@ -1603,7 +1603,8 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            v2Expr = formatValue(this._value, this._fnNode1.dataType);
+            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
             if (this._filterQueryOp == FilterQueryOp.Contains) {
@@ -1744,17 +1745,6 @@ var SimplePredicate = (function () {
         }
         return a.indexOf(b) >= 0;
     }
-
-    function formatValue(val, dataType) {
-        if (val == null) {
-            return null;
-        }
-            
-        dataType = dataType || DataType.fromValue(val);
-        return dataType.format(val);
-    }
-    
-  
 
     return ctor;
 

@@ -50,11 +50,7 @@
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
                     var error = new Error("Metadata query failed for: " + url);
-                    if (onError) {
-                        onError(error);
-                    } else {
-                        callback(error);
-                    }
+                    callback(error);
                 }
                 var schema = data.dataServices.schema;
 
@@ -64,13 +60,12 @@
                     metadataStore.addDataService(dataService);
                 }
 
-                if (callback) {
-                    callback(schema);
-                }
+                callback(schema);
+
             }, function (error) {
                 var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
-                if (errorCallback) errorCallback(err);
+                errorCallback(err);
             },
             OData.metadataHandler
         );
@@ -101,10 +96,9 @@
                         errorCallback(createError(cr, url));
                         return;
                     }
+                    
                     var contentId = cr.headers["Content-ID"];
-                    if (contentId) {
-                        var origEntity = contentKeys[contentId];
-                    }
+                    
                     var rawEntity = cr.data;
                     if (rawEntity) {
                         var tempKey = tempKeys[contentId];
@@ -119,6 +113,7 @@
                         }
                         entities.push(rawEntity);
                     } else {
+                        var origEntity = contentKeys[contentId];
                         entities.push(origEntity);
                     }
                 });
@@ -128,9 +123,32 @@
             errorCallback(createError(err, url));
         }, OData.batchHandler);
 
-        // throw new Error("Breeze does not yet support saving thru OData");
     };
+ 
+    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+        name: "OData_default",
 
+        visitNode: function (node, parseContext, nodeContext) {
+            var result = {};
+
+          if (node.__metadata != null) {
+                // TODO: may be able to make this more efficient by caching of the previous value.
+                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
+                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
+                    result.entityType = et;
+                    result.extra = node.__metadata;
+                }
+            }
+
+            var propertyName = nodeContext.propertyName;
+            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
+                // EntityKey properties can be produced by EDMX models
+                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
+            return result;
+        },        
+        
+    });
 
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
@@ -139,7 +157,7 @@
         var prefix = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
         var helper = entityManager.helper;
-        var id = 0; 
+        var id = 0;
         saveBundle.entities.forEach(function (entity) {
             var aspect = entity.entityAspect;
             id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
@@ -184,55 +202,10 @@
             request.headers["If-Match"] = extraMetadata.etag;
         }
     }
-
-
-    //function test() {
-    //    var requestData1 = {
-    //        __batchRequests: [{
-    //            __changeRequests: [ {
-    //                requestUri: "Customers", method: "POST", headers: { "Content-ID": "1"  }, data: { CustomerID: 400, CustomerName: "John" }
-    //            }, {
-    //                requestUri: "Orders", method: "POST", data: { OrderID: 400, Total: "99.99", Customer: { __metadata: { uri: "$1" } }  }
-    //            }]
-    //        }]
-    //    };
-
-    //    var requestData2 =  {
-    //        __batchRequests: [{
-    //            __changeRequests: [
-    //              { requestUri: "BestMovies(0)", method: "PUT", data: { MovieTitle: 'Up' } },
-    //              { requestUri: "BestMovies", method: "POST", data: { ID: 2, MovieTitle: 'Samurai' } }
-    //            ]
-    //        } ]
-    //    };
-    //};
-
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
-        name: "OData_default",
-
-        visitNode: function (node, parseContext, nodeContext) {
-            var result = {};
-
-          if (node.__metadata != null) {
-                // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
-                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
-                    result.entityType = et;
-                    result.extra = node.__metadata;
-                }
-            }
-
-            var propertyName = nodeContext.propertyName;
-            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
-                // EntityKey properties can be produced by EDMX models
-                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
-            return result;
-        },        
-        
-    });
    
     function createError(error, url) {
+        // OData errors can have the message buried very deeply - and nonobviously
+        // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
         var response = error.response;
         result.message = response.statusText;
@@ -270,3 +243,4 @@
     breeze.config.registerAdapter("dataService", ctor);
 
 }));
+
