@@ -18,25 +18,25 @@ define(["testFns"], function (testFns) {
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
 
-    function newEm() {
-        var altServiceName = "api/ProduceTPH";
+    var altServiceName = "api/ProduceTPH";
+    //function newEm() {
 
-        var dataService = new DataService({
-            serviceName: altServiceName,
-        });
-        var altMs = new MetadataStore({
-            namingConvention: NamingConvention.camelCase
-        });
+    //    var dataService = new DataService({
+    //        serviceName: altServiceName,
+    //    });
+    //    var altMs = new MetadataStore({
+    //        namingConvention: NamingConvention.camelCase
+    //    });
 
-        return new EntityManager({
-            dataService: dataService,
-            metadataStore: altMs
-        });
-    }
+    //    return new EntityManager({
+    //        dataService: dataService,
+    //        metadataStore: altMs
+    //    });
+    //}
     
     module("inherit", {
         setup: function () {
-            testFns.setup();
+            testFns.setup({ serviceName: altServiceName } );
         },
         teardown: function () {
         }
