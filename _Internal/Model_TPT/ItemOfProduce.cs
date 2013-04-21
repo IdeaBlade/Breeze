@@ -12,11 +12,19 @@ namespace ProduceTPT
     using System;
     using System.Collections.Generic;
     
-    public partial class Tomato : Vegetable
+    public abstract partial class ItemOfProduce
     {
-        public string Variety { get; set; }
-        public string Description { get; set; }
-        public Nullable<bool> Determinate { get; set; }
-        public byte[] Photo { get; set; }
+        public ItemOfProduce()
+        {
+            this.RowVersion = 0;
+        }
+    
+        public System.Guid Id { get; set; }
+        public string ItemNumber { get; set; }
+        public Nullable<decimal> UnitPrice { get; set; }
+        public string QuantityPerUnit { get; set; }
+        public Nullable<short> UnitsInStock { get; set; }
+        public short UnitsOnOrder { get; set; }
+        public Nullable<int> RowVersion { get; set; }
     }
 }

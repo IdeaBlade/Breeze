@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ProduceTPT
+namespace ProduceTPH
 {
     using System;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace ProduceTPT
     {
         public string Variety { get; set; }
         public string Description { get; set; }
-        public Nullable<bool> Determinate { get; set; }
         public byte[] Photo { get; set; }
+        public Nullable<bool> Determinate { get; set; }
     }
 }

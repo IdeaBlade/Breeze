@@ -7,16 +7,14 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ProduceTPT
+namespace ProduceTPH
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class Tomato : Vegetable
+    public partial class Fruit : ItemOfProduce
     {
-        public string Variety { get; set; }
-        public string Description { get; set; }
-        public Nullable<bool> Determinate { get; set; }
-        public byte[] Photo { get; set; }
+        public string Name { get; set; }
+        public string USDACategory { get; set; }
     }
 }
