@@ -5549,38 +5549,38 @@ var CsdlMetadataParser = (function () {
         }
     };
 
-    function parseCsdlEntityType(odataEntityType, schema, metadataStore) {
-        var shortName = odataEntityType.name;
+    function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
+        var shortName = csdlEntityType.name;
         var ns = getNamespaceFor(shortName, schema);
         var entityType = new EntityType({
             shortName: shortName,
             namespace: ns,
-            isAbstract: odataEntityType.abstract && odataEntityType.abstract === 'true'
+            isAbstract: csdlEntityType.abstract && csdlEntityType.abstract === 'true'
         });
-        if (odataEntityType.baseType) {
-            var baseTypeName = parseTypeName(odataEntityType.baseType, schema).typeName;
+        if (csdlEntityType.baseType) {
+            var baseTypeName = parseTypeName(csdlEntityType.baseType, schema).typeName;
             entityType.baseTypeName = baseTypeName;
             var baseEntityType = metadataStore.getEntityType(baseTypeName);
             if (baseEntityType) {
-                completeParseODataEntityType(entityType, odataEntityType, schema, metadataStore, baseEntityType);
+                completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType);
             } else {
                 var deferrals = metadataStore._deferredTypes[baseTypeName];
                 if (!deferrals) {
                     deferrals = [];
                     metadataStore._deferredTypes[baseTypeName] = deferrals;
                 }
-                deferrals.push({ entityType: entityType, odataEntityType: odataEntityType });
+                deferrals.push({ entityType: entityType, csdlEntityType: csdlEntityType });
             }
         } else {
-            completeParseODataEntityType(entityType, odataEntityType, schema, metadataStore, null);
+            completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, null);
         }
         // entityType may or may not have been added to the metadataStore at this point.
         return entityType;
 
     }
 
-    function completeParseODataEntityType(entityType, odataEntityType, schema, metadataStore, baseEntityType) {
-        baseKeyNamesOnServer = [];
+    function completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType) {
+        var baseKeyNamesOnServer = [];
         if (baseEntityType) {
             entityType.baseEntityType = baseEntityType;
             baseKeyNamesOnServer = baseEntityType.keyProperties.map(__pluck("name"));
@@ -5596,14 +5596,14 @@ var CsdlMetadataParser = (function () {
             });
         }
 
-        var keyNamesOnServer = odataEntityType.key ? toArray(odataEntityType.key.propertyRef).map(__pluck("name")) : [];
+        var keyNamesOnServer = csdlEntityType.key ? toArray(csdlEntityType.key.propertyRef).map(__pluck("name")) : [];
         keyNamesOnServer = baseKeyNamesOnServer.concat(keyNamesOnServer);
 
-        toArray(odataEntityType.property).forEach(function (prop) {
+        toArray(csdlEntityType.property).forEach(function (prop) {
             parseCsdlDataProperty(entityType, prop, schema, keyNamesOnServer);
         });
 
-        toArray(odataEntityType.navigationProperty).forEach(function (prop) {
+        toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
             parseCsdlNavProperty(entityType, prop, schema);
         });
 
@@ -5614,22 +5614,22 @@ var CsdlMetadataParser = (function () {
         var deferrals = deferredTypes[entityType.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeParseODataEntityType(d.entityType, d.odataEntityType, schema, entityType)
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, entityType)
             });
             delete deferredTypes[entityType.name];
         }
 
     }
 
-    function parseCsdlComplexType(odataComplexType, schema, metadataStore) {
-        var shortName = odataComplexType.name;
+    function parseCsdlComplexType(csdlComplexType, schema, metadataStore) {
+        var shortName = csdlComplexType.name;
         var ns = getNamespaceFor(shortName, schema);
         var complexType = new ComplexType({
             shortName: shortName,
             namespace: ns
         });
 
-        toArray(odataComplexType.property).forEach(function (prop) {
+        toArray(csdlComplexType.property).forEach(function (prop) {
             parseCsdlDataProperty(complexType, prop, schema);
         });
 
@@ -5637,19 +5637,19 @@ var CsdlMetadataParser = (function () {
         return complexType;
     }
 
-    function parseCsdlDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
+    function parseCsdlDataProperty(parentType, csdlProperty, schema, keyNamesOnServer) {
         var dp;
-        var typeParts = odataProperty.type.split(".");
+        var typeParts = csdlProperty.type.split(".");
         if (typeParts.length == 2) {
-            dp = parseCsdlSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+            dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
         } else {
-            if (isEnumType(odataProperty, schema)) {
-                dp = parseCsdlSimpleProperty(parentType, odataProperty, keyNamesOnServer);
+            if (isEnumType(csdlProperty, schema)) {
+                dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
                 if (dp) {
-                    dp.enumType = odataProperty.type;
+                    dp.enumType = csdlProperty.type;
                 }
             } else {
-                dp = parseCsdlComplexProperty(parentType, odataProperty, schema);
+                dp = parseCsdlComplexProperty(parentType, csdlProperty, schema);
             }
         }
         if (dp) {
@@ -5659,48 +5659,48 @@ var CsdlMetadataParser = (function () {
         return dp;
     }
 
-    function parseCsdlSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
-        var dataType = DataType.fromEdmDataType(odataProperty.type);
+    function parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer) {
+        var dataType = DataType.fromEdmDataType(csdlProperty.type);
         if (dataType == null) {
-            parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
+            parentType.warnings.push("Unable to recognize DataType for property: " + csdlProperty.name + " DateType: " + csdlProperty.type);
             return null;
         }
-        var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-        // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-        var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+        var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
+        // var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
+        var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(csdlProperty.name) >= 0;
         if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
-            if (isIdentityProperty(odataProperty)) {
+            if (isIdentityProperty(csdlProperty)) {
                 parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
         }
         // TODO: nit - don't set maxLength if null;
-        var maxLength = odataProperty.maxLength;
+        var maxLength = csdlProperty.maxLength;
         maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
-            nameOnServer: odataProperty.name,
+            nameOnServer: csdlProperty.name,
             dataType: dataType,
             isNullable: isNullable,
             isPartOfKey: isPartOfKey,
             maxLength: maxLength,
             // fixedLength: fixedLength,
-            concurrencyMode: odataProperty.concurrencyMode
+            concurrencyMode: csdlProperty.concurrencyMode
         });
         if (dataType === DataType.Undefined) {
-            dp.rawTypeName = odataProperty.type;
+            dp.rawTypeName = csdlProperty.type;
         }
         return dp;
     }
 
-    function parseCsdlComplexProperty(parentType, odataProperty, schema) {
+    function parseCsdlComplexProperty(parentType, csdlProperty, schema) {
 
         // Complex properties are never nullable ( per EF specs)
-        // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-        // var complexTypeName = odataProperty.type.split("Edm.")[1];
-        var complexTypeName = parseTypeName(odataProperty.type, schema).typeName;
+        // var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
+        // var complexTypeName = csdlProperty.type.split("Edm.")[1];
+        var complexTypeName = parseTypeName(csdlProperty.type, schema).typeName;
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
-            nameOnServer: odataProperty.name,
+            nameOnServer: csdlProperty.name,
             complexTypeName: complexTypeName,
             isNullable: false
         });
@@ -5708,10 +5708,10 @@ var CsdlMetadataParser = (function () {
         return dp;
     }
 
-    function parseCsdlNavProperty(entityType, odataProperty, schema) {
-        var association = getAssociation(odataProperty, schema);
+    function parseCsdlNavProperty(entityType, csdlProperty, schema) {
+        var association = getAssociation(csdlProperty, schema);
         var toEnd = __arrayFirst(association.end, function (assocEnd) {
-            return assocEnd.role === odataProperty.toRole;
+            return assocEnd.role === csdlProperty.toRole;
         });
 
         var isScalar = !(toEnd.multiplicity === "*");
@@ -5723,7 +5723,7 @@ var CsdlMetadataParser = (function () {
                 var principal = constraint.principal;
                 var dependent = constraint.dependent;
                 var propRefs;
-                if (odataProperty.fromRole === principal.role) {
+                if (csdlProperty.fromRole === principal.role) {
                     propRefs = toArray(principal.propertyRef);
                 } else {
                     propRefs = toArray(dependent.propertyRef);
@@ -5733,7 +5733,7 @@ var CsdlMetadataParser = (function () {
             }
         }
         var np = new NavigationProperty({
-            nameOnServer: odataProperty.name,
+            nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
             associationName: association.name,
@@ -5744,10 +5744,10 @@ var CsdlMetadataParser = (function () {
         return np;
     }
 
-    function isEnumType(odataProperty, schema) {
+    function isEnumType(csdlProperty, schema) {
         if (!schema.enumType) return false;
         var enumTypes = toArray(schema.enumType);
-        var typeParts = odataProperty.type.split(".");
+        var typeParts = csdlProperty.type.split(".");
         var baseTypeName = typeParts[typeParts.length - 1];
         return enumTypes.some(function (enumType) {
             return enumType.name === baseTypeName;
@@ -5777,16 +5777,16 @@ var CsdlMetadataParser = (function () {
 
     }
 
-    function isIdentityProperty(odataProperty) {
+    function isIdentityProperty(csdlProperty) {
         // see if web api feed
-        var propName = __arrayFirst(Object.keys(odataProperty), function (pn) {
+        var propName = __arrayFirst(Object.keys(csdlProperty), function (pn) {
             return pn.indexOf("StoreGeneratedPattern") >= 0;
         });
         if (propName) {
-            return (odataProperty[propName] === "Identity");
+            return (csdlProperty[propName] === "Identity");
         } else {
             // see if Odata feed
-            var extensions = odataProperty.extensions;
+            var extensions = csdlProperty.extensions;
             if (!extensions) {
                 return false;
             }
@@ -5809,8 +5809,8 @@ var CsdlMetadataParser = (function () {
     //   match ( associationSet.name == schema.association[].name )
     //      -> association
 
-    function getAssociation(odataNavProperty, schema) {
-        var assocName = parseTypeName(odataNavProperty.relationship, schema).shortTypeName;
+    function getAssociation(csdlNavProperty, schema) {
+        var assocName = parseTypeName(csdlNavProperty.relationship, schema).shortTypeName;
         var assocs = schema.association;
         if (!assocs) return null;
         if (!Array.isArray(assocs)) {
