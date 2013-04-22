@@ -557,50 +557,7 @@ var MetadataStore = (function () {
         }
     };
        
-    proto._parseODataMetadata = function (serviceName, schemas) {
-        var that = this;
-        this._deferredTypes = {};
-        this._entityTypeResourceMap = {};
-        toArray(schemas).forEach(function (schema) {
-            if (schema.cSpaceOSpaceMapping) {
-                // Web api only - not avail in OData.
-                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
-                var newMap = {};
-                mappings.forEach(function(mapping) {
-                    newMap[mapping[0]] = mapping[1];
-                });
-                schema.cSpaceOSpaceMapping = newMap;
-            }
-            
-            if (schema.entityContainer) {
-                toArray(schema.entityContainer).forEach(function (container) {
-                    toArray(container.entitySet).forEach(function (entitySet) {
-                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
-                        that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
-                        that._entityTypeResourceMap[entityTypeName] = entitySet.name;
-                    });
-                });
-            }
-               
-            // process complextypes before entity types.
-            if (schema.complexType) {
-                toArray(schema.complexType).forEach(function (ct) {
-                    var complexType = parseODataComplexType(ct, schema, that);
-                });
-            }
-            if (schema.entityType) {
-                toArray(schema.entityType).forEach(function (et) {
-                    var entityType = parseODataEntityType(et, schema, that);
-                    
-                });
-            }
-
-        });
-        var badNavProps = this.getIncompleteNavigationProperties();
-        if (badNavProps.length > 0) {
-            throw new Error("Bad nav properties");
-        }
-    };
+  
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
@@ -686,6 +643,51 @@ var MetadataStore = (function () {
         return result;
     }
 
+    proto._parseODataMetadata = function (schemas) {
+        var that = this;
+        this._deferredTypes = {};
+        this._entityTypeResourceMap = {};
+        toArray(schemas).forEach(function (schema) {
+            if (schema.cSpaceOSpaceMapping) {
+                // Web api only - not avail in OData.
+                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                var newMap = {};
+                mappings.forEach(function (mapping) {
+                    newMap[mapping[0]] = mapping[1];
+                });
+                schema.cSpaceOSpaceMapping = newMap;
+            }
+
+            if (schema.entityContainer) {
+                toArray(schema.entityContainer).forEach(function (container) {
+                    toArray(container.entitySet).forEach(function (entitySet) {
+                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
+                        that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        that._entityTypeResourceMap[entityTypeName] = entitySet.name;
+                    });
+                });
+            }
+
+            // process complextypes before entity types.
+            if (schema.complexType) {
+                toArray(schema.complexType).forEach(function (ct) {
+                    var complexType = parseODataComplexType(ct, schema, that);
+                });
+            }
+            if (schema.entityType) {
+                toArray(schema.entityType).forEach(function (et) {
+                    var entityType = parseODataEntityType(et, schema, that);
+
+                });
+            }
+
+        });
+        var badNavProps = this.getIncompleteNavigationProperties();
+        if (badNavProps.length > 0) {
+            throw new Error("Bad nav properties");
+        }
+    };
+
     function parseODataEntityType(odataEntityType, schema, metadataStore) {
         var shortName = odataEntityType.name;
         var ns = getNamespaceFor(shortName, schema);
@@ -711,7 +713,8 @@ var MetadataStore = (function () {
         } else {
             completeParseODataEntityType(entityType, odataEntityType, schema, metadataStore, null);
         }
-
+        // entityType may or may not have been added to the metadataStore at this point.
+        return entityType;
 
     }
 
@@ -772,7 +775,6 @@ var MetadataStore = (function () {
         metadataStore.addEntityType(complexType);
         return complexType;
     }
-        
 
     function parseODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
         var dp;
@@ -796,16 +798,6 @@ var MetadataStore = (function () {
         return dp;
     }
         
-    function isEnumType(odataProperty, schema) {
-        if (!schema.enumType) return false;
-        var enumTypes = toArray(schema.enumType);
-        var typeParts = odataProperty.type.split(".");
-        var baseTypeName = typeParts[typeParts.length - 1];
-        return enumTypes.some(function(enumType) {
-            return enumType.name === baseTypeName;
-        });
-    }
-
     function parseODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
             var dataType = DataType.fromEdmDataType(odataProperty.type);
             if (dataType == null) {
@@ -853,6 +845,16 @@ var MetadataStore = (function () {
         });
             
         return dp;
+    }
+
+    function isEnumType(odataProperty, schema) {
+        if (!schema.enumType) return false;
+        var enumTypes = toArray(schema.enumType);
+        var typeParts = odataProperty.type.split(".");
+        var baseTypeName = typeParts[typeParts.length - 1];
+        return enumTypes.some(function (enumType) {
+            return enumType.name === baseTypeName;
+        });
     }
 
     function addValidators(dataProperty) {
@@ -1127,6 +1129,20 @@ var EntityType = (function () {
 
     __readOnly__
     @property namespace {String} 
+    **/
+
+    /**
+    The base EntityType (if any) for this EntityType.
+
+    __readOnly__
+    @property baseEntityType {EntityType} 
+    **/
+
+    /**
+    Whether this EntityType is abstract.
+
+    __readOnly__
+    @property isAbstract {boolean} 
     **/
 
     /**
@@ -1461,10 +1477,12 @@ var EntityType = (function () {
         return __toJson(this, {
             shortName: null,
             namespace: null,
+            baseTypeName: null,
+            isAbstract: false,
             autoGeneratedKeyType: null, // do not suppress default value
             defaultResourceName: null,
-            dataProperties: null,
-            navigationProperties: null,
+            dataProperties: function (props) { props.filter(function(prop) { return !prop.isInherited; })},
+            navigationProperties: function (props) { props.filter(function (prop) { return !prop.isInherited; }) },
             validators: null
         });
     };
