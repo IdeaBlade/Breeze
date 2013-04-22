@@ -52,12 +52,12 @@
                     var error = new Error("Metadata query failed for: " + url);
                     callback(error);
                 }
-                var schema = data.dataServices.schema;
+                var csdlMetadata = data.dataServices;
 
                 // might have been fetched by another query
                 if (!metadataStore.hasMetadataFor(serviceName)) {
                     try {
-                        metadataStore.importMetadata(schema);
+                        metadataStore.importMetadata(csdlMetadata);
                     } catch(e) {
                         errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
                         return;
@@ -66,7 +66,7 @@
                     metadataStore.addDataService(dataService);
                 }
 
-                callback(schema);
+                callback(csdlMetadata);
 
             }, function (error) {
                 var err = createError(error, url);
