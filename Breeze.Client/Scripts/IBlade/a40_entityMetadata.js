@@ -175,7 +175,7 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
         if (exportedMetadata.schema) {
             CsdlMetadataParser.parse(this, exportedMetadata.schema);
-            return;
+            return this;
         } 
 
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
@@ -454,7 +454,7 @@ var MetadataStore = (function () {
     proto.getEntityTypes = function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
-        
+
     proto._getEntityType = function(typeName, okIfNotFound) {
         var qualTypeName = getQualifiedTypeName(this, typeName, false);
         var type = this._structuralTypeMap[qualTypeName];
@@ -467,8 +467,7 @@ var MetadataStore = (function () {
             throw new Error("There are multiple types with this 'shortName': " + typeNames);
         }
         return type;
-
-    }
+    };
                
     function getTypesFromMap(typeMap) {
         var types = [];
@@ -534,7 +533,6 @@ var MetadataStore = (function () {
     };
 
     // protected methods
-
  
 
     proto._getCtorRegistration = function(structuralType) {
@@ -542,7 +540,7 @@ var MetadataStore = (function () {
         if (!r.ctor) {
             structuralType.getEntityCtor();
         }
-    }
+    };
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -555,8 +553,6 @@ var MetadataStore = (function () {
             entity.entityType = entityType;
         }
     };
-       
-  
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
@@ -591,8 +587,6 @@ var MetadataStore = (function () {
         metadataStore.addEntityType(stype);
         return stype;
     };
-
-
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
