@@ -7,8 +7,10 @@ TestResults
 *.docx
 *.vsmdi
 *.cmd
-*.mdf
-*.ldf
+Samples/*.mdf
+Samples_Unpublished/*.mdf
+Samples/*.ldf
+Samples_Unpublished/*.ldf
 *.testsettings
 bin
 obj
