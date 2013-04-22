@@ -19,6 +19,8 @@ define(["testFns"], function (testFns) {
     var MergeStrategy = breeze.MergeStrategy;
 
     var altServiceName = "api/ProduceTPH";
+
+    var newEm = testFns.newEm;
     //function newEm() {
 
     //    var dataService = new DataService({
@@ -48,10 +50,14 @@ define(["testFns"], function (testFns) {
         var q = EntityQuery.from("Fruits")
             .using(em);
         stop();
-
+        var fruitType = em.metadataStore.getEntityType("Fruit");
         q.execute().then(function (data) {
-            ok(data.results.length > 0);
-            ok(r.length == 0);
+            var r = data.results;
+            ok(r.length > 0, "should have found some 'Fruits'");
+            ok(r.every(function(f) {
+                return f.entityType.isSubtypeOf(fruitType);
+            }));
+            
         }).fail(function (e) {
             ok(false, e.message);
         }).fin(start);
