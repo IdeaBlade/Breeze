@@ -173,6 +173,11 @@ var MetadataStore = (function () {
     @chainable
     **/
     proto.importMetadata = function (exportedMetadata) {
+        if (exportedMetadata.schema) {
+            ODataMetadataParser.parse(this, exportedMetadata.schema);
+            return;
+        } 
+
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
@@ -201,9 +206,7 @@ var MetadataStore = (function () {
             that.addDataService(ds, true);
         });
         var structuralTypeMap = this._structuralTypeMap;
-        //__objectForEach(json.structuralTypeMap, function (key, value) {
-        //    structuralTypeMap[key] = structuralTypeFromJson(that, value);
-        //});
+        
         json.structuralTypes.forEach(function (stype) {
             var structuralType = structuralTypeFromJson(that, stype);
             structuralTypeMap[structuralType.name] = structuralType;
@@ -532,11 +535,7 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    ctor.normalizeTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName && parseTypeName(rawTypeName).typeName;
-    });
-    // for debugging use the line below instead.
-    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
+ 
 
     proto._getCtorRegistration = function(structuralType) {
         var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
@@ -593,46 +592,7 @@ var MetadataStore = (function () {
         return stype;
     };
 
-    // schema is only needed for navProperty type name
-    function parseTypeName(entityTypeName, schema) {
-        if (!entityTypeName) {
-            return null;
-        }
-        
-        if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-            return {
-                shortTypeName: entityTypeName,
-                namespace: "",
-                typeName: entityTypeName,
-                isAnon: true
-            };
-        }
-        var entityTypeNameNoAssembly = entityTypeName.split(",")[0];
-        var nameParts = entityTypeNameNoAssembly.split(".");
-        if (nameParts.length > 1) {
 
-            var shortName = nameParts[nameParts.length - 1];
-
-            var ns;
-            if (schema) {
-                ns = getNamespaceFor(shortName, schema);
-            } else {
-                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                ns = namespaceParts.join(".");
-            }
-            return {
-                shortTypeName: shortName,
-                namespace: ns,
-                typeName: qualifyTypeName(shortName, ns)
-            };
-        } else {
-            return {
-                shortTypeName: entityTypeName,
-                namespace: "",
-                typeName: entityTypeName
-            };
-        }
-    }
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -641,12 +601,17 @@ var MetadataStore = (function () {
             throw new Error("Unable to locate 'entityTypeName' of: " + structTypeName);
         }
         return result;
-    }
+    }       
 
-    proto._parseODataMetadata = function (schemas) {
-        var that = this;
-        this._deferredTypes = {};
-        this._entityTypeResourceMap = {};
+    return ctor;
+})();
+
+var ODataMetadataParser = (function () {
+
+    function parse(metadataStore, schemas) {
+
+        metadataStore._deferredTypes = {};
+        metadataStore._entityTypeResourceMap = {};
         toArray(schemas).forEach(function (schema) {
             if (schema.cSpaceOSpaceMapping) {
                 // Web api only - not avail in OData.
@@ -662,8 +627,8 @@ var MetadataStore = (function () {
                 toArray(schema.entityContainer).forEach(function (container) {
                     toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
-                        that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
-                        that._entityTypeResourceMap[entityTypeName] = entitySet.name;
+                        metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
                     });
                 });
             }
@@ -671,22 +636,24 @@ var MetadataStore = (function () {
             // process complextypes before entity types.
             if (schema.complexType) {
                 toArray(schema.complexType).forEach(function (ct) {
-                    var complexType = parseODataComplexType(ct, schema, that);
+                    var complexType = parseODataComplexType(ct, schema, metadataStore);
                 });
             }
             if (schema.entityType) {
                 toArray(schema.entityType).forEach(function (et) {
-                    var entityType = parseODataEntityType(et, schema, that);
+                    var entityType = parseODataEntityType(et, schema, metadataStore);
 
                 });
             }
 
         });
-        var badNavProps = this.getIncompleteNavigationProperties();
+        var badNavProps = metadataStore.getIncompleteNavigationProperties();
         if (badNavProps.length > 0) {
             throw new Error("Bad nav properties");
         }
     };
+
+
 
     function parseODataEntityType(odataEntityType, schema, metadataStore) {
         var shortName = odataEntityType.name;
@@ -759,7 +726,7 @@ var MetadataStore = (function () {
         }
 
     }
-      
+
     function parseODataComplexType(odataComplexType, schema, metadataStore) {
         var shortName = odataComplexType.name;
         var ns = getNamespaceFor(shortName, schema);
@@ -767,11 +734,11 @@ var MetadataStore = (function () {
             shortName: shortName,
             namespace: ns
         });
-            
+
         toArray(odataComplexType.property).forEach(function (prop) {
             parseODataDataProperty(complexType, prop, schema);
         });
-            
+
         metadataStore.addEntityType(complexType);
         return complexType;
     }
@@ -797,42 +764,42 @@ var MetadataStore = (function () {
         }
         return dp;
     }
-        
+
     function parseODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.fromEdmDataType(odataProperty.type);
-            if (dataType == null) {
-                parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
-                return null;
+        var dataType = DataType.fromEdmDataType(odataProperty.type);
+        if (dataType == null) {
+            parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
+            return null;
+        }
+        var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+        // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+        var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+        if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+            if (isIdentityProperty(odataProperty)) {
+                parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-            // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
-            if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
-                if (isIdentityProperty(odataProperty)) {
-                    parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
-                }
-            }
-            // TODO: nit - don't set maxLength if null;
-            var maxLength = odataProperty.maxLength;
-            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
-            // can't set the name until we go thru namingConventions and these need the dp.
-            var dp = new DataProperty({
-                nameOnServer: odataProperty.name,
-                dataType: dataType,
-                isNullable: isNullable,
-                isPartOfKey: isPartOfKey,
-                maxLength: maxLength,
-                // fixedLength: fixedLength,
-                concurrencyMode: odataProperty.concurrencyMode
-            });
-            if (dataType === DataType.Undefined) {
-                dp.rawTypeName = odataProperty.type;
-            }
+        }
+        // TODO: nit - don't set maxLength if null;
+        var maxLength = odataProperty.maxLength;
+        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
+        // can't set the name until we go thru namingConventions and these need the dp.
+        var dp = new DataProperty({
+            nameOnServer: odataProperty.name,
+            dataType: dataType,
+            isNullable: isNullable,
+            isPartOfKey: isPartOfKey,
+            maxLength: maxLength,
+            // fixedLength: fixedLength,
+            concurrencyMode: odataProperty.concurrencyMode
+        });
+        if (dataType === DataType.Undefined) {
+            dp.rawTypeName = odataProperty.type;
+        }
         return dp;
     }
-        
+
     function parseODataComplexProperty(parentType, odataProperty, schema) {
-            
+
         // Complex properties are never nullable ( per EF specs)
         // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
         // var complexTypeName = odataProperty.type.split("Edm.")[1];
@@ -843,8 +810,44 @@ var MetadataStore = (function () {
             complexTypeName: complexTypeName,
             isNullable: false
         });
-            
+
         return dp;
+    }
+
+    function parseODataNavProperty(entityType, odataProperty, schema) {
+        var association = getAssociation(odataProperty, schema);
+        var toEnd = __arrayFirst(association.end, function (assocEnd) {
+            return assocEnd.role === odataProperty.toRole;
+        });
+
+        var isScalar = !(toEnd.multiplicity === "*");
+        var dataType = parseTypeName(toEnd.type, schema).typeName;
+        var fkNamesOnServer = [];
+        if (toEnd && isScalar) {
+            var constraint = association.referentialConstraint;
+            if (constraint) {
+                var principal = constraint.principal;
+                var dependent = constraint.dependent;
+                var propRefs;
+                if (odataProperty.fromRole === principal.role) {
+                    propRefs = toArray(principal.propertyRef);
+                } else {
+                    propRefs = toArray(dependent.propertyRef);
+                }
+                // will be used later by np._update
+                fkNamesOnServer = propRefs.map(__pluck("name"));
+            }
+        }
+        var np = new NavigationProperty({
+            nameOnServer: odataProperty.name,
+            entityTypeName: dataType,
+            isScalar: isScalar,
+            associationName: association.name,
+            foreignKeyNamesOnServer: fkNamesOnServer
+        });
+        entityType.addProperty(np);
+
+        return np;
     }
 
     function isEnumType(odataProperty, schema) {
@@ -880,42 +883,6 @@ var MetadataStore = (function () {
 
     }
 
-    function parseODataNavProperty(entityType, odataProperty, schema) {
-        var association = getAssociation(odataProperty, schema);
-        var toEnd = __arrayFirst(association.end, function (assocEnd) {
-            return assocEnd.role === odataProperty.toRole;
-        });
-            
-        var isScalar = !(toEnd.multiplicity === "*");
-        var dataType = parseTypeName(toEnd.type, schema).typeName;
-        var fkNamesOnServer = [];
-        if (toEnd && isScalar) {
-            var constraint = association.referentialConstraint;
-            if (constraint) {
-                var principal = constraint.principal;
-                var dependent = constraint.dependent;
-                var propRefs;
-                if (odataProperty.fromRole === principal.role) {
-                    propRefs = toArray(principal.propertyRef);
-                } else {
-                    propRefs = toArray(dependent.propertyRef);
-                }
-                // will be used later by np._update
-                fkNamesOnServer = propRefs.map(__pluck("name"));
-            }
-        }
-        var np = new NavigationProperty({
-            nameOnServer: odataProperty.name,
-            entityTypeName: dataType,
-            isScalar: isScalar,
-            associationName: association.name,
-            foreignKeyNamesOnServer: fkNamesOnServer
-        });
-        entityType.addProperty(np);
-       
-        return np;
-    }
-        
     function isIdentityProperty(odataProperty) {
         // see if web api feed
         var propName = __arrayFirst(Object.keys(odataProperty), function (pn) {
@@ -936,7 +903,7 @@ var MetadataStore = (function () {
         }
     }
 
-    
+
     // Fast version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
     //   match( shortName(np.relationship) == schema.association[].name
@@ -962,6 +929,47 @@ var MetadataStore = (function () {
         return association;
     }
 
+    // schema is only needed for navProperty type name
+    function parseTypeName(entityTypeName, schema) {
+        if (!entityTypeName) {
+            return null;
+        }
+
+        if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: "",
+                typeName: entityTypeName,
+                isAnon: true
+            };
+        }
+        var entityTypeNameNoAssembly = entityTypeName.split(",")[0];
+        var nameParts = entityTypeNameNoAssembly.split(".");
+        if (nameParts.length > 1) {
+
+            var shortName = nameParts[nameParts.length - 1];
+
+            var ns;
+            if (schema) {
+                ns = getNamespaceFor(shortName, schema);
+            } else {
+                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+                ns = namespaceParts.join(".");
+            }
+            return {
+                shortTypeName: shortName,
+                namespace: ns,
+                typeName: qualifyTypeName(shortName, ns)
+            };
+        } else {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: "",
+                typeName: entityTypeName
+            };
+        }
+    }
+
     function toArray(item) {
         if (!item) {
             return [];
@@ -971,10 +979,33 @@ var MetadataStore = (function () {
             return [item];
         }
     }
-        
 
-    return ctor;
+    function getNamespaceFor(shortName, schema) {
+        var ns;
+        var mapping = schema.cSpaceOSpaceMapping;
+        if (mapping) {
+            var fullName = mapping[schema.namespace + "." + shortName];
+            ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
+        }
+        return ns || schema.namespace;
+    }
+
+    var normalizeTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName && parseTypeName(rawTypeName).typeName;
+    });
+
+    // for debugging use the line below instead.
+    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
+
+    return {
+        parse: parse,
+        normalizeTypeName: normalizeTypeName
+    }
+
 })();
+
+// needs to be made avail to breeze.dataService.xxx files and we don't want to expose ODataMetadataParser just for this.
+MetadataStore.normalizeTypeName = ODataMetadataParser.normalizeTypeName;
 
 var EntityType = (function () {
     /**
@@ -1481,11 +1512,15 @@ var EntityType = (function () {
             isAbstract: false,
             autoGeneratedKeyType: null, // do not suppress default value
             defaultResourceName: null,
-            dataProperties: function (props) { props.filter(function(prop) { return !prop.isInherited; })},
-            navigationProperties: function (props) { props.filter(function (prop) { return !prop.isInherited; }) },
+            dataProperties: localPropsOnly,
+            navigationProperties: localPropsOnly,
             validators: null
         });
     };
+
+    function localPropsOnly(props) {
+        return props.filter(function (prop) { return !prop.isInherited; });
+    }
 
     // fromJSON is handled by structuralTypeFromJson function.
         
@@ -2459,15 +2494,7 @@ function qualifyTypeName(shortName, namespace) {
     return shortName + ":#" + namespace;
 }
     
-function getNamespaceFor(shortName, schema) {
-    var ns;
-    var mapping = schema.cSpaceOSpaceMapping;
-    if (mapping) {
-        var fullName = mapping[schema.namespace + "." + shortName];
-        ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
-    }
-    return ns || schema.namespace;
-}
+
 
 function addProperties(entityType, propObj, ctor) {
 
@@ -2488,7 +2515,7 @@ function addProperties(entityType, propObj, ctor) {
     }
 }
 
-breeze.MetadataStore= MetadataStore;
+breeze.MetadataStore = MetadataStore;
 breeze.EntityType = EntityType;
 breeze.ComplexType = ComplexType;
 breeze.DataProperty= DataProperty;

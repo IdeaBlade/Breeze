@@ -16,6 +16,7 @@
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
+    
     var ajaxImpl;
     
     var ctor = function () {
@@ -62,16 +63,10 @@
                     return;
                 }
 
-                if (metadata.structuralTypes) {
-                    // breeze native metadata format.
+                try {
                     metadataStore.importMetadata(metadata);
-                } else if (metadata.schema) {
-                    // OData or CSDL to JSON format
-                    metadataStore._parseODataMetadata(serviceName, metadata.schema);
-                } else {
-                    if (errorCallback) {
-                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata"));
-                    }
+                } catch (e) {
+                    errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata:" + e.message));
                     return;
                 }
 

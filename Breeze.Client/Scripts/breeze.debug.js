@@ -5069,6 +5069,11 @@ var MetadataStore = (function () {
     @chainable
     **/
     proto.importMetadata = function (exportedMetadata) {
+        if (exportedMetadata.schema) {
+            ODataMetadataParser.parse(this, exportedMetadata.schema);
+            return;
+        } 
+
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
@@ -5097,9 +5102,7 @@ var MetadataStore = (function () {
             that.addDataService(ds, true);
         });
         var structuralTypeMap = this._structuralTypeMap;
-        //__objectForEach(json.structuralTypeMap, function (key, value) {
-        //    structuralTypeMap[key] = structuralTypeFromJson(that, value);
-        //});
+        
         json.structuralTypes.forEach(function (stype) {
             var structuralType = structuralTypeFromJson(that, stype);
             structuralTypeMap[structuralType.name] = structuralType;
@@ -5428,11 +5431,7 @@ var MetadataStore = (function () {
 
     // protected methods
 
-    ctor.normalizeTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName && parseTypeName(rawTypeName).typeName;
-    });
-    // for debugging use the line below instead.
-    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
+ 
 
     proto._getCtorRegistration = function(structuralType) {
         var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
@@ -5453,50 +5452,7 @@ var MetadataStore = (function () {
         }
     };
        
-    proto._parseODataMetadata = function (serviceName, schemas) {
-        var that = this;
-        this._deferredTypes = {};
-        this._entityTypeResourceMap = {};
-        toArray(schemas).forEach(function (schema) {
-            if (schema.cSpaceOSpaceMapping) {
-                // Web api only - not avail in OData.
-                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
-                var newMap = {};
-                mappings.forEach(function(mapping) {
-                    newMap[mapping[0]] = mapping[1];
-                });
-                schema.cSpaceOSpaceMapping = newMap;
-            }
-            
-            if (schema.entityContainer) {
-                toArray(schema.entityContainer).forEach(function (container) {
-                    toArray(container.entitySet).forEach(function (entitySet) {
-                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
-                        that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
-                        that._entityTypeResourceMap[entityTypeName] = entitySet.name;
-                    });
-                });
-            }
-               
-            // process complextypes before entity types.
-            if (schema.complexType) {
-                toArray(schema.complexType).forEach(function (ct) {
-                    var complexType = parseODataComplexType(ct, schema, that);
-                });
-            }
-            if (schema.entityType) {
-                toArray(schema.entityType).forEach(function (et) {
-                    var entityType = parseODataEntityType(et, schema, that);
-                    
-                });
-            }
-
-        });
-        var badNavProps = this.getIncompleteNavigationProperties();
-        if (badNavProps.length > 0) {
-            throw new Error("Bad nav properties");
-        }
-    };
+  
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
@@ -5532,46 +5488,7 @@ var MetadataStore = (function () {
         return stype;
     };
 
-    // schema is only needed for navProperty type name
-    function parseTypeName(entityTypeName, schema) {
-        if (!entityTypeName) {
-            return null;
-        }
-        
-        if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-            return {
-                shortTypeName: entityTypeName,
-                namespace: "",
-                typeName: entityTypeName,
-                isAnon: true
-            };
-        }
-        var entityTypeNameNoAssembly = entityTypeName.split(",")[0];
-        var nameParts = entityTypeNameNoAssembly.split(".");
-        if (nameParts.length > 1) {
 
-            var shortName = nameParts[nameParts.length - 1];
-
-            var ns;
-            if (schema) {
-                ns = getNamespaceFor(shortName, schema);
-            } else {
-                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                ns = namespaceParts.join(".");
-            }
-            return {
-                shortTypeName: shortName,
-                namespace: ns,
-                typeName: qualifyTypeName(shortName, ns)
-            };
-        } else {
-            return {
-                shortTypeName: entityTypeName,
-                namespace: "",
-                typeName: entityTypeName
-            };
-        }
-    }
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -5580,7 +5497,59 @@ var MetadataStore = (function () {
             throw new Error("Unable to locate 'entityTypeName' of: " + structTypeName);
         }
         return result;
-    }
+    }       
+
+    return ctor;
+})();
+
+var ODataMetadataParser = (function () {
+
+    function parse(metadataStore, schemas) {
+
+        metadataStore._deferredTypes = {};
+        metadataStore._entityTypeResourceMap = {};
+        toArray(schemas).forEach(function (schema) {
+            if (schema.cSpaceOSpaceMapping) {
+                // Web api only - not avail in OData.
+                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                var newMap = {};
+                mappings.forEach(function (mapping) {
+                    newMap[mapping[0]] = mapping[1];
+                });
+                schema.cSpaceOSpaceMapping = newMap;
+            }
+
+            if (schema.entityContainer) {
+                toArray(schema.entityContainer).forEach(function (container) {
+                    toArray(container.entitySet).forEach(function (entitySet) {
+                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
+                        metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
+                    });
+                });
+            }
+
+            // process complextypes before entity types.
+            if (schema.complexType) {
+                toArray(schema.complexType).forEach(function (ct) {
+                    var complexType = parseODataComplexType(ct, schema, metadataStore);
+                });
+            }
+            if (schema.entityType) {
+                toArray(schema.entityType).forEach(function (et) {
+                    var entityType = parseODataEntityType(et, schema, metadataStore);
+
+                });
+            }
+
+        });
+        var badNavProps = metadataStore.getIncompleteNavigationProperties();
+        if (badNavProps.length > 0) {
+            throw new Error("Bad nav properties");
+        }
+    };
+
+
 
     function parseODataEntityType(odataEntityType, schema, metadataStore) {
         var shortName = odataEntityType.name;
@@ -5607,7 +5576,8 @@ var MetadataStore = (function () {
         } else {
             completeParseODataEntityType(entityType, odataEntityType, schema, metadataStore, null);
         }
-
+        // entityType may or may not have been added to the metadataStore at this point.
+        return entityType;
 
     }
 
@@ -5652,7 +5622,7 @@ var MetadataStore = (function () {
         }
 
     }
-      
+
     function parseODataComplexType(odataComplexType, schema, metadataStore) {
         var shortName = odataComplexType.name;
         var ns = getNamespaceFor(shortName, schema);
@@ -5660,15 +5630,14 @@ var MetadataStore = (function () {
             shortName: shortName,
             namespace: ns
         });
-            
+
         toArray(odataComplexType.property).forEach(function (prop) {
             parseODataDataProperty(complexType, prop, schema);
         });
-            
+
         metadataStore.addEntityType(complexType);
         return complexType;
     }
-        
 
     function parseODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
         var dp;
@@ -5691,52 +5660,42 @@ var MetadataStore = (function () {
         }
         return dp;
     }
-        
-    function isEnumType(odataProperty, schema) {
-        if (!schema.enumType) return false;
-        var enumTypes = toArray(schema.enumType);
-        var typeParts = odataProperty.type.split(".");
-        var baseTypeName = typeParts[typeParts.length - 1];
-        return enumTypes.some(function(enumType) {
-            return enumType.name === baseTypeName;
-        });
-    }
 
     function parseODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.fromEdmDataType(odataProperty.type);
-            if (dataType == null) {
-                parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
-                return null;
+        var dataType = DataType.fromEdmDataType(odataProperty.type);
+        if (dataType == null) {
+            parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
+            return null;
+        }
+        var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
+        // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
+        var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
+        if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+            if (isIdentityProperty(odataProperty)) {
+                parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-            // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
-            if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
-                if (isIdentityProperty(odataProperty)) {
-                    parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
-                }
-            }
-            // TODO: nit - don't set maxLength if null;
-            var maxLength = odataProperty.maxLength;
-            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
-            // can't set the name until we go thru namingConventions and these need the dp.
-            var dp = new DataProperty({
-                nameOnServer: odataProperty.name,
-                dataType: dataType,
-                isNullable: isNullable,
-                isPartOfKey: isPartOfKey,
-                maxLength: maxLength,
-                // fixedLength: fixedLength,
-                concurrencyMode: odataProperty.concurrencyMode
-            });
-            if (dataType === DataType.Undefined) {
-                dp.rawTypeName = odataProperty.type;
-            }
+        }
+        // TODO: nit - don't set maxLength if null;
+        var maxLength = odataProperty.maxLength;
+        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
+        // can't set the name until we go thru namingConventions and these need the dp.
+        var dp = new DataProperty({
+            nameOnServer: odataProperty.name,
+            dataType: dataType,
+            isNullable: isNullable,
+            isPartOfKey: isPartOfKey,
+            maxLength: maxLength,
+            // fixedLength: fixedLength,
+            concurrencyMode: odataProperty.concurrencyMode
+        });
+        if (dataType === DataType.Undefined) {
+            dp.rawTypeName = odataProperty.type;
+        }
         return dp;
     }
-        
+
     function parseODataComplexProperty(parentType, odataProperty, schema) {
-            
+
         // Complex properties are never nullable ( per EF specs)
         // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
         // var complexTypeName = odataProperty.type.split("Edm.")[1];
@@ -5747,31 +5706,8 @@ var MetadataStore = (function () {
             complexTypeName: complexTypeName,
             isNullable: false
         });
-            
+
         return dp;
-    }
-
-    function addValidators(dataProperty) {
-        var typeValidator;
-        if (!dataProperty.isNullable) {
-            dataProperty.validators.push(Validator.required());
-        }
-
-        if (dataProperty.isComplexProperty) return;
-
-        if (dataProperty.dataType === DataType.String) {
-            if (dataProperty.maxLength) {
-                var validatorArgs = { maxLength: dataProperty.maxLength };
-                typeValidator = Validator.maxLength(validatorArgs);
-            } else {
-                typeValidator = Validator.string();
-            }
-        } else {
-            typeValidator = dataProperty.dataType.validatorCtor();
-        }
-
-        dataProperty.validators.push(typeValidator);
-
     }
 
     function parseODataNavProperty(entityType, odataProperty, schema) {
@@ -5779,7 +5715,7 @@ var MetadataStore = (function () {
         var toEnd = __arrayFirst(association.end, function (assocEnd) {
             return assocEnd.role === odataProperty.toRole;
         });
-            
+
         var isScalar = !(toEnd.multiplicity === "*");
         var dataType = parseTypeName(toEnd.type, schema).typeName;
         var fkNamesOnServer = [];
@@ -5806,10 +5742,43 @@ var MetadataStore = (function () {
             foreignKeyNamesOnServer: fkNamesOnServer
         });
         entityType.addProperty(np);
-       
+
         return np;
     }
-        
+
+    function isEnumType(odataProperty, schema) {
+        if (!schema.enumType) return false;
+        var enumTypes = toArray(schema.enumType);
+        var typeParts = odataProperty.type.split(".");
+        var baseTypeName = typeParts[typeParts.length - 1];
+        return enumTypes.some(function (enumType) {
+            return enumType.name === baseTypeName;
+        });
+    }
+
+    function addValidators(dataProperty) {
+        var typeValidator;
+        if (!dataProperty.isNullable) {
+            dataProperty.validators.push(Validator.required());
+        }
+
+        if (dataProperty.isComplexProperty) return;
+
+        if (dataProperty.dataType === DataType.String) {
+            if (dataProperty.maxLength) {
+                var validatorArgs = { maxLength: dataProperty.maxLength };
+                typeValidator = Validator.maxLength(validatorArgs);
+            } else {
+                typeValidator = Validator.string();
+            }
+        } else {
+            typeValidator = dataProperty.dataType.validatorCtor();
+        }
+
+        dataProperty.validators.push(typeValidator);
+
+    }
+
     function isIdentityProperty(odataProperty) {
         // see if web api feed
         var propName = __arrayFirst(Object.keys(odataProperty), function (pn) {
@@ -5830,7 +5799,7 @@ var MetadataStore = (function () {
         }
     }
 
-    
+
     // Fast version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
     //   match( shortName(np.relationship) == schema.association[].name
@@ -5856,6 +5825,47 @@ var MetadataStore = (function () {
         return association;
     }
 
+    // schema is only needed for navProperty type name
+    function parseTypeName(entityTypeName, schema) {
+        if (!entityTypeName) {
+            return null;
+        }
+
+        if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: "",
+                typeName: entityTypeName,
+                isAnon: true
+            };
+        }
+        var entityTypeNameNoAssembly = entityTypeName.split(",")[0];
+        var nameParts = entityTypeNameNoAssembly.split(".");
+        if (nameParts.length > 1) {
+
+            var shortName = nameParts[nameParts.length - 1];
+
+            var ns;
+            if (schema) {
+                ns = getNamespaceFor(shortName, schema);
+            } else {
+                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+                ns = namespaceParts.join(".");
+            }
+            return {
+                shortTypeName: shortName,
+                namespace: ns,
+                typeName: qualifyTypeName(shortName, ns)
+            };
+        } else {
+            return {
+                shortTypeName: entityTypeName,
+                namespace: "",
+                typeName: entityTypeName
+            };
+        }
+    }
+
     function toArray(item) {
         if (!item) {
             return [];
@@ -5865,10 +5875,33 @@ var MetadataStore = (function () {
             return [item];
         }
     }
-        
 
-    return ctor;
+    function getNamespaceFor(shortName, schema) {
+        var ns;
+        var mapping = schema.cSpaceOSpaceMapping;
+        if (mapping) {
+            var fullName = mapping[schema.namespace + "." + shortName];
+            ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
+        }
+        return ns || schema.namespace;
+    }
+
+    var normalizeTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName && parseTypeName(rawTypeName).typeName;
+    });
+
+    // for debugging use the line below instead.
+    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
+
+    return {
+        parse: parse,
+        normalizeTypeName: normalizeTypeName
+    }
+
 })();
+
+// needs to be made avail to breeze.dataService.xxx files and we don't want to expose ODataMetadataParser just for this.
+MetadataStore.normalizeTypeName = ODataMetadataParser.normalizeTypeName;
 
 var EntityType = (function () {
     /**
@@ -6023,6 +6056,20 @@ var EntityType = (function () {
 
     __readOnly__
     @property namespace {String} 
+    **/
+
+    /**
+    The base EntityType (if any) for this EntityType.
+
+    __readOnly__
+    @property baseEntityType {EntityType} 
+    **/
+
+    /**
+    Whether this EntityType is abstract.
+
+    __readOnly__
+    @property isAbstract {boolean} 
     **/
 
     /**
@@ -6357,13 +6404,19 @@ var EntityType = (function () {
         return __toJson(this, {
             shortName: null,
             namespace: null,
+            baseTypeName: null,
+            isAbstract: false,
             autoGeneratedKeyType: null, // do not suppress default value
             defaultResourceName: null,
-            dataProperties: null,
-            navigationProperties: null,
+            dataProperties: localPropsOnly,
+            navigationProperties: localPropsOnly,
             validators: null
         });
     };
+
+    function localPropsOnly(props) {
+        return props.filter(function (prop) { return !prop.isInherited; });
+    }
 
     // fromJSON is handled by structuralTypeFromJson function.
         
@@ -7337,15 +7390,7 @@ function qualifyTypeName(shortName, namespace) {
     return shortName + ":#" + namespace;
 }
     
-function getNamespaceFor(shortName, schema) {
-    var ns;
-    var mapping = schema.cSpaceOSpaceMapping;
-    if (mapping) {
-        var fullName = mapping[schema.namespace + "." + shortName];
-        ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
-    }
-    return ns || schema.namespace;
-}
+
 
 function addProperties(entityType, propObj, ctor) {
 
@@ -7366,7 +7411,7 @@ function addProperties(entityType, propObj, ctor) {
     }
 }
 
-breeze.MetadataStore= MetadataStore;
+breeze.MetadataStore = MetadataStore;
 breeze.EntityType = EntityType;
 breeze.ComplexType = ComplexType;
 breeze.DataProperty= DataProperty;
@@ -12734,7 +12779,13 @@ breeze.SaveOptions= SaveOptions;
 
                 // might have been fetched by another query
                 if (!metadataStore.hasMetadataFor(serviceName)) {
-                    metadataStore._parseODataMetadata(serviceName, schema);
+                    try {
+                        metadataStore.importMetadata(schema);
+                    } catch(e) {
+                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
+                        return;
+                    }
+
                     metadataStore.addDataService(dataService);
                 }
 
@@ -12940,6 +12991,7 @@ breeze.SaveOptions= SaveOptions;
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
+    
     var ajaxImpl;
     
     var ctor = function () {
@@ -12986,16 +13038,10 @@ breeze.SaveOptions= SaveOptions;
                     return;
                 }
 
-                if (metadata.structuralTypes) {
-                    // breeze native metadata format.
+                try {
                     metadataStore.importMetadata(metadata);
-                } else if (metadata.schema) {
-                    // OData or CSDL to JSON format
-                    metadataStore._parseODataMetadata(serviceName, metadata.schema);
-                } else {
-                    if (errorCallback) {
-                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata"));
-                    }
+                } catch (e) {
+                    errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata:" + e.message));
                     return;
                 }
 

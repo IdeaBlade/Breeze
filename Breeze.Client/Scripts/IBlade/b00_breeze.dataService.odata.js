@@ -56,7 +56,13 @@
 
                 // might have been fetched by another query
                 if (!metadataStore.hasMetadataFor(serviceName)) {
-                    metadataStore._parseODataMetadata(serviceName, schema);
+                    try {
+                        metadataStore.importMetadata(schema);
+                    } catch(e) {
+                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
+                        return;
+                    }
+
                     metadataStore.addDataService(dataService);
                 }
 
