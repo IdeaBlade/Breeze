@@ -7,25 +7,25 @@ using System.Web.Http;
 
 namespace MemTester.Controllers {
   public class ValuesController : ApiController {
-    // GET api/values
+    // GET breeze/values
     public IEnumerable<string> Get() {
       return new string[] { "value1", "value2" };
     }
 
-    // GET api/values/5
+    // GET breeze/values/5
     public string Get(int id) {
       return "value";
     }
 
-    // POST api/values
+    // POST breeze/values
     public void Post([FromBody]string value) {
     }
 
-    // PUT api/values/5
+    // PUT breeze/values/5
     public void Put(int id, [FromBody]string value) {
     }
 
-    // DELETE api/values/5
+    // DELETE breeze/values/5
     public void Delete(int id) {
     }
   }

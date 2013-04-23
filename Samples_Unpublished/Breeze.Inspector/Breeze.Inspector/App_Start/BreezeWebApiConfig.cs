@@ -15,12 +15,12 @@ namespace Breeze.Inspector.App_Start {
     public static void RegisterBreezePreStart() {
         GlobalConfiguration.Configuration.Routes.MapHttpRoute(
             name: "Inspector",
-            routeTemplate: "api/inspector/{action}/{filter}",
+            routeTemplate: "breeze/inspector/{action}/{filter}",
             defaults: new { controller = "Inspector", filter = RouteParameter.Optional }
         );
         //GlobalConfiguration.Configuration.Routes.MapHttpRoute(
         //    name: "BreezeApi",
-        //    routeTemplate: "api/{controller}/{action}"
+        //    routeTemplate: "breeze/{controller}/{action}"
         //);
     }
   }

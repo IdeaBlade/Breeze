@@ -12,15 +12,15 @@ var EntityManager = (function () {
     @example                    
     At its most basic an EntityManager can be constructed with just a service name
     @example                    
-        var entityManager = new EntityManager( "api/NorthwindIBModel");
+        var entityManager = new EntityManager( "breeze/NorthwindIBModel");
     This is the same as calling it with the following configuration object
     @example                    
-        var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var entityManager = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
     Usually however, configuration objects will contain more than just the 'serviceName';
     @example
         var metadataStore = new MetadataStore();
         var entityManager = new EntityManager( {
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             metadataStore: metadataStore 
         });
     or
@@ -39,7 +39,7 @@ var EntityManager = (function () {
             validateOnQuery: false
         });
         var entityManager = new EntityManager({ 
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             queryOptions: queryOptions, 
             validationOptions: validationOptions 
         });
@@ -83,7 +83,7 @@ var EntityManager = (function () {
             // assume em1 is a previously created EntityManager
             // where we want to change some of its settings.
             em1.setProperties( {
-                serviceName: "api/foo"
+                serviceName: "breeze/foo"
             });
     @method setProperties
     @param config {Object}
@@ -192,7 +192,7 @@ var EntityManager = (function () {
     /**
     An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
     @example                    
-        var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
         em.entityChanged.subscribe(function(changeArgs) {
             // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. 
             var action = changeArgs.entityAction;
@@ -550,7 +550,7 @@ var EntityManager = (function () {
     Usually you will not actually process the results of a fetchMetadata call directly, but will instead
     ask for the metadata from the EntityManager after the fetchMetadata call returns.
     @example
-            var em1 = new EntityManager( "api/NorthwindIBModel");
+            var em1 = new EntityManager( "breeze/NorthwindIBModel");
             em1.fetchMetadata()
             .then(function() {
                 var metadataStore = em1.metadataStore;
@@ -1129,7 +1129,7 @@ var EntityManager = (function () {
     /**
     An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
     @example                    
-        var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
         em.hasChangesChanged.subscribe(function(args) {
             var hasChangesChanged = args.hasChanges;
             var entityManager = args.entityManager;

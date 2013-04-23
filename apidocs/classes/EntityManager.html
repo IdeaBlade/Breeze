@@ -699,15 +699,15 @@
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>At its most basic an EntityManager can be constructed with just a service name</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( "api/NorthwindIBModel");
+                <p>At its most basic an EntityManager can be constructed with just a service name</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( "breeze/NorthwindIBModel");
 </code></pre>
 
-<p>This is the same as calling it with the following configuration object</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+<p>This is the same as calling it with the following configuration object</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 </code></pre>
 
 <p>Usually however, configuration objects will contain more than just the 'serviceName';</p><pre class="code prettyprint"><code>var metadataStore = new MetadataStore();
 var entityManager = new EntityManager( {
-    serviceName: "api/NorthwindIBModel", 
+    serviceName: "breeze/NorthwindIBModel", 
     metadataStore: metadataStore 
 });
 </code></pre>
@@ -726,7 +726,7 @@ var validationOptions = new ValidationOptions({
     validateOnQuery: false
 });
 var entityManager = new EntityManager({ 
-    serviceName: "api/NorthwindIBModel", 
+    serviceName: "breeze/NorthwindIBModel", 
     queryOptions: queryOptions, 
     validationOptions: validationOptions 
 });
@@ -2507,7 +2507,7 @@ it is usually better to access metadata via the 'metadataStore' property of the 
 
             <div class="example-content">
                 <p>Usually you will not actually process the results of a fetchMetadata call directly, but will instead
-ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code>    var em1 = new EntityManager( "api/NorthwindIBModel");
+ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code>    var em1 = new EntityManager( "breeze/NorthwindIBModel");
     em1.fetchMetadata()
     .then(function() {
         var metadataStore = em1.metadataStore;
@@ -4345,7 +4345,7 @@ may be set.</p>
                 <pre class="code prettyprint"><code>    // assume em1 is a previously created EntityManager
     // where we want to change some of its settings.
     em1.setProperties( {
-        serviceName: "api/foo"
+        serviceName: "breeze/foo"
     });
 </code></pre>
             </div>
@@ -4792,7 +4792,7 @@ may be set.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 em.entityChanged.subscribe(function(changeArgs) {
     // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. 
     var action = changeArgs.entityAction;
@@ -4890,7 +4890,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 em.hasChangesChanged.subscribe(function(args) {
     var hasChangesChanged = args.hasChanges;
     var entityManager = args.entityManager;

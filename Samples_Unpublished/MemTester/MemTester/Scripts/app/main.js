@@ -11,8 +11,8 @@
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
 
     // service name is route to the Web API controller
-    // var serviceName = 'api/BreezeSample';
-    var serviceName = "api/Northwind";
+    // var serviceName = 'breeze/BreezeSample';
+    var serviceName = "breeze/Northwind";
 
     // manager is the service gateway and cache holder
     var manager = new breeze.EntityManager(serviceName);

@@ -2,7 +2,7 @@
     function(app) {
 
         breeze.NamingConvention.camelCase.setAsDefault();
-        var serviceName = 'api';
+        var serviceName = 'breeze';
         var masterManager = new breeze.EntityManager(serviceName);
 
         var EntityManagerProvider = (function() {

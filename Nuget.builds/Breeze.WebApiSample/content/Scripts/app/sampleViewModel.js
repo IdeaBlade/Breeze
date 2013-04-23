@@ -6,7 +6,7 @@
             logger = root.app.logger;
 
     // service name is route to the Web API controller
-    var serviceName = 'api/BreezeSample';
+    var serviceName = 'breeze/BreezeSample';
 
     // manager is the service gateway and cache holder
     var manager = new breeze.EntityManager(serviceName);

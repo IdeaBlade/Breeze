@@ -4,7 +4,7 @@ var x = {
     "localQueryComparisonOptions": "caseInsensitiveSQL",
     "dataServices": [
        {
-           "serviceName": "api/NorthwindIBModel/",
+           "serviceName": "breeze/NorthwindIBModel/",
            "hasServerMetadata": true,
            "jsonResultsAdapter": "webApi_default",
            "useJsonp": false

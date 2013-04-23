@@ -1,7 +1,7 @@
 define(function(require) {
     var breeze = require('breeze');
 
-    var manager = new breeze.EntityManager('api/inspector'),
+    var manager = new breeze.EntityManager('breeze/inspector'),
         op = breeze.FilterQueryOp,
         entityAction = breeze.EntityAction,
         answerType,

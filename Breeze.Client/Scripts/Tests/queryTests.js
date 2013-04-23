@@ -1836,7 +1836,7 @@ define(["testFns"], function (testFns) {
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/Metadata", function (data, status) {
+        $.getJSON("breeze/NorthwindIBModel/Metadata", function (data, status) {
             // On success, 'data' contains the model metadata.
             //                console.log(data);
             ok(data);
