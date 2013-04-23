@@ -1,6 +1,5 @@
 namespace Inheritance.Controllers
 {
-    using System;
     using System.Linq;
     using System.Web.Http;
     using Breeze.WebApi;
@@ -26,6 +25,13 @@ namespace Inheritance.Controllers
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _contextProvider.SaveChanges(saveBundle);
+        }
+
+        // ~/breeze/inheritance/accountTypes
+        [HttpGet]
+        public IQueryable<AccountType> AccountTypes()
+        {
+            return _contextProvider.Context.AccountTypes;
         }
 
         #region TPH
@@ -115,7 +121,7 @@ namespace Inheritance.Controllers
         public string Reset()
         {
             Purge();
-            InheritanceDbInitializer.SeedDatabase(_contextProvider.Context);
+            InheritanceDbInitializer.ResetDatabase(_contextProvider.Context);
             return "reset";
         }
 

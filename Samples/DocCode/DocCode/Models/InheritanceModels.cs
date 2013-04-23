@@ -2,9 +2,6 @@
 //http://weblogs.asp.net/manavi/archive/2010/12/24/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-1-table-per-hierarchy-tph.aspx
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 // ReSharper disable InconsistentNaming
 
@@ -25,14 +22,32 @@ namespace Inheritance.Models
     {
         string BankName { get; set; }
         string Swift { get; set; }
+        int AccountTypeId { get; set; }
+        AccountType AccountType { get; set; }
     }
 
     public interface ICreditCard : IBillingDetail
     {
-        int CardType { get; set; }
+        int AccountTypeId { get; set; }
+        AccountType AccountType { get; set; } // FKA “CardType”
         string ExpiryMonth { get; set; }
         string ExpiryYear { get; set; }
     }
+
+    public class AccountType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public interface IDeposit
+    {
+        int Id { get; set; }
+        int BankAccountId { get; set; }
+        float Amount { get; set; }
+        DateTime Deposited { get; set; }
+    }
+
     #endregion
 
     #region TPH
@@ -44,19 +59,31 @@ namespace Inheritance.Models
         public DateTime CreatedAt { get; set;  }
         public string Owner { get; set; }
         public string Number { get; set; }
+        public int AccountTypeId { get; set; }
+        public AccountType AccountType { get; set; }
+
     }
 
     public class BankAccountTPH : BillingDetailTPH, IBankAccount
     {
         public string BankName { get; set; }
         public string Swift { get; set; }
+        public ICollection<DepositTPH> Deposits { get; set; }
     }
 
     public class CreditCardTPH : BillingDetailTPH, ICreditCard
     {
-        public int CardType { get; set; }
         public string ExpiryMonth { get; set; }
         public string ExpiryYear { get; set; }
+    }
+
+    public class DepositTPH : IDeposit
+    {
+        public int Id { get; set; }
+        public int BankAccountId { get; set; }
+        public BankAccountTPH BankAccount { get; set; }
+        public float Amount { get; set; }
+        public DateTime Deposited { get; set; }
     }
 
     #endregion
@@ -70,21 +97,31 @@ namespace Inheritance.Models
         public DateTime CreatedAt { get; set; }
         public string Owner { get; set; }
         public string Number { get; set; }
+        public int AccountTypeId { get; set; }
+        public AccountType AccountType { get; set; }
     }
 
     public class BankAccountTPT : BillingDetailTPT, IBankAccount
     {
         public string BankName { get; set; }
         public string Swift { get; set; }
+        public ICollection<DepositTPT> Deposits { get; set; }
     }
 
     public class CreditCardTPT : BillingDetailTPT, ICreditCard
     {
-        public int CardType { get; set; }
         public string ExpiryMonth { get; set; }
         public string ExpiryYear { get; set; }
     }
 
+    public class DepositTPT : IDeposit
+    {
+        public int Id { get; set; }
+        public int BankAccountId { get; set; }
+        public BankAccountTPT BankAccount { get; set; }
+        public float Amount { get; set; }
+        public DateTime Deposited { get; set; }
+    }
     #endregion
 
     #region TPC
@@ -102,14 +139,27 @@ namespace Inheritance.Models
     {
         public string BankName { get; set; }
         public string Swift { get; set; }
+        public int AccountTypeId { get; set; }
+        public AccountType AccountType { get; set; }
+        public ICollection<DepositTPC> Deposits { get; set; }
     }
 
     public class CreditCardTPC : BillingDetailTPC, ICreditCard
     {
-        public int CardType { get; set; }
+        public int AccountTypeId { get; set; }
+        public AccountType AccountType { get; set; }
         public string ExpiryMonth { get; set; }
         public string ExpiryYear { get; set; }
     }
 
+    public class DepositTPC : IDeposit
+    {
+        public int Id { get; set; }
+        public int BankAccountId { get; set; }
+        public BankAccountTPC BankAccount { get; set; }
+        public float Amount { get; set; }
+        public DateTime Deposited { get; set; }
+    }
     #endregion
+
 }

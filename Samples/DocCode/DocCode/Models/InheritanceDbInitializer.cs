@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 
 namespace Inheritance.Models
@@ -8,32 +9,64 @@ namespace Inheritance.Models
         DropCreateDatabaseAlways<InheritanceContext> // re-creates every time the server starts
     //DropCreateDatabaseIfModelChanges<InheritanceContext> 
     {
+        private static IList<IDeposit> _deposits;
+        private static IList<AccountType> _bankAccountTypes;
+
+        private static int _idSeed = 1;
+        private static DateTime _baseCreatedAt = new DateTime(2012, 8, 22, 9, 0, 0);
+        private static DateTime _depositedAt = new DateTime(2012, 9, 1, 1, 0, 0);
+
         protected override void Seed(InheritanceContext context)
         {
-            SeedDatabase(context);
+            _bankAccountTypes = AddAccountTypes(context);
+            ResetDatabase(context);
         }
 
-        public static void SeedDatabase(InheritanceContext context)
+        private static IList<AccountType> AddAccountTypes(InheritanceContext context)
+        {
+            var accountTypes = new List<AccountType>
+                {
+                    new AccountType {Id = 1, Name = "Checking"},
+                    new AccountType {Id = 2, Name = "Saving"},
+                    new AccountType {Id = 3, Name = "Money Market"},
+
+                    new AccountType {Id = 4, Name = "Amex"},
+                    new AccountType {Id = 5, Name = "MC"},
+                    new AccountType {Id = 6, Name = "Visa"}
+                };
+            accountTypes.ForEach(_ => context.AccountTypes.Add(_));
+            return accountTypes;
+        }
+
+        public static void ResetDatabase(InheritanceContext context)
         {
 
             IBillingDetail[] billingDetails;
 
             billingDetails = MakeData<BillingDetailTPH, BankAccountTPH, CreditCardTPH>("TPH");
-            Array.ForEach((BillingDetailTPH[])billingDetails, _ => context.BillingDetailTPHs.Add(_));
+            Array.ForEach((BillingDetailTPH[])billingDetails, _ =>
+                {
+                    context.BillingDetailTPHs.Add(_);
+                    AddDeposits(_, context.DepositTPHs);
+                });
 
 
             billingDetails = MakeData<BillingDetailTPT, BankAccountTPT, CreditCardTPT>("TPT");
-            Array.ForEach((BillingDetailTPT[])billingDetails, _ => context.BillingDetailTPTs.Add(_));
+            Array.ForEach((BillingDetailTPT[])billingDetails, _ =>
+                {
+                    context.BillingDetailTPTs.Add(_);
+                    AddDeposits(_, context.DepositTPTs);
+                });
 
-            var tpcId = 1;
+            _idSeed = 1; // reset for TPC ... because we can
             billingDetails = MakeData<BillingDetailTPC, BankAccountTPC, CreditCardTPC>("TPC");
             Array.ForEach((BillingDetailTPC[])billingDetails, _ =>
                 {
-                    _.Id = tpcId++;
                     context.BillingDetailTPCs.Add(_);
+                    AddDeposits(_, context.DepositTPCs);
                 });
 
-            context.SaveChanges(); // Save 'em
+            context.SaveChanges(); // Save all inserts
         }
 
         private static TBilling[] MakeData<TBilling, TBankAccount, TCreditCard>(string inheritanceModel)
@@ -41,18 +74,19 @@ namespace Inheritance.Models
             where TBankAccount : TBilling, IBankAccount, new()
             where TCreditCard : TBilling, ICreditCard, new()
         {
-              _baseCreatedAt = new DateTime(2012, 8, 22, 9, 0, 0);
-
+ 
             var billingDetails = new [] {
-                (TBilling) CreateCreditCard<TCreditCard>("Abby Road"    , "999-999-999", 1, "04", "2014"),
-                (TBilling) CreateCreditCard<TCreditCard>("Bobby Tables" , "987-654-321", 3, "03", "2014"),
+                // Owner, Number, AccountTypeId, ExpiryMonth, ExpiryYear
+                (TBilling) CreateCreditCard<TCreditCard>("Abby Road"    , "999-999-999", 4, "04", "2014"),
+                (TBilling) CreateCreditCard<TCreditCard>("Bobby Tables" , "987-654-321", 6, "03", "2014"),
 
-                (TBilling) CreateBankAccount<TBankAccount>("Cathy Corner", "123-456", "Bank of Fun", "BOFFDEFX"),
-                (TBilling) CreateBankAccount<TBankAccount>("Early Riser" , "11-11-1111", "Snake Eye Bank", "SNEBSSSS"),
-                (TBilling) CreateBankAccount<TBankAccount>("Dot Com"     , "777-777", "Bank of Sevens", "BOFSWXYZ"),
+                // Owner, Number, AccountTypeId, BankName, Swift
+                (TBilling) CreateBankAccount<TBankAccount>("Cathy Corner", "123-456", 1, "Bank of Fun", "BOFFDEFX"),
+                (TBilling) CreateBankAccount<TBankAccount>("Early Riser" , "11-11-1111", 2, "Snake Eye Bank", "SNEBSSSS"),
+                (TBilling) CreateBankAccount<TBankAccount>("Dot Com"     , "777-777", 3, "Bank of Sevens", "BOFSWXYZ"),
 
-                (TBilling) CreateCreditCard<TCreditCard>("Ginna Lovette", "111-222-333", 2, "02", "2014"),
-                (TBilling) CreateCreditCard<TCreditCard>("Faith Long"   , "123-456-789", 1, "01", "2014")
+                (TBilling) CreateCreditCard<TCreditCard>("Ginna Lovette", "111-222-333", 5, "02", "2014"),
+                (TBilling) CreateCreditCard<TCreditCard>("Faith Long"   , "123-456-789", 4, "01", "2014")
            };
            Array.ForEach(billingDetails, _ => _.inheritanceModel = inheritanceModel);
 
@@ -60,39 +94,75 @@ namespace Inheritance.Models
         }
 
         private static IBillingDetail CreateBankAccount<T>  (
-            string owner, string number, string bankName, string swift) 
+            string owner, string number, int accountTypeId, string bankName, string swift) 
             where T : IBankAccount, new()
         {
             _baseCreatedAt = _baseCreatedAt.AddMinutes(1);
             return new T
             {
+                Id = _idSeed++,
                 CreatedAt = _baseCreatedAt,
                 Owner = owner,
                 Number = number,
                 BankName = bankName,
-                Swift = swift
+                Swift = swift,
+                AccountTypeId = accountTypeId
             };
         }
 
         private static IBillingDetail CreateCreditCard<T>(
-            string owner, string number, int cardType, string expiryMonth, string expiryYear)
+            string owner, string number, int accountTypeId, string expiryMonth, string expiryYear)
             where T : ICreditCard, new()
         {
             _baseCreatedAt = _baseCreatedAt.AddMinutes(1);
             return new T
             {
+                Id = _idSeed++,
                 CreatedAt = _baseCreatedAt,
                 Owner = owner,
                 Number = number,
-                CardType = cardType,
+                AccountTypeId = accountTypeId,
                 ExpiryMonth = expiryMonth,
                 ExpiryYear = expiryYear
             };
         }
-        private static DateTime _baseCreatedAt;
+
+        private static void AddDeposits<TBilling, TDeposit>(TBilling billingDetail, DbSet<TDeposit> dbset)
+            where TBilling : IBillingDetail
+            where TDeposit : class, IDeposit, new()
+        {
+            var account = billingDetail as IBankAccount;
+            if (null == account) return;
+
+            var accountId = account.Id;
+            var amount = 0;
+            var deposits = new[]
+                {
+                    new TDeposit {BankAccountId = accountId, Amount = (amount += 100), Deposited = _depositedAt},
+                    new TDeposit {BankAccountId = accountId, Amount = (amount += 100), Deposited = _depositedAt},
+                    new TDeposit {BankAccountId = accountId, Amount = (amount += 100), Deposited = _depositedAt},
+               };
+            Array.ForEach(deposits, _ =>dbset.Add(_));
+        }
 
         public static void PurgeDatabase(InheritanceContext context)
         {
+            var depositsTPH = context.DepositTPHs;
+            foreach (var deposit in depositsTPH)
+            {
+                depositsTPH.Remove(deposit);
+            }
+            var depositsTPT = context.DepositTPTs;
+            foreach (var deposit in depositsTPT)
+            {
+                depositsTPT.Remove(deposit);
+            }
+            var depositsTPC = context.DepositTPCs;
+            foreach (var deposit in depositsTPC)
+            {
+                depositsTPC.Remove(deposit);
+            }
+
             var billingDetailsTPH = context.BillingDetailTPHs;
             foreach (var billingDetail in billingDetailsTPH)
             {
@@ -110,8 +180,6 @@ namespace Inheritance.Models
             }
             context.SaveChanges();
         }
-
     }
-
 
 }

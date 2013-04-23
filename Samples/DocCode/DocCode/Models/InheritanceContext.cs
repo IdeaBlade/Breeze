@@ -47,13 +47,23 @@ namespace Inheritance.Models
             {
                 m.MapInheritedProperties();
                 m.ToTable("CreditCardsTPCs");
-            });            
+            }); 
+           
+            modelBuilder.Entity<AccountType>()
+                        .Property(p => p.Id)
+                        .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
         }
+
+        public DbSet<AccountType> AccountTypes { get; set; }
 
         public DbSet<BillingDetailTPH> BillingDetailTPHs { get; set; }
         public DbSet<BillingDetailTPT> BillingDetailTPTs { get; set; }
         public DbSet<BillingDetailTPC> BillingDetailTPCs { get; set; }
-       
+
+        // Public for initializer; should not expose to client in Web API controller
+        public DbSet<DepositTPH> DepositTPHs { get; set; }
+        public DbSet<DepositTPT> DepositTPTs { get; set; }
+        public DbSet<DepositTPC> DepositTPCs { get; set; }
     }
 }
 
