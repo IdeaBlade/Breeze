@@ -15,7 +15,7 @@ namespace Inheritance.Models
     public interface IBillingDetail
     {
         int Id { get; set; }
-        string inheritanceModel { get; set; }
+        string inheritanceModel { get; set; } // "TPH", "TPT", "TPC"
         DateTime CreatedAt { get; set; }
         string Owner { get; set; }
         string Number { get; set; }
