@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 // ReSharper disable InconsistentNaming
 
@@ -59,14 +60,16 @@ namespace Inheritance.Models
         public void DoNothing() {}
 
         // Internals are invisible to EF and JSON.NET by default
-        internal string HiddenString { get; set; }
+        internal DateTime InternalDate { get; set; }
 
         // Marked [NotMapped] and therefore invisible to EF.
-        // It wont' be in metadatab ut it will be serialized to the client!
-        // To prevent that, tell JSON.NET to ignore it by applying
-        // [Newtonsoft.Json.JsonIgnore]
+        // It won't be in metadata but it will be serialized to the client!
         [NotMapped]
         public int UnmappedInt { get; set; }
+
+        // Hidden from both EF and the client
+        [NotMapped, JsonIgnore]
+        public string HiddenString { get; set; }
     }
 
     #endregion
