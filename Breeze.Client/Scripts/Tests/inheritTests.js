@@ -43,8 +43,26 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+    
+    test("query ItemsOfProduce", function () {
+        var em = newEm();
 
-    test("query Fruits", function () {
+        var q = EntityQuery.from("ItemsOfProduce")
+            .using(em);
+        stop();
+        var iopType = em.metadataStore.getEntityType("ItemOfProduce");
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have found some 'ItemsOfProduce'");
+            ok(r.every(function (f) {
+                return f.entityType.isSubtypeOf(iopType);
+            }));
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("query Fruits w/server ofType", function () {
         var em = newEm();
 
         var q = EntityQuery.from("Fruits")
@@ -58,10 +76,27 @@ define(["testFns"], function (testFns) {
                 return f.entityType.isSubtypeOf(fruitType);
             }));
             
-        }).fail(function (e) {
-            ok(false, e.message);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
             
+    });
+    
+    test("query Fruits w/client ofType", function () {
+        var em = newEm();
+
+        var q = EntityQuery.from("ItemsOfProduce")
+            .where(null, FilterQueryOp.IsTypeOf, "Fruit")
+            .using(em);
+        stop();
+        var fruitType = em.metadataStore.getEntityType("Fruit");
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have found some 'Fruits'");
+            ok(r.every(function (f) {
+                return f.entityType.isSubtypeOf(fruitType);
+            }));
+
+        }).fail(testFns.handleFail).fin(start);
+
     });
 
     

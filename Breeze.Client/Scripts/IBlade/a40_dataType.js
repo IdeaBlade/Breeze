@@ -82,13 +82,13 @@ var DataType = function () {
     };
 
     var makeFloatFmt = function (fmtSuffix) {
-        return function (val) {
+        return function(val) {
             if (val == null) return null;
             if (typeof val === "string") {
                 val = parseFloat(val);
             }
             return val + fmtSuffix;
-        }
+        };
     };
 
     var fmtDateTime = function (val) {
