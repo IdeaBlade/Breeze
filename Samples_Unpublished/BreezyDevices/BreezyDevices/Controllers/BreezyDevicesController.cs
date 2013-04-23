@@ -12,35 +12,35 @@ namespace BreezyDevices.Controllers
         readonly EFContextProvider<BreezyDevicesContext> _contextProvider =
             new EFContextProvider<BreezyDevicesContext>();
 
-        // ~/api/breezydevices/Metadata 
+        // ~/breeze/breezydevices/Metadata 
         [HttpGet]
         public string Metadata()
         {
             return _contextProvider.Metadata();
         }
 
-        // ~/api/breezydevices/SaveChanges
+        // ~/breeze/breezydevices/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _contextProvider.SaveChanges(saveBundle);
         }
 
-        // ~/api/breezydevices/people
-        // ~/api/breezydevices/people?$filter=LastName%20startswith%20L&$orderby=LastName 
+        // ~/breeze/breezydevices/people
+        // ~/breeze/breezydevices/people?$filter=LastName%20startswith%20L&$orderby=LastName 
         [HttpGet]
         public IQueryable<Person> People()
         {
             return _contextProvider.Context.People;
         }
 
-        // ~/api/breezydevices/devices
+        // ~/breeze/breezydevices/devices
         [HttpGet]
         public IQueryable<Device> Devices()
         {
             return _contextProvider.Context.Devices;
         }
-        // ~/api/breezydevices/reset
+        // ~/breeze/breezydevices/reset
         [HttpPost]
         public string Reset()
         {

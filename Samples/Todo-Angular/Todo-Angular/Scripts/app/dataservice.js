@@ -3,10 +3,10 @@ app.dataservice = (function (breeze, logger) {
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
     
-    var serviceName = 'api/todos'; // route to the same origin Web Api controller
+    var serviceName = 'breeze/todos'; // route to the same origin Web Api controller
    
     // *** Cross origin service example  ***
-    //var serviceName = 'http://todo.breezejs.com/api/todos'; // controller in different origin
+    //var serviceName = 'http://todo.breezejs.com/breeze/todos'; // controller in different origin
 
     var manager = new breeze.EntityManager(serviceName);
     manager.enableSaveQueuing(true);

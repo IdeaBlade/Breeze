@@ -9,7 +9,7 @@
     breeze.NamingConvention.camelCase.setAsDefault();
 
     // service name is route to the Web API controller
-    var serviceName = 'api/CarBones';
+    var serviceName = 'breeze/CarBones';
 
     /*** dataservice proper ***/
     

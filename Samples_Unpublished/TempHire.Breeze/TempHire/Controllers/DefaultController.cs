@@ -8,7 +8,7 @@ namespace TempHire.Controllers
     [Authorize]
     public class DefaultController : ApiController
     {
-        // ~/api/Metadata
+        // ~/breeze/Metadata
         [HttpGet]
         public string Metadata()
         {

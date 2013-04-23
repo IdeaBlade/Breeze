@@ -15,7 +15,7 @@ namespace Breeze.Learn.App_Start {
     public static void RegisterBreezePreStart() {
       GlobalConfiguration.Configuration.Routes.MapHttpRoute(
           name: "BreezeApi",
-          routeTemplate: "api/{controller}/{action}"
+          routeTemplate: "breeze/{controller}/{action}"
       );
     }
   }

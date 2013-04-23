@@ -24,7 +24,7 @@ var MetadataStore = (function () {
     The store can then be associated with an EntityManager
     @example
         var entityManager = new EntityManager( {
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             metadataStore: ms 
         });
     or for an existing EntityManager
@@ -242,7 +242,7 @@ var MetadataStore = (function () {
     Returns whether Metadata has been retrieved for a specified service name.
     @example
         // Assume em1 is an existing EntityManager.
-        if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
+        if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel"))) {
             // do something interesting
         }
     @method hasMetadataFor
@@ -257,7 +257,7 @@ var MetadataStore = (function () {
     Returns the DataService for a specified service name
     @example
         // Assume em1 is an existing EntityManager.
-        var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+        var ds = em1.metadataStore.getDataService("breeze/NorthwindIBModel");
         var adapterName = ds.adapterName; // may be null
            
     @method getDataService
@@ -284,7 +284,7 @@ var MetadataStore = (function () {
         var ms = new MetadataStore();
         // or more commonly
         // var ms = anEntityManager.metadataStore;
-        ms.fetchMetadata("api/NorthwindIBModel")
+        ms.fetchMetadata("breeze/NorthwindIBModel")
         .then(function(rawMetadata) {
             // do something with the metadata
         }

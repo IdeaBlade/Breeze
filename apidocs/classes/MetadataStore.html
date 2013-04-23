@@ -506,7 +506,7 @@ used when performing "local queries" in order to match the semantics of queries 
 </code></pre>
 
 <p>The store can then be associated with an EntityManager</p><pre class="code prettyprint"><code>var entityManager = new EntityManager( {
-    serviceName: "api/NorthwindIBModel", 
+    serviceName: "breeze/NorthwindIBModel", 
     metadataStore: ms 
 });
 </code></pre>
@@ -981,7 +981,7 @@ internally by an EntityManager before its first query against a new service.</p>
 ask for the metadata from the EntityManager after the fetchMetadata call returns.</p><pre class="code prettyprint"><code>var ms = new MetadataStore();
 // or more commonly
 // var ms = anEntityManager.metadataStore;
-ms.fetchMetadata("api/NorthwindIBModel")
+ms.fetchMetadata("breeze/NorthwindIBModel")
 .then(function(rawMetadata) {
     // do something with the metadata
 }
@@ -1100,7 +1100,7 @@ ms.fetchMetadata("api/NorthwindIBModel")
 
             <div class="example-content">
                 <pre class="code prettyprint"><code>// Assume em1 is an existing EntityManager.
-var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+var ds = em1.metadataStore.getDataService("breeze/NorthwindIBModel");
 var adapterName = ds.adapterName; // may be null
 </code></pre>
             </div>
@@ -1523,7 +1523,7 @@ var allTypes = em1.metadataStore.getEntityTypes();
 
             <div class="example-content">
                 <pre class="code prettyprint"><code>// Assume em1 is an existing EntityManager.
-if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
+if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel"))) {
     // do something interesting
 }
 </code></pre>

@@ -20,13 +20,13 @@ namespace TempHire.App_Start
         {
             GlobalConfiguration.Configuration.Routes.MapHttpRoute(
                 name: "Default",
-                routeTemplate: "api/{action}",
+                routeTemplate: "breeze/{action}",
                 defaults: new {Controller = "Default"}
                 );
 
             GlobalConfiguration.Configuration.Routes.MapHttpRoute(
                 name: "Module",
-                routeTemplate: "api/{controller}/{action}"
+                routeTemplate: "breeze/{controller}/{action}"
                 );
         }
     }

@@ -12,21 +12,21 @@ namespace CarBones.Controllers
         readonly EFContextProvider<CarBonesContext> _contextProvider =
             new EFContextProvider<CarBonesContext>();
 
-        // ~/api/CarBones/metadata
+        // ~/breeze/CarBones/metadata
         [HttpGet]
         public string Metadata()
         {
             return _contextProvider.Metadata();
         }
 
-        // ~/api/CarBones/SaveChanges
+        // ~/breeze/CarBones/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return _contextProvider.SaveChanges(saveBundle);
         }
 
-        // ~/api/CarBones/cars
+        // ~/breeze/CarBones/cars
         [HttpGet]
         public IQueryable<Car> Cars()
         {

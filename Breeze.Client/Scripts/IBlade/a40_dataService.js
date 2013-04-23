@@ -217,7 +217,7 @@ var JsonResultsAdapter = (function () {
         });
 
         var dataService = new DataService( {
-                serviceName: "api/foo",
+                serviceName: "breeze/foo",
                 jsonResultsAdapter: jsonResultsAdapter
         });
 

@@ -139,15 +139,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
+    <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\InheritanceContext.cs" />
+    <Compile Include="Models\InheritanceModels.cs" />
     <Compile Include="Models\NorthwindContext.cs" />
     <Compile Include="Models\NorthwindModel.cs" />
     <Compile Include="Models\TodoDatabaseInitializer.cs" />
+    <Compile Include="Models\InheritanceDbInitializer.cs" />
     <Compile Include="Models\TodoItem.cs" />
     <Compile Include="Models\TodosContext.cs" />
     <Compile Include="Models\UserPartial.cs" />

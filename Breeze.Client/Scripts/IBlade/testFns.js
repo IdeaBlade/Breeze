@@ -59,7 +59,7 @@ define(["breeze.debug"], function (breeze) {
                 };
             }
             // test recomposition
-            testFns.defaultServiceName = "api/NorthwindIBModel";
+            testFns.defaultServiceName = "breeze/NorthwindIBModel";
             testFns.message += "dataService: webApi, ";
         } else {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData").name;

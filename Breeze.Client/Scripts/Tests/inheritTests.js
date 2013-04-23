@@ -18,7 +18,7 @@ define(["testFns"], function (testFns) {
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
 
-    var altServiceName = "api/ProduceTPH";
+    var altServiceName = "breeze/ProduceTPH";
 
     var newEm = testFns.newEm;
     //function newEm() {

@@ -20,7 +20,7 @@ namespace Todo.App_Start {
 
       GlobalConfiguration.Configuration.Routes.MapHttpRoute(
           name: "BreezeApi",
-          routeTemplate: "api/{controller}/{action}"
+          routeTemplate: "breeze/{controller}/{action}"
       );
     }
   }

@@ -116,7 +116,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("Can run two queries in parallel for fresh EM w/ empty metadataStore", 1,
         function () {
-            var em = new breeze.EntityManager("api/Northwind");
+            var em = new breeze.EntityManager("breeze/Northwind");
             var query = breeze.EntityQuery.from("Customers");
             var successCount = 0;
             stop();

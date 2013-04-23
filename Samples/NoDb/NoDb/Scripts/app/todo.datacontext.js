@@ -5,7 +5,7 @@ window.todoApp.datacontext = (function (breeze) {
     breeze.NamingConvention.camelCase.setAsDefault();
  
     var dataService = new breeze.DataService({
-        serviceName: "api/Todo",
+        serviceName: "breeze/Todo",
         hasServerMetadata: false // don't ask the server for metadata
     });
 

@@ -14,7 +14,7 @@
             };
 
             return Q.when($.ajax({
-                url: '/api/account/login',
+                url: '/breeze/account/login',
                 type: 'POST',
                 contentType: 'application/json',
                 dataType: 'json',
