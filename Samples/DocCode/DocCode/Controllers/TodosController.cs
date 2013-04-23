@@ -12,26 +12,26 @@ namespace Todo.Controllers {
         readonly EFContextProvider<TodosContext> _contextProvider = 
             new EFContextProvider<TodosContext>();
 
-        // ~/api/todos/Metadata 
+        // ~/breeze/todos/Metadata 
         [HttpGet]
         public string Metadata() {
             return _contextProvider.Metadata();
         }
 
-        // ~/api/todos/Todos
-        // ~/api/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
+        // ~/breeze/todos/Todos
+        // ~/breeze/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
         [HttpGet]
         public IQueryable<TodoItem> Todos() {
             return _contextProvider.Context.Todos;
         }
 
-        // ~/api/todos/SaveChanges
+        // ~/breeze/todos/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle) {
             return _contextProvider.SaveChanges(saveBundle);
         }
 
-        // ~/api/todos/purge
+        // ~/breeze/todos/purge
         [HttpPost]
         public string Purge()
         {
@@ -39,7 +39,7 @@ namespace Todo.Controllers {
             return "purged";
         }
 
-        // ~/api/todos/reset
+        // ~/breeze/todos/reset
         [HttpPost]
         public string Reset()
         {
