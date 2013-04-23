@@ -2,6 +2,7 @@
 //http://weblogs.asp.net/manavi/archive/2010/12/24/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-1-table-per-hierarchy-tph.aspx
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 // ReSharper disable InconsistentNaming
 
@@ -34,12 +35,6 @@ namespace Inheritance.Models
         string ExpiryYear { get; set; }
     }
 
-    public class AccountType
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
     public interface IDeposit
     {
         int Id { get; set; }
@@ -48,11 +43,37 @@ namespace Inheritance.Models
         DateTime Deposited { get; set; }
     }
 
+    public class AccountType : EntityBase
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    ///<summary>
+    /// Base class for that might have business logic.
+    /// Is invisible to EF and metadata because it has no mapped properties
+    /// </summary>
+    public class EntityBase
+    {
+        // Methods are invisible
+        public void DoNothing() {}
+
+        // Internals are invisible to EF and JSON.NET by default
+        internal string HiddenString { get; set; }
+
+        // Marked [NotMapped] and therefore invisible to EF.
+        // It wont' be in metadatab ut it will be serialized to the client!
+        // To prevent that, tell JSON.NET to ignore it by applying
+        // [Newtonsoft.Json.JsonIgnore]
+        [NotMapped]
+        public int UnmappedInt { get; set; }
+    }
+
     #endregion
 
     #region TPH
 
-    public abstract class BillingDetailTPH : IBillingDetail
+    public abstract class BillingDetailTPH : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
         public string inheritanceModel { get; set; }
@@ -77,7 +98,7 @@ namespace Inheritance.Models
         public string ExpiryYear { get; set; }
     }
 
-    public class DepositTPH : IDeposit
+    public class DepositTPH : EntityBase, IDeposit
     {
         public int Id { get; set; }
         public int BankAccountId { get; set; }
@@ -90,7 +111,7 @@ namespace Inheritance.Models
 
     #region TPT
 
-    public abstract class BillingDetailTPT : IBillingDetail
+    public abstract class BillingDetailTPT : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
         public string inheritanceModel { get; set; }
@@ -114,7 +135,7 @@ namespace Inheritance.Models
         public string ExpiryYear { get; set; }
     }
 
-    public class DepositTPT : IDeposit
+    public class DepositTPT : EntityBase, IDeposit
     {
         public int Id { get; set; }
         public int BankAccountId { get; set; }
@@ -126,7 +147,7 @@ namespace Inheritance.Models
 
     #region TPC
 
-    public abstract class BillingDetailTPC : IBillingDetail
+    public abstract class BillingDetailTPC : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
         public string inheritanceModel { get; set; }
@@ -152,7 +173,7 @@ namespace Inheritance.Models
         public string ExpiryYear { get; set; }
     }
 
-    public class DepositTPC : IDeposit
+    public class DepositTPC : EntityBase, IDeposit
     {
         public int Id { get; set; }
         public int BankAccountId { get; set; }
