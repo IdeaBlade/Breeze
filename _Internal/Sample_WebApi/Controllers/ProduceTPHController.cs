@@ -57,6 +57,12 @@ namespace Sample_WebApi.Controllers {
     #region standard queries
 
     [HttpGet]
+    public IQueryable<ItemOfProduce> ItemsOfProduce() {
+      return ContextProvider.Context.ItemsOfProduce;
+    }
+
+
+    [HttpGet]
     public IQueryable<Fruit> Fruits() {
       return ContextProvider.Context.ItemsOfProduce.OfType<Fruit>();
     }
