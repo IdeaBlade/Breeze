@@ -21,6 +21,7 @@ define(["breeze"], function (breeze) {
         handleFail: handleFail,
         getModuleOptions: getModuleOptions,
         teardown_todosReset: teardown_todosReset,
+        teardown_inheritanceReset: teardown_inheritanceReset,
         output: output,
         stopCount: stopCountFactory(),
 
@@ -191,7 +192,15 @@ define(["breeze"], function (breeze) {
         stop();
         todosReset().fail(handleFail).fin(start).done();
     }
-
+    /*********************************************************
+    * Teardown for a module that saves to the Inheritance database
+    *********************************************************/
+    // should call this during test teardown to restore
+    // the database to a known, populated state.
+    function teardown_inheritanceReset() {
+        stop();
+        inheritanceReset().fail(handleFail).fin(start).done();
+    }
     /*********************************************************
     * Get or Create an EntityManager
     *********************************************************/

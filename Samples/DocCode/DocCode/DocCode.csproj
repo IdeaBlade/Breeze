@@ -181,6 +181,7 @@
     <Content Include="Scripts\require.js" />
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
+    <Content Include="tests\inheritanceTests.js" />
     <Content Include="tests\saveConcurrentlyTests.js" />
     <Content Include="tests\entityExtensionTests.js" />
     <Content Include="tests\entityTests.js" />

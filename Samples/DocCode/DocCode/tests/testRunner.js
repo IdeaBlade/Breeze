@@ -32,6 +32,7 @@ require(["testFns" // always first
     , "saveConcurrentlyTests"
     , "exportImportTests"
     , "apiDirectTests"
+    , "inheritanceTests"
 
 ], function (testFns) {
     // Configure testfns as needed prior to running any tests
