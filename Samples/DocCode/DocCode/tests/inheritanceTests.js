@@ -450,36 +450,15 @@ define(["testFns"], function (testFns) {
     module("inheritanceTests - saves", saveModuleOptions);
 
     var createdAt = new Date(2013, 1, 1);
+    var idSeed = 10000; // for TPC inheritance; start way out there.
     
-    var makeBankAccountInits = function (changes) {
-        var defaultBankAccount = {
-            CreatedAt: createdAt,
-            Owner: "Richie Rich",
-            Number: "321-123",
-            BankName: "Bank of Breeze",
-            Swift: "BOFBRZEX",
-            AccountTypeId: 1
-        };
-        return extend(extend({}, defaultBankAccount), changes || {});
-    };
-    var makeCreditCardInits = function (changes) {
-        var defaultCard = {
-            CreatedAt: createdAt,
-            Owner: "Owen Toomuch",
-            Number: "424-4242-424",
-            ExpiryMonth: "03",
-            ExpiryYear: "2016",
-            AccountTypeId: 4
-        };
-        return extend(extend({}, defaultCard), changes || {});
-    };
     /*********************************************************
     * can save and requery a new bankaccount
     *********************************************************/
     asyncTest("can save and requery a BankAccount", 3, function () {
         var inits = makeBankAccountInits({ Number: "112-221" });
         var promises = inheritanceTypes.map(function (t) {
-            return saveAndRequeryBillingDetailClass(bankRoot + t, inits);
+            return saveAndRequery(bankRoot + t, inits);
         });
         waitForTestPromises(promises);
     });
@@ -487,15 +466,16 @@ define(["testFns"], function (testFns) {
     asyncTest("can save and requery a CreditCard", 3, function () {
         var inits = makeCreditCardInits({ Number: "555-55-5555" });
         var promises = inheritanceTypes.map(function (t) {
-            return saveAndRequeryBillingDetailClass(cardRoot + t, inits);
+            return saveAndRequery(cardRoot + t, inits);
         });
         waitForTestPromises(promises);
     });
 
-    function saveAndRequeryBillingDetailClass(typeName, inits) {
+    function saveAndRequery(typeName, inits) {
         var em = newEm();
         var detail;
         try {
+            ensureIdForTPC(typeName, inits);
             detail = em.createEntity(typeName, inits);
         } catch (ex) {
             ok(false, "Threw exception creating a '{0}': '{1}'."
@@ -505,13 +485,14 @@ define(["testFns"], function (testFns) {
         return em.saveChanges().then(saveSuccess);
 
         function saveSuccess(saveResult) {
-            if (!saveResult.savedEntities) {
+            if (!saveResult.entities) {
                 ok(false, "Didn't save");
                 return false;
             }
             // re-query into clean em to confirm BillingDetail really did get saved
             em.clear();
-            return em.fetchEntityByKey(detail.entityAspect.key).then(requerySuccess);
+            var key = detail.entityAspect.getKey();
+            return em.fetchEntityByKey(key).then(requerySuccess);
         }
 
         function requerySuccess(data) {
@@ -540,6 +521,38 @@ define(["testFns"], function (testFns) {
             metadataStore.setEntityTypeForResourceName(typeName + 's', typeName);
         });       
     }
+    
+    // A new TPC entity must have a client-assigned 'Id'
+    function ensureIdForTPC(typeName, inits) {
+        var isTPC = typeName.indexOf("TPC") > -1;
+        if (isTPC && !inits.Id) {
+            inits.Id = idSeed++;
+        }
+        return inits;
+    }
+    function makeBankAccountInits(typeName, changes) {
+        var defaultBankAccount = {
+            CreatedAt: createdAt,
+            Owner: "Richie Rich",
+            Number: "321-123",
+            BankName: "Bank of Breeze",
+            Swift: "BOFBRZEX",
+            AccountTypeId: 1
+        };
+        return extend(extend({}, defaultBankAccount), changes || {});
+    };
+    
+    function makeCreditCardInits(typeName, changes) {
+        var defaultCard = {
+            CreatedAt: createdAt,
+            Owner: "Owen Toomuch",
+            Number: "424-4242-424",
+            ExpiryMonth: "03",
+            ExpiryYear: "2016",
+            AccountTypeId: 4
+        };
+        return extend(extend({}, defaultCard), changes || {});
+    };
 
     // Delete this once we figure out why load-on-demand is failing
     // to associate the loaded AccountType with the entity

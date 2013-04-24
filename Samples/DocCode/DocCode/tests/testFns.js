@@ -358,7 +358,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
@@ -372,7 +374,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
@@ -389,13 +393,14 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
 
     function inheritanceReset() {
-
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/reset',
@@ -403,7 +408,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
