@@ -10,30 +10,23 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     var breeze = testFns.breeze;
     var extend = breeze.core.extend;
-
-    // Classes we'll need from the breeze namespaces
     var EntityQuery = breeze.EntityQuery;
+
+    var waitForTestPromises = testFns.waitForTestPromises;
     var handleFail = testFns.handleFail;
+    var reportRejectedPromises = testFns.reportRejectedPromises;
 
     // Target the Inheritance service
     var serviceName = testFns.inheritanceServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
-    var bankTypeName = {
-        TPH: 'BankAccountTPH',
-        TPT: 'BankAccountTPT',
-        TPC: 'BankAccountTPC'
-    };
-    var cardTypeName = {
-        TPH: 'CreditCardTPH',
-        TPT: 'CreditCardTPT',
-        TPC: 'CreditCardTPC'
-    };
-    var billingDetailTypeName = {
-        TPH: 'BillingDetailTPH',
-        TPT: 'BillingDetailTPT',
-        TPC: 'BillingDetailTPC'
-    };
+    // EntityType root names
+    var bankRoot = "BankAccount";
+    var cardRoot = "CreditCard";
+    var baseRoot = "BillingDetail";
+
+    // EntityType name = rootname + inheritanceType
+    var inheritanceTypes = ["TPH", "TPT", "TPC"];
 
     var moduleOptions = testFns.getModuleOptions(newEm);
 
@@ -43,50 +36,69 @@ define(["testFns"], function (testFns) {
 
 
     /*********************************************************
-    * can query all from each inherited type and flavor
+    * can query all from each inherited type
     *********************************************************/
-    test("can query all BankAccountTPHs", queryAllBankAccounts("TPH"));
-    test("can query all BankAccountTPTs", queryAllBankAccounts("TPT"));
-    test("can query all BankAccountTPCs", queryAllBankAccounts("TPC"));
+    asyncTest("can query all BankAccounts", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanQueryAll(bankRoot + t, 3);
+        });
+        waitForTestPromises(promises);
+    });
 
-    function queryAllBankAccounts(flavor) {
-        return function () {
-            expect(1);  assertCanQueryAll(bankTypeName[flavor], 3);
-        };
-    }
+    asyncTest("can query all CreditCards", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanQueryAll(cardRoot + t, 4);
+        });
+        waitForTestPromises(promises);
+    });
 
-    test("can query all CreditCardTPHs", queryAllCreditCards("TPH"));
-    test("can query all CreditCardTPTs", queryAllCreditCards("TPT"));
-    test("can query all CreditCardTPCs", queryAllCreditCards("TPC"));
-    function queryAllCreditCards(flavor) {
-        return function () {
-            expect(1); assertCanQueryAll(cardTypeName[flavor], 4);
-        };
-    }
-
-    test("can query all base BillingDetailTPHs", queryAllBillingDetails("TPH"));
-    test("can query all base BillingDetailTPTs", queryAllBillingDetails("TPT"));
-    test("can query all base BillingDetailTPCs", queryAllBillingDetails("TPC"));
-    function queryAllBillingDetails(flavor) {
-        return function () {
-            expect(1); assertCanQueryAll(billingDetailTypeName[flavor], 7);
-        };
-    }
+    asyncTest("can query all base BillingDetails", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanQueryAll(baseRoot + t, 7);
+        });
+        waitForTestPromises(promises);
+    });
 
     function assertCanQueryAll(typeName, expectedCount) {
-        var resourceName = typeName + 's';
         var em = newEm();
-        stop(); // going async ... 
-        EntityQuery.from(resourceName).using(em).execute()
-            .then(querySuccess).fail(handleFail).fin(start);
+        var resourceName = typeName + 's';
+
+        return EntityQuery.from(resourceName)
+            .using(em).execute().then(querySuccess);
 
         function querySuccess(data) {
             var len = data.results.length;
-            equal(len, expectedCount, 
+            equal(len, expectedCount,
                 "Should fetch {0} from '{1}'.".format(len, resourceName));
         }
     }
 
+    /*********************************************************
+    * can filter each inherited type and flavor
+    *********************************************************/
+    var predicate = new breeze.Predicate('Owner', 'contains', 'a');
+    predicate.description = "where 'Owner' contains an 'a'";
+
+    asyncTest("can filter base class property, 'Owner', in BankAccount", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanFilter(predicate, bankRoot + t, 2);
+        });
+        waitForTestPromises(promises);
+    });
+
+    function assertCanFilter(predictate, typeName, expectedCount) {
+        var em = newEm();
+        var resourceName = typeName + 's';
+
+        return EntityQuery.from(resourceName)
+            .where(predicate).using(em).execute().then(querySuccess);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, expectedCount,
+                "Should fetch {0} from '{1}' {2}.".format(len, resourceName, predicate.description));
+        }
+    }
     /************************** SAVES *************************/
 
     // reset inheritance db after each save module test because we're messing it up
@@ -122,7 +134,7 @@ define(["testFns"], function (testFns) {
         return function () {
             expect(1);
 
-            var typeName = bankTypeName[flavor];       
+            var typeName = bankRoot[flavor];       
             var em = newEm(); 
 
             var account = em.createEntity(typeName, makeBankAccountInits({ Number: "112-221" }));
