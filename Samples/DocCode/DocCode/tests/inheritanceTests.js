@@ -99,7 +99,7 @@ define(["testFns"], function (testFns) {
         waitForTestPromises(promises);
     });
 
-    function assertCanFilter(predictate, typeName, expectedCount) {
+    function assertCanFilter(predicate, typeName, expectedCount) {
         var em = newEm();
         var resourceName = typeName + 's';
 
@@ -110,6 +110,142 @@ define(["testFns"], function (testFns) {
             var len = data.results.length;
             equal(len, expectedCount,
                 "Should fetch {0} from '{1}' {2}.".format(len, resourceName, predicate.description));
+        }
+    }
+
+    /*********************************************************
+    * can filter each derived type on its own property
+    *********************************************************/
+
+    asyncTest("can filter on 'BankName' in BankAccount", 3, function () {
+        var predicate = new breeze.Predicate('BankName', 'contains', 'Fun');
+        predicate.description = "where 'BankName' contains 'Fun'";
+
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanFilter(predicate, bankRoot + t, 1);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can filter on 'ExpiryMonth/Year' in CreditCard", 3, function () {
+        var predicate = new breeze.Predicate('ExpiryMonth', 'eq', '04');
+        predicate = predicate.and('ExpiryYear', 'eq', '2014')
+        predicate.description = "where 'ExpiryMonth/Year' equals '04/2014'";
+
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanFilter(predicate, cardRoot + t, 1);
+        });
+        waitForTestPromises(promises);
+    })
+
+    /*********************************************************
+    * can select across inheritance class boundary
+    *********************************************************/
+
+    asyncTest("can select {'Id', 'Owner', 'BankName'} in BankAccount", 6, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanProjectOnBankAccount(t, 1);
+        });
+        waitForTestPromises(promises);
+
+        function assertCanProjectOnBankAccount(inheritanceType, expectedCount) {
+            var em = newEm();
+            var typeName = bankRoot + inheritanceType;
+            var resourceName = typeName + 's';
+
+            return EntityQuery.from(resourceName)
+                .select('Id, Owner, BankName')
+                .using(em).execute().then(querySuccess);
+
+            function querySuccess(data) {
+                var first = data.results[0];
+                if (!first) {
+                    ok(false, "Select query returned no results")
+                    return;
+                }
+
+                var propertyCount = 0;
+                for (var _ in first){propertyCount++;}
+                equal(propertyCount, 3, "Should return a " + typeName + " projection with 3 properties");
+
+                ok(first.Id && first.Owner && first.BankName,
+                    "First {0} should fill the expected properties: {Id:{1}, Owner:'{2}', BankName:'{3}'}"
+                   .format(typeName, first.Id, first.Owner, first.BankName));
+            }
+        }
+    });
+
+
+    asyncTest("can select {'Id', 'Owner', 'ExpiryYear'} in CreditCard", 6, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanProjectOnCardAccount(t, 1);
+        });
+        waitForTestPromises(promises);
+
+        function assertCanProjectOnCardAccount(inheritanceType, expectedCount) {
+            var em = newEm();
+            var typeName = cardRoot + inheritanceType;
+            var resourceName = typeName + 's';
+
+            return EntityQuery.from(resourceName)
+                .select('Id, Owner, ExpiryYear')
+                .using(em).execute().then(querySuccess);
+
+            function querySuccess(data) {
+                var first = data.results[0];
+                if (!first) {
+                    ok(false, "Select query returned no results")
+                    return;
+                }
+
+                var propertyCount = 0;
+                for (var _ in first) { propertyCount++; }
+                equal(propertyCount, 3, "Should return a " + typeName + " projection with 3 properties");
+
+                ok(first.Id && first.Owner && first.ExpiryYear,
+                    "First {0} should fill the expected properties: {Id:{1}, Owner:'{2}', ExpiryYear:'{3}'}"
+                   .format(typeName, first.Id, first.Owner, first.ExpiryYear));
+            }
+        }
+    });
+    /*********************************************************
+     * can page (take/skip)
+     * This test succeeds when we know how many items are in test data
+     *********************************************************/
+    asyncTest("can page BankAccounts", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanSkipTake(bankRoot + t, 1, 2);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can page CreditCards", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanSkipTake(cardRoot + t, 2, 2);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can page base BillingDetails", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanSkipTake(baseRoot + t, 4, 3);
+        });
+        waitForTestPromises(promises);
+    });
+
+    function assertCanSkipTake(typeName, skip, take) {
+        var em = newEm();
+        var resourceName = typeName + 's';
+
+        return EntityQuery.from(resourceName)
+            .skip(skip).take(take)
+            .using(em).execute().then(querySuccess);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, take,
+                "Should have {0} from '{1}' after taking {0} and skipping {2}."
+                .format(take, resourceName, skip));
         }
     }
     /************************** SAVES *************************/
