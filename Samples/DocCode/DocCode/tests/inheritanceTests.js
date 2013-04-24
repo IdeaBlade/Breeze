@@ -34,7 +34,6 @@ define(["testFns"], function (testFns) {
 
     module("inheritanceTests - queries", moduleOptions);
 
-
     /*********************************************************
     * can query all from each inherited type
     *********************************************************/
@@ -112,48 +111,74 @@ define(["testFns"], function (testFns) {
     var createdAt = new Date(2013, 1, 1);
     
     var makeBankAccountInits = function (changes) {
-        var protoBankAccount = {
+        var defaultBankAccount = {
             CreatedAt: createdAt,
-            Owner: "Joe Blow",
+            Owner: "Richie Rich",
             Number: "321-123",
             BankName: "Bank of Breeze",
             Swift: "BOFBRZEX",
             AccountTypeId: 1
         };
-        return extend(extend({}, protoBankAccount), changes);
+        return extend(extend({}, defaultBankAccount), changes || {});
     };
-
+    var makeCreditCardInits = function (changes) {
+        var defaultCard = {
+            CreatedAt: createdAt,
+            Owner: "Owen Toomuch",
+            Number: "424-4242-424",
+            ExpiryMonth: "03",
+            ExpiryYear: "2016",
+            AccountTypeId: 4
+        };
+        return extend(extend({}, defaultCard), changes || {});
+    };
     /*********************************************************
     * can save and requery a new bankaccount
     *********************************************************/
-    test("can save and requery a BankAccountTPH", saveRequeryBankAccount("TPH"));
-    test("can save and requery a BankAccountTPT", saveRequeryBankAccount("TPT"));
-    test("can save and requery a BankAccountTPC", saveRequeryBankAccount("TPC"));
-    
-    function saveRequeryBankAccount(flavor) {
-        return function () {
-            expect(1);
+    asyncTest("can save and requery a BankAccount", 3, function () {
+        var inits = makeBankAccountInits({ Number: "112-221" });
+        var promises = inheritanceTypes.map(function (t) {
+            return saveAndRequeryBillingDetailClass(bankRoot + t, inits);
+        });
+        waitForTestPromises(promises);
+    });
 
-            var typeName = bankRoot[flavor];       
-            var em = newEm(); 
+    asyncTest("can save and requery a CreditCard", 3, function () {
+        var inits = makeCreditCardInits({ Number: "555-55-5555" });
+        var promises = inheritanceTypes.map(function (t) {
+            return saveAndRequeryBillingDetailClass(cardRoot + t, inits);
+        });
+        waitForTestPromises(promises);
+    });
 
-            var account = em.createEntity(typeName, makeBankAccountInits({ Number: "112-221" }));
+    function saveAndRequeryBillingDetailClass(typeName, inits) {
+        var em = newEm();
+        try {
+            var detail = em.createEntity(typeName, inits);
+        } catch (ex) {
+            ok(false, "Threw exception creating a '{0}': '{1}'."
+                .format(typeName, ex.message));
+            return Q(true); // caught it; keep going
+        }      
+        return em.saveChanges().then(saveSuccess);
 
-            stop(); // going async ... 
-            em.saveChanges().then(saveSuccess).fail(handleFail).fin(start);
-            
-            function saveSuccess(saveResult) {
-                // re-query into clean em to confirm it really did get saved
-                em.clear();
-                return em.fetchEntityByKey(account.entityAspect.key).then(requerySuccess);
+        function saveSuccess(saveResult) {
+            if (!saveResult.savedEntities) {
+                ok(false, "Didn't save");
+                return false;
             }
-            function requerySuccess(data) {
-                var refetchedAccount = data.entity;
-                equal(refetchedAccount.Number(), account.Number(),
-                        "refetched the saved {0} with number {1}"
-                            .format(typeName, account.Number()));
-            }
-        };
+            // re-query into clean em to confirm BillingDetail really did get saved
+            em.clear();
+            return em.fetchEntityByKey(detail.entityAspect.key).then(requerySuccess);
+        }
+
+        function requerySuccess(data) {
+            var refetched = data.entity;
+            // all BillingDetail classes have the 'Number' property
+            equal(refetched.Number(), detail.Number(),
+                    "refetched the saved {0} with number {1}"
+                        .format(typeName, detail.Number()));
+        }
     }
 
 });
