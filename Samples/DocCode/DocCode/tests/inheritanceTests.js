@@ -282,12 +282,18 @@ define(["testFns"], function (testFns) {
         };
         return extend(extend({}, defaultCard), changes || {});
     };
+
+    var _id = 1000;
     /*********************************************************
     * can save and requery a new bankaccount
     *********************************************************/
     asyncTest("can save and requery a BankAccount", 3, function () {
         var inits = makeBankAccountInits({ Number: "112-221" });
         var promises = inheritanceTypes.map(function (t) {
+            if (t === "TPC") {
+                _id = _id + 1;
+                inits.Id = _id;
+            }
             return saveAndRequeryBillingDetailClass(bankRoot + t, inits);
         });
         waitForTestPromises(promises);
@@ -296,6 +302,10 @@ define(["testFns"], function (testFns) {
     asyncTest("can save and requery a CreditCard", 3, function () {
         var inits = makeCreditCardInits({ Number: "555-55-5555" });
         var promises = inheritanceTypes.map(function (t) {
+            if (t === "TPC") {
+                _id = _id + 1;
+                inits.Id = _id;
+            }
             return saveAndRequeryBillingDetailClass(cardRoot + t, inits);
         });
         waitForTestPromises(promises);
@@ -303,6 +313,7 @@ define(["testFns"], function (testFns) {
 
     function saveAndRequeryBillingDetailClass(typeName, inits) {
         var em = newEm();
+        addToMetadata(em.metadataStore);
         try {
             var detail = em.createEntity(typeName, inits);
         } catch (ex) {
@@ -313,13 +324,13 @@ define(["testFns"], function (testFns) {
         return em.saveChanges().then(saveSuccess);
 
         function saveSuccess(saveResult) {
-            if (!saveResult.savedEntities) {
+            if (!saveResult.entities) {
                 ok(false, "Didn't save");
                 return false;
             }
             // re-query into clean em to confirm BillingDetail really did get saved
             em.clear();
-            return em.fetchEntityByKey(detail.entityAspect.key).then(requerySuccess);
+            return em.fetchEntityByKey(detail.entityAspect.getKey()).then(requerySuccess);
         }
 
         function requerySuccess(data) {
@@ -330,5 +341,18 @@ define(["testFns"], function (testFns) {
                         .format(typeName, detail.Number()));
         }
     }
+    
+    function addToMetadata(metadataStore) {
+
+        inheritanceTypes.map(function (t) {
+            var typeName = bankRoot + t;
+            metadataStore.setEntityTypeForResourceName(typeName + 's', typeName);
+        });
+        inheritanceTypes.map(function (t) {
+            var typeName = cardRoot + t;
+            metadataStore.setEntityTypeForResourceName(typeName + 's', typeName);
+        });
+    }
+
 
 });

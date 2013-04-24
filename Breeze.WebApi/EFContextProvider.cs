@@ -555,15 +555,64 @@ namespace Breeze.WebApi {
 
     #endregion
 
+    // OLD CODE - PRE-INHERITANCE
+    //private String GetEntitySetName(ObjectContext context, Type entityType) {
+    //  var typeName = entityType.Name;
+    //  var container = context.MetadataWorkspace.GetEntityContainer(context.DefaultContainerName, DataSpace.CSpace);
+    //  var entitySetName = container.BaseEntitySets
+    //    .Where(es => es.ElementType.Name == typeName)
+    //    .Select(es => es.Name)
+    //    .First();
+    //  return entitySetName;
+    //}
+
+    // TODO: may want to improve perf on this later ( cache the mappings maybe).
     private String GetEntitySetName(ObjectContext context, Type entityType) {
-      var typeName = entityType.Name;
-      var container = context.MetadataWorkspace.GetEntityContainer(context.DefaultContainerName, DataSpace.CSpace);
-      var entitySetName = container.BaseEntitySets
-        .Where(es => es.ElementType.Name == typeName)
-        .Select(es => es.Name)
-        .First();
-      return entitySetName;
+      var metaWs = context.MetadataWorkspace;
+      var ospaceEntityTypes = metaWs.GetItems<EntityType>(DataSpace.OSpace);
+      var ospaceEntityType = ospaceEntityTypes.First(oet => oet.FullName == entityType.FullName);
+      var cspaceEntityType = (EntityType) metaWs.GetEdmSpaceType(ospaceEntityType);
+
+      // note CSpace below - not OSpace - evidently the entityContainer is only in the CSpace.
+      var entitySets = metaWs.GetItems<EntityContainer>(DataSpace.CSpace)
+          .SelectMany(c => c.BaseEntitySets.Where(es => es.ElementType.BuiltInTypeKind == BuiltInTypeKind.EntityType)).ToList();
+      
+      return GetDefaultEntitySetName(cspaceEntityType, entitySets);
     }
+
+    private static string GetDefaultEntitySetName(EntityType cspaceEntityType, IList<EntitySetBase> entitySets) {
+      // 1st entity set with matching entity type, otherwise with matching assignable type.
+      EdmType baseType = cspaceEntityType;
+      EntitySetBase entitySet = null;
+      while (baseType != null) {
+        entitySet = entitySets.FirstOrDefault(es => es.ElementType == baseType);
+        if (entitySet != null) return entitySet.Name;
+        baseType = baseType.BaseType;
+      }
+      return string.Empty;
+    }
+
+    //var entityTypes = key.MetadataWorkspace.GetItems<EntityType>(DataSpace.OSpace);
+    //// note CSpace below - not OSpace - evidently the entityContainer is only in the CSpace.
+    //var entitySets = key.MetadataWorkspace.GetItems<EntityContainer>(DataSpace.CSpace)
+    //    .SelectMany(c => c.BaseEntitySets.Where(es => es.ElementType.BuiltInTypeKind == BuiltInTypeKind.EntityType)).ToList();
+
+    //private EntitySet GetDefaultEntitySet(EntityType cspaceEntityType) {
+    //  var entitySet = _cspaceContainers.First().BaseEntitySets.OfType<EntitySet>().Where(es => es.ElementType == cspaceEntityType).FirstOrDefault();
+    //  if (entitySet == null) {
+    //    var baseEntityType = cspaceEntityType.BaseType as EntityType;
+    //    if (baseEntityType != null) {
+    //      return GetDefaultEntitySet(baseEntityType);
+    //    } else {
+    //      return null;
+    //    }
+    //  }
+    //  return entitySet;
+    //}
+
+
+    //// from DF
+    
 
     private const string ResourcePrefix = @"res://";
     
