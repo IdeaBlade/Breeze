@@ -73,14 +73,28 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * can filter each inherited type and flavor
+    * can filter each inherited type on a base class property
     *********************************************************/
     var predicate = new breeze.Predicate('Owner', 'contains', 'a');
     predicate.description = "where 'Owner' contains an 'a'";
 
-    asyncTest("can filter base class property, 'Owner', in BankAccount", 3, function () {
+    asyncTest("can filter 'Owner' in BankAccount", 3, function () {
         var promises = inheritanceTypes.map(function (t) {
             return assertCanFilter(predicate, bankRoot + t, 2);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can filter 'Owner' in CreditCard", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanFilter(predicate, cardRoot + t, 4);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can filter 'Owner' in base class BillingDetail", 3, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanFilter(predicate, baseRoot + t, 6);
         });
         waitForTestPromises(promises);
     });
