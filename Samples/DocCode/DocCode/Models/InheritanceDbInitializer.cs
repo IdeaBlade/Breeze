@@ -88,7 +88,7 @@ namespace Inheritance.Models
                 (TBilling) CreateCreditCard<TCreditCard>("Ginna Lovette", "111-222-333", 5, "02", "2014"),
                 (TBilling) CreateCreditCard<TCreditCard>("Faith Long"   , "123-456-789", 4, "01", "2014")
            };
-           Array.ForEach(billingDetails, _ => _.inheritanceModel = inheritanceModel);
+           Array.ForEach(billingDetails, _ => _.InheritanceModel = inheritanceModel);
 
            return billingDetails;
         }

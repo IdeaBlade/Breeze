@@ -18,9 +18,12 @@ define(["breeze"], function (breeze) {
         todosServiceName: "breeze/todos",
         inheritanceServiceName: "breeze/inheritance",
 
+        waitForTestPromises:waitForTestPromises,
         handleFail: handleFail,
+        reportRejectedPromises: reportRejectedPromises,
         getModuleOptions: getModuleOptions,
         teardown_todosReset: teardown_todosReset,
+        teardown_inheritanceReset: teardown_inheritanceReset,
         output: output,
         stopCount: stopCountFactory(),
 
@@ -99,7 +102,14 @@ define(["breeze"], function (breeze) {
             return (this.indexOf(value) !== -1);
         };
     }
-
+    
+    /*********************************************************
+    * Wait for an array of test promises to finish.
+    *********************************************************/
+    function waitForTestPromises(promises) {
+        Q.allResolved(promises).then(reportRejectedPromises).fin(start);
+    }
+    
     /*********************************************************
     * Callback for test failures.
     *********************************************************/
@@ -112,9 +122,19 @@ define(["breeze"], function (breeze) {
         } else {
             ok(false, "Failed: " + error.toString());
         }
-        start();
     }
-
+    
+    function reportRejectedPromises(promises) {
+        for (var i = 0, len = promises.length; i < len; i++) {
+            var promise = promises[i];
+            if (promise.isRejected()) {
+                var msg = "Operation #{0} failed. ";
+                var ex = promise.valueOf().exception;
+                msg += ex ? ex.message : " Not sure why.";
+                ok(false, msg.format(i + 1));
+            }
+        }
+    }
     /*********************************************************
     * Factory of EntityManager factories (newEm functions)
     *********************************************************/
@@ -191,7 +211,15 @@ define(["breeze"], function (breeze) {
         stop();
         todosReset().fail(handleFail).fin(start).done();
     }
-
+    /*********************************************************
+    * Teardown for a module that saves to the Inheritance database
+    *********************************************************/
+    // should call this during test teardown to restore
+    // the database to a known, populated state.
+    function teardown_inheritanceReset() {
+        stop();
+        inheritanceReset().fail(handleFail).fin(start).done();
+    }
     /*********************************************************
     * Get or Create an EntityManager
     *********************************************************/
