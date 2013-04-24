@@ -185,14 +185,14 @@ define(["breeze"], function (breeze) {
 
         // Check if the module metadataStore is empty
         if (!metadataStore.isEmpty()) {
-            return; // ok ... it's been populated ... we're done.
+            return Q(); // ok ... it's been populated ... we're done.
         }
 
         // It's empty; get metadata
         var serviceName = newEm.options.serviceName;
         stop(); // tell testrunner to wait.
 
-        metadataStore.fetchMetadata(serviceName)
+        return metadataStore.fetchMetadata(serviceName)
         .then(function () {
             if (typeof metadataSetupFn === "function") {
                 metadataSetupFn(metadataStore);

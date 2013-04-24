@@ -28,7 +28,7 @@ define(["testFns"], function (testFns) {
     // EntityType name = rootname + inheritanceType
     var inheritanceTypes = ["TPH", "TPT", "TPC"];
 
-    var moduleOptions = testFns.getModuleOptions(newEm);
+    var moduleOptions = testFns.getModuleOptions(newEm, addToMetadata);
 
     /************************** QUERIES *************************/
 
@@ -139,7 +139,7 @@ define(["testFns"], function (testFns) {
     })
 
     /*********************************************************
-    * can select across inheritance class boundary
+    * can project across inheritance class boundary
     *********************************************************/
 
     asyncTest("can select {'Id', 'Owner', 'BankName'} in BankAccount", 6, function () {
@@ -208,6 +208,7 @@ define(["testFns"], function (testFns) {
             }
         }
     });
+
     /*********************************************************
      * can page (take/skip)
      * This test succeeds when we know how many items are in test data
@@ -248,6 +249,167 @@ define(["testFns"], function (testFns) {
                 .format(take, resourceName, skip));
         }
     }
+
+    /*********************************************************
+    * can query locally
+    * NOTE: Must register resourceNames for derived types at the moment
+    *       See 'addToMetadata' below
+    *********************************************************/
+    asyncTest("can query in cache for BankAccount and CreditCard", 6, function () {
+
+        var promises = inheritanceTypes.map(function (t) {
+            return assertQueryLocally(t, 1);
+        });
+        waitForTestPromises(promises);
+
+        function assertQueryLocally(inheritanceType) {
+            var em = newEm();
+            var bankType = bankRoot + inheritanceType;
+            var cardType = cardRoot + inheritanceType;
+
+            // Prime the cache with all BillingDetails
+            return EntityQuery.from(baseRoot + inheritanceType + 's')
+                .using(em).execute().then(querySuccess);
+
+            function querySuccess(data) {
+
+                var account = EntityQuery.from(bankType + 's')
+                              .where('BankName', 'contains', 'Fun')
+                              .using(em).executeLocally()[0];
+
+                var card = EntityQuery.from(cardType + 's')
+                              .where('ExpiryYear', 'eq', '2015')
+                              .using(em).executeLocally()[0];
+
+                if (account) {
+                    ok(true, "Found {0} in cache: {1}: '{2}' for '{3}'."
+                    .format(bankType, account.Id(), account.BankName(), account.Owner()));
+                } else {
+                    ok(false, "Did not find expected {0} in cache".format(bankType));
+                }
+
+                if (card) {
+                    ok(true, "Found {0} in cache: {1}: for '{2}' expiring '{3}'."
+                    .format(cardType, card.Id(), card.Owner(), card.ExpiryYear()));
+                } else {
+                    ok(false, "Did not find expected {0} in cache".format(cardType));
+                }
+            }
+        }
+    });
+    /*********************************************************
+     * can navigate to pre-loaded AccountTypes
+     * First fetches AccountTypes into cache
+     * Then gets one each of every flavor of BankAccount and CreditCard
+     * and asserts that can navigate from it to an AccountType in cache
+     *********************************************************/
+    asyncTest("can navigate to pre-loaded AccountTypes", 6, function () {
+        var em = newEm();
+
+        // pre-load AccountTypes
+        var accountTypePromise = EntityQuery.from('AccountTypes')
+            .using(em).execute()
+            .then(navigateTests).fail(handleFail).fin(start);
+
+        // Fetch a BankAccount and CreditCard of each flavor
+        function navigateTests() {
+
+            var bankPromises = inheritanceTypes.map(function (t) {
+                return EntityQuery.from(bankRoot + t + 's').take(1)
+                .using(em).execute().then(assertNavToAccountType).fail(handleFail);
+            })
+
+            var cardPromises = inheritanceTypes.map(function (t) {
+                return EntityQuery.from(cardRoot + t + 's').take(1)
+                .using(em).execute().then(assertNavToAccountType).fail(handleFail);
+            })
+
+            // wait for all to be resolved
+            return Q.allResolved(bankPromises.concat(cardPromises))
+                    .then(reportRejectedPromises);
+        }
+
+        // Assert can navigate from the first entity to an AccountType in cache
+        function assertNavToAccountType(data) {
+            var entity = data.results[0];
+            var type = entity.entityType.shortName;
+            if (!entity) {
+                ok(false, "a query failed to return a single " + type);
+            } else if (typeof entity.AccountType !== 'function') {
+                ok(false, type + " doesn't have an AccountType KO property");
+            } else {
+                var accountType = entity.AccountType();
+                if (accountType) {
+                    ok(true, "{0} has an AccountType named {1}"
+                        .format(type, accountType.Name()));
+                } else {
+                    ok(false, type + " failed to load or associate with its AccountType.");
+                }
+            }
+        }
+    });
+
+    /*********************************************************
+    * can navigate to AccountType when loaded on-demand
+    * Tests one each of every flavor of BankAccount and CreditCard
+    *********************************************************/
+    asyncTest("can navigate to AccountType loaded on-demand", 6, function ()  {
+
+        // Fetch a BankAccount and CreditCard of each flavor
+
+        var bankPromises = inheritanceTypes.map(function (t) {
+            var em = newEm();
+            return EntityQuery.from(bankRoot + t + 's').take(1)
+            .using(em).execute().then(NavToAccountTypeOnDemand).fail(handleFail);
+        })
+
+        var cardPromises = inheritanceTypes.map(function (t) {
+            var em = newEm();
+            return EntityQuery.from(cardRoot + t + 's').take(1)
+            .using(em).execute().then(NavToAccountTypeOnDemand).fail(handleFail);
+        })
+
+        // wait for all to be resolved
+        return Q.allResolved(bankPromises.concat(cardPromises))
+                .then(reportRejectedPromises).fin(start);
+
+
+        // Assert can load the related AccountType on-demand
+        function NavToAccountTypeOnDemand(data) {
+            var entity = data.results[0];
+            var type = entity.entityType.shortName;
+
+            if (!entity) {
+                ok(false, "a query failed to return a single " + type);
+
+            } else if (typeof entity.AccountType !== 'function') {
+                ok(false, type + " doesn't have an AccountType KO property");
+
+            } else {
+                return entity.entityAspect.loadNavigationProperty("AccountType")
+                    .then(function () {
+                        var accountType = entity.AccountType();
+                        if (accountType) {
+                            ok(true, "{0} loaded an AccountType named {1}"
+                                .format(type, accountType.Name()));
+                        } else {
+                            ok(false, type + " failed to load or associate with its AccountType.");
+                            DEBUGGING_ShowAccountTypeIsInCache(entity);
+                        }
+                    })
+            }
+        }
+        // Delete this once we figure out why load-on-demand is failing
+        // to associate the loaded AccountType with the entity
+        function DEBUGGING_ShowAccountTypeIsInCache(entity) {
+            var type = entity.entityType.shortName;
+            var manager = entity.entityAspect.entityManager;
+            var accountType = manager.getEntityByKey("AccountType", entity.AccountTypeId());
+            ok(accountType, "{0}'s AccountType, '{1}', is actually in cache."
+                .format(type, accountType.Name()));
+        }
+    });
+
     /************************** SAVES *************************/
 
     // reset inheritance db after each save module test because we're messing it up
@@ -313,7 +475,7 @@ define(["testFns"], function (testFns) {
 
     function saveAndRequeryBillingDetailClass(typeName, inits) {
         var em = newEm();
-        addToMetadata(em.metadataStore);
+        
         try {
             var detail = em.createEntity(typeName, inits);
         } catch (ex) {
@@ -342,7 +504,14 @@ define(["testFns"], function (testFns) {
         }
     }
     
+
+    /************************** TEST HELPERS *************************/
     function addToMetadata(metadataStore) {
+
+        // Registering resource names for each derived type
+        // because they are not in metadata and they are not in metadata
+        // because there are no corresponding DbSets in the DbContext
+        // and that's how Breeze decides what resource names to use by default
 
         inheritanceTypes.map(function (t) {
             var typeName = bankRoot + t;
@@ -351,8 +520,7 @@ define(["testFns"], function (testFns) {
         inheritanceTypes.map(function (t) {
             var typeName = cardRoot + t;
             metadataStore.setEntityTypeForResourceName(typeName + 's', typeName);
-        });
+        });       
     }
-
 
 });
