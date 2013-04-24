@@ -34,8 +34,8 @@ TRY THE SAMPLE APPLICATION
 TRY THE BREEZE SAMPLE WEB API CONTROLLER
 
 1. Run with debug (F5) of without debug (ctrl-F5)
-2. Append "/api/BreezeSample/metadata" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/metadata
-3. Append "/api/BreezeSample/todos" to browser address bar, e.g., http://localhost:42494/api/BreezeSample/todos
+2. Append "/breeze/BreezeSample/metadata" to browser address bar, e.g., http://localhost:42494/breeze/BreezeSample/metadata
+3. Append "/breeze/BreezeSample/todos" to browser address bar, e.g., http://localhost:42494/breeze/BreezeSample/todos
 
 *** VIEWING IS EASIER IN NON-IE BROWSERS, IF USING IE, SEE NOTE BELOW.  ***
 

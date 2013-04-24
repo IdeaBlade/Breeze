@@ -42,7 +42,7 @@ name in the path by a ".". Property paths of any length can be specified in *Bre
       </Instructions>
       <StartingJavascript>
         <![CDATA[    
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Products");
@@ -119,7 +119,7 @@ begin with the letter "S".
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Products")
@@ -190,7 +190,7 @@ and press **Run**
       </Instructions>
       <StartingJavascript>
 <![CDATA[
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Products")
@@ -258,7 +258,7 @@ Now you can go ahead and press **Run**.
       </Instructions>
       <StartingJavascript>
         <![CDATA[
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Products")
@@ -317,7 +317,7 @@ This should produce a list of category names each with its associated products.
 ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Products")
@@ -347,7 +347,7 @@ manager.executeQuery(query).then(function(data){
       <Instructions><![CDATA[  ]]></Instructions>
       <StartingJavascript>
         <![CDATA[
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
    .from("Categories")

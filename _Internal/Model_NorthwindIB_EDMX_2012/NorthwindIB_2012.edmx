@@ -113,7 +113,7 @@
             <PropertyRef Name="SeqNum" />
           </Key>
           <Property Name="CreatedOn" Type="datetime" Nullable="false" />
-          <Property Name="Comment" Type="nvarchar(max)" />
+          <Property Name="Comment1" Type="nvarchar(max)" />
           <Property Name="SeqNum" Type="tinyint" Nullable="false" />
         </EntityType>
         <EntityType Name="Customer">
@@ -619,12 +619,12 @@
             <End Role="UserRole" EntitySet="UserRoles" />
           </AssociationSet>
           <EntitySet Name="TimeLimits" EntityType="NorthwindIBModel.TimeLimit" />
-          <EntitySet Name="Comments" EntityType="NorthwindIBModel.Comment" />
           <EntitySet Name="TimeGroups" EntityType="NorthwindIBModel.TimeGroup" />
           <AssociationSet Name="TimeLimitTimeGroup" Association="NorthwindIBModel.TimeLimitTimeGroup">
             <End Role="TimeLimit" EntitySet="TimeLimits" />
             <End Role="TimeGroup" EntitySet="TimeGroups" />
           </AssociationSet>
+          <EntitySet Name="Comments" EntityType="NorthwindIBModel.Comment" />
         </EntityContainer>
         <EntityType Name="Category">
           <Key>
@@ -1051,15 +1051,6 @@
           <Property Type="Geography" Name="Geography1" />
           <Property Type="Int32" Name="TimeGroupId" />
         </EntityType>
-        <EntityType Name="Comment">
-          <Key>
-            <PropertyRef Name="CreatedOn" />
-            <PropertyRef Name="SeqNum" />
-          </Key>
-          <Property Type="DateTime" Name="CreatedOn" Nullable="false" Precision="3" />
-          <Property Type="String" Name="Comment1" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Type="Byte" Name="SeqNum" Nullable="false" />
-        </EntityType>
         <EntityType Name="TimeGroup">
           <Key>
             <PropertyRef Name="Id" />
@@ -1080,6 +1071,15 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Comment">
+          <Key>
+            <PropertyRef Name="CreatedOn" />
+            <PropertyRef Name="SeqNum" />
+          </Key>
+          <Property Type="DateTime" Name="CreatedOn" Nullable="false" Precision="3" />
+          <Property Type="String" Name="Comment1" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="Byte" Name="SeqNum" Nullable="false" />
+        </EntityType>
 
       </Schema>
     </edmx:ConceptualModels>
@@ -1346,20 +1346,20 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Comments">
-            <EntityTypeMapping TypeName="NorthwindIBModel.Comment">
-              <MappingFragment StoreEntitySet="Comment">
-                <ScalarProperty Name="SeqNum" ColumnName="SeqNum" />
-                <ScalarProperty Name="Comment1" ColumnName="Comment" />
-                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TimeGroups">
             <EntityTypeMapping TypeName="NorthwindIBModel.TimeGroup">
               <MappingFragment StoreEntitySet="TimeGroup">
                 <ScalarProperty Name="Comment" ColumnName="Comment" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Comments">
+            <EntityTypeMapping TypeName="NorthwindIBModel.Comment">
+              <MappingFragment StoreEntitySet="Comment">
+                <ScalarProperty Name="SeqNum" ColumnName="SeqNum" />
+                <ScalarProperty Name="Comment1" ColumnName="Comment1" />
+                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

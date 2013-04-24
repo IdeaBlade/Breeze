@@ -34,7 +34,7 @@ define(["testFns"], function (testFns) {
     
     
     function newAltEm() {
-        var altServiceName = "api/NonEFModel";
+        var altServiceName = "breeze/NonEFModel";
 
         var dataService = new DataService({
             serviceName: altServiceName,

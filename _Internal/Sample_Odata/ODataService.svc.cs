@@ -5,6 +5,8 @@ using Models.NorthwindIB.CF;
 using Models.NorthwindIB.EDMX;
 using Models.NorthwindIB.EDMX_2012;
 using System.ServiceModel;
+using System;
+using System.Web;
 
 // MAKE SURE YOU SET the ODATA define before running any ODATA tests.
 
@@ -32,11 +34,23 @@ namespace Breeze_OData {
       config.SetEntitySetAccessRule("Suppliers", EntitySetRights.All);
       config.SetEntitySetAccessRule("Users", EntitySetRights.All);
       config.SetEntitySetAccessRule("TimeLimits", EntitySetRights.All);
-
+      try {
+        config.SetEntitySetAccessRule("Comments", EntitySetRights.All);
+      } catch (Exception e) {
+        var x = e;
+      }
 
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
       config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+      config.UseVerboseErrors = true;
     }
+
+    protected override void OnStartProcessingRequest(ProcessRequestArgs args) {
+      HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.NoCache);
+      
+      // HttpContext.Current.Response.AddHeader("Cache-control", "no-cache");
+    }
+
 
     protected override void HandleException(HandleExceptionArgs args) {
       var x = args;

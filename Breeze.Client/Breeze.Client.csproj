@@ -168,6 +168,8 @@
     <None Include="Scripts\IBlade\_head.jsfrag" />
     <None Include="Scripts\IBlade\_tail.jsfrag" />
     <Content Include="Scripts\IBlade\Notes.txt" />
+    <Content Include="Scripts\Tests\inheritBillingTests.js" />
+    <Content Include="Scripts\Tests\inheritProduceTests.js" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.js" />
     <Content Include="Scripts\ThirdParty\datajs-1.1.0.min.js" />
     <Content Include="Scripts\Tests\complexTypeTests.js" />

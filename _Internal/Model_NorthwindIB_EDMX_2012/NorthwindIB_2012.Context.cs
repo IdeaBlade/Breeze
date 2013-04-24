@@ -42,7 +42,7 @@ namespace Models.NorthwindIB.EDMX_2012
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<TimeLimit> TimeLimits { get; set; }
-        public DbSet<Comment> Comments { get; set; }
         public DbSet<TimeGroup> TimeGroups { get; set; }
+        public DbSet<Comment> Comments { get; set; }
     }
 }

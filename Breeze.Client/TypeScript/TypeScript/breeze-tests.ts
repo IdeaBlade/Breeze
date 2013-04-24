@@ -29,7 +29,7 @@ function test_dataProperty() {
 
 function test_dataService() {
     var ds = new breeze.DataService({
-        serviceName: "api/NorthwindIBModel",
+        serviceName: "breeze/NorthwindIBModel",
         hasServerMetadata: true
     });
     var em = new breeze.EntityManager({
@@ -92,7 +92,7 @@ function test_entityKey() {
 function test_metadataStore() {
     var ms = new breeze.MetadataStore();
     var entityManager = new breeze.EntityManager({
-        serviceName: "api/NorthwindIBModel",
+        serviceName: "breeze/NorthwindIBModel",
         metadataStore: ms
     });
     var em1: breeze.EntityManager;
@@ -103,13 +103,13 @@ function test_metadataStore() {
     var newMetadataStore = new breeze.MetadataStore();
     newMetadataStore.importMetadata(metadataFromStorage);
     var ms = new breeze.MetadataStore();
-    ms.fetchMetadata("api/NorthwindIBModel")
+    ms.fetchMetadata("breeze/NorthwindIBModel")
         .then(function (rawMetadata) { })
         .fail(function (exception) { });
     var odType = em1.metadataStore.getEntityType("OrderDetail");
     var badType = em1.metadataStore.getEntityType("Foo", false);
     var allTypes = em1.metadataStore.getEntityTypes();
-    if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel")) { }
+    if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel")) { }
     var metadataAsString = ms.exportMetadata();
     window.localStorage.setItem("metadata", metadataAsString);
     var metadataFromStorage = window.localStorage.getItem("metadata");
@@ -127,11 +127,11 @@ function test_metadataStore() {
 }
 
 function test_entityManager() {
-    var entityManager = new breeze.EntityManager("api/NorthwindIBModel");
-    var em1 = new breeze.EntityManager({ serviceName: "api/NorthwindIBModel" });
+    var entityManager = new breeze.EntityManager("breeze/NorthwindIBModel");
+    var em1 = new breeze.EntityManager({ serviceName: "breeze/NorthwindIBModel" });
     var metadataStore = new breeze.MetadataStore();
     var entityManager = new breeze.EntityManager({
-        serviceName: "api/NorthwindIBModel",
+        serviceName: "breeze/NorthwindIBModel",
         metadataStore: metadataStore
     });
     
@@ -149,7 +149,7 @@ function test_entityManager() {
         validateOnQuery: false
     });
     var entityManager = new breeze.EntityManager({
-        serviceName: "api/NorthwindIBModel",
+        serviceName: "breeze/NorthwindIBModel",
         queryOptions: queryOptions,
         validationOptions: validationOptions
     });
@@ -208,7 +208,7 @@ function test_entityManager() {
     var entitiesToExport: breeze.Entity[];
     var bundle = em1.exportEntities(entitiesToExport);
     em2.importEntities(bundle, { mergeStrategy: breeze.MergeStrategy.PreserveChanges });
-    var em1 = new breeze.EntityManager("api/NorthwindIBModel");
+    var em1 = new breeze.EntityManager("breeze/NorthwindIBModel");
     em1.fetchMetadata()
        .then(function () {
            var metadataStore = em1.metadataStore;
@@ -280,14 +280,14 @@ function test_entityManager() {
         }, function (e) { }
     );
     em1.setProperties({
-        serviceName: "api/foo",
+        serviceName: "breeze/foo",
     });
-    var em = new breeze.EntityManager({ serviceName: "api/NorthwindIBModel" });
+    var em = new breeze.EntityManager({ serviceName: "breeze/NorthwindIBModel" });
     em.entityChanged.subscribe(function (changeArgs) {
         var action = changeArgs.entityAction;
         var entity = changeArgs.entity;
     });
-    var em = new breeze.EntityManager({ serviceName: "api/NorthwindIBModel" });
+    var em = new breeze.EntityManager({ serviceName: "breeze/NorthwindIBModel" });
     em.hasChangesChanged.subscribe(function (args) {
         var hasChanges = args.hasChanges;
         var entityManager = args.entityManager;
@@ -440,7 +440,7 @@ function test_entityType() {
     var em1: breeze.EntityManager;
     var entityManager = new breeze.EntityType({
         metadataStore: myMetadataStore,
-        serviceName: "api/NorthwindIBModel",
+        serviceName: "breeze/NorthwindIBModel",
         name: "person",
         namespace: "myAppNamespace"
     });
@@ -793,7 +793,7 @@ function test_validator() {
 
 function test_demo() {
 
-    var manager = new breeze.EntityManager('api/northwind');
+    var manager = new breeze.EntityManager('breeze/northwind');
 
     var query = new breeze.EntityQuery()
         .from("Employees");

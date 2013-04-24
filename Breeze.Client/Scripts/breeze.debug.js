@@ -784,16 +784,18 @@ var Param = (function () {
     };
 
 
-    proto.applyAll = function(instance, checkOnly, throwIfUnknownProperty) {
-        throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
+    proto.applyAll = function (instance, checkOnly, allowUnknownProperty) {
+        var parentTypeName = instance._$typeName;
+        allowUnknownProperty = allowUnknownProperty || (parentTypeName && this.parent.config._$typeName === parentTypeName);
+        
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
-            if (throwIfUnknownProperty) delete clone[p.name];
+            if (!allowUnknownProperty) delete clone[p.name];
             p.check();
             (!checkOnly) && p._applyOne(instance);
         });
         // should be no properties left in the clone
-        if (throwIfUnknownProperty) {
+        if (!allowUnknownProperty) {
             for (var key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
@@ -3524,6 +3526,20 @@ var EntityKey = (function () {
     };
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
+    
+    /**
+    The 'EntityType' that this is a key for. 
+
+    __readOnly__
+    @property entityType {EntityType} 
+    **/
+    
+    /**
+    An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.
+
+    __readOnly__
+    @property values [Array} 
+    **/
 
     proto.toJSON = function () {
         return {
@@ -3977,7 +3993,9 @@ breeze.makeRelationArray = function() {
 function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // 'this' is the entity itself in this context.
 
+    if (newValue === undefined) newValue = null;
     var oldValue = rawAccessorFn();
+
     var dataType = property.dataType;
     if (dataType && dataType.parse) {
         // attempts to coerce a value to the correct type - if this fails return the value unchanged
@@ -4422,6 +4440,20 @@ var DataService = (function () {
         return new DataService(json);
     };
 
+    proto.makeUrl = function(suffix) {
+        var url = this.serviceName;
+        // remove any trailing "/"
+        if (core.stringEndsWith(url, "/")) {
+            url = url.substr(0, url.length - 1);
+        }
+        // ensure that it ends with "/" + suffix
+        suffix = "/" + suffix;
+        if (!core.stringEndsWith(url, suffix)) {
+            url = url + suffix;
+        }
+        return url;
+    };
+
     return ctor;
 })();
     
@@ -4444,7 +4476,7 @@ var JsonResultsAdapter = (function () {
             extractResults: function(json) {
                 return json.results;
             },
-            visitNode: function(node, parseContext, nodeContext) {
+            visitNode: function(node, mappingContext, nodeContext) {
                 var entityType = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
@@ -4459,7 +4491,7 @@ var JsonResultsAdapter = (function () {
         });
 
         var dataService = new DataService( {
-                serviceName: "api/foo",
+                serviceName: "breeze/foo",
                 jsonResultsAdapter: jsonResultsAdapter
         });
 
@@ -4576,6 +4608,81 @@ var DataType = function () {
         return source;
     };
 
+    var fmtString = function (val) {
+        return val == null ? null : "'" + val + "'";
+    };
+
+    var fmtInt = function (val) {
+        return val == null ? null : ((typeof val === "string") ? parseInt(val) : val);
+    };
+
+    var makeFloatFmt = function (fmtSuffix) {
+        return function(val) {
+            if (val == null) return null;
+            if (typeof val === "string") {
+                val = parseFloat(val);
+            }
+            return val + fmtSuffix;
+        };
+    };
+
+    var fmtDateTime = function (val) {
+        if (val == null) return null;
+        try {
+            return "datetime'" + val.toISOString() + "'";
+        } catch (e) {
+            throwError("'%1' is not a valid dateTime", val);
+        }
+    };
+
+    var fmtDateTimeOffset = function (val) {
+        if (val == null) return null;
+        try {
+            return "datetimeoffset'" + val.toISOString() + "'";
+        } catch (e) {
+            throwError("'%1' is not a valid dateTime", val);
+        }
+    };
+
+    var fmtTime = function (val) {
+        if (val == null) return null;
+        if (!__isDuration(val)) {
+            throwError("'%1' is not a valid ISO 8601 duration", val);
+        }
+        return "time'" + val + "'";
+    };
+
+    var fmtGuid = function (val) {
+        if (val == null) return null;
+        if (!__isGuid(val)) {
+            throwError("'%1' is not a valid guid", val);
+        }
+        return "guid'" + val + "'";
+    };
+
+    var fmtBoolean = function (val) {
+        if (val == null) return null;
+        if (typeof val === "string") {
+            return val.trim().toLowerCase() === "true";
+        } else {
+            return !!val;
+        }
+    };
+    
+    var fmtBinary = function (val) {
+        if (val == null) return val;
+        return "binary'" + val + "'";
+    };
+
+    var fmtUndefined = function (val) {
+        return val;
+    };
+
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
+    }
+    
     var DataType = new Enum("DataType", dataTypeMethods);
     
     
@@ -4584,93 +4691,93 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString });
+    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, fmtOData: fmtString });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Byte {DataType}
     @final
     @static
     **/
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     /**
     @property Decimal {DataType}
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("m"), quoteJsonOData: true });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("d") });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("f") });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
     
     /**
     @property DateTimeOffset {DataType}
     @final
     @static
     **/
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
     /**
     @property Time {DataType}
     @final
     @static
     **/
-    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S" });
+    DataType.Time = DataType.addSymbol({ defaultValue: "PT0S", fmtOData: fmtTime });
     /**
     @property Boolean {DataType}
     @final
     @static
     **/
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool, fmtOData: fmtBoolean });
     /**
     @property Guid {DataType}
     @final
     @static
     **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000" });
+    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", fmtOData: fmtGuid });
   
     /**
     @property Binary {DataType}
     @final
     @static
     **/
-    DataType.Binary = DataType.addSymbol({ defaultValue: null });
+    DataType.Binary = DataType.addSymbol({ defaultValue: null, fmtOData: fmtBinary });
     /**
     @property Undefined {DataType}
     @final
     @static
     **/
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
+    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined , fmtOData: fmtUndefined});
     DataType.seal();
 
     /**
@@ -4813,7 +4920,7 @@ var MetadataStore = (function () {
     The store can then be associated with an EntityManager
     @example
         var entityManager = new EntityManager( {
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             metadataStore: ms 
         });
     or for an existing EntityManager
@@ -4962,6 +5069,11 @@ var MetadataStore = (function () {
     @chainable
     **/
     proto.importMetadata = function (exportedMetadata) {
+        if (exportedMetadata.schema) {
+            CsdlMetadataParser.parse(this, exportedMetadata.schema);
+            return this;
+        } 
+
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
@@ -4990,9 +5102,7 @@ var MetadataStore = (function () {
             that.addDataService(ds, true);
         });
         var structuralTypeMap = this._structuralTypeMap;
-        //__objectForEach(json.structuralTypeMap, function (key, value) {
-        //    structuralTypeMap[key] = structuralTypeFromJson(that, value);
-        //});
+        
         json.structuralTypes.forEach(function (stype) {
             var structuralType = structuralTypeFromJson(that, stype);
             structuralTypeMap[structuralType.name] = structuralType;
@@ -5028,7 +5138,7 @@ var MetadataStore = (function () {
     Returns whether Metadata has been retrieved for a specified service name.
     @example
         // Assume em1 is an existing EntityManager.
-        if (!em1.metadataStore.hasMetadataFor("api/NorthwindIBModel"))) {
+        if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel"))) {
             // do something interesting
         }
     @method hasMetadataFor
@@ -5043,7 +5153,7 @@ var MetadataStore = (function () {
     Returns the DataService for a specified service name
     @example
         // Assume em1 is an existing EntityManager.
-        var ds = em1.metadataStore.getDataService("api/NorthwindIBModel");
+        var ds = em1.metadataStore.getDataService("breeze/NorthwindIBModel");
         var adapterName = ds.adapterName; // may be null
            
     @method getDataService
@@ -5070,7 +5180,7 @@ var MetadataStore = (function () {
         var ms = new MetadataStore();
         // or more commonly
         // var ms = anEntityManager.metadataStore;
-        ms.fetchMetadata("api/NorthwindIBModel")
+        ms.fetchMetadata("breeze/NorthwindIBModel")
         .then(function(rawMetadata) {
             // do something with the metadata
         }
@@ -5108,17 +5218,14 @@ var MetadataStore = (function () {
         if (this.hasMetadataFor(dataService.serviceName)) {
             throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
         }
-            
 
-        var deferred = Q.defer();
-        dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-        return deferred.promise.then(function (rawMetadata) {
+        return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }, function (error) {
+        }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
+        })
     };
 
 
@@ -5240,7 +5347,7 @@ var MetadataStore = (function () {
     proto.getEntityTypes = function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
-        
+
     proto._getEntityType = function(typeName, okIfNotFound) {
         var qualTypeName = getQualifiedTypeName(this, typeName, false);
         var type = this._structuralTypeMap[qualTypeName];
@@ -5253,8 +5360,7 @@ var MetadataStore = (function () {
             throw new Error("There are multiple types with this 'shortName': " + typeNames);
         }
         return type;
-
-    }
+    };
                
     function getTypesFromMap(typeMap) {
         var types = [];
@@ -5320,19 +5426,14 @@ var MetadataStore = (function () {
     };
 
     // protected methods
-
-    ctor._getNormalizedTypeName = __memoize(function (rawTypeName) {
-        return rawTypeName && normalizeTypeName(rawTypeName).typeName;
-    });
-    // for debugging use the line below instead.
-    //ctor._getNormalizedTypeName = function (rawTypeName) { return normalizeTypeName(rawTypeName).typeName; };
+ 
 
     proto._getCtorRegistration = function(structuralType) {
         var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
         if (!r.ctor) {
             structuralType.getEntityCtor();
         }
-    }
+    };
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -5343,50 +5444,6 @@ var MetadataStore = (function () {
         var entityType = this._getEntityType(typeName);
         if (entityType) {
             entity.entityType = entityType;
-        }
-    };
-       
-    proto._parseODataMetadata = function (serviceName, schemas) {
-        var that = this;
-            
-        toArray(schemas).forEach(function (schema) {
-            if (schema.cSpaceOSpaceMapping) {
-                // Web api only - not avail in OData.
-                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
-                var newMap = {};
-                mappings.forEach(function(mapping) {
-                    newMap[mapping[0]] = mapping[1];
-                });
-                schema.cSpaceOSpaceMapping = newMap;
-            }
-            var entityTypeDefaultResourceNameMap = {};
-            if (schema.entityContainer) {
-                toArray(schema.entityContainer).forEach(function (container) {
-                    toArray(container.entitySet).forEach(function (entitySet) {
-                        var entityTypeName = normalizeTypeName(entitySet.entityType, schema).typeName;
-                        that.setEntityTypeForResourceName(entitySet.name, entityTypeName);
-                        entityTypeDefaultResourceNameMap[entityTypeName] = entitySet.name;
-                    });
-                });
-            }
-               
-            // process complextypes before entity types.
-            if (schema.complexType) {
-                toArray(schema.complexType).forEach(function (ct) {
-                    var complexType = convertFromODataComplexType(ct, schema, that);
-                });
-            }
-            if (schema.entityType) {
-                toArray(schema.entityType).forEach(function (et) {
-                    var entityType = convertFromODataEntityType(et, schema, that);
-                    entityType.defaultResourceName = entityTypeDefaultResourceNameMap[entityType.name];
-                });
-            }
-
-        });
-        var badNavProps = this.getIncompleteNavigationProperties();
-        if (badNavProps.length > 0) {
-            throw new Error("Bad nav properties");
         }
     };
 
@@ -5423,12 +5480,345 @@ var MetadataStore = (function () {
         metadataStore.addEntityType(stype);
         return stype;
     };
+        
+    function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
+        if (isQualifiedTypeName(structTypeName)) return structTypeName;
+        var result = metadataStore._shortNameMap[structTypeName];
+        if (!result && throwIfNotFound) {
+            throw new Error("Unable to locate 'entityTypeName' of: " + structTypeName);
+        }
+        return result;
+    }       
+
+    return ctor;
+})();
+
+var CsdlMetadataParser = (function () {
+
+    function parse(metadataStore, schemas) {
+
+        metadataStore._deferredTypes = {};
+        metadataStore._entityTypeResourceMap = {};
+        toArray(schemas).forEach(function (schema) {
+            if (schema.cSpaceOSpaceMapping) {
+                // Web api only - not avail in OData.
+                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                var newMap = {};
+                mappings.forEach(function (mapping) {
+                    newMap[mapping[0]] = mapping[1];
+                });
+                schema.cSpaceOSpaceMapping = newMap;
+            }
+
+            if (schema.entityContainer) {
+                toArray(schema.entityContainer).forEach(function (container) {
+                    toArray(container.entitySet).forEach(function (entitySet) {
+                        var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
+                        metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+                        metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
+                    });
+                });
+            }
+
+            // process complextypes before entity types.
+            if (schema.complexType) {
+                toArray(schema.complexType).forEach(function (ct) {
+                    var complexType = parseCsdlComplexType(ct, schema, metadataStore);
+                });
+            }
+            if (schema.entityType) {
+                toArray(schema.entityType).forEach(function (et) {
+                    var entityType = parseCsdlEntityType(et, schema, metadataStore);
+
+                });
+            }
+
+        });
+        var badNavProps = metadataStore.getIncompleteNavigationProperties();
+        if (badNavProps.length > 0) {
+            throw new Error("Bad nav properties");
+        }
+    };
+
+    function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
+        var shortName = csdlEntityType.name;
+        var ns = getNamespaceFor(shortName, schema);
+        var entityType = new EntityType({
+            shortName: shortName,
+            namespace: ns,
+            isAbstract: csdlEntityType.abstract && csdlEntityType.abstract === 'true'
+        });
+        if (csdlEntityType.baseType) {
+            var baseTypeName = parseTypeName(csdlEntityType.baseType, schema).typeName;
+            entityType.baseTypeName = baseTypeName;
+            var baseEntityType = metadataStore.getEntityType(baseTypeName);
+            if (baseEntityType) {
+                completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType);
+            } else {
+                var deferrals = metadataStore._deferredTypes[baseTypeName];
+                if (!deferrals) {
+                    deferrals = [];
+                    metadataStore._deferredTypes[baseTypeName] = deferrals;
+                }
+                deferrals.push({ entityType: entityType, csdlEntityType: csdlEntityType });
+            }
+        } else {
+            completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, null);
+        }
+        // entityType may or may not have been added to the metadataStore at this point.
+        return entityType;
+
+    }
+
+    function completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType) {
+        var baseKeyNamesOnServer = [];
+        if (baseEntityType) {
+            entityType.baseEntityType = baseEntityType;
+            baseKeyNamesOnServer = baseEntityType.keyProperties.map(__pluck("name"));
+            baseEntityType.dataProperties.forEach(function (dp) {
+                var newDp = new DataProperty(dp);
+                newDp.isInherited = true;
+                entityType.addProperty(newDp);
+            });
+            baseEntityType.navigationProperties.forEach(function (np) {
+                var newNp = new NavigationProperty(np);
+                newNp.isInherited = true;
+                entityType.addProperty(newNp);
+            });
+        }
+
+        var keyNamesOnServer = csdlEntityType.key ? toArray(csdlEntityType.key.propertyRef).map(__pluck("name")) : [];
+        keyNamesOnServer = baseKeyNamesOnServer.concat(keyNamesOnServer);
+
+        toArray(csdlEntityType.property).forEach(function (prop) {
+            parseCsdlDataProperty(entityType, prop, schema, keyNamesOnServer);
+        });
+
+        toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
+            parseCsdlNavProperty(entityType, prop, schema);
+        });
+
+        metadataStore.addEntityType(entityType);
+        entityType.defaultResourceName = metadataStore._entityTypeResourceMap[entityType.name];
+
+        var deferredTypes = metadataStore._deferredTypes;
+        var deferrals = deferredTypes[entityType.name];
+        if (deferrals) {
+            deferrals.forEach(function (d) {
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, entityType)
+            });
+            delete deferredTypes[entityType.name];
+        }
+
+    }
+
+    function parseCsdlComplexType(csdlComplexType, schema, metadataStore) {
+        var shortName = csdlComplexType.name;
+        var ns = getNamespaceFor(shortName, schema);
+        var complexType = new ComplexType({
+            shortName: shortName,
+            namespace: ns
+        });
+
+        toArray(csdlComplexType.property).forEach(function (prop) {
+            parseCsdlDataProperty(complexType, prop, schema);
+        });
+
+        metadataStore.addEntityType(complexType);
+        return complexType;
+    }
+
+    function parseCsdlDataProperty(parentType, csdlProperty, schema, keyNamesOnServer) {
+        var dp;
+        var typeParts = csdlProperty.type.split(".");
+        if (typeParts.length == 2) {
+            dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
+        } else {
+            if (isEnumType(csdlProperty, schema)) {
+                dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
+                if (dp) {
+                    dp.enumType = csdlProperty.type;
+                }
+            } else {
+                dp = parseCsdlComplexProperty(parentType, csdlProperty, schema);
+            }
+        }
+        if (dp) {
+            parentType.addProperty(dp);
+            addValidators(dp);
+        }
+        return dp;
+    }
+
+    function parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer) {
+        var dataType = DataType.fromEdmDataType(csdlProperty.type);
+        if (dataType == null) {
+            parentType.warnings.push("Unable to recognize DataType for property: " + csdlProperty.name + " DateType: " + csdlProperty.type);
+            return null;
+        }
+        var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
+        // var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
+        var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(csdlProperty.name) >= 0;
+        if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+            if (isIdentityProperty(csdlProperty)) {
+                parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
+            }
+        }
+        // TODO: nit - don't set maxLength if null;
+        var maxLength = csdlProperty.maxLength;
+        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
+        // can't set the name until we go thru namingConventions and these need the dp.
+        var dp = new DataProperty({
+            nameOnServer: csdlProperty.name,
+            dataType: dataType,
+            isNullable: isNullable,
+            isPartOfKey: isPartOfKey,
+            maxLength: maxLength,
+            // fixedLength: fixedLength,
+            concurrencyMode: csdlProperty.concurrencyMode
+        });
+        if (dataType === DataType.Undefined) {
+            dp.rawTypeName = csdlProperty.type;
+        }
+        return dp;
+    }
+
+    function parseCsdlComplexProperty(parentType, csdlProperty, schema) {
+
+        // Complex properties are never nullable ( per EF specs)
+        // var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
+        // var complexTypeName = csdlProperty.type.split("Edm.")[1];
+        var complexTypeName = parseTypeName(csdlProperty.type, schema).typeName;
+        // can't set the name until we go thru namingConventions and these need the dp.
+        var dp = new DataProperty({
+            nameOnServer: csdlProperty.name,
+            complexTypeName: complexTypeName,
+            isNullable: false
+        });
+
+        return dp;
+    }
+
+    function parseCsdlNavProperty(entityType, csdlProperty, schema) {
+        var association = getAssociation(csdlProperty, schema);
+        var toEnd = __arrayFirst(association.end, function (assocEnd) {
+            return assocEnd.role === csdlProperty.toRole;
+        });
+
+        var isScalar = !(toEnd.multiplicity === "*");
+        var dataType = parseTypeName(toEnd.type, schema).typeName;
+        var fkNamesOnServer = [];
+        if (toEnd && isScalar) {
+            var constraint = association.referentialConstraint;
+            if (constraint) {
+                var principal = constraint.principal;
+                var dependent = constraint.dependent;
+                var propRefs;
+                if (csdlProperty.fromRole === principal.role) {
+                    propRefs = toArray(principal.propertyRef);
+                } else {
+                    propRefs = toArray(dependent.propertyRef);
+                }
+                // will be used later by np._update
+                fkNamesOnServer = propRefs.map(__pluck("name"));
+            }
+        }
+        var np = new NavigationProperty({
+            nameOnServer: csdlProperty.name,
+            entityTypeName: dataType,
+            isScalar: isScalar,
+            associationName: association.name,
+            foreignKeyNamesOnServer: fkNamesOnServer
+        });
+        entityType.addProperty(np);
+
+        return np;
+    }
+
+    function isEnumType(csdlProperty, schema) {
+        if (!schema.enumType) return false;
+        var enumTypes = toArray(schema.enumType);
+        var typeParts = csdlProperty.type.split(".");
+        var baseTypeName = typeParts[typeParts.length - 1];
+        return enumTypes.some(function (enumType) {
+            return enumType.name === baseTypeName;
+        });
+    }
+
+    function addValidators(dataProperty) {
+        var typeValidator;
+        if (!dataProperty.isNullable) {
+            dataProperty.validators.push(Validator.required());
+        }
+
+        if (dataProperty.isComplexProperty) return;
+
+        if (dataProperty.dataType === DataType.String) {
+            if (dataProperty.maxLength) {
+                var validatorArgs = { maxLength: dataProperty.maxLength };
+                typeValidator = Validator.maxLength(validatorArgs);
+            } else {
+                typeValidator = Validator.string();
+            }
+        } else {
+            typeValidator = dataProperty.dataType.validatorCtor();
+        }
+
+        dataProperty.validators.push(typeValidator);
+
+    }
+
+    function isIdentityProperty(csdlProperty) {
+        // see if web api feed
+        var propName = __arrayFirst(Object.keys(csdlProperty), function (pn) {
+            return pn.indexOf("StoreGeneratedPattern") >= 0;
+        });
+        if (propName) {
+            return (csdlProperty[propName] === "Identity");
+        } else {
+            // see if Odata feed
+            var extensions = csdlProperty.extensions;
+            if (!extensions) {
+                return false;
+            }
+            var identityExtn = __arrayFirst(extensions, function (extension) {
+                return extension.name === "StoreGeneratedPattern" && extension.value === "Identity";
+            });
+            return !!identityExtn;
+        }
+    }
+
+    // Fast version
+    // np: schema.entityType[].navigationProperty.relationship -> schema.association
+    //   match( shortName(np.relationship) == schema.association[].name
+    //      --> association
+
+    // Correct version
+    // np: schema.entityType[].navigationProperty.relationship -> schema.association
+    //   match( np.relationship == schema.entityContainer[0].associationSet[].association )
+    //      -> associationSet.name
+    //   match ( associationSet.name == schema.association[].name )
+    //      -> association
+
+    function getAssociation(csdlNavProperty, schema) {
+        var assocName = parseTypeName(csdlNavProperty.relationship, schema).shortTypeName;
+        var assocs = schema.association;
+        if (!assocs) return null;
+        if (!Array.isArray(assocs)) {
+            assocs = [assocs];
+        }
+        var association = __arrayFirst(assocs, function (assoc) {
+            return assoc.name === assocName;
+        });
+        return association;
+    }
 
     // schema is only needed for navProperty type name
-    function normalizeTypeName(entityTypeName, schema) {
+    function parseTypeName(entityTypeName, schema) {
         if (!entityTypeName) {
             return null;
         }
+
         if (__stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
             return {
                 shortTypeName: entityTypeName,
@@ -5463,238 +5853,6 @@ var MetadataStore = (function () {
             };
         }
     }
-        
-    function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
-        if (isQualifiedTypeName(structTypeName)) return structTypeName;
-        var result = metadataStore._shortNameMap[structTypeName];
-        if (!result && throwIfNotFound) {
-            throw new Error("Unable to locate 'entityTypeName' of: " + structTypeName);
-        }
-        return result;
-    }
-
-    function convertFromODataEntityType(odataEntityType, schema, metadataStore) {
-        var shortName = odataEntityType.name;
-        var ns = getNamespaceFor(shortName, schema);
-        var entityType = new EntityType({
-            shortName: shortName,
-            namespace: ns
-        });
-        var keyNamesOnServer = toArray(odataEntityType.key.propertyRef).map(__pluck("name"));
-        toArray(odataEntityType.property).forEach(function (prop) {
-            convertFromODataDataProperty(entityType, prop, schema, keyNamesOnServer);
-        });
-            
-        toArray(odataEntityType.navigationProperty).forEach(function (prop) {
-            convertFromODataNavProperty(entityType, prop, schema);
-        });
-        metadataStore.addEntityType(entityType);
-        return entityType;
-    }
-        
-      
-    function convertFromODataComplexType(odataComplexType, schema, metadataStore) {
-        var shortName = odataComplexType.name;
-        var ns = getNamespaceFor(shortName, schema);
-        var complexType = new ComplexType({
-            shortName: shortName,
-            namespace: ns
-        });
-            
-        toArray(odataComplexType.property).forEach(function (prop) {
-            convertFromODataDataProperty(complexType, prop, schema);
-        });
-            
-        metadataStore.addEntityType(complexType);
-        return complexType;
-    }
-        
-
-    function convertFromODataDataProperty(parentType, odataProperty, schema, keyNamesOnServer) {
-        var dp;
-        var typeParts = odataProperty.type.split(".");
-        if (typeParts.length == 2) {
-            dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
-        } else {
-            if (isEnumType(odataProperty, schema)) {
-                dp = convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer);
-                if (dp) {
-                    dp.enumType = odataProperty.type;
-                }
-            } else {
-                dp = convertFromODataComplexProperty(parentType, odataProperty, schema);
-            }
-        }
-        if (dp) {
-            parentType.addProperty(dp);
-            addValidators(dp);
-        }
-        return dp;
-    }
-        
-    function isEnumType(odataProperty, schema) {
-        if (!schema.enumType) return false;
-        var enumTypes = toArray(schema.enumType);
-        var typeParts = odataProperty.type.split(".");
-        var baseTypeName = typeParts[typeParts.length - 1];
-        return enumTypes.some(function(enumType) {
-            return enumType.name === baseTypeName;
-        });
-    }
-
-    function convertFromODataSimpleProperty(parentType, odataProperty, keyNamesOnServer) {
-            var dataType = DataType.fromEdmDataType(odataProperty.type);
-            if (dataType == null) {
-                parentType.warnings.push("Unable to recognize DataType for property: " + odataProperty.name + " DateType: " + odataProperty.type);
-                return null;
-            }
-            var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-            // var fixedLength = odataProperty.fixedLength ? odataProperty.fixedLength === true : undefined;
-            var isPartOfKey = keyNamesOnServer!=null && keyNamesOnServer.indexOf(odataProperty.name) >= 0;
-            if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
-                if (isIdentityProperty(odataProperty)) {
-                    parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
-                }
-            }
-            // TODO: nit - don't set maxLength if null;
-            var maxLength = odataProperty.maxLength;
-            maxLength = (maxLength == null || maxLength==="Max") ? null : parseInt(maxLength);
-            // can't set the name until we go thru namingConventions and these need the dp.
-            var dp = new DataProperty({
-                nameOnServer: odataProperty.name,
-                dataType: dataType,
-                isNullable: isNullable,
-                isPartOfKey: isPartOfKey,
-                maxLength: maxLength,
-                // fixedLength: fixedLength,
-                concurrencyMode: odataProperty.concurrencyMode
-            });
-            if (dataType === DataType.Undefined) {
-                dp.rawTypeName = odataProperty.type;
-            }
-        return dp;
-    }
-        
-    function convertFromODataComplexProperty(parentType, odataProperty, schema) {
-            
-        // Complex properties are never nullable ( per EF specs)
-        // var isNullable = odataProperty.nullable === 'true' || odataProperty.nullable == null;
-        // var complexTypeName = odataProperty.type.split("Edm.")[1];
-        var complexTypeName = normalizeTypeName(odataProperty.type, schema).typeName;
-        // can't set the name until we go thru namingConventions and these need the dp.
-        var dp = new DataProperty({
-            nameOnServer: odataProperty.name,
-            complexTypeName: complexTypeName,
-            isNullable: false
-        });
-            
-        return dp;
-    }
-
-    function addValidators(dataProperty) {
-        var typeValidator;
-        if (!dataProperty.isNullable) {
-            dataProperty.validators.push(Validator.required());
-        }
-
-        if (dataProperty.isComplexProperty) return;
-
-        if (dataProperty.dataType === DataType.String) {
-            if (dataProperty.maxLength) {
-                var validatorArgs = { maxLength: dataProperty.maxLength };
-                typeValidator = Validator.maxLength(validatorArgs);
-            } else {
-                typeValidator = Validator.string();
-            }
-        } else {
-            typeValidator = dataProperty.dataType.validatorCtor();
-        }
-
-        dataProperty.validators.push(typeValidator);
-
-    }
-
-    function convertFromODataNavProperty(entityType, odataProperty, schema) {
-        var association = getAssociation(odataProperty, schema);
-        var toEnd = __arrayFirst(association.end, function (assocEnd) {
-            return assocEnd.role === odataProperty.toRole;
-        });
-            
-        var isScalar = !(toEnd.multiplicity === "*");
-        var dataType = normalizeTypeName(toEnd.type, schema).typeName;
-        var fkNamesOnServer = [];
-        if (toEnd && isScalar) {
-            var constraint = association.referentialConstraint;
-            if (constraint) {
-                var principal = constraint.principal;
-                var dependent = constraint.dependent;
-                var propRefs;
-                if (odataProperty.fromRole === principal.role) {
-                    propRefs = toArray(principal.propertyRef);
-                } else {
-                    propRefs = toArray(dependent.propertyRef);
-                }
-                // will be used later by np._update
-                fkNamesOnServer = propRefs.map(__pluck("name"));
-            }
-        }
-        var np = new NavigationProperty({
-            nameOnServer: odataProperty.name,
-            entityTypeName: dataType,
-            isScalar: isScalar,
-            associationName: association.name,
-            foreignKeyNamesOnServer: fkNamesOnServer
-        });
-        entityType.addProperty(np);
-       
-        return np;
-    }
-        
-    function isIdentityProperty(odataProperty) {
-        // see if web api feed
-        var propName = __arrayFirst(Object.keys(odataProperty), function (pn) {
-            return pn.indexOf("StoreGeneratedPattern") >= 0;
-        });
-        if (propName) {
-            return (odataProperty[propName] === "Identity");
-        } else {
-            // see if Odata feed
-            var extensions = odataProperty.extensions;
-            if (!extensions) {
-                return false;
-            }
-            var identityExtn = __arrayFirst(extensions, function (extension) {
-                return extension.name === "StoreGeneratedPattern" && extension.value === "Identity";
-            });
-            return !!identityExtn;
-        }
-    }
-
-    
-    // Fast version
-    // np: schema.entityType[].navigationProperty.relationship -> schema.association
-    //   match( shortName(np.relationship) == schema.association[].name
-    //      --> association
-
-    // Correct version
-    // np: schema.entityType[].navigationProperty.relationship -> schema.association
-    //   match( np.relationship == schema.entityContainer[0].associationSet[].association )
-    //      -> associationSet.name
-    //   match ( associationSet.name == schema.association[].name )
-    //      -> association
-
-    function getAssociation(odataNavProperty, schema) {
-        var assocName = normalizeTypeName(odataNavProperty.relationship, schema).shortTypeName;
-        var assocs = schema.association;
-        if (!assocs) return null;
-        if (!Array.isArray(assocs)) {
-            assocs = [assocs];
-        }
-        var association = __arrayFirst(assocs, function (assoc) {
-            return assoc.name === assocName;
-        });
-        return association;
-    }
 
     function toArray(item) {
         if (!item) {
@@ -5705,9 +5863,29 @@ var MetadataStore = (function () {
             return [item];
         }
     }
-        
 
-    return ctor;
+    function getNamespaceFor(shortName, schema) {
+        var ns;
+        var mapping = schema.cSpaceOSpaceMapping;
+        if (mapping) {
+            var fullName = mapping[schema.namespace + "." + shortName];
+            ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
+        }
+        return ns || schema.namespace;
+    }
+
+    var normalizeTypeName = __memoize(function (rawTypeName) {
+        return rawTypeName && parseTypeName(rawTypeName).typeName;
+    });
+
+    // for debugging use the line below instead.
+    //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
+
+    return {
+        parse: parse,
+        normalizeTypeName: normalizeTypeName
+    }
+
 })();
 
 var EntityType = (function () {
@@ -5746,6 +5924,8 @@ var EntityType = (function () {
             assertConfig(config)
                 .whereParam("shortName").isNonEmptyString()
                 .whereParam("namespace").isString().isOptional().withDefault("")
+                .whereParam("baseTypeName").isString().isOptional()
+                .whereParam("isAbstract").isBoolean().isOptional().withDefault(false)
                 .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional().withDefault(AutoGeneratedKeyType.None)
                 .whereParam("defaultResourceName").isNonEmptyString().isOptional().withDefault(null)
                 .whereParam("dataProperties").isOptional()
@@ -5864,6 +6044,20 @@ var EntityType = (function () {
     **/
 
     /**
+    The base EntityType (if any) for this EntityType.
+
+    __readOnly__
+    @property baseEntityType {EntityType} 
+    **/
+
+    /**
+    Whether this EntityType is abstract.
+
+    __readOnly__
+    @property isAbstract {boolean} 
+    **/
+
+    /**
     The {{#crossLink "AutoGeneratedKeyType"}}{{/crossLink}} for this EntityType.
         
     __readOnly__
@@ -5902,6 +6096,22 @@ var EntityType = (function () {
             this.defaultResourceName = config.defaultResourceName;
         }
     };
+
+    /**
+    Returns whether this type is a subtype of a specified type.
+    
+    @param entityType [EntityType]
+    **/
+    proto.isSubtypeOf = function (entityType) {
+        assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+        baseType = this;
+        do {
+            if (baseType === entityType) return true;
+            baseType = baseType.baseEntityType;
+        } while (baseType);
+        return false;
+        
+    }
 
     /**
     Adds a  {{#crossLink "DataProperty"}}{{/crossLink}} or a {{#crossLink "NavigationProperty"}}{{/crossLink}} to this EntityType.
@@ -6179,13 +6389,19 @@ var EntityType = (function () {
         return __toJson(this, {
             shortName: null,
             namespace: null,
+            baseTypeName: null,
+            isAbstract: false,
             autoGeneratedKeyType: null, // do not suppress default value
             defaultResourceName: null,
-            dataProperties: null,
-            navigationProperties: null,
+            dataProperties: localPropsOnly,
+            navigationProperties: localPropsOnly,
             validators: null
         });
     };
+
+    function localPropsOnly(props) {
+        return props.filter(function (prop) { return !prop.isInherited; });
+    }
 
     // fromJSON is handled by structuralTypeFromJson function.
         
@@ -6786,6 +7002,13 @@ var DataProperty = (function () {
     **/
 
     /**
+    Whether this property is inherited from a base class. 
+
+    __readOnly__
+    @property isInherited {Boolean}
+    **/
+
+    /**
     Whether this property is a 'key' property. 
 
     __readOnly__
@@ -6985,6 +7208,13 @@ var NavigationProperty = (function () {
     **/
 
     /**
+    Whether this property is inherited from a base class. 
+
+    __readOnly__
+    @property isInherited {Boolean}
+    **/
+
+    /**
     The name of the association to which that this property belongs.  This associationName will be shared with this 
     properties 'inverse'.
 
@@ -7144,17 +7374,8 @@ function isQualifiedTypeName(entityTypeName) {
 function qualifyTypeName(shortName, namespace) {
     return shortName + ":#" + namespace;
 }
-    
-function getNamespaceFor(shortName, schema) {
-    var ns;
-    var mapping = schema.cSpaceOSpaceMapping;
-    if (mapping) {
-        var fullName = mapping[schema.namespace + "." + shortName];
-        ns = fullName && fullName.substr(0, fullName.length - (shortName.length + 1));
-    }
-    return ns || schema.namespace;
-}
 
+// Used by both ComplexType and EntityType
 function addProperties(entityType, propObj, ctor) {
 
     if (!propObj) return;
@@ -7174,12 +7395,15 @@ function addProperties(entityType, propObj, ctor) {
     }
 }
 
-breeze.MetadataStore= MetadataStore;
+breeze.MetadataStore = MetadataStore;
 breeze.EntityType = EntityType;
 breeze.ComplexType = ComplexType;
 breeze.DataProperty= DataProperty;
 breeze.NavigationProperty = NavigationProperty;
 breeze.AutoGeneratedKeyType = AutoGeneratedKeyType;
+
+// needs to be made avail to breeze.dataService.xxx files and we don't want to expose CsdlMetadataParser just for this.
+MetadataStore.normalizeTypeName = CsdlMetadataParser.normalizeTypeName;
 
 
 /**
@@ -8737,7 +8961,7 @@ var FnNode = (function() {
     return ctor;
 })();
    
-var FilterQueryOp = function () {
+var FilterQueryOp = (function () {
     /**
     FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink "Predicate"}}{{/crossLink}} 
     filter operators for an {{#crossLink "EntityQuery"}}{{/crossLink}}.
@@ -8808,6 +9032,9 @@ var FilterQueryOp = function () {
     @static
     **/
     aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true });
+
+    aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
+    
     aEnum.seal();
     aEnum._map = function () {
         var map = {};
@@ -8830,9 +9057,9 @@ var FilterQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
-var BooleanQueryOp = function () {
+var BooleanQueryOp = (function () {
     var aEnum = new Enum("BooleanQueryOp");
     aEnum.And = aEnum.addSymbol({ operator: "and", aliases: ["&&"] });
     aEnum.Or = aEnum.addSymbol({ operator: "or", aliases: ["||"] });
@@ -8860,7 +9087,7 @@ var BooleanQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
 var Predicate = (function () {
     /**  
@@ -9117,18 +9344,26 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
-        assertParam(propertyOrExpr, "propertyOrExpr").isString().check();
+    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
+
         assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
         assertParam(value, "value").isRequired(true).check();
         assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
-        this._propertyOrExpr = propertyOrExpr;
-        this._fnNode1 = FnNode.create(propertyOrExpr, null);
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
+        if (propertyOrExpr) {
+            this._propertyOrExpr = propertyOrExpr;
+            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+        } else {
+            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+                throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
+            }
+        }
+
         this._value = value;
         this._valueIsLiteral = valueIsLiteral;
     };
@@ -9138,7 +9373,12 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
-        var v1Expr = this._fnNode1.toOdataFragment(entityType);
+        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(this._value);
+            var typeName = oftype.namespace + '.' + oftype.shortName;
+            return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
+        }
+        var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
         var v2Expr;
         if (this.fnNode2 === undefined && !this._valueIsLiteral) {
             this.fnNode2 = FnNode.create(this._value, entityType);
@@ -9146,7 +9386,8 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            v2Expr = formatValue(this._value, this._fnNode1.dataType);
+            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
             if (this._filterQueryOp == FilterQueryOp.Contains) {
@@ -9187,6 +9428,7 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        if (!this._fnNode1) return;
         // throw if not valid
         this._fnNode1.validate(entityType);
         this.dataType = this._fnNode1.dataType;
@@ -9286,65 +9528,6 @@ var SimplePredicate = (function () {
             b = (b || "").toLowerCase();
         }
         return a.indexOf(b) >= 0;
-    }
-
-    function formatValue(val, dataType) {
-        if (val == null) {
-            return null;
-        }
-            
-        var msg;
-            
-        dataType = dataType || DataType.fromValue(val);
-                       
-        if (dataType.isNumeric) {
-            if (typeof val === "string") {
-                if (dataType.isInteger) {
-                    val = parseInt(val);
-                } else {
-                    val = parseFloat(val);
-                }
-            }
-            return val;
-        } else if (dataType === DataType.String) {
-            return "'" + val + "'";
-        } else if (dataType === DataType.DateTime) {
-            try {
-                return "datetime'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTime", val);
-            }
-        } else if (dataType === DataType.DateTimeOffset) {
-            try {
-                return "datetimeoffset'" + val.toISOString() + "'";
-            } catch (e) {
-                throwError("'%1' is not a valid dateTimeoffset", val);
-            }
-        } else if (dataType == DataType.Time) {
-            if (!__isDuration(val)) {
-                throwError("'%1' is not a valid ISO 8601 duration", val);
-            }
-            return "time'" + val + "'";
-        } else if (dataType === DataType.Guid) {
-            if (!__isGuid(val)) {
-                throwError("'%1' is not a valid guid", val);
-            }
-            return "guid'" + val + "'";
-        } else if (dataType === DataType.Boolean) {
-            if (typeof val === "string") {
-                return val.trim().toLowerCase() === "true";
-            } else {
-                return val;
-            }
-        } else {
-            return val;
-        }
-
-    }
-    
-    function throwError(msg, val) {
-        msg = __formatString(msg, val);
-        throw new Error(msg);
     }
 
     return ctor;
@@ -10126,15 +10309,15 @@ var EntityManager = (function () {
     @example                    
     At its most basic an EntityManager can be constructed with just a service name
     @example                    
-        var entityManager = new EntityManager( "api/NorthwindIBModel");
+        var entityManager = new EntityManager( "breeze/NorthwindIBModel");
     This is the same as calling it with the following configuration object
     @example                    
-        var entityManager = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var entityManager = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
     Usually however, configuration objects will contain more than just the 'serviceName';
     @example
         var metadataStore = new MetadataStore();
         var entityManager = new EntityManager( {
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             metadataStore: metadataStore 
         });
     or
@@ -10142,7 +10325,7 @@ var EntityManager = (function () {
         return new QueryOptions({ 
             mergeStrategy: obj, 
             fetchStrategy: this.fetchStrategy 
-        });
+        });u
         var queryOptions = new QueryOptions({ 
             mergeStrategy: MergeStrategy.OverwriteChanges, 
             fetchStrategy: FetchStrategy.FromServer 
@@ -10153,7 +10336,7 @@ var EntityManager = (function () {
             validateOnQuery: false
         });
         var entityManager = new EntityManager({ 
-            serviceName: "api/NorthwindIBModel", 
+            serviceName: "breeze/NorthwindIBModel", 
             queryOptions: queryOptions, 
             validationOptions: validationOptions 
         });
@@ -10197,7 +10380,7 @@ var EntityManager = (function () {
             // assume em1 is a previously created EntityManager
             // where we want to change some of its settings.
             em1.setProperties( {
-                serviceName: "api/foo"
+                serviceName: "breeze/foo"
             });
     @method setProperties
     @param config {Object}
@@ -10306,7 +10489,7 @@ var EntityManager = (function () {
     /**
     An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.
     @example                    
-        var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
         em.entityChanged.subscribe(function(changeArgs) {
             // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. 
             var action = changeArgs.entityAction;
@@ -10664,7 +10847,7 @@ var EntityManager = (function () {
     Usually you will not actually process the results of a fetchMetadata call directly, but will instead
     ask for the metadata from the EntityManager after the fetchMetadata call returns.
     @example
-            var em1 = new EntityManager( "api/NorthwindIBModel");
+            var em1 = new EntityManager( "breeze/NorthwindIBModel");
             em1.fetchMetadata()
             .then(function() {
                 var metadataStore = em1.metadataStore;
@@ -10793,10 +10976,9 @@ var EntityManager = (function () {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
                 return executeQueryCore(that, query, queryOptions, dataService);
-            }).fail(function (error) {
-                return Q.reject(error);
             });
         }
+
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
     
@@ -10985,16 +11167,13 @@ var EntityManager = (function () {
         // are referenced are also in the partial save group
 
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
-        var deferred = Q.defer();
-        dataService.adapterInstance.saveChanges(saveContext, saveBundle, deferred.resolve, deferred.reject);
+        
         var that = this;
-        return deferred.promise.then(function (rawSaveResult) {
-            // HACK: simply to change the 'case' of properties in the saveResult
-            // but KeyMapping properties are still ucase. ugh...
-            var saveResult = { entities: rawSaveResult.Entities, keyMappings: rawSaveResult.KeyMappings, XHR: rawSaveResult.XHR };
+        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
+            
             fixupKeys(that, saveResult.keyMappings);
                 
-            var parseContext = {
+            var mappingContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
                 queryOptions: queryOptions,
@@ -11004,7 +11183,7 @@ var EntityManager = (function () {
             };
                 
             var savedEntities = saveResult.entities.map(function (rawEntity) {
-                return visitAndMerge(rawEntity, parseContext, { nodeType: "root" });
+                return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
             });
             markIsBeingSaved(entitiesToSave, false);
             // update _hasChanges after save.
@@ -11245,7 +11424,7 @@ var EntityManager = (function () {
     /**
     An {{#crossLink "Event"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes. 
     @example                    
-        var em = new EntityManager( {serviceName: "api/NorthwindIBModel" });
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
         em.hasChangesChanged.subscribe(function(args) {
             var hasChangesChanged = args.hasChanges;
             var entityManager = args.entityManager;
@@ -11688,7 +11867,7 @@ var EntityManager = (function () {
         });
     }
 
-    function promiseWithCallbacks(promise, callback, errorCallback) {
+     function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
@@ -11717,9 +11896,8 @@ var EntityManager = (function () {
 
     function fixupKeys(em, keyMappings) {
         keyMappings.forEach(function (km) {
-            var entityTypeName = MetadataStore._getNormalizedTypeName(km.EntityTypeName);
-            var group = em._entityGroupMap[entityTypeName];
-            group._fixupKey(km.TempValue, km.RealValue);
+            var group = em._entityGroupMap[km.entityTypeName];
+            group._fixupKey(km.tempValue, km.realValue);
         });
     }
 
@@ -11825,9 +12003,9 @@ var EntityManager = (function () {
                 });
             }
 
-            var url = dataService.serviceName + metadataStore.toQueryString(query);
+            var url = dataService.makeUrl(metadataStore.toQueryString(query));
 
-            var parseContext = {
+            var mappingContext = {
                     url: url,
                     query: query,
                     entityManager: em,
@@ -11836,12 +12014,10 @@ var EntityManager = (function () {
                     refMap: {}, 
                     deferredFns: []
             };
-            var deferred = Q.defer();
+            
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            var promise = deferred.promise;
-
-                
-            dataService.adapterInstance.executeQuery(parseContext, function (data) {
+            
+            return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -11854,7 +12030,7 @@ var EntityManager = (function () {
                     em._pendingPubs = null;
                     // HACK for GC
                     query = null;
-                    parseContext = null;
+                    mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
                     if (state.error) deferred.reject(state.error);
 
@@ -11864,28 +12040,28 @@ var EntityManager = (function () {
                         nodes = [nodes];
                     }
                     var results = nodes.map(function (node) {
-                        var r = visitAndMerge(node, parseContext, { nodeType: "root" });
+                        var r = visitAndMerge(node, mappingContext, { nodeType: "root" });
                         // anon types and simple types will not have an entityAspect.
                         if (validateOnQuery && r.entityAspect) {
                             r.entityAspect.validateEntity();
                         }
                         return r;
                     });
-                    if (parseContext.deferredFns.length > 0) {
-                        parseContext.deferredFns.forEach(function(fn) {
+                    if (mappingContext.deferredFns.length > 0) {
+                        mappingContext.deferredFns.forEach(function(fn) {
                             fn();
                         });
                     }
                     return { results: results, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                 });
-                deferred.resolve( result);
-            }, function (e) {
+                return Q.resolve(result);
+            }).fail(function (e) {
                 if (e) {
                     e.query = query;
                 }
-                deferred.reject(e);
+                return Q.reject(e);
             });
-            return promise;
+            
         } catch (e) {
             if (e) {
                 e.query = query;
@@ -11894,56 +12070,65 @@ var EntityManager = (function () {
         }
     }
                
-    function visitAndMerge(node, parseContext, nodeContext) {
-        nodeContext = nodeContext || {};
-        var meta = parseContext.dataService.jsonResultsAdapter.visitNode(node, parseContext, nodeContext) || {};
-        if (parseContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
-            meta.entityType = parseContext.query._getToEntityType && parseContext.query._getToEntityType(parseContext.entityManager.metadataStore);
+    function visitAndMerge(node, mappingContext, nodeContext) {
+        if (mappingContext.query == null && node.entityAspect) {
+            // don't bother merging a result from a save that was not returned from the server.
+            if (node.entityAspect.entityState.isDeleted()) {
+                mappingContext.entityManager.detachEntity(node);
+            } else {
+                node.entityAspect.acceptChanges();
+            }
+            return node;
         }
-        return processMeta(node, parseContext, meta);
+        nodeContext = nodeContext || {};
+        var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
+        if (mappingContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
+            meta.entityType = mappingContext.query._getToEntityType && mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
+        }
+        return processMeta(node, mappingContext, meta);
     }
         
-    function processMeta(node, parseContext, meta, assignFn) {
+    function processMeta(node, mappingContext, meta, assignFn) {
         // == is deliberate here instead of ===
         if (meta.ignore || node == null) {
             return null;
         } else if (meta.nodeRefId) {
-            var refValue = resolveRefEntity(meta.nodeRefId, parseContext);
+            var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
             if (typeof refValue == "function") {
-                parseContext.deferredFns.push(function () {
+                mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
                 return undefined; // deferred and will be set later;
             }
             return refValue;
         } else if (meta.entityType) {
-            return mergeEntity(node, parseContext, meta);
+            return mergeEntity(node, mappingContext, meta);
         } else {
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
-                parseContext.refMap[meta.nodeId] = node;
+                mappingContext.refMap[meta.nodeId] = node;
             }
                 
             if (typeof node === 'object') {
-                return processAnonType(node, parseContext);
+                return processAnonType(node, mappingContext);
             } else {
                 return node;
             }
         }
     }
         
-    function resolveRefEntity(nodeRefId, parseContext) {
-        var entity = parseContext.refMap[nodeRefId];
+    function resolveRefEntity(nodeRefId, mappingContext) {
+        var entity = mappingContext.refMap[nodeRefId];
         if (entity === undefined) {
-            return function () { return parseContext.refMap[nodeRefId]; };
+            return function () { return mappingContext.refMap[nodeRefId]; };
         } else {
             return entity;
         }
     }
         
-    function mergeEntity(node, parseContext, meta) {
+    function mergeEntity(node, mappingContext, meta) {
         node._$meta = meta;
-        var em = parseContext.entityManager;
+        var em = mappingContext.entityManager;
 
         var entityType = meta.entityType;
         if (typeof (entityType) === 'string') {
@@ -11951,8 +12136,8 @@ var EntityManager = (function () {
         }
         node.entityType = entityType;
         
-        var mergeStrategy = parseContext.queryOptions.mergeStrategy;
-        var isSaving = parseContext.query == null;
+        var mergeStrategy = mappingContext.queryOptions.mergeStrategy;
+        var isSaving = mappingContext.query == null;
 
             
         var entityKey = getEntityKeyFromRawEntity(node, entityType);
@@ -11965,9 +12150,11 @@ var EntityManager = (function () {
             var targetEntityState = targetEntity.entityAspect.entityState;
             if (mergeStrategy === MergeStrategy.OverwriteChanges
                     || targetEntityState.isUnchanged()) {
-                updateEntity(targetEntity, node, parseContext);
+                updateEntity(targetEntity, node, mappingContext);
                 targetEntity.entityAspect.wasLoaded = true;
-                    
+                if (meta.extra) {
+                    targetEntity.entityAspect.extraMetadata = meta.extra;
+                }
                 targetEntity.entityAspect.entityState = EntityState.Unchanged;
                 targetEntity.entityAspect.originalValues = {};
                 targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
@@ -11979,13 +12166,13 @@ var EntityManager = (function () {
                     em._notifyStateChange(targetEntity, false);
                 }
             } else {
-                updateEntityRef(parseContext, targetEntity, node);
+                updateEntityRef(mappingContext, targetEntity, node);
                 // we still need to merge related entities even if top level entity wasn't modified.
                 entityType.navigationProperties.forEach(function (np) {
                     if (np.isScalar) {
-                        mergeRelatedEntityCore(node, np, parseContext);
+                        mergeRelatedEntityCore(node, np, mappingContext);
                     } else {
-                        mergeRelatedEntitiesCore(node, np, parseContext);
+                        mergeRelatedEntitiesCore(node, np, mappingContext);
                     }
                 });
             }
@@ -11996,8 +12183,11 @@ var EntityManager = (function () {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
             }
-            updateEntity(targetEntity, node, parseContext);
+            updateEntity(targetEntity, node, mappingContext);
             targetEntity.entityAspect._postInitialize();
+            if (meta.extra) {
+                targetEntity.entityAspect.extraMetadata = meta.extra;
+            }
             attachEntityCore(em, targetEntity, EntityState.Unchanged);
             targetEntity.entityAspect.wasLoaded = true;
             em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
@@ -12005,27 +12195,27 @@ var EntityManager = (function () {
         return targetEntity;
     }
         
-    function processAnonType(node, parseContext) {
+    function processAnonType(node, mappingContext) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
-        var em = parseContext.entityManager;
-        var jsonResultsAdapter = parseContext.dataService.jsonResultsAdapter;
+        var em = mappingContext.entityManager;
+        var jsonResultsAdapter = mappingContext.dataService.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = { };
         __objectForEach(node, function(key, value) {
-            var meta = jsonResultsAdapter.visitNode(value, parseContext, { nodeType: "anonProp", propertyName: key }) || {};
+            var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: "anonProp", propertyName: key }) || {};
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
                 
             if (Array.isArray(value)) {
                 result[newKey] = value.map(function(v, ix) {
-                    meta = jsonResultsAdapter.visitNode(v, parseContext, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return processMeta(v, parseContext, meta, function(refValue) {
+                    meta = jsonResultsAdapter.visitNode(v, mappingContext, { nodeType: "anonPropItem", propertyName: key }) || {};
+                    return processMeta(v, mappingContext, meta, function(refValue) {
                         result[newKey][ix] = refValue();
                     });
                 });
             } else {
-                result[newKey] = processMeta(value, parseContext, meta, function(refValue) {
+                result[newKey] = processMeta(value, mappingContext, meta, function(refValue) {
                     result[newKey] = refValue();
                 });
             }
@@ -12033,8 +12223,8 @@ var EntityManager = (function () {
         return result;
     }
 
-    function updateEntity(targetEntity, rawEntity, parseContext) {
-        updateEntityRef(parseContext, targetEntity, rawEntity);
+    function updateEntity(targetEntity, rawEntity, mappingContext) {
+        updateEntityRef(mappingContext, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
@@ -12053,9 +12243,9 @@ var EntityManager = (function () {
 
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
-                mergeRelatedEntity(np, targetEntity, rawEntity, parseContext);
+                mergeRelatedEntity(np, targetEntity, rawEntity, mappingContext);
             } else {
-                mergeRelatedEntities(np, targetEntity, rawEntity, parseContext);
+                mergeRelatedEntities(np, targetEntity, rawEntity, mappingContext);
             }
         });
     }
@@ -12084,19 +12274,19 @@ var EntityManager = (function () {
         return val;
     }
         
-    function updateEntityRef(parseContext, targetEntity, rawEntity) {
+    function updateEntityRef(mappingContext, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
         if (nodeId != null) {
-            parseContext.refMap[nodeId] = targetEntity;
+            mappingContext.refMap[nodeId] = targetEntity;
         }
     }
 
-    function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, parseContext) {
+    function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, mappingContext) {
           
-        var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, parseContext);
+        var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, mappingContext);
         if (relatedEntity == null) return;
         if (typeof relatedEntity === 'function') {
-            parseContext.deferredFns.push(function() {
+            mappingContext.deferredFns.push(function() {
                 relatedEntity = relatedEntity();
                 updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
             });
@@ -12105,11 +12295,11 @@ var EntityManager = (function () {
         }
     }
         
-    function mergeRelatedEntityCore(rawEntity, navigationProperty, parseContext) {
+    function mergeRelatedEntityCore(rawEntity, navigationProperty, mappingContext) {
         var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntity) return null;
             
-        var relatedEntity = visitAndMerge(relatedRawEntity, parseContext, { nodeType: "navProp",  navigationProperty: navigationProperty });
+        var relatedEntity = visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navProp",  navigationProperty: navigationProperty });
         return relatedEntity;
     }
         
@@ -12132,8 +12322,8 @@ var EntityManager = (function () {
         }
     }
        
-    function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, parseContext) {
-        var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, parseContext);
+    function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, mappingContext) {
+        var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, mappingContext);
         if (relatedEntities == null) return;
             
         var inverseProperty = navigationProperty.inverse;
@@ -12142,7 +12332,7 @@ var EntityManager = (function () {
         originalRelatedEntities.wasLoaded = true;
         relatedEntities.forEach(function (relatedEntity) {
             if (typeof relatedEntity === 'function') {
-                parseContext.deferredFns.push(function() {
+                mappingContext.deferredFns.push(function() {
                     relatedEntity = relatedEntity();
                     updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                 });
@@ -12152,7 +12342,7 @@ var EntityManager = (function () {
         });
     }
 
-    function mergeRelatedEntitiesCore(rawEntity, navigationProperty, parseContext) {
+    function mergeRelatedEntitiesCore(rawEntity, navigationProperty, mappingContext) {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntities) return null;
             
@@ -12160,7 +12350,7 @@ var EntityManager = (function () {
         if (!Array.isArray(relatedRawEntities)) return null;
 
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
-            return visitAndMerge(relatedRawEntity, parseContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
+            return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         });
         return relatedEntities;
 
@@ -12231,67 +12421,94 @@ var EntityManager = (function () {
         return group;
     }
         
-    function unwrapEntities(entities, metadataStore) {
-        var rawEntities = entities.map(function(e) {
-            var rawEntity = unwrapInstance(e);
-
-            var autoGeneratedKey = null;
-            if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                autoGeneratedKey = {
-                    propertyName: e.entityType.keyProperties[0].nameOnServer,
-                    autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
-                };
-            }
-                
-            var originalValuesOnServer = unwrapOriginalValues(e, metadataStore);
-            rawEntity.entityAspect = {
-                entityTypeName: e.entityType.name,
-                defaultResourceName: e.entityType.defaultResourceName,
-                entityState: e.entityAspect.entityState.name,
-                originalValuesMap: originalValuesOnServer,
-                autoGeneratedKey: autoGeneratedKey
-            };
-            return rawEntity;
-        });
-        return rawEntities;
-    }
 
     proto.helper = {
         unwrapInstance: unwrapInstance,
-        unwrapOriginalValues: unwrapOriginalValues
+        unwrapOriginalValues: unwrapOriginalValues,
+        unwrapChangedValues: unwrapChangedValues,
+        getEntityKeyFromRawEntity: getEntityKeyFromRawEntity
     };
     
-    function unwrapInstance(structObj) {
+   
+    function unwrapInstance(structObj, isOData) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        
         stype.dataProperties.forEach(function (dp) {
+            if (dp.isUnmapped && isOData) return;
             if (dp.isComplexProperty) {
-                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name));
+                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
             } else {
-                rawObject[dp.nameOnServer] = structObj.getProperty(dp.name);
+                var val = structObj.getProperty(dp.name);
+                val = transformValue(val, dp, isOData);
+                if (val !== undefined) {
+                    rawObject[dp.nameOnServer] = val;
+                }
             }
         });
+        
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore) {
+    function unwrapOriginalValues(target, metadataStore, isOData) {
+        var stype = target.entityType || target.complexType;
+        var aspect = target.entityAspect || target.complexAspect;
+        var fn = metadataStore.namingConvention.clientPropertyNameToServer;
+        var result = {};
+        __objectForEach(aspect.originalValues, function (propName, val) {
+            var prop = stype.getProperty(propName);
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
+        });
+        stype.complexProperties.forEach(function (cp) {
+            // TODO: think about whether complexObjects can be unmapped 
+            var nextTarget = target.getProperty(cp.name);
+            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+            if (!__isEmpty(unwrappedCo)) {
+                result[fn(cp.name, cp)] = unwrappedCo;
+            }
+        });
+        return result;
+    }
+    
+    function unwrapChangedValues(target, metadataStore, isOData) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
-            result[fn(propName, prop)] = value;
+            var val = target.getProperty(propName);
+            val = transformValue(val, prop, isOData);
+            if (val !== undefined) {
+                result[fn(propName, prop)] = val;
+            }
         });
-        stype.complexProperties.forEach(function(cp) {
+        stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore);
+            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
             if (!__isEmpty(unwrappedCo)) {
                 result[fn(cp.name, cp)] = unwrappedCo;
             }
         });
         return result;
+    }
+
+    function transformValue(val, prop, isOData) {
+        if (isOData) {
+            if (prop.isUnmapped) return;
+            if (prop.dataType == DataType.DateTimeOffset) {
+                // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
+                // from other dateTimes. This fix compensates before the save.
+                val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
+            } else if (prop.dataType.quoteJsonOData) {
+                val = val != null ? val.toString() : val;
+            }
+        }
+        return val;
     }
 
     function UnattachedChildrenMap() {
@@ -12534,128 +12751,137 @@ breeze.SaveOptions= SaveOptions;
     };
     
     
-    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
     
-        OData.read(parseContext.url,
+        var deferred = Q.defer();
+
+        OData.read(mappingContext.url,
             function (data, response) {
-                collectionCallback({ results: data.results, inlineCount: data.__count });
+                return deferred.resolve({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                return deferred.reject(createError(error, mappingContext.url));
             }
         );
+        return deferred.promise;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+
+        var deferred = Q.defer();
+
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
-        OData.read(metadataSvcUrl,
+        var url = dataService.makeUrl('$metadata');
+        
+        OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
-                    var error = new Error("Metadata query failed for: " + metadataSvcUrl);
-                    if (onError) {
-                        onError(error);
-                    } else {
-                        callback(error);
-                    }
+                    var error = new Error("Metadata query failed for: " + url);
+                    return deferred.reject(error);
                 }
-                var schema = data.dataServices.schema;
+                var csdlMetadata = data.dataServices;
 
                 // might have been fetched by another query
                 if (!metadataStore.hasMetadataFor(serviceName)) {
-                    metadataStore._parseODataMetadata(serviceName, schema);
+                    try {
+                        metadataStore.importMetadata(csdlMetadata);
+                    } catch(e) {
+                        return deferred.reject(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
+                    }
+
                     metadataStore.addDataService(dataService);
                 }
 
-                if (callback) {
-                    callback(schema);
-                }
+                return deferred.resolve(csdlMetadata);
+
             }, function (error) {
-                var err = createError(error);
-                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-                if (errorCallback) errorCallback(err);
+                var err = createError(error, url);
+                err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
+                return deferred.reject(err);
             },
             OData.metadataHandler
         );
 
+        return deferred.promise;
+
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
 
-        var url = saveContext.dataService.serviceName + "$batch";
+        var deferred = Q.defer();
+
+        var helper = saveContext.entityManager.helper;
+        var url = saveContext.dataService.makeUrl("$batch");
         
         var requestData = createChangeRequests(saveContext, saveBundle);
+        var tempKeys = saveContext.tempKeys;
+        var contentKeys = saveContext.contentKeys;
         OData.request({
             headers : { "DataServiceVersion": "2.0" } ,
             requestUri: url,
             method: "POST",
             data: requestData
         }, function (data, response) {
-            callback(data);
+            var entities = [];
+            var keyMappings = [];
+            var saveResult = { entities: entities, keyMappings: keyMappings };
+            data.__batchResponses.forEach(function(br) {
+                br.__changeResponses.forEach(function (cr) {
+                    var response = cr.response || cr;
+                    var statusCode = response.statusCode;
+                    if ((!statusCode) || statusCode >= 400) {
+                        return deferred.reject(createError(cr, url));
+                    }
+                    
+                    var contentId = cr.headers["Content-ID"];
+                    
+                    var rawEntity = cr.data;
+                    if (rawEntity) {
+                        var tempKey = tempKeys[contentId];
+                        if (tempKey) {
+                            var entityType = tempKey.entityType;
+                            if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
+                                var tempValue = tempKey.values[0];
+                                var realKey = helper.getEntityKeyFromRawEntity(rawEntity, entityType);
+                                var keyMapping = { entityTypeName: entityType.name, tempValue: tempValue, realValue: realKey.values[0] };
+                                keyMappings.push(keyMapping);
+                            }
+                        }
+                        entities.push(rawEntity);
+                    } else {
+                        var origEntity = contentKeys[contentId];
+                        entities.push(origEntity);
+                    }
+                });
+            });
+            return deferred.resolve(saveResult);
         }, function (err) {
-            if (errorCallback) errorCallback(createError(error));
+            return deferred.reject(createError(err, url));
         }, OData.batchHandler);
 
-        // throw new Error("Breeze does not yet support saving thru OData");
+        return deferred.promise;
+
     };
-
-    function createChangeRequests(saveContext, saveBundle) {
-        var changeRequests = [];
-        var entityManager = saveContext.entityManager;
-        saveBundle.entities.forEach(function (entity) {
-            var aspect = entity.entityAspect;
-            var uri = aspect.defaultResourceName;
-            if (aspect.entityState === "Added") {
-                changeRequests.push( { requestUri: uri, method: "POST", data: entity });
-            }
-        });
-        
-        return {
-            __batchRequests: [{
-                __changeRequests: changeRequests
-            }]
-        };
-        
-    }
-
-    //function test() {
-    //    var requestData1 = {
-    //        __batchRequests: [{
-    //            __changeRequests: [ {
-    //                requestUri: "Customers", method: "POST", headers: { "Content-ID": "1"  }, data: { CustomerID: 400, CustomerName: "John" }
-    //            }, {
-    //                requestUri: "Orders", method: "POST", data: { OrderID: 400, Total: "99.99", Customer: { __metadata: { uri: "$1" } }  }
-    //            }]
-    //        }]
-    //    };
-
-    //    var requestData2 =  {
-    //        __batchRequests: [{
-    //            __changeRequests: [
-    //              { requestUri: "BestMovies(0)", method: "PUT", data: { MovieTitle: 'Up' } },
-    //              { requestUri: "BestMovies", method: "POST", data: { ID: 2, MovieTitle: 'Samurai' } }
-    //            ]
-    //        } ]
-    //    };
-    //};
-
+ 
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (node, parseContext, nodeContext) {
+        visitNode: function (node, mappingContext, nodeContext) {
             var result = {};
-            
-            if (node.__metadata != null) {
+
+          if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = MetadataStore._getNormalizedTypeName(node.__metadata.type);
-                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
+                var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
+                    result.extra = node.__metadata;
                 }
             }
+
             var propertyName = nodeContext.propertyName;
             result.ignore = node.__deferred != null || propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
@@ -12665,43 +12891,100 @@ breeze.SaveOptions= SaveOptions;
         
     });
 
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /$metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/$metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/$metadata";
-        }
-        return metadataSvcUrl;
-    };
+    function createChangeRequests(saveContext, saveBundle) {
+        var changeRequests = [];
+        var tempKeys = [];
+        var contentKeys = [];
+        var prefix = saveContext.dataService.serviceName;
+        var entityManager = saveContext.entityManager;
+        var helper = entityManager.helper;
+        var id = 0;
+        saveBundle.entities.forEach(function (entity) {
+            var aspect = entity.entityAspect;
+            id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
+            var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
+            contentKeys[id] = entity;
+            if (aspect.entityState.isAdded()) {
+                request.requestUri = entity.entityType.defaultResourceName;
+                request.method = "POST";
+                request.data = helper.unwrapInstance(entity, true);
+                tempKeys[id] = aspect.getKey();
+            } else if (aspect.entityState.isModified()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "MERGE";
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
+                // should be a PATCH/MERGE
+            } else if (aspect.entityState.isDeleted()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "DELETE";
+            } else {
+                return;
+            }
+            changeRequests.push(request);
+        });
+        saveContext.contentKeys = contentKeys;
+        saveContext.tempKeys = tempKeys;
+        return {
+            __batchRequests: [{
+                __changeRequests: changeRequests
+            }]
+        };
 
-    function createError(error) {
-        var err = new Error();
+    }
+
+    function updateDeleteMergeRequest(request, aspect, prefix) {
+        var extraMetadata = aspect.extraMetadata;
+        uri = extraMetadata.uri;
+        if (__stringStartsWith(uri, prefix)) {
+            uri = uri.substring(prefix.length);
+        }
+        request.requestUri = uri;
+        if (extraMetadata.etag) {
+            request.headers["If-Match"] = extraMetadata.etag;
+        }
+    }
+   
+    function createError(error, url) {
+        // OData errors can have the message buried very deeply - and nonobviously
+        // this code is tricky so be careful changing the response.body parsing.
+        var result = new Error();
         var response = error.response;
-        err.message = response.statusText;
-        err.statusText = response.statusText;
-        err.status = response.statusCode;
+        result.message = response.statusText;
+        result.statusText = response.statusText;
+        result.status = response.statusCode;
         // non std
-        err.body = response.body;
-        err.requestUri = response.requestUri;
+        if (url) result.url = url;
+        result.body = response.body;
         if (response.body) {
             try {
-                var responseObj = JSON.parse(response.body);
-                err.detail = responseObj;
-                err.message = responseObj.error.message.value;
+                var err = JSON.parse(response.body);
+                result.body = err;
+                var msg = "";
+                do {
+                    var nextErr = err.error || err.innererror;
+                    if (!nextErr) msg = msg + getMessage(err);
+                    nextErr = nextErr || err.internalexception;
+                    err = nextErr || err;
+                } while (nextErr);
+                if (msg.length > 0) {
+                    result.message = msg;
+                }
             } catch (e) {
 
             }
         }
-        return err;
+        return result;
+    }
+
+    function getMessage(error) {
+        var msg = error.message;
+        return (msg == null) ? "" : ((typeof (msg) == "string") ? msg : msg.value) + "; "
     }
 
     breeze.config.registerAdapter("dataService", ctor);
 
 }));
+
 (function(factory) {
     if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
@@ -12719,6 +13002,7 @@ breeze.SaveOptions= SaveOptions;
 
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
+    
     
     var ajaxImpl;
     
@@ -12746,36 +13030,35 @@ breeze.SaveOptions= SaveOptions;
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
+        var url = dataService.makeUrl("Metadata");
+        
+        var deferred = Q.defer();
+
         ajaxImpl.ajax({
-            url: metadataSvcUrl,
+            url: url,
             dataType: 'json',
-            success: function(data, textStatus, XHR) {
+            success: function (data, textStatus, XHR) {
+                var error;
                 // might have been fetched by another query
                 if (metadataStore.hasMetadataFor(serviceName)) {
-                    callback("already fetched");
-                    return;
+                    return deferred.resolve("already fetched");
                 }
                 var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
                 
-                if (!metadata) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
-                    return;
+                if (metadata) {
+                    try {
+                        metadataStore.importMetadata(metadata);
+                    } catch (e) {
+                        error = new Error("Metadata import failed for " + url + "; Unable to process returned metadata:" + e.message);
+                    }
+                } else {
+                    error = new Error("Metadata query failed for: " + url);
                 }
 
-                if (metadata.structuralTypes) {
-                    // breeze native metadata format.
-                    metadataStore.importMetadata(metadata);
-                } else if (metadata.schema) {
-                    // OData or CSDL to JSON format
-                    metadataStore._parseODataMetadata(serviceName, metadata.schema);
-                } else {
-                    if (errorCallback) {
-                        errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to process returned metadata"));
-                    }
-                    return;
+                if (error) {
+                    return deferred.reject(error)
                 }
 
                 // import may have brought in the service.
@@ -12783,25 +13066,26 @@ breeze.SaveOptions= SaveOptions;
                     metadataStore.addDataService(dataService);
                 }
                 
-                if (callback) {
-                    callback(metadata);
-                }
-                
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
+
+                deferred.resolve(metadata);
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + metadataSvcUrl);
+                handleXHRError(deferred, XHR, "Metadata query failed for: " + url);
             }
         });
+        return deferred.promise;
     };
     
 
-    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
+
+        var deferred = Q.defer();
 
         var params = {
-            url: parseContext.url,
+            url: mappingContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {
@@ -12812,34 +13096,36 @@ breeze.SaveOptions= SaveOptions;
                         rData = { results: data, XHR: XHR };
                     }
                     
-                    collectionCallback(rData);
+                    deferred.resolve(rData);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 } catch(e) {
                     var error = e instanceof Error ? e : createError(XHR);
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                    if (errorCallback) errorCallback(error);
+                    deferred.reject(error);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 }
 
             },
             error: function(XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         };
-        if (parseContext.dataService.useJsonp) {
+        if (mappingContext.dataService.useJsonp) {
             params.dataType = 'jsonp';
             params.crossDomain = true;
         }
         ajaxImpl.ajax(params);
+        return deferred.promise;
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
         
+        var deferred = Q.defer();
         var bundle = prepareSaveBundle(saveBundle, saveContext);
-
-        var url = saveContext.dataService.serviceName + saveContext.resourceName;
+        
+        var url = saveContext.dataService.makeUrl(saveContext.resourceName);
         
         ajaxImpl.ajax({
             url: url,
@@ -12852,16 +13138,25 @@ breeze.SaveOptions= SaveOptions;
                     // anticipatable errors on server - concurrency...
                     var err = createError(XHR);
                     err.message = data.Error;
-                    errorCallback(err);
+                    deferred.reject(err);
                 } else {
-                    data.XHR = XHR;
-                    callback(data);
+                    // HACK: need to change the 'case' of properties in the saveResult
+                    // but KeyMapping properties internally are still ucase. ugh...
+                    var keyMappings = data.KeyMappings.map(function(km) {
+                        var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
+                        return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
+                    });
+                    var saveResult = { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+                    deferred.resolve(saveResult);
                 }
+                
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         });
+
+        return deferred.promise;
     };
 
     function prepareSaveBundle(saveBundle, saveContext) {
@@ -12901,9 +13196,9 @@ breeze.SaveOptions= SaveOptions;
         
         name: "webApi_default",
         
-        visitNode: function (node, parseContext, nodeContext ) {
-            var entityTypeName = MetadataStore._getNormalizedTypeName(node.$type);
-            var entityType = entityTypeName && parseContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
+        visitNode: function (node, mappingContext, nodeContext ) {
+            var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
+            var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 
@@ -12917,28 +13212,13 @@ breeze.SaveOptions= SaveOptions;
         
     });
     
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /Metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/Metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/Metadata";
-        }
-        return metadataSvcUrl;
-
-    }
-    
-    function handleXHRError(XHR, errorCallback, messagePrefix) {
-
-        if (!errorCallback) return;
+   
+    function handleXHRError(deferred, XHR, messagePrefix) {
         var err = createError(XHR);
         if (messagePrefix) {
-            err.message = messagePrefix + "; " + +err.message;
+            err.message = messagePrefix + "; " + err.message;
         }
-        errorCallback(err);
+        deferred.reject(err);
         XHR.onreadystatechange = null;
         XHR.abort = null;
     }

@@ -16,6 +16,7 @@
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
     
+    
     var ajaxImpl;
     
     var ctor = function () {
@@ -42,36 +43,35 @@
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
+        var url = dataService.makeUrl("Metadata");
+        
+        var deferred = Q.defer();
+
         ajaxImpl.ajax({
-            url: metadataSvcUrl,
+            url: url,
             dataType: 'json',
-            success: function(data, textStatus, XHR) {
+            success: function (data, textStatus, XHR) {
+                var error;
                 // might have been fetched by another query
                 if (metadataStore.hasMetadataFor(serviceName)) {
-                    callback("already fetched");
-                    return;
+                    return deferred.resolve("already fetched");
                 }
                 var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
                 
-                if (!metadata) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + metadataSvcUrl));
-                    return;
+                if (metadata) {
+                    try {
+                        metadataStore.importMetadata(metadata);
+                    } catch (e) {
+                        error = new Error("Metadata import failed for " + url + "; Unable to process returned metadata:" + e.message);
+                    }
+                } else {
+                    error = new Error("Metadata query failed for: " + url);
                 }
 
-                if (metadata.structuralTypes) {
-                    // breeze native metadata format.
-                    metadataStore.importMetadata(metadata);
-                } else if (metadata.schema) {
-                    // OData or CSDL to JSON format
-                    metadataStore._parseODataMetadata(serviceName, metadata.schema);
-                } else {
-                    if (errorCallback) {
-                        errorCallback(new Error("Metadata query failed for " + metadataSvcUrl + "; Unable to process returned metadata"));
-                    }
-                    return;
+                if (error) {
+                    return deferred.reject(error)
                 }
 
                 // import may have brought in the service.
@@ -79,25 +79,26 @@
                     metadataStore.addDataService(dataService);
                 }
                 
-                if (callback) {
-                    callback(metadata);
-                }
-                
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
+
+                deferred.resolve(metadata);
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + metadataSvcUrl);
+                handleXHRError(deferred, XHR, "Metadata query failed for: " + url);
             }
         });
+        return deferred.promise;
     };
     
 
-    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
+
+        var deferred = Q.defer();
 
         var params = {
-            url: parseContext.url,
+            url: mappingContext.url,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {
@@ -108,34 +109,36 @@
                         rData = { results: data, XHR: XHR };
                     }
                     
-                    collectionCallback(rData);
+                    deferred.resolve(rData);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 } catch(e) {
                     var error = e instanceof Error ? e : createError(XHR);
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                    if (errorCallback) errorCallback(error);
+                    deferred.reject(error);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 }
 
             },
             error: function(XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         };
-        if (parseContext.dataService.useJsonp) {
+        if (mappingContext.dataService.useJsonp) {
             params.dataType = 'jsonp';
             params.crossDomain = true;
         }
         ajaxImpl.ajax(params);
+        return deferred.promise;
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
         
+        var deferred = Q.defer();
         var bundle = prepareSaveBundle(saveBundle, saveContext);
-
-        var url = saveContext.dataService.serviceName + saveContext.resourceName;
+        
+        var url = saveContext.dataService.makeUrl(saveContext.resourceName);
         
         ajaxImpl.ajax({
             url: url,
@@ -148,16 +151,25 @@
                     // anticipatable errors on server - concurrency...
                     var err = createError(XHR);
                     err.message = data.Error;
-                    errorCallback(err);
+                    deferred.reject(err);
                 } else {
-                    data.XHR = XHR;
-                    callback(data);
+                    // HACK: need to change the 'case' of properties in the saveResult
+                    // but KeyMapping properties internally are still ucase. ugh...
+                    var keyMappings = data.KeyMappings.map(function(km) {
+                        var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
+                        return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
+                    });
+                    var saveResult = { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+                    deferred.resolve(saveResult);
                 }
+                
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         });
+
+        return deferred.promise;
     };
 
     function prepareSaveBundle(saveBundle, saveContext) {
@@ -197,9 +209,9 @@
         
         name: "webApi_default",
         
-        visitNode: function (node, parseContext, nodeContext ) {
-            var entityTypeName = MetadataStore._getNormalizedTypeName(node.$type);
-            var entityType = entityTypeName && parseContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
+        visitNode: function (node, mappingContext, nodeContext ) {
+            var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
+            var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;
             var ignore = propertyName && propertyName.substr(0, 1) === "$";
 
@@ -213,28 +225,13 @@
         
     });
     
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /Metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/Metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/Metadata";
-        }
-        return metadataSvcUrl;
-
-    }
-    
-    function handleXHRError(XHR, errorCallback, messagePrefix) {
-
-        if (!errorCallback) return;
+   
+    function handleXHRError(deferred, XHR, messagePrefix) {
         var err = createError(XHR);
         if (messagePrefix) {
-            err.message = messagePrefix + "; " + +err.message;
+            err.message = messagePrefix + "; " + err.message;
         }
-        errorCallback(err);
+        deferred.reject(err);
         XHR.onreadystatechange = null;
         XHR.abort = null;
     }

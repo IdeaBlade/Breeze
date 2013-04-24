@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPH", "Model_TPH.csproj", "{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73BB1C2B-BF56-4257-A3DC-56FE5163D2AF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

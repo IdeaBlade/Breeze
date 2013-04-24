@@ -52,7 +52,7 @@ A couple of things to notice.
       </Instructions>
       <StartingJavascript>
         <![CDATA[   
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Customers");
@@ -101,7 +101,7 @@ Only customers with company names beginning with "C" should have been shown this
       </Instructions>
       <StartingJavascript>
         <![CDATA[   
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Customers");
@@ -175,7 +175,7 @@ returns its results directly but has a different syntax for executing the query,
       </Instructions>
       <StartingJavascript>
         <![CDATA[    
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Customers");
@@ -208,7 +208,7 @@ manager.executeQuery(query).then(function(data) {
       <Instructions></Instructions>
       <StartingJavascript>
         <![CDATA[   
-var manager = new breeze.EntityManager('api/northwind');
+var manager = new breeze.EntityManager('breeze/northwind');
 
 var query = new breeze.EntityQuery()
     .from("Customers");

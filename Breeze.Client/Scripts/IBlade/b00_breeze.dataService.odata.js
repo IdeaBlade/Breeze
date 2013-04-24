@@ -28,128 +28,137 @@
     };
     
     
-    ctor.prototype.executeQuery = function (parseContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
     
-        OData.read(parseContext.url,
+        var deferred = Q.defer();
+
+        OData.read(mappingContext.url,
             function (data, response) {
-                collectionCallback({ results: data.results, inlineCount: data.__count });
+                return deferred.resolve({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error));
+                return deferred.reject(createError(error, mappingContext.url));
             }
         );
+        return deferred.promise;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+
+        var deferred = Q.defer();
+
         var serviceName = dataService.serviceName;
-        var metadataSvcUrl = getMetadataUrl(serviceName);
-        OData.read(metadataSvcUrl,
+        var url = dataService.makeUrl('$metadata');
+        
+        OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
-                    var error = new Error("Metadata query failed for: " + metadataSvcUrl);
-                    if (onError) {
-                        onError(error);
-                    } else {
-                        callback(error);
-                    }
+                    var error = new Error("Metadata query failed for: " + url);
+                    return deferred.reject(error);
                 }
-                var schema = data.dataServices.schema;
+                var csdlMetadata = data.dataServices;
 
                 // might have been fetched by another query
                 if (!metadataStore.hasMetadataFor(serviceName)) {
-                    metadataStore._parseODataMetadata(serviceName, schema);
+                    try {
+                        metadataStore.importMetadata(csdlMetadata);
+                    } catch(e) {
+                        return deferred.reject(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
+                    }
+
                     metadataStore.addDataService(dataService);
                 }
 
-                if (callback) {
-                    callback(schema);
-                }
+                return deferred.resolve(csdlMetadata);
+
             }, function (error) {
-                var err = createError(error);
-                err.message = "Metadata query failed for: " + metadataSvcUrl + "; " + (err.message || "");
-                if (errorCallback) errorCallback(err);
+                var err = createError(error, url);
+                err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
+                return deferred.reject(err);
             },
             OData.metadataHandler
         );
 
+        return deferred.promise;
+
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
 
-        var url = saveContext.dataService.serviceName + "$batch";
+        var deferred = Q.defer();
+
+        var helper = saveContext.entityManager.helper;
+        var url = saveContext.dataService.makeUrl("$batch");
         
         var requestData = createChangeRequests(saveContext, saveBundle);
+        var tempKeys = saveContext.tempKeys;
+        var contentKeys = saveContext.contentKeys;
         OData.request({
             headers : { "DataServiceVersion": "2.0" } ,
             requestUri: url,
             method: "POST",
             data: requestData
         }, function (data, response) {
-            callback(data);
+            var entities = [];
+            var keyMappings = [];
+            var saveResult = { entities: entities, keyMappings: keyMappings };
+            data.__batchResponses.forEach(function(br) {
+                br.__changeResponses.forEach(function (cr) {
+                    var response = cr.response || cr;
+                    var statusCode = response.statusCode;
+                    if ((!statusCode) || statusCode >= 400) {
+                        return deferred.reject(createError(cr, url));
+                    }
+                    
+                    var contentId = cr.headers["Content-ID"];
+                    
+                    var rawEntity = cr.data;
+                    if (rawEntity) {
+                        var tempKey = tempKeys[contentId];
+                        if (tempKey) {
+                            var entityType = tempKey.entityType;
+                            if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
+                                var tempValue = tempKey.values[0];
+                                var realKey = helper.getEntityKeyFromRawEntity(rawEntity, entityType);
+                                var keyMapping = { entityTypeName: entityType.name, tempValue: tempValue, realValue: realKey.values[0] };
+                                keyMappings.push(keyMapping);
+                            }
+                        }
+                        entities.push(rawEntity);
+                    } else {
+                        var origEntity = contentKeys[contentId];
+                        entities.push(origEntity);
+                    }
+                });
+            });
+            return deferred.resolve(saveResult);
         }, function (err) {
-            if (errorCallback) errorCallback(createError(error));
+            return deferred.reject(createError(err, url));
         }, OData.batchHandler);
 
-        // throw new Error("Breeze does not yet support saving thru OData");
+        return deferred.promise;
+
     };
-
-    function createChangeRequests(saveContext, saveBundle) {
-        var changeRequests = [];
-        var entityManager = saveContext.entityManager;
-        saveBundle.entities.forEach(function (entity) {
-            var aspect = entity.entityAspect;
-            var uri = aspect.defaultResourceName;
-            if (aspect.entityState === "Added") {
-                changeRequests.push( { requestUri: uri, method: "POST", data: entity });
-            }
-        });
-        
-        return {
-            __batchRequests: [{
-                __changeRequests: changeRequests
-            }]
-        };
-        
-    }
-
-    //function test() {
-    //    var requestData1 = {
-    //        __batchRequests: [{
-    //            __changeRequests: [ {
-    //                requestUri: "Customers", method: "POST", headers: { "Content-ID": "1"  }, data: { CustomerID: 400, CustomerName: "John" }
-    //            }, {
-    //                requestUri: "Orders", method: "POST", data: { OrderID: 400, Total: "99.99", Customer: { __metadata: { uri: "$1" } }  }
-    //            }]
-    //        }]
-    //    };
-
-    //    var requestData2 =  {
-    //        __batchRequests: [{
-    //            __changeRequests: [
-    //              { requestUri: "BestMovies(0)", method: "PUT", data: { MovieTitle: 'Up' } },
-    //              { requestUri: "BestMovies", method: "POST", data: { ID: 2, MovieTitle: 'Samurai' } }
-    //            ]
-    //        } ]
-    //    };
-    //};
-
+ 
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
-        visitNode: function (node, parseContext, nodeContext) {
+        visitNode: function (node, mappingContext, nodeContext) {
             var result = {};
-            
-            if (node.__metadata != null) {
+
+          if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
-                var entityTypeName = MetadataStore._getNormalizedTypeName(node.__metadata.type);
-                var et = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
+                var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
                     result.entityType = et;
+                    result.extra = node.__metadata;
                 }
             }
+
             var propertyName = nodeContext.propertyName;
             result.ignore = node.__deferred != null || propertyName == "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
@@ -159,40 +168,97 @@
         
     });
 
-    function getMetadataUrl(serviceName) {
-        var metadataSvcUrl = serviceName;
-        // remove any trailing "/"
-        if (core.stringEndsWith(metadataSvcUrl, "/")) {
-            metadataSvcUrl = metadataSvcUrl.substr(0, metadataSvcUrl.length - 1);
-        }
-        // ensure that it ends with /$metadata 
-        if (!core.stringEndsWith(metadataSvcUrl, "/$metadata")) {
-            metadataSvcUrl = metadataSvcUrl + "/$metadata";
-        }
-        return metadataSvcUrl;
-    };
+    function createChangeRequests(saveContext, saveBundle) {
+        var changeRequests = [];
+        var tempKeys = [];
+        var contentKeys = [];
+        var prefix = saveContext.dataService.serviceName;
+        var entityManager = saveContext.entityManager;
+        var helper = entityManager.helper;
+        var id = 0;
+        saveBundle.entities.forEach(function (entity) {
+            var aspect = entity.entityAspect;
+            id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
+            var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
+            contentKeys[id] = entity;
+            if (aspect.entityState.isAdded()) {
+                request.requestUri = entity.entityType.defaultResourceName;
+                request.method = "POST";
+                request.data = helper.unwrapInstance(entity, true);
+                tempKeys[id] = aspect.getKey();
+            } else if (aspect.entityState.isModified()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "MERGE";
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
+                // should be a PATCH/MERGE
+            } else if (aspect.entityState.isDeleted()) {
+                updateDeleteMergeRequest(request, aspect, prefix);
+                request.method = "DELETE";
+            } else {
+                return;
+            }
+            changeRequests.push(request);
+        });
+        saveContext.contentKeys = contentKeys;
+        saveContext.tempKeys = tempKeys;
+        return {
+            __batchRequests: [{
+                __changeRequests: changeRequests
+            }]
+        };
 
-    function createError(error) {
-        var err = new Error();
+    }
+
+    function updateDeleteMergeRequest(request, aspect, prefix) {
+        var extraMetadata = aspect.extraMetadata;
+        uri = extraMetadata.uri;
+        if (__stringStartsWith(uri, prefix)) {
+            uri = uri.substring(prefix.length);
+        }
+        request.requestUri = uri;
+        if (extraMetadata.etag) {
+            request.headers["If-Match"] = extraMetadata.etag;
+        }
+    }
+   
+    function createError(error, url) {
+        // OData errors can have the message buried very deeply - and nonobviously
+        // this code is tricky so be careful changing the response.body parsing.
+        var result = new Error();
         var response = error.response;
-        err.message = response.statusText;
-        err.statusText = response.statusText;
-        err.status = response.statusCode;
+        result.message = response.statusText;
+        result.statusText = response.statusText;
+        result.status = response.statusCode;
         // non std
-        err.body = response.body;
-        err.requestUri = response.requestUri;
+        if (url) result.url = url;
+        result.body = response.body;
         if (response.body) {
             try {
-                var responseObj = JSON.parse(response.body);
-                err.detail = responseObj;
-                err.message = responseObj.error.message.value;
+                var err = JSON.parse(response.body);
+                result.body = err;
+                var msg = "";
+                do {
+                    var nextErr = err.error || err.innererror;
+                    if (!nextErr) msg = msg + getMessage(err);
+                    nextErr = nextErr || err.internalexception;
+                    err = nextErr || err;
+                } while (nextErr);
+                if (msg.length > 0) {
+                    result.message = msg;
+                }
             } catch (e) {
 
             }
         }
-        return err;
+        return result;
+    }
+
+    function getMessage(error) {
+        var msg = error.message;
+        return (msg == null) ? "" : ((typeof (msg) == "string") ? msg : msg.value) + "; "
     }
 
     breeze.config.registerAdapter("dataService", ctor);
 
 }));
+

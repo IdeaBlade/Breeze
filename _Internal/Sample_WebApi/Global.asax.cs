@@ -54,17 +54,28 @@ namespace Sample_WebApi {
 
       routes.MapHttpRoute(
           name: "NorthwindIBModel",
-          routeTemplate: "api/NorthwindIBModel/{action}/{filter}",
+          routeTemplate: "breeze/NorthwindIBModel/{action}/{filter}",
           defaults: new { controller = "NorthwindIBModel", filter = UrlParameter.Optional }
       );
 
-     
-
       routes.MapHttpRoute(
           name: "NonEFModel",
-          routeTemplate: "api/NonEFModel/{action}/{filter}",
+          routeTemplate: "breeze/NonEFModel/{action}/{filter}",
           defaults: new { controller = "NonEFModel", filter = UrlParameter.Optional }
       );
+
+      routes.MapHttpRoute(
+          name: "ProduceTPH",
+          routeTemplate: "breeze/ProduceTPH/{action}/{filter}",
+          defaults: new { controller = "ProduceTPH", filter = UrlParameter.Optional }
+      );
+
+      routes.MapHttpRoute(
+       name: "Inheritance",
+       routeTemplate: "breeze/Inheritance/{action}/{filter}",
+       defaults: new { controller = "Inheritance", filter = UrlParameter.Optional }
+   );
+
 
       routes.MapRoute(
           name: "Default",

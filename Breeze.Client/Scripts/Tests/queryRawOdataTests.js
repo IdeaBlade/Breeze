@@ -47,7 +47,7 @@ define(["testFns"], function (testFns) {
         ok(em, "no em found");
 
         var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$select=CompanyName, Orders";
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             query = query + "&$expand=Orders";
         }
         stop();
@@ -80,7 +80,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("raw ajax to web api - server side include many - customer and orders", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "NA for OData impl");
             return;
         }
@@ -101,7 +101,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("raw ajax to web api - server side include 1 - order and customer", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "NA for OData impl");
             return;
         }

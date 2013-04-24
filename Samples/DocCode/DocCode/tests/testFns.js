@@ -14,12 +14,16 @@ define(["breeze"], function (breeze) {
     *********************************************************/
     var testFns = {
         breeze: breeze,
-        northwindServiceName: "api/Northwind",
-        todosServiceName: "api/todos",
+        northwindServiceName: "breeze/Northwind",
+        todosServiceName: "breeze/todos",
+        inheritanceServiceName: "breeze/inheritance",
 
+        waitForTestPromises:waitForTestPromises,
         handleFail: handleFail,
+        reportRejectedPromises: reportRejectedPromises,
         getModuleOptions: getModuleOptions,
         teardown_todosReset: teardown_todosReset,
+        teardown_inheritanceReset: teardown_inheritanceReset,
         output: output,
         stopCount: stopCountFactory(),
 
@@ -43,6 +47,9 @@ define(["breeze"], function (breeze) {
 
         todosPurge: todosPurge, // empty the database completely
         todosReset: todosReset, // reset to known state
+
+        inheritancePurge: inheritancePurge, // empty the database completely
+        inheritanceReset: inheritanceReset, // reset to known state
 
         // Asserts merely to display data
         showCustomerResultsAsAssert: showCustomerResultsAsAssert,
@@ -95,7 +102,14 @@ define(["breeze"], function (breeze) {
             return (this.indexOf(value) !== -1);
         };
     }
-
+    
+    /*********************************************************
+    * Wait for an array of test promises to finish.
+    *********************************************************/
+    function waitForTestPromises(promises) {
+        Q.allResolved(promises).then(reportRejectedPromises).fin(start);
+    }
+    
     /*********************************************************
     * Callback for test failures.
     *********************************************************/
@@ -108,9 +122,19 @@ define(["breeze"], function (breeze) {
         } else {
             ok(false, "Failed: " + error.toString());
         }
-        start();
     }
-
+    
+    function reportRejectedPromises(promises) {
+        for (var i = 0, len = promises.length; i < len; i++) {
+            var promise = promises[i];
+            if (promise.isRejected()) {
+                var msg = "Operation #{0} failed. ";
+                var ex = promise.valueOf().exception;
+                msg += ex ? ex.message : " Not sure why.";
+                ok(false, msg.format(i + 1));
+            }
+        }
+    }
     /*********************************************************
     * Factory of EntityManager factories (newEm functions)
     *********************************************************/
@@ -187,7 +211,15 @@ define(["breeze"], function (breeze) {
         stop();
         todosReset().fail(handleFail).fin(start).done();
     }
-
+    /*********************************************************
+    * Teardown for a module that saves to the Inheritance database
+    *********************************************************/
+    // should call this during test teardown to restore
+    // the database to a known, populated state.
+    function teardown_inheritanceReset() {
+        stop();
+        inheritanceReset().fail(handleFail).fin(start).done();
+    }
     /*********************************************************
     * Get or Create an EntityManager
     *********************************************************/
@@ -315,7 +347,7 @@ define(["breeze"], function (breeze) {
 
     /**************************************************
     * Pure Web API calls aimed at the TodosController
-    * issued with jQuery and wrapped in q.js promise
+    * issued with jQuery and wrapped in Q.js promise
     **************************************************/
     function todosPurge() {
 
@@ -344,6 +376,38 @@ define(["breeze"], function (breeze) {
 
         return deferred.promise;
     }
+    /**************************************************
+    * Pure Web API calls aimed at the InheritanceController
+    * issued with jQuery and wrapped in Q.js promise
+    **************************************************/
+    function inheritancePurge() {
+
+        var deferred = Q.defer();
+
+        $.post(testFns.inheritanceServiceName + '/purge',
+            function (data, textStatus, jqXHR) {
+                deferred.resolve(
+                    "Purge svc returned '" + jqXHR.status + "' with message: " + data);
+            })
+        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+
+        return deferred.promise;
+    }
+
+    function inheritanceReset() {
+
+        var deferred = Q.defer();
+
+        $.post(testFns.inheritanceServiceName + '/reset',
+            function (data, textStatus, jqXHR) {
+                deferred.resolve(
+                   "Reset svc returned '" + jqXHR.status + "' with message: " + data);
+            })
+        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+
+        return deferred.promise;
+    }
+
     /*********************************************************
     * Return an entity's validation error messages as a string
     *********************************************************/

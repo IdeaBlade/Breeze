@@ -35,7 +35,7 @@ define(["testFns"], function (testFns) {
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
-    test("save and refetch byte", function () {
+    test("byte w/save", function () {
         var em = newEm();
         var dt = new Date();
         dt.setUTCMilliseconds(100);
@@ -62,9 +62,33 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-   
+    test("dateTime w/save", function () {
+        var em = newEm();
+        var query = new EntityQuery("Users").take(1);
+        stop();
+        em.executeQuery(query).then(function(data) {
+            var user = data.results[0];
+            var oldDate = user.getProperty("modifiedDate");
+            modDate = new Date(oldDate.getTime() + 10000);
+            user.setProperty("modifiedDate", modDate);
+            return em.saveChanges();
+        }).then(function (sr) {
+            var r = sr.entities;
+            ok(r.length === 1, "1 rec should have been saved");
+            var user2 = r[0];
+            var q = EntityQuery.fromEntities(user2);
+            var em2 = newEm();
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var user3 = data.results[0]
+            modDate3 = user3.getProperty("modifiedDate");
+            ok(modDate.getTime() == modDate3.getTime(), "dates should be the same - dateTime");
+            
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     
-    test("dateTimeOffset & dateTime2", function () {
+    test("dateTimeOffset & dateTime2 w/save", function () {
         var em = newEm();
         var query = new EntityQuery("TimeLimits").take(10);
         var tlimitType = em.metadataStore.getEntityType("TimeLimit");
@@ -86,8 +110,8 @@ define(["testFns"], function (testFns) {
             var tlimit3 = r[0];
             var dt1a = tlimit3.getProperty("creationDate");
             var dt2a = tlimit3.getProperty("modificationDate");
-            ok(dt1a.getTime() == dt1.getTime(), "creation dates should be the same");
-            ok(dt2a.getTime() === dt2a.getTime(), "mod dates should be the same");
+            ok(dt1a.getTime() == dt1.getTime(), "creation dates should be the same - dateTimeOffset");
+            ok(dt2a.getTime() === dt2.getTime(), "mod dates should be the same - dateTime2");
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -106,7 +130,7 @@ define(["testFns"], function (testFns) {
     });
 
     
-    test("time", function () {
+    test("time w/save", function () {
         
         var newMs = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var tlimitType = newMs.getEntityType("TimeLimit");
@@ -206,7 +230,7 @@ define(["testFns"], function (testFns) {
         ok(valErrs.length == 0, "should be no more errors");
     });
 
-    test("timestamp", function() {
+    test("timestamp w/save", function() {
         var em = newEm();
         var query = new EntityQuery("Roles").take(10);
         stop();
@@ -230,8 +254,8 @@ define(["testFns"], function (testFns) {
     });
     
     
-    test("enums", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+    test("enums w/save", function () {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData does not yet support enums");
             return;
         };
@@ -269,8 +293,8 @@ define(["testFns"], function (testFns) {
 
     });
     
-    test("enums null", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+    test("enums null - w/save", function () {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData does not yet support enums");
             return;
         };
@@ -323,6 +347,7 @@ define(["testFns"], function (testFns) {
             ok(data.results.length > 0, "should have Alfreds Orders.");
         }).fail(testFns.handleFail).fin(start);
     });
+
     
     test("nullable date", function () {
         var em = newEm();

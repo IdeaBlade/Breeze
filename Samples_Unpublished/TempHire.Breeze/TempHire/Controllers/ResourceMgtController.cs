@@ -13,7 +13,7 @@ namespace TempHire.Controllers
     {
         private readonly UnitOfWork _unitOfWork = new UnitOfWork();
 
-        // ~/api/resourcemgt/StaffingResources
+        // ~/breeze/resourcemgt/StaffingResources
         [HttpGet]
         public IQueryable<StaffingResource> StaffingResources()
         {
@@ -62,7 +62,7 @@ namespace TempHire.Controllers
             return _unitOfWork.Commit(saveBundle);
         }
 
-        // ~/api/resourcemgt/Lookups
+        // ~/breeze/resourcemgt/Lookups
         [HttpGet]
         public LookupBundle Lookups()
         {

@@ -77,7 +77,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -88,9 +88,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, parseContext, nodeContext) {
+            visitNode: function (node, mappingContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
@@ -115,7 +115,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using dataService with jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -127,9 +127,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, parseContext, nodeContext) {
+            visitNode: function (node, mappingContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
@@ -156,7 +156,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query using em with dataService with jsonResultsAdapter", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
         };
@@ -168,9 +168,9 @@ define(["testFns"], function (testFns) {
             extractResults: function (json) {
                 return json.results;
             },
-            visitNode: function (node, parseContext, nodeContext) {
+            visitNode: function (node, mappingContext, nodeContext) {
                 var entityTypeName = 'OrderDetail';
-                var entityType = entityTypeName && parseContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
+                var entityType = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName && propertyName.substr(0, 1) === "$";
                 if (entityType) {
@@ -679,7 +679,7 @@ define(["testFns"], function (testFns) {
     
 
     test("scalar server query ", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "Named queries not supported by OData");
             return;
         }
@@ -1087,7 +1087,8 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
-            .take(1);
+            .where("regionID", "==", 3);
+            
 
         stop();
         em.executeQuery(q).then(function (data) {
@@ -1099,7 +1100,7 @@ define(["testFns"], function (testFns) {
         }).then(function (data2) {
             ok(!em.hasChanges(), "should not have any changes");
             ok(em.getChanges().length === 0, "getChanges should return 0 results");
-            ok(data2.results.length > 0);
+            ok(data2.results.length > 0, "This may be a test bug - need a region with territories");
             start();
         }).fail(testFns.handleFail);
     });
@@ -1296,7 +1297,7 @@ define(["testFns"], function (testFns) {
         }).fail(function(err) {
             if (testFns.DEBUG_WEBAPI) {
                 ok(err.message.indexOf("OrderDetails") >= 1, " message should be about missing OrderDetails property");
-            } else {
+            } else if (testFns.DEBUG_ODATA) {
                 ok(err.message.indexOf("Product") >= 1, "should be an error message about the Product query");
             }
             
@@ -1830,12 +1831,12 @@ define(["testFns"], function (testFns) {
 
 
     test("WebApi metadata", function () {
-        if (!testFns.DEBUG_WEBAPI) {
+        if (testFns.DEBUG_ODATA) {
             ok(true, "NA for OData impl");
             return;
         }
         stop();
-        $.getJSON("api/NorthwindIBModel/Metadata", function (data, status) {
+        $.getJSON("breeze/NorthwindIBModel/Metadata", function (data, status) {
             // On success, 'data' contains the model metadata.
             //                console.log(data);
             ok(data);

@@ -238,16 +238,20 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Roles;
     }
 
+    [HttpGet]
+    public IQueryable<User> Users() {
+      return ContextProvider.Context.Users;
+    }
 
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
     }
 
-    [HttpGet]
-    public IQueryable<TimeGroup> TimeGroups() {
-      return ContextProvider.Context.TimeGroups;
-    }
+    //[HttpGet]
+    //public IQueryable<TimeGroup> TimeGroups() {
+    //  return ContextProvider.Context.TimeGroups;
+    //}
 
     [HttpGet]
     public IQueryable<Comment> Comments() {

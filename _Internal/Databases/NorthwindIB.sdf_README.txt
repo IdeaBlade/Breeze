@@ -1,0 +1,11 @@
+In migrating NorhtwindIB.mdf to SQL Compact, we found the following issues:
+
+1) SDF unsupported types:
+   - Geometry
+   - Geography
+   - DateTimeOffset
+   - Time
+
+2) SQL Compact only accepts Integers as Identity fields.
+
+3) SQL Compact provider does not support isnull. (To be fixed in EF6 - see http://entityframework.codeplex.com/workitem/287)

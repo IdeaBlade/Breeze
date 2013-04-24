@@ -47,7 +47,7 @@ define(["testFns"], function (testFns) {
         stop();
         var dataServiceAdapter = core.config.getAdapterInstance("dataService");
         var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
-        dataServiceAdapter.fetchMetadata(store, dataService, function() {
+        dataServiceAdapter.fetchMetadata(store, dataService).then(function() {
             try {
                 var typeMap = store._structuralTypeMap;
                 var types = objectValues(typeMap);
@@ -65,24 +65,23 @@ define(["testFns"], function (testFns) {
                 var notProp = custType.getProperty("foo");
                 ok(!notProp);
                 equal(prop.name, keys[0].name);
-                start();
+                
             } catch(e) {
                 ok(false, "should'nt fail except if using server side json metadata file.");
-                start();
             }
-        }, testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("initialize only once", function() {
         var store = new MetadataStore();
         var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
         stop();
-        store.fetchMetadata(testFns.serviceName).then(function() {
+        store.fetchMetadata(testFns.serviceName).then(function () {
             ok(!store.isEmpty());
             ok(store.hasMetadataFor(testFns.serviceName));
             ok(em.metadataStore.hasMetadataFor(em.serviceName), "manager serviceName is not the same as the metadataStore name");
-            start();
-        }).fail(testFns.handleFail);
+
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("initialization concurrent", 2, function () {
@@ -92,20 +91,21 @@ define(["testFns"], function (testFns) {
         var typeMap;
         var errFn = function (e) {
             ok(false, e);
-            sc.start();
         };
         var dataServiceAdapter = core.config.getAdapterInstance("dataService");
         var dataService = new breeze.DataService({ serviceName: testFns.serviceName });
-        dataServiceAdapter.fetchMetadata(store, dataService, function () {
+        
+        var p1 = dataServiceAdapter.fetchMetadata(store, dataService).then(function () {
             typeMap = store._structuralTypeMap;
             ok(true, "should get here");
-            sc.start();
-        }, errFn);
-        dataServiceAdapter.fetchMetadata(store, dataService, function () {
+
+        });
+        var p2 = dataServiceAdapter.fetchMetadata(store, dataService).then(function () {
             typeMap = store._structuralTypeMap;
             ok(true, "should also get here");
-            sc.start();
-        }, errFn);
+            
+        });
+        Q.all([p1, p2]).fail(errFn).fin(start);
     });
 
     function objectValues(obj, deep) {

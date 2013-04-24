@@ -23,7 +23,7 @@ namespace NoDb.Controllers {
             _repository = new TodoRepository();
         }
 
-        // GET ~/api/BreezeTodo/TodoList
+        // GET ~/breeze/BreezeTodo/TodoList
         [HttpGet]
         public IQueryable<TodoList> TodoLists()
         {
@@ -31,7 +31,7 @@ namespace NoDb.Controllers {
                 .OrderByDescending(t => t.TodoListId);
         }
 
-        // POST ~/api/BreezeTodo/SaveChanges
+        // POST ~/breeze/BreezeTodo/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {

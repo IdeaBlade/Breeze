@@ -2,7 +2,9 @@
 function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // 'this' is the entity itself in this context.
 
+    if (newValue === undefined) newValue = null;
     var oldValue = rawAccessorFn();
+
     var dataType = property.dataType;
     if (dataType && dataType.parse) {
         // attempts to coerce a value to the correct type - if this fails return the value unchanged

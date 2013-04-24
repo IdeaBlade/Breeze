@@ -136,6 +136,8 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\BreezeConfig.cs" />
+    <Compile Include="Controllers\InheritanceController.cs" />
+    <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NonEFModelController.cs" />
@@ -172,6 +174,14 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\entityTests.js">
       <Link>Scripts\Tests\entityTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritBillingTests.js">
+      <Link>Scripts\Tests\inheritBillingTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritProduceTests.js">
+      <Link>Scripts\Tests\inheritProduceTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\koSpecificTests.js">
@@ -379,6 +389,10 @@
       <Project>{4d9ce4e7-dca1-4458-ba63-2c3f7907b754}</Project>
       <Name>Breeze.WebApi</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Model_Inheritance\Model_Inheritance.csproj">
+      <Project>{6ca2f9ec-22d8-41d8-b029-193252acb802}</Project>
+      <Name>Model_Inheritance</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj">
       <Project>{763b4341-7a4e-4880-a4e2-31aadc05f1ad}</Project>
       <Name>Model_NorthwindIB_CF</Name>
@@ -390,6 +404,14 @@
     <ProjectReference Include="..\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj">
       <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
       <Name>Model_NorthwindIB_EDMX_2012</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_TPH\Model_TPH.csproj">
+      <Project>{73bb1c2b-bf56-4257-a3dc-56fe5163d2af}</Project>
+      <Name>Model_TPH</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_TPT\Model_TPT.csproj">
+      <Project>{0f11f026-78db-4b99-92c8-7b37ce997162}</Project>
+      <Name>Model_TPT</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

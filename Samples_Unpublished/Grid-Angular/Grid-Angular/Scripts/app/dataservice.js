@@ -2,10 +2,10 @@ app.dataservice = (function (breeze, logger) {
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
     
-    var serviceName = 'api/northwind'; // route to the same origin Web Api controller
+    var serviceName = 'breeze/northwind'; // route to the same origin Web Api controller
    
     // *** Cross origin service example  ***
-    //var serviceName = 'http://todo.breezejs.com/api/northwind'; // controller in different origin
+    //var serviceName = 'http://todo.breezejs.com/breeze/northwind'; // controller in different origin
 
     var manager = new breeze.EntityManager(serviceName);
     var _isSaving = false;
