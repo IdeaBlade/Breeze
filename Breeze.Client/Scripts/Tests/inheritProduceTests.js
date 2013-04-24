@@ -21,29 +21,16 @@ define(["testFns"], function (testFns) {
     var altServiceName = "breeze/ProduceTPH";
 
     var newEm = testFns.newEm;
-    //function newEm() {
-
-    //    var dataService = new DataService({
-    //        serviceName: altServiceName,
-    //    });
-    //    var altMs = new MetadataStore({
-    //        namingConvention: NamingConvention.camelCase
-    //    });
-
-    //    return new EntityManager({
-    //        dataService: dataService,
-    //        metadataStore: altMs
-    //    });
-    //}
     
-    module("inherit", {
+    module("inheritProduce", {
         setup: function () {
             testFns.setup({ serviceName: altServiceName } );
         },
         teardown: function () {
         }
     });
-    
+
+ 
     test("query ItemsOfProduce", function () {
         var em = newEm();
 

@@ -28,29 +28,36 @@
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
     
+        var deferred = Q.defer();
+
         OData.read(mappingContext.url,
             function (data, response) {
-                collectionCallback({ results: data.results, inlineCount: data.__count });
+                return deferred.resolve({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, mappingContext.url));
             }
         );
+        return deferred.promise;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+
+        var deferred = Q.defer();
+
         var serviceName = dataService.serviceName;
         var url = dataService.makeUrl('$metadata');
+        
         OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
                     var error = new Error("Metadata query failed for: " + url);
-                    callback(error);
+                    return deferred.reject(error);
                 }
                 var csdlMetadata = data.dataServices;
 
@@ -59,26 +66,30 @@
                     try {
                         metadataStore.importMetadata(csdlMetadata);
                     } catch(e) {
-                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
-                        return;
+                        return deferred.reject(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
                     }
 
                     metadataStore.addDataService(dataService);
                 }
 
-                callback(csdlMetadata);
+                return deferred.resolve(csdlMetadata);
 
             }, function (error) {
                 var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
-                errorCallback(err);
+                return deferred.reject(err);
             },
             OData.metadataHandler
         );
 
+        return deferred.promise;
+
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
+
+        var deferred = Q.defer();
+
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
         
@@ -99,8 +110,7 @@
                     var response = cr.response || cr;
                     var statusCode = response.statusCode;
                     if ((!statusCode) || statusCode >= 400) {
-                        errorCallback(createError(cr, url));
-                        return;
+                        return deferred.reject(createError(cr, url));
                     }
                     
                     var contentId = cr.headers["Content-ID"];
@@ -124,10 +134,12 @@
                     }
                 });
             });
-            callback(saveResult);
+            return deferred.resolve(saveResult);
         }, function (err) {
-            errorCallback(createError(err, url));
+            return deferred.reject(createError(err, url));
         }, OData.batchHandler);
+
+        return deferred.promise;
 
     };
  

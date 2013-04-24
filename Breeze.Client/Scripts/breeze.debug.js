@@ -4617,13 +4617,13 @@ var DataType = function () {
     };
 
     var makeFloatFmt = function (fmtSuffix) {
-        return function (val) {
+        return function(val) {
             if (val == null) return null;
             if (typeof val === "string") {
                 val = parseFloat(val);
             }
             return val + fmtSuffix;
-        }
+        };
     };
 
     var fmtDateTime = function (val) {
@@ -5071,7 +5071,7 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
         if (exportedMetadata.schema) {
             CsdlMetadataParser.parse(this, exportedMetadata.schema);
-            return;
+            return this;
         } 
 
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
@@ -5218,17 +5218,14 @@ var MetadataStore = (function () {
         if (this.hasMetadataFor(dataService.serviceName)) {
             throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
         }
-            
 
-        var deferred = Q.defer();
-        dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-        return deferred.promise.then(function (rawMetadata) {
+        return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }, function (error) {
+        }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
+        })
     };
 
 
@@ -5350,7 +5347,7 @@ var MetadataStore = (function () {
     proto.getEntityTypes = function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
-        
+
     proto._getEntityType = function(typeName, okIfNotFound) {
         var qualTypeName = getQualifiedTypeName(this, typeName, false);
         var type = this._structuralTypeMap[qualTypeName];
@@ -5363,8 +5360,7 @@ var MetadataStore = (function () {
             throw new Error("There are multiple types with this 'shortName': " + typeNames);
         }
         return type;
-
-    }
+    };
                
     function getTypesFromMap(typeMap) {
         var types = [];
@@ -5430,7 +5426,6 @@ var MetadataStore = (function () {
     };
 
     // protected methods
-
  
 
     proto._getCtorRegistration = function(structuralType) {
@@ -5438,7 +5433,7 @@ var MetadataStore = (function () {
         if (!r.ctor) {
             structuralType.getEntityCtor();
         }
-    }
+    };
         
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
@@ -5451,8 +5446,6 @@ var MetadataStore = (function () {
             entity.entityType = entityType;
         }
     };
-       
-  
 
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
@@ -5487,8 +5480,6 @@ var MetadataStore = (function () {
         metadataStore.addEntityType(stype);
         return stype;
     };
-
-
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -8970,7 +8961,7 @@ var FnNode = (function() {
     return ctor;
 })();
    
-var FilterQueryOp = function () {
+var FilterQueryOp = (function () {
     /**
     FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink "Predicate"}}{{/crossLink}} 
     filter operators for an {{#crossLink "EntityQuery"}}{{/crossLink}}.
@@ -9041,6 +9032,9 @@ var FilterQueryOp = function () {
     @static
     **/
     aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true });
+
+    aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
+    
     aEnum.seal();
     aEnum._map = function () {
         var map = {};
@@ -9063,9 +9057,9 @@ var FilterQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
-var BooleanQueryOp = function () {
+var BooleanQueryOp = (function () {
     var aEnum = new Enum("BooleanQueryOp");
     aEnum.And = aEnum.addSymbol({ operator: "and", aliases: ["&&"] });
     aEnum.Or = aEnum.addSymbol({ operator: "or", aliases: ["||"] });
@@ -9093,7 +9087,7 @@ var BooleanQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
 var Predicate = (function () {
     /**  
@@ -9350,18 +9344,26 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
-        assertParam(propertyOrExpr, "propertyOrExpr").isString().check();
+    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
+
         assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
         assertParam(value, "value").isRequired(true).check();
         assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
-        this._propertyOrExpr = propertyOrExpr;
-        this._fnNode1 = FnNode.create(propertyOrExpr, null);
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
+        if (propertyOrExpr) {
+            this._propertyOrExpr = propertyOrExpr;
+            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+        } else {
+            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+                throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
+            }
+        }
+
         this._value = value;
         this._valueIsLiteral = valueIsLiteral;
     };
@@ -9371,7 +9373,12 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
-        var v1Expr = this._fnNode1.toOdataFragment(entityType);
+        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(this._value);
+            var typeName = oftype.namespace + '.' + oftype.shortName;
+            return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
+        }
+        var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
         var v2Expr;
         if (this.fnNode2 === undefined && !this._valueIsLiteral) {
             this.fnNode2 = FnNode.create(this._value, entityType);
@@ -9421,6 +9428,7 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        if (!this._fnNode1) return;
         // throw if not valid
         this._fnNode1.validate(entityType);
         this.dataType = this._fnNode1.dataType;
@@ -10968,10 +10976,9 @@ var EntityManager = (function () {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
                 return executeQueryCore(that, query, queryOptions, dataService);
-            }).fail(function (error) {
-                return Q.reject(error);
             });
         }
+
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
     
@@ -11160,10 +11167,9 @@ var EntityManager = (function () {
         // are referenced are also in the partial save group
 
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
-        var deferred = Q.defer();
-        dataService.adapterInstance.saveChanges(saveContext, saveBundle, deferred.resolve, deferred.reject);
+        
         var that = this;
-        return deferred.promise.then(function (saveResult) {
+        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
                 
@@ -11861,7 +11867,7 @@ var EntityManager = (function () {
         });
     }
 
-    function promiseWithCallbacks(promise, callback, errorCallback) {
+     function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
@@ -12008,12 +12014,10 @@ var EntityManager = (function () {
                     refMap: {}, 
                     deferredFns: []
             };
-            var deferred = Q.defer();
+            
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            var promise = deferred.promise;
-
-                
-            dataService.adapterInstance.executeQuery(mappingContext, function (data) {
+            
+            return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -12050,14 +12054,14 @@ var EntityManager = (function () {
                     }
                     return { results: results, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                 });
-                deferred.resolve( result);
-            }, function (e) {
+                return Q.resolve(result);
+            }).fail(function (e) {
                 if (e) {
                     e.query = query;
                 }
-                deferred.reject(e);
+                return Q.reject(e);
             });
-            return promise;
+            
         } catch (e) {
             if (e) {
                 e.query = query;
@@ -12747,29 +12751,36 @@ breeze.SaveOptions= SaveOptions;
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
     
+        var deferred = Q.defer();
+
         OData.read(mappingContext.url,
             function (data, response) {
-                collectionCallback({ results: data.results, inlineCount: data.__count });
+                return deferred.resolve({ results: data.results, inlineCount: data.__count });
             },
             function (error) {
-                if (errorCallback) errorCallback(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, mappingContext.url));
             }
         );
+        return deferred.promise;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+
+        var deferred = Q.defer();
+
         var serviceName = dataService.serviceName;
         var url = dataService.makeUrl('$metadata');
+        
         OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
                 // entityContainer[], association[], entityType[], and namespace.
                 if (!data || !data.dataServices) {
                     var error = new Error("Metadata query failed for: " + url);
-                    callback(error);
+                    return deferred.reject(error);
                 }
                 var csdlMetadata = data.dataServices;
 
@@ -12778,26 +12789,30 @@ breeze.SaveOptions= SaveOptions;
                     try {
                         metadataStore.importMetadata(csdlMetadata);
                     } catch(e) {
-                        errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
-                        return;
+                        return deferred.reject(new Error("Metadata query failed for " + url + "; Unable to process returned metadata: " + e.message));
                     }
 
                     metadataStore.addDataService(dataService);
                 }
 
-                callback(csdlMetadata);
+                return deferred.resolve(csdlMetadata);
 
             }, function (error) {
                 var err = createError(error, url);
                 err.message = "Metadata query failed for: " + url + "; " + (err.message || "");
-                errorCallback(err);
+                return deferred.reject(err);
             },
             OData.metadataHandler
         );
 
+        return deferred.promise;
+
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
+
+        var deferred = Q.defer();
+
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
         
@@ -12818,8 +12833,7 @@ breeze.SaveOptions= SaveOptions;
                     var response = cr.response || cr;
                     var statusCode = response.statusCode;
                     if ((!statusCode) || statusCode >= 400) {
-                        errorCallback(createError(cr, url));
-                        return;
+                        return deferred.reject(createError(cr, url));
                     }
                     
                     var contentId = cr.headers["Content-ID"];
@@ -12843,10 +12857,12 @@ breeze.SaveOptions= SaveOptions;
                     }
                 });
             });
-            callback(saveResult);
+            return deferred.resolve(saveResult);
         }, function (err) {
-            errorCallback(createError(err, url));
+            return deferred.reject(createError(err, url));
         }, OData.batchHandler);
+
+        return deferred.promise;
 
     };
  
@@ -13014,31 +13030,35 @@ breeze.SaveOptions= SaveOptions;
         }
     };
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService, callback, errorCallback) {
+    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
         var serviceName = dataService.serviceName;
         var url = dataService.makeUrl("Metadata");
         
+        var deferred = Q.defer();
+
         ajaxImpl.ajax({
             url: url,
             dataType: 'json',
-            success: function(data, textStatus, XHR) {
+            success: function (data, textStatus, XHR) {
+                var error;
                 // might have been fetched by another query
                 if (metadataStore.hasMetadataFor(serviceName)) {
-                    callback("already fetched");
-                    return;
+                    return deferred.resolve("already fetched");
                 }
                 var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
                 
-                if (!metadata) {
-                    if (errorCallback) errorCallback(new Error("Metadata query failed for: " + url));
-                    return;
+                if (metadata) {
+                    try {
+                        metadataStore.importMetadata(metadata);
+                    } catch (e) {
+                        error = new Error("Metadata import failed for " + url + "; Unable to process returned metadata:" + e.message);
+                    }
+                } else {
+                    error = new Error("Metadata query failed for: " + url);
                 }
 
-                try {
-                    metadataStore.importMetadata(metadata);
-                } catch (e) {
-                    errorCallback(new Error("Metadata query failed for " + url + "; Unable to process returned metadata:" + e.message));
-                    return;
+                if (error) {
+                    return deferred.reject(error)
                 }
 
                 // import may have brought in the service.
@@ -13046,22 +13066,23 @@ breeze.SaveOptions= SaveOptions;
                     metadataStore.addDataService(dataService);
                 }
                 
-                if (callback) {
-                    callback(metadata);
-                }
-                
                 XHR.onreadystatechange = null;
                 XHR.abort = null;
+
+                deferred.resolve(metadata);
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback, "Metadata query failed for: " + url);
+                handleXHRError(deferred, XHR, "Metadata query failed for: " + url);
             }
         });
+        return deferred.promise;
     };
     
 
-    ctor.prototype.executeQuery = function (mappingContext, collectionCallback, errorCallback) {
+    ctor.prototype.executeQuery = function (mappingContext) {
+
+        var deferred = Q.defer();
 
         var params = {
             url: mappingContext.url,
@@ -13075,20 +13096,20 @@ breeze.SaveOptions= SaveOptions;
                         rData = { results: data, XHR: XHR };
                     }
                     
-                    collectionCallback(rData);
+                    deferred.resolve(rData);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 } catch(e) {
                     var error = e instanceof Error ? e : createError(XHR);
                     // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                    if (errorCallback) errorCallback(error);
+                    deferred.reject(error);
                     XHR.onreadystatechange = null;
                     XHR.abort = null;
                 }
 
             },
             error: function(XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         };
         if (mappingContext.dataService.useJsonp) {
@@ -13096,10 +13117,12 @@ breeze.SaveOptions= SaveOptions;
             params.crossDomain = true;
         }
         ajaxImpl.ajax(params);
+        return deferred.promise;
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle, callback, errorCallback) {
+    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
         
+        var deferred = Q.defer();
         var bundle = prepareSaveBundle(saveBundle, saveContext);
         
         var url = saveContext.dataService.makeUrl(saveContext.resourceName);
@@ -13115,7 +13138,7 @@ breeze.SaveOptions= SaveOptions;
                     // anticipatable errors on server - concurrency...
                     var err = createError(XHR);
                     err.message = data.Error;
-                    errorCallback(err);
+                    deferred.reject(err);
                 } else {
                     // HACK: need to change the 'case' of properties in the saveResult
                     // but KeyMapping properties internally are still ucase. ugh...
@@ -13124,13 +13147,16 @@ breeze.SaveOptions= SaveOptions;
                         return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
                     });
                     var saveResult = { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
-                    callback(saveResult);
+                    deferred.resolve(saveResult);
                 }
+                
             },
             error: function (XHR, textStatus, errorThrown) {
-                handleXHRError(XHR, errorCallback);
+                handleXHRError(deferred, XHR);
             }
         });
+
+        return deferred.promise;
     };
 
     function prepareSaveBundle(saveBundle, saveContext) {
@@ -13187,14 +13213,12 @@ breeze.SaveOptions= SaveOptions;
     });
     
    
-    function handleXHRError(XHR, errorCallback, messagePrefix) {
-
-        if (!errorCallback) return;
+    function handleXHRError(deferred, XHR, messagePrefix) {
         var err = createError(XHR);
         if (messagePrefix) {
             err.message = messagePrefix + "; " + err.message;
         }
-        errorCallback(err);
+        deferred.reject(err);
         XHR.onreadystatechange = null;
         XHR.abort = null;
     }

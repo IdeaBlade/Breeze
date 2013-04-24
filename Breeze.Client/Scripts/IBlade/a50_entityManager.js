@@ -679,10 +679,9 @@ var EntityManager = (function () {
             var that = this;
             promise = this.fetchMetadata(dataService).then(function () {
                 return executeQueryCore(that, query, queryOptions, dataService);
-            }).fail(function (error) {
-                return Q.reject(error);
             });
         }
+
         return promiseWithCallbacks(promise, callback, errorCallback);
     };
     
@@ -871,10 +870,9 @@ var EntityManager = (function () {
         // are referenced are also in the partial save group
 
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
-        var deferred = Q.defer();
-        dataService.adapterInstance.saveChanges(saveContext, saveBundle, deferred.resolve, deferred.reject);
+        
         var that = this;
-        return deferred.promise.then(function (saveResult) {
+        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
                 
@@ -1572,7 +1570,7 @@ var EntityManager = (function () {
         });
     }
 
-    function promiseWithCallbacks(promise, callback, errorCallback) {
+     function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
@@ -1719,12 +1717,10 @@ var EntityManager = (function () {
                     refMap: {}, 
                     deferredFns: []
             };
-            var deferred = Q.defer();
+            
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            var promise = deferred.promise;
-
-                
-            dataService.adapterInstance.executeQuery(mappingContext, function (data) {
+            
+            return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
                     em.isLoading = true;
@@ -1761,14 +1757,14 @@ var EntityManager = (function () {
                     }
                     return { results: results, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
                 });
-                deferred.resolve( result);
-            }, function (e) {
+                return Q.resolve(result);
+            }).fail(function (e) {
                 if (e) {
                     e.query = query;
                 }
-                deferred.reject(e);
+                return Q.reject(e);
             });
-            return promise;
+            
         } catch (e) {
             if (e) {
                 e.query = query;

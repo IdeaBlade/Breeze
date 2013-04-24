@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPH", "_Internal\Mode
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPT", "_Internal\Model_TPT\Model_TPT.csproj", "{0F11F026-78DB-4B99-92C8-7B37CE997162}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_Inheritance", "_Internal\Model_Inheritance\Model_Inheritance.csproj", "{6CA2F9EC-22D8-41D8-B029-193252ACB802}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Breeze.vsmdi
@@ -186,6 +188,21 @@ Global
 		{0F11F026-78DB-4B99-92C8-7B37CE997162}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{0F11F026-78DB-4B99-92C8-7B37CE997162}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{0F11F026-78DB-4B99-92C8-7B37CE997162}.Release|x86.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.OData-debug|Any CPU.Build.0 = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.OData-debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.OData-debug|Mixed Platforms.Build.0 = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.OData-debug|x86.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

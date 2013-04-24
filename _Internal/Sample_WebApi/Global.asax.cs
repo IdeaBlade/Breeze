@@ -70,6 +70,12 @@ namespace Sample_WebApi {
           defaults: new { controller = "ProduceTPH", filter = UrlParameter.Optional }
       );
 
+      routes.MapHttpRoute(
+       name: "Inheritance",
+       routeTemplate: "breeze/Inheritance/{action}/{filter}",
+       defaults: new { controller = "Inheritance", filter = UrlParameter.Optional }
+   );
+
 
       routes.MapRoute(
           name: "Default",

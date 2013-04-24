@@ -136,6 +136,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\BreezeConfig.cs" />
+    <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -175,8 +176,12 @@
       <Link>Scripts\Tests\entityTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritTests.js">
-      <Link>Scripts\Tests\inheritTests.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritBillingTests.js">
+      <Link>Scripts\Tests\inheritBillingTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\inheritProduceTests.js">
+      <Link>Scripts\Tests\inheritProduceTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\koSpecificTests.js">
@@ -383,6 +388,10 @@
     <ProjectReference Include="..\..\Breeze.WebApi\Breeze.WebApi.csproj">
       <Project>{4d9ce4e7-dca1-4458-ba63-2c3f7907b754}</Project>
       <Name>Breeze.WebApi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_Inheritance\Model_Inheritance.csproj">
+      <Project>{6ca2f9ec-22d8-41d8-b029-193252acb802}</Project>
+      <Name>Model_Inheritance</Name>
     </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_CF\Model_NorthwindIB_CF.csproj">
       <Project>{763b4341-7a4e-4880-a4e2-31aadc05f1ad}</Project>

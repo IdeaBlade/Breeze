@@ -322,17 +322,14 @@ var MetadataStore = (function () {
         if (this.hasMetadataFor(dataService.serviceName)) {
             throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
         }
-            
 
-        var deferred = Q.defer();
-        dataService.adapterInstance.fetchMetadata(this, dataService, deferred.resolve, deferred.reject);
-        return deferred.promise.then(function (rawMetadata) {
+        return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }, function (error) {
+        }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
+        })
     };
 
 

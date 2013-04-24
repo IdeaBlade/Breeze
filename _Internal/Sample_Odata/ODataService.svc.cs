@@ -6,6 +6,7 @@ using Models.NorthwindIB.EDMX;
 using Models.NorthwindIB.EDMX_2012;
 using System.ServiceModel;
 using System;
+using System.Web;
 
 // MAKE SURE YOU SET the ODATA define before running any ODATA tests.
 
@@ -44,7 +45,12 @@ namespace Breeze_OData {
       config.UseVerboseErrors = true;
     }
 
-    
+    protected override void OnStartProcessingRequest(ProcessRequestArgs args) {
+      HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.NoCache);
+      
+      // HttpContext.Current.Response.AddHeader("Cache-control", "no-cache");
+    }
+
 
     protected override void HandleException(HandleExceptionArgs args) {
       var x = args;

@@ -124,16 +124,14 @@ define(["breeze.debug"], function (breeze) {
             return;
         }
 
-        stop();
+        
         var em = testFns.newEm();
         if (serviceHasMetadata) {
-            em.fetchMetadata(function(rawMetadata) {
+            stop();
+            em.fetchMetadata(function (rawMetadata) {
                 if (config.metadataFn) config.metadataFn();
-                start();
-            }).fail(testFns.handleFail);
-        } else {
-            start();
-        }
+            }).fail(testFns.handleFail).fin(start);
+        } 
     };
 
     testFns.newMs = function() {
