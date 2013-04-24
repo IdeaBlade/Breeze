@@ -132,10 +132,7 @@ namespace Breeze.WebApi {
 
       var selectQueryString = map["$select"];
       if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-        var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
-        var elementType = TypeFns.GetElementType(queryable.GetType());
-        var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
-        result = func(result);
+          result = ApplySelect(queryable, selectQueryString, request);
         hasSelectOrExpand = true;
       }
 
@@ -144,15 +141,45 @@ namespace Breeze.WebApi {
         if (!string.IsNullOrWhiteSpace(selectQueryString)) {
           throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
         }
-        expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand => {
-          result = ((dynamic) result).Include(expand.Replace('/', '.'));
-        });
+        result = ApplyExpand(queryable, expandsQueryString, request);
         hasSelectOrExpand = true;
       }
 
       return hasSelectOrExpand ? result : null;
       
     }
+
+    /// <summary>
+    /// Apply the select clause to the queryable
+    /// </summary>
+    /// <param name="queryable"></param>
+    /// <param name="selectQueryString"></param>
+    /// <param name="request">not used, but available to overriding methods</param>
+    /// <returns></returns>
+    public virtual IQueryable ApplySelect(IQueryable queryable, string selectQueryString, HttpRequestMessage request)
+    {
+        var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
+        var elementType = TypeFns.GetElementType(queryable.GetType());
+        var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
+        return func(queryable);
+    }
+    
+    /// <summary>
+    /// Apply to expands clause to the queryable
+    /// </summary>
+    /// <param name="queryable"></param>
+    /// <param name="expandsQueryString"></param>
+    /// <param name="request">not used, but available to overriding methods</param>
+    /// <returns></returns>
+    public virtual IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString, HttpRequestMessage request)
+    {
+        expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand =>
+        {
+            queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
+        });
+        return queryable;
+    }
+      
 
   }
 
