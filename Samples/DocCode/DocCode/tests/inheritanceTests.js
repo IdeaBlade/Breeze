@@ -38,21 +38,21 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * can query all from each inherited type
     *********************************************************/
-    asyncTest("can query all BankAccounts", 3, function () {
+    asyncTest("can query all BankAccounts", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
             return assertCanQueryAll(bankRoot + t, 3);
         });
         waitForTestPromises(promises);
     });
 
-    asyncTest("can query all CreditCards", 3, function () {
+    asyncTest("can query all CreditCards", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
             return assertCanQueryAll(cardRoot + t, 4);
         });
         waitForTestPromises(promises);
     });
 
-    asyncTest("can query all base BillingDetails", 3, function () {
+    asyncTest("can query all base BillingDetails", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
             return assertCanQueryAll(baseRoot + t, 7);
         });
@@ -63,13 +63,22 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var resourceName = typeName + 's';
 
-        return EntityQuery.from(resourceName)
+        return EntityQuery.from(resourceName).orderBy("Owner")
             .using(em).execute().then(querySuccess);
 
         function querySuccess(data) {
             var len = data.results.length;
             equal(len, expectedCount,
-                "Should fetch {0} from '{1}'.".format(len, resourceName));
+                "should fetch {0} from '{1}'.".format(len, resourceName));
+            
+            // confirm that the 'orderBy' worked as well
+            var isOrdered = true, testOwner = "";
+            data.results.reduce(function (_, entity) {              
+                var owner = entity.Owner().toLowerCase();
+                isOrdered &= testOwner <= owner;
+                testOwner = owner;
+            });
+            ok(isOrdered, resourceName+" results should be in ascending 'Owner' order.");
         }
     }
 
