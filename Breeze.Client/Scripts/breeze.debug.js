@@ -6156,6 +6156,7 @@ var EntityType = (function () {
     /**
     Returns whether this type is a subtype of a specified type.
     
+    @method isSubtypeOf
     @param entityType [EntityType]
     **/
     proto.isSubtypeOf = function (entityType) {
@@ -6166,9 +6167,13 @@ var EntityType = (function () {
             baseType = baseType.baseEntityType;
         } while (baseType);
         return false;
-        
     }
 
+    /**
+    Returns an array containing this type and any/all subtypes of this type down thru the hierarchy.
+  
+    @method getSelfAndSubtypes
+    **/
     proto.getSelfAndSubtypes = function () {
         var result = [this];
         this.subtypes.forEach(function(st) {

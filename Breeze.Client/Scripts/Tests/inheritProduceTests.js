@@ -97,6 +97,7 @@ define(["testFns"], function (testFns) {
         q.execute().then(function (data) {
             var fruits = data.results;
             ok(fruits.length > 0, "should have found some 'Fruits'");
+            // var q2 = q;
             var q2 = q.toType("Fruit");
             var fruits2 = em.executeQueryLocally(q2);
             ok(fruits2.length === fruits.length);
