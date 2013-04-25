@@ -335,7 +335,7 @@ define(["testFns"], function (testFns) {
     // Assert can navigate to the related AccountType
     function NavToAccountType(data) {
         var entity = data.results[0];
-        var type = entity.entityType.shortName;
+        var type = data.query.entityType.shortName;
 
         if (!entity) {
             ok(false, "a query failed to return a single " + type);
@@ -365,10 +365,10 @@ define(["testFns"], function (testFns) {
     }
     
     /*********************************************************
-    * can navigate to AccountType when eager loaded with expand
+    * can navigate to AccountType when eagerly loaded with expand
     * Tests one each of every flavor of BankAccount and CreditCard
     *********************************************************/
-    asyncTest("can navigate to AccountType eager loaded with expand", 12, function () {
+    asyncTest("can navigate to AccountType eagerly loaded with expand", 12, function () {
 
         // Fetch a BankAccount and CreditCard of each flavor using expand
         // then prove can navigate to related AccountType
@@ -421,7 +421,7 @@ define(["testFns"], function (testFns) {
         // Assert can load the related AccountType on-demand
         function NavToAccountTypeOnDemand(data) {
             var entity = data.results[0];
-            var type = entity.entityType.shortName;
+            var type = data.query.entityType.shortName;
 
             if (!entity) {
                 ok(false, "a query failed to return a single " + type);
@@ -448,6 +448,43 @@ define(["testFns"], function (testFns) {
 
     });
 
+    /*********************************************************
+    * can navigate to Deposits when eager loaded with expand
+    *********************************************************/
+    asyncTest("can navigate to BankAccount Deposits eagerly loaded with expand", 3, function () {
+
+        // Fetch a BankAccount and CreditCard of each flavor using expand
+        // then prove can navigate to related AccountType
+
+        var bankPromises = inheritanceTypes.map(function (t) {
+            var em = newEm();
+            return EntityQuery.from(bankRoot + t + 's').take(1)
+                .expand('Deposits')
+                .using(em).execute().then(NavToDeposits).fail(handleFail);
+        });
+
+        waitForTestPromises(bankPromises);
+    });
+    
+
+    // Assert can navigate to the related BankAccount Deposits
+    function NavToDeposits(data) {
+        var account = data.results[0];
+        var type = data.query.entityType.shortName;
+
+        if (!account) {
+            ok(false, "a query failed to return a single " + type);
+
+        } else if (typeof account.Deposits !== 'function') {
+            ok(false, type + " doesn't have a Deposits KO property");
+
+        } else {
+            var deposits = account.Deposits();
+            var len = deposits.length;
+            ok(len, "should have loaded deposits for {0}:{1}; 'Deposits' property returned {2} of them."
+                    .format(type, account.Id(), len));
+        }
+    }
     /************************** SAVES *************************/
 
     // reset inheritance db after each save module test because we're messing it up
