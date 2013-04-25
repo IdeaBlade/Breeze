@@ -304,7 +304,7 @@ define(["testFns"], function (testFns) {
      * Then gets one each of every flavor of BankAccount and CreditCard
      * and asserts that can navigate from it to an AccountType in cache
      *********************************************************/
-    asyncTest("can navigate to pre-loaded AccountTypes", 6, function () {
+    asyncTest("can navigate to pre-loaded AccountTypes", 12, function () {
         var em = newEm();
 
         // pre-load AccountTypes
@@ -344,22 +344,31 @@ define(["testFns"], function (testFns) {
             ok(false, type + " doesn't have an AccountType KO property");
 
         } else {
+            verifyThatRelatedAccountTypeIsInCache(entity);
             var accountType = entity.AccountType();
             if (accountType) {
                 ok(true, "{0} loaded an AccountType named {1}"
                     .format(type, accountType.Name()));
             } else {
                 ok(false, type + " failed to load or associate with its AccountType.");
-                DEBUGGING_ShowAccountTypeIsInCache(entity);
+
             }
         }
     }
 
+    function verifyThatRelatedAccountTypeIsInCache(entity) {
+        var type = entity.entityType.shortName;
+        var manager = entity.entityAspect.entityManager;
+        var accountType = manager.getEntityByKey("AccountType", entity.AccountTypeId());
+        ok(accountType, "{0}'s AccountType, '{1}', is actually in cache."
+            .format(type, accountType.Name()));
+    }
+    
     /*********************************************************
     * can navigate to AccountType when eager loaded with expand
     * Tests one each of every flavor of BankAccount and CreditCard
     *********************************************************/
-    asyncTest("can navigate to AccountType eager loaded with expand", 6, function () {
+    asyncTest("can navigate to AccountType eager loaded with expand", 12, function () {
 
         // Fetch a BankAccount and CreditCard of each flavor using expand
         // then prove can navigate to related AccountType
@@ -387,7 +396,7 @@ define(["testFns"], function (testFns) {
     * can navigate to AccountType when loaded on-demand
     * Tests one each of every flavor of BankAccount and CreditCard
     *********************************************************/
-    asyncTest("can navigate to AccountType loaded on-demand", 6, function ()  {
+    asyncTest("can navigate to AccountType loaded on-demand", 12, function ()  {
 
         // Fetch a BankAccount and CreditCard of each flavor
         // then load the AccountType property and
@@ -426,13 +435,13 @@ define(["testFns"], function (testFns) {
             
             return entity.entityAspect.loadNavigationProperty("AccountType")
                     .then(function () {
+                        verifyThatRelatedAccountTypeIsInCache(entity);
                         var accountType = entity.AccountType();
                         if (accountType) {
                             ok(true, "{0} loaded an AccountType named {1}"
                                 .format(type, accountType.Name()));
                         } else {
                             ok(false, type + " failed to load or associate with its AccountType.");
-                            DEBUGGING_ShowAccountTypeIsInCache(entity);
                         }
                     });
         }
@@ -453,7 +462,7 @@ define(["testFns"], function (testFns) {
     var idSeed = 10000; // for TPC inheritance; start way out there.
     
     /*********************************************************
-    * can save and requery a new bankaccount
+    * can save and requery new derived types
     *********************************************************/
     asyncTest("can save and requery a BankAccount", 3, function () {
         var inits = makeBankAccountInits({ Number: "112-221" });
@@ -502,15 +511,75 @@ define(["testFns"], function (testFns) {
                     "refetched the saved {0} with number {1}"
                         .format(typeName, detail.Number()));
         }
+    }  
+
+    /*********************************************************
+    * can update a base class property and derived property of each inherited type
+    *********************************************************/
+
+    asyncTest("can update the 'Owner' & 'BankName' of a BankAccount", 9, function () {
+        var testHelper = {
+            updater: function (account) { account.BankName("Test"); },
+            tester: function (account) { return account.BankName() === "Test"; }
+        };
+        
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanUpdate(bankRoot + t, testHelper);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can update the 'Owner'& 'ExpiryYear' of a CreditCard", 9, function () {
+        var testHelper = {
+            updater: function (card) { card.ExpiryYear("Test"); },
+            tester: function (card) { return card.ExpiryYear() === "Test"; }
+        };
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanUpdate(cardRoot + t, testHelper);
+        });
+        waitForTestPromises(promises);
+    });
+    
+    function assertCanUpdate(typeName, testHelper) {
+        var em = newEm();
+        var targetEntity;
+        var testOwner = "Test Owner";
+
+        return EntityQuery.from(typeName + 's').take(1)
+            .using(em).execute().then(querySuccess);
+
+        function querySuccess(data) {
+            targetEntity = data.results[0];
+            
+            var propertyChanges = 0;
+            targetEntity.entityAspect.propertyChanged.subscribe(function (args) {
+                propertyChanges += 1;
+            });
+            targetEntity.Owner(testOwner);
+            testHelper.updater(targetEntity);
+
+            equal(propertyChanges, 2,
+                "should have triggered two propertyChanges on the " + typeName);
+            
+            return em.saveChanges().then(saveSuccess).fail(handleFail);
+        }
+
+        function saveSuccess(saveResult) {
+            var savedEntity = (saveResult.entities.length === 1) && saveResult.entities[0];
+            ok(savedEntity === targetEntity &&
+                targetEntity.Owner() === testOwner,
+                "should have saved the updated 'Owner' on the " + typeName);
+            ok(testHelper.tester(targetEntity), 'should have saved the updated property on the ' + typeName);
+        }
     }
 
     /************************** TEST HELPERS *************************/
     function addToMetadata(metadataStore) {
 
         // Registering resource names for each derived type
-        // because they are not in metadata and they are not in metadata
+        // because these resource names are not in metadata
         // because there are no corresponding DbSets in the DbContext
-        // and that's how Breeze decides what resource names to use by default
+        // and that's how Breeze generates resource names
 
         inheritanceTypes.map(function (t) {
             var typeName = bankRoot + t;
@@ -554,13 +623,4 @@ define(["testFns"], function (testFns) {
         return extend(extend({}, defaultCard), changes || {});
     };
 
-    // Delete this once we figure out why load-on-demand is failing
-    // to associate the loaded AccountType with the entity
-    function DEBUGGING_ShowAccountTypeIsInCache(entity) {
-        var type = entity.entityType.shortName;
-        var manager = entity.entityAspect.entityManager;
-        var accountType = manager.getEntityByKey("AccountType", entity.AccountTypeId());
-        ok(accountType, "{0}'s AccountType, '{1}', is actually in cache."
-            .format(type, accountType.Name()));
-    }
 });
