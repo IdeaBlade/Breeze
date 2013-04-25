@@ -21,7 +21,10 @@ define(["testFns"], function (testFns) {
     var altServiceName = "breeze/Inheritance";
 
     var newEm = testFns.newEm;
-  
+    var newEmX = testFns.newEmX;
+
+   
+
     module("inheritBilling", {
         setup: function () {
             testFns.setup({ serviceName: altServiceName } );
@@ -31,7 +34,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("query BillingTPHs", function() {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("BillingDetailTPHs")
             .using(em);
@@ -50,7 +53,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query BillingTPT", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("BillingDetailTPTs")
             .using(em);
@@ -63,10 +66,39 @@ define(["testFns"], function (testFns) {
                 return f.entityType.isSubtypeOf(iopType);
             }));
 
-        }).fail(function (e) {
-            var x = e;
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
     });
+
+    test("export metadata", function () {
+        var em = newEm();
+        var ets = em.metadataStore.getEntityTypes();
+       
+        var exportedMs = em.metadataStore.exportMetadata();
+        var em2 = newEm();
+
+        em2.metadataStore.importMetadata(exportedMs);
+        ets2 = em2.metadataStore.getEntityTypes();
+        ok(ets.length === ets2.length, "lengths should be the same");
+    });
+
+    //test("export entities", function () {
+    //    var em = newEm();
+
+    //    var q = EntityQuery.from("BillingDetailTPTs").take(1)
+    //       .using(em);
+    //    stop();
+    //    var entity;
+    //    q.execute().then(function (data) {
+    //        var r = data.results;
+    //        ok(r.length == 1, "should have found 1 result");
+    //        entity = data.results[0];
+    //        var q = EntityQuery.fromEntity(entity);
+    //        return q.execute();
+    //    }).then(function(data2) {
+    //        ok(data2.results[0] === e)
+        
+    //    }).fail(testfns.handleFail).fin(start);
+    //});
 
     return testFns;
 

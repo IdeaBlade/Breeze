@@ -21,6 +21,7 @@ define(["testFns"], function (testFns) {
     var altServiceName = "breeze/ProduceTPH";
 
     var newEm = testFns.newEm;
+    var newEmX = testFns.newEmX;
     
     module("inheritProduce", {
         setup: function () {
@@ -32,7 +33,7 @@ define(["testFns"], function (testFns) {
 
  
     test("query ItemsOfProduce", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("ItemsOfProduce")
             .using(em);
@@ -50,7 +51,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("query Fruits w/server ofType", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("Fruits")
             .using(em);
@@ -68,7 +69,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query Fruits w/client ofType", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("ItemsOfProduce")
             .where(null, FilterQueryOp.IsTypeOf, "Fruit")
