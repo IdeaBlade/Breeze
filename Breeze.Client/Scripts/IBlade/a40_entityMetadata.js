@@ -121,6 +121,10 @@ var MetadataStore = (function () {
             // check if this structural type's name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
         }
+
+        if (structuralType.baseEntityType) {
+            structuralType.baseEntityType.subtypes.push(structuralType);
+        }
     };
         
     /**
@@ -1101,6 +1105,7 @@ var EntityType = (function () {
         this.validators = [];
         this.warnings = [];
         this._mappedPropertiesCount = 0;
+        this.subtypes = [];
         // now process any data/nav props
         addProperties(this, config.dataProperties, DataProperty);
         addProperties(this, config.navigationProperties, NavigationProperty);
@@ -1266,6 +1271,15 @@ var EntityType = (function () {
         } while (baseType);
         return false;
         
+    }
+
+    proto.getSelfAndSubtypes = function () {
+        var result = [this];
+        this.subtypes.forEach(function(st) {
+            subtypes = st.getSelfAndSubtypes();
+            result.push.apply(result, subtypes )
+        })
+        return result;
     }
 
     /**

@@ -157,9 +157,10 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.toType = function(entityType) {
-        assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
+        assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
         eq.toEntityType = entityType;
+        return eq;
     };
 
         
@@ -717,40 +718,43 @@ var EntityQuery = (function () {
         // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
         // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
         var entityType = this.entityType;
-        if (!entityType) {
-            var resourceName = this.resourceName;
-            if (!resourceName) {
-                throw new Error("There is no resourceName for this query");
-            }
-            if (metadataStore.isEmpty()) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("There is no metadata available for this query");
-                } else {
-                    return null;
-                }
-            }
-            var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
-            if (!entityTypeName) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("Cannot find resourceName of: " + resourceName);
-                } else {
-                    return null;
-                }
-            }
-            entityType = metadataStore._getEntityType(entityTypeName);
-            if (!entityType) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
-                } else {
-                    return null;
-                }
-            }
-            this.entityType = entityType;
+        if (entityType) return entityType;
+
+        var resourceName = this.resourceName;
+        if (!resourceName) {
+            throw new Error("There is no resourceName for this query");
         }
+
+        if (metadataStore.isEmpty()) {
+            if (throwErrorIfNotFound) {
+                throw new Error("There is no metadata available for this query");
+            } else {
+                return null;
+            }
+        }
+
+        var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+        if (entityTypeName) {
+            entityType = metadataStore._getEntityType(entityTypeName);
+        } else {
+            entityType = this._getToEntityType(metadataStore, true);
+        }
+
+        if (!entityType) {
+            if (throwErrorIfNotFound) {
+                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+            } else {
+                return null;
+            }
+        }
+                
+        this.entityType = entityType;
         return entityType;
+        
     };
 
-    proto._getToEntityType = function (metadataStore) {
+    proto._getToEntityType = function (metadataStore, skipFromCheck) {
+        // skipFromCheck is to avoid recursion if called from _getFromEntityType;
         if (this.toEntityType instanceof EntityType) {
             return this.toEntityType;
         } else if (this.toEntityType) {
@@ -761,7 +765,8 @@ var EntityQuery = (function () {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
             // cannot determine the toEntityType if a selectClause is present.
-            return (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+            
+            return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
     };
 

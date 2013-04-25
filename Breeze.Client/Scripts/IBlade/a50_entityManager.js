@@ -712,24 +712,27 @@ var EntityManager = (function () {
     **/
     proto.executeQueryLocally = function (query) {
         assertParam(query, "query").isInstanceOf(EntityQuery).check();
-        var result;
+        
         var metadataStore = this.metadataStore;
         var entityType = query._getFromEntityType(metadataStore, true);
-        // TODO: there may be multiple groups once we go further with inheritence
-        var group = findOrCreateEntityGroup(this, entityType);
+        // there may be multiple groups is this is a base entity type.
+        var groups = findOrCreateEntityGroups(this, entityType);
         // filter then order then skip then take
         var filterFunc = query._toFilterFunction(entityType);
         
         if (filterFunc) {
-            var undeletedFilterFunc = function(entity) {
+            var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
             };
-            result = group._entities.filter(undeletedFilterFunc);
         } else {
-            result = group._entities.filter(function(entity) {
+            var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted());
-            });
+            };
         }
+        var result = [];
+        groups.forEach(function (group) {
+            result.push.apply(result, group._entities.filter(newFilterFunc));
+        });
             
         var orderByComparer = query._toOrderByComparer(entityType);
         if (orderByComparer) {
@@ -2124,6 +2127,13 @@ var EntityManager = (function () {
             em._entityGroupMap[entityType.name] = group;
         }
         return group;
+    }
+
+    function findOrCreateEntityGroups(em, entityType) {
+        var entityTypes = entityType.getSelfAndSubtypes();
+        return entityTypes.map(function (entityType) {
+            return findOrCreateEntityGroup(em, entityType);
+        });
     }
         
 

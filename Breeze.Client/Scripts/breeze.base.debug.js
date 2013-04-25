@@ -5017,6 +5017,10 @@ var MetadataStore = (function () {
             // check if this structural type's name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
         }
+
+        if (structuralType.baseEntityType) {
+            structuralType.baseEntityType.subtypes.push(structuralType);
+        }
     };
         
     /**
@@ -5997,6 +6001,7 @@ var EntityType = (function () {
         this.validators = [];
         this.warnings = [];
         this._mappedPropertiesCount = 0;
+        this.subtypes = [];
         // now process any data/nav props
         addProperties(this, config.dataProperties, DataProperty);
         addProperties(this, config.navigationProperties, NavigationProperty);
@@ -6162,6 +6167,15 @@ var EntityType = (function () {
         } while (baseType);
         return false;
         
+    }
+
+    proto.getSelfAndSubtypes = function () {
+        var result = [this];
+        this.subtypes.forEach(function(st) {
+            subtypes = st.getSelfAndSubtypes();
+            result.push.apply(result, subtypes )
+        })
+        return result;
     }
 
     /**
@@ -7971,9 +7985,10 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.toType = function(entityType) {
-        assertParam(entityType, "entityType").isString().or.isInstanceOf(EntityType).check();
+        assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
         eq.toEntityType = entityType;
+        return eq;
     };
 
         
@@ -8531,40 +8546,43 @@ var EntityQuery = (function () {
         // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
         // assertParam(throwErrorIfNotFound, "throwErrorIfNotFound").isBoolean().isOptional().check();
         var entityType = this.entityType;
-        if (!entityType) {
-            var resourceName = this.resourceName;
-            if (!resourceName) {
-                throw new Error("There is no resourceName for this query");
-            }
-            if (metadataStore.isEmpty()) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("There is no metadata available for this query");
-                } else {
-                    return null;
-                }
-            }
-            var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
-            if (!entityTypeName) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("Cannot find resourceName of: " + resourceName);
-                } else {
-                    return null;
-                }
-            }
-            entityType = metadataStore._getEntityType(entityTypeName);
-            if (!entityType) {
-                if (throwErrorIfNotFound) {
-                    throw new Error("Cannot find an entityType for an entityTypeName of: " + entityTypeName);
-                } else {
-                    return null;
-                }
-            }
-            this.entityType = entityType;
+        if (entityType) return entityType;
+
+        var resourceName = this.resourceName;
+        if (!resourceName) {
+            throw new Error("There is no resourceName for this query");
         }
+
+        if (metadataStore.isEmpty()) {
+            if (throwErrorIfNotFound) {
+                throw new Error("There is no metadata available for this query");
+            } else {
+                return null;
+            }
+        }
+
+        var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+        if (entityTypeName) {
+            entityType = metadataStore._getEntityType(entityTypeName);
+        } else {
+            entityType = this._getToEntityType(metadataStore, true);
+        }
+
+        if (!entityType) {
+            if (throwErrorIfNotFound) {
+                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+            } else {
+                return null;
+            }
+        }
+                
+        this.entityType = entityType;
         return entityType;
+        
     };
 
-    proto._getToEntityType = function (metadataStore) {
+    proto._getToEntityType = function (metadataStore, skipFromCheck) {
+        // skipFromCheck is to avoid recursion if called from _getFromEntityType;
         if (this.toEntityType instanceof EntityType) {
             return this.toEntityType;
         } else if (this.toEntityType) {
@@ -8575,7 +8593,8 @@ var EntityQuery = (function () {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
             // cannot determine the toEntityType if a selectClause is present.
-            return (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+            
+            return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
     };
 
@@ -11056,24 +11075,27 @@ var EntityManager = (function () {
     **/
     proto.executeQueryLocally = function (query) {
         assertParam(query, "query").isInstanceOf(EntityQuery).check();
-        var result;
+        
         var metadataStore = this.metadataStore;
         var entityType = query._getFromEntityType(metadataStore, true);
-        // TODO: there may be multiple groups once we go further with inheritence
-        var group = findOrCreateEntityGroup(this, entityType);
+        // there may be multiple groups is this is a base entity type.
+        var groups = findOrCreateEntityGroups(this, entityType);
         // filter then order then skip then take
         var filterFunc = query._toFilterFunction(entityType);
         
         if (filterFunc) {
-            var undeletedFilterFunc = function(entity) {
+            var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
             };
-            result = group._entities.filter(undeletedFilterFunc);
         } else {
-            result = group._entities.filter(function(entity) {
+            var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted());
-            });
+            };
         }
+        var result = [];
+        groups.forEach(function (group) {
+            result.push.apply(result, group._entities.filter(newFilterFunc));
+        });
             
         var orderByComparer = query._toOrderByComparer(entityType);
         if (orderByComparer) {
@@ -12468,6 +12490,13 @@ var EntityManager = (function () {
             em._entityGroupMap[entityType.name] = group;
         }
         return group;
+    }
+
+    function findOrCreateEntityGroups(em, entityType) {
+        var entityTypes = entityType.getSelfAndSubtypes();
+        return entityTypes.map(function (entityType) {
+            return findOrCreateEntityGroup(em, entityType);
+        });
     }
         
 
