@@ -570,9 +570,59 @@ define(["testFns"], function (testFns) {
                 targetEntity.Owner() === testOwner,
                 "should have saved the updated 'Owner' on the " + typeName);
             ok(testHelper.tester(targetEntity), 'should have saved the updated property on the ' + typeName);
+
         }
     }
 
+    /*********************************************************
+    * can delete each inherited type
+    *********************************************************/
+
+    asyncTest("can delete a BankAccount", 9, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanDelete(bankRoot + t);
+        });
+        waitForTestPromises(promises);
+    });
+
+    asyncTest("can delete a CreditCard", 9, function () {
+        var promises = inheritanceTypes.map(function (t) {
+            return assertCanDelete(cardRoot + t);
+        });
+        waitForTestPromises(promises);
+    });
+
+    function assertCanDelete(typeName) {
+        var em = newEm();
+        var targetEntity;
+        var key;
+
+        return EntityQuery.from(typeName + 's').take(1)
+            .using(em).execute().then(querySuccess);
+
+        function querySuccess(data) {
+            targetEntity = data.results[0];
+            targetEntity.entityAspect.setDeleted();
+            key = targetEntity.entityAspect.getKey();
+            return em.saveChanges().then(saveSuccess).fail(handleFail);
+        }
+
+        function saveSuccess(saveResult) {
+            var savedEntity = (saveResult.entities.length === 1) && saveResult.entities[0];
+            ok(savedEntity === targetEntity,
+                "should have a deleted " + typeName + " in the save result");
+            equal(targetEntity.entityAspect.entityState.name, "Detached",
+                "the deleted " + typeName + " should now be 'Detached'");            
+
+            return em.fetchEntityByKey(key).then(requerySuccess);
+        }
+
+        function requerySuccess(data) {
+            var refetched = data.entity;
+            ok(!refetched, "requery of the deleted {0} with key '{1}' should return null because no longer in the db."
+            .format(typeName, JSON.stringify(key.values)));
+        }
+    }
     /************************** TEST HELPERS *************************/
     function addToMetadata(metadataStore) {
 
