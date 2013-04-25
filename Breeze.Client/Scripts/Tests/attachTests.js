@@ -165,7 +165,7 @@ define(["testFns"], function (testFns) {
         var orderDetail = orderDetailType.createEntity();
         var productType = em.metadataStore.getEntityType("Product");
         var product = productType.createEntity();
-        orderDetail.setProperty("orderID", -99);
+        orderDetail.setProperty("productID", -99);
         em.attachEntity(orderDetail);
         em.attachEntity(product);
         var nullProduct = orderDetail.getProperty("product");

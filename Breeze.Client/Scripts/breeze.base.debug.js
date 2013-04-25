@@ -11566,30 +11566,52 @@ var EntityManager = (function () {
         }
     };
 
-
-
-    //proto._addUnattachedChild = function (parentEntityKey, navigationProperty, child) {
-    //    var key = parentEntityKey.toString();
-    //    var children = this._unattachedChildrenMap[key];
-    //    if (!children) {
-    //        children = [];
-    //        this._unattachedChildrenMap[key] = children;
-    //    }
-    //    children.push(child);
-    //};
-
-        
     proto._linkRelatedEntities = function (entity) {
         var em = this;
         var entityAspect = entity.entityAspect;
         // we do not want entityState to change as a result of linkage.
         __using(em, "isLoading", true, function () {
 
-            var entityType = entity.entityType;
-            var navigationProperties = entityType.navigationProperties;
             var unattachedMap = em._unattachedChildrenMap;
+            var entityKey = entityAspect.getKey();
 
-            navigationProperties.forEach(function (np) {
+            // attach any unattachedChildren
+            var tuples = unattachedMap.getTuples(entityKey);
+            if (tuples) {
+                tuples.forEach(function (tpl) {
+                    var childToParentNp = tpl.navigationProperty;
+                    var parentToChildNp = childToParentNp.inverse;
+
+                    var unattachedChildren = tpl.children.filter(function (e) {
+                        return e.entityAspect.entityState !== EntityState.Detached;
+                    });
+
+                    if (parentToChildNp) {
+                        // bidirectional
+                        if (parentToChildNp.isScalar) {
+                            var onlyChild = unattachedChildren[0];
+                            entity.setProperty(parentToChildNp.name, onlyChild);
+                            onlyChild.setProperty(childToParentNp.name, entity);
+                        } else {
+                            var currentChildren = entity.getProperty(parentToChildNp.name);
+                            unattachedChildren.forEach(function (child) {
+                                currentChildren.push(child);
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
+                    } else {
+                        // unidirectional nav child -> parent only i.e. OrderDetail -> Product
+                        unattachedChildren.forEach(function (child) {
+                            child.setProperty(childToParentNp.name, entity);
+                        });
+                    }
+                    unattachedMap.removeChildren(entityKey, childToParentNp);
+                });
+            }
+
+            
+            // now add to unattachedMap if needed.
+            entity.entityType.navigationProperties.forEach(function (np) {
                 if (np.isScalar) {
                     var value = entity.getProperty(np.name);
                     // property is already linked up
@@ -11611,27 +11633,7 @@ var EntityManager = (function () {
                         // else add parent to unresolvedParentMap;
                         unattachedMap.addChild(parentKey, np, entity);
                     }
-                } else {
-                    // if a parent - look for unresolved children associated with this entity
-                    // and hook them up.
-                    var entityKey = entityAspect.getKey();
-                    var inverseNp = np.inverse;
-                    if (!inverseNp) return;
-                    var unattachedChildren = unattachedMap.getChildren(entityKey, inverseNp);
-                    if (!unattachedChildren) return;
-                    if (np.isScalar) {
-                        var onlyChild = unattachedChildren[0];
-                        entity.setProperty(np.name, onlyChild);
-                        onlyChild.setProperty(inverseNp.name, entity);
-                    } else {
-                        var currentChildren = entity.getProperty(np.name);
-                        unattachedChildren.forEach(function (child) {
-                            currentChildren.push(child);
-                            child.setProperty(inverseNp.name, entity);
-                        });
-                    }
-                    unattachedMap.removeChildren(entityKey, np);
-                }
+                } 
             });
         });
     };
@@ -12562,6 +12564,10 @@ var EntityManager = (function () {
         });
         return tuple;
     };
+
+    UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
+        return this.map[parentEntityKey.toString()];
+    }
 
     return ctor;
 })();
