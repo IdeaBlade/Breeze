@@ -27,6 +27,51 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("query with take, orderby and expand", function () {
+        var em = newEm();
+        var q1 = EntityQuery.from("Products")
+            .expand("category")
+            .orderBy("category.categoryName desc, productName");
+        stop();
+        var topTen;
+        em.executeQuery(q1).then(function (data) {
+            topTen = data.results.slice(0, 10);
+            var q2 = q1.take(10);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var topTenAgain = data2.results;
+            for(var i=0; i<10; i++) {
+                ok(topTen[i] === topTenAgain[i]);
+            }
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("query with take, skip, orderby and expand", function () {
+        
+        var em = newEm();
+        var q1 = EntityQuery.from("Products")
+            .expand("category")
+            .orderBy("category.categoryName, productName");
+        stop();
+        var nextTen;
+        em.executeQuery(q1).then(function (data) {
+            nextTen = data.results.slice(10, 20);
+            var q2 = q1.skip(10).take(10);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var nextTenAgain = data2.results;
+            for (var i = 0; i < 10; i++) {
+                ok(nextTen[i] === nextTenAgain[i], extractDescr(nextTen[i]) + " -- " + extractDescr(nextTenAgain[i]));
+            }
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    function extractDescr(product) {
+        return product.getProperty("category").getProperty("categoryName") + ":" + product.getProperty("productName");
+    }
+
     test("query with quotes", function () {
         var em = newEm();
 

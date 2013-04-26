@@ -25,6 +25,24 @@ define(["testFns"], function (testFns) {
         }
     });
 
+
+    test("nullable dateTime", function () {
+        var em = newEm();
+        var emp = em.createEntity("Employee", { firstName: "Joe", lastName: "Smith" });
+        ok(emp.entityAspect.entityState === breeze.EntityState.Added, "entityState should be 'Added'");
+        var birthDate = emp.getProperty("birthDate");
+        ok(birthDate === null, "birthDate should be null");
+        var q = EntityQuery.from("Employees").where("birthDate", "==", null);
+        stop();
+        em.executeQuery(q).then(function(data) {
+            var empsWithNullBirthDates = data.results;
+            ok(empsWithNullBirthDates.length > 0, "should be at least 1 employee with a null birthdate");
+            empsWithNullBirthDates.forEach(function(emp) {
+                var birthDate = emp.getProperty("birthDate");
+                ok(birthDate === null, "queried birthDate should be null");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
    
 
     test("registerEntityTypeCtor causing error on importEntities1", function () {
