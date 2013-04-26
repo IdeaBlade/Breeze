@@ -261,8 +261,8 @@ define(["testFns"], function (testFns) {
     }
 
     /*********************************************************
-    * can query locally
-    * NOTE: Must register resourceNames for derived types at the moment
+    * can query derived types locally
+    * NOTE: Must first register resourceNames for derived types
     *       See 'addToMetadata' below
     *********************************************************/
     asyncTest("can query in cache for BankAccount and CreditCard", 6, function () {
@@ -290,7 +290,7 @@ define(["testFns"], function (testFns) {
                 var card = EntityQuery.from(cardType + 's')
                               .where('ExpiryYear', 'eq', '2015')
                               .using(em).executeLocally()[0];
-
+                
                 if (account) {
                     ok(true, "Found {0} in cache: {1}: '{2}' for '{3}'."
                     .format(bankType, account.Id(), account.BankName(), account.Owner()));
@@ -304,8 +304,56 @@ define(["testFns"], function (testFns) {
                 } else {
                     ok(false, "Did not find expected {0} in cache".format(cardType));
                 }
+                   
             }
         }
+
+    });
+    /*********************************************************
+    * can do polymorphic query in cache
+    * NOTE: Must first register resourceNames for derived types
+    *       See 'addToMetadata' below
+    *********************************************************/
+    asyncTest("can do polymorphic query in cache", 9, function () {
+
+        var promises = inheritanceTypes.map(function (t) {
+            return assertPolymorphicQueryLocally(t, 1);
+        });
+        waitForTestPromises(promises);
+
+        function assertPolymorphicQueryLocally(inheritanceType) {
+            var em = newEm();
+            var bankType = bankRoot + inheritanceType;
+            var cardType = cardRoot + inheritanceType;
+            var baseType = baseRoot + inheritanceType;
+
+            // Prime the cache with all BillingDetails
+            return EntityQuery.from(baseRoot + inheritanceType + 's')
+                .using(em).execute().then(querySuccess);
+
+            function querySuccess(data) {
+
+                var bases = EntityQuery.from(baseType + 's')
+                              .where('Owner', 'contains', 'a')
+                              .using(em).executeLocally();
+
+                var len = bases.length;
+                ok(len, "Should have {0}s in cache with 'Owner' containing 'a'; found {1}."
+                    .format(baseType, len));
+
+                var accounts = bases.filter(function (entity) { return entity.entityType.shortName === bankType; });
+                len = accounts.length;
+                ok(len, "Should have {0}s among the {1}s in cache with 'Owner' containing 'a'; found {2}."
+                    .format(bankType, baseType, len));
+
+                var cards = bases.filter(function (entity) { return entity.entityType.shortName === cardType; });
+                len = cards.length;
+                ok(len, "Should have {0}s among the {1}s in cache with 'Owner' containing 'a'; found {2}."
+                    .format(cardType, baseType, len));
+
+            }
+        }
+
     });
     /*********************************************************
      * can navigate to pre-loaded AccountTypes
