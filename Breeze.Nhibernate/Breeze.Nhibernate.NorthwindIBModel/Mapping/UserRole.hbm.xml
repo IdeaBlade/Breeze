@@ -1,0 +1,9 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Breeze.Nhibernate.NorthwindIBModel" assembly="Breeze.Nhibernate.NorthwindIBModel">
+  <class name="UserRole" table="`UserRole`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" column="`ID`" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <many-to-one name="User" column="`UserId`" class="User" />
+    <many-to-one name="Role" column="`RoleId`" class="Role" />
+  </class>
+</hibernate-mapping>

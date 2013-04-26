@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-configuration xmlns="urn:nhibernate-configuration-2.2" >
+  <session-factory>
+    <property name="connection.provider">
+      NHibernate.Connection.DriverConnectionProvider
+    </property>
+    <!-- Change these to Oracle, Sql2000 etc-->
+    <property name="connection.driver_class">
+      NHibernate.Driver.Sql2008ClientDriver
+    </property>
+    <property name="dialect">
+      NHibernate.Dialect.MsSql2008Dialect
+    </property>
+    <!-- Connection string or connection string name -->
+    <!--<property name="connection.connection_string">Server=.\SQLEXPRESS;Database=Northwind;Integrated Security=True;</property>-->
+    <property name="connection.connection_string_name">
+      NorthwindIB
+    </property>
+    <!-- web or thread_static-->
+    <property name="current_session_context_class">
+      thread_static
+    </property>
+    <!-- Help debugging-->
+    <property name="show_sql">
+      true
+    </property>
+    <!-- NHibernate 2.1 - 3.2 
+      <property name="proxyfactory.factory_class">
+        NHibernate.ByteCode.Castle.ProxyFactoryFactory, NHibernate.ByteCode.Castle
+      </property>-->
+  </session-factory>
+</hibernate-configuration>

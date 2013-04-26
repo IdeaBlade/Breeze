@@ -1,0 +1,214 @@
+﻿/* #region HTML RESET */
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr,
+acronym,address, big,cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var,
+b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot,
+thead, tr, th, td, article, aside, canvas,  details, figcaption, figure, footer, header, hgroup, menu,
+nav, section, summary, time, mark, audio, video
+{
+    font: inherit;
+    margin: 0;
+}
+
+/* #endregion */
+
+html {
+    padding: 0;
+    color: black;
+    background: #EFEFEF;
+}
+
+body {
+    font-size: 18px;
+    margin: 0 auto;
+    max-width: 1100px;
+    background-color: transparent;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3 {
+    text-transform: uppercase;
+    letter-spacing: -1px !important;
+    color: #777;
+}
+
+section.main {
+    margin-top: 80px;
+}
+
+.navbar .brand {
+    padding: 6px 30px 12px 30px;
+    margin-bottom: -8px;
+    height: 48px;
+}
+
+h2.page-title {
+    font-size: 32px;
+}
+
+.brand .title {
+    float: left;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: 145%;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin: 2% 0;
+    padding-left: 50px;
+    -webkit-text-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+    text-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+    text-transform: uppercase;
+    text-transform: initial;
+    text-decoration: none;
+    color: #0081C2;
+}
+    span.title {
+        background: url(/content/images/icon.png) no-repeat left center;
+        -moz-background-size: 45px;
+        -o-background-size: 45px;
+        -webkit-background-size: 45px;
+        background-size: 45px;
+    }
+
+.page-splash
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1f1f1f;
+    opacity: 0.2;
+    pointer-events: auto;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transition: opacity 0.1s linear;
+    -moz-transition: opacity 0.1s linear;
+    -o-transition: opacity 0.1s linear;
+    transition: opacity 0.1s linear;
+}
+.page-splash-message {
+    text-align: center;
+    margin: 10% 0 0 0;
+    font-size: 400%;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    -webkit-text-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+    text-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+    text-transform: uppercase;
+    text-decoration: none;
+    font-family: monospace;
+    color: #F58A00;
+    padding: 0;
+}
+.page-progress-bar {
+    margin: 10% 30% 0 30%;
+}
+
+.toast {
+    font-weight: normal;
+}
+.toast-info
+{
+    background-color: #194D7B;
+}
+
+.toast-bottom-right {
+    bottom: 50px;
+}
+.navbar-content-center {
+    text-align: center;    
+}
+
+footer a {
+    font-weight: bold;
+}
+footer span {
+    padding: 10px 80px;
+    font-size: 18px;
+}
+
+/***************************/
+/* Boostrap overrides      */
+
+.navbar .btn, .navbar .btn-group {
+    margin-top: 16px;
+}
+
+.navbar-fixed-top .navbar-inner {
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+}
+
+.navbar-fixed-bottom .navbar-inner {
+	padding: 6px;
+}
+
+.navbar {
+    text-transform: uppercase;
+}
+
+.loader .page-progress-bar {
+    margin: 14px 0 0 0 ;
+}
+
+.loader {
+    visibility: hidden;
+}
+.loader.active {
+    visibility: visible;
+}
+
+.btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-info {
+    background-color: #0081C2;
+    background-image: -moz-linear-gradient(top,#77CCFF,#194D7B);
+    background-image: -webkit-gradient(linear,0 0,0 100%,from(#77CCFF),to(#194D7B));
+    background-image: -webkit-linear-gradient(top,#77CCFF,#194D7B);
+    background-image: -o-linear-gradient(top,#77CCFF,#194D7B);
+    background-image: linear-gradient(to bottom,#77CCFF,#194D7B);
+    background-repeat: repeat-x;
+    border-color: #77CCFF #2f96b4 #194D7B;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff77CCFF', endColorstr='#ff194D7B', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+
+    .btn-info:hover, .btn-info:active, .btn-info.active, .btn-info.disabled, .btn-info[disabled] {
+        color: white;
+        background-color: #0081C2;
+        *background-color: #0081C2;
+        background-color: #194D7B;
+        *background-color: #194D7B;
+    }
+
+    .btn-info:active,
+    .btn-info.active {
+        background-color: #0081C2 \9;
+        background-color: #194D7B \9;
+    }
+
+/* End Boostrap overrides  */
+/***************************/
+
+@media only screen and (max-width: 979px) {
+    .page-splash-message {
+        font-size: 150%;
+    }
+
+    .navbar-fixed-bottom {
+        position: fixed;
+    }
+
+	footer span {
+		padding: 10px 50px;
+		font-size: 14px;
+	}
+}

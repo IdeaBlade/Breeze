@@ -1,0 +1,23 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Breeze.Nhibernate.NorthwindIBModel" assembly="Breeze.Nhibernate.NorthwindIBModel">
+  <class name="Product" table="`Product`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="ProductId" column="`ProductID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int"/>
+    <property name="ProductName" type="string" length="40" not-null="true" />
+    <many-to-one name="Supplier" column="`SupplierID`" class="Supplier" />
+    <many-to-one name="Category" column="`CategoryID`" class="Category" />
+    <property name="QuantityPerUnit" type="string" length="20" />
+    <property name="UnitPrice" type="decimal" />
+    <property name="UnitsInStock" type="int" />
+    <property name="UnitsOnOrder" type="int" />
+    <property name="ReorderLevel" type="int" />
+    <property name="Discontinued" type="bool" not-null="true" />
+    <property name="DiscontinuedDate" type="DateTime" />
+    <!--Foreign key to OrderDetail (OrderDetail)-->
+    <bag name="OrderDetailCollection" table="`OrderDetail`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`ProductID`" foreign-key="FK_OrderDetail_Product" />
+      <one-to-many class="OrderDetail" />
+    </bag>
+  </class>
+</hibernate-mapping>

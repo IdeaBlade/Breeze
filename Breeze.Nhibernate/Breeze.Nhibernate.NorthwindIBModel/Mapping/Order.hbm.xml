@@ -1,0 +1,27 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Breeze.Nhibernate.NorthwindIBModel" assembly="Breeze.Nhibernate.NorthwindIBModel">
+  <class name="Order" table="`Order`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="OrderId" column="`OrderID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int"/>
+    <many-to-one name="Customer" column="`CustomerID`" class="Customer" />
+    <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
+    <property name="OrderDate" type="DateTime" />
+    <property name="RequiredDate" type="DateTime" />
+    <property name="ShippedDate" type="DateTime" />
+    <property name="Freight" type="decimal" />
+    <property name="ShipName" type="string" length="40" />
+    <property name="ShipAddress" type="string" length="60" />
+    <property name="ShipCity" type="string" length="15" />
+    <property name="ShipRegion" type="string" length="15" />
+    <property name="ShipPostalCode" type="string" length="10" />
+    <property name="ShipCountry" type="string" length="15" />
+    <!--Foreign key to InternationalOrder (InternationalOrder)-->
+    <one-to-one name="InternationalOrder" constrained="false" foreign-key="none" class="InternationalOrder" />
+    <!--Foreign key to OrderDetail (OrderDetail)-->
+    <bag name="OrderDetailCollection" table="`OrderDetail`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`OrderID`" foreign-key="FK_OrderDetail_Order" />
+      <one-to-many class="OrderDetail" />
+    </bag>
+  </class>
+</hibernate-mapping>

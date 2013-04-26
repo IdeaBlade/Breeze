@@ -1,0 +1,27 @@
+﻿<section>
+    <table class="list">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Contact Name</th>
+                <th>Contact Title</th>
+                <th>Address</th>
+                <th>Country</th>
+                <th>Phone</th>
+                <th>Fax</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: customers">
+            <tr class="selectable-row">
+                <td data-bind="text: CompanyName"></td>
+                <td data-bind="text: ContactName"></td>
+                <td data-bind="text: ContactTitle"></td>
+                <td data-bind="text: Address"></td>
+                <td data-bind="text: Country"></td>
+                <td data-bind="text: Phone"></td>
+                <td data-bind="text: Fax"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+</section>
