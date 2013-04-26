@@ -7874,6 +7874,7 @@ var EntityQuery = (function () {
         
     };
     var proto = ctor.prototype;
+    proto._$typeName = "EntityQuery";
 
     /**
     The resource name used by this query.
