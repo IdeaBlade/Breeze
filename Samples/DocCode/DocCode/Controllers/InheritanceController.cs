@@ -36,69 +36,83 @@ namespace Inheritance.Controllers
 
         #region TPH
 
-        // ~/breeze/inheritance/billingDetailsTPH
+        // ~/breeze/inheritance/billingDetailTPHs
         [HttpGet]
         public IQueryable<BillingDetailTPH> BillingDetailTPHs()
         {
             return _contextProvider.Context.BillingDetailTPHs;
         }
 
-        // ~/breeze/inheritance/bankAccountTPH
+        // ~/breeze/inheritance/bankAccountTPHs
         [HttpGet]
         public IQueryable<BankAccountTPH> BankAccountTPHs()
         {
             return _contextProvider.Context.BillingDetailTPHs.OfType<BankAccountTPH>();
         }
 
-        // ~/breeze/inheritance/creditCardsTPH
+        // ~/breeze/inheritance/creditCardTPHs
         [HttpGet]
         public IQueryable<CreditCardTPH> CreditCardTPHs()
         {
             return _contextProvider.Context.BillingDetailTPHs.OfType<CreditCardTPH>();
         }
+
+        // ~/breeze/inheritance/statusTPHs
+        [HttpGet]
+        public IQueryable<StatusTPH> StatusTPHs()
+        {
+            return _contextProvider.Context.StatusTPHs;
+        }
         #endregion
 
         #region TPT
 
-        // ~/breeze/inheritance/billingDetailsTPT
+        // ~/breeze/inheritance/billingDetailTPTs
         [HttpGet]
         public IQueryable<BillingDetailTPT> BillingDetailTPTs()
         {
             return _contextProvider.Context.BillingDetailTPTs;
         }
 
-        // ~/breeze/inheritance/bankAccountTPT
+        // ~/breeze/inheritance/bankAccountTPTs
         [HttpGet]
         public IQueryable<BankAccountTPT> BankAccountTPTs()
         {
             return _contextProvider.Context.BillingDetailTPTs.OfType<BankAccountTPT>();
         }
 
-        // ~/breeze/inheritance/creditCardsTPT
+        // ~/breeze/inheritance/creditCardTPTs
         [HttpGet]
         public IQueryable<CreditCardTPT> CreditCardTPTs()
         {
             return _contextProvider.Context.BillingDetailTPTs.OfType<CreditCardTPT>();
         }
+
+        // ~/breeze/inheritance/statusTPTs
+        [HttpGet]
+        public IQueryable<StatusTPT> StatusTPTs()
+        {
+            return _contextProvider.Context.StatusTPTs;
+        }
         #endregion
 
         #region TPC
 
-        // ~/breeze/inheritance/billingDetailsTPC
+        // ~/breeze/inheritance/billingDetailTPCs
         [HttpGet]
         public IQueryable<BillingDetailTPC> BillingDetailTPCs()
         {
             return _contextProvider.Context.BillingDetailTPCs;
         }
 
-        // ~/breeze/inheritance/bankAccountTPC
+        // ~/breeze/inheritance/bankAccountTPCs
         [HttpGet]
         public IQueryable<BankAccountTPC> BankAccountTPCs()
         {
             return _contextProvider.Context.BillingDetailTPCs.OfType<BankAccountTPC>();
         }
 
-        // ~/breeze/inheritance/creditCardsTPC
+        // ~/breeze/inheritance/creditCardTPCs
         [HttpGet]
         public IQueryable<CreditCardTPC> CreditCardTPCs()
         {

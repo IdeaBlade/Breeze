@@ -20,12 +20,15 @@ namespace Inheritance.Models
 
         // "InheritanceModel" makes it easier to test for the received type
         string InheritanceModel { get; set; } // "TPH", "TPT", "TPC"
+
+        int StatusId { get; set; }
     }
 
     public interface IBankAccount : IBillingDetail
     {
         string BankName { get; set; }
         string Swift { get; set; }
+
         int AccountTypeId { get; set; }
         AccountType AccountType { get; set; }
     }
@@ -44,6 +47,12 @@ namespace Inheritance.Models
         int BankAccountId { get; set; }
         float Amount { get; set; }
         DateTime Deposited { get; set; }
+    }
+
+    public interface IStatus 
+    {
+        int Id { get; set; }
+        string Name { get; set; }
     }
 
     public class AccountType : EntityBase
@@ -87,6 +96,7 @@ namespace Inheritance.Models
         public int AccountTypeId { get; set; }
         public AccountType AccountType { get; set; }
         public string InheritanceModel { get; set; }
+        public int StatusId { get; set; }
     }
 
     public class BankAccountTPH : BillingDetailTPH, IBankAccount
@@ -111,6 +121,12 @@ namespace Inheritance.Models
         public DateTime Deposited { get; set; }
     }
 
+    public class StatusTPH : EntityBase, IStatus
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public ICollection<BillingDetailTPH> BillingDetails { get; set; }
+    }
     #endregion
 
     #region TPT
@@ -124,6 +140,7 @@ namespace Inheritance.Models
         public int AccountTypeId { get; set; }
         public AccountType AccountType { get; set; }
         public string InheritanceModel { get; set; }
+        public int StatusId { get; set; }
     }
 
     public class BankAccountTPT : BillingDetailTPT, IBankAccount
@@ -147,6 +164,13 @@ namespace Inheritance.Models
         public float Amount { get; set; }
         public DateTime Deposited { get; set; }
     }
+
+    public class StatusTPT : EntityBase, IStatus
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public ICollection<BillingDetailTPT> BillingDetails { get; set; }
+    }
     #endregion
 
     #region TPC
@@ -158,6 +182,7 @@ namespace Inheritance.Models
         public string Owner { get; set; }
         public string Number { get; set; }
         public string InheritanceModel { get; set; }
+        public int StatusId { get; set; }
     }
 
     public class BankAccountTPC : BillingDetailTPC, IBankAccount

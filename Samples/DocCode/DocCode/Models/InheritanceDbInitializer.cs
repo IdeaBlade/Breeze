@@ -9,20 +9,18 @@ namespace Inheritance.Models
         DropCreateDatabaseAlways<InheritanceContext> // re-creates every time the server starts
     //DropCreateDatabaseIfModelChanges<InheritanceContext> 
     {
-        private static IList<IDeposit> _deposits;
-        private static IList<AccountType> _bankAccountTypes;
-
         private static int _idSeed = 1;
         private static DateTime _baseCreatedAt = new DateTime(2012, 8, 22, 9, 0, 0);
         private static DateTime _depositedAt = new DateTime(2012, 9, 1, 1, 0, 0);
 
         protected override void Seed(InheritanceContext context)
         {
-            _bankAccountTypes = AddAccountTypes(context);
+            AddAccountTypes(context);
+            AddStatuses(context);
             ResetDatabase(context);
         }
 
-        private static IList<AccountType> AddAccountTypes(InheritanceContext context)
+        private static void AddAccountTypes(InheritanceContext context)
         {
             var accountTypes = new List<AccountType>
                 {
@@ -35,12 +33,20 @@ namespace Inheritance.Models
                     new AccountType {Id = 6, Name = "Visa"}
                 };
             accountTypes.ForEach(_ => context.AccountTypes.Add(_));
-            return accountTypes;
+        }
+        private static void AddStatuses(InheritanceContext context)
+        {
+            context.StatusTPHs.Add(new StatusTPH { Id = 1, Name = "Open"});
+            context.StatusTPHs.Add(new StatusTPH { Id = 2, Name = "Closed" });
+            context.StatusTPHs.Add(new StatusTPH { Id = 3, Name = "Suspended" });
+
+            context.StatusTPTs.Add(new StatusTPT { Id = 1, Name = "Open" });
+            context.StatusTPTs.Add(new StatusTPT { Id = 2, Name = "Closed" });
+            context.StatusTPTs.Add(new StatusTPT { Id = 3, Name = "Suspended" });
         }
 
         public static void ResetDatabase(InheritanceContext context)
         {
-
             IBillingDetail[] billingDetails;
 
             billingDetails = MakeData<BillingDetailTPH, BankAccountTPH, CreditCardTPH>("TPH");
@@ -76,17 +82,17 @@ namespace Inheritance.Models
         {
  
             var billingDetails = new [] {
-                // Owner, Number, AccountTypeId, ExpiryMonth, ExpiryYear
-                (TBilling) CreateCreditCard<TCreditCard>("Abby Road"    , "999-999-999", 4, "04", "2014"),
-                (TBilling) CreateCreditCard<TCreditCard>("Bobby Tables" , "987-654-321", 6, "03", "2014"),
+                // Owner, Number, AccountTypeId, StatusId, ExpiryMonth, ExpiryYear
+                (TBilling) CreateCreditCard<TCreditCard>("Abby Road"    , "999-999-999", 4, 1, "04", "2014"),
+                (TBilling) CreateCreditCard<TCreditCard>("Bobby Tables" , "987-654-321", 6, 1, "03", "2014"),
 
-                // Owner, Number, AccountTypeId, BankName, Swift
-                (TBilling) CreateBankAccount<TBankAccount>("Cathy Corner", "123-456", 1, "Bank of Fun", "BOFFDEFX"),
-                (TBilling) CreateBankAccount<TBankAccount>("Early Riser" , "11-11-1111", 2, "Snake Eye Bank", "SNEBSSSS"),
-                (TBilling) CreateBankAccount<TBankAccount>("Dot Com"     , "777-777", 3, "Bank of Sevens", "BOFSWXYZ"),
+                // Owner, Number, AccountTypeId, StatusId, BankName, Swift
+                (TBilling) CreateBankAccount<TBankAccount>("Dot Com"     , "777-777", 3, 2, "Bank of Sevens", "BOFSWXYZ"),
+                (TBilling) CreateBankAccount<TBankAccount>("Early Riser" , "11-11-1111", 2, 1,  "Snake Eye Bank", "SNEBSSSS"),
+                (TBilling) CreateBankAccount<TBankAccount>("Cathy Corner", "123-456", 1, 1, "Bank of Fun", "BOFFDEFX"),
 
-                (TBilling) CreateCreditCard<TCreditCard>("Ginna Lovette", "111-222-333", 5, "02", "2014"),
-                (TBilling) CreateCreditCard<TCreditCard>("Faith Long"   , "123-456-789", 4, "04", "2015")
+                (TBilling) CreateCreditCard<TCreditCard>("Ginna Lovette", "111-222-333", 5, 2, "02", "2014"),
+                (TBilling) CreateCreditCard<TCreditCard>("Faith Long"   , "123-456-789", 4, 3, "04", "2015")
            };
            Array.ForEach(billingDetails, _ => _.InheritanceModel = inheritanceModel);
 
@@ -94,7 +100,7 @@ namespace Inheritance.Models
         }
 
         private static IBillingDetail CreateBankAccount<T>  (
-            string owner, string number, int accountTypeId, string bankName, string swift) 
+            string owner, string number, int accountTypeId, int statusId, string bankName, string swift) 
             where T : IBankAccount, new()
         {
             _baseCreatedAt = _baseCreatedAt.AddMinutes(1);
@@ -106,12 +112,13 @@ namespace Inheritance.Models
                 Number = number,
                 BankName = bankName,
                 Swift = swift,
-                AccountTypeId = accountTypeId
+                AccountTypeId = accountTypeId,
+                StatusId = statusId
             };
         }
 
         private static IBillingDetail CreateCreditCard<T>(
-            string owner, string number, int accountTypeId, string expiryMonth, string expiryYear)
+            string owner, string number, int accountTypeId, int statusId, string expiryMonth, string expiryYear)
             where T : ICreditCard, new()
         {
             _baseCreatedAt = _baseCreatedAt.AddMinutes(1);
@@ -123,7 +130,8 @@ namespace Inheritance.Models
                 Number = number,
                 AccountTypeId = accountTypeId,
                 ExpiryMonth = expiryMonth,
-                ExpiryYear = expiryYear
+                ExpiryYear = expiryYear,
+                StatusId = statusId
             };
         }
 

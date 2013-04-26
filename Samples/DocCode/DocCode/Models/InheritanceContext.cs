@@ -60,6 +60,9 @@ namespace Inheritance.Models
         public DbSet<BillingDetailTPT> BillingDetailTPTs { get; set; }
         public DbSet<BillingDetailTPC> BillingDetailTPCs { get; set; }
 
+        public DbSet<StatusTPH> StatusTPHs { get; set; }
+        public DbSet<StatusTPT> StatusTPTs { get; set; }
+
         // Public for initializer; should not expose to client in Web API controller
         public DbSet<DepositTPH> DepositTPHs { get; set; }
         public DbSet<DepositTPT> DepositTPTs { get; set; }
