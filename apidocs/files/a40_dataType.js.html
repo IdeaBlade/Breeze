@@ -258,6 +258,81 @@ var DataType = function () {
         return source;
     };
 
+    var fmtString = function (val) {
+        return val == null ? null : &quot;&#x27;&quot; + val + &quot;&#x27;&quot;;
+    };
+
+    var fmtInt = function (val) {
+        return val == null ? null : ((typeof val === &quot;string&quot;) ? parseInt(val) : val);
+    };
+
+    var makeFloatFmt = function (fmtSuffix) {
+        return function(val) {
+            if (val == null) return null;
+            if (typeof val === &quot;string&quot;) {
+                val = parseFloat(val);
+            }
+            return val + fmtSuffix;
+        };
+    };
+
+    var fmtDateTime = function (val) {
+        if (val == null) return null;
+        try {
+            return &quot;datetime&#x27;&quot; + val.toISOString() + &quot;&#x27;&quot;;
+        } catch (e) {
+            throwError(&quot;&#x27;%1&#x27; is not a valid dateTime&quot;, val);
+        }
+    };
+
+    var fmtDateTimeOffset = function (val) {
+        if (val == null) return null;
+        try {
+            return &quot;datetimeoffset&#x27;&quot; + val.toISOString() + &quot;&#x27;&quot;;
+        } catch (e) {
+            throwError(&quot;&#x27;%1&#x27; is not a valid dateTime&quot;, val);
+        }
+    };
+
+    var fmtTime = function (val) {
+        if (val == null) return null;
+        if (!__isDuration(val)) {
+            throwError(&quot;&#x27;%1&#x27; is not a valid ISO 8601 duration&quot;, val);
+        }
+        return &quot;time&#x27;&quot; + val + &quot;&#x27;&quot;;
+    };
+
+    var fmtGuid = function (val) {
+        if (val == null) return null;
+        if (!__isGuid(val)) {
+            throwError(&quot;&#x27;%1&#x27; is not a valid guid&quot;, val);
+        }
+        return &quot;guid&#x27;&quot; + val + &quot;&#x27;&quot;;
+    };
+
+    var fmtBoolean = function (val) {
+        if (val == null) return null;
+        if (typeof val === &quot;string&quot;) {
+            return val.trim().toLowerCase() === &quot;true&quot;;
+        } else {
+            return !!val;
+        }
+    };
+    
+    var fmtBinary = function (val) {
+        if (val == null) return val;
+        return &quot;binary&#x27;&quot; + val + &quot;&#x27;&quot;;
+    };
+
+    var fmtUndefined = function (val) {
+        return val;
+    };
+
+    function throwError(msg, val) {
+        msg = __formatString(msg, val);
+        throw new Error(msg);
+    }
+    
     var DataType = new Enum(&quot;DataType&quot;, dataTypeMethods);
     
     
@@ -266,93 +341,93 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString });
+    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString, fmtOData: fmtString });
     &#x2F;**
     @property Int64 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
     &#x2F;**
     @property Int32 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     &#x2F;**
     @property Int16 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     &#x2F;**
     @property Byte {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt });
+    DataType.Byte = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
     &#x2F;**
     @property Decimal {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;m&quot;), quoteJsonOData: true });
     &#x2F;**
     @property Double {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;d&quot;) });
     &#x2F;**
     @property Single {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat });
+    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;f&quot;) });
     &#x2F;**
     @property DateTime {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
     
     &#x2F;**
     @property DateTimeOffset {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate });
+    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
     &#x2F;**
     @property Time {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Time = DataType.addSymbol({ defaultValue: &quot;PT0S&quot; });
+    DataType.Time = DataType.addSymbol({ defaultValue: &quot;PT0S&quot;, fmtOData: fmtTime });
     &#x2F;**
     @property Boolean {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool });
+    DataType.Boolean = DataType.addSymbol({ defaultValue: false, parse: coerceToBool, fmtOData: fmtBoolean });
     &#x2F;**
     @property Guid {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Guid = DataType.addSymbol({ defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot; });
+    DataType.Guid = DataType.addSymbol({ defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot;, fmtOData: fmtGuid });
   
     &#x2F;**
     @property Binary {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Binary = DataType.addSymbol({ defaultValue: null });
+    DataType.Binary = DataType.addSymbol({ defaultValue: null, fmtOData: fmtBinary });
     &#x2F;**
     @property Undefined {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined });
+    DataType.Undefined = DataType.addSymbol({ defaultValue: undefined , fmtOData: fmtUndefined});
     DataType.seal();
 
     &#x2F;**

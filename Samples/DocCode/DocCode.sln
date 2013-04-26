@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{370720
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi", "..\..\Breeze.WebApi\Breeze.WebApi.csproj", "{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,12 +23,6 @@ Global
 		{AAACDF81-89C3-489B-9CA7-6480AD9901D3}.OData-debug|Any CPU.Build.0 = Release|Any CPU
 		{AAACDF81-89C3-489B-9CA7-6480AD9901D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAACDF81-89C3-489B-9CA7-6480AD9901D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.OData-debug|Any CPU.ActiveCfg = OData-debug|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.OData-debug|Any CPU.Build.0 = OData-debug|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

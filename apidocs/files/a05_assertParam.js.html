@@ -468,16 +468,18 @@ var Param = (function () {
     };
 
 
-    proto.applyAll = function(instance, checkOnly, throwIfUnknownProperty) {
-        throwIfUnknownProperty = throwIfUnknownProperty == null ? true : throwIfUnknownProperty;
+    proto.applyAll = function (instance, checkOnly, allowUnknownProperty) {
+        var parentTypeName = instance._$typeName;
+        allowUnknownProperty = allowUnknownProperty || (parentTypeName &amp;&amp; this.parent.config._$typeName === parentTypeName);
+        
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
-            if (throwIfUnknownProperty) delete clone[p.name];
+            if (!allowUnknownProperty) delete clone[p.name];
             p.check();
             (!checkOnly) &amp;&amp; p._applyOne(instance);
         });
         &#x2F;&#x2F; should be no properties left in the clone
-        if (throwIfUnknownProperty) {
+        if (!allowUnknownProperty) {
             for (var key in clone) {
                 &#x2F;&#x2F; allow props with an undefined value
                 if (clone[key] !== undefined) {
