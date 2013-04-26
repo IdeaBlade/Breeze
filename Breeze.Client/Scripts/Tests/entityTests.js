@@ -27,6 +27,44 @@ define(["testFns"], function (testFns) {
 
    
 
+    test("registerEntityTypeCtor causing error on importEntities1", function () {
+        // 4/25/13 - sbelini - this test should not fail - it's just to ensure the third parameter is causing the error
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.CustomerWithMiscData();
+        var productType = em.metadataStore.getEntityType("Customer");
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+        var m1 = em.createEmptyCopy();
+        var customerType = m1.metadataStore.getEntityType("Customer");
+        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var exported = m1.exportEntities([customer]);
+        var m2 = em.createEmptyCopy();
+
+        m2.importEntities(exported);
+        ok(true);
+    });
+
+    test("registerEntityTypeCtor causing error on importEntities2", function () {
+        // 4/25/13 - sbelini - this test is failing due to the third parameter in registerEntityTypeCtor
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var productType = em.metadataStore.getEntityType("Customer");
+
+        em.metadataStore.registerEntityTypeCtor("Customer", null, function (entity) {
+            var a = 1;
+        });
+
+        var m1 = em.createEmptyCopy();
+        var customerType = m1.metadataStore.getEntityType("Customer");
+        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var exported = m1.exportEntities([customer]);
+        var m2 = em.createEmptyCopy();
+
+        m2.importEntities(exported);
+
+        ok(true);
+    });
+
     test("rejectChanges on unmapped property", function() {
         var em1 = newEm(newMs());
         var Customer = testFns.models.CustomerWithMiscData();
