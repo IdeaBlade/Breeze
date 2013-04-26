@@ -1254,18 +1254,21 @@ define(["testFns"], function (testFns) {
         var count = 5;
         var query = EntityQuery.from("OrderDetails").take(count);
         stop();
-        query.using(em).execute().then(function(data) {
+        query.using(em).execute().then(function (data) {
             var orderDetails = data.results;
             ok(orderDetails.length == count);
-            orderDetails.forEach(function(od) {
-                od.entityAspect.loadNavigationProperty("product").then(function (data2) {
+            var promises = orderDetails.map(function (od) {
+                return od.entityAspect.loadNavigationProperty("product").then(function (data2) {
                     var products = data2.results;
                     ok(products.length === 1, "should only return a single product");
-                    count--;
-                    if (count === 0) start();
+                    var product = products[0];
+                    ok(od.getProperty("product") === product, "product should be set");
                 });
             });
-        }).fail(testFns.handleFail);
+            return Q.all(promises);
+        }).then(function () {
+            ok(true, "all promises completed");
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("unidirectional navigation query", function () {
@@ -1274,12 +1277,22 @@ define(["testFns"], function (testFns) {
         var query = EntityQuery.from("OrderDetails")
             .where("product.productID", "==", 1);
         stop();
+        var orderDetails;
         query.using(em).execute().then(function(data) {
-            var orderDetails = data.results;
+            orderDetails = data.results;
             ok(orderDetails.length > 0);
             orderDetails.forEach(function(od) {
                 ok(od.getProperty("productID") === 1, "productID should === 1");
             });
+            var q2 = EntityQuery.from("Products")
+                .where("productID", "==", 1);
+            return em.executeQuery(q2);
+        }).then(function (data) {
+            var product = data.results[0];
+            orderDetails.forEach(function (od) {
+                ok(od.getProperty("product") === product, "product should be set");
+            });
+        
         }).fail(testFns.handleFail).fin(start);
     });
     

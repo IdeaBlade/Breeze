@@ -185,14 +185,14 @@ define(["breeze"], function (breeze) {
 
         // Check if the module metadataStore is empty
         if (!metadataStore.isEmpty()) {
-            return; // ok ... it's been populated ... we're done.
+            return Q(); // ok ... it's been populated ... we're done.
         }
 
         // It's empty; get metadata
         var serviceName = newEm.options.serviceName;
         stop(); // tell testrunner to wait.
 
-        metadataStore.fetchMetadata(serviceName)
+        return metadataStore.fetchMetadata(serviceName)
         .then(function () {
             if (typeof metadataSetupFn === "function") {
                 metadataSetupFn(metadataStore);
@@ -358,7 +358,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
@@ -372,7 +374,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
@@ -389,13 +393,14 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }
 
     function inheritanceReset() {
-
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/reset',
@@ -403,7 +408,9 @@ define(["breeze"], function (breeze) {
                 deferred.resolve(
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
-        .error(function (jqXHR, textStatus, errorThrown) { deferred.reject(errorThrown); });
+        .error(function(jqXHR, textStatus, errorThrown) {
+             deferred.reject(errorThrown);
+        });
 
         return deferred.promise;
     }

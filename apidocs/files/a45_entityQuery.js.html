@@ -342,9 +342,10 @@ var EntityQuery = (function () {
     @chainable
     **&#x2F;
     proto.toType = function(entityType) {
-        assertParam(entityType, &quot;entityType&quot;).isString().or.isInstanceOf(EntityType).check();
+        assertParam(entityType, &quot;entityType&quot;).isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
         eq.toEntityType = entityType;
+        return eq;
     };
 
         
@@ -902,40 +903,43 @@ var EntityQuery = (function () {
         &#x2F;&#x2F; assertParam(metadataStore, &quot;metadataStore&quot;).isInstanceOf(MetadataStore).check();
         &#x2F;&#x2F; assertParam(throwErrorIfNotFound, &quot;throwErrorIfNotFound&quot;).isBoolean().isOptional().check();
         var entityType = this.entityType;
-        if (!entityType) {
-            var resourceName = this.resourceName;
-            if (!resourceName) {
-                throw new Error(&quot;There is no resourceName for this query&quot;);
-            }
-            if (metadataStore.isEmpty()) {
-                if (throwErrorIfNotFound) {
-                    throw new Error(&quot;There is no metadata available for this query&quot;);
-                } else {
-                    return null;
-                }
-            }
-            var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
-            if (!entityTypeName) {
-                if (throwErrorIfNotFound) {
-                    throw new Error(&quot;Cannot find resourceName of: &quot; + resourceName);
-                } else {
-                    return null;
-                }
-            }
-            entityType = metadataStore._getEntityType(entityTypeName);
-            if (!entityType) {
-                if (throwErrorIfNotFound) {
-                    throw new Error(&quot;Cannot find an entityType for an entityTypeName of: &quot; + entityTypeName);
-                } else {
-                    return null;
-                }
-            }
-            this.entityType = entityType;
+        if (entityType) return entityType;
+
+        var resourceName = this.resourceName;
+        if (!resourceName) {
+            throw new Error(&quot;There is no resourceName for this query&quot;);
         }
+
+        if (metadataStore.isEmpty()) {
+            if (throwErrorIfNotFound) {
+                throw new Error(&quot;There is no metadata available for this query&quot;);
+            } else {
+                return null;
+            }
+        }
+
+        var entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+        if (entityTypeName) {
+            entityType = metadataStore._getEntityType(entityTypeName);
+        } else {
+            entityType = this._getToEntityType(metadataStore, true);
+        }
+
+        if (!entityType) {
+            if (throwErrorIfNotFound) {
+                throw new Error(__formatString(&quot;Cannot find an entityType for either entityTypeName: &#x27;%1&#x27; or resourceName: &#x27;%2&#x27;&quot;, entityTypeName, resourceName));
+            } else {
+                return null;
+            }
+        }
+                
+        this.entityType = entityType;
         return entityType;
+        
     };
 
-    proto._getToEntityType = function (metadataStore) {
+    proto._getToEntityType = function (metadataStore, skipFromCheck) {
+        &#x2F;&#x2F; skipFromCheck is to avoid recursion if called from _getFromEntityType;
         if (this.toEntityType instanceof EntityType) {
             return this.toEntityType;
         } else if (this.toEntityType) {
@@ -946,7 +950,8 @@ var EntityQuery = (function () {
             &#x2F;&#x2F; resolve it, if possible, via the resourceName
             &#x2F;&#x2F; do not cache this value in this case
             &#x2F;&#x2F; cannot determine the toEntityType if a selectClause is present.
-            return (!this.selectClause) &amp;&amp; this._getFromEntityType(metadataStore, false);
+            
+            return skipFromCheck ? null : (!this.selectClause) &amp;&amp; this._getFromEntityType(metadataStore, false);
         }
     };
 
@@ -1379,7 +1384,7 @@ var FnNode = (function() {
     return ctor;
 })();
    
-var FilterQueryOp = function () {
+var FilterQueryOp = (function () {
     &#x2F;**
     FilterQueryOp is an &#x27;Enum&#x27; containing all of the valid  {{#crossLink &quot;Predicate&quot;}}{{&#x2F;crossLink}} 
     filter operators for an {{#crossLink &quot;EntityQuery&quot;}}{{&#x2F;crossLink}}.
@@ -1450,6 +1455,9 @@ var FilterQueryOp = function () {
     @static
     **&#x2F;
     aEnum.EndsWith = aEnum.addSymbol({ operator: &quot;endswith&quot;, isFunction: true });
+
+    aEnum.IsTypeOf = aEnum.addSymbol({ operator: &quot;isof&quot;, isFunction: true, aliases: [&quot;isTypeOf&quot;] });
+    
     aEnum.seal();
     aEnum._map = function () {
         var map = {};
@@ -1472,9 +1480,9 @@ var FilterQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
-var BooleanQueryOp = function () {
+var BooleanQueryOp = (function () {
     var aEnum = new Enum(&quot;BooleanQueryOp&quot;);
     aEnum.And = aEnum.addSymbol({ operator: &quot;and&quot;, aliases: [&quot;&amp;&amp;&quot;] });
     aEnum.Or = aEnum.addSymbol({ operator: &quot;or&quot;, aliases: [&quot;||&quot;] });
@@ -1502,7 +1510,7 @@ var BooleanQueryOp = function () {
         }
     };
     return aEnum;
-} ();
+}) ();
 
 var Predicate = (function () {
     &#x2F;**  
@@ -1759,18 +1767,26 @@ var Predicate = (function () {
 &#x2F;&#x2F; Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
-        assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().check();
+    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+        assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().isOptional().check();
+
         assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
         assertParam(value, &quot;value&quot;).isRequired(true).check();
         assertParam(valueIsLiteral).isOptional().isBoolean().check();
 
-        this._propertyOrExpr = propertyOrExpr;
-        this._fnNode1 = FnNode.create(propertyOrExpr, null);
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error(&quot;Unknown query operation: &quot; + operator);
         }
+        if (propertyOrExpr) {
+            this._propertyOrExpr = propertyOrExpr;
+            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+        } else {
+            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+                throw new Error(&quot;propertyOrExpr cannot be null except when using the &#x27;IsTypeOf&#x27; operator&quot;);
+            }
+        }
+
         this._value = value;
         this._valueIsLiteral = valueIsLiteral;
     };
@@ -1780,7 +1796,12 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
-        var v1Expr = this._fnNode1.toOdataFragment(entityType);
+        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(this._value);
+            var typeName = oftype.namespace + &#x27;.&#x27; + oftype.shortName;
+            return this._filterQueryOp.operator + &quot;(&quot; + DataType.String.fmtOData(typeName) + &quot;)&quot;;
+        }
+        var v1Expr = this._fnNode1 &amp;&amp; this._fnNode1.toOdataFragment(entityType);
         var v2Expr;
         if (this.fnNode2 === undefined &amp;&amp; !this._valueIsLiteral) {
             this.fnNode2 = FnNode.create(this._value, entityType);
@@ -1788,7 +1809,8 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            v2Expr = formatValue(this._value, this._fnNode1.dataType);
+            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
             if (this._filterQueryOp == FilterQueryOp.Contains) {
@@ -1829,6 +1851,7 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        if (!this._fnNode1) return;
         &#x2F;&#x2F; throw if not valid
         this._fnNode1.validate(entityType);
         this.dataType = this._fnNode1.dataType;
@@ -1928,65 +1951,6 @@ var SimplePredicate = (function () {
             b = (b || &quot;&quot;).toLowerCase();
         }
         return a.indexOf(b) &gt;= 0;
-    }
-
-    function formatValue(val, dataType) {
-        if (val == null) {
-            return null;
-        }
-            
-        var msg;
-            
-        dataType = dataType || DataType.fromValue(val);
-                       
-        if (dataType.isNumeric) {
-            if (typeof val === &quot;string&quot;) {
-                if (dataType.isInteger) {
-                    val = parseInt(val);
-                } else {
-                    val = parseFloat(val);
-                }
-            }
-            return val;
-        } else if (dataType === DataType.String) {
-            return &quot;&#x27;&quot; + val + &quot;&#x27;&quot;;
-        } else if (dataType === DataType.DateTime) {
-            try {
-                return &quot;datetime&#x27;&quot; + val.toISOString() + &quot;&#x27;&quot;;
-            } catch (e) {
-                throwError(&quot;&#x27;%1&#x27; is not a valid dateTime&quot;, val);
-            }
-        } else if (dataType === DataType.DateTimeOffset) {
-            try {
-                return &quot;datetimeoffset&#x27;&quot; + val.toISOString() + &quot;&#x27;&quot;;
-            } catch (e) {
-                throwError(&quot;&#x27;%1&#x27; is not a valid dateTimeoffset&quot;, val);
-            }
-        } else if (dataType == DataType.Time) {
-            if (!__isDuration(val)) {
-                throwError(&quot;&#x27;%1&#x27; is not a valid ISO 8601 duration&quot;, val);
-            }
-            return &quot;time&#x27;&quot; + val + &quot;&#x27;&quot;;
-        } else if (dataType === DataType.Guid) {
-            if (!__isGuid(val)) {
-                throwError(&quot;&#x27;%1&#x27; is not a valid guid&quot;, val);
-            }
-            return &quot;guid&#x27;&quot; + val + &quot;&#x27;&quot;;
-        } else if (dataType === DataType.Boolean) {
-            if (typeof val === &quot;string&quot;) {
-                return val.trim().toLowerCase() === &quot;true&quot;;
-            } else {
-                return val;
-            }
-        } else {
-            return val;
-        }
-
-    }
-    
-    function throwError(msg, val) {
-        msg = __formatString(msg, val);
-        throw new Error(msg);
     }
 
     return ctor;

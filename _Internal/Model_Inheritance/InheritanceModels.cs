@@ -14,10 +14,12 @@ namespace Inheritance.Models
     public interface IBillingDetail
     {
         int Id { get; set; }
-        string inheritanceModel { get; set; } // "TPH", "TPT", "TPC"
         DateTime CreatedAt { get; set; }
         string Owner { get; set; }
         string Number { get; set; }
+
+        // "InheritanceModel" makes it easier to test for the received type
+        string InheritanceModel { get; set; } // "TPH", "TPT", "TPC"
     }
 
     public interface IBankAccount : IBillingDetail
@@ -79,13 +81,12 @@ namespace Inheritance.Models
     public abstract class BillingDetailTPH : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
-        public string inheritanceModel { get; set; }
         public DateTime CreatedAt { get; set;  }
         public string Owner { get; set; }
         public string Number { get; set; }
         public int AccountTypeId { get; set; }
         public AccountType AccountType { get; set; }
-
+        public string InheritanceModel { get; set; }
     }
 
     public class BankAccountTPH : BillingDetailTPH, IBankAccount
@@ -117,12 +118,12 @@ namespace Inheritance.Models
     public abstract class BillingDetailTPT : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
-        public string inheritanceModel { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Owner { get; set; }
         public string Number { get; set; }
         public int AccountTypeId { get; set; }
         public AccountType AccountType { get; set; }
+        public string InheritanceModel { get; set; }
     }
 
     public class BankAccountTPT : BillingDetailTPT, IBankAccount
@@ -153,10 +154,10 @@ namespace Inheritance.Models
     public abstract class BillingDetailTPC : EntityBase, IBillingDetail
     {
         public int Id { get; set; }
-        public string inheritanceModel { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Owner { get; set; }
         public string Number { get; set; }
+        public string InheritanceModel { get; set; }
     }
 
     public class BankAccountTPC : BillingDetailTPC, IBankAccount

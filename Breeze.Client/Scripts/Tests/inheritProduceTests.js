@@ -21,6 +21,7 @@ define(["testFns"], function (testFns) {
     var altServiceName = "breeze/ProduceTPH";
 
     var newEm = testFns.newEm;
+    var newEmX = testFns.newEmX;
     
     module("inheritProduce", {
         setup: function () {
@@ -32,7 +33,7 @@ define(["testFns"], function (testFns) {
 
  
     test("query ItemsOfProduce", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("ItemsOfProduce")
             .using(em);
@@ -50,7 +51,7 @@ define(["testFns"], function (testFns) {
     });
 
     test("query Fruits w/server ofType", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("Fruits")
             .using(em);
@@ -68,7 +69,7 @@ define(["testFns"], function (testFns) {
     });
     
     test("query Fruits w/client ofType", function () {
-        var em = newEm();
+        var em = newEmX();
 
         var q = EntityQuery.from("ItemsOfProduce")
             .where(null, FilterQueryOp.IsTypeOf, "Fruit")
@@ -86,6 +87,24 @@ define(["testFns"], function (testFns) {
 
     });
 
+    test("query Fruits locally", function () {
+        var em = newEmX();
+
+        var q = EntityQuery.from("Fruits")
+            .using(em);
+        stop();
+        
+        q.execute().then(function (data) {
+            var fruits = data.results;
+            ok(fruits.length > 0, "should have found some 'Fruits'");
+            // var q2 = q;
+            var q2 = q.toType("Fruit");
+            var fruits2 = em.executeQueryLocally(q2);
+            ok(fruits2.length === fruits.length);
+            
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
 
     return testFns;

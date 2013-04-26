@@ -28,7 +28,7 @@
 
 (function (definition) {
     // Turn off strict mode for this function so we can assign to global.Q
-    /*jshint strict: false*/
+    /*jshint strict: false, -W117*/
 
     // This file will function properly as a <script> tag, or a module
     // using CommonJS and NodeJS or RequireJS module formats.  In
@@ -73,25 +73,31 @@ var qFileName;
 // used for fallback in "allResolved"
 var noop = function () {};
 
-// use the fastest possible means to execute a task in a future turn
+// Use the fastest possible means to execute a task in a future turn
 // of the event loop.
 var nextTick;
-if (typeof process !== "undefined") {
-    // node
-    nextTick = process.nextTick;
-} else if (typeof setImmediate === "function") {
-    // In IE10, or use https://github.com/NobleJS/setImmediate
+if (typeof setImmediate === "function") {
+    // In IE10, Node.js 0.9+, or https://github.com/NobleJS/setImmediate
     if (typeof window !== "undefined") {
         nextTick = setImmediate.bind(window);
     } else {
         nextTick = setImmediate;
     }
+} else if (typeof process !== "undefined" && process.nextTick) {
+    // Node.js before 0.9. Note that some fake-Node environments, like the
+    // Mocha test runner, introduce a `process` global without a `nextTick`.
+
+    nextTick = process.nextTick;
 } else {
     (function () {
         // linked list of tasks (single, with head node)
-        var head = {task: void 0, next: null}, tail = head,
-            maxPendingTicks = 2, pendingTicks = 0, queuedTasks = 0, usedTicks = 0,
-            requestTick;
+        var head = {task: void 0, next: null};
+        var tail = head;
+        var maxPendingTicks = 2;
+        var pendingTicks = 0;
+        var queuedTasks = 0;
+        var usedTicks = 0;
+        var requestTick = void 0;
 
         function onTick() {
             // In case of multiple tasks ensure at least one subsequent tick
@@ -102,7 +108,10 @@ if (typeof process !== "undefined") {
                 // Amortize latency after thrown exceptions.
                 usedTicks = 0;
                 maxPendingTicks *= 4; // fast grow!
-                var expectedTicks = queuedTasks && Math.min(queuedTasks - 1, maxPendingTicks);
+                var expectedTicks = queuedTasks && Math.min(
+                    queuedTasks - 1,
+                    maxPendingTicks
+                );
                 while (pendingTicks < expectedTicks) {
                     ++pendingTicks;
                     requestTick();
@@ -122,7 +131,10 @@ if (typeof process !== "undefined") {
 
         nextTick = function (task) {
             tail = tail.next = {task: task, next: null};
-            if (pendingTicks < ++queuedTasks && pendingTicks < maxPendingTicks) {
+            if (
+                pendingTicks < ++queuedTasks &&
+                pendingTicks < maxPendingTicks
+            ) {
                 ++pendingTicks;
                 requestTick();
             }
@@ -373,7 +385,7 @@ function defer() {
     // forward to the resolved promise.  We coerce the resolution value to a
     // promise using the ref promise because it handles both fully
     // resolved values and other promises gracefully.
-    var pending = [], progressListeners = [], value;
+    var pending = [], progressListeners = [], resolvedPromise;
 
     var deferred = object_create(defer.prototype);
     var promise = object_create(makePromise.prototype);
@@ -387,7 +399,7 @@ function defer() {
             }
         } else {
             nextTick(function () {
-                value.promiseDispatch.apply(value, args);
+                resolvedPromise.promiseDispatch.apply(resolvedPromise, args);
             });
         }
     };
@@ -396,9 +408,9 @@ function defer() {
         if (pending) {
             return promise;
         }
-        var nearer = valueOf(value);
+        var nearer = valueOf(resolvedPromise);
         if (isPromise(nearer)) {
-            value = nearer; // shorten chain
+            resolvedPromise = nearer; // shorten chain
         }
         return nearer;
     };
@@ -409,39 +421,61 @@ function defer() {
         // Reify the stack into a string by using the accessor; this prevents
         // memory leaks as per GH-111. At the same time, cut off the first line;
         // it's always just "[object Promise]\n", as per the `toString`.
-        promise.stack = promise.stack.substring(promise.stack.indexOf("\n") + 1);
+        promise.stack = promise.stack.substring(
+            promise.stack.indexOf("\n") + 1
+        );
     }
 
-    function become(resolvedValue) {
-        if (!pending) {
-            return;
-        }
-        value = resolve(resolvedValue);
+    // NOTE: we do the checks for `resolvedPromise` in each method, instead of
+    // consolidating them into `become`, since otherwise we'd create new
+    // promises with the lines `become(whatever(value))`. See e.g. GH-252.
+
+    function become(promise) {
+        resolvedPromise = promise;
+
         array_reduce(pending, function (undefined, pending) {
             nextTick(function () {
-                value.promiseDispatch.apply(value, pending);
+                promise.promiseDispatch.apply(promise, pending);
             });
         }, void 0);
+
         pending = void 0;
         progressListeners = void 0;
     }
 
     deferred.promise = promise;
-    deferred.resolve = become;
+    deferred.resolve = function (value) {
+        if (resolvedPromise) {
+            return;
+        }
+
+        become(resolve(value));
+    };
+
     deferred.fulfill = function (value) {
+        if (resolvedPromise) {
+            return;
+        }
+
         become(fulfill(value));
     };
-    deferred.reject = function (exception) {
-        become(reject(exception));
+    deferred.reject = function (reason) {
+        if (resolvedPromise) {
+            return;
+        }
+
+        become(reject(reason));
     };
     deferred.notify = function (progress) {
-        if (pending) {
-            array_reduce(progressListeners, function (undefined, progressListener) {
-                nextTick(function () {
-                    progressListener(progress);
-                });
-            }, void 0);
+        if (resolvedPromise) {
+            return;
         }
+
+        array_reduce(progressListeners, function (undefined, progressListener) {
+            nextTick(function () {
+                progressListener(progress);
+            });
+        }, void 0);
     };
 
     return deferred;
@@ -466,16 +500,20 @@ defer.prototype.makeNodeResolver = function () {
 };
 
 /**
- * @param makePromise {Function} a function that returns nothing and accepts
+ * @param resolver {Function} a function that returns nothing and accepts
  * the resolve, reject, and notify functions for a deferred.
  * @returns a promise that may be resolved with the given resolve and reject
- * functions, or rejected by a thrown exception in makePromise
+ * functions, or rejected by a thrown exception in resolver
  */
 Q.promise = promise;
-function promise(makePromise) {
+function promise(resolver) {
+    if (typeof resolver !== "function") {
+        throw new TypeError("resolver must be a function.");
+    }
+
     var deferred = defer();
     fcall(
-        makePromise,
+        resolver,
         deferred.resolve,
         deferred.reject,
         deferred.notify
@@ -486,7 +524,7 @@ function promise(makePromise) {
 /**
  * Constructs a Promise with a promise descriptor object and optional fallback
  * function.  The descriptor contains methods like when(rejected), get(name),
- * put(name, value), post(name, args), and delete(name), which all
+ * set(name, value), post(name, args), and delete(name), which all
  * return either a value, a promise for a value, or a rejection.  The fallback
  * accepts the operation name, a resolver, and any further arguments that would
  * have been forwarded to the appropriate method above had a method been
@@ -498,7 +536,9 @@ Q.makePromise = makePromise;
 function makePromise(descriptor, fallback, valueOf, exception, isException) {
     if (fallback === void 0) {
         fallback = function (op) {
-            return reject(new Error("Promise does not support operation: " + op));
+            return reject(new Error(
+                "Promise does not support operation: " + op
+            ));
         };
     }
 
@@ -550,7 +590,7 @@ array_reduce(
         "isFulfilled", "isRejected", "isPending",
         "dispatch",
         "when", "spread",
-        "get", "put", "set", "del", "delete",
+        "get", "set", "del", "delete",
         "post", "send", "invoke",
         "keys",
         "fapply", "fcall", "fbind",
@@ -558,7 +598,6 @@ array_reduce(
         "timeout", "delay",
         "catch", "finally", "fail", "fin", "progress", "done",
         "nfcall", "nfapply", "nfbind", "denodeify", "nbind",
-        "ncall", "napply", "nbind",
         "npost", "nsend", "ninvoke",
         "nodeify"
     ],
@@ -639,36 +678,38 @@ function isRejected(object) {
     return isPromise(object) && "exception" in object;
 }
 
-var rejections = [];
-var errors = [];
-var errorsDisplayed;
-function displayErrors() {
+// This promise library consumes exceptions thrown in handlers so they can be
+// handled by a subsequent promise.  The exceptions get added to this array when
+// they are created, and removed when they are handled.  Note that in ES6 or
+// shimmed environments, this would naturally be a `Set`.
+var unhandledReasons = Q.unhandledReasons = [];
+var unhandledRejections = [];
+var unhandledReasonsDisplayed = false;
+function displayUnhandledReasons() {
     if (
-        !errorsDisplayed &&
+        !unhandledReasonsDisplayed &&
         typeof window !== "undefined" &&
         !window.Touch &&
         window.console
     ) {
-        // This promise library consumes exceptions thrown in handlers so
-        // they can be handled by a subsequent promise.  The rejected
-        // promises get added to this array when they are created, and
-        // removed when they are handled.
-        console.log("Should be empty:", errors);
+        console.warn("[Q] Unhandled rejection reasons (should be empty):",
+                     unhandledReasons);
     }
-    errorsDisplayed = true;
+
+    unhandledReasonsDisplayed = true;
 }
 
-// Show unhandled rejection if Node exits without handling an outstanding
-// rejection.  (Note that Browserify presently produces a process global
-// without the Emitter on interface)
+// Show unhandled rejection reasons if Node exits without handling an
+// outstanding rejection.  (Note that Browserify presently produces a process
+// global without the `EventEmitter` `on` method.)
 if (typeof process !== "undefined" && process.on) {
     process.on("exit", function () {
-        for (var i = 0; i < errors.length; i++) {
-            var error = errors[i];
-            if (error && typeof error.stack !== "undefined") {
-                console.warn("Unhandled rejected promise:", error.stack);
+        for (var i = 0; i < unhandledReasons.length; i++) {
+            var reason = unhandledReasons[i];
+            if (reason && typeof reason.stack !== "undefined") {
+                console.warn("Unhandled rejection reason:", reason.stack);
             } else {
-                console.warn("Unhandled rejected promise (no stack):", error);
+                console.warn("Unhandled rejection reason (no stack):", reason);
             }
         }
     });
@@ -676,31 +717,33 @@ if (typeof process !== "undefined" && process.on) {
 
 /**
  * Constructs a rejected promise.
- * @param exception value describing the failure
+ * @param reason value describing the failure
  */
 Q.reject = reject;
-function reject(exception) {
+function reject(reason) {
     var rejection = makePromise({
         "when": function (rejected) {
             // note that the error has been handled
             if (rejected) {
-                var at = array_indexOf(rejections, this);
+                var at = array_indexOf(unhandledRejections, this);
                 if (at !== -1) {
-                    errors.splice(at, 1);
-                    rejections.splice(at, 1);
+                    unhandledRejections.splice(at, 1);
+                    unhandledReasons.splice(at, 1);
                 }
             }
-            return rejected ? rejected(exception) : this;
+            return rejected ? rejected(reason) : this;
         }
     }, function fallback() {
-        return reject(exception);
+        return reject(reason);
     }, function valueOf() {
         return this;
-    }, exception, true);
-    // note that the error has not been handled
-    displayErrors();
-    rejections.push(rejection);
-    errors.push(exception);
+    }, reason, true);
+
+    // Note that the reason has not been handled.
+    displayUnhandledReasons();
+    unhandledRejections.push(rejection);
+    unhandledReasons.push(reason);
+
     return rejection;
 }
 
@@ -1037,7 +1080,7 @@ function dispatch(object, op, args) {
  * Constructs a promise method that can be used to safely observe resolution of
  * a promise for an arbitrarily named method like "propfind" in a future turn.
  *
- * "dispatcher" constructs methods like "get(promise, name)" and "put(promise)".
+ * "dispatcher" constructs methods like "get(promise, name)" and "set(promise)".
  */
 Q.dispatcher = dispatcher;
 function dispatcher(op) {
@@ -1293,14 +1336,15 @@ function done(promise, fulfilled, rejected, progress) {
  * some milliseconds time out.
  * @param {Any*} promise
  * @param {Number} milliseconds timeout
+ * @param {String} custom error message (optional)
  * @returns a promise for the resolution of the given promise if it is
  * fulfilled before the timeout, otherwise rejected.
  */
 Q.timeout = timeout;
-function timeout(promise, ms) {
+function timeout(promise, ms, msg) {
     var deferred = defer();
     var timeoutId = setTimeout(function () {
-        deferred.reject(new Error("Timed out after " + ms + " ms"));
+        deferred.reject(new Error(msg || "Timed out after " + ms + " ms"));
     }, ms);
 
     when(promise, function (value) {

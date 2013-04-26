@@ -351,6 +351,20 @@ var DataService = (function () {
         return new DataService(json);
     };
 
+    proto.makeUrl = function(suffix) {
+        var url = this.serviceName;
+        &#x2F;&#x2F; remove any trailing &quot;&#x2F;&quot;
+        if (core.stringEndsWith(url, &quot;&#x2F;&quot;)) {
+            url = url.substr(0, url.length - 1);
+        }
+        &#x2F;&#x2F; ensure that it ends with &quot;&#x2F;&quot; + suffix
+        suffix = &quot;&#x2F;&quot; + suffix;
+        if (!core.stringEndsWith(url, suffix)) {
+            url = url + suffix;
+        }
+        return url;
+    };
+
     return ctor;
 })();
     
@@ -373,7 +387,7 @@ var JsonResultsAdapter = (function () {
             extractResults: function(json) {
                 return json.results;
             },
-            visitNode: function(node, parseContext, nodeContext) {
+            visitNode: function(node, mappingContext, nodeContext) {
                 var entityType = normalizeTypeName(node.$type);
                 var propertyName = nodeContext.propertyName;
                 var ignore = propertyName &amp;&amp; propertyName.substr(0, 1) === &quot;$&quot;;
@@ -388,7 +402,7 @@ var JsonResultsAdapter = (function () {
         });
 
         var dataService = new DataService( {
-                serviceName: &quot;api&#x2F;foo&quot;,
+                serviceName: &quot;breeze&#x2F;foo&quot;,
                 jsonResultsAdapter: jsonResultsAdapter
         });
 

@@ -170,7 +170,9 @@ define(["breeze.debug"], function (breeze) {
         }
     };
 
-    
+    testFns.newEmX = function () {
+        return testFns.newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+    };
 
     testFns.handleFail = function (error) {
         if (!error) {
