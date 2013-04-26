@@ -504,7 +504,70 @@ define(["testFns"], function (testFns) {
         }
 
     });
+    /*********************************************************
+     * can load inherited types with expand on Status query
+     * Only available for TPH and TPT (not TPC)
+     *********************************************************/
+    asyncTest("can load inherited types with expand on Status query", 4, function () {
+        var em = newEm();
 
+        EntityQuery.from('AccountTypes')
+            .using(em).execute()
+            .then(navigateTests).fail(handleFail).fin(start);
+
+        // Fetch a BankAccount and CreditCard of each flavor
+        // then prove can navigate to related AccountType
+        function navigateTests() {
+
+            var tphPromise = EntityQuery.from('StatusTPHs').expand("BillingDetails")
+                .where("Name", "eq", "Closed")
+                .using(em).execute().then(NavFromStatus).fail(handleFail);
+
+            var tptPromise = EntityQuery.from('StatusTPTs').expand("BillingDetails")
+                .where("Name", "eq", "Closed")
+                .using(em).execute().then(NavFromStatus).fail(handleFail);
+
+            // wait for all to be resolved
+            return Q.allResolved([tphPromise, tptPromise])
+                    .then(reportRejectedPromises);
+        }
+    });
+    // Assert can navigate from Status to the related BillingDetails
+    function NavFromStatus(data) {
+        var status = data.results[0];
+        var type = data.query.entityType.shortName;
+
+        if (!status) {
+            ok(false, "a query failed to return a single " + type);
+
+        } else if (typeof status.BillingDetails !== 'function') {
+            ok(false, type + " doesn't have a 'BillingDetails' KO property");
+
+        } else {
+            assertBillingDetailsAreInCache(status);
+            var details = status.BillingDetails();
+            var len = details.length;
+            ok(len, "should have loaded BillingDetails for {0}:{1}; 'BillingDetails' property returned {2} of them."
+                    .format(type, status.Name(), len));
+        }
+    }
+    function assertBillingDetailsAreInCache(entity) {
+        var manager = entity.entityAspect.entityManager;
+        var typeName = entity.entityType.shortName;
+        var inheritanceType = typeName.substring(typeName.length - 3);
+        
+        // Bug? The following returns none although there are accounts and cards
+        var details = manager.getEntities(['BillingDetail' + inheritanceType]);
+        var accounts = manager.getEntities(['BankAccount' + inheritanceType]);
+        var cards = manager.getEntities(['CreditCard' + inheritanceType]);
+        
+        var detailsLen = details.length;
+        var accountsLen = accounts.length;
+        var cardsLen = cards.length;
+        ok(detailsLen && accountsLen && cardsLen,
+            "should have BillingDetails; have {0} [BankAccounts {1}, CreditCards {2}].".
+                format(detailsLen, accountsLen, cardsLen));
+    }
     /*********************************************************
     * can navigate to Deposits when eager loaded with expand
     *********************************************************/
@@ -533,7 +596,7 @@ define(["testFns"], function (testFns) {
             ok(false, "a query failed to return a single " + type);
 
         } else if (typeof account.Deposits !== 'function') {
-            ok(false, type + " doesn't have a Deposits KO property");
+            ok(false, type + " doesn't have a 'Deposits' KO property");
 
         } else {
             var deposits = account.Deposits();

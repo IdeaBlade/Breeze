@@ -97,6 +97,7 @@ namespace Inheritance.Models
         public AccountType AccountType { get; set; }
         public string InheritanceModel { get; set; }
         public int StatusId { get; set; }
+        public StatusTPH Status { get; set; }
     }
 
     public class BankAccountTPH : BillingDetailTPH, IBankAccount
@@ -141,6 +142,7 @@ namespace Inheritance.Models
         public AccountType AccountType { get; set; }
         public string InheritanceModel { get; set; }
         public int StatusId { get; set; }
+        public StatusTPT Status { get; set; }
     }
 
     public class BankAccountTPT : BillingDetailTPT, IBankAccount
