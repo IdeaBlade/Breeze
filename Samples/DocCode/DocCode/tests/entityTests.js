@@ -13,10 +13,21 @@ define(["testFns"], function (testFns) {
     module("entityTests", testFns.getModuleOptions(newEm));
 
     /*********************************************************
-    * Add a customer and confirm its EntityState
+    * Add a Customer using preferred EntityManager.createEntity method
     *********************************************************/
-    test("add customer", 1, function () {
-
+    test("add Customer with manager.CreateEntity", 1, function () {
+        var em = newEm();
+        var newCust = em.createEntity("Customer");
+        ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
+    });
+    
+    /*********************************************************
+    * Add a Customer with the EntityType and confirm its EntityState
+    * Most of the tests in this file are still use this
+    * older, less preferred, more verbose approach using the EntityType
+    * Todo: update these tests to use EntityManager.CreateEntity
+    *********************************************************/
+    test("add Customer with the EntityType", 1, function () {
         var em = newEm();
         var customerType = em.metadataStore.getEntityType("Customer");
         var newCust = customerType.createEntity();
@@ -24,7 +35,35 @@ define(["testFns"], function (testFns) {
 
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
-
+    
+    /*********************************************************
+    * Add an OrderDetail with initializer that set its composite key with ids
+    * Interesting because client must supply the composite key
+    * and both parts of that key are ids of parent entities, Order and Product
+    *********************************************************/
+    test("add OrderDetail created using initializer with parent ids", 1, function () {
+        var em = newEm();
+        var newDetail = em.createEntity("OrderDetail", { OrderID: 1, ProductID: 1 });
+        ok(newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+    });
+    
+    /*********************************************************
+    * Add an OrderDetail with initializer that set its composite key via related entities
+    * This does not work as of v.1.3.0. See Feature Request #2155
+    *********************************************************/
+    test("add OrderDetail created using initializer with parent entities", 1, function() {
+        var em = newEm();
+        var newDetail = null;
+        // pretend parent entities were queried
+        var parentOrder = em.createEntity("Order", { OrderID: 1 }, breeze.EntityState.Unchanged);
+        var parentProduct = em.createEntity("Product", { ProductID: 1 }, breeze.EntityState.Unchanged);
+        try {
+            // Can't initialize with related entity. Feature request to make this possible         
+            newDetail = em.createEntity("OrderDetail", { Order: parentOrder, Product: parentProduct });
+        } catch (ex) {/* test will fail */}
+        ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+    });
+    
     /*********************************************************
     * entityAspect.rejectChanges of added entity detaches it
     *********************************************************/
