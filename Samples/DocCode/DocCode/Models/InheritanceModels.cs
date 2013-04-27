@@ -2,6 +2,7 @@
 //http://weblogs.asp.net/manavi/archive/2010/12/24/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-1-table-per-hierarchy-tph.aspx
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 
@@ -91,6 +92,7 @@ namespace Inheritance.Models
     {
         public int Id { get; set; }
         public DateTime CreatedAt { get; set;  }
+        [Required, StringLength(maximumLength: 30)]
         public string Owner { get; set; }
         public string Number { get; set; }
         public int AccountTypeId { get; set; }
@@ -136,6 +138,7 @@ namespace Inheritance.Models
     {
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
+        [Required, StringLength(maximumLength: 30)]
         public string Owner { get; set; }
         public string Number { get; set; }
         public int AccountTypeId { get; set; }
@@ -181,6 +184,7 @@ namespace Inheritance.Models
     {
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
+        [Required, StringLength(maximumLength: 30)]
         public string Owner { get; set; }
         public string Number { get; set; }
         public string InheritanceModel { get; set; }

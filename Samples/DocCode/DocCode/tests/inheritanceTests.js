@@ -619,9 +619,9 @@ define(["testFns"], function (testFns) {
     var idSeed = 10000; // for TPC inheritance; start way out there.
     
     /*********************************************************
-    * can save and requery new derived types
+    * can add, save, and requery new derived types
     *********************************************************/
-    asyncTest("can save and requery a BankAccount", 3, function () {
+    asyncTest("can add, save, and requery a BankAccount", 3, function () {
         var inits = makeBankAccountInits({ Number: "112-221" });
         var promises = inheritanceTypes.map(function (t) {
             return saveAndRequery(bankRoot + t, inits);
@@ -629,7 +629,7 @@ define(["testFns"], function (testFns) {
         waitForTestPromises(promises);
     });
 
-    asyncTest("can save and requery a CreditCard", 3, function () {
+    asyncTest("can add, save, and requery a CreditCard", 3, function () {
         var inits = makeCreditCardInits({ Number: "555-55-5555" });
         var promises = inheritanceTypes.map(function (t) {
             return saveAndRequery(cardRoot + t, inits);
@@ -647,7 +647,8 @@ define(["testFns"], function (testFns) {
             ok(false, "Threw exception creating a '{0}': '{1}'."
                 .format(typeName, ex.message));
             return Q(true); // caught it; keep going
-        }      
+        }
+
         return em.saveChanges().then(saveSuccess);
 
         function saveSuccess(saveResult) {
@@ -780,6 +781,65 @@ define(["testFns"], function (testFns) {
             .format(typeName, JSON.stringify(key.values)));
         }
     }
+    
+
+    /************************** Changes/Validation *************************/
+
+    module("inheritanceTests - change & validation", moduleOptions);
+
+    /*********************************************************
+    * Server model base class validation rule propagated to derived type
+    *********************************************************/
+    test("base class 'Owner' required validation applies to derived types", 6, function () {
+        var em = newEm();
+        inheritanceTypes.map(function (t) {
+            var inits = makeBankAccountInits({ Owner: "" }); // invalid
+            return assertOwnerIsRequired(em, bankRoot + t, inits);
+        });
+        inheritanceTypes.map(function (t) {
+            var inits = makeCreditCardInits({ Owner: "" });
+            return assertOwnerIsRequired(em, cardRoot + t, inits);
+        });
+
+        function assertOwnerIsRequired(manager, typeName, inits) {
+            ensureIdForTPC(typeName, inits);
+            var entity = em.createEntity(typeName, inits);
+
+            var valErrors = entity.entityAspect.getValidationErrors();
+
+            var ownerRequiredError = valErrors.filter(function (err) {
+                return err.propertyName === "Owner" && err.validator.name === "required";
+            })[0];
+
+            ok(ownerRequiredError, "should have 'Owner required' error for the " + typeName);
+        }
+    });
+    
+    test("base class 'Owner' max length validation applies to derived types", 6, function () {
+        var em = newEm();
+        var testOwner = "A way way way way way way way way way too long owner name";
+        inheritanceTypes.map(function (t) {
+            var inits = makeBankAccountInits({ Owner: testOwner }); // invalid
+            return assertOwnerTooLong(em, bankRoot + t, inits);
+        });
+        inheritanceTypes.map(function (t) {
+            var inits = makeCreditCardInits({ Owner: testOwner });
+            return assertOwnerTooLong(em, cardRoot + t, inits);
+        });
+
+        function assertOwnerTooLong(manager, typeName, inits) {
+            ensureIdForTPC(typeName, inits);
+            var entity = em.createEntity(typeName, inits);
+
+            var valErrors = entity.entityAspect.getValidationErrors();
+
+            var ownerTooLongError = valErrors.filter(function (err) {
+                return err.propertyName === "Owner" && err.validator.name === "maxLength";
+            })[0];
+
+            ok(ownerTooLongError, "should have 'Owner' max length error for the " + typeName);
+        }
+    });
     /************************** TEST HELPERS *************************/
     function addToMetadata(metadataStore) {
 
@@ -806,26 +866,28 @@ define(["testFns"], function (testFns) {
         }
         return inits;
     }
-    function makeBankAccountInits(typeName, changes) {
+    function makeBankAccountInits(changes) {
         var defaultBankAccount = {
             CreatedAt: createdAt,
             Owner: "Richie Rich",
             Number: "321-123",
             BankName: "Bank of Breeze",
             Swift: "BOFBRZEX",
-            AccountTypeId: 1
+            AccountTypeId: 1,
+            StatusId:1
         };
         return extend(extend({}, defaultBankAccount), changes || {});
     };
     
-    function makeCreditCardInits(typeName, changes) {
+    function makeCreditCardInits(changes) {
         var defaultCard = {
             CreatedAt: createdAt,
             Owner: "Owen Toomuch",
             Number: "424-4242-424",
             ExpiryMonth: "03",
             ExpiryYear: "2016",
-            AccountTypeId: 4
+            AccountTypeId: 4,
+            StatusId: 1
         };
         return extend(extend({}, defaultCard), changes || {});
     };
