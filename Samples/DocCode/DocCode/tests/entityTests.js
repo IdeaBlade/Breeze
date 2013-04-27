@@ -36,6 +36,30 @@ define(["testFns"], function (testFns) {
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
     
+
+    /*********************************************************
+    * Add an Order with initializer that set its parent Customer by Id
+    *********************************************************/
+    test("add Customer created using initializer with parent Customer Id", 4, function () {
+        var em = newEm();
+
+        // create a new parent Customer
+        var parentCustomer = em.createEntity("Customer", {
+             CustomerID: breeze.core.getUuid(),
+             CompanyName: 'TestCo'
+        });
+        
+        // a new Order which is a child of the parent Customer
+        var newOrder = em.createEntity("Order", { CustomerID: parentCustomer.CustomerID() });
+
+        ok(newOrder.entityAspect.entityState.isAdded(), "newOrder should be 'added'");
+        ok(parentCustomer.entityAspect.entityState.isAdded(), "parentCustomer should be 'added'");
+        var orderCustomer = newOrder.Customer();
+        ok(orderCustomer, "newOrder's parent 'Customer' property should return a Customer entity");
+        ok(orderCustomer === parentCustomer,
+            "newOrder's parent Customer should be " + parentCustomer.CompanyName());
+    });
+    
     /*********************************************************
     * Add an OrderDetail with initializer that set its composite key with ids
     * Interesting because client must supply the composite key
