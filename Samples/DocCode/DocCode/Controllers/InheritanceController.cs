@@ -9,7 +9,6 @@ namespace Inheritance.Controllers
     [BreezeController]
     public class InheritanceController : ApiController
     {
-
         readonly EFContextProvider<InheritanceContext> _contextProvider =
             new EFContextProvider<InheritanceContext>();
 

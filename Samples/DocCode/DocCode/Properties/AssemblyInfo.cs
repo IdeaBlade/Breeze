@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IdeaBlade")]
 [assembly: AssemblyProduct("DocCode")]
-[assembly: AssemblyCopyright("Copyright © IdeaBlade 2012")]
+[assembly: AssemblyCopyright("Copyright © IdeaBlade 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("12f4a90c-a889-4bbe-84c0-d58c123c5be1")]
+[assembly: Guid("c0a642f4-2aa0-42ca-9234-cbf9e097d80b")]
 
 // Version information for an assembly consists of the following four values:
 //
