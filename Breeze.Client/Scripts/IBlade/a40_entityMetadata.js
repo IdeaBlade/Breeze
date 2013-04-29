@@ -1265,7 +1265,7 @@ var EntityType = (function () {
     **/
     proto.isSubtypeOf = function (entityType) {
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        baseType = this;
+        var baseType = this;
         do {
             if (baseType === entityType) return true;
             baseType = baseType.baseEntityType;
@@ -1281,7 +1281,7 @@ var EntityType = (function () {
     proto.getSelfAndSubtypes = function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
-            subtypes = st.getSelfAndSubtypes();
+            var subtypes = st.getSelfAndSubtypes();
             result.push.apply(result, subtypes )
         })
         return result;
@@ -1360,7 +1360,7 @@ var EntityType = (function () {
         if (this._ctor && !forceRefresh) return this._ctor;
         var ctorRegistry = this.metadataStore._ctorRegistry;
         var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
-        aCtor = r.ctor || this._ctor;
+        var aCtor = r.ctor || this._ctor;
         
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;

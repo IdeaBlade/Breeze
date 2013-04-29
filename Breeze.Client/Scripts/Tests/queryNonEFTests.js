@@ -177,7 +177,7 @@ define(["testFns"], function (testFns) {
             }
         });
 
-        et = new EntityType({
+        var et = new EntityType({
             shortName: "Dish",
             namespace: "Sample_WebApi.Models",
             dataProperties: {

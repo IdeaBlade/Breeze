@@ -6161,7 +6161,7 @@ var EntityType = (function () {
     **/
     proto.isSubtypeOf = function (entityType) {
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        baseType = this;
+        var baseType = this;
         do {
             if (baseType === entityType) return true;
             baseType = baseType.baseEntityType;
@@ -6177,7 +6177,7 @@ var EntityType = (function () {
     proto.getSelfAndSubtypes = function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
-            subtypes = st.getSelfAndSubtypes();
+            var subtypes = st.getSelfAndSubtypes();
             result.push.apply(result, subtypes )
         })
         return result;
@@ -6256,7 +6256,7 @@ var EntityType = (function () {
         if (this._ctor && !forceRefresh) return this._ctor;
         var ctorRegistry = this.metadataStore._ctorRegistry;
         var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
-        aCtor = r.ctor || this._ctor;
+        var aCtor = r.ctor || this._ctor;
         
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
@@ -8359,7 +8359,7 @@ var EntityQuery = (function () {
                 fn(eq, value);
             }
         } else {
-            __objectForEach(val, function(propName,val) {
+            __objectForEach(value, function(propName,val) {
                 processUsing(eq, map, val, propName)
             });
         }
@@ -8619,6 +8619,7 @@ var EntityQuery = (function () {
         // default is to get queryOptions from the entityManager.
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
+        copy.dataService = this.dataService;
 
         return copy;
     };
@@ -9458,7 +9459,7 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
             v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {

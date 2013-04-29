@@ -77,7 +77,7 @@ define(["testFns"], function (testFns) {
         var em2 = newEm();
 
         em2.metadataStore.importMetadata(exportedMs);
-        ets2 = em2.metadataStore.getEntityTypes();
+        var ets2 = em2.metadataStore.getEntityTypes();
         ok(ets.length === ets2.length, "lengths should be the same");
     });
 

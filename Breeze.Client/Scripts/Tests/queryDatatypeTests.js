@@ -66,6 +66,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var query = new EntityQuery("Users").take(1);
         stop();
+        var modDate;
         em.executeQuery(query).then(function(data) {
             var user = data.results[0];
             var oldDate = user.getProperty("modifiedDate");
@@ -81,7 +82,7 @@ define(["testFns"], function (testFns) {
             return em2.executeQuery(q);
         }).then(function (data) {
             var user3 = data.results[0]
-            modDate3 = user3.getProperty("modifiedDate");
+            var modDate3 = user3.getProperty("modifiedDate");
             ok(modDate.getTime() == modDate3.getTime(), "dates should be the same - dateTime");
             
         }).fail(testFns.handleFail).fin(start);

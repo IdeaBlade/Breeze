@@ -526,7 +526,7 @@ var EntityQuery = (function () {
                 fn(eq, value);
             }
         } else {
-            __objectForEach(val, function(propName,val) {
+            __objectForEach(value, function(propName,val) {
                 processUsing(eq, map, val, propName)
             });
         }
@@ -786,6 +786,7 @@ var EntityQuery = (function () {
         // default is to get queryOptions from the entityManager.
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
+        copy.dataService = this.dataService;
 
         return copy;
     };
@@ -1625,7 +1626,7 @@ var SimplePredicate = (function () {
         if (this.fnNode2) {
             v2Expr = this.fnNode2.toOdataFragment(entityType);
         } else {
-            dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
             v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {

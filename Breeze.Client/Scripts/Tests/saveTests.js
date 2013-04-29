@@ -44,7 +44,7 @@ define(["testFns"], function (testFns) {
         em.saveChanges().then(function (sr) {
             var comments = sr.entities;
             ok(comments.length === 2, "should have saved 2 comments");
-            em2 = newEm();
+            var em2 = newEm();
             var q = EntityQuery.from("Comments").where("createdOn", "==", dt);
             return em2.executeQuery(q);
         }).then(function (data) {
