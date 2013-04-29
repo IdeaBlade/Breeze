@@ -1,51 +1,54 @@
-namespace Todo.Controllers {
-    using System;
-    using System.Linq;
-    using System.Web.Http;
-    using Breeze.WebApi;
-    using Models;
-    using Newtonsoft.Json.Linq;
+using System.Linq;
+using System.Web.Http;
+using Breeze.WebApi;
+using Newtonsoft.Json.Linq;
+using DocCode.DataAccess;
+using Todo.Models;
 
+namespace DocCode.Controllers 
+{
     [BreezeController]
-    public class TodosController : ApiController {
+    public class TodosController : ApiController 
+    {
+        // Todo: inject via an interface rather than "new" the concrete class
+        readonly TodosRepository _repository = new TodosRepository();
 
-        readonly EFContextProvider<TodosContext> _contextProvider = 
-            new EFContextProvider<TodosContext>();
-
-        // ~/breeze/todos/Metadata 
+        // ~/breeze/inheritance/Metadata 
         [HttpGet]
-        public string Metadata() {
-            return _contextProvider.Metadata();
+        public string Metadata()
+        {
+            return _repository.Metadata;
+        }
+
+        // ~/breeze/inheritance/SaveChanges
+        [HttpPost]
+        public SaveResult SaveChanges(JObject saveBundle)
+        {
+            return _repository.SaveChanges(saveBundle);
         }
 
         // ~/breeze/todos/Todos
         // ~/breeze/todos/Todos?$filter=IsArchived%20eq%20false&$orderby=CreatedAt 
         [HttpGet]
         public IQueryable<TodoItem> Todos() {
-            return _contextProvider.Context.Todos;
+            return _repository.Todos;
         }
 
-        // ~/breeze/todos/SaveChanges
-        [HttpPost]
-        public SaveResult SaveChanges(JObject saveBundle) {
-            return _contextProvider.SaveChanges(saveBundle);
-        }
+        #region Purge/Reset
 
-        // ~/breeze/todos/purge
+        // ~/breeze/todos//purge
         [HttpPost]
         public string Purge()
         {
-            TodoDatabaseInitializer.PurgeDatabase(_contextProvider.Context);
-            return "purged";
+            return _repository.Purge();
         }
 
-        // ~/breeze/todos/reset
+        // ~/breeze/todos//reset
         [HttpPost]
         public string Reset()
         {
-            Purge();
-            TodoDatabaseInitializer.SeedDatabase(_contextProvider.Context);
-            return "reset";
+            return _repository.Reset();
         }
+        #endregion
     }
 }

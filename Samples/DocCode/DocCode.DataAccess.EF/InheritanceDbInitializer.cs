@@ -189,5 +189,4 @@ namespace Inheritance.Models
             context.SaveChanges();
         }
     }
-
 }
