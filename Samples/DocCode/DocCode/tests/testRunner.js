@@ -4,6 +4,9 @@ QUnit.config.autostart = false;
 // No test should take that long but first time db build can.
 QUnit.config.testTimeout = 20000; 
 
+// hack to delay QUnit.load until everything really is loaded
+QUnit.delayedLoad = QUnit.load;
+QUnit.load = function () { };
 
 requirejs.config(
     {
@@ -35,8 +38,10 @@ require(["testFns" // always first
     , "inheritanceTests"
 
 ], function (testFns) {
-    // Configure testfns as needed prior to running any tests
-        
-    QUnit.start(); //Tests loaded, run tests
+    $(function() {
+        // Configure testfns as needed prior to running any tests
+        QUnit.delayedLoad();
+        QUnit.start(); //Tests loaded, run tests       
+    });
 });
 
