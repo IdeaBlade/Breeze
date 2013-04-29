@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DocCode.Models")]
+[assembly: AssemblyTitle("DocCode.DataAccess.EF")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IdeaBlade")]
-[assembly: AssemblyProduct("DocCode.Models")]
+[assembly: AssemblyProduct("DocCode.DataAccess.EF")]
 [assembly: AssemblyCopyright("Copyright © IdeaBlade 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("4e7fa201-5f0a-4ec0-ae6a-3c7c02491a42")]
+[assembly: Guid("f3833f36-b5b6-4934-a8ac-464a2a3d2008")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -34,6 +34,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-
-[assembly: InternalsVisibleTo("DocCode")]
-[assembly: InternalsVisibleTo("DocCode.DataAccess.EF")]

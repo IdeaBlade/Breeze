@@ -149,11 +149,6 @@
     <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
-    <Compile Include="Models\InheritanceContext.cs" />
-    <Compile Include="Models\InheritanceDbInitializer.cs" />
-    <Compile Include="Models\NorthwindContext.cs" />
-    <Compile Include="Models\TodoDatabaseInitializer.cs" />
-    <Compile Include="Models\TodosContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +161,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DocCode.DataAccess.EF\DocCode.DataAccess.EF.csproj">
+      <Project>{57e72b09-3299-4af9-8a81-5d82c37613d7}</Project>
+      <Name>DocCode.DataAccess.EF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DocCode.Models\DocCode.Models.csproj">
       <Project>{d91ea111-bab8-41e3-86cb-e87fdcaecb60}</Project>
       <Name>DocCode.Models</Name>
