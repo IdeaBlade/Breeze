@@ -8620,6 +8620,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
+        copy.toEntityType = this.toEntityType;
 
         return copy;
     };
@@ -13561,7 +13562,10 @@ breeze.SaveOptions= SaveOptions;
     ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "entityType") continue;
             if (p === "_$typeName") continue;
+            if (p === "_pendingSets") continue;
+            if (p === "_backingStore") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);

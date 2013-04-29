@@ -787,6 +787,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
+        copy.toEntityType = this.toEntityType;
 
         return copy;
     };
