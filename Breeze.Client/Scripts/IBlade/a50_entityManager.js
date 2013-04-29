@@ -1966,7 +1966,8 @@ var EntityManager = (function () {
     };
 
     function getPropertyFromRawEntity(rawEntity, dp) {
-        var val = rawEntity[dp.nameOnServer];
+        var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
+        var val = rawEntity[propName];
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
         // in a jsonResultsAdapter ( an unusual use case).
         if (val === undefined) return;
