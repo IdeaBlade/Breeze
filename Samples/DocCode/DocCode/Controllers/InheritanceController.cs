@@ -1,3 +1,5 @@
+using DocCode.DataAccess;
+
 namespace Inheritance.Controllers
 {
     using System.Linq;
@@ -9,28 +11,28 @@ namespace Inheritance.Controllers
     [BreezeController]
     public class InheritanceController : ApiController
     {
-        readonly EFContextProvider<InheritanceContext> _contextProvider =
-            new EFContextProvider<InheritanceContext>();
+        // Todo: inject with interface rather than "new" a concrete class
+        readonly InheritanceRepository _repository = new InheritanceRepository();
 
         // ~/breeze/inheritance/Metadata 
         [HttpGet]
         public string Metadata()
         {
-            return _contextProvider.Metadata();
+            return _repository.Metadata;
         }
 
         // ~/breeze/inheritance/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-            return _contextProvider.SaveChanges(saveBundle);
+            return _repository.SaveChanges(saveBundle);
         }
 
         // ~/breeze/inheritance/accountTypes
         [HttpGet]
         public IQueryable<AccountType> AccountTypes()
         {
-            return _contextProvider.Context.AccountTypes;
+            return _repository.AccountTypes;
         }
 
         #region TPH
@@ -39,28 +41,28 @@ namespace Inheritance.Controllers
         [HttpGet]
         public IQueryable<BillingDetailTPH> BillingDetailTPHs()
         {
-            return _contextProvider.Context.BillingDetailTPHs;
+            return _repository.BillingDetailTPHs;
         }
 
         // ~/breeze/inheritance/bankAccountTPHs
         [HttpGet]
         public IQueryable<BankAccountTPH> BankAccountTPHs()
         {
-            return _contextProvider.Context.BillingDetailTPHs.OfType<BankAccountTPH>();
+            return _repository.BankAccountTPHs;
         }
 
         // ~/breeze/inheritance/creditCardTPHs
         [HttpGet]
         public IQueryable<CreditCardTPH> CreditCardTPHs()
         {
-            return _contextProvider.Context.BillingDetailTPHs.OfType<CreditCardTPH>();
+            return _repository.CreditCardTPHs;
         }
 
         // ~/breeze/inheritance/statusTPHs
         [HttpGet]
         public IQueryable<StatusTPH> StatusTPHs()
         {
-            return _contextProvider.Context.StatusTPHs;
+            return _repository.StatusTPHs;
         }
         #endregion
 
@@ -70,28 +72,28 @@ namespace Inheritance.Controllers
         [HttpGet]
         public IQueryable<BillingDetailTPT> BillingDetailTPTs()
         {
-            return _contextProvider.Context.BillingDetailTPTs;
+            return _repository.BillingDetailTPTs;
         }
 
         // ~/breeze/inheritance/bankAccountTPTs
         [HttpGet]
         public IQueryable<BankAccountTPT> BankAccountTPTs()
         {
-            return _contextProvider.Context.BillingDetailTPTs.OfType<BankAccountTPT>();
+            return _repository.BankAccountTPTs;
         }
 
         // ~/breeze/inheritance/creditCardTPTs
         [HttpGet]
         public IQueryable<CreditCardTPT> CreditCardTPTs()
         {
-            return _contextProvider.Context.BillingDetailTPTs.OfType<CreditCardTPT>();
+            return _repository.CreditCardTPTs;
         }
 
         // ~/breeze/inheritance/statusTPTs
         [HttpGet]
         public IQueryable<StatusTPT> StatusTPTs()
         {
-            return _contextProvider.Context.StatusTPTs;
+            return _repository.StatusTPTs;
         }
         #endregion
 
@@ -101,21 +103,21 @@ namespace Inheritance.Controllers
         [HttpGet]
         public IQueryable<BillingDetailTPC> BillingDetailTPCs()
         {
-            return _contextProvider.Context.BillingDetailTPCs;
+            return _repository.BillingDetailTPCs;
         }
 
         // ~/breeze/inheritance/bankAccountTPCs
         [HttpGet]
         public IQueryable<BankAccountTPC> BankAccountTPCs()
         {
-            return _contextProvider.Context.BillingDetailTPCs.OfType<BankAccountTPC>();
+            return _repository.BankAccountTPCs;
         }
 
         // ~/breeze/inheritance/creditCardTPCs
         [HttpGet]
         public IQueryable<CreditCardTPC> CreditCardTPCs()
         {
-            return _contextProvider.Context.BillingDetailTPCs.OfType<CreditCardTPC>();
+            return _repository.CreditCardTPCs;
         }
         #endregion
 
@@ -125,17 +127,14 @@ namespace Inheritance.Controllers
         [HttpPost]
         public string Purge()
         {
-            InheritanceDbInitializer.PurgeDatabase(_contextProvider.Context);
-            return "purged";
+            return _repository.Purge();
         }
 
         // ~/breeze/inheritance//reset
         [HttpPost]
         public string Reset()
         {
-            Purge();
-            InheritanceDbInitializer.ResetDatabase(_contextProvider.Context);
-            return "reset";
+            return _repository.Reset();
         }
 
         #endregion
