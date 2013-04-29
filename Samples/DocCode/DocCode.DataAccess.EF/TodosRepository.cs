@@ -35,14 +35,14 @@ namespace DocCode.DataAccess
 
         public string Purge()
         {
-            TodoDatabaseInitializer.PurgeDatabase(Context);
+            TodosDbInitializer.PurgeDatabase(Context);
             return "purged";
         }
 
         public string Reset()
         {
             Purge();
-            TodoDatabaseInitializer.ResetDatabase(Context);
+            TodosDbInitializer.ResetDatabase(Context);
             return "reset";
         }
 

@@ -4,7 +4,7 @@ using System.Data.Entity;
 namespace Todo.Models
 {
     // DEMONSTRATION/DEVELOPMENT ONLY
-    public class TodoDatabaseInitializer:
+    public class TodosDbInitializer:
         DropCreateDatabaseAlways<TodosContext> // re-creates every time the server starts
         //DropCreateDatabaseIfModelChanges<TodosContext> 
     {

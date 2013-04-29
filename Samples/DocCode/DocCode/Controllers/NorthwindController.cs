@@ -10,7 +10,7 @@ namespace DocCode.Controllers
     [BreezeController]
     public class NorthwindController : ApiController 
     {
-        // Todo: inject with interface rather than "new" a concrete class
+        // Todo: inject via an interface rather than "new" the concrete class
         readonly NorthwindRepository _repository = new NorthwindRepository();
 
         // ~/breeze/northwind/Metadata 
