@@ -1,13 +1,12 @@
+using System.Linq;
+using System.Web.Http;
+using Breeze.WebApi;
+using Newtonsoft.Json.Linq;
 using DocCode.DataAccess;
+using Inheritance.Models;
 
-namespace Inheritance.Controllers
+namespace DocCode.Controllers 
 {
-    using System.Linq;
-    using System.Web.Http;
-    using Breeze.WebApi;
-    using Models;
-    using Newtonsoft.Json.Linq;
-
     [BreezeController]
     public class InheritanceController : ApiController
     {

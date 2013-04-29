@@ -58,9 +58,11 @@
     <Compile Include="InheritanceDbInitializer.cs" />
     <Compile Include="InheritanceRepository.cs" />
     <Compile Include="NorthwindContext.cs" />
+    <Compile Include="NorthwindRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TodoDatabaseInitializer.cs" />
     <Compile Include="TodosContext.cs" />
+    <Compile Include="TodosRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

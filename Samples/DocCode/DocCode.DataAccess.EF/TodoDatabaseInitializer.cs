@@ -10,10 +10,10 @@ namespace Todo.Models
     {
         protected override void Seed(TodosContext context)
         {
-            SeedDatabase(context);
+            ResetDatabase(context);
         }
 
-        public static void SeedDatabase(TodosContext context)
+        public static void ResetDatabase(TodosContext context)
         {
             _baseCreatedAtDate = new DateTime(2012, 8, 22, 9, 0, 0);
 
@@ -54,11 +54,7 @@ namespace Todo.Models
             {
                 todos.Remove(todoItem);
             }
-
             context.SaveChanges();
         }
-
     }
-
-
 }
