@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
 
-namespace DocCode.Models
+namespace Northwind.Models
 {
     public class NorthwindContext : DbContext
     {
@@ -52,7 +52,7 @@ namespace DocCode.Models
 
 #region EntityType Configurations
 
-namespace DocCode.Models
+namespace Northwind.Models
 {
     using System.Data.Entity.ModelConfiguration;
 

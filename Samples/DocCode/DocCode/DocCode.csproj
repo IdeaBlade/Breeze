@@ -124,8 +124,8 @@
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\qunit.js" />
-    <Content Include="Scripts\r.js" />
     <Content Include="Scripts\require.js" />
+    <Content Include="Scripts\_references.js" />
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
     <Content Include="tests\entityExtensionTests.js" />
@@ -151,13 +151,9 @@
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Models\InheritanceContext.cs" />
     <Compile Include="Models\InheritanceDbInitializer.cs" />
-    <Compile Include="Models\InheritanceModels.cs" />
     <Compile Include="Models\NorthwindContext.cs" />
-    <Compile Include="Models\NorthwindModel.cs" />
     <Compile Include="Models\TodoDatabaseInitializer.cs" />
-    <Compile Include="Models\TodoItem.cs" />
     <Compile Include="Models\TodosContext.cs" />
-    <Compile Include="Models\UserPartial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +164,12 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DocCode.Models\DocCode.Models.csproj">
+      <Project>{d91ea111-bab8-41e3-86cb-e87fdcaecb60}</Project>
+      <Name>DocCode.Models</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

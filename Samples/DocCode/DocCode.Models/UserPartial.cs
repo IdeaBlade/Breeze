@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace DocCode.Models
+namespace Northwind.Models
 {
     public class UserPartial
     {

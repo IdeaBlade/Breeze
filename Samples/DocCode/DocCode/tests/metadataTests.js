@@ -163,7 +163,13 @@ define(["testFns"], function (testFns) {
 
         function assertResultsAreEntitiesInCache(data) {
             var user = data.results[0];
-            equal(user.entityType, userPartialType,
+            
+            if (!user.entityType) {
+                ok(false, "1st result should be an 'EntityType' but is not");
+                return; // must leave, else qunit infinite loop
+            }
+        
+            ok (user.entityType === userPartialType,
                 "1st result should be an 'UserPartial' entity type");
 
             var state = user.entityAspect.entityState;
@@ -180,7 +186,7 @@ define(["testFns"], function (testFns) {
     function defineUserPartialType(store) {
         var type = new breeze.EntityType({
             shortName: 'UserPartial',
-            namespace: 'DocCode.Models'
+            namespace: 'Northwind.Models'
         });
         var id = new breeze.DataProperty({
             nameOnServer: 'Id',
