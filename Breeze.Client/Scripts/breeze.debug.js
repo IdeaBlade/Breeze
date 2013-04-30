@@ -295,7 +295,11 @@ function __using(obj, property, tempValue, fn) {
     try {
         return fn();
     } finally {
-        obj[property] = originalValue;
+        if (originalValue === undefined) {
+            delete obj[property];
+        } else {
+            obj[property] = originalValue;
+        }
     }
 }
     
@@ -4084,8 +4088,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     if (newValue.entityAspect && newValue.entityAspect.entityManager) {
                         entityManager = newValue.entityAspect.entityManager;
-                        var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
-                        entityManager.attachEntity(entityAspect.entity, newState);
+                        if (!entityManager.isLoading) {
+                            entityManager.attachEntity(entityAspect.entity, EntityState.Added);
+                        }
                     }
                 }
                     
@@ -6231,7 +6236,7 @@ var EntityType = (function () {
         var instance = this._createEntityCore();
             
         if (initialValues) {
-            __objectForEach(initialValues, function(key, value) {
+            __objectForEach(initialValues, function (key, value) {
                 instance.setProperty(key, value);
             });
         }
@@ -6497,13 +6502,15 @@ var EntityType = (function () {
             }
             property.name = clientName;
         } else {
-            clientName = property.name;
-            serverName = nc.clientPropertyNameToServer(clientName, property);
-            testName = nc.serverPropertyNameToClient(serverName, property);
-            if (clientName !== testName) {
-                throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+            if (!property.isUnmapped) {
+                clientName = property.name;
+                serverName = nc.clientPropertyNameToServer(clientName, property);
+                testName = nc.serverPropertyNameToClient(serverName, property);
+                if (clientName !== testName) {
+                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+                }
+                property.nameOnServer = serverName;
             }
-            property.nameOnServer = serverName;
         }
             
         if (property.isComplexProperty) {
@@ -10604,9 +10611,11 @@ var EntityManager = (function () {
     **/
     proto.createEntity = function (typeName, initialValues, entityState) {
         entityState = entityState || EntityState.Added;
-        var entity = this.metadataStore
-            ._getEntityType(typeName)
-            .createEntity(initialValues);
+        var entity;
+        var entityType = this.metadataStore._getEntityType(typeName);
+        __using(this, "isLoading", true, function () {
+            entity = entityType.createEntity(initialValues);
+        });
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
         }

@@ -233,9 +233,11 @@ var EntityManager = (function () {
     **/
     proto.createEntity = function (typeName, initialValues, entityState) {
         entityState = entityState || EntityState.Added;
-        var entity = this.metadataStore
-            ._getEntityType(typeName)
-            .createEntity(initialValues);
+        var entity;
+        var entityType = this.metadataStore._getEntityType(typeName);
+        __using(this, "isLoading", true, function () {
+            entity = entityType.createEntity(initialValues);
+        });
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
         }

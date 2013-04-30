@@ -1335,7 +1335,7 @@ var EntityType = (function () {
         var instance = this._createEntityCore();
             
         if (initialValues) {
-            __objectForEach(initialValues, function(key, value) {
+            __objectForEach(initialValues, function (key, value) {
                 instance.setProperty(key, value);
             });
         }
@@ -1601,13 +1601,15 @@ var EntityType = (function () {
             }
             property.name = clientName;
         } else {
-            clientName = property.name;
-            serverName = nc.clientPropertyNameToServer(clientName, property);
-            testName = nc.serverPropertyNameToClient(serverName, property);
-            if (clientName !== testName) {
-                throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+            if (!property.isUnmapped) {
+                clientName = property.name;
+                serverName = nc.clientPropertyNameToServer(clientName, property);
+                testName = nc.serverPropertyNameToClient(serverName, property);
+                if (clientName !== testName) {
+                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+                }
+                property.nameOnServer = serverName;
             }
-            property.nameOnServer = serverName;
         }
             
         if (property.isComplexProperty) {
