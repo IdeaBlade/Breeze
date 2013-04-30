@@ -226,15 +226,18 @@ var EntityManager = (function () {
         var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
 
     @method createEntity
-    @param typeName {String} The name of the type for which an instance should be created.
+    @param entityType {String|EntityType} The EntityType or the name of the type for which an instance should be created.
     @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
     @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
     @return {Entity} A new Entity of the specified type.
     **/
-    proto.createEntity = function (typeName, initialValues, entityState) {
+    proto.createEntity = function (entityType, initialValues, entityState) {
+        assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
+        if (typeof entityType === "string") {
+            entityType = this.metadataStore._getEntityType(entityType);
+        }
         entityState = entityState || EntityState.Added;
         var entity;
-        var entityType = this.metadataStore._getEntityType(typeName);
         __using(this, "isLoading", true, function () {
             entity = entityType.createEntity(initialValues);
         });
