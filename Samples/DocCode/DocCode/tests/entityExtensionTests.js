@@ -98,17 +98,18 @@ define(["testFns"], function (testFns) {
 
     });
     /*********************************************************
-    * add unmapped property via constructor
+    * add unmapped 'foo' property via constructor
     *********************************************************/
-    test("add unmapped property via constructor", 3, function () {
+    test("add unmapped property via constructor", 5, function () {
         var store = cloneModuleMetadataStore();
-
+        fooPropertyDefined(store);
+        
         var Customer = function () {
             this.foo = 42; // doesn't have to be KO observable; will become observable
         };
-
         store.registerEntityTypeCtor("Customer", Customer);
-
+        fooPropertyDefined(store, true);
+        
         var customerType = store.getEntityType("Customer");
 
         var unmapped = customerType.unmappedProperties[0];
@@ -123,16 +124,30 @@ define(["testFns"], function (testFns) {
         equal(cust.foo(), 42,
             "'foo' should be a KO 'property' returning 42");
     });
+
+    function fooPropertyDefined(metadataStore, shouldBe) {
+        var custType = metadataStore.getEntityType("Customer");
+        var fooProp = custType.getDataProperty('foo');
+        if (shouldBe) {
+            ok(fooProp && fooProp.isUnmapped,
+                "'foo' property should be defined as unmapped property after registration.");
+        } else {
+            ok(!fooProp, "'foo' property should NOT be defined before registration.");
+        }
+    }
     /*********************************************************
     * unmapped 'foo' property is validated
     *********************************************************/
-    test("unmapped 'foo' property is validated", 4, function () {
-        // Arrange for 'foo' to be an unmapped Customer property
+    test("unmapped 'foo' property is validated", 6, function () {
         var store = cloneModuleMetadataStore();
+        fooPropertyDefined(store);
+        // Arrange for 'foo' to be an unmapped Customer property
         var Customer = function () {
             this.foo = "";
         };
         store.registerEntityTypeCtor("Customer", Customer);
+        fooPropertyDefined(store, true);
+        
         var customerType = store.getEntityType("Customer");
 
         var unmapped = customerType.unmappedProperties[0];
@@ -159,6 +174,87 @@ define(["testFns"], function (testFns) {
         ok(/foo.*less than/.test(errMsg),
             "error message, \"{0}\", should complain that 'foo' is too long."
             .format(errMsg));
+
+    });
+    /*********************************************************
+    * unmapped property does not have 'nameOnServer' after projection with toType()
+    *********************************************************/
+    test("unmapped property does not have 'nameOnServer' after projection with toType()", 3, function () {
+
+        var store = cloneModuleMetadataStore();
+        fooPropertyDefined(store);
+
+        var Customer = function () {
+            this.foo = "Wassup!";
+        };
+        store.registerEntityTypeCtor("Customer", Customer);
+        fooPropertyDefined(store, true);
+        
+        var manager = newEm(store);
+
+        stop();
+        breeze.EntityQuery.from('Customers')
+            .select('CustomerID, CompanyName')
+            .toType('Customer')
+            .using(manager).execute()
+            .then(querySucceeded).fail(handleFail).fin(start);
+        
+        function querySucceeded(data) {
+            fooPropertyHasNameOnServer(manager);
+        }
+
+    });
+
+    function fooPropertyHasNameOnServer(manager) {
+        var custType = manager.metadataStore.getEntityType("Customer");
+        var fooProp = custType.getDataProperty('foo');
+        var nameOnServer = fooProp.nameOnServer;
+        ok(!nameOnServer, "After operation, 'foo' property's 'nameOnServer' should be null; is " + nameOnServer);
+    }
+    /*********************************************************
+    * unmapped property does not have 'nameOnServer' after query
+    *********************************************************/
+    test("unmapped property does not have 'nameOnServer' after query", 3, function () {
+        
+        var store = cloneModuleMetadataStore();
+        fooPropertyDefined(store);
+
+        var Customer = function () {
+            this.foo = "Howdy, Pilgrim";
+        };
+        store.registerEntityTypeCtor("Customer", Customer);
+        fooPropertyDefined(store, true);
+        var manager = newEm(store);
+
+        stop();
+        breeze.EntityQuery.from('Customers')
+            .using(manager).execute()
+            .then(querySucceeded).fail(handleFail).fin(start);
+
+        function querySucceeded(data) {
+            fooPropertyHasNameOnServer(manager);
+        }
+
+    });
+    /*********************************************************
+    * unmapped property does not have 'nameOnServer' after creating new entity
+    *********************************************************/
+    test("unmapped property does not have 'nameOnServer'  after creating new entity", 3, function () {
+
+        var store = cloneModuleMetadataStore();
+        fooPropertyDefined(store);
+        
+        var Customer = function () {
+            this.foo = "Howdy, Pilgrim";
+        };
+        store.registerEntityTypeCtor("Customer", Customer);
+        fooPropertyDefined(store, true);
+        
+        var manager = newEm(store);
+
+        var newCust = manager.createEntity('Customer');
+
+        fooPropertyHasNameOnServer(manager);
 
     });
 
@@ -250,15 +346,17 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("unmapped properties are not persisted", 9, function () {
 
-        // Arrange for 'foo' to be an unmapped TodoItem property
         var store = cloneModuleMetadataStore();
+        
         var TodoItemCtor = function () {
             this.foo = 0;
         };
         store.registerEntityTypeCtor("TodoItem", TodoItemCtor);
+        
         var todoType = store.getEntityType("TodoItem");
-        var unmapped = todoType.unmappedProperties;
-        equal(unmapped.length, 1, "foo should be an unmapped property");
+        var fooProp = todoType.getProperty('foo');
+        ok(fooProp && fooProp.isUnmapped,
+            "'foo' should be an unmapped property after registration");
 
         // Create manager that uses this extended TodoItem
         var manager = new EntityManager({
