@@ -141,6 +141,7 @@
     <Content Include="tests\inheritanceTests.js" />
     <Content Include="tests\metadataTests.js" />
     <Content Include="tests\navigationTests.js" />
+    <Content Include="tests\northwindMetadata.js" />
     <Content Include="tests\queryTests.js" />
     <Content Include="tests\saveConcurrentlyTests.js" />
     <Content Include="tests\saveTodoTests.js" />

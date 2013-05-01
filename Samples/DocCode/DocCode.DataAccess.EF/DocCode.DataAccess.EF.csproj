@@ -52,6 +52,7 @@
     <Compile Include="InheritanceContext.cs" />
     <Compile Include="InheritanceDbInitializer.cs" />
     <Compile Include="InheritanceRepository.cs" />
+    <Compile Include="JsonScriptFileWriter.cs" />
     <Compile Include="NorthwindContext.cs" />
     <Compile Include="NorthwindRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
