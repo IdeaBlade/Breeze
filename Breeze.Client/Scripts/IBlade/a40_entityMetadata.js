@@ -49,7 +49,7 @@ var MetadataStore = (function () {
         this._structuralTypeMap = {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
         this._shortNameMap = {}; // key is shortName, value is qualified name - does not need to be serialized.
         this._ctorRegistry = {}; // key is either short or qual type name - value is ctor;
-        this._incompleteTypeMap = {}; // key is entityTypeName; value is map where key is assocName and value is navProp
+        this._incompleteTypeMap = {}; // key is entityTypeName; value is array of nav props
         this._id = __id++;
     };
     var proto = ctor.prototype;
