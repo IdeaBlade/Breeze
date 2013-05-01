@@ -14,18 +14,6 @@ namespace DocCode.Controllers
         // Todo: inject via an interface rather than "new" the concrete class
         readonly NorthwindRepository _repository = new NorthwindRepository();
 
-        static NorthwindController()
-        {
-            // Save Northwind metadata to a script file
-            // Certain tests will load this script dynamically so they can get metadata
-            // without making a Web API call
-            var scriptFilename = HostingEnvironment.MapPath("~/tests/northwindMetadata.js");
-            const string prefix = "define(function () {return ";
-            const string postfix = "});";
-            JsonScriptFileWriter.WriteMetadataScriptFile<NorthwindContext>(
-                scriptFilename, prefix, postfix);
-        }
-
         // ~/breeze/northwind/Metadata 
         [HttpGet]
         public string Metadata()

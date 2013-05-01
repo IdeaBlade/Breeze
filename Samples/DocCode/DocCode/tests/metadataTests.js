@@ -131,11 +131,13 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
   
     /*********************************************************
     * Can run two queries in parallel for fresh EM w/ empty metadataStore
+    * Proves that simultaneous "first time" queries that can both request metadata
+    * without a race condition.
     *********************************************************/
     test("Can run two queries in parallel for fresh EM w/ empty metadataStore", 1,
         function () {
-            var em = new breeze.EntityManager("breeze/Northwind");
-            var query = breeze.EntityQuery.from("Customers");
+            var em = new breeze.EntityManager("breeze/todos");
+            var query = breeze.EntityQuery.from("Todos");
             var successCount = 0;
             stop();
             var prom1 = em.executeQuery(query)
@@ -163,7 +165,7 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
     *********************************************************/
     test("can add 'UserPartial' type to metadataStore", 5, function () {
 
-        var em = new breeze.EntityManager(northwindService);
+        var em = newNorthwindEm();
         var metastore = em.metadataStore;
 
         defineUserPartialType(metastore);
@@ -325,5 +327,12 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
     function cloneStore(source) {
         var metaExport = source.exportMetadata();
         return new MetadataStore().importMetadata(metaExport);
+    }
+    
+    function newNorthwindEm(metadataStore) {
+        return new breeze.EntityManager({
+            serviceName: northwindService,
+            metadataStore: metadataStore || moduleMetadataStore
+        });
     }
 });
