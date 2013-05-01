@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Web.Hosting;
 using System.Web.Http;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;

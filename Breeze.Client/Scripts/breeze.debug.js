@@ -295,7 +295,11 @@ function __using(obj, property, tempValue, fn) {
     try {
         return fn();
     } finally {
-        obj[property] = originalValue;
+        if (originalValue === undefined) {
+            delete obj[property];
+        } else {
+            obj[property] = originalValue;
+        }
     }
 }
     
@@ -3511,15 +3515,12 @@ var EntityKey = (function () {
     @param keyValues {value|Array of values} A single value or an array of values.
     **/
     var ctor = function (entityType, keyValues) {
-        // can't ref EntityType here because of module circularity
-        // assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+        
+        assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
-        // fluff
-        //if (!(this instanceof ctor)) {
-        //    return new ctor(entityType, keyValues);
-        //}
+        
         this.entityType = entityType;
         this.values = keyValues;
         this._keyInGroup = createKeyString(keyValues);
@@ -3538,7 +3539,7 @@ var EntityKey = (function () {
     An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.
 
     __readOnly__
-    @property values [Array} 
+    @property values {Array} 
     **/
 
     proto.toJSON = function () {
@@ -4084,8 +4085,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     if (newValue.entityAspect && newValue.entityAspect.entityManager) {
                         entityManager = newValue.entityAspect.entityManager;
-                        var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
-                        entityManager.attachEntity(entityAspect.entity, newState);
+                        if (!entityManager.isLoading) {
+                            entityManager.attachEntity(entityAspect.entity, EntityState.Added);
+                        }
                     }
                 }
                     
@@ -6231,7 +6233,7 @@ var EntityType = (function () {
         var instance = this._createEntityCore();
             
         if (initialValues) {
-            __objectForEach(initialValues, function(key, value) {
+            __objectForEach(initialValues, function (key, value) {
                 instance.setProperty(key, value);
             });
         }
@@ -6497,13 +6499,15 @@ var EntityType = (function () {
             }
             property.name = clientName;
         } else {
-            clientName = property.name;
-            serverName = nc.clientPropertyNameToServer(clientName, property);
-            testName = nc.serverPropertyNameToClient(serverName, property);
-            if (clientName !== testName) {
-                throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+            if (!property.isUnmapped) {
+                clientName = property.name;
+                serverName = nc.clientPropertyNameToServer(clientName, property);
+                testName = nc.serverPropertyNameToClient(serverName, property);
+                if (clientName !== testName) {
+                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
+                }
+                property.nameOnServer = serverName;
             }
-            property.nameOnServer = serverName;
         }
             
         if (property.isComplexProperty) {
@@ -8620,6 +8624,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
+        copy.toEntityType = this.toEntityType;
 
         return copy;
     };
@@ -10596,16 +10601,21 @@ var EntityManager = (function () {
         var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
 
     @method createEntity
-    @param typeName {String} The name of the type for which an instance should be created.
+    @param entityType {String|EntityType} The EntityType or the name of the type for which an instance should be created.
     @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
     @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
     @return {Entity} A new Entity of the specified type.
     **/
-    proto.createEntity = function (typeName, initialValues, entityState) {
+    proto.createEntity = function (entityType, initialValues, entityState) {
+        assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
+        if (typeof entityType === "string") {
+            entityType = this.metadataStore._getEntityType(entityType);
+        }
         entityState = entityState || EntityState.Added;
-        var entity = this.metadataStore
-            ._getEntityType(typeName)
-            .createEntity(initialValues);
+        var entity;
+        __using(this, "isLoading", true, function () {
+            entity = entityType.createEntity(initialValues);
+        });
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
         }
@@ -13561,7 +13571,10 @@ breeze.SaveOptions= SaveOptions;
     ctor.prototype.getTrackablePropertyNames = function (entity) {
         var names = [];
         for (var p in entity) {
+            if (p === "entityType") continue;
             if (p === "_$typeName") continue;
+            if (p === "_pendingSets") continue;
+            if (p === "_backingStore") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);

@@ -93,8 +93,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     if (newValue.entityAspect && newValue.entityAspect.entityManager) {
                         entityManager = newValue.entityAspect.entityManager;
-                        var newState = entityManager.isLoading ? EntityState.Unchanged : EntityState.Added;
-                        entityManager.attachEntity(entityAspect.entity, newState);
+                        if (!entityManager.isLoading) {
+                            entityManager.attachEntity(entityAspect.entity, EntityState.Added);
+                        }
                     }
                 }
                     

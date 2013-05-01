@@ -396,10 +396,10 @@ define(["testFns"], function (testFns) {
     
     test("delete added entity", 3, function () {
         var em = newEm();
-        //var typeInfo = em.metadataStore.getEntityType("Order");
+        var typeInfo = em.metadataStore.getEntityType("Order");
         //var newEntity = typeInfo.createEntity();
         //em.addEntity(newEntity);
-        var newEntity = em.createEntity("Order");
+        var newEntity = em.createEntity(typeInfo);
 
         ok(newEntity.entityAspect.entityState.isAdded(),
             "new Todo added to cache is in 'added' state");
@@ -796,7 +796,8 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var cust1 = em.createEntity("Customer", null, EntityState.Detached);
         var cust2 = em.createEntity("Customer", null, EntityState.Detached);
-        var order1 = em.createEntity("Order", null, EntityState.Detached);
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order1 = em.createEntity(orderType, null, EntityState.Detached);
 
         em.attachEntity(order1);
         em.attachEntity(cust1);

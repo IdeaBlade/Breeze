@@ -260,7 +260,11 @@ function __using(obj, property, tempValue, fn) {
     try {
         return fn();
     } finally {
-        obj[property] = originalValue;
+        if (originalValue === undefined) {
+            delete obj[property];
+        } else {
+            obj[property] = originalValue;
+        }
     }
 }
     

@@ -25,6 +25,35 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("create and init relations", function () {
+        var em = newEm();
+        var newDetail = null;
+        // pretend parent entities were queried
+        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Unchanged);
+        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Unchanged);
+        
+        // Can't initialize with related entity. Feature request to make this possible         
+        newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
+        
+        ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+        ok(parentOrder.entityAspect.entityState.isUnchanged(), "parentOrder should be 'added'");
+        ok(parentProduct.entityAspect.entityState.isUnchanged(), "parentProduct should be 'added'");
+    });
+
+    test("create and init relations 2", function () {
+        var em = newEm();
+        var newDetail = null;
+        // pretend parent entities were queried
+        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Detached);
+        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Detached);
+
+        // Can't initialize with related entity. Feature request to make this possible         
+        newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
+
+        ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+        ok(parentOrder.entityAspect.entityState.isAdded(), "parentOrder should be 'added'");
+        ok(parentProduct.entityAspect.entityState.isAdded(), "parentProduct should be 'added'");
+    });
 
     test("nullable dateTime", function () {
         var em = newEm();
