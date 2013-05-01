@@ -3398,7 +3398,7 @@ var ComplexAspect = function() {
             var nextParent = parent;
             while (nextParent.complexType) {
                 this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
-                nextParent = nextParent.complexType.parent;
+                nextParent = nextParent.complexAspect.parent;
             }
             this.entityAspect = nextParent.entityAspect;
         }
@@ -12244,17 +12244,7 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            var val = getPropertyFromRawEntity(rawEntity, dp);
-            if (val === undefined) return;
-            if (dp.isComplexProperty) {
-                var coVal = targetEntity.getProperty(dp.name);
-                dp.dataType.dataProperties.forEach(function(cdp) {
-                    // recursive call
-                    coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                });
-            } else {
-                targetEntity.setProperty(dp.name, val);
-            }
+            updatePropertyFromRawEntity(dp, targetEntity, rawEntity);
         });
 
         entityType.navigationProperties.forEach(function (np) {
@@ -12264,6 +12254,21 @@ var EntityManager = (function () {
                 mergeRelatedEntities(np, targetEntity, rawEntity, mappingContext);
             }
         });
+    }
+
+    // target and source may not be entities that can also be complexTypes.
+    function updatePropertyFromRawEntity(dp, target, rawSource) {
+        var val = getPropertyFromRawEntity(rawSource, dp);
+        if (val === undefined) return;
+        if (dp.isComplexProperty) {
+            var coVal = target.getProperty(dp.name);
+            dp.dataType.dataProperties.forEach(function (cdp) {
+                // recursive call
+                updatePropertyFromRawEntity(cdp, coVal, val);
+            });
+        } else {
+            target.setProperty(dp.name, val);
+        }
     }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType) {

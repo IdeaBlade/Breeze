@@ -55,6 +55,7 @@ define(["testFns"], function (testFns) {
         em.fetchMetadata().then(function (rawMetadata) {
             var ms = em.metadataStore;
             ets = ms.getEntityTypes();
+            ok(ets.length > 0, "should be some entityTypes");
         }).fail(testFns.handleFail).fin(start);
     });
 

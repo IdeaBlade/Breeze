@@ -690,7 +690,7 @@ var ComplexAspect = function() {
             var nextParent = parent;
             while (nextParent.complexType) {
                 this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
-                nextParent = nextParent.complexType.parent;
+                nextParent = nextParent.complexAspect.parent;
             }
             this.entityAspect = nextParent.entityAspect;
         }
