@@ -53,7 +53,7 @@ namespace Breeze.Nhibernate.WebApi
         protected override string BuildJsonMetadata()
         {
             var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
-            var meta = builder.BuildMetadata(false);
+            var meta = builder.BuildMetadata(true);
 
             var serializerSettings = new JsonSerializerSettings()
             {

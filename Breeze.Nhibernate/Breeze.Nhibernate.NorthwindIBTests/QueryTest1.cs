@@ -1,12 +1,13 @@
-﻿using Breeze.Nhibernate.NorthwindIBModel;
-using Breeze.Nhibernate.Northwind;
+﻿using Breeze.Nhibernate.Northwind;
+using Breeze.Nhibernate.NorthwindIBModel;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NHibernate;
 using NHibernate.Linq;
 using System.Linq;
 
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
-namespace NHibernate.NorthwindIBModel.Tests
+namespace Breeze.Nhibernate.NorthwindIBTests
 {
     [TestClass]
     public class QueryTest1

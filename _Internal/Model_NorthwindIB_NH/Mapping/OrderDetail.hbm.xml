@@ -1,0 +1,13 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="OrderDetail" table="`OrderDetail`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <!--TODO- composite keys are a BAD IDEA-->
+    <composite-id>
+      <key-property column="`OrderID`" name="OrderID" />
+      <key-property column="`ProductID`" name="ProductID" />
+    </composite-id>
+    <property name="UnitPrice" type="decimal" not-null="true" />
+    <property name="Quantity" type="short" not-null="true" />
+    <property name="Discount" type="float" not-null="true" />
+    <property name="RowVersion" type="int" not-null="true" />
+  </class>
+</hibernate-mapping>

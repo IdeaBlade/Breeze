@@ -1,0 +1,8 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="NextId" table="`NextId`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Name" column="`Name`" type="string" length="50" unsaved-value="">
+      <generator class="assigned" />
+    </id>
+    <property name="NextId1" column="`NextId`" type="long" not-null="true" />
+  </class>
+</hibernate-mapping>

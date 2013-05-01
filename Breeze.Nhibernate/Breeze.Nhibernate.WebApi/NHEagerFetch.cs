@@ -8,6 +8,10 @@ using System.Reflection;
 
 namespace Breeze.Nhibernate.WebApi
 {
+    /// <summary>
+    /// Converts OData-style $expand clauses into NHibernate Fetch commands.
+    /// Adapted from NhQueryableEnumeratorAttribute.cs found in https://github.com/PeteGoo/NHibernate.QueryService
+    /// </summary>
     public class NHEagerFetch
     {
         // Allow the NHContext to inject the sessionFactory here

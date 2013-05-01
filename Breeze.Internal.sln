@@ -37,6 +37,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_TPT", "_Internal\Mode
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_Inheritance", "_Internal\Model_Inheritance\Model_Inheritance.csproj", "{6CA2F9EC-22D8-41D8-B029-193252ACB802}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_NH", "_Internal\Model_NorthwindIB_NH\Model_NorthwindIB_NH.csproj", "{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.Nhibernate.WebApi", "Breeze.Nhibernate\Breeze.Nhibernate.WebApi\Breeze.Nhibernate.WebApi.csproj", "{9DF09802-357C-4E82-B98E-032445FB2747}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Breeze.vsmdi
@@ -203,6 +207,36 @@ Global
 		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6CA2F9EC-22D8-41D8-B029-193252ACB802}.Release|x86.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.OData-debug|Any CPU.Build.0 = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.OData-debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.OData-debug|Mixed Platforms.Build.0 = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.OData-debug|x86.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AFC1C3A8-40D5-4DB3-82BE-19730091A4F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.OData-debug|Any CPU.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.OData-debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.OData-debug|Mixed Platforms.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.OData-debug|x86.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

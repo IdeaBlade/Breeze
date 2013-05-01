@@ -1,8 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NHibernate.NorthwindIBModel;
+using Breeze.Nhibernate.NorthwindIBModel;
 
-namespace NHibernate.NorthwindIBModel.Tests
+namespace Breeze.Nhibernate.NorthwindIBTests
 {
     [TestClass]
     public class MapperTest
@@ -13,7 +13,7 @@ namespace NHibernate.NorthwindIBModel.Tests
         [TestMethod]
         public void TestMapper()
         {
-            //Mapper.MakeHbm();
+            Mapper.MakeHbm();
         }
     }
 }

@@ -1,0 +1,4 @@
+Refactor BreezeQueryableAttribute to dynamically determine what underlying persistence is being used
+Refactor expand logic - use shared code
+Resource names from NH collection names (instead of pluralization)
+Add inheritance
