@@ -46,6 +46,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Iesi.Collections">
+      <HintPath>..\..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
+    </Reference>
     <Reference Include="Irony">
       <HintPath>..\..\ThirdParty\Irony.dll</HintPath>
     </Reference>
@@ -61,6 +64,9 @@
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NHibernate">
+      <HintPath>..\..\packages\NHibernate.3.3.3.4000\lib\Net35\NHibernate.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -138,6 +144,7 @@
     <Compile Include="Controllers\BreezeConfig.cs" />
     <Compile Include="Controllers\MetadataTestController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
+    <Compile Include="Controllers\NHConfig.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -387,6 +394,10 @@
       <Project>{9bde026e-ce0a-42f1-a508-4be30124dd67}</Project>
       <Name>Breeze.Client</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\Breeze.Nhibernate.WebApi.csproj">
+      <Project>{9df09802-357c-4e82-b98e-032445fb2747}</Project>
+      <Name>Breeze.Nhibernate.WebApi</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Breeze.WebApi\Breeze.WebApi.csproj">
       <Project>{4d9ce4e7-dca1-4458-ba63-2c3f7907b754}</Project>
       <Name>Breeze.WebApi</Name>
@@ -406,6 +417,10 @@
     <ProjectReference Include="..\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj">
       <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
       <Name>Model_NorthwindIB_EDMX_2012</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_NorthwindIB_NH\Model_NorthwindIB_NH.csproj">
+      <Project>{afc1c3a8-40d5-4db3-82be-19730091a4f2}</Project>
+      <Name>Model_NorthwindIB_NH</Name>
     </ProjectReference>
     <ProjectReference Include="..\Model_TPH\Model_TPH.csproj">
       <Project>{73bb1c2b-bf56-4257-a3dc-56fe5163d2af}</Project>

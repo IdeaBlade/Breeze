@@ -1,0 +1,12 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="TimeGroup" table="`TimeGroup`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" column="`Id`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="Comment" type="string" length="100" />
+    <set name="TimeLimits" table="`TimeLimit`" schema="`dbo`" cascade="none" inverse="true">
+      <key column="`TimeGroupId`" />
+      <one-to-many class="TimeLimit" />
+    </set>
+  </class>
+</hibernate-mapping>

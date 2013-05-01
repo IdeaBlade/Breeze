@@ -18,12 +18,12 @@ namespace Breeze.Nhibernate.NorthwindIBModel
             var dbReader = new DatabaseReader(connectionString, providername);
             var schema = dbReader.ReadAll();
 
-            var directory = new DirectoryInfo("C:\\Temp\\Breeze.Nhibernate.NorthwindIBModel");
+            var directory = new DirectoryInfo("C:\\Temp\\Models.NorthwindIB.NH");
             var settings = new CodeWriterSettings
             {
                 // or CodeTarget.PocoNHibernateFluent or CodeTarget.PocoEntityCodeFirst
                 CodeTarget = CodeTarget.PocoNHibernateHbm,
-                Namespace = "Breeze.Nhibernate.NorthwindIBModel"
+                Namespace = "Models.NorthwindIB.NH"
             };
             var codeWriter = new CodeWriter(schema, settings);
             codeWriter.Execute(directory);

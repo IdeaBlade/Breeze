@@ -452,7 +452,8 @@ var MetadataStore = (function () {
         var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
-            throw new Error("Unable to locate a 'Type' by the name: " + typeName);
+            var msg = __formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName)
+            throw new Error(msg);
             
         }
         if (type.length) {

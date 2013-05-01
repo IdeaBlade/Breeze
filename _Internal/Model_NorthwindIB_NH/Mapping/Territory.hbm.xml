@@ -1,0 +1,20 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Territory" table="`Territory`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="TerritoryID" column="`TerritoryID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="TerritoryDescription" type="string" length="50" not-null="true" />
+    <many-to-one name="Region" column="`RegionID`" class="Region" />
+    <property name="RowVersion" type="int" not-null="true" />
+    <!--Foreign key to EmployeeTerritory (EmployeeTerritory)-->
+    <set name="EmployeeTerritories" table="`EmployeeTerritory`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritory_Territory" />
+      <one-to-many class="EmployeeTerritory" />
+    </set>
+    <!--Foreign key to EmployeeTerritoryNoPayload (EmployeeTerritoryNoPayload)-->
+    <set name="Employees" table="`EmployeeTerritoryNoPayload`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritoryNoPayload_Territory" />
+      <many-to-many class="Employee" />
+    </set>
+  </class>
+</hibernate-mapping>

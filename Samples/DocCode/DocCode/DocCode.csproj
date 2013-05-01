@@ -141,6 +141,7 @@
     <Content Include="tests\inheritanceTests.js" />
     <Content Include="tests\metadataTests.js" />
     <Content Include="tests\navigationTests.js" />
+    <Content Include="tests\northwindMetadata.js" />
     <Content Include="tests\queryTests.js" />
     <Content Include="tests\saveConcurrentlyTests.js" />
     <Content Include="tests\saveTodoTests.js" />
@@ -151,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
+    <Compile Include="App_Start\WriteMetadataScriptFiles.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />

@@ -1,5 +1,6 @@
 ﻿using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Engine;
 using NHibernate.Id;
 using NHibernate.Mapping;
 using NHibernate.Metadata;
@@ -20,8 +21,9 @@ namespace Breeze.Nhibernate.WebApi
         private ISessionFactory _sessionFactory;
         private Configuration _configuration;
         private Dictionary<string, object> _map;
-        private Dictionary<string, object> _typeMap;
+        private List<Dictionary<string, object>> _typeList;
         private Dictionary<string, object> _resourceMap;
+        private HashSet<string> _typeNames;
 
         public NHBreezeMetadata(ISessionFactory sessionFactory, Configuration configuration)
         {
@@ -56,12 +58,13 @@ namespace Breeze.Nhibernate.WebApi
         void InitMap(bool camelCase)
         {
             _map = new Dictionary<string, object>();
-            _typeMap = new Dictionary<string, object>();
+            _typeList = new List<Dictionary<string, object>>();
+            _typeNames = new HashSet<string>();
             _resourceMap = new Dictionary<string, object>();
-            _map.Add("metadataVersion", "1.0.2");
+            _map.Add("metadataVersion", "1.0.4");
             _map.Add("namingConvention", camelCase ? "camelCase" : "noChange");
             _map.Add("localQueryComparisonOptions", "caseInsensitiveSQL");
-            _map.Add("structuralTypeMap", _typeMap);
+            _map.Add("structuralTypes", _typeList);
             _map.Add("resourceEntityTypeMap",_resourceMap);
         }
 
@@ -76,7 +79,7 @@ namespace Breeze.Nhibernate.WebApi
             // "Customer:#Breeze.Nhibernate.NorthwindIBModel": {
             var classKey = type.Name + ":#" + type.Namespace;
             var cmap = new Dictionary<string, object>();
-            _typeMap.Add(classKey, cmap);
+            _typeList.Add(cmap);
 
             cmap.Add("shortName", type.Name);
             cmap.Add("namespace", type.Namespace);
@@ -163,6 +166,17 @@ namespace Breeze.Nhibernate.WebApi
                         nmap.Add("foreignKeyNamesOnServer", fks);
                     }
                 }
+                else if (propType.IsComponentType)
+                {
+                    // complex type
+                    var compType = (ComponentType)propType;
+                    var complexTypeName = AddComponent(compType, propColumns);
+                    var compMap = new Dictionary<string, object>();
+                    compMap.Add("nameOnServer", propName);
+                    compMap.Add("complexTypeName", complexTypeName);
+                    compMap.Add("isNullable", propNull[i]);
+                    dataList.Add(compMap);
+                }
                 else
                 {
                     // data property
@@ -175,6 +189,70 @@ namespace Breeze.Nhibernate.WebApi
                 }
                 // TODO add validators to the property.  
             }
+        }
+
+        /// <summary>
+        /// Adds a complex type definition
+        /// </summary>
+        /// <param name="compType">The complex type</param>
+        /// <param name="propColumns">The columns which the complex type spans.  These are used to get the length and defaultValues</param>
+        /// <returns>The class name and namespace in the form "Location:#Breeze.Nhibernate.NorthwindIBModel"</returns>
+        string AddComponent(ComponentType compType, List<ISelectable> propColumns)
+        {
+            var type = compType.ReturnedClass;
+
+            // "Location:#Breeze.Nhibernate.NorthwindIBModel"
+            var classKey = type.Name + ":#" + type.Namespace;
+            if (_typeNames.Contains(classKey))
+            {
+                // Only add a complex type definition once.
+                return classKey;
+            }
+
+            var cmap = new Dictionary<string, object>();
+            _typeList.Insert(0, cmap);  // insert, because complex type definitions must come before they are referenced
+            _typeNames.Add(classKey);
+
+            cmap.Add("shortName", type.Name);
+            cmap.Add("namespace", type.Namespace);
+            cmap.Add("isComplexType", true);
+
+            var dataList = new List<Dictionary<string, object>>();
+            cmap.Add("dataProperties", dataList);
+
+            var propNames = compType.PropertyNames;
+            var propTypes = compType.Subtypes;
+            var propNull = compType.PropertyNullability;
+
+            var colIndex = 0;
+            for (int i = 0; i < propNames.Length; i++)
+            {
+                var propType = propTypes[i];
+                var propName = propNames[i];
+                if (propType.IsComponentType)
+                {
+                    // complex type
+                    var compType2 = (ComponentType)propType;
+                    var span = compType2.GetColumnSpan((IMapping) _sessionFactory);
+                    var subColumns = propColumns.Skip(colIndex).Take(span).ToList();
+                    var complexTypeName = AddComponent(compType2, subColumns);
+                    var compMap = new Dictionary<string, object>();
+                    compMap.Add("nameOnServer", propName);
+                    compMap.Add("complexTypeName", complexTypeName);
+                    compMap.Add("isNullable", propNull[i]);
+                    dataList.Add(compMap);
+                    colIndex += span;
+                }
+                else
+                {
+                    // data property
+                    var col = propColumns.Count() == 1 ? propColumns[colIndex] as Column : null;
+                    var dmap = MakeDataProperty(propName, propType.Name, propNull[i], col, false, false);
+                    dataList.Add(dmap);
+                    colIndex++;
+                }
+            }
+            return classKey;
         }
 
         /// <summary>

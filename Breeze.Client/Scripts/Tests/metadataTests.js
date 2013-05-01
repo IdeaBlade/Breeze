@@ -67,7 +67,29 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail);
     });
 
+    test("getEntityType informative error message1", function () {
+        var store = new MetadataStore();
+        var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
 
+        try {
+            var customer = em.createEntity("Customer", { customerID: breeze.core.getUuid() });
+            ok(false, "Shouldn't get here");
+        } catch (err) {
+            ok(err.message.indexOf("fetchMetadata") !== -1, "The error message should say to ensure metadata is fetched.");
+        }
+    });
+
+    test("getEntityType informative error message2", function () {
+        var store = new MetadataStore();
+        var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
+
+        try {
+            var productType = em.metadataStore.getEntityType("Customer");
+            ok(false, "Shouldn't get here");
+        } catch (err) {
+            ok(err.message.indexOf("fetchMetadata") !== -1, "The error message should say to ensure metadata is fetched.");
+        }
+    });
     
     test("initialization", function () {
 

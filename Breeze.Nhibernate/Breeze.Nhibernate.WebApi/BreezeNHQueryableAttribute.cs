@@ -16,6 +16,13 @@ namespace Breeze.Nhibernate.WebApi
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class BreezeNHQueryableAttribute : BreezeQueryableAttribute
     {
+        public override void OnActionExecuted(System.Web.Http.Filters.HttpActionExecutedContext actionExecutedContext)
+        {
+            ConfigureFormatter(actionExecutedContext.Request, null);
+
+            base.OnActionExecuted(actionExecutedContext);
+        }
+
         public override IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString, HttpRequestMessage request)
         {
             var expandMap = new Dictionary<Type, List<string>>();
@@ -42,7 +49,7 @@ namespace Breeze.Nhibernate.WebApi
             //    logger.Error(args.ErrorContext.Error.Message);
             //    args.ErrorContext.Handled = true;
             //};
-            settings.ContractResolver = new IncludingContractResolver(includedTypeProperties);
+            settings.ContractResolver = new NHIncludingContractResolver(NHEagerFetch.sessionFactory, includedTypeProperties);
 
         }
 

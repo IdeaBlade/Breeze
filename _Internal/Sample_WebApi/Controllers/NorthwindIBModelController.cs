@@ -2,6 +2,7 @@
 //#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
 #define DATABASEFIRST_NEW
+//#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -28,6 +29,11 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
+#elif NHIBERNATE
+using Models.NorthwindIB.NH;
+using Breeze.Nhibernate.WebApi;
+using NHibernate;
+using NHibernate.Linq;
 #endif
 
 namespace Sample_WebApi.Controllers {
@@ -42,6 +48,54 @@ namespace Sample_WebApi.Controllers {
 #elif DATABASEFIRST_NEW
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
+#elif NHIBERNATE
+  public class NorthwindContextProvider : NHContext {
+      public NorthwindContextProvider() : base(NHConfig.OpenSession(), NHConfig.Configuration) { }
+      public NorthwindContextProvider Context {
+          get { return this; }
+      }
+      public IQueryable<Category> Categories {
+          get { return GetQuery<Category>(); }
+      }
+      public IQueryable<Comment> Comments {
+          get { return GetQuery<Comment>(); }
+      }
+      public IQueryable<Customer> Customers {
+          get { return GetQuery<Customer>(); }
+      }
+      public IQueryable<Employee> Employees {
+          get { return GetQuery<Employee>(); }
+      }
+      public IQueryable<Order> Orders {
+          get { return GetQuery<Order>(); }
+      }
+      public IQueryable<OrderDetail> OrderDetails {
+          get { return GetQuery<OrderDetail>(); }
+      }
+      public IQueryable<Product> Products {
+          get { return GetQuery<Product>(); }
+      }
+      public IQueryable<Region> Regions {
+          get { return GetQuery<Region>(); }
+      }
+      public IQueryable<Role> Roles {
+          get { return GetQuery<Role>(); }
+      }
+      public IQueryable<Supplier> Suppliers {
+          get { return GetQuery<Supplier>(); }
+      }
+      public IQueryable<Territory> Territories {
+          get { return GetQuery<Territory>(); }
+      }
+      public IQueryable<TimeLimit> TimeLimits {
+          get { return GetQuery<TimeLimit>(); }
+      }
+      public IQueryable<User> Users {
+          get { return GetQuery<User>(); }
+      }
+        
+    
+
 #endif
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
@@ -62,8 +116,11 @@ namespace Sample_WebApi.Controllers {
   }
 
 #if CLASS_ACTIONFILTER
-
+#if NHIBERNATE
+  [BreezeNHController]
+#else
   [BreezeController]
+#endif
   public class NorthwindIBModelController : ApiController {
     private NorthwindContextProvider ContextProvider;
 
@@ -216,7 +273,6 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Suppliers;
     }
 
-
     [HttpGet]
     public IQueryable<Region> Regions() {
       return ContextProvider.Context.Regions;
@@ -305,13 +361,21 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Customer> CustomersAndOrders() {
+#if NHIBERNATE
+      var custs = ContextProvider.Context.Customers.FetchMany(c => c.Orders);
+#else
       var custs = ContextProvider.Context.Customers.Include("Orders");
+#endif
       return custs;
     }
 
     [HttpGet]
     public IQueryable<Order> OrdersAndCustomers() {
+#if NHIBERNATE
+      var orders = ContextProvider.Context.Orders.Fetch(o => o.Customer);
+#else
       var orders = ContextProvider.Context.Orders.Include("Customer");
+#endif
       return orders;
     }
 
