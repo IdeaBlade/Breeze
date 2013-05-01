@@ -63,7 +63,7 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
         var validators = customerType.validators, valCount = validators.length;
         ok(!valCount, "customer type shouldn't have entity validators; count = " + valCount);
     });
-
+    
     /*********************************************************
     * Can export and import a metadataStore
     *********************************************************/
@@ -307,7 +307,7 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
 
         stop();
         em.executeQuery(query)
-            .then(function(data) {
+            .then(function (data) {
                 ok(data.results.length > 0,
                     "should have 'camelCase companyName' query results");
             })

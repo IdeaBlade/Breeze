@@ -13,7 +13,6 @@ namespace DocCode.DataAccess
         private readonly EFContextProvider<TodosContext>
             _contextProvider = new EFContextProvider<TodosContext>();
 
-
         private TodosContext Context { get { return _contextProvider.Context; } }
 
         public string Metadata

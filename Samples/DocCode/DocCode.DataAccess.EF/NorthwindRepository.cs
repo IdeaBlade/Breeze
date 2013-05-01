@@ -6,7 +6,7 @@ using Northwind.Models;
 namespace DocCode.DataAccess
 {
     /// <summary>
-    /// Repository (a "Unit of Work" really) of Todos models.
+    /// Repository (a "Unit of Work" really) of Northwind models.
     /// </summary>
     public class NorthwindRepository
     {
@@ -17,7 +17,14 @@ namespace DocCode.DataAccess
 
         public string Metadata
         {
-            get { return _contextProvider.Metadata(); }
+            get
+            {
+                // Returns metadata from a dedicated DbContext that is different from
+                // the DbContext used for other operations
+                // See NorthwindMetadataContext for more about the scenario behind this.
+                var metaContextProvider = new EFContextProvider<NorthwindMetadataContext>();
+                return metaContextProvider.Metadata();
+            }
         }
 
         public SaveResult SaveChanges(JObject saveBundle)

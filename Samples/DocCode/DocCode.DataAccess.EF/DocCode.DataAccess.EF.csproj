@@ -49,6 +49,7 @@
     <Reference Include="System.Data.Entity" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NorthwindMetadataContext.cs" />
     <Compile Include="InheritanceContext.cs" />
     <Compile Include="InheritanceDbInitializer.cs" />
     <Compile Include="InheritanceRepository.cs" />

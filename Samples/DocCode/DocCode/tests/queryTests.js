@@ -849,7 +849,7 @@ define(["testFns"], function (testFns) {
                 equal(inlineCount, productCount,
                     "'inlineCount' should equal product count");
             })
-            .fail(function (error) {debugger;})
+            .fail(handleFail)
             .fin(start);
     });
     /*** PROJECTION ***/
@@ -913,8 +913,8 @@ define(["testFns"], function (testFns) {
 
         var query = EntityQuery.from("Customers")
             .where("CompanyName", FilterQueryOp.StartsWith, "C")
-        //.select("CustomerID_OLD", "CompanyName", "ContactName" ) // future alternate syntax?
-            .select("CustomerID_OLD, CompanyName, ContactName")
+        //.select("CustomerID", "CompanyName", "ContactName" ) // future alternate syntax?
+            .select("CustomerID, CompanyName, ContactName")
             .orderBy("CompanyName");
 
         verifyQuery(newEm, query,
@@ -923,10 +923,11 @@ define(["testFns"], function (testFns) {
     });
 
     function showProjectedCustomer(data) {
+
         var projection = data.results.map(function (item) {
             return "[({0}) '{1}' - '{2}']".format(
             // N.B.: the property are just plain values and are NOT KO properties
-                item.CustomerID_OLD, item.CompanyName, item.ContactName);
+                item.CustomerID, item.CompanyName, item.ContactName);
         });
 
         ok(true, "Projected customers are " + projection.join(", "));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 // ReSharper disable InconsistentNaming
 
@@ -27,6 +28,7 @@ namespace Northwind.Models
 
     public Guid CustomerID { get; internal set; }
 
+    [JsonIgnore]
     [MaxLength(5)]
     public string CustomerID_OLD { get; set;}
 

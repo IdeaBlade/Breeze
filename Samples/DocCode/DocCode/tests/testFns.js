@@ -443,7 +443,7 @@ define(["breeze"], function (breeze) {
         var results = (limit) ? data.results.slice(0, limit) : data.results;
         var out = results.map(function (c) {
             return "({0}) {1} in {2}, {3}".format(
-                c.CustomerID_OLD(), c.CompanyName(), c.City(), (c.Region() || "null"));
+                c.CustomerID(), c.CompanyName(), c.City(), (c.Region() || "null"));
         });
         if (count > out.length) { out.push("..."); }
         return out;
