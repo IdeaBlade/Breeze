@@ -65,6 +65,12 @@ namespace Sample_WebApi {
       );
 
       routes.MapHttpRoute(
+         name: "MetadataTest",
+         routeTemplate: "breeze/MetadataTest/{action}/{filter}",
+         defaults: new { controller = "MetadataTest", filter = UrlParameter.Optional }
+     );
+
+      routes.MapHttpRoute(
           name: "ProduceTPH",
           routeTemplate: "breeze/ProduceTPH/{action}/{filter}",
           defaults: new { controller = "ProduceTPH", filter = UrlParameter.Optional }

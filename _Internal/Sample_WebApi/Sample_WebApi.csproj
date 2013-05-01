@@ -136,6 +136,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\BreezeConfig.cs" />
+    <Compile Include="Controllers\MetadataTestController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
@@ -370,6 +371,7 @@
     <Content Include="Images\windowsLive.png" />
     <Content Include="Views\Web.config" />
     <Content Include="Views\Home\Index.cshtml" />
+    <None Include="App_Data\metadataTest.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

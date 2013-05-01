@@ -18,8 +18,27 @@ define(["testFns"], function (testFns) {
     var EntityManager = breeze.EntityManager;
     var NamingConvention = breeze.NamingConvention;
     var EntityQuery = breeze.EntityQuery;
+    var DataService = breeze.DataService;
+    
 
     var newEm = testFns.newEm;
+
+    function newAltEm() {
+        var altServiceName = "breeze/MetadataTest";
+
+        var dataService = new DataService({
+            serviceName: altServiceName,
+        });
+        var altMs = new MetadataStore({
+            // namingConvention: NamingConvention.camelCase
+        });
+
+        return new EntityManager({
+            dataService: dataService,
+            metadataStore: altMs
+        });
+    }
+
 
     module("metadata", {
         setup: function () {
@@ -28,6 +47,15 @@ define(["testFns"], function (testFns) {
         teardown: function () {
 
         }
+    });
+
+    test("external customer metadata", function () {
+        var em = newAltEm();
+        stop();
+        em.fetchMetadata().then(function (rawMetadata) {
+            var ms = em.metadataStore;
+            ets = ms.getEntityTypes();
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("default interface impl", function() {
