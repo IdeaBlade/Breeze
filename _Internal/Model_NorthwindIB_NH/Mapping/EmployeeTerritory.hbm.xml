@@ -5,6 +5,8 @@
     </id>
     <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
     <many-to-one name="Territory" column="`TerritoryID`" class="Territory" />
+    <property name="EmployeeID" type="int" not-null="true" />
+    <property name="TerritoryID" type="int" not-null="true" />
     <property name="RowVersion" type="int" not-null="true" />
   </class>
 </hibernate-mapping>

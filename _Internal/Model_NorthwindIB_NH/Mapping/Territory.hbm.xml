@@ -5,6 +5,7 @@
     </id>
     <property name="TerritoryDescription" type="string" length="50" not-null="true" />
     <many-to-one name="Region" column="`RegionID`" class="Region" />
+    <property name="RegionID" type="int" not-null="true" />
     <property name="RowVersion" type="int" not-null="true" />
     <!--Foreign key to EmployeeTerritory (EmployeeTerritory)-->
     <set name="EmployeeTerritories" table="`EmployeeTerritory`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
