@@ -25,6 +25,8 @@ namespace Breeze.Nhibernate.WebApi
         private Dictionary<string, object> _resourceMap;
         private HashSet<string> _typeNames;
 
+        public enum NamingConvention { noChange, camelCase, camelCase2 };
+
         public NHBreezeMetadata(ISessionFactory sessionFactory, Configuration configuration)
         {
             _sessionFactory = sessionFactory;
@@ -37,9 +39,9 @@ namespace Breeze.Nhibernate.WebApi
         /// </summary>
         /// <param name="camelCase">true to tell Breeze to camelCase the names on the client.</param>
         /// <returns></returns>
-        public IDictionary<string, object> BuildMetadata(bool camelCase)
+        public IDictionary<string, object> BuildMetadata(NamingConvention naming)
         {
-            InitMap(camelCase);
+            InitMap(naming);
 
             IDictionary<string, IClassMetadata> classMeta = _sessionFactory.GetAllClassMetadata();
             //IDictionary<string, ICollectionMetadata> collectionMeta = _sessionFactory.GetAllCollectionMetadata();
@@ -55,14 +57,14 @@ namespace Breeze.Nhibernate.WebApi
         /// Populate the metadata header.
         /// </summary>
         /// <param name="camelCase">true to tell Breeze to camelCase the names on the client.</param>
-        void InitMap(bool camelCase)
+        void InitMap(NamingConvention naming)
         {
             _map = new Dictionary<string, object>();
             _typeList = new List<Dictionary<string, object>>();
             _typeNames = new HashSet<string>();
             _resourceMap = new Dictionary<string, object>();
             _map.Add("metadataVersion", "1.0.4");
-            _map.Add("namingConvention", camelCase ? "camelCase" : "noChange");
+            _map.Add("namingConvention", naming.ToString());
             _map.Add("localQueryComparisonOptions", "caseInsensitiveSQL");
             _map.Add("structuralTypes", _typeList);
             _map.Add("resourceEntityTypeMap",_resourceMap);
