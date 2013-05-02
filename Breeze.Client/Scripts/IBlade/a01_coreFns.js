@@ -231,6 +231,15 @@ function __arrayEquals(a1, a2, equalsFn) {
 }
 
 // end of array functions
+
+function __getArray(source, propName) {
+    var arr = source[propName];
+    if (!arr) {
+        arr = [];
+        source[propName] = arr;
+    }
+    return arr;
+}
     
 function __requireLib(libNames, errMessage) {
     var arrNames = libNames.split(";");
