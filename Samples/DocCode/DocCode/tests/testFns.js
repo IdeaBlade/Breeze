@@ -38,7 +38,7 @@ define(["breeze"], function (breeze) {
         ensureIsEm: ensureIsEm,
 
         getNextIntId: getNextIntId,
-        getNewGuidId: getNewGuidId,
+        newGuid: newGuid,
         
         getParserForUrl: getParserForUrl,
         rootUri: getRootUri(),
@@ -260,7 +260,7 @@ define(["breeze"], function (breeze) {
     /*********************************************************
     * Generate the next new integer Id
     *********************************************************/
-    function getNewGuidId() {
+    function newGuid() {
         return breeze.core.getUuid();
     }
     /*********************************************************

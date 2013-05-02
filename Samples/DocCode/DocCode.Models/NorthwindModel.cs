@@ -9,6 +9,21 @@ using Newtonsoft.Json;
 
 namespace Northwind.Models
 {
+
+  #region ISaveable
+
+    /// <summary>
+    /// Marker interface indicating that instances of this class may be saved;
+    /// </summary>
+    public interface ISaveable
+    {
+        string canAdd();
+        string canUpdate();
+        string canDelete();
+    }
+
+    #endregion
+
   #region Category class
  
   public class Category {
@@ -24,9 +39,9 @@ namespace Northwind.Models
   #endregion Category class
 
   #region Customer class
-  public class Customer {
+  public class Customer : ISaveable {
 
-    public Guid CustomerID { get; internal set; }
+    public Guid CustomerID { get; set; }
 
     [JsonIgnore]
     [MaxLength(5)]
@@ -66,13 +81,16 @@ namespace Northwind.Models
     public int? RowVersion { get; set; }
 
     public ICollection<Order> Orders { get; set; }
-    
+
+    public string canAdd() { return null; }
+    public string canUpdate() { return null; } // see guard in repository
+    public string canDelete() { return canUpdate(); }
   }
   #endregion Customer class
 
   #region Employee class
 
-  public class Employee {
+  public class Employee  : ISaveable {
  
     public int EmployeeID {get; set;}
     
@@ -140,6 +158,13 @@ namespace Northwind.Models
     [InverseProperty("Employees")]
     public ICollection<Territory> Territories {get;set;}
 
+    public static int HighestOriginalID = 10;
+    public string canAdd() { return null; }
+    public string canUpdate() {
+        return EmployeeID > HighestOriginalID ?
+            null : " is one of the original Employees.";
+    }
+    public string canDelete() { return canUpdate(); }
   }
   #endregion Employee class
 
@@ -165,7 +190,7 @@ namespace Northwind.Models
 
   #region Order class
 
-  public class Order {
+  public class Order  : ISaveable {
     
     public int OrderID {get; set;}
     public Guid? CustomerID {get; set;}    
@@ -209,12 +234,20 @@ namespace Northwind.Models
     [InverseProperty("Order")]
     public InternationalOrder InternationalOrder {get;set;}
 
+    public static int HighestOriginalID = 11077;
+    public string canAdd() { return null; }
+    public string canUpdate()
+    {
+        return OrderID > HighestOriginalID ?
+            null : " is one of the original Orders.";
+    }
+    public string canDelete() { return canUpdate(); }
   }
   #endregion Order class
 
   #region OrderDetail class
 
-  public class OrderDetail {
+  public class OrderDetail : ISaveable {
     
     public int OrderID {get; set;}    
     public int ProductID {get; set;}    
@@ -232,7 +265,15 @@ namespace Northwind.Models
     //[InverseProperty("OrderDetails")] 
     public Product Product {get;set;}
 
+    public string canAdd() { return null; }
+    public string canUpdate()
+    {
+        return OrderID != 0 && OrderID > Order.HighestOriginalID ?
+            null : " is one of the original Orders.";
+    }
+    public string canDelete() { return canUpdate(); }
   }
+
   #endregion OrderDetail class
 
   #region PreviousEmployee class

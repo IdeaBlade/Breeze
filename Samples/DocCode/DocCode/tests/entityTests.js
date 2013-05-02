@@ -17,7 +17,7 @@ define(["testFns"], function (testFns) {
     *********************************************************/
     test("add Customer with manager.CreateEntity", 1, function () {
         var em = newEm();
-        var newCust = em.createEntity("Customer");
+        var newCust = em.createEntity("Customer", {CustomerID: testFns.newGuid()});
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
     
@@ -31,6 +31,7 @@ define(["testFns"], function (testFns) {
         var em = newEm();
         var customerType = em.metadataStore.getEntityType("Customer");
         var newCust = customerType.createEntity();
+        newCust.CustomerID(testFns.newGuid());
         em.addEntity(newCust);
 
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
@@ -654,6 +655,7 @@ define(["testFns"], function (testFns) {
         
         var customerType = em.metadataStore.getEntityType("Customer");
         var customer = customerType.createEntity();
+        customer.CustomerID(testFns.newGuid());
         customer.entityState = ko.observable("Detached");
 
         var expectedChangedStates = [];

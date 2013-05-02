@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Web.Hosting;
 using System.Web.Http;
@@ -164,6 +165,13 @@ namespace DocCode.Controllers
 
             var lookups = new { regions, territories, categories };
             return lookups;
+        }
+
+        // ~/breeze/northwind/reset
+        [HttpPost]
+        public string Reset()
+        {
+            return _repository.Reset();
         }
     }
 }

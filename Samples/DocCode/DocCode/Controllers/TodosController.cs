@@ -36,14 +36,14 @@ namespace DocCode.Controllers
 
         #region Purge/Reset
 
-        // ~/breeze/todos//purge
+        // ~/breeze/todos/purge
         [HttpPost]
         public string Purge()
         {
             return _repository.Purge();
         }
 
-        // ~/breeze/todos//reset
+        // ~/breeze/todos/reset
         [HttpPost]
         public string Reset()
         {

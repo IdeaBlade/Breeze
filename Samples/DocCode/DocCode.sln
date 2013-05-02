@@ -17,19 +17,26 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		OData-debug|Any CPU = OData-debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.OData-debug|Any CPU.Build.0 = Release|Any CPU
 		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E8A3A34-7B7C-4D86-945B-E376431CD798}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.OData-debug|Any CPU.Build.0 = Release|Any CPU
 		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D91EA111-BAB8-41E3-86CB-E87FDCAECB60}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.OData-debug|Any CPU.Build.0 = Release|Any CPU
 		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57E72B09-3299-4AF9-8A81-5D82C37613D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

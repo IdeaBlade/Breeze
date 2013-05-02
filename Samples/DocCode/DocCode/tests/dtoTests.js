@@ -2,6 +2,7 @@
  * Tests related to the "DTO" documentation
  * Explore a variety of approaches for fetching and saving data
  * that are not shaped or mapped directly to the server-side entities
+ * DTOs are one ... but only one ... of the ways to cope
  *************************************************************/
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
@@ -36,7 +37,7 @@ define(["testFns"], function (testFns) {
 
     /************************** QUERIES *************************/
 
-    module("dtoTests - queries", moduleOptions);
+    module("dtoTests", moduleOptions);
     
     //#region Foo queries  
     function newFooEm() {
@@ -106,6 +107,51 @@ define(["testFns"], function (testFns) {
         }
     });
     
+    /*********************************************************
+    * Northwind save tests: tweek to explore various saves
+    * Not part of the official DocCode test suite
+    * Useful factoids
+    *   breeze.core.getUuid() // method to create Guids
+    *   testFns.newGuid() // alternative
+    *   "729de505-ea6d-4cdf-89f6-0360ad37bde7" // the first customer in the db
+    *********************************************************/
+    //asyncTest("can save a Northwind entity", 1, function () {
+
+    //    var typeName = 'Customer';
+        
+    //    // Create and initialize entity to save
+    //    var em = newEm();
+    //    var entity = em.createEntity(typeName,
+    //        {
+    //            CustomerID: "7bf56882-d975-4faf-a794-dda9be357390"                 
+    //        }
+    //      , breeze.EntityState.Unchanged
+    //    );
+    //    entity.CompanyName("Test Company 2 - ***");
+
+    //    // Act and Assert
+    //    entitySaveTester(entity, /*shouldSave*/ true);
+
+    //});
+ 
     /************************** TEST HELPERS *************************/
+    function entitySaveTester(entity, shouldSave) {
+        var typeName = entity.entityType.shortName;
+        var operation = entity.entityAspect.entityState.name;
+        var msgPart = " save the " + operation + " " + typeName;
+        
+        var manager = entity.entityAspect.entityManager;
+        manager.saveChanges([entity])
+        .then(function (saveResults) {
+            var prefix = shouldSave ? "should" : "should not";
+            ok(shouldSave, prefix + " have been able to" + msgPart +
+                " with key: " + JSON.stringify(entity.entityAspect.getKey().values));
+        })
+        .fail(function (error) {
+            var prefix = shouldSave ? "should not" : "should";
+            ok(!shouldSave, "server " + prefix + " have rejected " + msgPart +
+                " with the error: " + error.message);
+        }).fin(start);
+    }
 
 });

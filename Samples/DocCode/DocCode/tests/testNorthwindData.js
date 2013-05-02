@@ -85,6 +85,7 @@ define(['breeze'], function (breeze) {
         name = name || "New customer";
         var customerType = getCustomerType(em);
         var customer = customerType.createEntity();
+        customer.CustomerID(breeze.core.getUuid());
         customer.CompanyName(name);
         return customer;
     }

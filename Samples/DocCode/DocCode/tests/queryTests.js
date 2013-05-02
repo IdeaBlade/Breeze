@@ -1374,15 +1374,6 @@ define(["testFns"], function (testFns) {
                 );
             });
     }
-
-    // create a new Customer and add to the EntityManager
-    function addCustomer(em, name) {
-        var customerType = em.metadataStore.getEntityType("Customer");
-        var cust = customerType.createEntity();
-        cust.CompanyName(name || "a-new-company");
-        em.addEntity(cust);
-        return cust;
-    }
     
     /*** Query By Id (cache or remote) ***/
 
@@ -1422,7 +1413,7 @@ define(["testFns"], function (testFns) {
             var em = newEm(); // empty manager
             var id = '11111111-2222-3333-4444-555555555555';
             // fake it in cache so we can find it
-            makeAttachedCustomerWithId(em, id);
+            attachCustomer(em, id);
 
             stop(); // actually won't go async
             em.fetchEntityByKey("Customer", id,
@@ -1498,7 +1489,7 @@ define(["testFns"], function (testFns) {
         var em = newEm(); // empty manager
         var id = '11111111-2222-3333-4444-555555555555';
         // fake it in cache so we can find it
-        var customer = makeAttachedCustomerWithId(em, id);
+        var customer = attachCustomer(em, id);
         customer.entityAspect.setDeleted();
 
         stop(); // actually won't go async
@@ -1525,7 +1516,7 @@ define(["testFns"], function (testFns) {
         var em = newEm(); // empty manager
         var id = '11111111-2222-3333-4444-555555555555';
         // fake it in cache so we can find it
-        var customer = makeAttachedCustomerWithId(em, id);
+        var customer = attachCustomer(em, id);
         customer.entityAspect.setDeleted();
 
         var entity = em.getEntityByKey("Customer", id);
@@ -1605,7 +1596,7 @@ define(["testFns"], function (testFns) {
             var em = newEm(); // empty manager
             var id = testFns.wellKnownData.alfredsID;
             var queryResult = {};
-            makeAttachedCustomerWithId(em, id);
+            attachCustomer(em, id);
 
             stop(); // might go async
             getByIdCacheOrRemote(em, "Customer", id, queryResult)
@@ -1627,7 +1618,7 @@ define(["testFns"], function (testFns) {
             var em = newEm(); // empty manager
             var id = testFns.wellKnownData.alfredsID;
             var queryResult = {};
-            var cust = makeAttachedCustomerWithId(em, id);
+            var cust = attachCustomer(em, id);
             cust.entityAspect.setDeleted();
 
             stop(); // might go async
@@ -1665,14 +1656,27 @@ define(["testFns"], function (testFns) {
             }
         });
     
-
-    // Test helper
-    function makeAttachedCustomerWithId(manager, id) {
-        var typeInfo = manager.metadataStore.getEntityType("Customer");
-        var customer = typeInfo.createEntity();
-        customer.CustomerID(id);
-        customer.CompanyName("Test Customer");
-        return manager.attachEntity(customer);
+    /*********************************************************
+    * Test helpers
+    *********************************************************/
+    
+     // create a new Customer and add to the EntityManager
+     function addCustomer(em, name) {
+         var cust = em.createEntity('Customer', {
+             CustomerID: testFns.newGuid(),
+             CompanyName: name || 'a-new-company'
+         });
+         return cust;
+     }
+ 
+    // create a Customer and attache to manager 
+    // as if queried and unchanged from server
+     function attachCustomer(manager, id) {
+         var customer = manager.createEntity('Customer', {
+             CustomerID: id,
+             CompanyName: "Test Customer"
+         }, breeze.EntityState.Unchanged);
+         return customer;
     }
 
 });

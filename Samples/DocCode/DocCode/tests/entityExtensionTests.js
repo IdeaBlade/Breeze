@@ -48,7 +48,7 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * add unmapped property via constructor
     *********************************************************/
-    test("add unmapped property via constructor", 3, function () {
+    test("add unmapped 'isBeingEdited' property via constructor", 3, function () {
         var store = cloneModuleMetadataStore();
         
         var Customer = function() {
@@ -82,7 +82,9 @@ define(["testFns"], function (testFns) {
         var store = cloneModuleMetadataStore();
 
         var Customer = function () {
-            this.isBeingEdited = false; // notice it is not a KO property here
+            // notice these are not defined as KO properties
+            this.CustomerID = testFns.newGuid();
+            this.isBeingEdited = false; 
         };
 
         store.registerEntityTypeCtor("Customer", Customer);
@@ -100,23 +102,17 @@ define(["testFns"], function (testFns) {
     /*********************************************************
     * add unmapped 'foo' property via constructor
     *********************************************************/
-    test("add unmapped property via constructor", 5, function () {
+    test("add unmapped 'foo' property via constructor", 4, function () {
         var store = cloneModuleMetadataStore();
         fooPropertyDefined(store);
         
         var Customer = function () {
             this.foo = 42; // doesn't have to be KO observable; will become observable
         };
-        store.registerEntityTypeCtor("Customer", Customer);
+        store.registerEntityTypeCtor('Customer', Customer);
         fooPropertyDefined(store, true);
-        
-        var customerType = store.getEntityType("Customer");
 
-        var unmapped = customerType.unmappedProperties[0];
-
-        // Although 'foo' is a function, it is listed as an unmapped property
-        ok(unmapped && unmapped.name === 'foo', "foo should be an unmapped property");
-        var cust = customerType.createEntity();
+        var cust = store.getEntityType('Customer').createEntity();
         
         ok(cust["foo"],
             "should have 'foo' property via constructor");
@@ -134,11 +130,12 @@ define(["testFns"], function (testFns) {
         } else {
             ok(!fooProp, "'foo' property should NOT be defined before registration.");
         }
+        return fooProp;
     }
     /*********************************************************
     * unmapped 'foo' property is validated
     *********************************************************/
-    test("unmapped 'foo' property is validated", 6, function () {
+    test("unmapped 'foo' property is validated", 5, function () {
         var store = cloneModuleMetadataStore();
         fooPropertyDefined(store);
         // Arrange for 'foo' to be an unmapped Customer property
@@ -146,27 +143,22 @@ define(["testFns"], function (testFns) {
             this.foo = "";
         };
         store.registerEntityTypeCtor("Customer", Customer);
-        fooPropertyDefined(store, true);
-        
-        var customerType = store.getEntityType("Customer");
-
-        var unmapped = customerType.unmappedProperties[0];
-        ok(unmapped && unmapped.name==='foo', "foo should be an unmapped property");
+        var fooProp = fooPropertyDefined(store, true);
 
         var maxLengthValidator = breeze.Validator.maxLength({maxLength:5});
-        unmapped.validators.push(maxLengthValidator)
+        fooProp.validators.push(maxLengthValidator);
 
         // create new customer
         var manager = newEm(store);
-        var cust = manager.createEntity(customerType.name);
+        var cust = manager.createEntity('Customer', {CustomerID: testFns.newGuid()});
 
         cust.foo("funky");
-        var errs = cust.entityAspect.getValidationErrors(unmapped);
+        var errs = cust.entityAspect.getValidationErrors(fooProp);
         ok(0 === errs.length,
             "should not have validation errors about 'foo'.");
 
         cust.foo("funky and fresh");
-        errs = cust.entityAspect.getValidationErrors(unmapped);
+        errs = cust.entityAspect.getValidationErrors(fooProp);
         equal(errs.length, 1,
             "should have one validation error about 'foo'.");
 
@@ -174,87 +166,6 @@ define(["testFns"], function (testFns) {
         ok(/foo.*less than/.test(errMsg),
             "error message, \"{0}\", should complain that 'foo' is too long."
             .format(errMsg));
-
-    });
-    /*********************************************************
-    * unmapped property does not have 'nameOnServer' after projection with toType()
-    *********************************************************/
-    test("unmapped property does not have 'nameOnServer' after projection with toType()", 3, function () {
-
-        var store = cloneModuleMetadataStore();
-        fooPropertyDefined(store);
-
-        var Customer = function () {
-            this.foo = "Wassup!";
-        };
-        store.registerEntityTypeCtor("Customer", Customer);
-        fooPropertyDefined(store, true);
-        
-        var manager = newEm(store);
-
-        stop();
-        breeze.EntityQuery.from('Customers')
-            .select('CustomerID, CompanyName')
-            .toType('Customer')
-            .using(manager).execute()
-            .then(querySucceeded).fail(handleFail).fin(start);
-        
-        function querySucceeded(data) {
-            fooPropertyHasNameOnServer(manager);
-        }
-
-    });
-
-    function fooPropertyHasNameOnServer(manager) {
-        var custType = manager.metadataStore.getEntityType("Customer");
-        var fooProp = custType.getDataProperty('foo');
-        var nameOnServer = fooProp.nameOnServer;
-        ok(!nameOnServer, "After operation, 'foo' property's 'nameOnServer' should be null; is " + nameOnServer);
-    }
-    /*********************************************************
-    * unmapped property does not have 'nameOnServer' after query
-    *********************************************************/
-    test("unmapped property does not have 'nameOnServer' after query", 3, function () {
-        
-        var store = cloneModuleMetadataStore();
-        fooPropertyDefined(store);
-
-        var Customer = function () {
-            this.foo = "Howdy, Pilgrim";
-        };
-        store.registerEntityTypeCtor("Customer", Customer);
-        fooPropertyDefined(store, true);
-        var manager = newEm(store);
-
-        stop();
-        breeze.EntityQuery.from('Customers')
-            .using(manager).execute()
-            .then(querySucceeded).fail(handleFail).fin(start);
-
-        function querySucceeded(data) {
-            fooPropertyHasNameOnServer(manager);
-        }
-
-    });
-    /*********************************************************
-    * unmapped property does not have 'nameOnServer' after creating new entity
-    *********************************************************/
-    test("unmapped property does not have 'nameOnServer'  after creating new entity", 3, function () {
-
-        var store = cloneModuleMetadataStore();
-        fooPropertyDefined(store);
-        
-        var Customer = function () {
-            this.foo = "Howdy, Pilgrim";
-        };
-        store.registerEntityTypeCtor("Customer", Customer);
-        fooPropertyDefined(store, true);
-        
-        var manager = newEm(store);
-
-        var newCust = manager.createEntity('Customer');
-
-        fooPropertyHasNameOnServer(manager);
 
     });
 
@@ -270,14 +181,15 @@ define(["testFns"], function (testFns) {
             this.foo = 42;
         };
         store.registerEntityTypeCtor("Customer", Customer);
-        var customerType = store.getEntityType("Customer");
-        var unmapped = customerType.unmappedProperties[0];
-        ok(unmapped && unmapped.name === 'foo', "foo should be an unmapped property");
 
+        fooPropertyDefined(store, true);
+        
         // Fake an existing customer
         var manager = newEm(store);
         var cust = manager.createEntity(
-            customerType.name, {}, breeze.EntityState.Unchanged);
+            'Customer',
+            { CustomerID: testFns.newGuid() },
+            breeze.EntityState.Unchanged);
 
         // Listen for foo changes
         var koFooNotified, breezeFooNotified;
@@ -910,11 +822,10 @@ define(["testFns"], function (testFns) {
             // create EntityManager with extended metadataStore
             var em1 = newEm(store);
 
-            var customerType = store.getEntityType("Customer");
-            var cust1 = customerType.createEntity();
-            em1.addEntity(cust1);
+            // create a new customer defined by that extended metadata
+            var cust1 = em1.createEntity('Customer', {CustomerID: testFns.newGuid()});
 
-            // Now set all the 'properties' we added
+            // Set the 'properties' we added
             cust1.unmappedProperty("Hi, I'm unmapped");
             cust1.initializerProperty = "Hi, I'm the initializerProperty";
             cust1.adHocProperty = 42; // can always add another property; it's JavaScript
@@ -973,7 +884,10 @@ define(["testFns"], function (testFns) {
             });
             
             /* ACT */
-            var cust = em.createEntity('Customer', { initialValue: expected[1] });
+            var cust = em.createEntity('Customer', {
+                CustomerID: testFns.newGuid(),
+                initialValue: expected[1]
+            });
             
             /* ASSERT */
             var exp = [];
@@ -1032,7 +946,7 @@ define(["testFns"], function (testFns) {
     * must conform to the keygenerator-interface
     * http://www.breezejs.com/sites/all/apidocs/classes/~keyGenerator-interface.html
     *********************************************************/
-    test("can define custom temporary key generator", 5,
+    test("can define custom temporary key generator", 3,
         function () {
             var em = newEm();
 
@@ -1041,27 +955,19 @@ define(["testFns"], function (testFns) {
 
             em.setProperties({ keyGeneratorCtor: testKeyGenerator });
 
-            // Order has an integer key
-            var orderEntityType = em.metadataStore.getEntityType("Order");
-            var o1 = orderEntityType.createEntity();
-            var o2 = orderEntityType.createEntity();
-
+            // Order has an integer key.
             // temporary keys are assigned when added to an EntityManager
-            em.addEntity(o1);
-            em.addEntity(o2);
+            var o1 = em.createEntity('Order');
+            var o2 = em.createEntity('Order');
 
-            // Customer has a Guid key
-            var customerEntityType = em.metadataStore.getEntityType("Customer");
-            var c1 = customerEntityType.createEntity();
-            var c2 = customerEntityType.createEntity();
-            em.addEntity(c1);
-            em.addEntity(c2);
+            // Customer has a client-assigned Guid key
+            // A new Customer does not add its key to the tempIds
+            em.createEntity('Customer',{CustomerID: testFns.newGuid()});
 
-            equal(tempIds.length, 4, "should have 4 tempIds");
+            equal(tempIds.length, 2, "should have 2 tempIds");
             equal(o1.OrderID(), tempIds[0], "o1 should have temp key " + tempIds[0]);
             equal(o2.OrderID(), tempIds[1], "o2 should have temp key " + tempIds[1]);
-            equal(c1.CustomerID(), tempIds[2], "c1 should have temp key " + tempIds[2]);
-            equal(c2.CustomerID(), tempIds[3], "c2 should have temp key " + tempIds[3]);
+
         });
 
     function testKeyGenerator() {
@@ -1100,19 +1006,19 @@ define(["testFns"], function (testFns) {
     test("store-gen keys w/ default values are re-set by key generator upon add to manager", 2,
         function () {
             var em = newEm();
-            var orderEntityType = em.metadataStore.getEntityType("Order");
 
-            var o1 = orderEntityType.createEntity();
-            em.addEntity(o1);
+            var o1 = em.createEntity('Order');
             var o1Id = o1.OrderID();
             ok(o1Id !== 0,
                 "o1's default key should be replaced w/ new temp key; it is " + o1Id);
 
+            var orderEntityType = em.metadataStore.getEntityType("Order");
             var o2 = orderEntityType.createEntity();
-            em.addEntity(o2);
             o2.OrderID(42); // set to other than default value (0 for ints)
+            em.addEntity(o2); // now add to the manager
+
             equal(o2.OrderID(), 42,
-                "o2's key, 42, should not be replaced w/ new temp key.");
+                "o2's key, 42, should not be replaced w/ new temp key when added.");
         });
 
     /*********************************************************
