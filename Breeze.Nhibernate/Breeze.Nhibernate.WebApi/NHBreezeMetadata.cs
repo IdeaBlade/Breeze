@@ -37,7 +37,8 @@ namespace Breeze.Nhibernate.WebApi
         /// Build the Breeze metadata as a nested Dictionary.  
         /// The result can be converted to JSON and sent to the Breeze client.
         /// </summary>
-        /// <param name="camelCase">true to tell Breeze to camelCase the names on the client.</param>
+        /// <param name="naming">tell the Breeze client how to convert the names.  This just populates the namingConvention property
+        /// and has no other effect on the server-side metadata.</param>
         /// <returns></returns>
         public IDictionary<string, object> BuildMetadata(NamingConvention naming)
         {
@@ -56,7 +57,8 @@ namespace Breeze.Nhibernate.WebApi
         /// <summary>
         /// Populate the metadata header.
         /// </summary>
-        /// <param name="camelCase">true to tell Breeze to camelCase the names on the client.</param>
+        /// <param name="naming">tell the Breeze client how to convert the names.  This just populates the namingConvention property
+        /// and has no other effect on the server-side metadata.</param>
         void InitMap(NamingConvention naming)
         {
             _map = new Dictionary<string, object>();
@@ -212,7 +214,7 @@ namespace Breeze.Nhibernate.WebApi
             }
 
             var cmap = new Dictionary<string, object>();
-            _typeList.Insert(0, cmap);  // insert, because complex type definitions must come before they are referenced
+            _typeList.Insert(0, cmap);
             _typeNames.Add(classKey);
 
             cmap.Add("shortName", type.Name);

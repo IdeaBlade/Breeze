@@ -109,7 +109,7 @@ define(["testFns"], function (testFns) {
                 var keys = custType.keyProperties;
                 ok(keys.length > 0);
                 var prop = custType.getProperty("CustomerID");
-                ok(prop);
+                ok(prop, "fails if server meta specifies camelCase");
                 ok(prop.isDataProperty);
                 var navProp = custType.navigationProperties[0];
                 ok(navProp.isNavigationProperty);
@@ -118,7 +118,7 @@ define(["testFns"], function (testFns) {
                 equal(prop.name, keys[0].name);
                 
             } catch(e) {
-                ok(false, "should'nt fail except if using server side json metadata file.");
+                ok(false, "shouldn't fail except if using server side json metadata file.");
             }
         }).fail(testFns.handleFail).fin(start);
     });
