@@ -1,13 +1,10 @@
 // ReSharper disable InconsistentNaming
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
-
     var Validator = breeze.Validator;
 
     var serviceName = testFns.northwindServiceName;
@@ -569,20 +566,23 @@ define(["testFns"], function (testFns) {
     function getErrorMessagesArray(entity) {
         return entity.entityAspect
             .getValidationErrors()
-            .map(function (err) { return err.errorMessage; })
+            .map(function(err) { return err.errorMessage; });
     }
 
     function createCustomer(name) {
         var entityType = getCustomerType();
-        var cust = entityType.createEntity();
-        cust.CompanyName(name || "Acme");
+        var cust = entityType.createEntity({
+             CompanyName: name || "Acme"
+        });
         return cust;
     }
+    
     function createEmployee(firstName, lastName) {
         var entityType = getEmployeeType();
-        var emp = entityType.createEntity();
-        emp.FirstName(firstName || "John");
-        emp.LastName(lastName || "Doe");
+        var emp = entityType.createEntity({
+            FirstName: firstName || "John",
+            LastName: lastName || "Doe"
+        });
         return emp;
     }
     function getEmployeeType(em) {
@@ -590,9 +590,6 @@ define(["testFns"], function (testFns) {
     }
     function getCustomerType(em) {
         return getMetadataStore(em).getEntityType("Customer");
-    }
-    function getOrderType(em) {
-        return getMetadataStore(em).getEntityType("Order");
     }
 
     function getMetadataStore(em) {
@@ -603,4 +600,4 @@ define(["testFns"], function (testFns) {
         return new breeze.MetadataStore()
             .importMetadata(metadataStore.exportMetadata());
     };
-});
+})(docCode.testFns);

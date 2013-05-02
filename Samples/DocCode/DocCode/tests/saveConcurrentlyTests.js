@@ -1,20 +1,13 @@
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
-
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
-
-    // Classes we'll need from the breeze namespaces
+   // Classes we'll need from the breeze namespaces
     var EntityQuery = breeze.EntityQuery;
-
-    var queryForOne = testFns.queryForOne;
-    var runQuery = testFns.runQuery;
     var handleFail = testFns.handleFail;
 
     // Name of each type's query endpoint in the persistence service
@@ -486,4 +479,4 @@ define(["testFns"], function (testFns) {
     * helpers
     *********************************************************/
 
-});
+})(docCode.testFns);

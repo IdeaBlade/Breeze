@@ -1,12 +1,10 @@
 // ReSharper disable InconsistentNaming
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
     var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
@@ -1038,4 +1036,4 @@ define(["testFns"], function (testFns) {
             metadataStore: metadataStore || moduleMetadataStore
         });
     }
-});
+})(docCode.testFns);

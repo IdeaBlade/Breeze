@@ -1,12 +1,10 @@
 // ReSharper disable InconsistentNaming
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
 
@@ -849,4 +847,4 @@ define(["testFns"], function (testFns) {
     *   EM.setProperties
     *   EM.entityChanged and EntityAction(query, save, add, attach)
     */
-});
+})(docCode.testFns);

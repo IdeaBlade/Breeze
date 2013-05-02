@@ -7,15 +7,12 @@
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
 // ReSharper disable AssignedValueIsNeverUsed
-
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
     var extend = breeze.core.extend;
     var EntityQuery = breeze.EntityQuery;
 
@@ -154,4 +151,4 @@ define(["testFns"], function (testFns) {
         }).fin(start);
     }
 
-});
+})(docCode.testFns);

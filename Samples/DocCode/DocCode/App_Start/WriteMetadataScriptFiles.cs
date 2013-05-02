@@ -18,8 +18,8 @@ namespace DocCode.App_Start
         {
             var metadata = new NorthwindRepository().Metadata;
             var scriptFilename = HostingEnvironment.MapPath("~/tests/northwindMetadata.js");
-            const string prefix = "define(function () {return ";
-            const string postfix = "});";
+            const string prefix = "docCode.northwindMetadata = ";
+            const string postfix = ";";
 
             using (var writer = new StreamWriter(scriptFilename))
             {

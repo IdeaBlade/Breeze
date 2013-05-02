@@ -11,8 +11,7 @@
 ***********************************************************/
 // ReSharper disable InconsistentNaming
 
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     module("api direct tests",
@@ -50,4 +49,4 @@ define(["testFns"], function (testFns) {
             .fin(start);
     });
 
-});
+})(docCode.testFns);

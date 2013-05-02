@@ -3,8 +3,7 @@
  *********************************************************/
 // ReSharper disable InconsistentNaming
 
-define(["breeze"], function (breeze) {
-
+docCode.testFns = (function () {
     "use strict";
 
     extendString();
@@ -13,7 +12,6 @@ define(["breeze"], function (breeze) {
     * testFns - the module object
     *********************************************************/
     var testFns = {
-        breeze: breeze,
         northwindServiceName: "breeze/Northwind",
         todosServiceName: "breeze/todos",
         inheritanceServiceName: "breeze/inheritance",
@@ -547,5 +545,5 @@ define(["breeze"], function (breeze) {
         return stopCount;
     }
 
-});
+})();
 

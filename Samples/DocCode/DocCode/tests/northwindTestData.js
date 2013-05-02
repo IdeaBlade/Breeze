@@ -1,9 +1,7 @@
 /***********************************************************
-* Sample data for test purposes
+* Sample data from Northwind model for test purposes
 ***********************************************************/
-
-define(['breeze'], function (breeze) {
-
+docCode.northwindTestData = (function () {
     "use strict";
     
     return {
@@ -96,4 +94,4 @@ define(['breeze'], function (breeze) {
         return order;
     }
 
-});
+})();
