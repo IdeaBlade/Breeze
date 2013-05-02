@@ -70,34 +70,29 @@ define(['breeze'], function (breeze) {
         };
     }
 
-    function getCustomerType(em) {
-        return em.metadataStore.getEntityType("Customer");
+    // Customer created but not added to em
+    function createCustomer(em, name) {
+        var customerType = em.metadataStore.getEntityType("Customer");
+        var customer = customerType.createEntity({
+            CustomerID: breeze.core.getUuid(),
+            CompanyName: name || "New customer"
+        });
+        return customer;
     }
+    
+    // Customer attached to manager as if queried
     function createFakeExistingCustomer(em, name) {
-        name = name || "Duya Nomee";
-        var customer = createCustomer(em, name);
-        customer.CustomerID(breeze.core.getUuid());
+        var customer = createCustomer(em, name || "Duya Nomee");
         em.attachEntity(customer); // pretend already exists
         return customer;
     }
-    // new but not added to em
-    function createCustomer(em, name) {
-        name = name || "New customer";
-        var customerType = getCustomerType(em);
-        var customer = customerType.createEntity();
-        customer.CompanyName(name);
-        return customer;
-    }
 
-    function getOrderType(em) {
-        return em.metadataStore.getEntityType("Order");
-    }
-    // new but not added to em
+    // Order created but not added to em
     function createOrder(em, shipName) {
-        shipName = shipName || "New Order";
-        var orderType = getOrderType(em);
-        var order = orderType.createEntity();
-        order.ShipName(shipName);
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity({
+            ShipName: shipName || "New Order"
+        });
         return order;
     }
 

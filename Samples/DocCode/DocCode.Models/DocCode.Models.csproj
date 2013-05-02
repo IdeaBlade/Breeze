@@ -40,6 +40,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Foo.cs" />
     <Compile Include="InheritanceModels.cs" />
     <Compile Include="NorthwindModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

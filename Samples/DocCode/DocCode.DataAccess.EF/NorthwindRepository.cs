@@ -10,8 +10,14 @@ namespace DocCode.DataAccess
     /// </summary>
     public class NorthwindRepository
     {
-        private readonly EFContextProvider<NorthwindContext>
+        private readonly EFContextProvider<NorthwindContext> _contextProvider;
+
+        public NorthwindRepository()
+        {
             _contextProvider = new EFContextProvider<NorthwindContext>();
+            _contextProvider.BeforeSaveEntityDelegate += EntitySaveGuard;
+            _contextProvider.BeforeSaveEntityDelegate += CustomerSaveGuard;
+        }
 
         private NorthwindContext Context { get { return _contextProvider.Context; } }
 
@@ -137,5 +143,89 @@ namespace DocCode.DataAccess
                 })
                 .FirstOrDefault();
         }
+
+        public string Reset()
+        {
+            // Delete all additions to the database
+            var deleteSql = "DELETE FROM ORDERDETAIL WHERE ORDERID > " + Order.HighestOriginalID;
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            deleteSql = "DELETE FROM [ORDER] WHERE ORDERID > " + Order.HighestOriginalID;
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            deleteSql = "DELETE FROM EMPLOYEE WHERE EMPLOYEEID > " + Employee.HighestOriginalID;
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            deleteSql = "DELETE FROM CUSTOMER WHERE CUSTOMERID_OLD IS NULL";
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            return "reset";
+        }
+
+        /// <summary>
+        /// True if can save this entity else throw exception
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException"></exception>
+        private bool EntitySaveGuard(EntityInfo arg)
+        {
+            var typeName = arg.Entity.GetType().Name;
+            string saveError;
+
+            var saveable = arg.Entity as ISaveable;
+            if (saveable == null) {
+                saveError = "changes to '" + typeName + "' are forbidden.";
+            } else switch (arg.EntityState) {
+                    case EntityState.Added:
+                        saveError = saveable.canAdd();
+                        break;
+                    case EntityState.Modified:
+                        saveError = saveable.canUpdate();
+                        break;
+                    case EntityState.Deleted:
+                        saveError = saveable.canDelete();
+                        break;
+                    default: 
+                        var stateName = System.Enum.GetName(typeof(EntityState), arg.EntityState);
+                        saveError = " unexpected EntityState of " + stateName;
+                        break;
+            }
+            if (saveError == null) return true;
+            throw new System.InvalidOperationException(
+                "'" + arg.Entity.GetType().Name + "' may not be saved because " +
+                saveError);
+        }
+        
+        /// <summary>
+        /// True if can save Customer else throw exception
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException"></exception>
+        private bool CustomerSaveGuard(EntityInfo arg)
+        {
+            var cust = arg.Entity as Customer;
+            if (cust == null) return true;
+            if (arg.EntityState == EntityState.Added) return true;
+            var orig = readContext.Customers.SingleOrDefault(c => c.CustomerID == cust.CustomerID);
+            if (orig == null) {
+                throw new System.InvalidOperationException(
+                    "Customer "+cust.CustomerID+" not found.");
+            }
+            if (orig.CustomerID_OLD == null) return true;
+            throw new System.InvalidOperationException(
+                "Changes to an original Customer may not be saved." );
+        }
+
+
+        /// <summary>
+        /// DbContext for reading entities from the database during validations
+        /// </summary>
+        /// <remarks>
+        /// Can't use the same context for reading and writing.
+        /// Lazy instantiated because only used in a few cases.
+        /// </remarks>
+        private NorthwindContext readContext {
+            get {
+                if (_readContext == null) {
+                    _readContext = new NorthwindContext();
+                }
+                return _readContext;
+            }
+        }
+        private NorthwindContext _readContext;
     }
 }

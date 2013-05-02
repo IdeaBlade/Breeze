@@ -73,7 +73,7 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
     /*********************************************************
     * can stash changes locally and restore
     *********************************************************/
-    test("stash changes locally and restore", 5, function () {
+    test("stash changes locally and restore", 4, function () {
 
         var em1 = newEm();
         var expected = testData.primeTheCache(em1);
@@ -108,12 +108,6 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
             var newCustName = expected.newCust.CompanyName();
             equal(restoredCustName, newCustName,
                 "restoredNewCust's name should == newCust's name");
-
-            var restoredCustID = restoredCust.CustomerID();
-            var newCustID = expected.newCust.CustomerID();
-            notEqual(restoredCustID, newCustID,
-                "restoredNewCust ID should not equal newCust's ID " +
-                    "because the imported newCust gets a new temp key");
         } else {
             ok(false, "should have navigated to parent Customer of restored Order");
         }
@@ -225,24 +219,33 @@ define(["testFns", "testNorthwindData"], function (testFns, testData) {
                 .format(selectedCustsCount));
         });
     /*********************************************************
-    * temporary keys change after importing
+    * temporary keys can change after importing
     *********************************************************/
-    test("temporary keys change after importing", 2, function () {
+    test("temporary keys can change after importing", 2, function () {
         var em1 = newEm();
-        var newCust1a = em1.createEntity("Customer", {CompanyName: "Foo"});
+        
+        // new Employee gets the first temporary id in the new 'em1' manager
+        var newEmployee1a = em1.createEntity('Employee', {FirstName: 'Bob'});
 
-        var exportData = em1.exportEntities([newCust1a]);
+        var exportData = em1.exportEntities([newEmployee1a]);
 
-        var em2 = new EntityManager(); // virginal
+        var em2 = newEm(); // virginal
+        
+        // add a new Employee to it first
+        // this burns the first temporary id in the new 'em2' manager
+        em2.createEntity('Employee', { FirstName: 'Sam' });
+        
+        // now import 'Bob' from 'em1'
         em2.importEntities(exportData);
         
-        var newCust1b = em2.getChanges()[0];
+        // get the imported employee
+        var newEmployee1b = em2.getChanges()[1]; // cheat: we know it's the 2nd change
 
-        equal(newCust1a.CompanyName(), newCust1b.CompanyName(),
-            "newCust1a's name should match newCust1b's name.");
+        equal(newEmployee1a.FirstName(), newEmployee1b.FirstName(),
+            "newEmployee1a's name should match newEmployee1b's name.");
 
-        notEqual(newCust1a.CustomerID(), newCust1b.CustomerID(),
-             "newCust1a's ID should not equal newCust1b's ID because " +
+        notEqual(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
+             "newEmployee1a's ID should not equal newEmployee1b's ID because " +
              "the imported new entity gets a new temp key");
     });
 

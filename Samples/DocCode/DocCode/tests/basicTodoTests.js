@@ -701,13 +701,10 @@ define(["testFns"], function (testFns) {
     *********************************************************/
 
     function createTodo(name) {
-
-        var todoType = getTodoType();
-
-        var newTodo = todoType.createEntity();
-        newTodo.Description(name || "New Todo");
-        newTodo.CreatedAt(new Date());
-
+        var newTodo = getTodoType().createEntity({
+            Description: name || "New Todo",
+            CreatedAt: new Date()
+        });
         return newTodo;
     }
 

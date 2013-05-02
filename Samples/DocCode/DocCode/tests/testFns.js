@@ -38,7 +38,10 @@ define(["breeze"], function (breeze) {
         ensureIsEm: ensureIsEm,
 
         getNextIntId: getNextIntId,
-        getNewGuidId: getNewGuidId,
+        newGuid: newGuid,
+        
+        getParserForUrl: getParserForUrl,
+        rootUri: getRootUri(),
         
         assertIsSorted: assertIsSorted,
         getValidationErrMsgs: getValidationErrMsgs,
@@ -70,7 +73,24 @@ define(["breeze"], function (breeze) {
     return testFns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
-
+    function getParserForUrl(url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        return parser;
+        // See https://developer.mozilla.org/en-US/docs/DOM/HTMLAnchorElement
+        //parser.href = "http://example.com:3000/pathname/?search=test#hash";
+        //parser.protocol; // => "http:"
+        //parser.hostname; // => "example.com"
+        //parser.port;     // => "3000"
+        //parser.pathname; // => "/pathname/"
+        //parser.search;   // => "?search=test"
+        //parser.hash;     // => "#hash"
+        //parser.host;     // => "example.com:3000"
+    }
+    function getRootUri() {
+        var parser = getParserForUrl(document.documentUri);
+        return parser.protocol + "//" + parser.host + "/";
+    }
     /*******************************************************
     * String extensions
     * Monkey punching JavaScript native String class
@@ -240,7 +260,7 @@ define(["breeze"], function (breeze) {
     /*********************************************************
     * Generate the next new integer Id
     *********************************************************/
-    function getNewGuidId() {
+    function newGuid() {
         return breeze.core.getUuid();
     }
     /*********************************************************

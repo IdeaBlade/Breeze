@@ -475,7 +475,7 @@ var EntityManager = (function () {
         this.metadataStore._checkEntityType(entity);
         entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
-        if (entity.entityType.metadataStore != this.metadataStore) {
+        if (entity.entityType.metadataStore !== this.metadataStore) {
             throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
         }
         var aspect = entity.entityAspect;
@@ -485,7 +485,7 @@ var EntityManager = (function () {
         }
         var manager = aspect.entityManager;
         if (manager) {
-            if (manager == this) {
+            if (manager === this) {
                 return entity;
             } else {
                 throw new Error("This entity already belongs to another EntityManager");
@@ -581,7 +581,7 @@ var EntityManager = (function () {
         it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
     **/
     proto.fetchMetadata = function (dataService, callback, errorCallback) {
-        if (typeof (dataService) == "function") {
+        if (typeof (dataService) === "function") {
             // legacy support for when dataService was not an arg. i.e. first arg was callback
             errorCallback = callback;
             callback = dataService;
@@ -830,7 +830,7 @@ var EntityManager = (function () {
         var isFullSave = entities == null;
         var entitiesToSave = getEntitiesToSave(this, entities);
             
-        if (entitiesToSave.length == 0) {
+        if (entitiesToSave.length === 0) {
             var saveResult =  { entities: [], keyMappings: [] };
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
@@ -914,7 +914,7 @@ var EntityManager = (function () {
     };
     
     function haveSameContents(arr1, arr2) {
-        if (arr1.length != arr2.length) {
+        if (arr1.length !== arr2.length) {
             return false;
         }
         for (var i=0, c=arr1.length; i<c; i++) {
@@ -1381,7 +1381,7 @@ var EntityManager = (function () {
             }
         });
         return selected || [];
-    };
+    }
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
@@ -1709,7 +1709,7 @@ var EntityManager = (function () {
                 throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
             }
             
-            if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
+            if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
                 return Q.fcall(function () {
                     var results = em.executeQueryLocally(query);
                     return { results: results, query: query };
@@ -1807,7 +1807,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue == "function") {
+            if (typeof refValue === "function") {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -1973,7 +1973,7 @@ var EntityManager = (function () {
             return getPropertyFromRawEntity(rawEntity, p);
         });
         return new EntityKey(entityType, keyValues);
-    };
+    }
 
     function getPropertyFromRawEntity(rawEntity, dp) {
         var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
@@ -1985,7 +1985,7 @@ var EntityManager = (function () {
             if (!__isDate(val)) {
                 val = DataType.parseDateFromServer(val);
             }
-        } else if (dp.dataType == DataType.Binary) {
+        } else if (dp.dataType === DataType.Binary) {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
@@ -2027,7 +2027,7 @@ var EntityManager = (function () {
         var propName = navigationProperty.name;
         var currentRelatedEntity = targetEntity.getProperty(propName);
         // check if the related entity is already hooked up
-        if (currentRelatedEntity != relatedEntity) {
+        if (currentRelatedEntity !== relatedEntity) {
             // if not hook up both directions.
             targetEntity.setProperty(propName, relatedEntity);
             var inverseProperty = navigationProperty.inverse;
@@ -2113,7 +2113,7 @@ var EntityManager = (function () {
             // is different from previous call.
             var dt = new Date();
             var dt2 = new Date();
-            while (dt == dt2) {
+            while (dt.getTime() === dt2.getTime()) {
                 dt2 = new Date();
             }
             entity.setProperty(property.name, dt2);
@@ -2226,7 +2226,7 @@ var EntityManager = (function () {
     function transformValue(val, prop, isOData) {
         if (isOData) {
             if (prop.isUnmapped) return;
-            if (prop.dataType == DataType.DateTimeOffset) {
+            if (prop.dataType === DataType.DateTimeOffset) {
                 // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
                 // from other dateTimes. This fix compensates before the save.
                 val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
@@ -2245,13 +2245,8 @@ var EntityManager = (function () {
     UnattachedChildrenMap.prototype.addChild = function (parentEntityKey, navigationProperty, child) {
         var tuple = this.getTuple(parentEntityKey, navigationProperty);
         if (!tuple) {
-            var tuples = this.map[parentEntityKey.toString()];
-            if (!tuples) {
-                tuples = [];
-                this.map[parentEntityKey.toString()] = tuples;
-            }
             tuple = { navigationProperty: navigationProperty, children: [] };
-            tuples.push(tuple);
+            __getArray(this.map, parentEntityKey.toString()).push(tuple);
         }
         tuple.children.push(child);
     };
@@ -2290,7 +2285,7 @@ var EntityManager = (function () {
 
     UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
         return this.map[parentEntityKey.toString()];
-    }
+    };
 
     return ctor;
 })();

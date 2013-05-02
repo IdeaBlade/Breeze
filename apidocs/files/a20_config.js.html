@@ -361,7 +361,7 @@ var __config = (function () {
     __config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         var impl;
-        if (adapterName &amp; adapterName !== &quot;&quot;) {
+        if (adapterName &amp;&amp; adapterName !== &quot;&quot;) {
             impl = idef.getImpl(adapterName);
             return impl ? impl.defaultInstance : null;
         } else {

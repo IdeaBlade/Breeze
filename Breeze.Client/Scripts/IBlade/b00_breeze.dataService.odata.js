@@ -160,9 +160,9 @@
             }
 
             var propertyName = nodeContext.propertyName;
-            result.ignore = node.__deferred != null || propertyName == "__metadata" ||
+            result.ignore = node.__deferred != null || propertyName === "__metadata" ||
                 // EntityKey properties can be produced by EDMX models
-                (propertyName == "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
+                (propertyName === "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
             return result;
         },        
         
@@ -233,12 +233,13 @@
         if (url) result.url = url;
         result.body = response.body;
         if (response.body) {
+            var nextErr;
             try {
                 var err = JSON.parse(response.body);
                 result.body = err;
                 var msg = "";
                 do {
-                    var nextErr = err.error || err.innererror;
+                    nextErr = err.error || err.innererror;
                     if (!nextErr) msg = msg + getMessage(err);
                     nextErr = nextErr || err.internalexception;
                     err = nextErr || err;
@@ -255,7 +256,7 @@
 
     function getMessage(error) {
         var msg = error.message;
-        return (msg == null) ? "" : ((typeof (msg) == "string") ? msg : msg.value) + "; "
+        return (msg == null) ? "" : ((typeof (msg) === "string") ? msg : msg.value) + "; ";
     }
 
     breeze.config.registerAdapter("dataService", ctor);

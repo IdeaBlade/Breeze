@@ -31,7 +31,7 @@ define(["testFns"], function (testFns) {
             ok(true, "Skipped tests - named queries not available in OData");
         });
         return testFns;
-    };
+    }
 
     test("with parameter", function () {
         var em = newEm();
@@ -71,7 +71,7 @@ define(["testFns"], function (testFns) {
             var r = data.results;
             ok(r.length > 0, "should be some results");
             var allok = r.every(function (emp) {
-                return emp.getProperty("country") == "USA";
+                return emp.getProperty("country") === "USA";
             });
             ok(allok, "all employees should be in the US");
         }).fail(testFns.handleFail).fin(start);
@@ -85,7 +85,7 @@ define(["testFns"], function (testFns) {
         stop();
         var r, q2;
         em.executeQuery(q).then(function (data) {
-            ok(false, "should not get here")
+            ok(false, "should not get here");
         }).fail(function(e) {
             ok(e.message.indexOf("foo") >= 0, "foo should have been in message");
         }).fin(start);
@@ -163,7 +163,7 @@ define(["testFns"], function (testFns) {
             var results = data.results;
             ok(results.length > 0);
             results.forEach(function(r) {
-                ok(r.name.substr(0, 1) == "N");
+                ok(r.name.substr(0, 1) === "N");
                 ok(r.namespace);
                 ok(r.fullName);
             });
@@ -331,7 +331,7 @@ define(["testFns"], function (testFns) {
 
         em.executeQuery(query).then(function (data) {
             var customers = data.results;
-            ok(customers.length == 4, "wrong number of customers");
+            ok(customers.length === 4, "wrong number of customers");
 
             customers.forEach(function (c) {
                 ok(c.getProperty("companyName"), 'should have a companyName property');

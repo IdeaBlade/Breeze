@@ -61,7 +61,7 @@ namespace Northwind.Models
         public CustomerConfiguration()
         {
             Property(o => o.CustomerID)
-                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
         }
     }
 

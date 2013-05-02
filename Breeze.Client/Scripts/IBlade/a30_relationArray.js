@@ -139,7 +139,7 @@ breeze.makeRelationArray = function() {
                     return false;
                 }
                 var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue != relationArray.parentEntity;
+                return inverseValue !== relationArray.parentEntity;
             });
             return goodAdds;
         } else {
@@ -162,7 +162,6 @@ breeze.makeRelationArray = function() {
             } finally {
                 addsInProcess.splice(startIx, adds.length);
             }
-            ;
         }
 
         // this is referencing the name of the method on the relationArray not the name of the event

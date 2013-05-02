@@ -209,7 +209,7 @@ function __objectFirst(obj, kvPredicate) {
         }
     }
     return null;
-};
+}
 
 function __objectMapToArray(obj, kvFn) {
     var results = [];
@@ -303,7 +303,7 @@ function __toJson(source, template) {
         }
         if (value === undefined) continue;
         target[propName] = value;
-    };
+    }
     return target;
 }
 
@@ -396,7 +396,7 @@ function __arrayEquals(a1, a2, equalsFn) {
     &#x2F;&#x2F;Check if the arrays are undefined&#x2F;null
     if (!a1 || !a2) return false;
 
-    if (a1.length != a2.length) return false;
+    if (a1.length !== a2.length) return false;
 
     &#x2F;&#x2F;go thru all the vars
     for (var i = 0; i &lt; a1.length; i++) {
@@ -408,7 +408,7 @@ function __arrayEquals(a1, a2, equalsFn) {
             if (equalsFn) {
                 if (!equalsFn(a1[i], a2[i])) return false;
             } else {
-                if (a1[i] != a2[i]) return false;
+                if (a1[i] !== a2[i]) return false;
             }
         }
     }
@@ -416,6 +416,15 @@ function __arrayEquals(a1, a2, equalsFn) {
 }
 
 &#x2F;&#x2F; end of array functions
+
+function __getArray(source, propName) {
+    var arr = source[propName];
+    if (!arr) {
+        arr = [];
+        source[propName] = arr;
+    }
+    return arr;
+}
     
 function __requireLib(libNames, errMessage) {
     var arrNames = libNames.split(&quot;;&quot;);
@@ -445,7 +454,11 @@ function __using(obj, property, tempValue, fn) {
     try {
         return fn();
     } finally {
-        obj[property] = originalValue;
+        if (originalValue === undefined) {
+            delete obj[property];
+        } else {
+            obj[property] = originalValue;
+        }
     }
 }
     
@@ -511,10 +524,10 @@ function __durationToSeconds(duration) {
         &#x2F;&#x2F; remove letters, replace by 0 if not defined
         digit = digit ? +digit.replace(&#x2F;[A-Za-z]+&#x2F;g, &#x27;&#x27;) : 0;
         seconds += digit * factors[i];
-    };
+    }
     return seconds;
 
-};
+}
     
 &#x2F;&#x2F; is functions 
 
@@ -584,7 +597,7 @@ function __formatString(string) {
     return string.replace(pattern, function (match, index) {
         return args[index];
     });
-};
+}
 
 &#x2F;&#x2F; end of string functions
 

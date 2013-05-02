@@ -812,7 +812,7 @@ define(["testFns"], function (testFns) {
     function getFakeExistingCustomer(em, name) {
         name = name || "Existing Customer";
         var customer = createCustomer(name);
-        customer.CustomerID(testFns.getNewGuidId());
+        customer.CustomerID(testFns.newGuid());
         em.attachEntity(customer);// pretend already exists
         return customer;
     }
