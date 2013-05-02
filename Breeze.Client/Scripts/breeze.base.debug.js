@@ -59,7 +59,7 @@ function __objectFirst(obj, kvPredicate) {
         }
     }
     return null;
-};
+}
 
 function __objectMapToArray(obj, kvFn) {
     var results = [];
@@ -153,7 +153,7 @@ function __toJson(source, template) {
         }
         if (value === undefined) continue;
         target[propName] = value;
-    };
+    }
     return target;
 }
 
@@ -246,7 +246,7 @@ function __arrayEquals(a1, a2, equalsFn) {
     //Check if the arrays are undefined/null
     if (!a1 || !a2) return false;
 
-    if (a1.length != a2.length) return false;
+    if (a1.length !== a2.length) return false;
 
     //go thru all the vars
     for (var i = 0; i < a1.length; i++) {
@@ -258,7 +258,7 @@ function __arrayEquals(a1, a2, equalsFn) {
             if (equalsFn) {
                 if (!equalsFn(a1[i], a2[i])) return false;
             } else {
-                if (a1[i] != a2[i]) return false;
+                if (a1[i] !== a2[i]) return false;
             }
         }
     }
@@ -374,10 +374,10 @@ function __durationToSeconds(duration) {
         // remove letters, replace by 0 if not defined
         digit = digit ? +digit.replace(/[A-Za-z]+/g, '') : 0;
         seconds += digit * factors[i];
-    };
+    }
     return seconds;
 
-};
+}
     
 // is functions 
 
@@ -447,7 +447,7 @@ function __formatString(string) {
     return string.replace(pattern, function (match, index) {
         return args[index];
     });
-};
+}
 
 // end of string functions
 
@@ -1621,7 +1621,7 @@ var __config = (function () {
     __config.getAdapterInstance = function(interfaceName, adapterName) {
         var idef = getInterfaceDef(interfaceName);
         var impl;
-        if (adapterName & adapterName !== "") {
+        if (adapterName && adapterName !== "") {
             impl = idef.getImpl(adapterName);
             return impl ? impl.defaultInstance : null;
         } else {
@@ -3911,7 +3911,7 @@ breeze.makeRelationArray = function() {
                     return false;
                 }
                 var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue != relationArray.parentEntity;
+                return inverseValue !== relationArray.parentEntity;
             });
             return goodAdds;
         } else {
@@ -3934,7 +3934,6 @@ breeze.makeRelationArray = function() {
             } finally {
                 addsInProcess.splice(startIx, adds.length);
             }
-            ;
         }
 
         // this is referencing the name of the method on the relationArray not the name of the event
@@ -5487,12 +5486,8 @@ var MetadataStore = (function () {
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                var deferrals = metadataStore._deferredTypes[baseTypeName];
-                if (!deferrals) {
-                    deferrals = [];
-                    metadataStore._deferredTypes[baseTypeName] = deferrals;
-                }
-                deferrals.push({ json: json, stype: stype });
+                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
@@ -5860,7 +5855,7 @@ var CsdlMetadataParser = (function () {
     // Fast version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
     //   match( shortName(np.relationship) == schema.association[].name
-    //      --> association
+    //      --> association__
 
     // Correct version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
@@ -10806,7 +10801,7 @@ var EntityManager = (function () {
         this.metadataStore._checkEntityType(entity);
         entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
-        if (entity.entityType.metadataStore != this.metadataStore) {
+        if (entity.entityType.metadataStore !== this.metadataStore) {
             throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
         }
         var aspect = entity.entityAspect;
@@ -10816,7 +10811,7 @@ var EntityManager = (function () {
         }
         var manager = aspect.entityManager;
         if (manager) {
-            if (manager == this) {
+            if (manager === this) {
                 return entity;
             } else {
                 throw new Error("This entity already belongs to another EntityManager");
@@ -10912,7 +10907,7 @@ var EntityManager = (function () {
         it is usually better to access metadata via the 'metadataStore' property of the EntityManager instead of using this 'raw' data.            
     **/
     proto.fetchMetadata = function (dataService, callback, errorCallback) {
-        if (typeof (dataService) == "function") {
+        if (typeof (dataService) === "function") {
             // legacy support for when dataService was not an arg. i.e. first arg was callback
             errorCallback = callback;
             callback = dataService;
@@ -11161,7 +11156,7 @@ var EntityManager = (function () {
         var isFullSave = entities == null;
         var entitiesToSave = getEntitiesToSave(this, entities);
             
-        if (entitiesToSave.length == 0) {
+        if (entitiesToSave.length === 0) {
             var saveResult =  { entities: [], keyMappings: [] };
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
@@ -11245,7 +11240,7 @@ var EntityManager = (function () {
     };
     
     function haveSameContents(arr1, arr2) {
-        if (arr1.length != arr2.length) {
+        if (arr1.length !== arr2.length) {
             return false;
         }
         for (var i=0, c=arr1.length; i<c; i++) {
@@ -11712,7 +11707,7 @@ var EntityManager = (function () {
             }
         });
         return selected || [];
-    };
+    }
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
@@ -12040,7 +12035,7 @@ var EntityManager = (function () {
                 throw new Error("cannot execute _executeQueryCore until metadataStore is populated.");
             }
             
-            if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
+            if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
                 return Q.fcall(function () {
                     var results = em.executeQueryLocally(query);
                     return { results: results, query: query };
@@ -12138,7 +12133,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue == "function") {
+            if (typeof refValue === "function") {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -12304,7 +12299,7 @@ var EntityManager = (function () {
             return getPropertyFromRawEntity(rawEntity, p);
         });
         return new EntityKey(entityType, keyValues);
-    };
+    }
 
     function getPropertyFromRawEntity(rawEntity, dp) {
         var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
@@ -12316,7 +12311,7 @@ var EntityManager = (function () {
             if (!__isDate(val)) {
                 val = DataType.parseDateFromServer(val);
             }
-        } else if (dp.dataType == DataType.Binary) {
+        } else if (dp.dataType === DataType.Binary) {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
@@ -12358,7 +12353,7 @@ var EntityManager = (function () {
         var propName = navigationProperty.name;
         var currentRelatedEntity = targetEntity.getProperty(propName);
         // check if the related entity is already hooked up
-        if (currentRelatedEntity != relatedEntity) {
+        if (currentRelatedEntity !== relatedEntity) {
             // if not hook up both directions.
             targetEntity.setProperty(propName, relatedEntity);
             var inverseProperty = navigationProperty.inverse;
@@ -12444,7 +12439,7 @@ var EntityManager = (function () {
             // is different from previous call.
             var dt = new Date();
             var dt2 = new Date();
-            while (dt == dt2) {
+            while (dt.getTime() === dt2.getTime()) {
                 dt2 = new Date();
             }
             entity.setProperty(property.name, dt2);
@@ -12557,7 +12552,7 @@ var EntityManager = (function () {
     function transformValue(val, prop, isOData) {
         if (isOData) {
             if (prop.isUnmapped) return;
-            if (prop.dataType == DataType.DateTimeOffset) {
+            if (prop.dataType === DataType.DateTimeOffset) {
                 // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
                 // from other dateTimes. This fix compensates before the save.
                 val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
@@ -12576,13 +12571,8 @@ var EntityManager = (function () {
     UnattachedChildrenMap.prototype.addChild = function (parentEntityKey, navigationProperty, child) {
         var tuple = this.getTuple(parentEntityKey, navigationProperty);
         if (!tuple) {
-            var tuples = this.map[parentEntityKey.toString()];
-            if (!tuples) {
-                tuples = [];
-                this.map[parentEntityKey.toString()] = tuples;
-            }
             tuple = { navigationProperty: navigationProperty, children: [] };
-            tuples.push(tuple);
+            __getArray(this.map, parentEntityKey.toString()).push(tuple);
         }
         tuple.children.push(child);
     };
@@ -12621,7 +12611,7 @@ var EntityManager = (function () {
 
     UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
         return this.map[parentEntityKey.toString()];
-    }
+    };
 
     return ctor;
 })();

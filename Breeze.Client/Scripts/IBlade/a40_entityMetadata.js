@@ -580,12 +580,8 @@ var MetadataStore = (function () {
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                var deferrals = metadataStore._deferredTypes[baseTypeName];
-                if (!deferrals) {
-                    deferrals = [];
-                    metadataStore._deferredTypes[baseTypeName] = deferrals;
-                }
-                deferrals.push({ json: json, stype: stype });
+                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
@@ -953,7 +949,7 @@ var CsdlMetadataParser = (function () {
     // Fast version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
     //   match( shortName(np.relationship) == schema.association[].name
-    //      --> association
+    //      --> association__
 
     // Correct version
     // np: schema.entityType[].navigationProperty.relationship -> schema.association
