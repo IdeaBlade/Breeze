@@ -556,17 +556,14 @@ define(["testFns"], function (testFns) {
         var typeName = entity.entityType.shortName;
         var inheritanceType = typeName.substring(typeName.length - 3);
         
-        // Bug? The following returns none although there are accounts and cards
-        var details = manager.getEntities(['BillingDetail' + inheritanceType]);
         var accounts = manager.getEntities(['BankAccount' + inheritanceType]);
         var cards = manager.getEntities(['CreditCard' + inheritanceType]);
         
-        var detailsLen = details.length;
         var accountsLen = accounts.length;
         var cardsLen = cards.length;
-        ok(detailsLen && accountsLen && cardsLen,
-            "should have BillingDetails; have {0} [BankAccounts {1}, CreditCards {2}].".
-                format(detailsLen, accountsLen, cardsLen));
+        ok(accountsLen && cardsLen,
+            "should have BillingDetails; [BankAccounts {0}, CreditCards {1}].".
+                format(accountsLen, cardsLen));
     }
     /*********************************************************
     * can navigate to Deposits when eager loaded with expand

@@ -27,6 +27,21 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    
+
+    test("raw query string", function() {
+        em = newEm();
+        stop();
+        em.executeQuery("CustomersAndOrders?&$top=3").then(function(data) {
+            var custs = data.results;
+            ok(custs.length === 3, "should be 3 custs");
+            var isOk = custs.every(function (c) {
+                return c.entityType.shortName === "Customer";
+            });
+            ok(isOk, "all results should be customers");
+        }).fail(testFns.handleFail).fin(start);
+    })
+
     test("query with take, orderby and expand", function () {
         var em = newEm();
         var q1 = EntityQuery.from("Products")
