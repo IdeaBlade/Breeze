@@ -12,6 +12,7 @@ namespace DocCode.Controllers
     {
        readonly FooBarRepository _repository = new FooBarRepository();
 
+       [Queryable]
        public IQueryable<Foo> Get()
        {
            return _repository.Foos.AsQueryable();
