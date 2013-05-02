@@ -20,7 +20,7 @@
     <property name="Notes" column="`Notes`" type="string" length="1073741823" />
     <property name="PhotoPath" type="string" length="255" />
     <many-to-one name="Manager" column="`ReportsToEmployeeID`" class="Employee" />
-    <property name="ReportsToEmployeeID" type="int" />
+    <property name="ReportsToEmployeeID" type="int" insert="false" update="false"/>
     <property name="RowVersion" type="int" not-null="true" />
     <property name="FullName" generated="always" />
     <!--Foreign key to Employee (Employee)-->

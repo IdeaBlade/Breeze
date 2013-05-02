@@ -5,7 +5,7 @@
         <param name="property">Order</param>
       </generator>
     </id>
-    <one-to-one name="Order" />
+    <one-to-one name="Order" constrained="true"/>
     <property name="CustomsDescription" type="string" length="100" not-null="true" />
     <property name="ExciseTax" type="decimal" not-null="true" />
     <property name="RowVersion" type="int" not-null="true" />

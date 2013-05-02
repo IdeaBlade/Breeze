@@ -7,8 +7,6 @@
     </composite-id>
     <many-to-one name="Order" column="`OrderID`" class="Order" />
     <many-to-one name="Product" column="`ProductID`" class="Product" />
-    <property name="OrderID" type="int" not-null="true" />
-    <property name="ProductID" type="int" not-null="true" />
     <property name="UnitPrice" type="decimal" not-null="true" />
     <property name="Quantity" type="short" not-null="true" />
     <property name="Discount" type="float" not-null="true" />
