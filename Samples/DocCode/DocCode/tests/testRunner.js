@@ -4,9 +4,16 @@ QUnit.config.autostart = false;
 // No test should take that long but first time db build can.
 QUnit.config.testTimeout = 20000; 
 
-// hack to delay QUnit.load until everything really is loaded
-QUnit.delayedLoad = QUnit.load;
-QUnit.load = function () { };
+// To get module selector toolbar in all browsers 
+// must delay QUnit.load until require.js loads the test modules
+// EXCEPT in FireFox where it must run immediately ... Aaaargh!
+QUnit._$_$delayLoad = navigator.userAgent.toLowerCase().indexOf('firefox') == -1;
+
+if (QUnit._$_$delayLoad) {
+    // hack to delay QUnit.load until everything really is loaded
+    QUnit.delayedLoad = QUnit.load;
+    QUnit.load = function () { };
+}
 
 requirejs.config(
     {
@@ -41,7 +48,11 @@ require(["testFns" // always first
 ], function (testFns) {
     $(function() {
         // Configure testfns as needed prior to running any tests
-        QUnit.delayedLoad();
+        
+        // Load QUnit HTML if haven't done so yet
+        if (QUnit._$_$delayLoad) {
+            QUnit.delayedLoad();
+        }
         QUnit.start(); //Tests loaded, run tests       
     });
 });
