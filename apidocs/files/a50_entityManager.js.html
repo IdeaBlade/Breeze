@@ -411,16 +411,21 @@ var EntityManager = (function () {
         var emp4 = em1.createEntity(&quot;Employee&quot;, { id: 435, lastName: Smith&quot;, firstName: &quot;John&quot; }, EntityState.Detached);
 
     @method createEntity
-    @param typeName {String} The name of the type for which an instance should be created.
+    @param entityType {String|EntityType} The EntityType or the name of the type for which an instance should be created.
     @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
     @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
     @return {Entity} A new Entity of the specified type.
     **&#x2F;
-    proto.createEntity = function (typeName, initialValues, entityState) {
+    proto.createEntity = function (entityType, initialValues, entityState) {
+        assertParam(entityType, &quot;entityType&quot;).isString().or().isInstanceOf(EntityType).check();
+        if (typeof entityType === &quot;string&quot;) {
+            entityType = this.metadataStore._getEntityType(entityType);
+        }
         entityState = entityState || EntityState.Added;
-        var entity = this.metadataStore
-            ._getEntityType(typeName)
-            .createEntity(initialValues);
+        var entity;
+        __using(this, &quot;isLoading&quot;, true, function () {
+            entity = entityType.createEntity(initialValues);
+        });
         if (entityState !== EntityState.Detached) {
             this.attachEntity(entity, entityState);
         }
@@ -655,7 +660,7 @@ var EntityManager = (function () {
         this.metadataStore._checkEntityType(entity);
         entityState = assertParam(entityState, &quot;entityState&quot;).isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
 
-        if (entity.entityType.metadataStore != this.metadataStore) {
+        if (entity.entityType.metadataStore !== this.metadataStore) {
             throw new Error(&quot;Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager&#x27;s MetadataStore.&quot;);
         }
         var aspect = entity.entityAspect;
@@ -665,7 +670,7 @@ var EntityManager = (function () {
         }
         var manager = aspect.entityManager;
         if (manager) {
-            if (manager == this) {
+            if (manager === this) {
                 return entity;
             } else {
                 throw new Error(&quot;This entity already belongs to another EntityManager&quot;);
@@ -761,7 +766,7 @@ var EntityManager = (function () {
         it is usually better to access metadata via the &#x27;metadataStore&#x27; property of the EntityManager instead of using this &#x27;raw&#x27; data.            
     **&#x2F;
     proto.fetchMetadata = function (dataService, callback, errorCallback) {
-        if (typeof (dataService) == &quot;function&quot;) {
+        if (typeof (dataService) === &quot;function&quot;) {
             &#x2F;&#x2F; legacy support for when dataService was not an arg. i.e. first arg was callback
             errorCallback = callback;
             callback = dataService;
@@ -1010,7 +1015,7 @@ var EntityManager = (function () {
         var isFullSave = entities == null;
         var entitiesToSave = getEntitiesToSave(this, entities);
             
-        if (entitiesToSave.length == 0) {
+        if (entitiesToSave.length === 0) {
             var saveResult =  { entities: [], keyMappings: [] };
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
@@ -1094,7 +1099,7 @@ var EntityManager = (function () {
     };
     
     function haveSameContents(arr1, arr2) {
-        if (arr1.length != arr2.length) {
+        if (arr1.length !== arr2.length) {
             return false;
         }
         for (var i=0, c=arr1.length; i&lt;c; i++) {
@@ -1561,7 +1566,7 @@ var EntityManager = (function () {
             }
         });
         return selected || [];
-    };
+    }
         
     function createEntityKey(em, args) {
         if (args[0] instanceof EntityKey) {
@@ -1889,7 +1894,7 @@ var EntityManager = (function () {
                 throw new Error(&quot;cannot execute _executeQueryCore until metadataStore is populated.&quot;);
             }
             
-            if (queryOptions.fetchStrategy == FetchStrategy.FromLocalCache) {
+            if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
                 return Q.fcall(function () {
                     var results = em.executeQueryLocally(query);
                     return { results: results, query: query };
@@ -1987,7 +1992,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue == &quot;function&quot;) {
+            if (typeof refValue === &quot;function&quot;) {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -2121,17 +2126,7 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            var val = getPropertyFromRawEntity(rawEntity, dp);
-            if (val === undefined) return;
-            if (dp.isComplexProperty) {
-                var coVal = targetEntity.getProperty(dp.name);
-                dp.dataType.dataProperties.forEach(function(cdp) {
-                    &#x2F;&#x2F; recursive call
-                    coVal.setProperty(cdp.name, val[cdp.nameOnServer]);
-                });
-            } else {
-                targetEntity.setProperty(dp.name, val);
-            }
+            updatePropertyFromRawEntity(dp, targetEntity, rawEntity);
         });
 
         entityType.navigationProperties.forEach(function (np) {
@@ -2143,15 +2138,31 @@ var EntityManager = (function () {
         });
     }
 
+    &#x2F;&#x2F; target and source may not be entities that can also be complexTypes.
+    function updatePropertyFromRawEntity(dp, target, rawSource) {
+        var val = getPropertyFromRawEntity(rawSource, dp);
+        if (val === undefined) return;
+        if (dp.isComplexProperty) {
+            var coVal = target.getProperty(dp.name);
+            dp.dataType.dataProperties.forEach(function (cdp) {
+                &#x2F;&#x2F; recursive call
+                updatePropertyFromRawEntity(cdp, coVal, val);
+            });
+        } else {
+            target.setProperty(dp.name, val);
+        }
+    }
+
     function getEntityKeyFromRawEntity(rawEntity, entityType) {
         var keyValues = entityType.keyProperties.map(function (p) {
             return getPropertyFromRawEntity(rawEntity, p);
         });
         return new EntityKey(entityType, keyValues);
-    };
+    }
 
     function getPropertyFromRawEntity(rawEntity, dp) {
-        var val = rawEntity[dp.nameOnServer];
+        var propName = dp.nameOnServer || dp.isUnmapped &amp;&amp; dp.name;
+        var val = rawEntity[propName];
         &#x2F;&#x2F; undefined values will be the default for most unmapped properties EXCEPT when they are set
         &#x2F;&#x2F; in a jsonResultsAdapter ( an unusual use case).
         if (val === undefined) return;
@@ -2159,7 +2170,7 @@ var EntityManager = (function () {
             if (!__isDate(val)) {
                 val = DataType.parseDateFromServer(val);
             }
-        } else if (dp.dataType == DataType.Binary) {
+        } else if (dp.dataType === DataType.Binary) {
             if (val &amp;&amp; val.$value !== undefined) {
                 val = val.$value; &#x2F;&#x2F; this will be a byte[] encoded as a string
             }
@@ -2201,7 +2212,7 @@ var EntityManager = (function () {
         var propName = navigationProperty.name;
         var currentRelatedEntity = targetEntity.getProperty(propName);
         &#x2F;&#x2F; check if the related entity is already hooked up
-        if (currentRelatedEntity != relatedEntity) {
+        if (currentRelatedEntity !== relatedEntity) {
             &#x2F;&#x2F; if not hook up both directions.
             targetEntity.setProperty(propName, relatedEntity);
             var inverseProperty = navigationProperty.inverse;
@@ -2287,7 +2298,7 @@ var EntityManager = (function () {
             &#x2F;&#x2F; is different from previous call.
             var dt = new Date();
             var dt2 = new Date();
-            while (dt == dt2) {
+            while (dt.getTime() === dt2.getTime()) {
                 dt2 = new Date();
             }
             entity.setProperty(property.name, dt2);
@@ -2400,7 +2411,7 @@ var EntityManager = (function () {
     function transformValue(val, prop, isOData) {
         if (isOData) {
             if (prop.isUnmapped) return;
-            if (prop.dataType == DataType.DateTimeOffset) {
+            if (prop.dataType === DataType.DateTimeOffset) {
                 &#x2F;&#x2F; The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
                 &#x2F;&#x2F; from other dateTimes. This fix compensates before the save.
                 val = val &amp;&amp; new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
@@ -2419,13 +2430,8 @@ var EntityManager = (function () {
     UnattachedChildrenMap.prototype.addChild = function (parentEntityKey, navigationProperty, child) {
         var tuple = this.getTuple(parentEntityKey, navigationProperty);
         if (!tuple) {
-            var tuples = this.map[parentEntityKey.toString()];
-            if (!tuples) {
-                tuples = [];
-                this.map[parentEntityKey.toString()] = tuples;
-            }
             tuple = { navigationProperty: navigationProperty, children: [] };
-            tuples.push(tuple);
+            __getArray(this.map, parentEntityKey.toString()).push(tuple);
         }
         tuple.children.push(child);
     };
@@ -2464,7 +2470,7 @@ var EntityManager = (function () {
 
     UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
         return this.map[parentEntityKey.toString()];
-    }
+    };
 
     return ctor;
 })();

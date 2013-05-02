@@ -29,10 +29,10 @@ define(["testFns"], function (testFns) {
 
     
 
-    test("raw query string", function() {
+    test("raw query string", function () {
         em = newEm();
         stop();
-        em.executeQuery("CustomersAndOrders?&$top=3").then(function(data) {
+        em.executeQuery("CustomersAndOrders?&$top=3").then(function (data) {
             var custs = data.results;
             ok(custs.length === 3, "should be 3 custs");
             var isOk = custs.every(function (c) {
@@ -40,7 +40,7 @@ define(["testFns"], function (testFns) {
             });
             ok(isOk, "all results should be customers");
         }).fail(testFns.handleFail).fin(start);
-    })
+    });
 
     test("query with take, orderby and expand", function () {
         var em = newEm();
@@ -96,9 +96,9 @@ define(["testFns"], function (testFns) {
         stop();
 
         q.execute().then(function (data) {
-            ok(data.results.length == 0);
+            ok(data.results.length === 0);
             var r = em.executeQueryLocally(q);
-            ok(r.length == 0);
+            ok(r.length === 0);
         }).fail(function (e) {
             ok(false, e.message);
         }).fin(start);
@@ -140,7 +140,7 @@ define(["testFns"], function (testFns) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
-        };
+        }
 
         var em = newEm();
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({
@@ -178,7 +178,7 @@ define(["testFns"], function (testFns) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
-        };
+        }
 
         var em = newEm();
         
@@ -219,7 +219,7 @@ define(["testFns"], function (testFns) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
             return;
-        };
+        }
 
         var em = newEm();
 
@@ -397,7 +397,7 @@ define(["testFns"], function (testFns) {
         realEm.executeQuery(query).then(function (data) {
             var orders = data.results[0].getProperty("orders");
             // the bug was that this included the previously detached order above. ( making a length of 11).
-            ok(orders.length == 10, "This customer must have 10 Orders");
+            ok(orders.length === 10, "This customer must have 10 Orders");
 
             var newOrder = orderType.createEntity(); // call the factory function for the Customer type
             realEm.addEntity(newOrder);
@@ -408,7 +408,7 @@ define(["testFns"], function (testFns) {
 
         }).then(function (data2) {
             var orders = data2.results[0].getProperty("orders");
-            ok(orders.length == 10, "The customers must have 10 Orders");
+            ok(orders.length === 10, "The customers must have 10 Orders");
         }).fail(testFns.handleFail).fin(start);
             
     });
@@ -486,7 +486,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            ok(r.length == 0, "should be no recs returned");
+            ok(r.length === 0, "should be no recs returned");
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -777,7 +777,7 @@ define(["testFns"], function (testFns) {
         query.execute().then(function (data) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.status == 404, "status should be 404");
+            ok(e.status === 404, "status should be 404");
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -800,7 +800,7 @@ define(["testFns"], function (testFns) {
             });
             return query.expand("orders").execute();
         }).then(function (data2) {
-            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(arrayChangedCount === 1, "should only see a single arrayChanged event fired");
             ok(adds && adds.length > 0, "should have been multiple entities shown as added");
             var orderType = em.metadataStore.getEntityType("Order");
             var newOrder = orderType.createEntity();
@@ -830,11 +830,11 @@ define(["testFns"], function (testFns) {
             Event.enable("arrayChanged", em, false);
             return query.expand("orders").execute();
         }).then(function (data2) {
-            ok(arrayChangedCount == 0, "should be no arrayChanged events fired");
+            ok(arrayChangedCount === 0, "should be no arrayChanged events fired");
             var orderType = em.metadataStore.getEntityType("Order");
             var newOrder = orderType.createEntity();
             orders.push(newOrder);
-            ok(arrayChangedCount == 0, "should be no arrayChanged events fired");
+            ok(arrayChangedCount === 0, "should be no arrayChanged events fired");
             
         }).fail(testFns.handleFail).fin(start);
     });
@@ -872,7 +872,7 @@ define(["testFns"], function (testFns) {
             });
             return customer.entityAspect.loadNavigationProperty("orders");
         }).then(function (data2) {
-            ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
+            ok(arrayChangedCount === 1, "should only see a single arrayChanged event fired");
             ok(adds && adds.length > 0, "should have been multiple entities shown as added");
             var orderType = em.metadataStore.getEntityType("Order");
             var newOrder = orderType.createEntity();
@@ -917,7 +917,7 @@ define(["testFns"], function (testFns) {
             ok(em.getChanges().length === 0, "getChanges should return 0 records");
             var details = customer.getProperty("orders");
             var dups = testFns.getDups(details);
-            ok(dups.length == 0, "should be no dups");
+            ok(dups.length === 0, "should be no dups");
         }).fail(testFns.handleFail).fin(start);
         
     });
@@ -1118,7 +1118,7 @@ define(["testFns"], function (testFns) {
 
         refreshQuery.using(em).execute().then(function(data) {
             var results = data.results, count = results.length;
-            if (count != 1) {
+            if (count !== 1) {
                 ok(false, "expected one result, got " + count);
             } else {
                 var inCache = em.getEntities();
@@ -1316,7 +1316,7 @@ define(["testFns"], function (testFns) {
         stop();
         query.using(em).execute().then(function (data) {
             var orderDetails = data.results;
-            ok(orderDetails.length == count);
+            ok(orderDetails.length === count);
             var promises = orderDetails.map(function (od) {
                 return od.entityAspect.loadNavigationProperty("product").then(function (data2) {
                     var products = data2.results;
@@ -1387,11 +1387,11 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(query).then(function (data) {
             var orders = data.results;
-            ok(orders.length == 2, "data.results length should be 2");
+            ok(orders.length === 2, "data.results length should be 2");
             var q2 = EntityQuery.fromEntities(orders);
             return q2.execute();
         }).then(function (data2) {
-            ok(data2.results.length == 2, "data.results length should be 2");
+            ok(data2.results.length === 2, "data.results length should be 2");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -1464,7 +1464,7 @@ define(["testFns"], function (testFns) {
                     cats.push(cats);
                 }
             });
-            ok(cats.length == 5, "should have 5 categories");
+            ok(cats.length === 5, "should have 5 categories");
 
             start();
         }).fail(testFns.handleFail);
@@ -1494,8 +1494,8 @@ define(["testFns"], function (testFns) {
                     emps.push(emp);
                 }
             });
-            ok(custs.length == 20, "should have 20 customers");
-            ok(emps.length == 20, "should have 20 employees");
+            ok(custs.length === 20, "should have 20 customers");
+            ok(emps.length === 20, "should have 20 employees");
 
             start();
         }).fail(testFns.handleFail);
@@ -1533,7 +1533,7 @@ define(["testFns"], function (testFns) {
                     });
                 }
             });
-            ok(custs.length == 5, "should have 5 customers");
+            ok(custs.length === 5, "should have 5 customers");
             ok(orderDetails.length > 5, "should have > 5 orderDetails");
             ok(products.length > 5, "should have > 5 products");
         }).fail(function(e) {
@@ -1656,7 +1656,7 @@ define(["testFns"], function (testFns) {
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
                 var val= cust.getProperty("companyName").substr(1,2).toUpperCase();
-                return val == "OM";
+                return val === "OM";
             }), "every cust should have 'OM' as the 2nd and 3rd letters");
             start();
         }).fail(testFns.handleFail);
@@ -1807,7 +1807,7 @@ define(["testFns"], function (testFns) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType === orderType; }));
                 var orders = emp.getProperty("orders");
-                ok(orders.length == data2.results.length, "local array does not match queried results");
+                ok(orders.length === data2.results.length, "local array does not match queried results");
                 start();
             }).fail(testFns.handleFail);
         }).fail(testFns.handleFail);
@@ -1848,7 +1848,7 @@ define(["testFns"], function (testFns) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType.shortName = "Order"; }));
                 var orders = emp.getProperty("orders");
-                ok(orders.length == data2.results.length, "local array does not match queried results");
+                ok(orders.length === data2.results.length, "local array does not match queried results");
                 start();
             }).fail(testFns.handleFail);
         }).fail(testFns.handleFail);
@@ -1895,7 +1895,7 @@ define(["testFns"], function (testFns) {
             orders.load(function (data2) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType === orderType; }));
-                ok(orders.length == data2.results.length, "local array does not match queried results");
+                ok(orders.length === data2.results.length, "local array does not match queried results");
                 start();
             }).fail(testFns.handleFail);
         }).fail(testFns.handleFail);

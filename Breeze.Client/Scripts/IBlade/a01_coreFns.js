@@ -24,7 +24,7 @@ function __objectFirst(obj, kvPredicate) {
         }
     }
     return null;
-};
+}
 
 function __objectMapToArray(obj, kvFn) {
     var results = [];
@@ -118,7 +118,7 @@ function __toJson(source, template) {
         }
         if (value === undefined) continue;
         target[propName] = value;
-    };
+    }
     return target;
 }
 
@@ -211,7 +211,7 @@ function __arrayEquals(a1, a2, equalsFn) {
     //Check if the arrays are undefined/null
     if (!a1 || !a2) return false;
 
-    if (a1.length != a2.length) return false;
+    if (a1.length !== a2.length) return false;
 
     //go thru all the vars
     for (var i = 0; i < a1.length; i++) {
@@ -223,7 +223,7 @@ function __arrayEquals(a1, a2, equalsFn) {
             if (equalsFn) {
                 if (!equalsFn(a1[i], a2[i])) return false;
             } else {
-                if (a1[i] != a2[i]) return false;
+                if (a1[i] !== a2[i]) return false;
             }
         }
     }
@@ -339,10 +339,10 @@ function __durationToSeconds(duration) {
         // remove letters, replace by 0 if not defined
         digit = digit ? +digit.replace(/[A-Za-z]+/g, '') : 0;
         seconds += digit * factors[i];
-    };
+    }
     return seconds;
 
-};
+}
     
 // is functions 
 
@@ -412,7 +412,7 @@ function __formatString(string) {
     return string.replace(pattern, function (match, index) {
         return args[index];
     });
-};
+}
 
 // end of string functions
 

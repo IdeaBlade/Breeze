@@ -218,15 +218,12 @@ var EntityKey = (function () {
     @param keyValues {value|Array of values} A single value or an array of values.
     **&#x2F;
     var ctor = function (entityType, keyValues) {
-        &#x2F;&#x2F; can&#x27;t ref EntityType here because of module circularity
-        &#x2F;&#x2F; assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
+        
+        assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
-        &#x2F;&#x2F; fluff
-        &#x2F;&#x2F;if (!(this instanceof ctor)) {
-        &#x2F;&#x2F;    return new ctor(entityType, keyValues);
-        &#x2F;&#x2F;}
+        
         this.entityType = entityType;
         this.values = keyValues;
         this._keyInGroup = createKeyString(keyValues);
@@ -245,7 +242,7 @@ var EntityKey = (function () {
     An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.
 
     __readOnly__
-    @property values [Array} 
+    @property values {Array} 
     **&#x2F;
 
     proto.toJSON = function () {

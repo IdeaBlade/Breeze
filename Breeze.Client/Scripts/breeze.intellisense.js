@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Apr 25 2013 17:38:50 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Thu May 02 2013 01:44:34 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1024,8 +1024,8 @@ intellisense.annotate(breeze.breeze.EntityKey.prototype, {
   /// <field name="entityType" type="breeze.breeze.EntityType" >The 'EntityType' that this is a key for. </field>
   'entityType': null,
   
-  /// <field name="values [Array}" type="" >An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.</field>
-  'values [Array}': null,
+  /// <field name="values" type="Array" >An array of the values for this key. This will usually only have a single element, unless the entity type has a multipart key.</field>
+  'values': null,
   
 });
 intellisense.annotate(breeze.breeze.EntityKey, {
@@ -2272,7 +2272,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added 
     ///   to the EntityManager.
     ///   </summary>
-    ///   <param name="typeName" type="String" optional="true">The name of the type for which an instance should be created.</param>
+    ///   <param name="entityType" type="String|EntityType" optional="true">The EntityType or the name of the type for which an instance should be created.</param>
     ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <returns type="Entity" >A new Entity of the specified type.</returns>

@@ -234,7 +234,8 @@ var MetadataStore = (function () {
         this._structuralTypeMap = {}; &#x2F;&#x2F; key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
         this._shortNameMap = {}; &#x2F;&#x2F; key is shortName, value is qualified name - does not need to be serialized.
         this._ctorRegistry = {}; &#x2F;&#x2F; key is either short or qual type name - value is ctor;
-        this._incompleteTypeMap = {}; &#x2F;&#x2F; key is entityTypeName; value is map where key is assocName and value is navProp
+        this._incompleteTypeMap = {}; &#x2F;&#x2F; key is entityTypeName; value is array of nav props
+        this._incompleteComplexTypeMap = {}; &#x2F;&#x2F; key is complexTypeName; value is array of complexType props
         this._id = __id++;
     };
     var proto = ctor.prototype;
@@ -293,19 +294,23 @@ var MetadataStore = (function () {
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
         }
-        structuralType._fixup();
-                                  
+
+        
         structuralType.getProperties().forEach(function (property) {
+            structuralType._updateProperty(property);
             if (!property.isUnmapped) {
                 structuralType._mappedPropertiesCount++;
             }
         });
 
+        structuralType._updateCps();
+
         if (!structuralType.isComplexType) {
+            structuralType._updateNps();
             structuralType.defaultResourceName &amp;&amp; this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
             &#x2F;&#x2F; check if this structural type&#x27;s name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
-        }
+        } 
 
         if (structuralType.baseEntityType) {
             structuralType.baseEntityType.subtypes.push(structuralType);
@@ -630,6 +635,22 @@ var MetadataStore = (function () {
         return this._getEntityType(structuralTypeName, okIfNotFound);
     };
 
+    proto._getEntityType = function(typeName, okIfNotFound) {
+        var qualTypeName = getQualifiedTypeName(this, typeName, false);
+        var type = this._structuralTypeMap[qualTypeName];
+        if (!type) {
+            if (okIfNotFound) return null;
+            var msg = __formatString(&quot;Unable to locate a &#x27;Type&#x27; by the name: &#x27;%1&#x27;. Be sure to execute a query or call fetchMetadata first.&quot;, typeName)
+            throw new Error(msg);
+            
+        }
+        if (type.length) {
+            var typeNames = type.join(&quot;,&quot;);
+            throw new Error(&quot;There are multiple types with this &#x27;shortName&#x27;: &quot; + typeNames);
+        }
+        return type;
+    };
+
     &#x2F;**
     Returns an array containing all of the  {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}}s or {{#crossLink &quot;ComplexType&quot;}}{{&#x2F;crossLink}}s in this MetadataStore.
     @example
@@ -642,39 +663,9 @@ var MetadataStore = (function () {
         return getTypesFromMap(this._structuralTypeMap);
     };
 
-    proto._getEntityType = function(typeName, okIfNotFound) {
-        var qualTypeName = getQualifiedTypeName(this, typeName, false);
-        var type = this._structuralTypeMap[qualTypeName];
-        if (!type) {
-            if (okIfNotFound) return null;
-            throw new Error(&quot;Unable to locate a &#x27;Type&#x27; by the name: &quot; + typeName);
-        }
-        if (type.length) {
-            var typeNames = type.join(&quot;,&quot;);
-            throw new Error(&quot;There are multiple types with this &#x27;shortName&#x27;: &quot; + typeNames);
-        }
-        return type;
-    };
-               
-    function getTypesFromMap(typeMap) {
-        var types = [];
-        for (var key in typeMap) {
-            var value = typeMap[key];
-            &#x2F;&#x2F; skip &#x27;shortName&#x27; entries
-            if (key === value.name) {
-                types.push(typeMap[key]);
-            }
-        }
-        return types;
-    }
-
-    proto.getIncompleteNavigationProperties = function() {
-        return __objectMapToArray(this._structuralTypeMap, function (key, value) {
-            if (value instanceof ComplexType) return undefined;
-            var badProps = value.navigationProperties.filter(function(np) {
-                return !np.entityType;
-            });
-            return badProps.length === 0 ? undefined : badProps;
+    proto.getIncompleteNavigationProperties = function () {
+        return __objectMapToArray(this._incompleteTypeMap, function (key, value) {
+            return value;
         });
     };
 
@@ -741,6 +732,18 @@ var MetadataStore = (function () {
         }
     };
 
+    function getTypesFromMap(typeMap) {
+        var types = [];
+        for (var key in typeMap) {
+            var value = typeMap[key];
+            &#x2F;&#x2F; skip &#x27;shortName&#x27; entries
+            if (key === value.name) {
+                types.push(typeMap[key]);
+            }
+        }
+        return types;
+    }
+
     function structuralTypeFromJson(metadataStore, json) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
         var stype = metadataStore._getEntityType(typeName, true);
@@ -758,16 +761,12 @@ var MetadataStore = (function () {
         &#x2F;&#x2F; baseType may not have been imported yet so we need to defer handling this type until later.
         if (json.baseTypeName) {
             stype.baseTypeName = json.baseTypeName;
-            var baseEntityType = metadataStore.getEntityType(json.baseTypeName);
+            var baseEntityType = metadataStore._getEntityType(json.baseTypeName);
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                var deferrals = metadataStore._deferredTypes[baseTypeName];
-                if (!deferrals) {
-                    deferrals = [];
-                    metadataStore._deferredTypes[baseTypeName] = deferrals;
-                }
-                deferrals.push({ json: json, stype: stype });
+                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
@@ -894,7 +893,7 @@ var CsdlMetadataParser = (function () {
         if (csdlEntityType.baseType) {
             var baseTypeName = parseTypeName(csdlEntityType.baseType, schema).typeName;
             entityType.baseTypeName = baseTypeName;
-            var baseEntityType = metadataStore.getEntityType(baseTypeName);
+            var baseEntityType = metadataStore._getEntityType(baseTypeName, true);
             if (baseEntityType) {
                 completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType);
             } else {
@@ -949,7 +948,7 @@ var CsdlMetadataParser = (function () {
         var deferrals = deferredTypes[entityType.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, entityType)
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType)
             });
             delete deferredTypes[entityType.name];
         }
@@ -1135,7 +1134,7 @@ var CsdlMetadataParser = (function () {
     &#x2F;&#x2F; Fast version
     &#x2F;&#x2F; np: schema.entityType[].navigationProperty.relationship -&gt; schema.association
     &#x2F;&#x2F;   match( shortName(np.relationship) == schema.association[].name
-    &#x2F;&#x2F;      --&gt; association
+    &#x2F;&#x2F;      --&gt; association__
 
     &#x2F;&#x2F; Correct version
     &#x2F;&#x2F; np: schema.entityType[].navigationProperty.relationship -&gt; schema.association
@@ -1450,7 +1449,7 @@ var EntityType = (function () {
     **&#x2F;
     proto.isSubtypeOf = function (entityType) {
         assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
-        baseType = this;
+        var baseType = this;
         do {
             if (baseType === entityType) return true;
             baseType = baseType.baseEntityType;
@@ -1466,7 +1465,7 @@ var EntityType = (function () {
     proto.getSelfAndSubtypes = function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
-            subtypes = st.getSelfAndSubtypes();
+            var subtypes = st.getSelfAndSubtypes();
             result.push.apply(result, subtypes )
         })
         return result;
@@ -1520,7 +1519,7 @@ var EntityType = (function () {
         var instance = this._createEntityCore();
             
         if (initialValues) {
-            __objectForEach(initialValues, function(key, value) {
+            __objectForEach(initialValues, function (key, value) {
                 instance.setProperty(key, value);
             });
         }
@@ -1545,7 +1544,7 @@ var EntityType = (function () {
         if (this._ctor &amp;&amp; !forceRefresh) return this._ctor;
         var ctorRegistry = this.metadataStore._ctorRegistry;
         var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
-        aCtor = r.ctor || this._ctor;
+        var aCtor = r.ctor || this._ctor;
         
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
@@ -1786,32 +1785,24 @@ var EntityType = (function () {
             }
             property.name = clientName;
         } else {
-            clientName = property.name;
-            serverName = nc.clientPropertyNameToServer(clientName, property);
-            testName = nc.serverPropertyNameToClient(serverName, property);
-            if (clientName !== testName) {
-                throw new Error(&quot;NamingConvention for this client property name does not roundtrip properly:&quot; + clientName + &quot;--&gt;&quot; + testName);
+            if (!property.isUnmapped) {
+                clientName = property.name;
+                serverName = nc.clientPropertyNameToServer(clientName, property);
+                testName = nc.serverPropertyNameToClient(serverName, property);
+                if (clientName !== testName) {
+                    throw new Error(&quot;NamingConvention for this client property name does not roundtrip properly:&quot; + clientName + &quot;--&gt;&quot; + testName);
+                }
+                property.nameOnServer = serverName;
             }
-            property.nameOnServer = serverName;
         }
             
-        if (property.isComplexProperty) {
-            &#x2F;&#x2F; Not ok to not find it. - all complex types should be resolved before they are ref&#x27;d.
-            var targetComplexType = this.metadataStore._getEntityType(property.complexTypeName, false);
-            if (targetComplexType &amp;&amp; targetComplexType instanceof ComplexType) {
-                property.dataType = targetComplexType;
-                property.defaultValue = null;
-            } else {
-                throw new Error(&quot;Unable to resolve ComplexType with the name: &quot; + property.complexTypeName + &quot; for the property: &quot; + property.name);
-            }
-        } else if (property.isNavigationProperty) {
+        
+        if (property.isNavigationProperty) {
             &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
             resolveFks(property);
-            &#x2F;&#x2F; Tries to set - these two may get set later
+            &#x2F;&#x2F; these two will get set later via _updateNps
             &#x2F;&#x2F; this.inverse
             &#x2F;&#x2F; this.entityType
-            updateCrossEntityRelationship(property);
-                
         }
     };
 
@@ -1862,14 +1853,63 @@ var EntityType = (function () {
         }
     };
 
-    proto._fixup = function () {
-        var that = this;
-        this.getProperties().forEach(function (property) {
-            that._updateProperty(property);
+    proto._updateCps = function () {
+        var metadataStore = this.metadataStore;
+        var incompleteMap = metadataStore._incompleteComplexTypeMap;
+        this.complexProperties.forEach(function (cp) {
+            if (cp.complexType) return;
+            if (!resolveCp(cp, metadataStore)) {
+                __getArray(incompleteMap, cp.complexTypeName).push(cp);
+            }
         });
-        updateIncomplete(this, true);
+
+        if (this.isComplexType) {
+            (incompleteMap[this.name] || []).forEach(function (cp) {
+                resolveCp(cp, metadataStore);
+            });
+            delete incompleteMap[this.name];
+        }
     };
-    
+
+    function resolveCp(cp, metadataStore) {
+        var complexType = metadataStore._getEntityType(cp.complexTypeName, true);
+        if (!complexType) return false;
+        if (!(complexType instanceof ComplexType)) {
+            throw new Error(&quot;Unable to resolve ComplexType with the name: &quot; + cp.complexTypeName + &quot; for the property: &quot; + property.name);
+        }
+        cp.dataType = complexType;
+        cp.defaultValue = null;
+        return true;
+    }
+
+    proto._updateNps = function () {
+        var metadataStore = this.metadataStore;
+        var incompleteMap = metadataStore._incompleteTypeMap;
+        this.navigationProperties.forEach(function (np) {
+            if (np.entityType) return;
+            if (!resolveNp(np, metadataStore)) {
+                __getArray(incompleteMap, np.entityTypeName).push(np);
+            }
+        });
+
+        (incompleteMap[this.name] || []).forEach(function (np) {
+            resolveNp(np, metadataStore);
+        });
+        delete incompleteMap[this.name];
+    }
+
+    function resolveNp(np, metadataStore) {
+        var entityType = metadataStore._getEntityType(np.entityTypeName, true);
+        if (!entityType) return false;
+        np.entityType = entityType;
+        var invNps = entityType.navigationProperties.filter(function (altNp) {
+            return altNp.associationName === np.associationName
+                &amp;&amp; altNp !== np;
+        });
+        np.inverse = (invNps.length &gt; 0) ? invNps[0] : null;
+        return true;
+    }
+   
     function resolveFks(np) {
         if (np.foreignKeyProperties) return;
         var fkProps = getFkProps(np);
@@ -1886,8 +1926,6 @@ var EntityType = (function () {
             }
         });
     };
-
-
 
     &#x2F;&#x2F; returns null if can&#x27;t yet finish
     function getFkProps(np) {
@@ -1918,96 +1956,7 @@ var EntityType = (function () {
             return null;
         }
     }
-    
-    function updateIncomplete(entityType) {
-        var incompleteTypeMap = entityType.metadataStore._incompleteTypeMap;
-        var assocMap = incompleteTypeMap[entityType.name];
-
-        assocMap &amp;&amp; __objectForEach(assocMap, function(assocName, np) {
-            if (np.entityTypeName === entityType.name) {
-                np.entityType = entityType;
-                deleteIncomplete(incompleteTypeMap, entityType.name, assocName);
-                
-                var altAssocMap = incompleteTypeMap[np.parentType.name];
-                altAssocMap &amp;&amp; __objectForEach(altAssocMap, function(altAssocName, altNp) {
-                    if (altAssocName === assocName) {
-                        deleteIncomplete(incompleteTypeMap, np.parentType.name, assocName);
-                    }
-                });
-            }
-        });
-    }
-
-    function updateCrossEntityRelationship(np) {
-        var metadataStore = np.parentType.metadataStore;
-        var incompleteTypeMap = metadataStore._incompleteTypeMap;
-
-        &#x2F;&#x2F; ok to not find it yet
-        var targetEntityType = metadataStore._getEntityType(np.entityTypeName, true);
-        if (targetEntityType) {
-            np.entityType = targetEntityType;
-        }
-
-        var assocMap = incompleteTypeMap[np.entityTypeName];
-        if (!assocMap) {
-            addToIncompleteMap(incompleteTypeMap, np);
-        } else {
-            var inverse = assocMap[np.associationName];
-            if (inverse) {
-                removeFromIncompleteMap(incompleteTypeMap, np, inverse);
-            } else {
-                addToIncompleteMap(incompleteTypeMap, np);
-            }
-        }
-    };
-
-    function addToIncompleteMap(incompleteTypeMap, np) {
-        if (!np.entityType) {
-            &#x2F;&#x2F; Fixed based on this: http:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;14329352&#x2F;bad-navigation-property-one-to-zero-or-one-relationship&#x2F;14384399#14384399
-            var assocMap = incompleteTypeMap[np.entityTypeName];
-            if (!assocMap) {
-                assocMap = {};
-                incompleteTypeMap[np.entityTypeName] = assocMap;
-            }
-            assocMap[np.associationName] = np;
-                
-        }
-
-        var altAssocMap = incompleteTypeMap[np.parentType.name];
-        if (!altAssocMap) {
-            altAssocMap = {};
-            incompleteTypeMap[np.parentType.name] = altAssocMap;
-        }
-        altAssocMap[np.associationName] = np;
-    }
-
-    function removeFromIncompleteMap(incompleteTypeMap, np, inverse) {
-        np.inverse = inverse;
-        deleteIncomplete(incompleteTypeMap, np.entityTypeName, np.associationName);
         
-        if (!inverse.inverse) {
-            inverse.inverse = np;
-            &#x2F;&#x2F; not sure if these are needed
-            if (inverse.entityType == null) {
-                inverse.entityType = np.parentType;
-            }
-            deleteIncomplete(incompleteTypeMap, np.parentType.name, np.associationName);
-        }
-    }
-    
-    function deleteIncomplete(incompleteTypeMap, typeName, assocName) {
-        var assocMap = incompleteTypeMap[typeName];
-        if (!assocMap) return null;
-        delete assocMap[assocName];
-        if (__isEmpty(assocMap)) {
-            delete incompleteTypeMap[typeName];
-            return null;
-        } else {
-            return assocMap;
-        }
-    }
-    
-    
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
@@ -2198,6 +2147,7 @@ var ComplexType = (function () {
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
     proto._addDataProperty = EntityType.prototype._addDataProperty;
     proto._updateProperty = EntityType.prototype._updateProperty;
+    proto._updateCps = EntityType.prototype._updateCps;
     &#x2F;&#x2F; note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
     proto._setCtor = EntityType.prototype._setCtor;
@@ -2212,12 +2162,7 @@ var ComplexType = (function () {
         });
     };
        
-    proto._fixup = function () {
-        var that = this;
-        this.dataProperties.forEach(function (property) {
-            that._updateProperty(property);
-        });
-    };
+   
 
     proto._$typeName = &quot;ComplexType&quot;;
 
