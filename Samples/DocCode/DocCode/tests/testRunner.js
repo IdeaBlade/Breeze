@@ -36,6 +36,7 @@ require(["testFns" // always first
     , "exportImportTests"
     , "apiDirectTests"
     , "inheritanceTests"
+    , "dtoTests"
 
 ], function (testFns) {
     $(function() {

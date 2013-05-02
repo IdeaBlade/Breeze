@@ -40,6 +40,9 @@ define(["breeze"], function (breeze) {
         getNextIntId: getNextIntId,
         getNewGuidId: getNewGuidId,
         
+        getParserForUrl: getParserForUrl,
+        rootUri: getRootUri(),
+        
         assertIsSorted: assertIsSorted,
         getValidationErrMsgs: getValidationErrMsgs,
         morphString: morphString,
@@ -70,7 +73,24 @@ define(["breeze"], function (breeze) {
     return testFns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
-
+    function getParserForUrl(url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        return parser;
+        // See https://developer.mozilla.org/en-US/docs/DOM/HTMLAnchorElement
+        //parser.href = "http://example.com:3000/pathname/?search=test#hash";
+        //parser.protocol; // => "http:"
+        //parser.hostname; // => "example.com"
+        //parser.port;     // => "3000"
+        //parser.pathname; // => "/pathname/"
+        //parser.search;   // => "?search=test"
+        //parser.hash;     // => "#hash"
+        //parser.host;     // => "example.com:3000"
+    }
+    function getRootUri() {
+        var parser = getParserForUrl(document.documentUri);
+        return parser.protocol + "//" + parser.host + "/";
+    }
     /*******************************************************
     * String extensions
     * Monkey punching JavaScript native String class
@@ -443,7 +463,7 @@ define(["breeze"], function (breeze) {
         var results = (limit) ? data.results.slice(0, limit) : data.results;
         var out = results.map(function (c) {
             return "({0}) {1} in {2}, {3}".format(
-                c.CustomerID_OLD(), c.CompanyName(), c.City(), (c.Region() || "null"));
+                c.CustomerID(), c.CompanyName(), c.City(), (c.Region() || "null"));
         });
         if (count > out.length) { out.push("..."); }
         return out;
