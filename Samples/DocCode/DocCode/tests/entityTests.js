@@ -204,16 +204,17 @@ define(["testFns"], function (testFns) {
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity(); // created but not attached
-        employee.EmployeeID(1);
-        employee.LastName("Smith"); // initial value before attached
+        // created but not attached
+        var employee = empType.createEntity({ EmployeeID: 1 }); 
+
+        employee.LastName("Smith"); // set value before attached
         employee.LastName("Jones"); // change value before attaching 
 
         var origValuePropNames = getOriginalValuesPropertyNames(employee);
         equal(origValuePropNames.length, 0,
-            "No original values tracked for detached entity.");
+            "No original values tracked for a detached entity.");
         
-        // Attach as "Unchanged". 
+        // attach as Unchanged. 
         em.attachEntity(employee);
 
         employee.LastName("Black"); // should be tracking original value
@@ -243,13 +244,13 @@ define(["testFns"], function (testFns) {
         function () {
 
             var em = newEm(); // new empty EntityManager
-            var empType = em.metadataStore.getEntityType("Employee");
 
-            var employee = empType.createEntity();
-            employee.EmployeeID(1);
-            employee.LastName("Jones");
-            em.attachEntity(employee);// Attach as "Unchanged". 
-            employee.LastName("Black"); // should be tracking original value
+            var employee = em.createEntity('Employee',{
+                EmployeeID: 1, LastName: "Jones"
+            }, breeze.EntityState.Unchanged); // attach as Unchanged. 
+
+            // After next change, should be tracking original value, 'Jones'
+            employee.LastName("Black"); 
 
             var originalValues1 = employee.entityAspect.originalValues;
             
@@ -272,11 +273,10 @@ define(["testFns"], function (testFns) {
     test("Setting an entity property value to itself doesn't trigger entityState change", 1,
         function () {
             var em = newEm();
-
-            var employeeType = em.metadataStore.getEntityType("Employee");
-            var employee = employeeType.createEntity();
-            employee.EmployeeID(1);
-            em.attachEntity(employee);
+            
+            var employee = em.createEntity('Employee', {
+                    EmployeeID: 1, FirstName: "Bob"
+                }, breeze.EntityState.Unchanged); // attach as Unchanged.
 
             employee.FirstName(employee.FirstName());
 
@@ -293,19 +293,20 @@ define(["testFns"], function (testFns) {
         function () {
             var em = newEm();
 
-            var employeeType = em.metadataStore.getEntityType("Employee");
-            var employee1 = employeeType.createEntity();
-            employee1.EmployeeID(1);
-            em.attachEntity(employee1);
-        
-            var employee2 = employeeType.createEntity();
-            employee2.EmployeeID(2);
-            em.attachEntity(employee2);
-        
+            var employee1 = em.createEntity('Employee', {
+                EmployeeID: 1, FirstName: "Bob"
+            }, breeze.EntityState.Unchanged); // attach as Unchanged.
+            
+            var employee2 = em.createEntity('Employee', {
+                EmployeeID: 2, FirstName: "Sally"
+            }, breeze.EntityState.Unchanged); // attach as Unchanged.
+                    
             var orderType = em.metadataStore.getEntityType("Order");     
             var order = orderType.createEntity();
             order.EmployeeID(42);
-            order.Employee(employee1);// pulls order into Employee's manager
+            order.Employee(employee1);
+            
+            // Setting navigation property pulled the order into Employee's manager
             order.entityAspect.setUnchanged();
 
             order.Employee(employee2);
@@ -427,11 +428,9 @@ define(["testFns"], function (testFns) {
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity();
-        employee.EmployeeID(1);
-        employee.LastName("Jones");
-
-        em.attachEntity(employee); // attach as Unchanged
+        var employee = em.createEntity('Employee', {
+            EmployeeID: 1, LastName: "Jones"
+        }, breeze.EntityState.Unchanged); // attach as Unchanged.
 
         var changedName = "Black";
         employee.LastName(changedName);
@@ -585,7 +584,7 @@ define(["testFns"], function (testFns) {
             var employee = empType.createEntity();
             employee.EmployeeID(1);
             employee.LastName("Jones");
-            em.attachEntity(employee);// Attach as "Unchanged". 
+            em.attachEntity(employee);// attach as Unchanged. 
             employee.LastName("Black"); // should be tracking original value
 
             // Hold onto propertyNames that changed before calling rejectChanges
