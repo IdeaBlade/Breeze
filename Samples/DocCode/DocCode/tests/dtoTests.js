@@ -40,13 +40,14 @@ define(["testFns"], function (testFns) {
     
     //#region Foo queries  
     function newFooEm() {
-        return new breeze.EntityManager({ dataService: rootDataService });
+        var ds = rootDataService.using( {serviceName: "api"});
+        return new breeze.EntityManager({ dataService: ds });
     }
     /*********************************************************
     * can query an arbitrary object from a vanilla Web API controller
     *********************************************************/
     asyncTest("can query all Foos from a vanilla Web API controller", 1, function () {
-        newFooEm().executeQuery("api/foos")
+        newFooEm().executeQuery("foos")
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
@@ -55,7 +56,7 @@ define(["testFns"], function (testFns) {
         }
     });
     asyncTest("can filter Foos from a vanilla Web API controller", 2, function () {
-        newFooEm().executeQuery("api/foos/?$filter=ID le 3")
+        newFooEm().executeQuery("foos/?$filter=ID le 3")
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
@@ -66,7 +67,7 @@ define(["testFns"], function (testFns) {
         }
     });
     asyncTest("can get a Foo by ID from a vanilla Web API controller", 2, function () {
-        newFooEm().executeQuery("api/foos/1")
+        newFooEm().executeQuery("foos/1")
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
