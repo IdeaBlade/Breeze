@@ -1502,12 +1502,8 @@ var EntityManager = (function () {
             var newTempKeyValue;
             if (entityState.isAdded()) {
                 newTempKeyValue = tempKeyMap[entityKey.toString()];
-                if (newTempKeyValue === undefined) {
-                    // merge added records with non temp keys
-                    targetEntity = entityGroup.findEntityByKey(entityKey);
-                } else {
-                    targetEntity = null;
-                }
+                // merge added records with non temp keys
+                targetEntity = (newTempKeyValue === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
             } else {
                 targetEntity = entityGroup.findEntityByKey(entityKey);
             }
@@ -1516,11 +1512,8 @@ var EntityManager = (function () {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
                     dataProperties.forEach(function (dp, ix) {
-                        if (dp.dataType.isDate) {
-                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
-                        } else {
-                            targetEntity.setProperty(dp.name, rawEntity[ix]);
-                        }
+                        var val = parseValueForDp(rawEntity[ix], dp);
+                        targetEntity.setProperty(dp.name, val);
                     });
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
@@ -1538,11 +1531,8 @@ var EntityManager = (function () {
             } else {
                 targetEntity = entityType._createEntityCore();
                 dataProperties.forEach(function (dp, ix) {
-                    if (dp.dataType.isDate) {
-                        targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
-                    } else {
-                        targetEntity.setProperty(dp.name, rawEntity[ix]);
-                    }
+                    var val = parseValueForDp(rawEntity[ix], dp);
+                    targetEntity.setProperty(dp.name, val);
                 });
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
@@ -1765,7 +1755,7 @@ var EntityManager = (function () {
                             fn();
                         });
                     }
-                    return { results: results, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
+                    return { results: results, query: query, entityManager: em, XHR: data.XHR, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
             }).fail(function (e) {
@@ -1977,10 +1967,13 @@ var EntityManager = (function () {
 
     function getPropertyFromRawEntity(rawEntity, dp) {
         var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
-        var val = rawEntity[propName];
+        return parseValueForDp(rawEntity[propName], dp);
+    }
+    
+    function parseValueForDp(val, dp) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
         // in a jsonResultsAdapter ( an unusual use case).
-        if (val === undefined) return;
+        if (val === undefined) return undefined;
         if (dp.dataType.isDate && val) {
             if (!__isDate(val)) {
                 val = DataType.parseDateFromServer(val);
