@@ -1812,7 +1812,7 @@ var EntityManager = (function () {
                 mappingContext.refMap[meta.nodeId] = node;
             }
                 
-            if (typeof node === 'object') {
+            if (typeof node === 'object' && !__isDate(node)) {
                 return processAnonType(node, mappingContext);
             } else {
                 return node;

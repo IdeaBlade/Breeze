@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildDb", "BuildDb.csproj", "{15D2E31B-13CA-40CB-83BE-333262EE8BCD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C47036A7-A8DF-4E58-9EBA-0FC6FBD0205F}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_NorthwindIB_EDMX_2012", "..\..\Model_NorthwindIB_EDMX_2012\Model_NorthwindIB_EDMX_2012.csproj", "{DEADB93B-F375-42B7-B41C-9D02D3199E77}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		OData-debug|Any CPU = OData-debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.OData-debug|Any CPU.ActiveCfg = Release|Any CPU
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.OData-debug|Any CPU.Build.0 = Release|Any CPU
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15D2E31B-13CA-40CB-83BE-333262EE8BCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.OData-debug|Any CPU.ActiveCfg = OData-debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.OData-debug|Any CPU.Build.0 = OData-debug|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEADB93B-F375-42B7-B41C-9D02D3199E77}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

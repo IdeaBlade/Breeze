@@ -804,7 +804,11 @@ var Param = (function () {
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
             if (!allowUnknownProperty) delete clone[p.name];
-            p.check();
+            try {
+                p.check();
+            } catch(e) {
+                throwConfigError(instance, e.message);
+            }
             (!checkOnly) && p._applyOne(instance);
         });
         // should be no properties left in the clone
@@ -812,11 +816,15 @@ var Param = (function () {
             for (var key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throw new Error(__formatString("Unknown property '%1' found while configuring an instance of '%2'.", key, (instance && instance._$typeName) || "object"));
+                    throwConfigError(instance, __formatString("Unknown property: '%1'.", key));
                 }
             }
         }
     };
+    
+    function throwConfigError(instance, message) {
+        throw new Error(__formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
+    }
 
     proto._applyOne = function(instance) {
         if (this.v !== undefined) {
@@ -12138,7 +12146,7 @@ var EntityManager = (function () {
                 mappingContext.refMap[meta.nodeId] = node;
             }
                 
-            if (typeof node === 'object') {
+            if (typeof node === 'object' && !__isDate(node)) {
                 return processAnonType(node, mappingContext);
             } else {
                 return node;
