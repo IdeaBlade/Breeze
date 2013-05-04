@@ -31,12 +31,39 @@ namespace BuildDb {
       tableItems.Add(new TableItem("Customer"));
       tableItems.Add(new TableItem("Order"));
       tableItems.Add(new TableItem("Employee"));
+      tableItems.Add(new TableItem("OrderDetail"));
+      tableItems.Add(new TableItem("Product"));
+      tableItems.Add(new TableItem("Region"));
+      tableItems.Add(new TableItem("Supplier"));
+      tableItems.Add(new TableItem("Category", "Categories"));
+      tableItems.Add(new TableItem("Territory", "Territories"));
+      tableItems.Add(new TableItem("EmployeeTerritory", "EmployeeTerritories"));
+      tableItems.Add(new TableItem("User"));
+      tableItems.Add(new TableItem("Role"));
+      tableItems.Add(new TableItem("UserRole"));
+      tableItems.Add(new TableItem("Comment"));
+      // tableItems.Add(new TableItem("InternationalOrder"));
+      // tableItems.Add(new TableItem("PreviousEmployee"));
+      // tableItems.Add(new TableItem("TimeLimit"));
       dc.ConvertTables(tableItems);
       
       dc.UpdateFk("Customers", "CustomerID", "Orders", "CustomerID", true);
       dc.UpdateFk("Employees", "EmployeeID", "Orders", "EmployeeID", false);
-      dc.UpdateFk("Employees", "EmployeeID", "Employees", "ReportsToEmployeeID", true);
+      dc.UpdateFk("Employees", "EmployeeID", "Employees", "ReportsToEmployeeID", false);
+      dc.UpdateFk("Employees", "EmployeeID", "EmployeeTerritories", "EmployeeID", true);
+      dc.UpdateFk("Territories", "TerritoryID", "EmployeeTerritories", "TerritoryID", true);
+      dc.UpdateFk("Products", "ProductID", "OrderDetails", "ProductID", true);
+      dc.UpdateFk("Suppliers", "SupplierID", "Products", "SupplierID", true);
+      dc.UpdateFk("Regions", "RegionID", "Territories", "RegionID", true);
+      dc.UpdateFk("Categories", "CategoryID", "Products", "CategoryID", true);
+      dc.UpdateFk("Roles", "Id", "UserRoles", "RoleId", true);
+      dc.UpdateFk("Users", "Id", "UserRoles", "UserId", true);
 
+      dc.ClearOldPk("EmployeeTerritories", "ID");
+      dc.ClearOldPk("UserRoles", "Id");
+
+      
+      dc.MakeChildDoc("Orders", "OrderID", "OrderDetails", "OrderID", "OrderDetails");
     }
 
 

@@ -13,6 +13,7 @@ using MongoDB.Driver.GridFS;
 using MongoDB.Driver.Linq;
 
 using System.Reflection;
+using System.Xml;
 
 namespace BuildDb {
 
@@ -93,24 +94,32 @@ namespace BuildDb {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader.GetDouble(j))));
                 } else if (reader[j].GetType() == typeof (DateTime)) {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader.GetDateTime(j))));
+                } else if (reader[j].GetType() == typeof(DateTimeOffset)) {
+                  var val = reader.GetDateTimeOffset(j).DateTime;
+                  bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(val)));
                 } else if (reader[j].GetType() == typeof (Guid)) {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader.GetGuid(j))));
                 } else if (reader[j].GetType() == typeof (Boolean)) {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader.GetBoolean(j))));
                 } else if (reader[j].GetType() == typeof (DBNull)) {
-                  bson.Add(new BsonElement(reader.GetName(j), BsonNull.Value));
+                  // do nothing
+                  // bson.Add(new BsonElement(reader.GetName(j), BsonNull.Value));
                 } else if (reader[j].GetType() == typeof (Byte)) {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader.GetByte(j))));
                 } else if (reader[j].GetType() == typeof (Byte[])) {
                   bson.Add(new BsonElement(reader.GetName(j), BsonValue.Create(reader[j] as Byte[])));
-                } else
+                } else if (reader[j].GetType() == typeof (TimeSpan)) {
+                  var ts = reader.GetTimeSpan(j);
+                  var val = XmlConvert.ToString(ts);
+                  bson.Add(new BsonElement(reader.GetName(j), val));
+                } else {
                   throw new Exception("Unable to convert: " + reader[j].GetType());
+                }
               }
               bsonlist.Add(bson);
             }
             if (i > 0) {
               using (MongoSvr.RequestStart(MongoDb)) {
-                //MongoCollection<MongoDB.Bson.BsonDocument> 
                 coll = MongoDb.GetCollection<BsonDocument>(collName);
                 coll.InsertBatch(bsonlist);
                 bsonlist.RemoveRange(0, bsonlist.Count);
@@ -125,27 +134,50 @@ namespace BuildDb {
     public void UpdateFk(String parentCollectionName, String parentPkName, String childCollectionName, String childFkName, bool clearParentPk) {
       var parents = MongoDb.GetCollection(parentCollectionName);
       var children = MongoDb.GetCollection(childCollectionName);
+      var found = false;
       foreach (var parent in parents.Find(null)) {
+        found = true;
         var key = parent[parentPkName];
         var query = Query.EQ(childFkName, key);
 
-        var update = Update.Set("X_" + childFkName, parent["_id"]);
+        var update = Update.Set(childFkName, parent["_id"]);
         
         var r = children.Update(query, update, UpdateFlags.Multi);
       }
+      if (!found) {
+        throw new Exception("Unable to locate any " + parentCollectionName);
+      }
       if (clearParentPk) {
-        // ClearOldPk(parentCollectionName, parentPkName);
+        ClearOldPk(parentCollectionName, parentPkName);
       }
     }
 
     public void ClearOldPk(String collectionName, String pkName ) {
       var docs = MongoDb.GetCollection(collectionName);
-      var update = new UpdateDocument {
-        { "$rename", new BsonDocument(pkName, "X_" + pkName) }
-        // { "$unset", new BsonDocument(pkName, "") }
-      };
-      
+      var update = Update.Rename(pkName, "X_" + pkName);
       var r = docs.Update(null, update, UpdateFlags.Multi);
+    }
+
+    public void MakeChildDoc(String parentCollectionName, String parentPkName, String childCollectionName,
+                             String childFkName, String parentPropName) {
+      var parents = MongoDb.GetCollection(parentCollectionName);
+      var children = MongoDb.GetCollection(childCollectionName);
+      foreach (var parent in parents.Find(null)) {
+        var key = parent[parentPkName];
+        var childrenQuery = Query.EQ(childFkName, key);
+
+        var childDocs = children.Find(childrenQuery).ToList();
+        childDocs.ForEach(cd => {
+          cd.Remove("_id");
+          cd.Remove(childFkName);
+        });
+        var childArray = new BsonArray(childDocs);
+        var parentQuery = Query.EQ("_id", parent["_id"]);
+        var parentUpdate = Update.Set(parentPropName, childArray);
+        var r = parents.Update(parentQuery, parentUpdate);
+        
+      }
+      ClearOldPk(parentCollectionName, parentPkName);
     }
   }
 }
