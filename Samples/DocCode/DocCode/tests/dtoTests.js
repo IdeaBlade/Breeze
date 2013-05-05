@@ -20,13 +20,16 @@
     var handleFail = testFns.handleFail;
     var reportRejectedPromises = testFns.reportRejectedPromises;
 
-    var rootUri = testFns.rootUri;
-    var rootDataService = new breeze.DataService({
-        serviceName: rootUri,
+    // When targeting the Foo controller 
+    var fooDataService = new breeze.DataService({
+        serviceName: "api",
         hasServerMetadata: false
     });
+    function newFooEm() {
+        return new breeze.EntityManager({ dataService: fooDataService });
+    }
     
-    // Target the Northwind service
+    // Target the Northwind service by default
     var northwindService = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(northwindService);
 
@@ -37,10 +40,7 @@
     module("dtoTests", moduleOptions);
     
     //#region Foo queries  
-    function newFooEm() {
-        var ds = rootDataService.using( {serviceName: "api"});
-        return new breeze.EntityManager({ dataService: ds });
-    }
+
     /*********************************************************
     * can query an arbitrary object from a vanilla Web API controller
     *********************************************************/
