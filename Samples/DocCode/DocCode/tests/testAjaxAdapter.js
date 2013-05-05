@@ -1,4 +1,6 @@
-﻿/**************************************************************
+﻿docCode.TestAjaxAdapter = (function () {
+/**************************************************************
+@class TestAjaxAdapter
  A test 'ajax' adapter class whose instance can monitor a base ajax adapter
  with 'before', 'afterSuccess', 'afterError' methods and 
  synchronously return a canned response for a given request url.
@@ -16,6 +18,7 @@
  After instantiating a test adapter, call its enable() method to enable its injection into the
  base ajax adapter. Call its disable() method to restore the pre-injection behavior.
 
+ @method <ctor> TestAjaxAdapter
  The constructor takes an optional 'config' object and optional 'adaptername'
   
     @param [adapterName] {String} The name of the ajax adapter to hijack. Hijacks the default adapter by default.
@@ -27,7 +30,7 @@
 
     @param [config.defaultResponse] {Object} Response to return if there is no match with the ajax config.url
         @param [config.defaultResponse.data] {Object} Faked JSON data
-        @param [config.defaultResponse.statusText="200 - OK"]: {String} Faked status text
+        @param [config.defaultResponse.statusText="OK"]: {String} Faked status text
         @param [config.defaultResponse.responseText]: {String} Faked XHR.responseText
         @param [config.defaultResponse.status=200]: {Number} Faked XHR.status, the HTTP status Code
         @param [config.defaultResponse.xhr] {Object} Faked XHR object as if returned by base ajax adapter 
@@ -72,39 +75,61 @@
     @return {Boolean} true if the response matches this url
 
  *************************************************************/
-docCode.TestAjaxAdapter = (function() {
+
 
     var TestAjaxAdapter = function (config, adapterName) {
-        this.testAdapterConfig = config;  
-        
-        this.enable = function () { adapter.ajax = fakeAjaxFn; };
 
-        this.disable = function() { adapter.ajax = origAjaxFn; };
-       
-        //#region private variables     
         var adapter = breeze.config.getAdapterInstance("ajax", adapterName);
         if (!adapter) {
             throw new Error("No existing " + adapterName + " ajax adapter to fake.");
         }
-        var fakeAjaxFn = createFakeAjaxFn(this);
         var origAjaxFn = adapter.ajax;
-        //#endregion
+        var getAdapterConfig = createGetAdapterConfigFn(this);
+        var fakeAjaxFn = createFakeAjaxFn(getAdapterConfig, origAjaxFn);
+
+        // public API
+        /**
+        The current configuration for this adapter. See the class description
+        @property testAdapterConfig {Object}
+        **/
+        this.testAdapterConfig = config;
+
+        /**
+        Enable the testAjaxAdapter, replacing the wrapped adapter's ajax fn with the test version
+        @method enable
+        @param [config] {object} Optionally replace the adapter's current configuration
+        **/
+        this.enable = function (config) {
+            if (config) {
+                // overwrite testAdapterConfig
+                this.testAdapterConfig = config;
+            }
+            adapter.ajax = fakeAjaxFn;
+        };
+
+        /**
+        Disable the testAjaxAdapter, restoring the original ajax fn
+        @method disable
+        **/
+        this.disable = function () {
+            adapter.ajax = origAjaxFn;
+        };
+       
     };
 
     return TestAjaxAdapter;
     
     //#region private functions
-    function createFakeAjaxFn(testAdapter) {
+    function createFakeAjaxFn(getAdapterConfig, origAjaxFn) {
 
         return function (origAjaxConfig) {
-            var ajaxConfig = breeze.core.extend({}, origAjaxConfig); // clone config
+            var ajaxConfig = breeze.core.extend({}, origAjaxConfig); // clone Ajax config
 
-            var adapterConfig = getAdapterConfig(testAdapter.testAdapterConfig);
+            var adapterConfig = getAdapterConfig();
 
             var before = adapterConfig.before || noop;
             var afterSuccess = adapterConfig.afterSuccess || noop;
             var afterError = adapterConfig.afterError || noop;
-
 
             // look for a fake response for this url
             // TODO: use regex to match url!
@@ -127,21 +152,24 @@ docCode.TestAjaxAdapter = (function() {
 
             if (!response) {
                 // no applicable fake response; pass thru to original ajax fn
-                this.origAjaxFn(ajaxConfig);
+                origAjaxFn(ajaxConfig);
+                return;
             }
 
             // Using fakeResponse
             var fakeXhr = {
-                statusText: response.statusText || "200 - OK",
+                statusText: response.statusText || "OK",
                 responseText: response.responseText || "",
                 status: response.status || 200
             };
             if (response.xhr) {
                 fakeXhr = breeze.core.extend(xhr, response.xhr);
             }
-            var fakeTextStatus = response.textStatus || fakeXhr.statusText;
 
-            if (response.isError || fakeXhr.status < 200 || fakeXhr.status >= 300) {
+            var isError = response.isError || fakeXhr.status < 200 || fakeXhr.status >= 300;
+            var fakeTextStatus = response.textStatus || (isError ? "Error" : "Success");
+
+            if (isError) {
                 var fakeErrorThrown = response.errorThrown || new Error("fake ajax error");
                 ajaxConfig.error(fakeXhr, fakeTextStatus, fakeErrorThrown);
             } else {
@@ -151,17 +179,21 @@ docCode.TestAjaxAdapter = (function() {
         };
     }
     
-    function getAdapterConfig(adapterConfig) {
-        if (adapterConfig === undefined || adapterConfig === null) {
-            return {};
-        } else if (isArray(adapterConfig)) {
-            // Assume a simple array is a simple adapterConfig specifying
-            // the JSON results to return for any URL
-            return { defaultResponse: { data: adapterConfig } };
-        } else if (isObject(adapterConfig)) {
-            return adapterConfig;
-        } else {
-            throw new Error("TestAdapterConfig must be an object or an array of JSON results");
+    function createGetAdapterConfigFn(testAdapter) {
+
+        return function () {
+            var adapterConfig = testAdapter.testAdapterConfig;
+            if (adapterConfig === undefined || adapterConfig === null) {
+                return {};
+            } else if (isArray(adapterConfig)) {
+                // Assume a simple array is a simple adapterConfig specifying
+                // the JSON results to return for any URL
+                return { defaultResponse: { data: adapterConfig } };
+            } else if (isObject(adapterConfig)) {
+                return adapterConfig;
+            } else {
+                throw new Error("TestAdapterConfig must be an object or an array of JSON results");
+            }
         }
     }
  
@@ -175,7 +207,7 @@ docCode.TestAjaxAdapter = (function() {
     
     function matchResponse(url, responses, urlMatcher) {
         if (!responses || !url) { return null; }
-        if (!breeze.core.isArray(responses)) { responses = [responses]; }
+        if (!isArray(responses)) { responses = [responses]; }
         urlMatcher = urlMatcher || regExUrlMatcher;
 
         for (var i = 0, len = responses.length; i < len; i++) {
