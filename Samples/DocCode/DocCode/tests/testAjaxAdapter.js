@@ -33,6 +33,7 @@
         @param [config.defaultResponse.statusText="OK"]: {String} Faked status text
         @param [config.defaultResponse.responseText]: {String} Faked XHR.responseText
         @param [config.defaultResponse.status=200]: {Number} Faked XHR.status, the HTTP status Code
+        @param [config.defaultResponse.headers] {Object} Faked headers as hash where key=header-name, value=header-value 
         @param [config.defaultResponse.xhr] {Object} Faked XHR object as if returned by base ajax adapter 
         @param [config.defaultResponse.isError] {Boolean} true if should treat this call as an error.
         The test adapter follows the "success path" (calls ajaxConfig.Success) if 'isError' is false and the
@@ -99,10 +100,10 @@
         @method enable
         @param [config] {object} Optionally replace the adapter's current configuration
         **/
-        this.enable = function (config) {
-            if (config) {
+        this.enable = function (adapterConfig) {
+            if (adapterConfig) {
                 // overwrite testAdapterConfig
-                this.testAdapterConfig = config;
+                this.testAdapterConfig = adapterConfig;
             }
             adapter.ajax = fakeAjaxFn;
         };
@@ -160,7 +161,9 @@
             var fakeXhr = {
                 statusText: response.statusText || "OK",
                 responseText: response.responseText || "",
-                status: response.status || 200
+                status: response.status || 200,
+                getResponseHeader: createXhrGetResponseHeader(response),
+                getAllResponseHeaders: createXhrGetAllResponseHeaders(response)
             };
             if (response.xhr) {
                 fakeXhr = breeze.core.extend(xhr, response.xhr);
@@ -181,7 +184,7 @@
     
     function createGetAdapterConfigFn(testAdapter) {
 
-        return function () {
+        return function() {
             var adapterConfig = testAdapter.testAdapterConfig;
             if (adapterConfig === undefined || adapterConfig === null) {
                 return {};
@@ -194,7 +197,7 @@
             } else {
                 throw new Error("TestAdapterConfig must be an object or an array of JSON results");
             }
-        }
+        };
     }
  
     function isArray(thing) {
@@ -225,6 +228,21 @@
         return (new RegExp(pattern)).test(url);
     }
 
+    function createXhrGetResponseHeader(response) {
+        return function (name) {
+            var headerObj = response.headers || {};
+            return headerObj[name] || null;
+        };
+    }
+    
+    function createXhrGetAllResponseHeaders(response) {
+        return function () {
+            var headerObj = response.headers || {};
+            var headers = [];
+            for (var prop in headerObj) { headers.push(headerObj[prop]); }
+            return headers.join("\n");
+        };
+    }
     function noop() { }
     
     //#endregion

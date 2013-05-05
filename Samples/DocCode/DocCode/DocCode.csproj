@@ -137,7 +137,7 @@
   <ItemGroup>
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
-    <Content Include="tests\jsonResultsAdapterTests.js" />
+    <Content Include="tests\testAjaxAdapterTests.js" />
     <Content Include="tests\dtoTests.js" />
     <Content Include="tests\entityExtensionTests.js" />
     <Content Include="tests\entityTests.js" />

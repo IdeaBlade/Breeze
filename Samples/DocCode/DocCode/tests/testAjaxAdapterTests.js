@@ -119,16 +119,13 @@
     asyncTest("can test Northwind customer projection with faked data (no server trip).", function () {
 
         // Now we fake just fake the data
-        testAjaxAdapter.enable({
-            responses: {
-                url: 'Customers',
-                data: [
+        // Use the quick syntax which specifies the successful data result for ALL requests
+        // because this test only makes one request.
+        testAjaxAdapter.enable([
                     { CustomerID: "Not-a-Guid",
                       CompanyName: "Acme" },
                     { CustomerID: "Nor-is-this",
-                      CompanyName: "Beta"}]
-            }
-        });
+                      CompanyName: "Beta"}]);
 
         northwindCustomerTwoPropTest();
 
