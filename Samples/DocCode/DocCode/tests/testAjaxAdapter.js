@@ -45,6 +45,9 @@
     The adapter picks the first response with a matching url pattern.
     @param [config.urlMatcher] {Function} Returns true if a response.url matches the ajax config.url. 
     Default matcher is a RegEx matcher that treats the response.url as a RegExp pattern.
+    @param [config.blockServerRequests=false] {Boolean} Fail immediately if otherwise would attempt to 
+    reach the server as when there are no matching fake responses.
+    Blocked regardless if the adapter's own 'blockServerRequests' is true;
     @param [config.before] {Function} Something to do before the ajax operation begins
     @param [config.afterSuccess] {Function} Something to do after the ajax operation returns a successful result
     @param [config.afterAfter] {Function} Something to do after the ajax operation returns with an error
@@ -115,7 +118,21 @@
         this.disable = function () {
             adapter.ajax = origAjaxFn;
         };
-       
+
+        /**
+        Call the adapter's current ajax function
+        @method ajax
+        @param ajaxConfig {Object} parameter to adapter's ajax method. 
+        See breeze documentation: http://www.breezejs.com/documentation/customizing-ajax
+        **/
+        this.ajax = function (ajaxConfig) { adapter.ajax(ajaxConfig); };
+
+        /**
+        Ensure that the test adapter does not make a server request when enabled.
+        @property blockServerRequests=false {Boolean}
+        **/
+        this.blockServerRequests = false;
+
     };
 
     return TestAjaxAdapter;
@@ -151,9 +168,8 @@
 
             before(origAjaxConfig, response);
 
-            if (!response) {
-                // no applicable fake response; pass thru to original ajax fn
-                origAjaxFn(ajaxConfig);
+            if (!response) { // no applicable fake response                
+                origAjaxFn(ajaxConfig); //pass thru to original ajax fn
                 return;
             }
 
@@ -166,7 +182,7 @@
                 getAllResponseHeaders: createXhrGetAllResponseHeaders(response)
             };
             if (response.xhr) {
-                fakeXhr = breeze.core.extend(xhr, response.xhr);
+                fakeXhr = breeze.core.extend(fakeXhr, response.xhr);
             }
 
             var isError = response.isError || fakeXhr.status < 200 || fakeXhr.status >= 300;
@@ -186,20 +202,33 @@
 
         return function() {
             var adapterConfig = testAdapter.testAdapterConfig;
-            if (adapterConfig === undefined || adapterConfig === null) {
-                return {};
-            } else if (isArray(adapterConfig)) {
+            
+            if (isArray(adapterConfig)) {
                 // Assume a simple array is a simple adapterConfig specifying
                 // the JSON results to return for any URL
-                return { defaultResponse: { data: adapterConfig } };
-            } else if (isObject(adapterConfig)) {
-                return adapterConfig;
-            } else {
+                adapterConfig = { defaultResponse: { data: adapterConfig } };
+            }
+
+            if (adapterConfig === undefined || adapterConfig === null) {
+                adapterConfig = {};
+            } else if (!isObject(adapterConfig)) {
                 throw new Error("TestAdapterConfig must be an object or an array of JSON results");
             }
+
+            if (testAdapter.blockServerRequests || adapterConfig.blockServerRequests) {
+                // Outbound requests are disallowed; ensure a failing defaultResponse
+                var emsg = "Server requests are blocked by configuration";
+                adapterConfig.defaultResponse = adapterConfig.defaultResponse || {
+                    statusText: "Service Unavailable",
+                    responseText: emsg,
+                    status: 503,
+                    errorThrown: new Error(emsg)
+                };
+            }
+            return adapterConfig;
         };
     }
- 
+    
     function isArray(thing) {
         return Object.prototype.toString.call(thing) === "[object Array]";
     }
@@ -243,6 +272,7 @@
             return headers.join("\n");
         };
     }
+
     function noop() { }
     
     //#endregion

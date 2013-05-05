@@ -21,6 +21,7 @@
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
+    var extend = breeze.core.extend;
     var EntityQuery = new breeze.EntityQuery;
     
     var handleFail = testFns.handleFail;
@@ -38,10 +39,121 @@
     
     var northwindService = testFns.northwindServiceName;
     var newNorthwindEm = testFns.newEmFactory(northwindService);
+    /************************** UNIT TESTS *************************/
+    
+    module("TestAjaxAdapter unit tests", {
+        setup: function () {
+            // unit tests should never attempt to reach the server
+            // the blockServerRequests switch ensures that the TestAjaxAdapter
+            // doesn't accidentally go to the server during these module tests
+            testAjaxAdapter.blockServerRequests = true;
+        },
+        teardown: function () {
+            testAjaxAdapter.blockServerRequests = false; // restore default
+            testAjaxAdapter.disable();
+        }
+    });
+
+    // the config.blockServerRequests switch ensures that 
+    // this particular request cannot accidentally go to the server
+    // even if the test adapter would allow it otherwise.
+    test("server requests are blocked for THIS module's tests by default.", 1, function () {
+        testAjaxAdapter.enable();
+        
+        var ajaxConfig = makeAjaxConfig({ success: success, error: error });
+
+        testAjaxAdapter.ajax(ajaxConfig);
+
+        function success(data, textStatus, xhr) {
+            ok(false, "request should have been blocked and failed");
+        }
+        function error(xhr, textStatus, errorThrown) {
+            ok(/server requests are blocked/i.test(xhr.responseText),
+                "blocked trip to server; error was {0}-{1}: '{2}'".format(
+                xhr.status, xhr.statusText, errorThrown.message));
+        }
+    });
+    
+    // the config.blockServerRequests switch ensures that 
+    // this particular request cannot accidentally go to the server
+    // even if the test adapter would allow it otherwise.
+    test("can block trip to server at request level.", 1, function () {
+        
+        // re-enable server requests for the adapter
+        testAjaxAdapter.blockServerRequests = false;
+        
+        // but block them for this request
+        testAjaxAdapter.enable({ blockServerRequests: true });
+
+        var ajaxConfig = makeAjaxConfig({ success: success, error: error });
+
+        testAjaxAdapter.ajax(ajaxConfig);
+
+        function success(data, textStatus, xhr) {
+            ok(false, "request should have been blocked and failed");
+        }
+        function error(xhr, textStatus, errorThrown) {
+            ok(/server requests are blocked/i.test(xhr.responseText),
+                "blocked trip to server; error was {0}-{1}: '{2}'".format(
+                xhr.status, xhr.statusText, errorThrown.message));
+        }
+    });
+    
+    test("can use JSON array quick syntax to fake an OK data response.", 1, function () {
+        var expectedData = [{ id: 1, name: 'Bob', userId: null }];
+               
+        testAjaxAdapter.enable(expectedData); // the quick syntax: just a JSON array
+ 
+        var ajaxConfig = makeAjaxConfig({ success: success });
+
+        testAjaxAdapter.ajax(ajaxConfig);
+
+        function success(data, textStatus, xhr) {
+            deepEqual(data, expectedData,
+                "request should have returned expected data: " +
+                    JSON.stringify(expectedData));
+        }
+    });
+    
+    test("can define a default response for all requests ('OK' example).", 1, function () {
+        var expectedData = [{ id: 2, name: 'Sally', userId: 42 }];
+        
+        var adapterConfig = { defaultResponse: { data: expectedData } };
+        testAjaxAdapter.enable(adapterConfig);
+
+        var ajaxConfig = makeAjaxConfig({ success: success });
+
+        testAjaxAdapter.ajax(ajaxConfig);
+
+        function success(data, textStatus, xhr) {
+            deepEqual(data, expectedData,
+                "request should have returned expected data: " +
+                    JSON.stringify(expectedData));
+        }
+    });
+    
+    test("can specify fake data response for targeted url.", 1, function () {
+        
+        var testUrl = 'http://host.com/api/test';
+        var expectedData = [{ id: 1, name: 'Bob', userId: null }];
+        var response = { url: "api/test", data: expectedData };
+        
+        // register a response for a specific url
+        testAjaxAdapter.enable({responses:[response], blockServerRequests: true});
+
+        var ajaxConfig = makeAjaxConfig({url: testUrl, success: success });
+
+        testAjaxAdapter.ajax(ajaxConfig);
+
+        function success(data, textStatus, xhr) {
+            deepEqual(data, expectedData,
+                "request should have returned expected data.");
+        }
+    });
 
     /************************** QUERIES *************************/
 
-    module("TestAjaxAdapter tests", {
+    module("TestAjaxAdapter query tests", {
         setup: function() {
             testFns.populateMetadataStore(newNorthwindEm);
         },
@@ -218,8 +330,40 @@
             Phone: "(071) 23 67 22 20",
             Fax: "(071) 23 67 22 21"
         }];
+ 
+    asyncTest("can block trip to server.", 1, function () {
+
+        testAjaxAdapter.enable({ blockServerRequests: true });
+
+        newTestEm().executeQuery("Todos")
+            .then(success).fail(expectedFail).fin(start);
+
+        function success(data) {
+            ok(false, "query should have been blocked and failed");
+        }
+        function expectedFail(error) {
+            ok(/server requests are blocked/i.test(error.responseText),
+                "blocked trip to server; error was {0}-{1}: '{2}'.".format(
+                error.status, error.message, error.responseText));
+        }
+    });
     
     /************************** TEST HELPERS *************************/
+    function makeAjaxConfig(config) {
+        return extend({
+                url: 'http://host.com/api/test',
+                dataType: 'json',
+                method: 'GET',
+                error: unexpectedAjaxAdapterError
+            }, config || {} );
+    };
+    
+    function unexpectedAjaxAdapterError(xhr, textStatus, errorThrown) {
+        ok(false,
+            "ajax adapter returned unexpected error, {0}-{1}: '{2}'".format(
+            xhr.status, xhr.statusText, errorThrown.message));
+    }
+    
     function entitySaveTester(entity, shouldSave) {
         var typeName = entity.entityType.shortName;
         var operation = entity.entityAspect.entityState.name;
