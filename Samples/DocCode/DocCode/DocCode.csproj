@@ -137,6 +137,7 @@
   <ItemGroup>
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
+    <Content Include="tests\saveNorthwindTests.js" />
     <Content Include="tests\testAjaxAdapterTests.js" />
     <Content Include="tests\dtoTests.js" />
     <Content Include="tests\entityExtensionTests.js" />
@@ -148,7 +149,7 @@
     <Content Include="tests\northwindMetadata.js" />
     <Content Include="tests\queryTests.js" />
     <Content Include="tests\saveConcurrentlyTests.js" />
-    <Content Include="tests\saveTodoTests.js" />
+    <Content Include="tests\saveTodosTests.js" />
     <Content Include="tests\testAjaxAdapter.js" />
     <Content Include="tests\testFns.js" />
     <Content Include="tests\northwindTestData.js" />

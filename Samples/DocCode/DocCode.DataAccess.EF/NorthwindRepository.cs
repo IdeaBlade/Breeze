@@ -147,13 +147,17 @@ namespace DocCode.DataAccess
         public string Reset()
         {
             // Delete all additions to the database
-            var deleteSql = "DELETE FROM ORDERDETAIL WHERE ORDERID > " + Order.HighestOriginalID;
+            var deleteSql = "DELETE FROM [ORDERDETAIL] WHERE [ORDERID] > " + Order.HighestOriginalID;
             Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM [ORDER] WHERE ORDERID > " + Order.HighestOriginalID;
+            deleteSql = "DELETE FROM [INTERNATIONALORDER] WHERE [ORDERID] > " + Order.HighestOriginalID;
             Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM EMPLOYEE WHERE EMPLOYEEID > " + Employee.HighestOriginalID;
+            deleteSql = "DELETE FROM [ORDER] WHERE [ORDERID] > " + Order.HighestOriginalID;
             Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM CUSTOMER WHERE CUSTOMERID_OLD IS NULL";
+            deleteSql = "DELETE FROM [EMPLOYEE] WHERE [EMPLOYEEID] > " + Employee.HighestOriginalID;
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            deleteSql = "DELETE FROM [CUSTOMER] WHERE [CUSTOMERID_OLD] IS NULL";
+            Context.Database.ExecuteSqlCommand(deleteSql);
+            deleteSql = "DELETE FROM [USER] WHERE [ID] > " + User.HighestOriginalID;
             Context.Database.ExecuteSqlCommand(deleteSql);
             return "reset";
         }

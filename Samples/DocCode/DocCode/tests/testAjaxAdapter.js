@@ -181,7 +181,7 @@
                 status: response.status || 200,
                 getResponseHeader: createXhrGetResponseHeader(response),
                 getAllResponseHeaders: createXhrGetAllResponseHeaders(response),
-                // diagnostics; not is a real xhr
+                // diagnostics; not in a real xhr
                 __fakeResponse: response,
                 __ajaxConfig: origAjaxConfig
             };

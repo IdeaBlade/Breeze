@@ -481,7 +481,7 @@ namespace Northwind.Models
 
   #region User class
 
-  public class User {
+  public class User : ISaveable {
 
     public long Id { get; set; }
     
@@ -520,6 +520,14 @@ namespace Northwind.Models
     [InverseProperty("User")]
     public ICollection<UserRole> UserRoles { get; set; }
 
+    public static int HighestOriginalID = 19;
+    public string canAdd() { return null; }
+    public string canUpdate()
+    {
+        return Id > HighestOriginalID ?
+            null : " is one of the original Users.";
+    }
+    public string canDelete() { return canUpdate(); }
   }
   #endregion User class
 
@@ -549,6 +557,7 @@ namespace Northwind.Models
   public class InternationalOrder : ISaveable {
 
     [Key]
+    [ForeignKey("Order")]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int OrderID { get; set; }
 
@@ -559,9 +568,9 @@ namespace Northwind.Models
 
     public int RowVersion { get; set; }
     
-    [ForeignKey("OrderID")]
-    [InverseProperty("InternationalOrder")]
-    [Required]
+    //[ForeignKey("OrderID")]
+    //[InverseProperty("InternationalOrder")]
+    //[Required]
     public Order Order { get; set; }
 
     public string canAdd() { return null; }
