@@ -117,5 +117,55 @@ namespace Breeze.Nhibernate.WebApi
             return currentQueryable;
         }
 
+        /// <summary>
+        /// Add the Fetch clauses to the query according to the given expand paths, using the ICriteria API
+        /// </summary>
+        /// <param name="criteria">The query to expand</param>
+        /// <param name="expandPaths">The names of the properties to expand.  May include nested paths of the form "Property/SubProperty"</param>
+        /// <param name="sessionFactory">Provides the NHibernate metadata for the classes</param>
+        /// <param name="expandMap">If provided, will be populated with the names of the expanded properties for each type.</param>
+        /// <returns></returns>
+        public static ICriteria ApplyExpansions(ICriteria criteria, string[] expandPaths, ISessionFactory sessionFactory, IDictionary<Type, List<string>> expandMap = null)
+        {
+            if (criteria == null) throw new ArgumentException("Criteria cannot be null");
+
+            if (!expandPaths.Any()) throw new ArgumentException("Expansion Paths cannot be null");
+
+            foreach (string expand in expandPaths)
+            {
+                // We always start with the resulting element type
+                var currentType = criteria.GetRootEntityTypeIfAvailable();
+                var dotpath = expand.Replace('/', '.');
+                criteria.SetFetchMode(dotpath, FetchMode.Eager);
+                
+                // Add the types and properties to the expandMap so they will be serialized
+                foreach (string seg in expand.Split('/'))
+                {
+                    if (expandMap != null && !expandMap.ContainsKey(currentType))
+                        expandMap.Add(currentType, new List<string>());
+
+                    IClassMetadata metadata = sessionFactory.GetClassMetadata(currentType);
+                    if (metadata == null)
+                    {
+                        throw new ArgumentException("Type '" + currentType + "' not recognized as a valid type for this Context");
+                    }
+
+                    // Gather information about the property
+                    var propInfo = currentType.GetProperty(seg);
+
+                    if (propInfo == null)
+                    {
+                        throw new ArgumentException("Type '" + currentType.Name + "' does not have property '" + seg + "'");
+                    }
+                    if (expandMap != null) expandMap[currentType].Add(seg);
+                    var propType = propInfo.PropertyType;
+
+                    currentType = propType;
+                }
+            }
+
+            return criteria;
+        }
+
     }
 }

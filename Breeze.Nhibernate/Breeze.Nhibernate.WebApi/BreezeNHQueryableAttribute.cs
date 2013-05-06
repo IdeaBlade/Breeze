@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Web;
 
 namespace Breeze.Nhibernate.WebApi
 {
@@ -75,5 +74,70 @@ namespace Breeze.Nhibernate.WebApi
             return NHEagerFetch.ApplyExpansions(queryable, expandPaths, expandMap);
 
         }
+        /* try this later
+        public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
+        {
+            IQueryable result;
+
+            // Execute the query before applying the queryOptions.  
+            // This is because the NH query translator chokes on so many options
+            // TODO find a better way to resolve this.
+            //var provider = queryable.Provider as DefaultQueryProvider;
+            //var exp = queryable.Expression;
+            //var future = provider.ExecuteFuture(exp);
+
+            // NHibernate.OData only understands filter, orderby, skip, and top.
+            var request = queryOptions.Request;
+            var oldUri = request.RequestUri;
+            var map = oldUri.ParseQueryString();
+            var queryString = map.Keys.Cast<String>()
+                    .Where(k => k == "$filter" || k == "$orderby" || k == "$skip" || k == "$top")
+                    .Select(k => k + "=" + map[k])
+                    .ToAggregateString("&");
+            
+            var session = NHEagerFetch.sessionFactory.OpenSession();
+            var type = queryable.ElementType;
+            var criteria = ODataParser.ODataQuery(session, type, queryString);
+
+            var expandMap = new Dictionary<Type, List<string>>();
+            var expandsQueryString = map["$expand"];
+            if (!string.IsNullOrWhiteSpace(expandsQueryString))
+            {
+                string[] expandPaths = expandsQueryString.Split(',').Select(s => s.Trim()).ToArray();
+                criteria = NHEagerFetch.ApplyExpansions(criteria, expandPaths, NHEagerFetch.sessionFactory, expandMap);
+            }
+
+            var selectQueryString = map["$select"];
+            if (!string.IsNullOrWhiteSpace(selectQueryString))
+            {
+                criteria = ApplySelect(criteria, selectQueryString);
+            }
+
+            // Execute the query
+            var criteriaResult = criteria.List();
+
+            result = criteriaResult.AsQueryable();
+
+            // TODO apply any expression that existed on the original queryable
+
+            ConfigureFormatter(request, expandMap);
+
+            return result;
+
+        }
+
+        private ICriteria ApplySelect(ICriteria criteria, string selectQueryString)
+        {
+            var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
+
+            var list = Projections.ProjectionList();
+            foreach (var clause in selectClauses)
+            {
+                list.Add(Projections.Property(clause));
+            }
+            return criteria.SetProjection(list);
+
+        }
+        */
     }
 }
