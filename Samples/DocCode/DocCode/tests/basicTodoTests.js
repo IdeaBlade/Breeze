@@ -1,16 +1,11 @@
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
-
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-
-    var breeze = testFns.breeze;
-
     // Classes we'll need from the Breeze namespaces
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
@@ -718,4 +713,4 @@ define(["testFns"], function (testFns) {
         // no em? no problem. We also stashed the store elsewhere
         return newEm.options.metadataStore;
     }
-});
+})(docCode.testFns);

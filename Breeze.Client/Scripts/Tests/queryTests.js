@@ -28,9 +28,8 @@ define(["testFns"], function (testFns) {
     });
 
     
-
     test("raw query string", function () {
-        em = newEm();
+        var em = newEm();
         stop();
         em.executeQuery("CustomersAndOrders?&$top=3").then(function (data) {
             var custs = data.results;
@@ -453,7 +452,7 @@ define(["testFns"], function (testFns) {
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            ok(r.length > 0);
+            ok(r.length > 0, "should be at least one record where lastName startsWith firstName");
             r.forEach(function (r) {
                 var lastNm = r.getProperty("lastName").toLowerCase();
                 var firstNm = r.getProperty("firstName").toLowerCase();
@@ -465,16 +464,16 @@ define(["testFns"], function (testFns) {
     test("query with two fields & contains literal", function () {
         var em = newEm();
         var q = EntityQuery.from("Employees")
-            .where("lastName", "startsWith", "test")
+            .where("lastName", "startsWith", "Dav")
             .take(20);
         stop();
         em.executeQuery(q).then(function (data) {
             var r = data.results;
-            ok(r.length > 0, "should be some employees named 'test'");
+            ok(r.length > 0, "should be some employees named 'Dav'");
             var isOk = r.every(function (e) {
-                return e.getProperty("lastName").toLowerCase().indexOf("test") >= 0;
+                return e.getProperty("lastName").toLowerCase().indexOf("dav") >= 0;
             });
-            ok(isOk, "lastName should start with 'test'");
+            ok(isOk, "lastName should start with 'Dav'");
         }).fail(testFns.handleFail).fin(start);
     });
     

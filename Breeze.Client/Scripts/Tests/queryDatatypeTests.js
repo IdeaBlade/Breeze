@@ -130,6 +130,28 @@ define(["testFns"], function (testFns) {
 
     });
 
+    test("export/import dateTimeOffset with nulls", function () {
+        var em = newEm();
+        
+        var p1 = Predicate.create("modificationDate", "==", null);
+        var query = EntityQuery.from("TimeLimits").where(p1).take(2);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length == 2, "should be some results");
+            var exportedEntities = em.exportEntities();
+            var em2 = newEm();
+            em2.importEntities(exportedEntities);
+            var tls = em2.getEntities("TimeLimit");
+            var isOk = tls.every(function (tl) {
+                var modDt = tl.getProperty("modificationDate");
+                return modDt == null;
+            });
+            ok(isOk, "import of exported null dateTimeOffsets should succeed");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     
     test("time w/save", function () {
         

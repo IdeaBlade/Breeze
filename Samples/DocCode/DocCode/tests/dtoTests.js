@@ -7,43 +7,41 @@
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
 // ReSharper disable AssignedValueIsNeverUsed
-
-define(["testFns"], function (testFns) {
-
+(function (testFns) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-    var breeze = testFns.breeze;
     var extend = breeze.core.extend;
     var EntityQuery = breeze.EntityQuery;
 
     var waitForTestPromises = testFns.waitForTestPromises;
     var handleFail = testFns.handleFail;
+    var handleSaveFailed = testFns.handleSaveFailed;
     var reportRejectedPromises = testFns.reportRejectedPromises;
 
-    var rootUri = testFns.rootUri;
-    var rootDataService = new breeze.DataService({
-        serviceName: rootUri,
+    // When targeting the Foo controller 
+    var fooDataService = new breeze.DataService({
+        serviceName: "api",
         hasServerMetadata: false
     });
+    function newFooEm() {
+        return new breeze.EntityManager({ dataService: fooDataService });
+    }
     
-    // Target the Northwind service
+    // Target the Northwind service by default
     var northwindService = testFns.northwindServiceName;
-    var newEm = testFns.newEmFactory(northwindService);
+    var newNorthwindEm = testFns.newEmFactory(northwindService);
 
-    var moduleOptions = testFns.getModuleOptions(newEm);
+    var moduleOptions = testFns.getModuleOptions(newNorthwindEm);
 
     /************************** QUERIES *************************/
 
     module("dtoTests", moduleOptions);
     
     //#region Foo queries  
-    function newFooEm() {
-        var ds = rootDataService.using( {serviceName: "api"});
-        return new breeze.EntityManager({ dataService: ds });
-    }
+
     /*********************************************************
     * can query an arbitrary object from a vanilla Web API controller
     *********************************************************/
@@ -83,7 +81,7 @@ define(["testFns"], function (testFns) {
     * can fetch a hash of entities (Lookups)
     *********************************************************/
     asyncTest("can fetch a hash of entities", 6, function () {
-        newEm().executeQuery("Lookups")
+        newNorthwindEm().executeQuery("Lookups")
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
@@ -107,6 +105,17 @@ define(["testFns"], function (testFns) {
         }
     });
     
+
+    /************************** SAVES *************************/
+
+    module("dtoTests - saves", {
+        setup: function () {
+            testFns.populateMetadataStore(newNorthwindEm);
+        },
+        teardown: function() {
+            testFns.northwindReset();
+        }
+    });
     /*********************************************************
     * Northwind save tests: tweek to explore various saves
     * Not part of the official DocCode test suite
@@ -120,7 +129,7 @@ define(["testFns"], function (testFns) {
     //    var typeName = 'Customer';
         
     //    // Create and initialize entity to save
-    //    var em = newEm();
+    //    var em = newNorthwindEm();
     //    var entity = em.createEntity(typeName,
     //        {
     //            CustomerID: "7bf56882-d975-4faf-a794-dda9be357390"                 
@@ -133,7 +142,36 @@ define(["testFns"], function (testFns) {
     //    entitySaveTester(entity, /*shouldSave*/ true);
 
     //});
- 
+    asyncTest("can save a Northwind Order & InternationalOrder", 1, function () {
+        // Create and initialize entity to save
+        var em = newNorthwindEm();
+
+        var order = em.createEntity('Order', {
+            CustomerID: testFns.wellKnownData.alfredsID,
+            EmployeeID: testFns.wellKnownData.nancyID,
+            ShipName: "Test "+ new Date().toISOString()
+        });
+        
+        var internationalOrder = em.createEntity('InternationalOrder', {
+            // I thought Jay fixed this?
+            //Order: order, // sets OrderID and pulls it into the order's manager
+            OrderID: order.OrderID(),
+            CustomsDescription: "rare, exotic birds"
+        });
+
+        em.saveChanges()
+            .then(successfulSave).fail(handleSaveFailed).fin(start);
+        
+        function successfulSave(saveResults) {
+            var orderId = order.orderID();
+            var internationalOrderID = internationalOrder.OrderID();
+                      
+            equal(internationalOrderID, orderId,
+                "the new internationalOrder should have the same OrderID as its new parent Order, "+orderId);
+            ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
+        }
+
+    });
     /************************** TEST HELPERS *************************/
     function entitySaveTester(entity, shouldSave) {
         var typeName = entity.entityType.shortName;
@@ -154,4 +192,4 @@ define(["testFns"], function (testFns) {
         }).fin(start);
     }
 
-});
+})(docCode.testFns);

@@ -1,13 +1,10 @@
 // ReSharper disable InconsistentNaming
-define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
-
+(function (testFns, northwindMetadata) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
-
-    var breeze = testFns.breeze;
     var MetadataStore = breeze.MetadataStore;
 
     var northwindService = testFns.northwindServiceName;
@@ -335,4 +332,4 @@ define(["testFns", "northwindMetadata"], function (testFns, northwindMetadata) {
             metadataStore: metadataStore || moduleMetadataStore
         });
     }
-});
+})(docCode.testFns, docCode.northwindMetadata);

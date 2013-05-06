@@ -209,7 +209,8 @@
         
         name: "webApi_default",
         
-        visitNode: function (node, mappingContext, nodeContext ) {
+        visitNode: function (node, mappingContext, nodeContext) {
+            if (node == null) return {};
             var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
             var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;

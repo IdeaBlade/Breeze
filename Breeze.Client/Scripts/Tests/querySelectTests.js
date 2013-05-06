@@ -25,8 +25,42 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
-    
-    
+
+    test("select - anon with dateTimes", function () {
+        var em = newEm();
+        var jra = new breeze.JsonResultsAdapter({
+            name: "foo",
+
+            visitNode: function (node) {
+                if (node.$id) {
+                    node.CreationDate = breeze.DataType.parseDateFromServer(node.CreationDate);
+                    var dt = breeze.DataType.parseDateFromServer(node.ModificationDate);
+                    if (!isNaN(dt.getTime())) {
+                        node.ModificationDate = dt;
+                    }
+                }   
+            }
+        });
+        var query = new EntityQuery()
+            .from("TimeLimits")
+            .where("creationDate", "!=", null)
+            .select("creationDate, modificationDate")
+            .take(3)
+            .using(jra);
+        
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var anons = data.results;
+            ok(anons.length == 3, "should be three anon results");
+            
+            anons.forEach(function (a) {
+                ok(core.isDate(a.creationDate), "creationDate should be a date");
+                ok(core.isDate(a.modificationDate) || a.modificationDate == null, "modificationDate should be a date or null");
+            });
+        }).fail(testFns.handleFail).fin(start);
+
+    });
    
     test("select - anon simple", function () {
         var em = newEm();
