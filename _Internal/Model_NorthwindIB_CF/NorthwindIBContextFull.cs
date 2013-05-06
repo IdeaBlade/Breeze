@@ -1514,7 +1514,7 @@ namespace Foo {
     /// <summary>Gets or sets the OrderID. </summary>
     [Key]
     [DataMember]
-    // [ForeignKey("Order")]
+    [ForeignKey("Order")]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column("OrderID")]
     // [IbVal.RequiredValueVerifier( ErrorMessageResourceName="InternationalOrder_OrderID")]
@@ -1545,9 +1545,9 @@ namespace Foo {
 
     /// <summary>Gets or sets the Order. </summary>
     [DataMember]
-    [ForeignKey("OrderID")]
-    [InverseProperty("InternationalOrder")]
-    [Required]
+    //[ForeignKey("OrderID")]
+    //[InverseProperty("InternationalOrder")]
+    //[Required]
     public Order Order { get; set; }
 
     #endregion Navigation properties

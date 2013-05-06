@@ -33,6 +33,19 @@ define(["testFns"], function (testFns) {
         return testFns;
     }
 
+    test("with parameter and count", function() {
+        var em = newEm();
+        var q = EntityQuery.from("CustomerCountsByCountry")
+            .withParameters({ companyName: "C" });
+
+        stop();
+        var r;
+        em.executeQuery(q).then(function(data) {
+            r = data.results;
+            ok(r.length > 0, "should be some results");
+        }).fail(testFns.handleFail).fin(start);
+    });
+    
     test("with parameter", function () {
         var em = newEm();
         var q = EntityQuery.from("CustomersStartingWith")
