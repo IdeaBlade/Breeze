@@ -12069,7 +12069,10 @@ var EntityManager = (function () {
                     query = null;
                     mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
-                    if (state.error) deferred.reject(state.error);
+                    // if (state.error) deferred.reject(state.error);
+                    if (state.error) {
+                        Q.reject(state.error);
+                    }
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
@@ -12923,8 +12926,8 @@ breeze.SaveOptions= SaveOptions;
 
         visitNode: function (node, mappingContext, nodeContext) {
             var result = {};
-
-          if (node.__metadata != null) {
+            if (node == null) return result;
+            if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
                 var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
                 var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
@@ -13249,7 +13252,8 @@ breeze.SaveOptions= SaveOptions;
         
         name: "webApi_default",
         
-        visitNode: function (node, mappingContext, nodeContext ) {
+        visitNode: function (node, mappingContext, nodeContext) {
+            if (node == null) return {};
             var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
             var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;

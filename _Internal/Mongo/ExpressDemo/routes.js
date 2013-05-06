@@ -11,7 +11,13 @@ db.open(function () {
 
 exports.get = function (req, res) {
     // res.setHeader('Content-Length', body.length);
-    db.collection('Products', function (err, collection) {
+    var collectionName = req.params.slug;
+
+    db.collection(collectionName, function (err, collection) {
+        if (err) {
+            res.send(400, "Unable to locate: " + collectionName);
+            return;
+        }
         collection.find().toArray(function (err, items) {
             res.setHeader("Content-Type:", "application/json");
             res.send(items);

@@ -1735,7 +1735,10 @@ var EntityManager = (function () {
                     query = null;
                     mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
-                    if (state.error) deferred.reject(state.error);
+                    // if (state.error) deferred.reject(state.error);
+                    if (state.error) {
+                        Q.reject(state.error);
+                    }
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);

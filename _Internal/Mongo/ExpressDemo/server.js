@@ -6,7 +6,7 @@ app.use(logErrors);
 app.use(clientErrorHandler);
 app.use(errorHandler);
 
-app.get('/breeze/products', routes.get);
+app.get('/breeze/:slug', routes.get);
 
 app.listen(3000);
 console.log('Listening on port 3000');
