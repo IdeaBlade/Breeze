@@ -14,9 +14,13 @@ QUnit.config.urlConfig.push({
     tooltip: "Next tracking lib."
 });
 
+QUnit.config.urlConfig.push({
+    id: "sequential",
+    label: "Start Sequential",
+    tooltip: "Loads the modules one at a time, so that the Rerun link works."
+});
 
-require.config({ baseUrl: "Scripts/Tests" });
-require([
+var modules = [
       "attachTests",
       "classRewriteTests",
       "complexTypeTests",
@@ -27,7 +31,7 @@ require([
       "koSpecificTests",
       "metadataTests",
       "miscTests",
-      "paramTests",     
+      "paramTests",
       "queryTests",
       "queryCtorTests",
       "queryDatatypeTests",
@@ -41,12 +45,29 @@ require([
       "validateEntityTests"
 
 
-], function (testFns) {
-    // QUnit.start();
-    document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
-    if (QUnit.urlParams.canStart) {
-        QUnit.start(); //Tests loaded, run tests
+]
+
+require.config({ baseUrl: "Scripts/Tests" });
+
+if (!QUnit.urlParams.sequential) {
+    require(modules, function (testFns) {
+        // QUnit.start();
+        document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = testFns.message;
+        if (QUnit.urlParams.canStart) {
+            QUnit.start(); //Tests loaded, run tests
+        }
+
+    });
+}
+else {
+    function loadNext() {
+        var module = modules.shift();
+        if (module) {
+            require.config({ baseUrl: "Scripts/Tests" });
+            require([module], loadNext);
+        } else {
+            QUnit.start();
+        }
     }
-
-});
-
+    loadNext();
+}
