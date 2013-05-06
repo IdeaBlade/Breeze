@@ -175,11 +175,15 @@
 
             // Using fakeResponse
             var fakeXhr = {
+                // Breeze expects the following
                 statusText: response.statusText || "OK",
                 responseText: response.responseText || "",
                 status: response.status || 200,
                 getResponseHeader: createXhrGetResponseHeader(response),
-                getAllResponseHeaders: createXhrGetAllResponseHeaders(response)
+                getAllResponseHeaders: createXhrGetAllResponseHeaders(response),
+                // diagnostics; not is a real xhr
+                __fakeResponse: response,
+                __ajaxConfig: origAjaxConfig
             };
             if (response.xhr) {
                 fakeXhr = breeze.core.extend(fakeXhr, response.xhr);

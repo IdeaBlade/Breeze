@@ -69,8 +69,7 @@
         }
         function error(xhr, textStatus, errorThrown) {
             ok(/server requests are blocked/i.test(xhr.responseText),
-                "blocked trip to server; error was {0}-{1}: '{2}'".format(
-                xhr.status, xhr.statusText, errorThrown.message));
+                serverRequestBlockMessage(xhr));
         }
     });
     
@@ -94,11 +93,10 @@
         }
         function error(xhr, textStatus, errorThrown) {
             ok(/server requests are blocked/i.test(xhr.responseText),
-                "blocked trip to server; error was {0}-{1}: '{2}'".format(
-                xhr.status, xhr.statusText, errorThrown.message));
+                serverRequestBlockMessage(xhr));
         }
     });
-    
+
     test("can use JSON array quick syntax to fake an OK data response.", 1, function () {
         var expectedData = [{ id: 1, name: 'Bob', userId: null }];
                
@@ -341,10 +339,10 @@
         function success(data) {
             ok(false, "query should have been blocked and failed");
         }
+
         function expectedFail(error) {
             ok(/server requests are blocked/i.test(error.responseText),
-                "blocked trip to server; error was {0}-{1}: '{2}'.".format(
-                error.status, error.message, error.responseText));
+                serverRequestBlockMessage(error.XHR));
         }
     });
     
@@ -362,6 +360,12 @@
         ok(false,
             "ajax adapter returned unexpected error, {0}-{1}: '{2}'".format(
             xhr.status, xhr.statusText, errorThrown.message));
+    }
+
+    function serverRequestBlockMessage(xhr) {
+        return "blocked trip to server ({0}); error was {1}-{2}: '{3}'".format(
+            (xhr.__ajaxConfig && xhr.__ajaxConfig.url) || 'unknown url',
+            xhr.status, xhr.statusText, xhr.responseText);
     }
     
     function entitySaveTester(entity, shouldSave) {
