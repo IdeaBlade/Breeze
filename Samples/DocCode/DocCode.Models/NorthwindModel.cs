@@ -546,7 +546,7 @@ namespace Northwind.Models
 
   #region InternationalOrder class
 
-  public class InternationalOrder {
+  public class InternationalOrder : ISaveable {
 
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -564,6 +564,13 @@ namespace Northwind.Models
     [Required]
     public Order Order { get; set; }
 
+    public string canAdd() { return null; }
+    public string canUpdate()
+    {
+        return OrderID > Order.HighestOriginalID ?
+            null : " is one of the original Orders.";
+    }
+    public string canDelete() { return canUpdate(); }
   }
   #endregion InternationalOrder class
 }

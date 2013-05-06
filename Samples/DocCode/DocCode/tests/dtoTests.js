@@ -18,6 +18,7 @@
 
     var waitForTestPromises = testFns.waitForTestPromises;
     var handleFail = testFns.handleFail;
+    var handleSaveFailed = testFns.handleSaveFailed;
     var reportRejectedPromises = testFns.reportRejectedPromises;
 
     // When targeting the Foo controller 
@@ -31,9 +32,9 @@
     
     // Target the Northwind service by default
     var northwindService = testFns.northwindServiceName;
-    var newEm = testFns.newEmFactory(northwindService);
+    var newNorthwindEm = testFns.newEmFactory(northwindService);
 
-    var moduleOptions = testFns.getModuleOptions(newEm);
+    var moduleOptions = testFns.getModuleOptions(newNorthwindEm);
 
     /************************** QUERIES *************************/
 
@@ -80,7 +81,7 @@
     * can fetch a hash of entities (Lookups)
     *********************************************************/
     asyncTest("can fetch a hash of entities", 6, function () {
-        newEm().executeQuery("Lookups")
+        newNorthwindEm().executeQuery("Lookups")
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
@@ -104,6 +105,17 @@
         }
     });
     
+
+    /************************** SAVES *************************/
+
+    module("dtoTests - saves", {
+        setup: function () {
+            testFns.populateMetadataStore(newNorthwindEm);
+        },
+        teardown: function() {
+            testFns.northwindReset();
+        }
+    });
     /*********************************************************
     * Northwind save tests: tweek to explore various saves
     * Not part of the official DocCode test suite
@@ -117,7 +129,7 @@
     //    var typeName = 'Customer';
         
     //    // Create and initialize entity to save
-    //    var em = newEm();
+    //    var em = newNorthwindEm();
     //    var entity = em.createEntity(typeName,
     //        {
     //            CustomerID: "7bf56882-d975-4faf-a794-dda9be357390"                 
@@ -130,7 +142,36 @@
     //    entitySaveTester(entity, /*shouldSave*/ true);
 
     //});
- 
+    asyncTest("can save a Northwind Order & InternationalOrder", 1, function () {
+        // Create and initialize entity to save
+        var em = newNorthwindEm();
+
+        var order = em.createEntity('Order', {
+            CustomerID: testFns.wellKnownData.alfredsID,
+            EmployeeID: testFns.wellKnownData.nancyID,
+            ShipName: "Test "+ new Date().toISOString()
+        });
+        
+        var internationalOrder = em.createEntity('InternationalOrder', {
+            // I thought Jay fixed this?
+            //Order: order, // sets OrderID and pulls it into the order's manager
+            OrderID: order.OrderID(),
+            CustomsDescription: "rare, exotic birds"
+        });
+
+        em.saveChanges()
+            .then(successfulSave).fail(handleSaveFailed).fin(start);
+        
+        function successfulSave(saveResults) {
+            var orderId = order.orderID();
+            var internationalOrderID = internationalOrder.OrderID();
+                      
+            equal(internationalOrderID, orderId,
+                "the new internationalOrder should have the same OrderID as its new parent Order, "+orderId);
+            ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
+        }
+
+    });
     /************************** TEST HELPERS *************************/
     function entitySaveTester(entity, shouldSave) {
         var typeName = entity.entityType.shortName;
