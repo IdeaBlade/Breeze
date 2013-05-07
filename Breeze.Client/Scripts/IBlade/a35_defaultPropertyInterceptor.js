@@ -212,7 +212,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     throw new Error("An entity with this key is already in the cache: " + newKey.toString());
                 }
                 var oldKey = this.entityAspect.getKey();
-                var eg = entityManager.findEntityGroup(this.entityType);
+                var eg = entityManager._findEntityGroup(this.entityType);
                 eg._replaceKey(oldKey, newKey);
             }
             rawAccessorFn(newValue);
