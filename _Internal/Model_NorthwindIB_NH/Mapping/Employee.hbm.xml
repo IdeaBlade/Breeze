@@ -36,7 +36,7 @@
     <!--Foreign key to EmployeeTerritoryNoPayload (EmployeeTerritoryNoPayload)-->
     <set name="Territories" table="`EmployeeTerritoryNoPayload`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`EmployeeID`" foreign-key="FK_EmployeeTerritoryNoPayload_Employee" />
-      <many-to-many class="Territory" />
+      <many-to-many class="Territory" column="TerritoryID"/>
     </set>
     <!--Foreign key to Order (Order)-->
     <set name="Orders" table="`Order`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">

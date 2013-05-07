@@ -15,7 +15,7 @@
     <!--Foreign key to EmployeeTerritoryNoPayload (EmployeeTerritoryNoPayload)-->
     <set name="Employees" table="`EmployeeTerritoryNoPayload`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritoryNoPayload_Territory" />
-      <many-to-many class="Employee" />
+      <many-to-many class="Employee" column="EmployeeID"/>
     </set>
   </class>
 </hibernate-mapping>
