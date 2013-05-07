@@ -18,7 +18,7 @@ namespace Breeze.Nhibernate.WebApi
     public class NHIncludingContractResolver : DefaultContractResolver
     {
         private HashSet<string> includedMembers;
-        private Dictionary<Type, List<string>> includedTypeMembers;
+        private IDictionary<Type, List<string>> includedTypeMembers;
         private ISessionFactory sessionFactory;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Breeze.Nhibernate.WebApi
         /// Configure the included property names using a dictionary of { Type -> List of property names to include }
         /// </summary>
         /// <param name="includedTypeMembers"></param>
-        public NHIncludingContractResolver(ISessionFactory sessionFactory, Dictionary<Type, List<string>> includedTypeMembers)
+        public NHIncludingContractResolver(ISessionFactory sessionFactory, IDictionary<Type, List<string>> includedTypeMembers)
         {
             this.sessionFactory = sessionFactory;
             this.includedTypeMembers = includedTypeMembers;
@@ -90,6 +90,6 @@ namespace Breeze.Nhibernate.WebApi
 
             return true;
         }
-
     }
+
 }

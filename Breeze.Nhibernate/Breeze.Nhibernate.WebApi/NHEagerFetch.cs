@@ -17,7 +17,7 @@ namespace Breeze.Nhibernate.WebApi
         // Allow the NHContext to inject the sessionFactory here
         internal static ISessionFactory sessionFactory;
 
-        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, IDictionary<Type, List<string>> expandMap = null)
+        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ExpandTypeMap expandMap)
         {
             return ApplyExpansions(queryable, expandPaths, sessionFactory, expandMap);
         }
@@ -28,9 +28,13 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="queryable">The query to expand</param>
         /// <param name="expandPaths">The names of the properties to expand.  May include nested paths of the form "Property/SubProperty"</param>
         /// <param name="sessionFactory">Provides the NHibernate metadata for the classes</param>
-        /// <param name="expandMap">If provided, will be populated with the names of the expanded properties for each type.</param>
+        /// <param name="expandMap">Will be populated with the names of the expanded properties for each type.</param>
+        /// <param name="expandCollections">If true, eagerly fetch collections. This causes problems with $skip and $top operations.  
+        ///     Default is false.  expandMap will still be populated with the collection property, so it will be lazy loaded.
+        ///     Be sure to set default_batch_fetch_size in the configuration for lazy loaded collections.</param>
         /// <returns></returns>
-        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ISessionFactory sessionFactory, IDictionary<Type, List<string>> expandMap = null)
+        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ISessionFactory sessionFactory,
+            ExpandTypeMap expandMap, bool expandCollections = false)
         {
             if (queryable == null) throw new ArgumentException("Query cannot be null");
 
@@ -45,10 +49,13 @@ namespace Breeze.Nhibernate.WebApi
                 // We always start with the resulting element type
                 var currentType = currentQueryable.ElementType;
                 var isFirstFetch = true;
-                foreach (string seg in expand.Split('/'))
+                var isInvoking = true;
+                var segments = expand.Split('/');
+                expandMap.Deepen(segments.Length);
+                foreach (string seg in segments)
                 {
-                    if (expandMap != null && !expandMap.ContainsKey(currentType))
-                        expandMap.Add(currentType, new List<string>());
+                    if (expandMap != null && !expandMap.map.ContainsKey(currentType))
+                        expandMap.map.Add(currentType, new List<string>());
 
                     IClassMetadata metadata = sessionFactory.GetClassMetadata(currentType);
                     if (metadata == null)
@@ -63,7 +70,8 @@ namespace Breeze.Nhibernate.WebApi
                     {
                         throw new ArgumentException("Type '" + currentType.Name + "' does not have property '" + seg + "'");
                     }
-                    if (expandMap != null) expandMap[currentType].Add(seg);
+                    if (expandMap != null) expandMap.map[currentType].Add(seg);
+
                     var propType = propInfo.PropertyType;
                     var metaPropType = metadata.GetPropertyType(seg);
 
@@ -82,33 +90,41 @@ namespace Breeze.Nhibernate.WebApi
                         propType = propType.GetGenericArguments().Single();
                         delegateType = typeof(Func<,>).MakeGenericType(currentType,
                                                                         typeof(IEnumerable<>).MakeGenericType(propType));
+                        if (!expandCollections)
+                        {
+                            // if we don't expand this collection, we won't invoke any sub-expansions of it either
+                            // but we still need to traverse the tree top populate expandMap
+                            isInvoking = false;
+                        }
                     }
                     else
                     {
                         delegateType = typeof(Func<,>).MakeGenericType(currentType, propType);
                     }
 
-                    // Get the correct extension method (Fetch, FetchMany, ThenFetch, or ThenFetchMany)
-                    var fetchMethodInfo = typeof(EagerFetchingExtensionMethods).GetMethod(propFetchFunctionName,
-                                                                                      BindingFlags.Static |
-                                                                                      BindingFlags.Public |
-                                                                                      BindingFlags.InvokeMethod);
-                    var fetchMethodTypes = new List<System.Type>();
-                    fetchMethodTypes.AddRange(currentQueryable.GetType().GetGenericArguments().Take(isFirstFetch ? 1 : 2));
-                    fetchMethodTypes.Add(propType);
-                    fetchMethodInfo = fetchMethodInfo.MakeGenericMethod(fetchMethodTypes.ToArray());
+                    if (isInvoking)
+                    {
+                        // Get the correct extension method (Fetch, FetchMany, ThenFetch, or ThenFetchMany)
+                        var fetchMethodInfo = typeof(EagerFetchingExtensionMethods).GetMethod(propFetchFunctionName,
+                                                                                          BindingFlags.Static |
+                                                                                          BindingFlags.Public |
+                                                                                          BindingFlags.InvokeMethod);
+                        var fetchMethodTypes = new List<System.Type>();
+                        fetchMethodTypes.AddRange(currentQueryable.GetType().GetGenericArguments().Take(isFirstFetch ? 1 : 2));
+                        fetchMethodTypes.Add(propType);
+                        fetchMethodInfo = fetchMethodInfo.MakeGenericMethod(fetchMethodTypes.ToArray());
 
-                    // Create an expression of type new delegateType(x => x.{seg.Name})
-                    var exprParam = System.Linq.Expressions.Expression.Parameter(currentType, "x");
-                    var exprProp = System.Linq.Expressions.Expression.Property(exprParam, seg);
-                    var exprLambda = System.Linq.Expressions.Expression.Lambda(delegateType, exprProp,
-                                                                               new System.Linq.Expressions.
-                                                                                   ParameterExpression[] { exprParam });
+                        // Create an expression of type new delegateType(x => x.{seg.Name})
+                        var exprParam = System.Linq.Expressions.Expression.Parameter(currentType, "x");
+                        var exprProp = System.Linq.Expressions.Expression.Property(exprParam, seg);
+                        var exprLambda = System.Linq.Expressions.Expression.Lambda(delegateType, exprProp,
+                                                                                   new System.Linq.Expressions.
+                                                                                       ParameterExpression[] { exprParam });
 
-                    // Call the *Fetch* function
-                    var args = new object[] { currentQueryable, exprLambda };
-                    currentQueryable = (IQueryable)fetchMethodInfo.Invoke(null, args) as IQueryable;
-
+                        // Call the *Fetch* function
+                        var args = new object[] { currentQueryable, exprLambda };
+                        currentQueryable = (IQueryable)fetchMethodInfo.Invoke(null, args) as IQueryable;
+                    }
                     currentType = propType;
                     isFirstFetch = false;
                 }
@@ -167,5 +183,27 @@ namespace Breeze.Nhibernate.WebApi
             return criteria;
         }
 
+
+    }
+
+    /// <summary>
+    /// Keeps track of the types and methods used by a query, so it can control the lazy loaded in the JsonFormatter.
+    /// </summary>
+    public class ExpandTypeMap
+    {
+        public IDictionary<Type, List<string>> map;
+        public int maxDepth;
+
+        public ExpandTypeMap()
+        {
+            map = new Dictionary<Type, List<string>>();
+            maxDepth = 0;
+        }
+
+        public void Deepen(int newDepth)
+        {
+            if (newDepth > maxDepth)
+                maxDepth = newDepth;
+        }
     }
 }

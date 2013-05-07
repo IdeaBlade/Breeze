@@ -15,7 +15,7 @@ namespace Breeze.Nhibernate.WebApi
 {
     public class NHContext : ContextProvider, IDisposable
     {
-        protected ISession session;
+        public ISession session;
         protected Configuration configuration;
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Breeze.Nhibernate.WebApi
             }
             else
             {
-                // needed for many to many to get both ends into the session
+                // Just re-associate the entity with the session.  Needed for many to many to get both ends into the session.
                 session.Lock(entity, LockMode.None);
             }
         }
