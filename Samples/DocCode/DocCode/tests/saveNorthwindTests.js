@@ -59,8 +59,8 @@
 
         var internationalOrder = em.createEntity('InternationalOrder', {
             // I thought Jay fixed this?
-            //Order: order, // sets OrderID and pulls it into the order's manager
-            OrderID: order.OrderID(),
+            Order: order, // sets OrderID and pulls it into the order's manager
+            //OrderID: order.OrderID(),
             CustomsDescription: "rare, exotic birds"
         });
 

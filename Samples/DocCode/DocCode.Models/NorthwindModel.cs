@@ -553,7 +553,8 @@ namespace Northwind.Models
   #endregion UserRole class
 
   #region InternationalOrder class
-
+  // 1-1 with Order. For Code First configuration background see
+  // http://stackoverflow.com/questions/5980260/entity-framework-0-1-to-0-relation
   public class InternationalOrder : ISaveable {
 
     [Key]
