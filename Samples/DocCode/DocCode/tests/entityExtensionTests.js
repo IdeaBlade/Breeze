@@ -81,7 +81,7 @@
 
         var Customer = function () {
             // notice these are not defined as KO properties
-            this.CustomerID = testFns.newGuid();
+            this.CustomerID = testFns.newGuidComb();
             this.isBeingEdited = false; 
         };
 
@@ -148,7 +148,7 @@
 
         // create new customer
         var manager = newEm(store);
-        var cust = manager.createEntity('Customer', {CustomerID: testFns.newGuid()});
+        var cust = manager.createEntity('Customer', {CustomerID: testFns.newGuidComb()});
 
         cust.foo("funky");
         var errs = cust.entityAspect.getValidationErrors(fooProp);
@@ -186,7 +186,7 @@
         var manager = newEm(store);
         var cust = manager.createEntity(
             'Customer',
-            { CustomerID: testFns.newGuid() },
+            { CustomerID: testFns.newGuidComb() },
             breeze.EntityState.Unchanged);
 
         // Listen for foo changes
@@ -821,7 +821,7 @@
             var em1 = newEm(store);
 
             // create a new customer defined by that extended metadata
-            var cust1 = em1.createEntity('Customer', {CustomerID: testFns.newGuid()});
+            var cust1 = em1.createEntity('Customer', {CustomerID: testFns.newGuidComb()});
 
             // Set the 'properties' we added
             cust1.unmappedProperty("Hi, I'm unmapped");
@@ -883,7 +883,7 @@
             
             /* ACT */
             var cust = em.createEntity('Customer', {
-                CustomerID: testFns.newGuid(),
+                CustomerID: testFns.newGuidComb(),
                 initialValue: expected[1]
             });
             
@@ -960,7 +960,7 @@
 
             // Customer has a client-assigned Guid key
             // A new Customer does not add its key to the tempIds
-            em.createEntity('Customer',{CustomerID: testFns.newGuid()});
+            em.createEntity('Customer',{CustomerID: testFns.newGuidComb()});
 
             equal(tempIds.length, 2, "should have 2 tempIds");
             equal(o1.OrderID(), tempIds[0], "o1 should have temp key " + tempIds[0]);

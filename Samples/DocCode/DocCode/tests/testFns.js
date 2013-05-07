@@ -38,6 +38,7 @@ docCode.testFns = (function () {
 
         getNextIntId: getNextIntId,
         newGuid: newGuid,
+        newGuidComb: newGuidComb,
         
         getParserForUrl: getParserForUrl,
         rootUri: getRootUri(),
@@ -305,10 +306,34 @@ docCode.testFns = (function () {
         return _nextIntId++;
     }
     /*********************************************************
-    * Generate the next new integer Id
+    * Generate a new Guid Id
     *********************************************************/
     function newGuid() {
         return breeze.core.getUuid();
+    }
+    /*********************************************************
+    * Generate a new GuidCOMB Id
+    * @method newGuidComb {String}
+    * @param [n] {Number} Optional integer value for a particular time value
+    * if not supplied (and usually isn't), n = new Date.getTime()
+    *********************************************************/
+    function newGuidComb(n) {
+        // Create a pseudo-Guid whose trailing 6 bytes (12 hex digits) are timebased
+        // Start either with the given getTime() value, n, or get the current time in ms.
+        // Each new Guid is greater than next if more than 1ms passes
+        // See http://thatextramile.be/blog/2009/05/using-the-guidcomb-identifier-strategy
+        // Based on breeze.core.getUuid which is based on this StackOverflow answer
+        // http://stackoverflow.com/a/2117523/200253     
+        // Convert time value to hex: n.toString(16)
+        // Make sure it is 6 bytes long: ('00'+ ...).slice(-12) ... from the rear
+        // Replace LAST 6 bytes (12 hex digits) of regular Guid (that's where they sort in a Db)
+        // Play with this in jsFiddle: http://jsfiddle.net/wardbell/qS8aN/
+        var timePart = ('00' + (n || (new Date().getTime())).toString(16)).slice(-12);
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        }) + timePart;
     }
     /*********************************************************
     * Verify query and its results

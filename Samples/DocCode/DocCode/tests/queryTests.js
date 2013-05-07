@@ -1727,7 +1727,7 @@
      // create a new Customer and add to the EntityManager
      function addCustomer(em, name) {
          var cust = em.createEntity('Customer', {
-             CustomerID: testFns.newGuid(),
+             CustomerID: testFns.newGuidComb(),
              CompanyName: name || 'a-new-company'
          });
          return cust;

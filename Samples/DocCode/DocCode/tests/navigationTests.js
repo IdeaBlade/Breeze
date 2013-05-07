@@ -808,7 +808,7 @@
     function getFakeExistingCustomer(em, name) {
         name = name || "Existing Customer";
         var customer = createCustomer(name);
-        customer.CustomerID(testFns.newGuid());
+        customer.CustomerID(testFns.newGuidComb());
         em.attachEntity(customer);// pretend already exists
         return customer;
     }

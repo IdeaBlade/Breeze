@@ -8,7 +8,7 @@
     *********************************************************/
     // Classes we'll need from the breeze namespaces
     var EntityQuery = breeze.EntityQuery;
-    var newGuid = testFns.newGuid;
+    var newGuidComb = testFns.newGuidComb;
     var handleSaveFailed = testFns.handleSaveFailed;
 
     /*********************************************************

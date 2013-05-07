@@ -363,7 +363,7 @@
 
         var em = newEm();
         var cust = createCustomer("Univ. of Waterloo");
-        cust.CustomerID(testFns.newGuid());
+        cust.CustomerID(testFns.newGuidComb());
         em.attachEntity(cust);
 
         // add the US-only validator
@@ -399,7 +399,7 @@
             .validators.push(canadaOnly);
 
         var cust = createCustomer("Univ. of Waterloo");
-        cust.CustomerID(testFns.newGuid());
+        cust.CustomerID(testFns.newGuidComb());
         em.attachEntity(cust);
         cust.Country("USA"); // try to sneak it into the USA
 
@@ -425,7 +425,7 @@
             .validators.push(zipCodeValidator);
 
         var cust = createCustomer("Boogaloo Board Games");
-        cust.CustomerID(testFns.newGuid());
+        cust.CustomerID(testFns.newGuidComb());
         em.attachEntity(cust);
         
         cust.Country("USA");
@@ -466,7 +466,7 @@
         custValidators.push(alwaysWrong);
 
         var cust = createCustomer("Presumed Guilty");
-        cust.CustomerID(testFns.newGuid());
+        cust.CustomerID(testFns.newGuidComb());
         
         // Attach triggers entity validation by default
         em.attachEntity(cust);
@@ -507,7 +507,7 @@
         );
        
         var cust = createCustomer("Presumed Guilty");
-        cust.CustomerID(testFns.newGuid());
+        cust.CustomerID(testFns.newGuidComb());
         em.attachEntity(cust);
         
         var errmsgs = getErrorMessages(cust);
