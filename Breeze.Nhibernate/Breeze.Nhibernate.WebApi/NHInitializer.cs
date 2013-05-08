@@ -46,7 +46,7 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="remainingDepth">How deep to follow the tree; prevents infinite looping</param>
         public static void InitializeWithCascade(object parent, IDictionary<Type, List<String>> map, int remainingDepth)
         {
-            if (remainingDepth < 0) return;
+            if (remainingDepth < 0 || parent == null) return;
             remainingDepth--;
             var type = parent.GetType();
             if (!map.ContainsKey(type)) return;
