@@ -66,7 +66,7 @@ namespace Breeze.Nhibernate.WebApi
             _typeNames = new HashSet<string>();
             _resourceMap = new Dictionary<string, object>();
             _map.Add("metadataVersion", "1.0.4");
-            _map.Add("namingConvention", naming.ToString());
+           // _map.Add("namingConvention", naming.ToString());
             _map.Add("localQueryComparisonOptions", "caseInsensitiveSQL");
             _map.Add("structuralTypes", _typeList);
             _map.Add("resourceEntityTypeMap",_resourceMap);
