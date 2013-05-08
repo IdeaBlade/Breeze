@@ -571,6 +571,9 @@ docCode.testFns = (function () {
     * Make a good error message from jQuery Ajax failure
     *********************************************************/
     function getjQueryError(xhr, textStatus, errorThrown) {
+        if (!xhr) {
+            return errorThrown;
+        }
         var message = xhr.status + "-" + xhr.statusText;
         try {
             var reason = JSON.parse(xhr.responseText).Message;
