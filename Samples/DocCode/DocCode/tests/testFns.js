@@ -27,6 +27,7 @@ docCode.testFns = (function () {
         getModuleOptions: getModuleOptions,
         teardown_todosReset: teardown_todosReset,
         teardown_inheritanceReset: teardown_inheritanceReset,
+        teardown_northwindReset:teardown_northwindReset,
         output: output,
         stopCount: stopCountFactory(),
 
@@ -306,6 +307,15 @@ docCode.testFns = (function () {
         inheritanceReset().fail(handleFail).fin(start).done();
     }
     /*********************************************************
+    * Teardown for a module that saves to the Northwind database
+    *********************************************************/
+    // should call this during test teardown to restore
+    // the database to a known, populated state.
+    function teardown_northwindReset() {
+        stop();
+        northwindReset().fail(handleFail).fin(start).done();
+    }
+    /*********************************************************
     * Get or Create an EntityManager
     *********************************************************/
     // get an EntityManager from arg (which is either an em or an em factory)
@@ -457,9 +467,11 @@ docCode.testFns = (function () {
     /**************************************************
     * Pure Web API calls aimed at the TodosController
     * issued with jQuery and wrapped in Q.js promise
+    *
+    * Does NOT STOP/START the testrunner!
+    * Use teardown_todosReset for that
     **************************************************/
     function todosPurge() {
-
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/purge',
@@ -468,14 +480,13 @@ docCode.testFns = (function () {
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
     }
 
     function todosReset() {
-
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/reset',
@@ -484,7 +495,7 @@ docCode.testFns = (function () {
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
@@ -492,9 +503,11 @@ docCode.testFns = (function () {
     /**************************************************
     * Pure Web API calls aimed at the InheritanceController
     * issued with jQuery and wrapped in Q.js promise
+    *
+    * Does NOT STOP/START the testrunner!
+    * Use teardown_inheritanceReset for that
     **************************************************/
     function inheritancePurge() {
-
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/purge',
@@ -503,13 +516,14 @@ docCode.testFns = (function () {
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
     }
 
     function inheritanceReset() {
+        stop(); // pause test runner while we reset
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/reset',
@@ -518,14 +532,17 @@ docCode.testFns = (function () {
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
-        return deferred.promise;
+        return deferred.promise.fin(start);
     }
     /**************************************************
      * Pure Web API calls aimed at the NorthwindController
      * issued with jQuery and wrapped in Q.js promise
+     *
+     * Does NOT STOP/START the testrunner!
+     * Use teardown_northwindReset for that
      **************************************************/
 
     function northwindReset(fullReset) {
@@ -541,13 +558,27 @@ docCode.testFns = (function () {
         
         return deferred.promise;
         
-        function success(data, textStatus, jqXHR) {
+        function success(data, textStatus, xhr) {
             deferred.resolve(
-               "Reset svc returned '" + jqXHR.status + "' with message: " + data);
+               "Reset svc returned '" + xhr.status + "' with message: " + data);
         }
-        function error(jqXHR, textStatus, errorThrown) {
-            deferred.reject(errorThrown);
+        function error(xhr, textStatus, errorThrown) {
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         }
+    }
+    
+    /*********************************************************
+    * Make a good error message from jQuery Ajax failure
+    *********************************************************/
+    function getjQueryError(xhr, textStatus, errorThrown) {
+        var message = xhr.status + "-" + xhr.statusText;
+        try {
+            var reason = JSON.parse(xhr.responseText).Message;
+            message += "\n" + reason;
+        } catch(ex) {
+            message += "\n" + xhr.responseText;
+        }
+        return message;
     }
     /*********************************************************
     * Return an entity's validation error messages as a string

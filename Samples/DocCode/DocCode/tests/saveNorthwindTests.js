@@ -18,7 +18,6 @@
     var northwindService = testFns.northwindServiceName;
     var newNorthwindEm = testFns.newEmFactory(northwindService);
    
-    var newCustomerID = newGuidComb();
     var alfredsID = testFns.wellKnownData.alfredsID;
 
     module("saveNorthwindTests", {
@@ -26,23 +25,81 @@
             testFns.populateMetadataStore(newNorthwindEm);
         },
         teardown: function () {
-            testFns.northwindReset(); // restore original db state after each test
+            testFns.teardown_northwindReset(); // restore original db state after each test
         }
     });
 
     asyncTest("can save a new Customer entity", 1, function () {
-
         // Create and initialize entity to save
         var em = newNorthwindEm();
-        var entity = em.createEntity('Customer',
-            {
-                CustomerID: newCustomerID
-            }
-        );
-        entity.CompanyName("Test " + new Date().toISOString());
+        var customer = em.createEntity('Customer', {
+            CustomerID: newGuidComb(),
+            CompanyName: "Test1 " + new Date().toISOString()
+        });
 
-        // Act and Assert
-        entitySaveTester(entity, /*shouldSave*/ true);
+        entitySaveTester(customer, /*shouldSave*/ true);
+
+    });
+    
+    asyncTest("can modify my own Customer entity", 2, function () {
+        var timestamp = new Date().toISOString();
+        var em = newNorthwindEm();
+        
+        var customer = em.createEntity('Customer', {
+            CustomerID: newGuidComb(),
+            CompanyName: "Test2A " + timestamp
+        });
+
+        em.saveChanges().then(modifyCustomer).fail(handleSaveFailed).fin(start);
+        
+        function modifyCustomer(saveResults) {
+            var saved = saveResults.entities[0];
+            ok(saved && saved === customer,
+                "save of added customer should have succeeded");
+            customer.CompanyName("Test2M " + timestamp);
+            return em.saveChanges()
+            .then(confirmCustomerSaved);
+        }
+        
+        function confirmCustomerSaved(saveResults) {
+            var saved = saveResults.entities[0];
+            ok(saved && saved === customer,
+                "save of modified customer, '{0}', should have succeeded"
+                .format(saved && saved.CompanyName()));
+        }
+
+    });
+    
+    asyncTest("can delete my own Customer entity", 3, function () {
+        var timestamp = new Date().toISOString();
+        var em = newNorthwindEm();
+        
+        var customer = em.createEntity('Customer', {
+            CustomerID: newGuidComb(),
+            CompanyName: "Test3A " + timestamp
+        });
+
+        em.saveChanges().then(deleteCustomer).fail(handleSaveFailed).fin(start);
+
+        function deleteCustomer(saveResults) {
+            var saved = saveResults.entities[0];
+            ok(saved && saved === customer,
+                "save of added customer should have succeeded");
+            customer.entityAspect.setDeleted();
+            return em.saveChanges()
+            .then(confirmCustomerSaved);
+        }
+
+        function confirmCustomerSaved(saveResults) {
+            var saved = saveResults.entities[0];
+            ok(saved && saved === customer,
+                "save of deleted customer, '{0}', should have succeeded"
+                .format(saved && saved.CompanyName()));
+            
+            var state = customer.entityAspect.entityState.name;
+            equal(state, breeze.EntityState.Detached.name,
+                "customer object should be 'Detached'");
+        }
 
     });
 
@@ -77,17 +134,17 @@
 
     });
     /************************** TEST HELPERS *************************/
-    function entitySaveTester(entity, shouldSave) {
-        var typeName = entity.entityType.shortName;
-        var operation = entity.entityAspect.entityState.name;
+    function entitySaveTester(masterEntity, shouldSave) {
+        var typeName = masterEntity.entityType.shortName;
+        var operation = masterEntity.entityAspect.entityState.name;
         var msgPart = " save the " + operation + " " + typeName;
 
-        var manager = entity.entityAspect.entityManager;
-        manager.saveChanges([entity])
+        var manager = masterEntity.entityAspect.entityManager;
+        manager.saveChanges()
         .then(function (saveResults) {
             var prefix = shouldSave ? "should" : "should not";
             ok(shouldSave, prefix + " have been able to" + msgPart +
-                " with key: " + JSON.stringify(entity.entityAspect.getKey().values));
+                " with key: " + JSON.stringify(masterEntity.entityAspect.getKey().values));
         })
         .fail(function (error) {
             var prefix = shouldSave ? "should not" : "should";

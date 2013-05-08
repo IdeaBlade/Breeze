@@ -116,7 +116,7 @@
             testFns.populateMetadataStore(newNorthwindEm);
         },
         teardown: function() {
-            testFns.northwindReset();
+            testFns.teardown_northwindReset();
         }
     });
 

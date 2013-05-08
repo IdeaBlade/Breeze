@@ -1,12 +1,8 @@
-/**********************************************
- * Prototype for the typical test modules
- **********************************************/
-
 // ReSharper disable UnusedParameter
 /***********************************************************
 * Api Direct Test Module
 *
-* Call the persistence service with jQuery
+* Call the Todos persistence service with jQuery
 * instead of Breeze EntityManager
 ***********************************************************/
 // ReSharper disable InconsistentNaming
@@ -23,13 +19,11 @@
 
     test("purge the Todos Db", 1, function () {
 
-        stop();
         testFns.todosPurge()
             .then(function (msg) {
                 ok(0 < msg.indexOf("purge"), msg);
             })
-            .fail(testFns.handleFail)
-            .fin(start);
+            .fail(testFns.handleFail);
     });
     
    
@@ -40,13 +34,11 @@
 
     test("reset the Todos Db", 1, function () {
 
-        stop();
         testFns.todosReset()
             .then(function (msg) {
                 ok(0 < msg.indexOf("reset"), msg);
             })
-            .fail(testFns.handleFail)
-            .fin(start);
+            .fail(testFns.handleFail);
     });
 
 })(docCode.testFns);
