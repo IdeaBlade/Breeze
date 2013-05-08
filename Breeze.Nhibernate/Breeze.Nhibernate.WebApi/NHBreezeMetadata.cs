@@ -25,8 +25,6 @@ namespace Breeze.Nhibernate.WebApi
         private Dictionary<string, object> _resourceMap;
         private HashSet<string> _typeNames;
 
-        public enum NamingConvention { noChange, camelCase, camelCase2 };
-
         public NHBreezeMetadata(ISessionFactory sessionFactory, Configuration configuration)
         {
             _sessionFactory = sessionFactory;
@@ -37,12 +35,10 @@ namespace Breeze.Nhibernate.WebApi
         /// Build the Breeze metadata as a nested Dictionary.  
         /// The result can be converted to JSON and sent to the Breeze client.
         /// </summary>
-        /// <param name="naming">tell the Breeze client how to convert the names.  This just populates the namingConvention property
-        /// and has no other effect on the server-side metadata.</param>
         /// <returns></returns>
-        public IDictionary<string, object> BuildMetadata(NamingConvention naming)
+        public IDictionary<string, object> BuildMetadata()
         {
-            InitMap(naming);
+            InitMap();
 
             IDictionary<string, IClassMetadata> classMeta = _sessionFactory.GetAllClassMetadata();
             //IDictionary<string, ICollectionMetadata> collectionMeta = _sessionFactory.GetAllCollectionMetadata();
@@ -57,16 +53,13 @@ namespace Breeze.Nhibernate.WebApi
         /// <summary>
         /// Populate the metadata header.
         /// </summary>
-        /// <param name="naming">tell the Breeze client how to convert the names.  This just populates the namingConvention property
-        /// and has no other effect on the server-side metadata.</param>
-        void InitMap(NamingConvention naming)
+        void InitMap()
         {
             _map = new Dictionary<string, object>();
             _typeList = new List<Dictionary<string, object>>();
             _typeNames = new HashSet<string>();
             _resourceMap = new Dictionary<string, object>();
             _map.Add("metadataVersion", "1.0.4");
-           // _map.Add("namingConvention", naming.ToString());
             _map.Add("localQueryComparisonOptions", "caseInsensitiveSQL");
             _map.Add("structuralTypes", _typeList);
             _map.Add("resourceEntityTypeMap",_resourceMap);
