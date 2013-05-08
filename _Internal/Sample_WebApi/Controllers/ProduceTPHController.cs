@@ -20,7 +20,7 @@ namespace Sample_WebApi.Controllers {
 
   public class ProduceTPHContextProvider  : EFContextProvider<ProduceTPHContext> {
     
-    public ProduceTPHContext Context = new ProduceTPHContext();
+    public new ProduceTPHContext Context = new ProduceTPHContext();
 
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
