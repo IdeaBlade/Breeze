@@ -27,6 +27,46 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    var wellKnownData = {
+        // ID of the Northwind "Alfreds Futterkiste" customer
+        alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
+        // ID of the Northwind "Nancy Davolio" employee
+        nancyID: 1,
+        // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
+        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rössle Sauerkraut*/ },
+        // ID of Chai product
+        chaiProductID: 1
+    };
+
+    test("can save a Northwind Order & InternationalOrder", 2, function () {
+        // Create and initialize entity to save
+        var em = newEm();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipName: "Test " + new Date().toISOString()
+        });
+
+        var internationalOrder = em.createEntity('InternationalOrder', {
+            // I thought Jay fixed this?
+            order: order, // sets OrderID and pulls it into the order's manager
+            // orderID: order.getProperty("orderID"),
+            customsDescription: "rare, exotic birds"
+        });
+        stop();
+        em.saveChanges().then(function(data) {
+
+            var orderId = order.getProperty("orderID");
+            var internationalOrderID = internationalOrder.getProperty("orderID");
+
+            equal(internationalOrderID, orderId,
+                "the new internationalOrder should have the same OrderID as its new parent Order, " + orderId);
+            ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
+        
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
     test("raw query string", function () {
         var em = newEm();

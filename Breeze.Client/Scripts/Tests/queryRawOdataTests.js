@@ -22,6 +22,19 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    //// for now returns an OData message "$count is not supported"
+    //test("$count operator", function () {
+    //    stop();
+    //    var em = newEm(testFns.newMs());
+    //    ok(em, "no em found");
+
+    //    var query = "Customers?$filter=startswith(CompanyName, 'A') eq true&$count";
+    //    em.executeQuery(query).then(function (data) {
+    //        ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
+    //        ok(data, "no data");
+            
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
 
     test("filter and order by", function () {
         stop();

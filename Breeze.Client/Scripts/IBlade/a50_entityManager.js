@@ -923,9 +923,8 @@ var EntityManager = (function () {
         return true;
     }
 
-    // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
-    proto.findEntityGroup = function (entityType) {
-        assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+    
+    proto._findEntityGroup = function (entityType) {
         return this._entityGroupMap[entityType.name];
     };
 
@@ -957,12 +956,14 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
 
-        var group = this.findEntityGroup(entityKey.entityType);
+        var group = this._findEntityGroup(entityKey.entityType);
         if (!group) {
             return null;
         }
         return group.findEntityByKey(entityKey);
     };
+    
+    
         
     /**
     Attempts to fetch an entity from the server by its key with
@@ -2127,6 +2128,7 @@ var EntityManager = (function () {
         }
     }
 
+
     function findOrCreateEntityGroup(em, entityType) {
         var group = em._entityGroupMap[entityType.name];
         if (!group) {
@@ -2138,8 +2140,8 @@ var EntityManager = (function () {
 
     function findOrCreateEntityGroups(em, entityType) {
         var entityTypes = entityType.getSelfAndSubtypes();
-        return entityTypes.map(function (entityType) {
-            return findOrCreateEntityGroup(em, entityType);
+        return entityTypes.map(function (et) {
+            return findOrCreateEntityGroup(em, et);
         });
     }
         

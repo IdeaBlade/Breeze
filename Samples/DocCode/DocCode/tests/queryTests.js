@@ -1290,6 +1290,74 @@
         .fin(start);
     });
     
+    test("combined remote & local query gets all Employees w/ 'A' (v2- ExecuteLocally) ", 1, function () {
+        var em = newEm();
+        
+        // create an 'Alice' employee
+        var alice = em.createEntity('Employee', { FirstName: 'Alice' });
+
+        // query for Employees with names that begin with 'A'
+        var query = EntityQuery.from('Employees')
+                               .where('FirstName', 'startsWith', 'A')
+                               .using(em);
+        
+        stop(); // going async ...
+        
+        // chain remote and local query execution
+        var promise = query.execute()
+            .then(function () { // ignore remote query results and chain to local query
+                return query.using(breeze.FetchStrategy.FromLocalCache).execute();
+            });
+
+        promise.then(function (data) {
+            var firstNames = data.results.map(function (emp) { return emp.FirstName(); });
+            equal(firstNames.join(', '), "Alice, Andrew, Anne",
+                "should have 3 employees with first names: 'Alice, Andrew, Anne'");
+        })
+        .fail(handleFail)
+        .fin(start);
+    });
+    
+    test("combined remote & local query for 'A' Employees ignores changed 'Anne'.", 3, function () {
+        var em = newEm();
+        var anne;
+        var anneQuery = EntityQuery.from('Employees')
+                                   .where('FirstName', 'eq', 'Anne')
+                                   .using(em);
+
+        // query for Employees with names that begin with 'A'
+        var query = EntityQuery.from('Employees')
+                               .where('FirstName', 'startsWith', 'A')
+                               .using(em);
+
+        stop(); // going async ...
+
+        // Get Anne and change her first name
+        anneQuery.execute().then(function (data) {
+            anne = data.results[0];
+            anne.FirstName("Charlene");
+        })
+        
+        // chain remote and local query execution
+        .then(function () {
+            return query.execute()
+                .then(function () { // ignore remote query results and chain to local query
+                    return query.using(breeze.FetchStrategy.FromLocalCache).execute();
+                });
+        })
+
+        .then(function (data) {
+            var firstNames = data.results.map(function (emp) { return emp.FirstName(); });
+            equal(firstNames.join(', '), "Andrew",
+                "should have 1 employee with first name: 'Andrew'");
+            equal(anne && anne.entityAspect.entityState, breeze.EntityState.Modified,
+                "the 'Anne' entity should be in cache in the 'Modified' state");
+            equal(anne.FirstName(), 'Charlene',
+                "the 'Anne' entity should not be included because her local name is 'Charlene'");
+        })
+        .fail(handleFail)
+        .fin(start);
+    });
     /*********************************************************
     * Combined query that pours results into a list 
     * Caller doesn't have to wait for results
@@ -1659,7 +1727,7 @@
      // create a new Customer and add to the EntityManager
      function addCustomer(em, name) {
          var cust = em.createEntity('Customer', {
-             CustomerID: testFns.newGuid(),
+             CustomerID: testFns.newGuidComb(),
              CompanyName: name || 'a-new-company'
          });
          return cust;

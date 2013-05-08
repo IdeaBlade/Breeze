@@ -107,71 +107,35 @@
     
 
     /************************** SAVES *************************/
-
+    // This CustomerID guid is known to be new in the Northwind db
+    var newCustomerID = testFns.newGuidComb();
+    var alfredsID = testFns.wellKnownData.alfredsID;
+    
     module("dtoTests - saves", {
         setup: function () {
             testFns.populateMetadataStore(newNorthwindEm);
         },
         teardown: function() {
-            testFns.northwindReset();
+            testFns.teardown_northwindReset();
         }
     });
-    /*********************************************************
-    * Northwind save tests: tweek to explore various saves
-    * Not part of the official DocCode test suite
-    * Useful factoids
-    *   breeze.core.getUuid() // method to create Guids
-    *   testFns.newGuid() // alternative
-    *   "729de505-ea6d-4cdf-89f6-0360ad37bde7" // the first customer in the db
-    *********************************************************/
-    //asyncTest("can save a Northwind entity", 1, function () {
 
-    //    var typeName = 'Customer';
-        
-    //    // Create and initialize entity to save
-    //    var em = newNorthwindEm();
-    //    var entity = em.createEntity(typeName,
-    //        {
-    //            CustomerID: "7bf56882-d975-4faf-a794-dda9be357390"                 
-    //        }
-    //      , breeze.EntityState.Unchanged
-    //    );
-    //    entity.CompanyName("Test Company 2 - ***");
+    asyncTest("can save a new Customer entity with hidden CustomerID_OLD", 1, function () {
 
-    //    // Act and Assert
-    //    entitySaveTester(entity, /*shouldSave*/ true);
-
-    //});
-    asyncTest("can save a Northwind Order & InternationalOrder", 1, function () {
         // Create and initialize entity to save
         var em = newNorthwindEm();
+        var entity = em.createEntity('Customer',
+            {
+                CustomerID: newCustomerID
+            }
+        );
+        entity.CompanyName("Test " + new Date().toISOString());
 
-        var order = em.createEntity('Order', {
-            CustomerID: testFns.wellKnownData.alfredsID,
-            EmployeeID: testFns.wellKnownData.nancyID,
-            ShipName: "Test "+ new Date().toISOString()
-        });
-        
-        var internationalOrder = em.createEntity('InternationalOrder', {
-            // I thought Jay fixed this?
-            //Order: order, // sets OrderID and pulls it into the order's manager
-            OrderID: order.OrderID(),
-            CustomsDescription: "rare, exotic birds"
-        });
-
-        em.saveChanges()
-            .then(successfulSave).fail(handleSaveFailed).fin(start);
-        
-        function successfulSave(saveResults) {
-            var orderId = order.orderID();
-            var internationalOrderID = internationalOrder.OrderID();
-                      
-            equal(internationalOrderID, orderId,
-                "the new internationalOrder should have the same OrderID as its new parent Order, "+orderId);
-            ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
-        }
+        // Act and Assert
+        entitySaveTester(entity, /*shouldSave*/ true);
 
     });
+ 
     /************************** TEST HELPERS *************************/
     function entitySaveTester(entity, shouldSave) {
         var typeName = entity.entityType.shortName;

@@ -35,11 +35,20 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+        if (entityType.isAbstract) {
+            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        }
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
         
         this.entityType = entityType;
+        entityType.keyProperties.forEach(function (kp, i) {
+            // insure that guid keys are comparable.
+            if (kp.dataType === DataType.Guid) {
+                keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
+            }
+        });
         this.values = keyValues;
         this._keyInGroup = createKeyString(keyValues);
     };

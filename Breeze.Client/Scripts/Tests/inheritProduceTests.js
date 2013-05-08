@@ -31,6 +31,42 @@ define(["testFns"], function (testFns) {
         }
     });
 
+    test("EntityKey for ItemsOfProduce", function() {
+        var em = newEmX();
+        
+        var rdAppleId = "D35E9669-2BAE-4D69-A27A-252B31800B74";
+        var et = em.metadataStore.getEntityType("ItemOfProduce");
+
+        try {
+            var ek = new EntityKey(et, rdAppleId);
+            ok(false, "shouldn't get here");
+        } catch (e) {
+            ok(e.message.indexOf("EntityKey") >= 0, "message should mention EntityKey");
+        }
+        
+
+    });
+    
+    test("fetchEntityByKey Apple", function () {
+        var em = newEmX();
+        var blackBeansId = "D234F206-D0C8-40E3-9BF8-0ED190ED0C0C";
+        var rdAppleId = "D35E9669-2BAE-4D69-A27A-252B31800B74";
+        var appleType = em.metadataStore.getEntityType("Apple");
+        stop();
+        var item;
+        em.fetchEntityByKey("Apple", rdAppleId).then(function(data) {
+            item = data.entity;
+            ok(item, "item should have been found");
+            ok(data.fromCache === false, "should have been from database");
+            ok(item.entityType === appleType);
+            return em.fetchEntityByKey("Apple", rdAppleId, true);
+        }).then(function(data2) {
+            item = data2.entity;
+            ok(item, "item should have been found");
+            ok(data2.fromCache === true, "should have been from cache");
+            ok(item.entityType === appleType);
+        }).fail(testFns.handleFail).fin(start);
+    });
  
     test("query ItemsOfProduce", function () {
         var em = newEmX();

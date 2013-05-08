@@ -109,7 +109,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
-                        newValue.setProperty(inverseProp.name, this);
+                        if (property.isScalar) {
+                            if (inverseProp.relatedDataProperties & !inverseProp.relatedDataProperties[0].isPartOfKey) {
+                                // don't update the key if updating a 1-1 inverse relation
+                                // TODO: rethink this later as we see more 1-1 relations 
+                                // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
+                                newValue.setProperty(inverseProp.name, this);
+                            }
+                        } else {
+                            newValue.setProperty(inverseProp.name, this);
+                        }
                     } else {
                         // navigation property change - undo old relation
                         if (oldValue) {
@@ -203,7 +212,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     throw new Error("An entity with this key is already in the cache: " + newKey.toString());
                 }
                 var oldKey = this.entityAspect.getKey();
-                var eg = entityManager.findEntityGroup(this.entityType);
+                var eg = entityManager._findEntityGroup(this.entityType);
                 eg._replaceKey(oldKey, newKey);
             }
             rawAccessorFn(newValue);

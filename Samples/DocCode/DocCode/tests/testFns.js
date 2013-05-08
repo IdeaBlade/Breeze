@@ -8,10 +8,14 @@ docCode.testFns = (function () {
 
     extendString();
 
+    var userSessionId = newGuidComb();
+    
     /*********************************************************
     * testFns - the module object
     *********************************************************/
     var testFns = {
+        userSessionId: userSessionId,
+        
         northwindServiceName: "breeze/Northwind",
         todosServiceName: "breeze/todos",
         inheritanceServiceName: "breeze/inheritance",
@@ -23,6 +27,7 @@ docCode.testFns = (function () {
         getModuleOptions: getModuleOptions,
         teardown_todosReset: teardown_todosReset,
         teardown_inheritanceReset: teardown_inheritanceReset,
+        teardown_northwindReset:teardown_northwindReset,
         output: output,
         stopCount: stopCountFactory(),
 
@@ -38,6 +43,7 @@ docCode.testFns = (function () {
 
         getNextIntId: getNextIntId,
         newGuid: newGuid,
+        newGuidComb: newGuidComb,
         
         getParserForUrl: getParserForUrl,
         rootUri: getRootUri(),
@@ -70,10 +76,22 @@ docCode.testFns = (function () {
         }
     };
     var _nextIntId = 10000; // seed for getNextIntId()
-    
+
+    initAjaxAdapter();
     return testFns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
+    
+    function initAjaxAdapter() {
+        // get the current default Breeze AJAX adapter
+        var ajaxAdapter = breeze.config.getAdapterInstance("ajax");
+        ajaxAdapter.defaultSettings = {
+            headers: {
+                "X-UserSessionId": userSessionId
+            },
+        };
+    }
+    
     function getParserForUrl(url) {
         var parser = document.createElement('a');
         parser.href = url;
@@ -289,6 +307,15 @@ docCode.testFns = (function () {
         inheritanceReset().fail(handleFail).fin(start).done();
     }
     /*********************************************************
+    * Teardown for a module that saves to the Northwind database
+    *********************************************************/
+    // should call this during test teardown to restore
+    // the database to a known, populated state.
+    function teardown_northwindReset() {
+        stop();
+        northwindReset().fail(handleFail).fin(start).done();
+    }
+    /*********************************************************
     * Get or Create an EntityManager
     *********************************************************/
     // get an EntityManager from arg (which is either an em or an em factory)
@@ -305,10 +332,34 @@ docCode.testFns = (function () {
         return _nextIntId++;
     }
     /*********************************************************
-    * Generate the next new integer Id
+    * Generate a new Guid Id
     *********************************************************/
     function newGuid() {
         return breeze.core.getUuid();
+    }
+    /*********************************************************
+    * Generate a new GuidCOMB Id
+    * @method newGuidComb {String}
+    * @param [n] {Number} Optional integer value for a particular time value
+    * if not supplied (and usually isn't), n = new Date.getTime()
+    *********************************************************/
+    function newGuidComb(n) {
+        // Create a pseudo-Guid whose trailing 6 bytes (12 hex digits) are timebased
+        // Start either with the given getTime() value, n, or get the current time in ms.
+        // Each new Guid is greater than next if more than 1ms passes
+        // See http://thatextramile.be/blog/2009/05/using-the-guidcomb-identifier-strategy
+        // Based on breeze.core.getUuid which is based on this StackOverflow answer
+        // http://stackoverflow.com/a/2117523/200253     
+        // Convert time value to hex: n.toString(16)
+        // Make sure it is 6 bytes long: ('00'+ ...).slice(-12) ... from the rear
+        // Replace LAST 6 bytes (12 hex digits) of regular Guid (that's where they sort in a Db)
+        // Play with this in jsFiddle: http://jsfiddle.net/wardbell/qS8aN/
+        var timePart = ('00' + (n || (new Date().getTime())).toString(16)).slice(-12);
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        }) + timePart;
     }
     /*********************************************************
     * Verify query and its results
@@ -416,9 +467,11 @@ docCode.testFns = (function () {
     /**************************************************
     * Pure Web API calls aimed at the TodosController
     * issued with jQuery and wrapped in Q.js promise
+    *
+    * Does NOT STOP/START the testrunner!
+    * Use teardown_todosReset for that
     **************************************************/
     function todosPurge() {
-
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/purge',
@@ -427,14 +480,13 @@ docCode.testFns = (function () {
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
     }
 
     function todosReset() {
-
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/reset',
@@ -443,7 +495,7 @@ docCode.testFns = (function () {
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
@@ -451,9 +503,11 @@ docCode.testFns = (function () {
     /**************************************************
     * Pure Web API calls aimed at the InheritanceController
     * issued with jQuery and wrapped in Q.js promise
+    *
+    * Does NOT STOP/START the testrunner!
+    * Use teardown_inheritanceReset for that
     **************************************************/
     function inheritancePurge() {
-
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/purge',
@@ -462,13 +516,14 @@ docCode.testFns = (function () {
                     "Purge svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
         return deferred.promise;
     }
 
     function inheritanceReset() {
+        stop(); // pause test runner while we reset
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/reset',
@@ -477,29 +532,53 @@ docCode.testFns = (function () {
                    "Reset svc returned '" + jqXHR.status + "' with message: " + data);
             })
         .error(function(jqXHR, textStatus, errorThrown) {
-             deferred.reject(errorThrown);
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
-        return deferred.promise;
+        return deferred.promise.fin(start);
     }
     /**************************************************
      * Pure Web API calls aimed at the NorthwindController
      * issued with jQuery and wrapped in Q.js promise
+     *
+     * Does NOT STOP/START the testrunner!
+     * Use teardown_northwindReset for that
      **************************************************/
 
-    function northwindReset() {
+    function northwindReset(fullReset) {
         var deferred = Q.defer();
-
-        $.post(testFns.northwindServiceName + '/reset',
-            function (data, textStatus, jqXHR) {
-                deferred.resolve(
-                   "Reset svc returned '" + jqXHR.status + "' with message: " + data);
-            })
-        .error(function (jqXHR, textStatus, errorThrown) {
-            deferred.reject(errorThrown);
+        var queryString = fullReset ? "/options=fullreset" : "";
+        $.ajax({
+            type: "POST",
+            url: testFns.northwindServiceName + "/reset"+ queryString,
+            success: success,
+            error: error,
+            headers: { "X-UserSessionId": userSessionId }
         });
-
+        
         return deferred.promise;
+        
+        function success(data, textStatus, xhr) {
+            deferred.resolve(
+               "Reset svc returned '" + xhr.status + "' with message: " + data);
+        }
+        function error(xhr, textStatus, errorThrown) {
+            deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
+        }
+    }
+    
+    /*********************************************************
+    * Make a good error message from jQuery Ajax failure
+    *********************************************************/
+    function getjQueryError(xhr, textStatus, errorThrown) {
+        var message = xhr.status + "-" + xhr.statusText;
+        try {
+            var reason = JSON.parse(xhr.responseText).Message;
+            message += "\n" + reason;
+        } catch(ex) {
+            message += "\n" + xhr.responseText;
+        }
+        return message;
     }
     /*********************************************************
     * Return an entity's validation error messages as a string

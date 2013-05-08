@@ -36,8 +36,8 @@
         @param [config.defaultResponse.headers] {Object} Faked headers as hash where key=header-name, value=header-value 
         @param [config.defaultResponse.xhr] {Object} Faked XHR object as if returned by base ajax adapter 
         @param [config.defaultResponse.isError] {Boolean} true if should treat this call as an error.
-        The test adapter follows the "success path" (calls ajaxConfig.Success) if 'isError' is false and the
-        status is a 200. Otherwise it follows the "error path" (calls ajaxConfig.error).
+        The test adapter follows the "success path" (calls ajaxSettings.Success) if 'isError' is false and the
+        status is a 200. Otherwise it follows the "error path" (calls ajaxSettings.error).
         @param [config.defaultResponse.errorThrown] {Error} Faked exception as if returned by base ajax adapter 
 
     @param [config.responses] {Array of Object} Each response is as defined for default response 
@@ -55,19 +55,19 @@
     @param [config] {Array} This is a convenience version of the TestAdapterConfig which the adapter translates to
     a config that returns the array as the successful (StatusCode 200) data result for any requested URL.
 
-    before(origAjaxConfig, response)
-    @param origAjaxConfig {Object) The original ajax configuation parameter from the caller
+    before(origAjaxSettings, response)
+    @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
     @param [response] {Object} The test response object if there is one. 
 
-    afterSuccess(origAjaxConfig, response, data, textStatus, xhr);
-    @param origAjaxConfig {Object) The original ajax configuation parameter from the caller
+    afterSuccess(origAjaxSettings, response, data, textStatus, xhr);
+    @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
     @param [response] {Object} The test response object if there was one. 
     @param data {Object} Data returned from the base adapter or faked. 
     @param textStatus {String} Text status returned from the base adapter or faked. 
     @param xhr {Object} XHR object returned from the base adapter or faked. 
 
-    afterError(origAjaxConfig, response, xhr, textStatus, errorThrown);
-    @param origAjaxConfig {Object) The original ajax configuation parameter from the caller
+    afterError(origAjaxSettings, response, xhr, textStatus, errorThrown);
+    @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
     @param [response] {Object} The test response object if there was one.
     @param xhr {Object} XHR object returned from the base adapter or faked. 
     @param textStatus {String} Text status returned from the base adapter or faked. 
@@ -79,25 +79,29 @@
     @return {Boolean} true if the response matches this url
 
  *************************************************************/
-
+    var extend = breeze.core.extend;
+    var clone = function (thing) { return extend({}, thing); };
 
     var TestAjaxAdapter = function (config, adapterName) {
-
+     
         var adapter = breeze.config.getAdapterInstance("ajax", adapterName);
         if (!adapter) {
             throw new Error("No existing " + adapterName + " ajax adapter to fake.");
         }
-        var origAjaxFn = adapter.ajax;
-        var getAdapterConfig = createGetAdapterConfigFn(this);
-        var fakeAjaxFn = createFakeAjaxFn(getAdapterConfig, origAjaxFn);
+        
+        /**
+        The default settings to copy to an ajax fn call
+        Initialized with the source ajax adapter.defaultSettings
+        @property defaultSettings {Object}
+        **/
+        this.defaultSettings = adapter.defaultSettings;
 
-        // public API
         /**
         The current configuration for this adapter. See the class description
         @property testAdapterConfig {Object}
         **/
         this.testAdapterConfig = config;
-
+        
         /**
         Enable the testAjaxAdapter, replacing the wrapped adapter's ajax fn with the test version
         @method enable
@@ -122,16 +126,20 @@
         /**
         Call the adapter's current ajax function
         @method ajax
-        @param ajaxConfig {Object} parameter to adapter's ajax method. 
+        @param ajaxSettings {Object} parameter to adapter's ajax method. 
         See breeze documentation: http://www.breezejs.com/documentation/customizing-ajax
         **/
-        this.ajax = function (ajaxConfig) { adapter.ajax(ajaxConfig); };
+        this.ajax = function (ajaxSettings) { adapter.ajax(ajaxSettings); };
 
         /**
         Ensure that the test adapter does not make a server request when enabled.
         @property blockServerRequests=false {Boolean}
         **/
         this.blockServerRequests = false;
+
+        var origAjaxFn = adapter.ajax;
+        var getAdapterConfig = createGetAdapterConfigFn(this);
+        var fakeAjaxFn = createFakeAjaxFn(getAdapterConfig, origAjaxFn);
 
     };
 
@@ -140,10 +148,18 @@
     //#region private functions
     function createFakeAjaxFn(getAdapterConfig, origAjaxFn) {
 
-        return function (origAjaxConfig) {
-            var ajaxConfig = breeze.core.extend({}, origAjaxConfig); // clone Ajax config
+        return function (origAjaxSettings) {
+
+            var ajaxSettings = clone(origAjaxSettings); 
 
             var adapterConfig = getAdapterConfig();
+            
+            if (adapterConfig.defaultSettings) {
+                // Revised ajax config is the clone of the default settings 
+                // overlayed with the previous ajax config
+                var compositeSettings = clone(adapterConfig.defaultSettings);
+                ajaxSettings = extend(compositeSettings, ajaxSettings);
+            }
 
             var before = adapterConfig.before || noop;
             var afterSuccess = adapterConfig.afterSuccess || noop;
@@ -151,25 +167,25 @@
 
             // look for a fake response for this url
             // TODO: use regex to match url!
-            var response = matchResponse(ajaxConfig.url, adapterConfig.responses, adapterConfig.urlMatcher);
+            var response = matchResponse(ajaxSettings.url, adapterConfig.responses, adapterConfig.urlMatcher);
             response = response || adapterConfig.defaultResponse;
 
             // wrap success and fail fns
-            var origSuccessFn = origAjaxConfig.success || noop;
-            ajaxConfig.success = function(data, textStatus, xhr) {
-                afterSuccess(origAjaxConfig, response, data, textStatus, xhr);
+            var origSuccessFn = origAjaxSettings.success || noop;
+            ajaxSettings.success = function(data, textStatus, xhr) {
+                afterSuccess(origAjaxSettings, response, data, textStatus, xhr);
                 origSuccessFn(data, textStatus, xhr);
             };
-            var origErrorFn = origAjaxConfig.error || noop;
-            ajaxConfig.error = function(xhr, textStatus, errorThrown) {
-                afterError(origAjaxConfig, response, xhr, textStatus, errorThrown);
+            var origErrorFn = origAjaxSettings.error || noop;
+            ajaxSettings.error = function(xhr, textStatus, errorThrown) {
+                afterError(origAjaxSettings, response, xhr, textStatus, errorThrown);
                 origErrorFn(xhr, textStatus, errorThrown);
             };
 
-            before(origAjaxConfig, response);
+            before(origAjaxSettings, response);
 
             if (!response) { // no applicable fake response                
-                origAjaxFn(ajaxConfig); //pass thru to original ajax fn
+                origAjaxFn(ajaxSettings); //pass thru to original ajax fn
                 return;
             }
 
@@ -181,12 +197,12 @@
                 status: response.status || 200,
                 getResponseHeader: createXhrGetResponseHeader(response),
                 getAllResponseHeaders: createXhrGetAllResponseHeaders(response),
-                // diagnostics; not is a real xhr
+                // diagnostics; not in a real xhr
                 __fakeResponse: response,
-                __ajaxConfig: origAjaxConfig
+                __ajaxSettings: origAjaxSettings
             };
             if (response.xhr) {
-                fakeXhr = breeze.core.extend(fakeXhr, response.xhr);
+                fakeXhr = extend(fakeXhr, response.xhr);
             }
 
             var isError = response.isError || fakeXhr.status < 200 || fakeXhr.status >= 300;
@@ -194,10 +210,10 @@
 
             if (isError) {
                 var fakeErrorThrown = response.errorThrown || new Error("fake ajax error");
-                ajaxConfig.error(fakeXhr, fakeTextStatus, fakeErrorThrown);
+                ajaxSettings.error(fakeXhr, fakeTextStatus, fakeErrorThrown);
             } else {
                 var fakeData = response.data || [];
-                ajaxConfig.success(fakeData, fakeTextStatus, fakeXhr);
+                ajaxSettings.success(fakeData, fakeTextStatus, fakeXhr);
             }
         };
     }
@@ -229,6 +245,9 @@
                     errorThrown: new Error(emsg)
                 };
             }
+            
+            adapterConfig.defaultSettings = testAdapter.defaultSettings;
+            
             return adapterConfig;
         };
     }

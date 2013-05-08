@@ -1,5 +1,5 @@
 ﻿// Only one of the next 4 should be uncommented.
-//#define CODEFIRST_PROVIDER 
+#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
 //#define DATABASEFIRST_NEW
 #define NHIBERNATE
@@ -238,7 +238,11 @@ namespace Sample_WebApi.Controllers {
       return custs;
     }
 
-
+    [HttpGet]
+    public Object CustomerCountsByCountry() {
+      return ContextProvider.Context.Customers.GroupBy(c => c.Country).Select(g => new {g.Key, Count = g.Count()});
+    }
+    
 
     [HttpGet]
     public Customer CustomerWithScalarResult() {

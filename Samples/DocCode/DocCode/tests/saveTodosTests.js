@@ -12,23 +12,28 @@
     var queryForOne = testFns.queryForOne;
     var runQuery = testFns.runQuery;
     var handleFail = testFns.handleFail;
+    var handleSaveFailed = testFns.handleSaveFailed;
 
+    /*********************************************************
+    * Todo Saves
+    *********************************************************/
+    
     // Target the Todos service
-    var serviceName = testFns.todosServiceName;
-    var newEm = testFns.newEmFactory(serviceName);
-    var moduleOptions = testFns.getModuleOptions(newEm);
+    var todosServiceName = testFns.todosServiceName;
+    var newTodosEm = testFns.newEmFactory(todosServiceName);
+    var moduleOptions = testFns.getModuleOptions(newTodosEm);
 
     // reset Todos db after each test because we're messing it up
     moduleOptions.teardown = testFns.teardown_todosReset;
 
-    module("saveTodoTests", moduleOptions);
+    module("saveTodosTests", moduleOptions);
 
     /*********************************************************
     * can save and requery a new Todo
     *********************************************************/
     test("can save and requery a new Todo", 2, function () {
 
-        var em = newEm();       // new empty EntityManager
+        var em = newTodosEm();       // new empty EntityManager
 
         var description = "Save todo in Breeze";
         var newTodo = em.createEntity('TodoItem',{ Description: description });
@@ -36,7 +41,8 @@
         stop(); // going async ... tell the testrunner to wait
 
         em.saveChanges() // save and wait ...
-
+        
+        .fail(handleSaveFailed)
         .then(function (saveResult) { // back from save
 
             var id = newTodo.Id(); // permanent id is now known
@@ -63,7 +69,7 @@
     *********************************************************/
     test("updates id and state after saving a new Todo", 5, function () {
         
-        var em1 = newEm();       // new empty EntityManager
+        var em1 = newTodosEm();       // new empty EntityManager
 
         var description = "Learn to save in breeze";
         var newTodo = em1.createEntity('TodoItem',{ Description: description });
@@ -73,7 +79,8 @@
         stop(); // going async ... tell the testrunner to wait
 
         em1.saveChanges() // save and wait ...
-
+        
+        .fail(handleSaveFailed)
         .then(function (saveResult) { // back from save
 
             // confirm state transitioned from 'added' to 'unchanged'
@@ -88,7 +95,7 @@
 
             // re-query from database to confirm it really did get saved
             var requery = new EntityQuery("Todos").where("Id", "==", savedId);
-            var em2 = newEm(); // query with a new, empty EntityManager
+            var em2 = newTodosEm(); // query with a new, empty EntityManager
 
             return queryForOne(em2, requery,  // query and wait ...
                 "refetch saved Todo w/ id = " + savedId);
@@ -115,7 +122,7 @@
     *********************************************************/
     test("can save add, update, and delete in one batch", 8, function () {
 
-        var em = newEm();      // new empty EntityManager
+        var em = newTodosEm();      // new empty EntityManager
         var newTodo, updateTodo, deleteTodo;
 
         newTodo = em.createEntity('TodoItem',{ Description: "Learn to save in breeze" });
@@ -166,14 +173,14 @@
             ok(true, "deleted Todo is not in cache");
         })
 
-        .fail(handleFail)
+        .fail(handleSaveFailed)
         .fin(start);
     });
     /*********************************************************
     * hasChangesChanged event raised after rejectChanges
     *********************************************************/
     test("hasChangesChanged event raised after rejectChanges", 1, function () {
-        var em = newEm();
+        var em = newTodosEm();
         var hasChangesWasRaised;
         em.hasChangesChanged.subscribe(
             function () { hasChangesWasRaised = true; }
@@ -190,7 +197,7 @@
     * hasChangesChanged event raised after saveChanges
     *********************************************************/
     test("hasChangesChanged event raised after saveChanges", 1, function () {
-        var em = newEm();    
+        var em = newTodosEm();    
         var hasChangesWasRaised;
         em.hasChangesChanged.subscribe(
             function() {
@@ -207,9 +214,7 @@
                ok(hasChangesWasRaised,
                 "hasChangesChanged should have been raised after saveChanges");
            })
-           .fail( function(error) {
-               ok(false, "save failed: " + error.message);
-           })
+           .fail(handleSaveFailed)
            .fin(start);
     });
 

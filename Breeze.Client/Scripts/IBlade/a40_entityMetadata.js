@@ -122,12 +122,15 @@ var MetadataStore = (function () {
 
         if (!structuralType.isComplexType) {
             structuralType._updateNps();
+            // give the type it's base's resource name if it doesn't have its own.
+            structuralType.defaultResourceName = structuralType.defaultResourceName || (structuralType.baseEntityType && structuralType.baseEntityType.defaultResourceName);
             structuralType.defaultResourceName && this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
             // check if this structural type's name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
         } 
 
         if (structuralType.baseEntityType) {
+            
             structuralType.baseEntityType.subtypes.push(structuralType);
         }
     };
