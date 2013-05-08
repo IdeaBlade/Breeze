@@ -108,8 +108,7 @@
 
     /************************** SAVES *************************/
     // This CustomerID guid is known to be new in the Northwind db
-    var newCustomerID = "7bf56882-d975-4faf-a794-dda9be357390";
-
+    var newCustomerID = testFns.newGuidComb();
     var alfredsID = testFns.wellKnownData.alfredsID;
     
     module("dtoTests - saves", {

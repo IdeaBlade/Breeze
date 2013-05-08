@@ -8,10 +8,14 @@ docCode.testFns = (function () {
 
     extendString();
 
+    var userSessionId = newGuidComb();
+    
     /*********************************************************
     * testFns - the module object
     *********************************************************/
     var testFns = {
+        userSessionId: userSessionId,
+        
         northwindServiceName: "breeze/Northwind",
         todosServiceName: "breeze/todos",
         inheritanceServiceName: "breeze/inheritance",
@@ -71,10 +75,22 @@ docCode.testFns = (function () {
         }
     };
     var _nextIntId = 10000; // seed for getNextIntId()
-    
+
+    initAjaxAdapter();
     return testFns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
+    
+    function initAjaxAdapter() {
+        // get the current default Breeze AJAX adapter
+        var ajaxAdapter = breeze.config.getAdapterInstance("ajax");
+        ajaxAdapter.defaultSettings = {
+            headers: {
+                "X-UserSessionId": userSessionId
+            },
+        };
+    }
+    
     function getParserForUrl(url) {
         var parser = document.createElement('a');
         parser.href = url;
@@ -512,19 +528,26 @@ docCode.testFns = (function () {
      * issued with jQuery and wrapped in Q.js promise
      **************************************************/
 
-    function northwindReset() {
+    function northwindReset(fullReset) {
         var deferred = Q.defer();
-
-        $.post(testFns.northwindServiceName + '/reset',
-            function (data, textStatus, jqXHR) {
-                deferred.resolve(
-                   "Reset svc returned '" + jqXHR.status + "' with message: " + data);
-            })
-        .error(function (jqXHR, textStatus, errorThrown) {
-            deferred.reject(errorThrown);
+        var queryString = fullReset ? "/options=fullreset" : "";
+        $.ajax({
+            type: "POST",
+            url: testFns.northwindServiceName + "/reset"+ queryString,
+            success: success,
+            error: error,
+            headers: { "X-UserSessionId": userSessionId }
         });
-
+        
         return deferred.promise;
+        
+        function success(data, textStatus, jqXHR) {
+            deferred.resolve(
+               "Reset svc returned '" + jqXHR.status + "' with message: " + data);
+        }
+        function error(jqXHR, textStatus, errorThrown) {
+            deferred.reject(errorThrown);
+        }
     }
     /*********************************************************
     * Return an entity's validation error messages as a string

@@ -17,9 +17,8 @@ namespace Northwind.Models
     /// </summary>
     public interface ISaveable
     {
+        Guid? UserSessionId { get; set; }
         string canAdd();
-        string canUpdate();
-        string canDelete();
     }
 
     #endregion
@@ -82,9 +81,10 @@ namespace Northwind.Models
 
     public ICollection<Order> Orders { get; set; }
 
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }
+
     public string canAdd() { return null; }
-    public string canUpdate() { return null; } // see guard in repository
-    public string canDelete() { return canUpdate(); }
   }
   #endregion Customer class
 
@@ -158,13 +158,11 @@ namespace Northwind.Models
     [InverseProperty("Employees")]
     public ICollection<Territory> Territories {get;set;}
 
-    public static int HighestOriginalID = 10;
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }
+
     public string canAdd() { return null; }
-    public string canUpdate() {
-        return EmployeeID > HighestOriginalID ?
-            null : " is one of the original Employees.";
-    }
-    public string canDelete() { return canUpdate(); }
+
   }
   #endregion Employee class
 
@@ -234,6 +232,9 @@ namespace Northwind.Models
     [InverseProperty("Order")]
     public InternationalOrder InternationalOrder {get;set;}
 
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }
+
     public static int HighestOriginalID = 11077;
     public string canAdd() { return null; }
     public string canUpdate()
@@ -242,6 +243,7 @@ namespace Northwind.Models
             null : " is one of the original Orders.";
     }
     public string canDelete() { return canUpdate(); }
+
   }
   #endregion Order class
 
@@ -264,6 +266,9 @@ namespace Northwind.Models
     // disabled navigation from Product to OrderDetails
     //[InverseProperty("OrderDetails")] 
     public Product Product {get;set;}
+
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }
 
     public string canAdd() { return null; }
     public string canUpdate()
@@ -520,14 +525,11 @@ namespace Northwind.Models
     [InverseProperty("User")]
     public ICollection<UserRole> UserRoles { get; set; }
 
-    public static int HighestOriginalID = 19;
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }
+
     public string canAdd() { return null; }
-    public string canUpdate()
-    {
-        return Id > HighestOriginalID ?
-            null : " is one of the original Users.";
-    }
-    public string canDelete() { return canUpdate(); }
+
   }
   #endregion User class
 
@@ -568,19 +570,14 @@ namespace Northwind.Models
     public decimal ExciseTax { get; set; }
 
     public int RowVersion { get; set; }
-    
-    //[ForeignKey("OrderID")]
-    //[InverseProperty("InternationalOrder")]
-    //[Required]
+
     public Order Order { get; set; }
 
+    [JsonIgnore]
+    public Guid? UserSessionId { get; set; }   
+
     public string canAdd() { return null; }
-    public string canUpdate()
-    {
-        return OrderID > Order.HighestOriginalID ?
-            null : " is one of the original Orders.";
-    }
-    public string canDelete() { return canUpdate(); }
+
   }
   #endregion InternationalOrder class
 }
