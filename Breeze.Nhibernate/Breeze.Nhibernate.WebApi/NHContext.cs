@@ -15,7 +15,7 @@ namespace Breeze.Nhibernate.WebApi
 {
     public class NHContext : ContextProvider, IDisposable
     {
-        public ISession session;
+        private ISession session;
         protected Configuration configuration;
 
         /// <summary>
@@ -28,12 +28,14 @@ namespace Breeze.Nhibernate.WebApi
         {
             this.session = session;
             this.configuration = configuration;
-
-            // Lousy hack to put the sessionFactory where it's needed.
-            NHEagerFetch.sessionFactory = session.SessionFactory;
         }
 
-        public IQueryable<T> GetQuery<T>()
+        public ISession Session
+        {
+            get { return session; }
+        }
+
+        public NhQueryable<T> GetQuery<T>()
         {
             return new NhQueryable<T>(session.GetSessionImplementation());
         }

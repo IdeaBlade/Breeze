@@ -88,6 +88,8 @@ namespace Breeze.Nhibernate.WebApi
 
             if (meta != null && meta.GetPropertyType(name).IsAssociationType) return false;
 
+            if (typeof(System.Collections.IEnumerable).IsAssignableFrom(propertyType)) return false;
+
             return true;
         }
     }

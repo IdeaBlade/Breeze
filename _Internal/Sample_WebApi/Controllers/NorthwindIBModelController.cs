@@ -1,8 +1,8 @@
-﻿// Only one of the next 3 should be uncommented.
+﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER 
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
-//#define NHIBERNATE
+//#define DATABASEFIRST_NEW
+#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -54,43 +54,43 @@ namespace Sample_WebApi.Controllers {
       public NorthwindContextProvider Context {
           get { return this; }
       }
-      public IQueryable<Category> Categories {
+      public NhQueryable<Category> Categories {
           get { return GetQuery<Category>(); }
       }
-      public IQueryable<Comment> Comments {
+      public NhQueryable<Comment> Comments {
           get { return GetQuery<Comment>(); }
       }
-      public IQueryable<Customer> Customers {
+      public NhQueryable<Customer> Customers {
           get { return GetQuery<Customer>(); }
       }
-      public IQueryable<Employee> Employees {
+      public NhQueryable<Employee> Employees {
           get { return GetQuery<Employee>(); }
       }
-      public IQueryable<Order> Orders {
+      public NhQueryable<Order> Orders {
           get { return GetQuery<Order>(); }
       }
-      public IQueryable<OrderDetail> OrderDetails {
+      public NhQueryable<OrderDetail> OrderDetails {
           get { return GetQuery<OrderDetail>(); }
       }
-      public IQueryable<Product> Products {
+      public NhQueryable<Product> Products {
           get { return GetQuery<Product>(); }
       }
-      public IQueryable<Region> Regions {
+      public NhQueryable<Region> Regions {
           get { return GetQuery<Region>(); }
       }
-      public IQueryable<Role> Roles {
+      public NhQueryable<Role> Roles {
           get { return GetQuery<Role>(); }
       }
-      public IQueryable<Supplier> Suppliers {
+      public NhQueryable<Supplier> Suppliers {
           get { return GetQuery<Supplier>(); }
       }
-      public IQueryable<Territory> Territories {
+      public NhQueryable<Territory> Territories {
           get { return GetQuery<Territory>(); }
       }
-      public IQueryable<TimeLimit> TimeLimits {
+      public NhQueryable<TimeLimit> TimeLimits {
           get { return GetQuery<TimeLimit>(); }
       }
-      public IQueryable<User> Users {
+      public NhQueryable<User> Users {
           get { return GetQuery<User>(); }
       }
         
@@ -128,6 +128,14 @@ namespace Sample_WebApi.Controllers {
       ContextProvider = new NorthwindContextProvider();
     }
 
+#if NHIBERNATE
+    protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
+    {
+        base.Initialize(controllerContext);
+        // BreezeNHQueryableAttribute needs the session
+        this.Request.Properties.Add(BreezeNHQueryableAttribute.NH_SESSION_KEY, ContextProvider.Session);
+    }
+#endif
     //[HttpGet]
     //public String Metadata() {
     //  var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
@@ -361,21 +369,13 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Customer> CustomersAndOrders() {
-#if NHIBERNATE
-      var custs = ContextProvider.Context.Customers.FetchMany(c => c.Orders);
-#else
       var custs = ContextProvider.Context.Customers.Include("Orders");
-#endif
       return custs;
     }
 
     [HttpGet]
     public IQueryable<Order> OrdersAndCustomers() {
-#if NHIBERNATE
-      var orders = ContextProvider.Context.Orders.Fetch(o => o.Customer);
-#else
       var orders = ContextProvider.Context.Orders.Include("Customer");
-#endif
       return orders;
     }
 

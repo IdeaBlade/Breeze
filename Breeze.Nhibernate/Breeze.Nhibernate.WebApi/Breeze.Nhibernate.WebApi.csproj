@@ -120,6 +120,8 @@
     <Compile Include="NHBreezeMetadata.cs" />
     <Compile Include="NHContext.cs" />
     <Compile Include="NHEagerFetch.cs" />
+    <Compile Include="NHInitializer.cs" />
+    <Compile Include="NhQueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

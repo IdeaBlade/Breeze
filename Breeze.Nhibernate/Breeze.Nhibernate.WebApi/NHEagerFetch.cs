@@ -14,12 +14,12 @@ namespace Breeze.Nhibernate.WebApi
     /// </summary>
     public class NHEagerFetch
     {
-        // Allow the NHContext to inject the sessionFactory here
-        internal static ISessionFactory sessionFactory;
+        // For getting IClassMetadata
+        private ISessionFactory sessionFactory;
 
-        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ExpandTypeMap expandMap)
+        public NHEagerFetch(ISessionFactory sessionFactory)
         {
-            return ApplyExpansions(queryable, expandPaths, sessionFactory, expandMap);
+            this.sessionFactory = sessionFactory;
         }
 
         /// <summary>
@@ -29,12 +29,11 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="expandPaths">The names of the properties to expand.  May include nested paths of the form "Property/SubProperty"</param>
         /// <param name="sessionFactory">Provides the NHibernate metadata for the classes</param>
         /// <param name="expandMap">Will be populated with the names of the expanded properties for each type.</param>
-        /// <param name="expandCollections">If true, eagerly fetch collections. This causes problems with $skip and $top operations.  
+        /// <param name="expandCollections">If true, eagerly fetch collections. Caution: this causes problems with $skip and $top operations.  
         ///     Default is false.  expandMap will still be populated with the collection property, so it will be lazy loaded.
         ///     Be sure to set default_batch_fetch_size in the configuration for lazy loaded collections.</param>
         /// <returns></returns>
-        public static IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ISessionFactory sessionFactory,
-            ExpandTypeMap expandMap, bool expandCollections = false)
+        public IQueryable ApplyExpansions(IQueryable queryable, string[] expandPaths, ExpandTypeMap expandMap, bool expandCollections = false)
         {
             if (queryable == null) throw new ArgumentException("Query cannot be null");
 
@@ -50,7 +49,11 @@ namespace Breeze.Nhibernate.WebApi
                 var currentType = currentQueryable.ElementType;
                 var isFirstFetch = true;
                 var isInvoking = true;
+
+                // split on '/' or '.'
                 var segments = expand.Split('/');
+                if (segments.Length == 1 && expand.IndexOf('.') > 0)
+                    segments = expand.Split('.');
                 expandMap.Deepen(segments.Length);
                 foreach (string seg in segments)
                 {
@@ -70,7 +73,8 @@ namespace Breeze.Nhibernate.WebApi
                     {
                         throw new ArgumentException("Type '" + currentType.Name + "' does not have property '" + seg + "'");
                     }
-                    if (expandMap != null) expandMap.map[currentType].Add(seg);
+                    if (expandMap != null && !expandMap.map[currentType].Contains(seg)) 
+                        expandMap.map[currentType].Add(seg);
 
                     var propType = propInfo.PropertyType;
                     var metaPropType = metadata.GetPropertyType(seg);
