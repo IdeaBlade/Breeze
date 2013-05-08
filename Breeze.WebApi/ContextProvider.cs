@@ -99,6 +99,13 @@ namespace Breeze.WebApi {
       return new EntityInfo();
     }
 
+    public EntityInfo CreateEntityInfo(Object entity, EntityState entityState = EntityState.Added) {
+      var ei = CreateEntityInfo();
+      ei.Entity = entity;
+      ei.EntityState = entityState;
+      return ei;
+    }
+
     public Func<EntityInfo, bool> BeforeSaveEntityDelegate { get; set; }
     public Func<Dictionary<Type, List<EntityInfo>>, Dictionary<Type, List<EntityInfo>>>  BeforeSaveEntitiesDelegate { get; set; }
     
