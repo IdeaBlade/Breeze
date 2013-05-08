@@ -25,6 +25,25 @@ define(["testFns"], function (testFns) {
         teardown: function () {
         }
     });
+    
+    test("select - complex type", function () {
+        var em = newEm();
+
+        var query = new EntityQuery()
+            .from("Suppliers")
+            .select("supplierID, companyName, location");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
+            ok(data.results.length > 0, "empty data");
+            var anons = data.results;
+            anons.forEach(function (a) {
+                ok(a.companyName);
+                ok(a.location);
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("select - anon with dateTimes", function () {
         var em = newEm();

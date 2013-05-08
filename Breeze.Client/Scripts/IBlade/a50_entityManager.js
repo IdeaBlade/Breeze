@@ -1809,7 +1809,11 @@ var EntityManager = (function () {
             }
             return refValue;
         } else if (meta.entityType) {
-            return mergeEntity(node, mappingContext, meta);
+            if (meta.entityType.isComplexType) {
+                return node;
+            } else {
+                return mergeEntity(node, mappingContext, meta);
+            }
         } else {
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
