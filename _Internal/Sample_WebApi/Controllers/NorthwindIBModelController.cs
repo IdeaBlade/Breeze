@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
-#define CODEFIRST_PROVIDER 
+#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
 //#define DATABASEFIRST_NEW
-#define NHIBERNATE
+//#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
