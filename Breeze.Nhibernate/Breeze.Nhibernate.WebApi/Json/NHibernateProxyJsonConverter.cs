@@ -14,26 +14,19 @@ namespace Breeze.Nhibernate.WebApi
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            try
+            var proxy = value as INHibernateProxy;
+            if (proxy != null)
             {
-                var proxy = value as INHibernateProxy;
-                if (proxy != null)
-                {
-                    value = proxy.HibernateLazyInitializer.GetImplementation();
-                }
-
-                if (NHibernateUtil.IsInitialized(value))
-                {
-                    serializer.Serialize(writer, value);
-                }
-                else
-                {
-                    serializer.Serialize(writer, null);
-                }
+                value = proxy.HibernateLazyInitializer.GetImplementation();
             }
-            catch (LazyInitializationException)
+
+            if (NHibernateUtil.IsInitialized(value))
             {
-                // ignore it
+                serializer.Serialize(writer, value);
+            }
+            else
+            {
+                serializer.Serialize(writer, null);
             }
         }
 
