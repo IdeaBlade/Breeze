@@ -70,7 +70,7 @@ namespace Breeze.Nhibernate.WebApi
 
                 var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
 
-                if (returnType is IEnumerable)
+                if (typeof(IEnumerable).IsAssignableFrom(returnType))
                 {
                     // Apply $select and $expand in the base class
                     base.OnActionExecuted(actionExecutedContext);
