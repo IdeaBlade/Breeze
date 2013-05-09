@@ -1,0 +1,430 @@
+/*
+ * OData query expression grammar.
+ * Note: use this gramar with pegjs:
+ *  - http://pegjs.majda.cz/ 
+ *  - https://github.com/dmajda/pegjs
+ */
+
+ {
+    fn = function(name, args) {
+       return { fn: name, args: args };
+    }
+
+ }
+
+start                       = query
+
+
+
+/*
+ * Basic cons.
+ */
+
+WSP                         =  ' '  //Whitespace
+DIGIT                       = [0-9]
+INT                         = a:DIGIT+ { return a.join(''); }
+HEXDIG                      =   [0-9a-fA-F]
+//peg does not support repetition (ie: [a]{4})
+HEXDIG2                     =   HEXDIG HEXDIG
+HEXDIG4                     =   HEXDIG2 HEXDIG2
+HEXDIG8                     =   HEXDIG4 HEXDIG8
+
+
+SQUOTE                      =   "%x27" / "'"
+
+// end: Basic cons
+
+/* 
+ * OData literals - adapted from OData ABNF:
+ *  - http://www.odata.org/media/30002/OData%20ABNF.html
+ */
+
+literal                     =   null /
+                                binary / 
+                                boolean /
+                                NumericLiteral /
+                                dateTime /
+                                dateTimeOffset /
+                                guid /
+                                string
+
+
+null                        =   "null" ( "'" identifier "'" )? 
+                                // The optional qualifiedTypeName is used to specify what type this null value should be considered. 
+                                // Knowing the type is useful for function overload resolution purposes. 
+
+binary                      =   ( "%d88" / "binary" )
+                                SQUOTE 
+                                HEXDIG HEXDIG 
+                                SQUOTE
+                                // note: "X" is case sensitive "binary" is not hence using the character code.
+
+boolean                     =   "true" { return true; } / 
+                                "false" { return false; }
+
+byte                        =   DIGIT DIGIT DIGIT
+                                // numbers in the range from 0 to 257
+
+dateTime                    =   "datetime" SQUOTE a:dateTimeBody SQUOTE { return new Date(a); }
+
+dateTimeOffset              =   "datetimeoffset" SQUOTE dateTimeOffsetBody SQUOTE
+
+dateTimeBodyA               =  a:year "-" b:month "-" c:day "T" d:hour ":" e:minute "Z"? {
+                                    return a + '-' + b + '-' + c + "T" + d + ":" + e;
+                                }
+dateTimeBodyB               =  a:dateTimeBodyA ":" b:second "Z"? { return a + ":" + b; }
+dateTimeBodyC               =  a:dateTimeBodyB "." b:nanoSeconds { return a + "." + b; }
+dateTimeBodyD               =  a:dateTimeBodyC "-" b:zeroToTwentyFour ":" c:zeroToSixty {
+                                    return a + "-" + b + ":" + c;
+                                }
+dateTimeBody                =   
+                               dateTimeBodyD
+                             / dateTimeBodyC
+                             / dateTimeBodyB
+                             / dateTimeBodyA
+
+dateTimeOffsetBody          =   dateTimeBody "Z" / // TODO: is the Z optional?
+                                dateTimeBody sign zeroToThirteen ":00" /
+                                dateTimeBody sign zeroToThirteen /
+                                dateTimeBody sign zeroToTwelve ":" zeroToSixty /
+                                dateTimeBody sign zeroToTwelve
+
+guid                        =   "guid" SQUOTE HEXDIG8 "-" HEXDIG4 "-" HEXDIG4 "-" HEXDIG8 HEXDIG4 SQUOTE
+
+
+sbyte                       =   sign? DIGIT DIGIT? DIGIT?
+                                // numbers in the range from -128 to 127
+
+
+string                      =   l:SQUOTE v:validstring  r:SQUOTE { return v; }
+
+
+
+zeroToTwelve                =   a:"0" b:[1-9] { return a + b;} / a:"1" b:[0-2] { return a + b; }
+
+zeroToThirteen              =   zeroToTwelve / "13" 
+
+zeroToSixty                 =   "60" / a:[0-5] b:DIGIT { return a + b; }
+
+zeroToThirtyOne             =   "3" a:[0-1] { return "3" + a; } / a:[0-2] b:DIGIT { return a + b; }
+
+zeroToTwentyFour            =   "2" a:[0-4] { return "2" + a; } / a:[0-1] b:DIGIT { return a + b; }
+
+year                        =  a:DIGIT b:DIGIT c:DIGIT d:DIGIT { return a + b + c + d; }
+
+month                       =   zeroToTwelve
+
+day                         =   zeroToThirtyOne
+
+hour                        =   zeroToTwentyFour
+
+minute                      =   zeroToSixty
+
+second                      =   zeroToSixty
+
+nanoSeconds                 =  INT
+
+sign                        =   "+" / "-"
+
+nan                         =   "NaN"
+
+negativeInfinity            =   "-INF"
+
+positiveInfinity            =   "INF"
+
+nanInfinity                 =   nan / negativeInfinity / positiveInfinity
+
+decimal                     =
+                               sign:sign digit:DIGIT+ "." decimal:DIGIT+ ("M"/"m")? { return parseInt(digit + '.' + decimal) * (sign === '-' ? -1 : 1); }
+                             / sign:sign digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
+
+double                      =   (
+                                    sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
+                                    sign DIGIT* "." DIGIT+ /
+                                    sign DIGIT+
+                                ) ("D" / "d") /
+                                nanInfinity ( "D" / "d" )?
+
+
+
+int32                       =   sign:sign? digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
+                                // numbers in the range from -2147483648 to 2147483647
+
+int64                       =   sign? DIGIT+ ( "L" / "l" )?
+                                // numbers in the range from -9223372036854775808 to 9223372036854775807
+
+sbyte                       =   sign? DIGIT DIGIT? DIGIT?
+                                // numbers in the range from -128 to 127
+
+single                      =   (
+                                    sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
+                                    sign DIGIT* "." DIGIT+ /
+                                    sign DIGIT+
+                                ) ("F" / "f") /
+                                nanInfinity ( "F" / "f" )?
+
+NumericLiteral
+  = number:DecimalLiteral { return {number: number }; }
+
+DecimalLiteral
+  = parts:(DecimalIntegerLiteral "." DecimalDigits? ExponentPart?)
+  / parts:("." DecimalDigits ExponentPart?)
+  / parts:(DecimalIntegerLiteral ExponentPart?)
+
+DecimalIntegerLiteral
+  = "0" / NonZeroDigit DecimalDigits?
+
+DecimalDigits
+  = DecimalDigit+
+
+DecimalDigit
+  = [0-9]
+
+NonZeroDigit
+  = [1-9]
+
+ExponentPart
+  = ExponentIndicator SignedInteger
+
+ExponentIndicator
+  = [eE]
+
+SignedInteger
+  = [-+]? DecimalDigits
+
+// end: OData literals
+
+/*
+ * OData identifiers
+ */
+
+unreserved                  = a:[a-zA-Z0-9-_]+ { return a.join(''); }
+validstring                 = a:[^']* { return a.join(''); }
+identifierPart              = a:[a-zA-Z] b:unreserved { return a + b; }
+identifier                  = 
+                                a:identifierPart list:("." i:identifier {return i;})? {
+                                    if (list === "") list = [];
+                                    if (require('util').isArray(list[0])) {
+                                        list = list[0];
+                                    }
+                                    list.unshift(a);
+                                    return list.join('.');
+                                }
+                                
+// --
+
+/*
+ * OData query options
+ */
+
+// $top
+top                         =   "$top=" a:INT { return { '$top': ~~a }; }
+                            /   "$top=" .* { return {"error": 'invalid $top parameter'}; }
+
+// $expand
+expand                      =   "$expand=" list:expandList { return { "$expand": list }; }
+                            /   "$expand=" .* { return {"error": 'invalid $expand parameter'}; }
+
+expandList                  =   i:identifierPath list:("," WSP? l:expandList {return l;})? {
+                                    if (list === "") list = [];
+                                    if (require('util').isArray(list[0])) {
+                                        list = list[0];
+                                    }
+                                    list.unshift(i);
+                                    return list;
+                                }
+
+//$skip
+skip                        =   "$skip=" a:INT {return {'$skip': ~~a }; }
+                            /   "$skip=" .* { return {"error": 'invalid $skip parameter'}; }
+
+//$format
+format                      =   "$format=" unreserved*
+                            /   "$format=" .* { return {"error": 'invalid $format parameter'}; }
+//$inlinecount
+inlinecount                 =   "$inlinecount=" unreserved*
+                            /   "$inlinecount=" .* { return {"error": 'invalid $inlinecount parameter'}; }
+
+// $orderby
+orderby                     =   "$orderby=" list:orderbyList { 
+                                    return { "$orderby": list }; }
+                            /   "$orderby=" .* { return {"error": 'invalid $orderby parameter'}; }
+
+orderbyList                 = i:(id:identifier ord:(WSP ("asc"/"desc"))? { 
+                                    var result = {};
+                                    result[id] = ord[1] || 'asc';
+                                    return result;
+                                }) 
+                              list:("," WSP? l:orderbyList{return l;})? {
+
+                                    if (list === "") list = [];
+                                    if (require('util').isArray(list[0])) {
+                                        list = list[0];
+                                    }
+                                    list.unshift(i);
+                                    return list;
+                                }
+
+//$select
+select                      =   "$select=" list:selectList { return { "$select":list }; }
+                            /   "$select=" .* { return {"error": 'invalid $select parameter'}; }
+
+identifierPathParts         =   "/" i:identifierPart list:identifierPathParts? {
+                                    if (list === "") list = [];
+                                    if (require('util').isArray(list[0])) {
+                                        list = list[0];
+                                    }
+                                    list.unshift("/" + i);
+                                    return list;
+                                }
+identifierPath              =   a:identifier b:identifierPathParts? { return a + b; }
+selectList                  =   
+                                i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," WSP? l:selectList {return l;})? {
+                                    if (list === "") list = [];
+                                    if (require('util').isArray(list[0])) {
+                                        list = list[0];
+                                    }
+                                    list.unshift(i);
+                                    return list;
+                                }
+
+//filter
+
+
+filter                      =   "$filter=" list:filterExpr { 
+                                    return { 
+                                        "$filter": list
+                                    }; 
+                                }
+                            /   "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
+
+
+
+filterExpr = baseExpr
+
+
+baseExpr = WSP* p1:n0Expr p2:(binaryExpr2/binaryExpr1)* WSP* {
+   if (p2.length > 0) {
+       return { p1: p1, binaryOp: p2[0].binaryOp, p2: p2[0].p2 } ;
+   } else {
+       return  p1;
+   }
+}
+
+
+n0Expr = unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
+
+memberExpr  =  member:identifierPath          { return { member:  member  } }
+parenExpr   = "("  expr:baseExpr  ")" { return { expr:    expr    } }
+
+unaryExprOp =  "not " / "-"
+unaryExpr   = op:unaryExprOp expr:baseExpr            { return { unaryOp: op, expr: expr } }
+
+binaryExpr1 = WSP+ op:binaryExprOp1 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
+binaryExpr2 = WSP+ op:binaryExprOp2 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
+binaryExprOp1 = "eq" / "ne" / "lt" / "le" / "gt" / "ge" / "add" / "sub" / "mul" / "div" / "mod"
+binaryExprOp2 =  "and" / "or"
+
+// subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
+
+lambdaVariable = identifier + ":"
+lambdaExpr     = lambdaVariable  baseExpr
+
+
+methodCallExpr          =   anyMethodCallExpr
+                          / allMethodCallExpr
+                          / replaceMethodCallExpr
+                          / substring1MethodCallExpr
+                          / substring2MethodCallExpr
+                          / toLowerMethodCallExpr
+                          / toUpperMethodCallExpr
+                          / trimMethodCallExpr
+                          / concatMethodCallExpr
+                          / lengthMethodCallExpr
+                          / indexOfMethodCallExpr
+                          / secondMethodCallExpr
+                          / minuteMethodCallExpr
+                          / hourMethodCallExpr
+                          / dayMethodCallExpr
+                          / monthMethodCallExpr
+                          / yearMethodCallExpr
+                          / roundMethodCallExpr
+                          / floorMethodCallExpr
+                          / ceilingMethodCallExpr
+                          / isOf1MethodCallExpr
+                          / isOf2MethodCallExpr
+                          / substringOfMethodCallExpr
+                          / startsWithMethodCallExpr
+                          / endsWithMethodCallExpr
+
+anyMethodCallExpr         = n:"any"         a:larg    { return fn(n, a); }
+allMethodCallExpr         = n:"all"         a:larg    { return fn(n, a); }
+replaceMethodCallExpr     = n:"replace"     a:args3   { return fn(n, a); }
+substring1MethodCallExpr  = n:"substring"   a:args2   { return fn(n, a); }
+substring2MethodCallExpr  = n:"substring"   a:args2   { return fn(n, a); }
+toLowerMethodCallExpr     = n:"tolower"     a:args1   { return fn(n, a); }
+toUpperMethodCallExpr     = n:"toupper"     a:args1   { return fn(n, a); }
+trimMethodCallExpr        = n:"trim"        a:args1   { return fn(n, a); }
+concatMethodCallExpr      = n:"concat"      a:args2   { return fn(n, a); }
+lengthMethodCallExpr      = n:"length"      a:args1   { return fn(n, a); }
+indexOfMethodCallExpr     = n:"indexof"     a:args2   { return fn(n, a); }
+substringOfMethodCallExpr = n:"substringof" a:args2   { return fn(n, a); }
+startsWithMethodCallExpr  = n:"startswith"  a:args2   { return fn(n, a); }
+endsWithMethodCallExpr    = n:"endswith"    a:args2   { return fn(n, a); }
+secondMethodCallExpr      = n:"second"      a:args1   { return fn(n, a); }
+minuteMethodCallExpr      = n:"minute"      a:args1   { return fn(n, a); }
+hourMethodCallExpr        = n:"hour"        a:args1   { return fn(n, a); }
+dayMethodCallExpr         = n:"day"         a:args1   { return fn(n, a); }
+monthMethodCallExpr       = n:"month"       a:args1   { return fn(n, a); }
+yearMethodCallExpr        = n:"year"        a:args1   { return fn(n, a); }
+
+roundMethodCallExpr       = n:"round"       a:args1   { return fn(n, a); }
+ceilingMethodCallExpr     = n:"ceiling"     a:args1   { return fn(n, a); }
+floorMethodCallExpr       = n:"floor"       a:args1   { return fn(n, a); }
+
+isOf1MethodCallExpr       = n:"isof"        a:args1   { return fn(n, a); }
+isOf2MethodCallExpr       = n:"isof"        a:args2   { return fn(n, a); }
+
+larg  = "(" p1:lambdaExpr ")"                               { return [ p1 ]; }
+args1 = "(" p1:baseExpr ")"                                 { return [ p1 ]; }
+args2 = "(" p1:baseExpr "," p2:baseExpr ")"                 { return [ p1, p2 ]; }
+args3 = "(" p1:baseExpr "," p2:baseExpr "," p3:baseExpr ")" { return [ p1, p2, p3 ]; }
+
+
+unsupported                 =   "$" er:.* { return { error: "unsupported method: " + er }; }
+
+//end: OData query options
+
+/*
+ * OData query
+ */
+
+expList                     = e:exp "&" el:expList { return [e].concat(el); } /
+                              e:exp { return [e]; }
+                              
+
+exp                         =
+                                expand / 
+                                filter /
+                                orderby /
+                                skip /
+                                top /
+                                format /
+                                inlinecount /
+                                select /
+                                unsupported
+
+query                       = list:expList {
+                                    //turn the array into an object like:
+                                    // { $top: 5, $skip: 10 }
+                                    var result = {};
+                                    list = list || [];
+                                    for(var i in list){
+
+                                        if (list[i] !== "") {
+                                            var paramName = Object.keys(list[i])[0]; //ie: $top
+                                            result[paramName] = list[i][paramName];
+                                        }
+                                    }
+                                    return result;
+                                }
