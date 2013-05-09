@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
-//#define NHIBERNATE
+//#define DATABASEFIRST_NEW
+#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -133,7 +133,7 @@ namespace Sample_WebApi.Controllers {
     {
         base.Initialize(controllerContext);
         // BreezeNHQueryableAttribute needs the session
-        this.Request.Properties.Add(BreezeNHQueryableAttribute.NH_SESSION_KEY, ContextProvider.Session);
+        BreezeNHQueryableAttribute.SetSession(Request, ContextProvider.Session);
     }
 #endif
     //[HttpGet]
