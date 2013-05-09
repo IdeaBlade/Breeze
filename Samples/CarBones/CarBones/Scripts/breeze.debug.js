@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.2",
+        version: "1.3.3",
         metadataVersion: "1.0.4"
     };
 
@@ -804,7 +804,11 @@ var Param = (function () {
         var clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function(p) {
             if (!allowUnknownProperty) delete clone[p.name];
-            p.check();
+            try {
+                p.check();
+            } catch(e) {
+                throwConfigError(instance, e.message);
+            }
             (!checkOnly) && p._applyOne(instance);
         });
         // should be no properties left in the clone
@@ -812,11 +816,15 @@ var Param = (function () {
             for (var key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throw new Error(__formatString("Unknown property '%1' found while configuring an instance of '%2'.", key, (instance && instance._$typeName) || "object"));
+                    throwConfigError(instance, __formatString("Unknown property: '%1'.", key));
                 }
             }
         }
     };
+    
+    function throwConfigError(instance, message) {
+        throw new Error(__formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
+    }
 
     proto._applyOne = function(instance) {
         if (this.v !== undefined) {
@@ -3526,11 +3534,20 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+        if (entityType.isAbstract) {
+            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        }
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
         
         this.entityType = entityType;
+        entityType.keyProperties.forEach(function (kp, i) {
+            // insure that guid keys are comparable.
+            if (kp.dataType === DataType.Guid) {
+                keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
+            }
+        });
         this.values = keyValues;
         this._keyInGroup = createKeyString(keyValues);
     };
@@ -4109,7 +4126,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
-                        newValue.setProperty(inverseProp.name, this);
+                        if (property.isScalar) {
+                            if (inverseProp.relatedDataProperties && !inverseProp.relatedDataProperties[0].isPartOfKey) {
+                                // don't update the key if updating a 1-1 inverse relation
+                                // TODO: rethink this later as we see more 1-1 relations 
+                                // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
+                                newValue.setProperty(inverseProp.name, this);
+                            }
+                        } else {
+                            newValue.setProperty(inverseProp.name, this);
+                        }
                     } else {
                         // navigation property change - undo old relation
                         if (oldValue) {
@@ -4203,7 +4229,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     throw new Error("An entity with this key is already in the cache: " + newKey.toString());
                 }
                 var oldKey = this.entityAspect.getKey();
-                var eg = entityManager.findEntityGroup(this.entityType);
+                var eg = entityManager._findEntityGroup(this.entityType);
                 eg._replaceKey(oldKey, newKey);
             }
             rawAccessorFn(newValue);
@@ -4576,7 +4602,9 @@ var DataType = function () {
 
     var coerceToInt = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseInt(source, 10);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseInt(src, 10);
             return isNaN(val) ? source : val;
         } else if (sourceTypeName === "number") {
             return Math.round(source);
@@ -4587,7 +4615,9 @@ var DataType = function () {
 
     var coerceToFloat = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseFloat(source);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseFloat(src);
             return isNaN(val) ? source : val;
         }
         return source;
@@ -4595,7 +4625,9 @@ var DataType = function () {
 
     var coerceToDate = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = new Date(Date.parse(source));
+            var src = source.trim();
+            if (src === "") return null;
+            var val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === "number") {
             var val = new Date(source);
@@ -4607,7 +4639,7 @@ var DataType = function () {
     var coerceToBool = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
             var src = source.trim().toLowerCase();
-            if (src === 'false') {
+            if (src === "false" || src ==="") {
                 return false;
             } else if (src === "true") {
                 return true;
@@ -5028,12 +5060,18 @@ var MetadataStore = (function () {
 
         if (!structuralType.isComplexType) {
             structuralType._updateNps();
-            structuralType.defaultResourceName && this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
+            // give the type it's base's resource name if it doesn't have its own.
+            var defResourceName = structuralType.defaultResourceName || (structuralType.baseEntityType && structuralType.baseEntityType.defaultResourceName);
+            if (defResourceName && !this.getEntityTypeNameForResourceName(defResourceName)) {
+                this.setEntityTypeForResourceName(defResourceName, structuralType.name);
+            }
+            structuralType.defaultResourceName = defResourceName;
             // check if this structural type's name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
         } 
 
         if (structuralType.baseEntityType) {
+            
             structuralType.baseEntityType.subtypes.push(structuralType);
         }
     };
@@ -5723,7 +5761,7 @@ var CsdlMetadataParser = (function () {
         var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
         // var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
         var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(csdlProperty.name) >= 0;
-        if (parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+        if (isPartOfKey && parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
             if (isIdentityProperty(csdlProperty)) {
                 parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
@@ -11249,9 +11287,8 @@ var EntityManager = (function () {
         return true;
     }
 
-    // TODO: make this internal - no good reason to expose the EntityGroup to the external api yet.
-    proto.findEntityGroup = function (entityType) {
-        assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
+    
+    proto._findEntityGroup = function (entityType) {
         return this._entityGroupMap[entityType.name];
     };
 
@@ -11283,12 +11320,14 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
 
-        var group = this.findEntityGroup(entityKey.entityType);
+        var group = this._findEntityGroup(entityKey.entityType);
         if (!group) {
             return null;
         }
         return group.findEntityByKey(entityKey);
     };
+    
+    
         
     /**
     Attempts to fetch an entity from the server by its key with
@@ -11828,12 +11867,8 @@ var EntityManager = (function () {
             var newTempKeyValue;
             if (entityState.isAdded()) {
                 newTempKeyValue = tempKeyMap[entityKey.toString()];
-                if (newTempKeyValue === undefined) {
-                    // merge added records with non temp keys
-                    targetEntity = entityGroup.findEntityByKey(entityKey);
-                } else {
-                    targetEntity = null;
-                }
+                // merge added records with non temp keys
+                targetEntity = (newTempKeyValue === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
             } else {
                 targetEntity = entityGroup.findEntityByKey(entityKey);
             }
@@ -11842,11 +11877,8 @@ var EntityManager = (function () {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
                     dataProperties.forEach(function (dp, ix) {
-                        if (dp.dataType.isDate) {
-                            targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
-                        } else {
-                            targetEntity.setProperty(dp.name, rawEntity[ix]);
-                        }
+                        var val = parseValueForDp(rawEntity[ix], dp);
+                        targetEntity.setProperty(dp.name, val);
                     });
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
@@ -11864,11 +11896,8 @@ var EntityManager = (function () {
             } else {
                 targetEntity = entityType._createEntityCore();
                 dataProperties.forEach(function (dp, ix) {
-                    if (dp.dataType.isDate) {
-                        targetEntity.setProperty(dp.name, new Date(Date.parse(rawEntity[ix])));
-                    } else {
-                        targetEntity.setProperty(dp.name, rawEntity[ix]);
-                    }
+                    var val = parseValueForDp(rawEntity[ix], dp);
+                    targetEntity.setProperty(dp.name, val);
                 });
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
@@ -12071,7 +12100,10 @@ var EntityManager = (function () {
                     query = null;
                     mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
-                    if (state.error) deferred.reject(state.error);
+                    // if (state.error) deferred.reject(state.error);
+                    if (state.error) {
+                        Q.reject(state.error);
+                    }
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
@@ -12091,7 +12123,7 @@ var EntityManager = (function () {
                             fn();
                         });
                     }
-                    return { results: results, query: query, XHR: data.XHR, inlineCount: data.inlineCount };
+                    return { results: results, query: query, entityManager: em, XHR: data.XHR, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
             }).fail(function (e) {
@@ -12141,14 +12173,18 @@ var EntityManager = (function () {
             }
             return refValue;
         } else if (meta.entityType) {
-            return mergeEntity(node, mappingContext, meta);
+            if (meta.entityType.isComplexType) {
+                return node;
+            } else {
+                return mergeEntity(node, mappingContext, meta);
+            }
         } else {
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
                 mappingContext.refMap[meta.nodeId] = node;
             }
                 
-            if (typeof node === 'object') {
+            if (typeof node === 'object' && !__isDate(node)) {
                 return processAnonType(node, mappingContext);
             } else {
                 return node;
@@ -12303,10 +12339,13 @@ var EntityManager = (function () {
 
     function getPropertyFromRawEntity(rawEntity, dp) {
         var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
-        var val = rawEntity[propName];
+        return parseValueForDp(rawEntity[propName], dp);
+    }
+    
+    function parseValueForDp(val, dp) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
         // in a jsonResultsAdapter ( an unusual use case).
-        if (val === undefined) return;
+        if (val === undefined) return undefined;
         if (dp.dataType.isDate && val) {
             if (!__isDate(val)) {
                 val = DataType.parseDateFromServer(val);
@@ -12457,6 +12496,7 @@ var EntityManager = (function () {
         }
     }
 
+
     function findOrCreateEntityGroup(em, entityType) {
         var group = em._entityGroupMap[entityType.name];
         if (!group) {
@@ -12468,8 +12508,8 @@ var EntityManager = (function () {
 
     function findOrCreateEntityGroups(em, entityType) {
         var entityTypes = entityType.getSelfAndSubtypes();
-        return entityTypes.map(function (entityType) {
-            return findOrCreateEntityGroup(em, entityType);
+        return entityTypes.map(function (et) {
+            return findOrCreateEntityGroup(em, et);
         });
     }
         
@@ -12922,8 +12962,8 @@ breeze.SaveOptions= SaveOptions;
 
         visitNode: function (node, mappingContext, nodeContext) {
             var result = {};
-
-          if (node.__metadata != null) {
+            if (node == null) return result;
+            if (node.__metadata != null) {
                 // TODO: may be able to make this more efficient by caching of the previous value.
                 var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
                 var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
@@ -13248,7 +13288,8 @@ breeze.SaveOptions= SaveOptions;
         
         name: "webApi_default",
         
-        visitNode: function (node, mappingContext, nodeContext ) {
+        visitNode: function (node, mappingContext, nodeContext) {
+            if (node == null) return {};
             var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
             var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
             var propertyName = nodeContext.propertyName;

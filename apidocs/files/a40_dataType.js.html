@@ -216,7 +216,9 @@ var DataType = function () {
 
     var coerceToInt = function (source, sourceTypeName) {
         if (sourceTypeName === &quot;string&quot;) {
-            var val = parseInt(source, 10);
+            var src = source.trim();
+            if (src === &quot;&quot;) return null;
+            var val = parseInt(src, 10);
             return isNaN(val) ? source : val;
         } else if (sourceTypeName === &quot;number&quot;) {
             return Math.round(source);
@@ -227,7 +229,9 @@ var DataType = function () {
 
     var coerceToFloat = function (source, sourceTypeName) {
         if (sourceTypeName === &quot;string&quot;) {
-            var val = parseFloat(source);
+            var src = source.trim();
+            if (src === &quot;&quot;) return null;
+            var val = parseFloat(src);
             return isNaN(val) ? source : val;
         }
         return source;
@@ -235,7 +239,9 @@ var DataType = function () {
 
     var coerceToDate = function (source, sourceTypeName) {
         if (sourceTypeName === &quot;string&quot;) {
-            var val = new Date(Date.parse(source));
+            var src = source.trim();
+            if (src === &quot;&quot;) return null;
+            var val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === &quot;number&quot;) {
             var val = new Date(source);
@@ -247,7 +253,7 @@ var DataType = function () {
     var coerceToBool = function (source, sourceTypeName) {
         if (sourceTypeName === &quot;string&quot;) {
             var src = source.trim().toLowerCase();
-            if (src === &#x27;false&#x27;) {
+            if (src === &quot;false&quot; || src ===&quot;&quot;) {
                 return false;
             } else if (src === &quot;true&quot;) {
                 return true;
