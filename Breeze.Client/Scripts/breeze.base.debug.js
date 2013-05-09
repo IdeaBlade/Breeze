@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.2",
+        version: "1.3.3",
         metadataVersion: "1.0.4"
     };
 
@@ -3534,9 +3534,14 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        if (entityType.isAbstract) {
-            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        var subtypes = entityType.getSelfAndSubtypes();
+        if (subtypes.length > 1) {
+            this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
+       
+        //if (entityType.isAbstract) {
+        //    throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        //}
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
@@ -3548,9 +3553,12 @@ var EntityKey = (function () {
                 keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
             }
         });
+        
         this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
+        this._keyInGroup = createKeyString(keyValues);        
+
     };
+    
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
     
@@ -4602,7 +4610,9 @@ var DataType = function () {
 
     var coerceToInt = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseInt(source, 10);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseInt(src, 10);
             return isNaN(val) ? source : val;
         } else if (sourceTypeName === "number") {
             return Math.round(source);
@@ -4613,7 +4623,9 @@ var DataType = function () {
 
     var coerceToFloat = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseFloat(source);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseFloat(src);
             return isNaN(val) ? source : val;
         }
         return source;
@@ -4621,7 +4633,9 @@ var DataType = function () {
 
     var coerceToDate = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = new Date(Date.parse(source));
+            var src = source.trim();
+            if (src === "") return null;
+            var val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === "number") {
             var val = new Date(source);
@@ -4633,7 +4647,7 @@ var DataType = function () {
     var coerceToBool = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
             var src = source.trim().toLowerCase();
-            if (src === 'false') {
+            if (src === "false" || src ==="") {
                 return false;
             } else if (src === "true") {
                 return true;
@@ -5055,8 +5069,11 @@ var MetadataStore = (function () {
         if (!structuralType.isComplexType) {
             structuralType._updateNps();
             // give the type it's base's resource name if it doesn't have its own.
-            structuralType.defaultResourceName = structuralType.defaultResourceName || (structuralType.baseEntityType && structuralType.baseEntityType.defaultResourceName);
-            structuralType.defaultResourceName && this.setEntityTypeForResourceName(structuralType.defaultResourceName, structuralType.name);
+            var defResourceName = structuralType.defaultResourceName || (structuralType.baseEntityType && structuralType.baseEntityType.defaultResourceName);
+            if (defResourceName && !this.getEntityTypeNameForResourceName(defResourceName)) {
+                this.setEntityTypeForResourceName(defResourceName, structuralType.name);
+            }
+            structuralType.defaultResourceName = defResourceName;
             // check if this structural type's name, short version or qualified version has a registered ctor.
             structuralType.getEntityCtor();
         } 
@@ -11310,15 +11327,22 @@ var EntityManager = (function () {
     **/
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
-
-        var group = this._findEntityGroup(entityKey.entityType);
-        if (!group) {
-            return null;
+        var group;
+        var subtypes = entityKey._subTypes;
+        if (subtypes) {
+            for (var i = 0, j = subtypes.length; i < j; i++) {
+                group = this._findEntityGroup(subtypes[i]);
+                // group version of findEntityByKey doesn't care about entityType
+                var ek = group && group.findEntityByKey(entityKey);
+                if (ek) return ek;
+            }
+        } else {
+            group = this._findEntityGroup(entityKey.entityType);
+            return group && group.findEntityByKey(entityKey);
         }
-        return group.findEntityByKey(entityKey);
     };
     
-    
+
         
     /**
     Attempts to fetch an entity from the server by its key with

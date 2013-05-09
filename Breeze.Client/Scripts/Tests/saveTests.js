@@ -33,6 +33,36 @@ define(["testFns"], function (testFns) {
         teardown: function () { }
     });
     
+    test("save data with alt resource and server side add", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight") + .5;
+            order.setProperty("freight", freight);
+
+            var so = new SaveOptions({ resourceName: "SaveWithComment", tag: "SaveWithComment - order" });
+
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok(sr.entities.length == 2, "should have saved two entities");
+            var q2 = EntityQuery.fromEntities(order);
+            return q2.using(em).execute();
+        }).then(function (data2) {
+            var order2 = data2.results[0];
+            var freight2 = order2.getProperty("freight");
+            ok(freight2 == freight, "freight2=" + freight2 + " vs " + freight);
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("save with date as part of key", function () {
         var em = newEm();

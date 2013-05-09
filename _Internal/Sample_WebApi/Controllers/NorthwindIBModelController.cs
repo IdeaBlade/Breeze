@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-//#define DATABASEFIRST_NEW
-#define NHIBERNATE
+#define DATABASEFIRST_NEW
+//#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -162,6 +162,13 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpPost]
+    public SaveResult SaveWithComment(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = AddComment;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+
+    [HttpPost]
     public SaveResult SaveWithExit(JObject saveBundle) {
         return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
     }
@@ -188,6 +195,24 @@ namespace Sample_WebApi.Controllers {
       
       return saveMap;
     }
+
+    private Dictionary<Type, List<EntityInfo>> AddComment(Dictionary<Type, List<EntityInfo>> saveMap) {
+      var comment = new Comment();
+      var tag = ContextProvider.SaveOptions.Tag;
+      comment.Comment1 = (tag == null) ? "Generic comment" : tag.ToString();
+      comment.CreatedOn = DateTime.Now;
+      comment.SeqNum = 1;
+      var ei = ContextProvider.CreateEntityInfo(comment);
+      List<EntityInfo> commentInfos;
+      if (!saveMap.TryGetValue(typeof(Comment), out commentInfos)) {
+        commentInfos = new List<EntityInfo>();
+        saveMap.Add(typeof(Comment), commentInfos);
+      }
+      commentInfos.Add(ei);
+
+      return saveMap;
+    }
+
 
     private bool CheckFreight(EntityInfo entityInfo) {
       if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {

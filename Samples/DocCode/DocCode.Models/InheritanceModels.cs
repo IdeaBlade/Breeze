@@ -100,6 +100,17 @@ namespace Inheritance.Models
         public string InheritanceModel { get; set; }
         public int StatusId { get; set; }
         public StatusTPH Status { get; set; }
+
+        // A hierarchy of Billing Details (far fetched but what fun!)
+        public int? ParentId { get; set; }
+
+        [ForeignKey("ParentId")]
+        [InverseProperty("Children")]
+        public virtual BillingDetailTPH Parent { get; set; }
+
+        [InverseProperty("Parent")]
+        public virtual ICollection<BillingDetailTPH> Children { get; set; }
+
     }
 
     public class BankAccountTPH : BillingDetailTPH, IBankAccount
