@@ -35,9 +35,11 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        if (entityType.isAbstract) {
-            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        var subtypes = entityType.getSelfAndSubtypes();
+        if (subtypes.length > 1) {
+            this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
+       
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
@@ -49,9 +51,12 @@ var EntityKey = (function () {
                 keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
             }
         });
+        
         this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
+        this._keyInGroup = createKeyString(keyValues);        
+
     };
+    
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
     

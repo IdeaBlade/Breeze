@@ -3534,9 +3534,14 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        if (entityType.isAbstract) {
-            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        var subtypes = entityType.getSelfAndSubtypes();
+        if (subtypes.length > 1) {
+            this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
+       
+        //if (entityType.isAbstract) {
+        //    throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        //}
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
@@ -3548,9 +3553,12 @@ var EntityKey = (function () {
                 keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
             }
         });
+        
         this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
+        this._keyInGroup = createKeyString(keyValues);        
+
     };
+    
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
     
@@ -11319,15 +11327,22 @@ var EntityManager = (function () {
     **/
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
-
-        var group = this._findEntityGroup(entityKey.entityType);
-        if (!group) {
-            return null;
+        var group;
+        var subtypes = entityKey._subTypes;
+        if (subtypes) {
+            for (var i = 0, j = subtypes.length; i < j; i++) {
+                group = this._findEntityGroup(subtypes[i]);
+                // group version of findEntityByKey doesn't care about entityType
+                var ek = group && group.findEntityByKey(entityKey);
+                if (ek) return ek;
+            }
+        } else {
+            group = this._findEntityGroup(entityKey.entityType);
+            return group && group.findEntityByKey(entityKey);
         }
-        return group.findEntityByKey(entityKey);
     };
     
-    
+
         
     /**
     Attempts to fetch an entity from the server by its key with
