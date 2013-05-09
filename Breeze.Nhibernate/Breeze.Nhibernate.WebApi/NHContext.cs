@@ -35,9 +35,9 @@ namespace Breeze.Nhibernate.WebApi
             get { return session; }
         }
 
-        public NhQueryable<T> GetQuery<T>()
+        public NhQueryableInclude<T> GetQuery<T>()
         {
-            return new NhQueryable<T>(session.GetSessionImplementation());
+            return new NhQueryableInclude<T>(session.GetSessionImplementation());
         }
 
         public void Close()

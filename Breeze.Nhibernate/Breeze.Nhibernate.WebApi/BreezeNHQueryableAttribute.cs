@@ -1,6 +1,7 @@
 ﻿using Breeze.WebApi;
 using Newtonsoft.Json;
 using NHibernate;
+using NHibernate.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,15 +41,14 @@ namespace Breeze.Nhibernate.WebApi
             if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
-            var queryable = responseObject as IQueryable;
-            if (queryable != null)
+            var nhQueryable = responseObject as IQueryableInclude;
+            if (nhQueryable != null)
             {
                 // perform expansion based on the Include() clauses 
-                var includes = NhQueryableExtensions.GetIncludes(queryable);
+                var includes = nhQueryable.GetIncludes();
                 if (includes != null)
                 {
-                    this.ApplyExpansions(queryable, includes, actionExecutedContext.Request);
-                    NhQueryableExtensions.RemoveIncludes(queryable);
+                    this.ApplyExpansions(nhQueryable, includes, actionExecutedContext.Request);
                 }
             }
 
@@ -154,7 +154,8 @@ namespace Breeze.Nhibernate.WebApi
             var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
             queryable = ApplyExpansions(queryable, expandsQueryString, expandMap, session.SessionFactory);
 
-            request.Properties.Add(EXPAND_MAP_KEY, expandMap);
+            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
+                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
 
             return queryable;
         }
@@ -178,7 +179,8 @@ namespace Breeze.Nhibernate.WebApi
             var fetcher = new NHEagerFetch(session.SessionFactory);
             queryable = fetcher.ApplyExpansions(queryable, expands.ToArray(), expandMap);
 
-            request.Properties.Add(EXPAND_MAP_KEY, expandMap);
+            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
+                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
 
             return queryable;
         }
