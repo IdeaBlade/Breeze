@@ -181,12 +181,12 @@ namespace Inheritance.Models
             var billingDetails = new BillingDetailTPH[] {
                 parentCc, parentBa,
 
-                // Parent Owner, Number, AccountTypeId, StatusId, ExpiryMonth, ExpiryYear
+                // Parent, Owner, Number, AccountTypeId, StatusId, ExpiryMonth, ExpiryYear
                 CreateChildCreditCard(parentCc, "Hewey", "888-888-888", 4, 1, "08", "2017"),
                 CreateChildCreditCard(parentCc, "Louis", "789-456-123", 6, 1, "07", "2018"),
                 CreateChildCreditCard(parentCc, "Dewey", "333-222-111", 5, 2, "06", "2018"),
 
-                // Parent Owner, Number, AccountTypeId, StatusId
+                // Parent, Owner, Number, AccountTypeId, StatusId
                 CreateChildBankAccount(parentBa, "Elecktra" , "111-111", 3, 2),
                 CreateChildBankAccount(parentBa, "Orestes" ,  "122-222", 2, 1),
                 CreateChildBankAccount(parentBa, "Iphigenie", "333-333", 1, 1)
