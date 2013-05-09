@@ -58,6 +58,9 @@ namespace Breeze.Nhibernate.WebApi
             if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
+            var queryResult = responseObject as QueryResult;
+            if (queryResult != null) responseObject = queryResult.Results;
+
             var list = Enumerable.ToList((dynamic)responseObject);
 
             var expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
@@ -80,10 +83,18 @@ namespace Breeze.Nhibernate.WebApi
 
             if (responseObject is IQueryable)
             {
-                // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
-                var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
-                var oc = new ObjectContent(list.GetType(), list, formatter);
-                actionExecutedContext.Response.Content = oc;
+                if (queryResult != null)
+                {
+                    // Put the results in the existing wrapper
+                    queryResult.Results = list;
+                }
+                else
+                {
+                    // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
+                    var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
+                    var oc = new ObjectContent(list.GetType(), list, formatter);
+                    actionExecutedContext.Response.Content = oc;
+                }
             }
 
 
