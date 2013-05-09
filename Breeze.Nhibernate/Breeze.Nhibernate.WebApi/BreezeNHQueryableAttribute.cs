@@ -36,8 +36,10 @@ namespace Breeze.Nhibernate.WebApi
         /// </summary>
         /// <param name="request"></param>
         /// <param name="session"></param>
-        public static void SetSession(HttpRequestMessage request, ISession session)
+        public static void SetSession(HttpRequestMessage request, object session)
         {
+            if (!(session is ISession))
+                throw new ArgumentException("Argument must be NHibernate.ISession", "session");
             request.Properties.Add(NH_SESSION_KEY, session);
         }
 
