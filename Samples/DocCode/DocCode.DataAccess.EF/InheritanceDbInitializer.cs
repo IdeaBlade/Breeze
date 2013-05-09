@@ -173,7 +173,7 @@ namespace Inheritance.Models
         {
 
             var parentCc = (CreditCardTPH)
-                CreateCreditCard<CreditCardTPH>("Donald Duck", "111-11-111", 4, 1, "04", "2016");
+                CreateCreditCard<CreditCardTPH>("Don Duck", "111-11-111", 4, 1, "04", "2016");
 
             var parentBa = (BankAccountTPH)
                 CreateBankAccount<BankAccountTPH>("Agamemnon", "000-000", 3, 2, "Bank of Atreus", "BOFATRUS");

@@ -37,21 +37,27 @@
     *********************************************************/
     asyncTest("can query all BankAccounts", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanQueryAll(bankRoot + t, 3);
+            // TPH test data always has 4 more than the others
+            var expectedCount = /TPH/.test(t) ? 7 : 3;
+            return assertCanQueryAll(bankRoot + t, expectedCount);
         });
         waitForTestPromises(promises);
     });
 
     asyncTest("can query all CreditCards", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanQueryAll(cardRoot + t, 4);
+            // TPH test data always has 4 more than the others
+            var expectedCount = /TPH/.test(t) ? 8 : 4;
+            return assertCanQueryAll(cardRoot + t, expectedCount);
         });
         waitForTestPromises(promises);
     });
 
     asyncTest("can query all base BillingDetails", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanQueryAll(baseRoot + t, 7);
+            // TPH test data always has 8 more than the others
+            var expectedCount = /TPH/.test(t) ? 15 : 7;
+            return assertCanQueryAll(baseRoot + t, expectedCount);
         });
         waitForTestPromises(promises);
     });
@@ -87,7 +93,9 @@
 
     asyncTest("can filter 'Owner' in BankAccount", 3, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanFilter(ownerPredicate, bankRoot + t, 2);
+            // TPH test data always has 2 more than the others
+            var expectedCount = /TPH/.test(t) ? 4 : 2;
+            return assertCanFilter(ownerPredicate, bankRoot + t, expectedCount);
         });
         waitForTestPromises(promises);
     });
@@ -101,7 +109,9 @@
 
     asyncTest("can filter 'Owner' in base class BillingDetail", 3, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanFilter(ownerPredicate, baseRoot + t, 6);
+            // TPH test data always has 2 more than the others
+            var expectedCount = /TPH/.test(t) ? 8 : 6;
+            return assertCanFilter(ownerPredicate, baseRoot + t, expectedCount);
         });
         waitForTestPromises(promises);
     });
