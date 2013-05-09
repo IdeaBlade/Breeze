@@ -24,6 +24,21 @@ define(["testFns"], function (testFns) {
 
         }
     });
+    
+
+
+    test("set nullable props with an empty string", function () {
+        var em = newEm();
+        
+        var emp = em.createEntity("Employee", { firstName: "Joe", lastName: "Smith", birthDate: new Date(2000,1,1) });
+        var bd = emp.getProperty("birthDate");
+        ok(bd != null);
+        emp.setProperty("birthDate", "");
+        var b2 = emp.getProperty("birthDate");
+        ok(b2 === null, "birthDate should be null");
+    });
+    
+    
 
     test("create and init relations", function () {
         var em = newEm();

@@ -31,7 +31,9 @@ var DataType = function () {
 
     var coerceToInt = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseInt(source, 10);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseInt(src, 10);
             return isNaN(val) ? source : val;
         } else if (sourceTypeName === "number") {
             return Math.round(source);
@@ -42,7 +44,9 @@ var DataType = function () {
 
     var coerceToFloat = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = parseFloat(source);
+            var src = source.trim();
+            if (src === "") return null;
+            var val = parseFloat(src);
             return isNaN(val) ? source : val;
         }
         return source;
@@ -50,7 +54,9 @@ var DataType = function () {
 
     var coerceToDate = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
-            var val = new Date(Date.parse(source));
+            var src = source.trim();
+            if (src === "") return null;
+            var val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === "number") {
             var val = new Date(source);
@@ -62,7 +68,7 @@ var DataType = function () {
     var coerceToBool = function (source, sourceTypeName) {
         if (sourceTypeName === "string") {
             var src = source.trim().toLowerCase();
-            if (src === 'false') {
+            if (src === "false" || src ==="") {
                 return false;
             } else if (src === "true") {
                 return true;
