@@ -475,11 +475,11 @@ docCode.testFns = (function () {
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/purge',
-            function (data, textStatus, jqXHR) {
+            function (data, textStatus, xhr) {
                 deferred.resolve(
-                    "Purge svc returned '" + jqXHR.status + "' with message: " + data);
+                    "Purge svc returned '" + xhr.status + "' with message: " + data);
             })
-        .error(function(jqXHR, textStatus, errorThrown) {
+        .error(function(xhr, textStatus, errorThrown) {
             deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
@@ -490,11 +490,11 @@ docCode.testFns = (function () {
         var deferred = Q.defer();
 
         $.post(testFns.todosServiceName + '/reset',
-            function (data, textStatus, jqXHR) {
+            function (data, textStatus, xhr) {
                 deferred.resolve(
-                   "Reset svc returned '" + jqXHR.status + "' with message: " + data);
+                   "Reset svc returned '" + xhr.status + "' with message: " + data);
             })
-        .error(function(jqXHR, textStatus, errorThrown) {
+        .error(function(xhr, textStatus, errorThrown) {
             deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
@@ -511,11 +511,11 @@ docCode.testFns = (function () {
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/purge',
-            function (data, textStatus, jqXHR) {
+            function (data, textStatus, xhr) {
                 deferred.resolve(
-                    "Purge svc returned '" + jqXHR.status + "' with message: " + data);
+                    "Purge svc returned '" + xhr.status + "' with message: " + data);
             })
-        .error(function(jqXHR, textStatus, errorThrown) {
+        .error(function(xhr, textStatus, errorThrown) {
             deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 
@@ -527,11 +527,11 @@ docCode.testFns = (function () {
         var deferred = Q.defer();
 
         $.post(testFns.inheritanceServiceName + '/reset',
-            function (data, textStatus, jqXHR) {
+            function (data, textStatus, xhr) {
                 deferred.resolve(
-                   "Reset svc returned '" + jqXHR.status + "' with message: " + data);
+                   "Reset svc returned '" + xhr.status + "' with message: " + data);
             })
-        .error(function(jqXHR, textStatus, errorThrown) {
+        .error(function(xhr, textStatus, errorThrown) {
             deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
         });
 

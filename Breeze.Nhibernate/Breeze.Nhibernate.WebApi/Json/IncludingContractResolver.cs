@@ -17,7 +17,7 @@ namespace Breeze.Nhibernate.WebApi
     public class IncludingContractResolver : DefaultContractResolver
     {
         private HashSet<string> includedMembers;
-        private Dictionary<Type, List<string>> includedTypeMembers;
+        private IDictionary<Type, List<string>> includedTypeMembers;
 
         /// <summary>
         /// Configure the included property names using an array of strings
@@ -32,7 +32,7 @@ namespace Breeze.Nhibernate.WebApi
         /// Configure the included property names using a dictionary of { Type -> List of property names to include }
         /// </summary>
         /// <param name="includedTypeMembers"></param>
-        public IncludingContractResolver(Dictionary<Type, List<string>> includedTypeMembers)
+        public IncludingContractResolver(IDictionary<Type, List<string>> includedTypeMembers)
         {
             this.includedTypeMembers = includedTypeMembers;
         }

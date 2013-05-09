@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
-//#define NHIBERNATE
+//#define DATABASEFIRST_NEW
+#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -54,43 +54,43 @@ namespace Sample_WebApi.Controllers {
       public NorthwindContextProvider Context {
           get { return this; }
       }
-      public NhQueryable<Category> Categories {
+      public NhQueryableInclude<Category> Categories {
           get { return GetQuery<Category>(); }
       }
-      public NhQueryable<Comment> Comments {
+      public NhQueryableInclude<Comment> Comments {
           get { return GetQuery<Comment>(); }
       }
-      public NhQueryable<Customer> Customers {
+      public NhQueryableInclude<Customer> Customers {
           get { return GetQuery<Customer>(); }
       }
-      public NhQueryable<Employee> Employees {
+      public NhQueryableInclude<Employee> Employees {
           get { return GetQuery<Employee>(); }
       }
-      public NhQueryable<Order> Orders {
+      public NhQueryableInclude<Order> Orders {
           get { return GetQuery<Order>(); }
       }
-      public NhQueryable<OrderDetail> OrderDetails {
+      public NhQueryableInclude<OrderDetail> OrderDetails {
           get { return GetQuery<OrderDetail>(); }
       }
-      public NhQueryable<Product> Products {
+      public NhQueryableInclude<Product> Products {
           get { return GetQuery<Product>(); }
       }
-      public NhQueryable<Region> Regions {
+      public NhQueryableInclude<Region> Regions {
           get { return GetQuery<Region>(); }
       }
-      public NhQueryable<Role> Roles {
+      public NhQueryableInclude<Role> Roles {
           get { return GetQuery<Role>(); }
       }
-      public NhQueryable<Supplier> Suppliers {
+      public NhQueryableInclude<Supplier> Suppliers {
           get { return GetQuery<Supplier>(); }
       }
-      public NhQueryable<Territory> Territories {
+      public NhQueryableInclude<Territory> Territories {
           get { return GetQuery<Territory>(); }
       }
-      public NhQueryable<TimeLimit> TimeLimits {
+      public NhQueryableInclude<TimeLimit> TimeLimits {
           get { return GetQuery<TimeLimit>(); }
       }
-      public NhQueryable<User> Users {
+      public NhQueryableInclude<User> Users {
           get { return GetQuery<User>(); }
       }
         
@@ -133,7 +133,7 @@ namespace Sample_WebApi.Controllers {
     {
         base.Initialize(controllerContext);
         // BreezeNHQueryableAttribute needs the session
-        this.Request.Properties.Add(BreezeNHQueryableAttribute.NH_SESSION_KEY, ContextProvider.Session);
+        BreezeNHQueryableAttribute.SetSession(Request, ContextProvider.Session);
     }
 #endif
     //[HttpGet]

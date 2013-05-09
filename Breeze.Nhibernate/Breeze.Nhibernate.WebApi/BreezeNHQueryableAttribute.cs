@@ -1,7 +1,9 @@
 ﻿using Breeze.WebApi;
 using Newtonsoft.Json;
 using NHibernate;
+using NHibernate.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -18,8 +20,8 @@ namespace Breeze.Nhibernate.WebApi
     public class BreezeNHQueryableAttribute : BreezeQueryableAttribute
     {
         // Used for storing the ExpandTypeMap and Session in the Request
-        public static readonly string EXPAND_MAP_KEY = "BreezeNHQueryableAttribute_ExpandMap";
-        public static readonly string NH_SESSION_KEY = "BreezeNHQueryableAttribute_NHSession";
+        protected static readonly string EXPAND_MAP_KEY = "BreezeNHQueryableAttribute_ExpandMap";
+        protected static readonly string NH_SESSION_KEY = "BreezeNHQueryableAttribute_NHSession";
 
         /// <summary>
         /// Sets HandleNullPropagation = false on the base class.  Otherwise it's true for non-EF, and that
@@ -31,62 +33,110 @@ namespace Breeze.Nhibernate.WebApi
         }
 
         /// <summary>
+        /// Store the session in the request properties for use by the OnActionExecuted method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="session"></param>
+        public static void SetSession(HttpRequestMessage request, object session)
+        {
+            if (!(session is ISession))
+                throw new ArgumentException("Argument must be NHibernate.ISession", "session");
+            request.Properties.Add(NH_SESSION_KEY, session);
+        }
+
+        /// <summary>
         /// Executes the NHibernate query and initializes the lazy proxies before serialization
         /// </summary>
         /// <param name="actionExecutedContext"></param>
         public override void OnActionExecuted(System.Web.Http.Filters.HttpActionExecutedContext actionExecutedContext)
         {
+            if (actionExecutedContext.Response == null) return; 
             object responseObject;
-            if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
+            if (actionExecutedContext.Response == null || !actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
-            var queryable = responseObject as IQueryable;
-            if (queryable != null)
+            if (responseObject is IQueryable)
             {
-                // perform expansion based on the Include() clauses 
-                var includes = NhQueryableExtensions.GetIncludes(queryable);
-                if (includes != null)
+                var nhQueryable = responseObject as IQueryableInclude;
+                if (nhQueryable != null)
                 {
-                    this.ApplyExpansions(queryable, includes, actionExecutedContext.Request);
-                    NhQueryableExtensions.RemoveIncludes(queryable);
+                    // perform expansion based on the Include() clauses 
+                    var includes = nhQueryable.GetIncludes();
+                    if (includes != null)
+                    {
+                        this.ApplyExpansions(nhQueryable, includes, actionExecutedContext.Request);
+                    }
+                }
+
+                var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
+
+                if (typeof(IEnumerable).IsAssignableFrom(returnType))
+                {
+                    // Apply $select and $expand in the base class
+                    base.OnActionExecuted(actionExecutedContext);
+
+                    if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
+                        return;
+
+                    var queryResult = responseObject as QueryResult;
+                    if (queryResult != null) responseObject = queryResult.Results;
+
+                    var list = Enumerable.ToList((dynamic)responseObject);
+
+                    var expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
+                    // Initialize the NHibernate proxies
+                    NHInitializer.InitializeList(list, expandMap);
+
+                    if (queryResult != null)
+                    {
+                        // Put the results in the existing wrapper
+                        queryResult.Results = list;
+                    }
+                    else
+                    {
+                        // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
+                        var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
+                        var oc = new ObjectContent(list.GetType(), list, formatter);
+                        actionExecutedContext.Response.Content = oc;
+                    }
+                }
+                else
+                {
+                    // Execute the query for a non-enumerable type
+                    var result = Enumerable.ToList((dynamic)responseObject);
+
+                    // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
+                    var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
+                    var oc = new ObjectContent(result.GetType(), result, formatter);
+                    actionExecutedContext.Response.Content = oc;
                 }
             }
 
-            // Apply $select and $expand in the base class
-            base.OnActionExecuted(actionExecutedContext);
+            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+            ConfigureFormatter(actionExecutedContext.Request);
 
-            if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
-                return;
+        }
 
-            var list = Enumerable.ToList((dynamic)responseObject);
-
-            var expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
-            // Initialize the NHibernate proxies
-            NHInitializer.InitializeList(list, expandMap);
-
-            var session = GetRequestProperty(actionExecutedContext.Request, NH_SESSION_KEY) as ISession;
+        /// <summary>
+        /// Configure the JsonFormatter to limit the object serialization of the response.
+        /// </summary>
+        /// <param name="request"></param>
+        private void ConfigureFormatter(HttpRequestMessage request)
+        {
+            var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
             if (session != null)
             {
                 if (session.IsOpen) session.Close();
 
                 // Limit serialization by catching LazyInitializationExceptions
-                ConfigureFormatter(actionExecutedContext.Request);
+                ConfigureFormatterByHandler(request);
             }
             else
             {
-                // We couldn't close the session, so limit serialization using the expandMap
-                ConfigureFormatter(actionExecutedContext.Request, expandMap, session);
+                // Limit serialization by only allowing properties int the map
+                var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
+                ConfigureFormatterByMap(request, expandMap);
             }
-
-            if (responseObject is IQueryable)
-            {
-                // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
-                var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
-                var oc = new ObjectContent(list.GetType(), list, formatter);
-                actionExecutedContext.Response.Content = oc;
-            }
-
-
         }
 
         /// <summary>
@@ -95,23 +145,19 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="request"></param>
         /// <param name="expandMap">Contains the types and properties to serialize</param>
         /// <param name="session">Used for getting the class meta data for the contract resolver.</param>
-        private void ConfigureFormatter(HttpRequestMessage request, ExpandTypeMap expandMap, ISession session)
+        private void ConfigureFormatterByMap(HttpRequestMessage request, ExpandTypeMap expandMap)
         {
             var jsonFormatter = request.GetConfiguration().Formatters.JsonFormatter;
             var settings = jsonFormatter.SerializerSettings;
             settings.Formatting = Formatting.Indented;
 
-            ISessionFactory sessionFactory = null;
-            if (session != null)
-                sessionFactory = session.SessionFactory;
-
             if (expandMap != null)
             {
-                settings.ContractResolver = new NHIncludingContractResolver(sessionFactory, expandMap.map);
+                settings.ContractResolver = new IncludingContractResolver(expandMap.map);
             }
             else
             {
-                settings.ContractResolver = new NHIncludingContractResolver(sessionFactory);
+                settings.ContractResolver = new IncludingContractResolver();
             }
 
             settings.Converters.Add(new NHibernateProxyJsonConverter());
@@ -121,7 +167,7 @@ namespace Breeze.Nhibernate.WebApi
         /// Configure the JsonFormatter to only serialize the already-initialized properties
         /// </summary>
         /// <param name="request"></param>
-        private void ConfigureFormatter(HttpRequestMessage request)
+        private void ConfigureFormatterByHandler(HttpRequestMessage request)
         {
             var jsonFormatter = request.GetConfiguration().Formatters.JsonFormatter;
             var settings = jsonFormatter.SerializerSettings;
@@ -154,7 +200,8 @@ namespace Breeze.Nhibernate.WebApi
             var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
             queryable = ApplyExpansions(queryable, expandsQueryString, expandMap, session.SessionFactory);
 
-            request.Properties.Add(EXPAND_MAP_KEY, expandMap);
+            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
+                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
 
             return queryable;
         }
@@ -178,7 +225,8 @@ namespace Breeze.Nhibernate.WebApi
             var fetcher = new NHEagerFetch(session.SessionFactory);
             queryable = fetcher.ApplyExpansions(queryable, expands.ToArray(), expandMap);
 
-            request.Properties.Add(EXPAND_MAP_KEY, expandMap);
+            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
+                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
 
             return queryable;
         }
