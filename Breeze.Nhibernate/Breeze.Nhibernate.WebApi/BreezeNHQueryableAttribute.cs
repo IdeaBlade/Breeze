@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using NHibernate;
 using NHibernate.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -54,7 +55,6 @@ namespace Breeze.Nhibernate.WebApi
             if (actionExecutedContext.Response == null || !actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
-            ExpandTypeMap expandMap = null;
             if (responseObject is IQueryable)
             {
                 var nhQueryable = responseObject as IQueryableInclude;
@@ -68,41 +68,52 @@ namespace Breeze.Nhibernate.WebApi
                     }
                 }
 
-                // Apply $select and $expand in the base class
-                base.OnActionExecuted(actionExecutedContext);
+                var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
 
-                if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
-                    return;
-
-                var queryResult = responseObject as QueryResult;
-                if (queryResult != null) responseObject = queryResult.Results;
-
-                var list = Enumerable.ToList((dynamic)responseObject);
-
-                expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
-                // Initialize the NHibernate proxies
-                NHInitializer.InitializeList(list, expandMap);
-
-                ConfigureFormatter(actionExecutedContext.Request);
-
-                if (queryResult != null)
+                if (returnType is IEnumerable)
                 {
-                    // Put the results in the existing wrapper
-                    queryResult.Results = list;
+                    // Apply $select and $expand in the base class
+                    base.OnActionExecuted(actionExecutedContext);
+
+                    if (!actionExecutedContext.Response.TryGetContentValue(out responseObject))
+                        return;
+
+                    var queryResult = responseObject as QueryResult;
+                    if (queryResult != null) responseObject = queryResult.Results;
+
+                    var list = Enumerable.ToList((dynamic)responseObject);
+
+                    var expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
+                    // Initialize the NHibernate proxies
+                    NHInitializer.InitializeList(list, expandMap);
+
+                    if (queryResult != null)
+                    {
+                        // Put the results in the existing wrapper
+                        queryResult.Results = list;
+                    }
+                    else
+                    {
+                        // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
+                        var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
+                        var oc = new ObjectContent(list.GetType(), list, formatter);
+                        actionExecutedContext.Response.Content = oc;
+                    }
                 }
                 else
                 {
+                    // Execute the query for a non-enumerable type
+                    var result = Enumerable.ToList((dynamic)responseObject);
+
                     // replace the IQueryable with the executed list, so it won't be re-executed by the serializer
                     var formatter = ((dynamic)actionExecutedContext.Response.Content).Formatter;
-                    var oc = new ObjectContent(list.GetType(), list, formatter);
+                    var oc = new ObjectContent(result.GetType(), result, formatter);
                     actionExecutedContext.Response.Content = oc;
                 }
             }
-            else
-            {
-                // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
-                ConfigureFormatter(actionExecutedContext.Request);
-            }
+
+            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+            ConfigureFormatter(actionExecutedContext.Request);
 
         }
 
