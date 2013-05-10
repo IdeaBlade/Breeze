@@ -7,7 +7,13 @@
 
  {
     fn = function(name, args) {
-       return { fn: name, args: args };
+        if (args.length === 1) {
+            return { type: "fn_1", name: name, p0: args[0] };
+        } else if (args.length === 2) {
+            return { type: "fn_2", name: name, p0: args[0], p1: args[1] };
+        } else if (args.length === 3) {
+            return { type: "fn_3", name: name, p0: args[0], p1: args[1], p2: args[2] };
+        }
     }
 
     flatten = function(list) {
@@ -37,8 +43,6 @@ HEXDIG                      =   [0-9a-fA-F]
 HEXDIG2                     =   HEXDIG HEXDIG
 HEXDIG4                     =   HEXDIG2 HEXDIG2
 HEXDIG8                     =   HEXDIG4 HEXDIG8
-
-
 SQUOTE                      =   "%x27" / "'"
 
 // end: Basic cons
@@ -57,117 +61,81 @@ literal                     =   null /
                                 guid /
                                 string
 
-
-null                        =   "null" ( "'" identifier "'" )? 
+null                        =   "null" ( "'" identifier "'" )?
+                                  { return { type: "lit_null" } }
                                 // The optional qualifiedTypeName is used to specify what type this null value should be considered. 
                                 // Knowing the type is useful for function overload resolution purposes. 
 
-binary                      =   ( "%d88" / "binary" )
-                                SQUOTE 
-                                HEXDIG HEXDIG 
-                                SQUOTE
+binary                      =   binary:(( "%d88" / "binary" ) SQUOTE HEXDIG HEXDIG SQUOTE)
+                                  { return { type: "lit_binary", value: binary } }
                                 // note: "X" is case sensitive "binary" is not hence using the character code.
 
-boolean                     =   "true" { return true; } / 
-                                "false" { return false; }
+boolean                     =   "true"  { return { type: "lit_bool", value: true  } } /
+                                "false" { return { type: "lit_bool", value: false } }
 
-byte                        =   DIGIT DIGIT DIGIT
-                                // numbers in the range from 0 to 257
+dateTime                    =  "datetime" SQUOTE a:dateTimeBody SQUOTE
+                                 { return { type: "lit_dateTime", value: new Date(a) } }
 
-dateTime                    =   "datetime" SQUOTE a:dateTimeBody SQUOTE { return new Date(a); }
+dateTimeOffset              =  "datetimeoffset" SQUOTE a:dateTimeOffsetBody SQUOTE
+                                 { return { type: "lit_dateTimeOffset", value: new Date(a) } }
 
-dateTimeOffset              =   "datetimeoffset" SQUOTE dateTimeOffsetBody SQUOTE
+numericLiteral              =  number:decimalLiteral
+                                 { return { type: "lit_number", value: parseFloat(flatten(number)) } }
 
-dateTimeBodyA               =  a:year "-" b:month "-" c:day "T" d:hour ":" e:minute "Z"? {
-                                    return a + '-' + b + '-' + c + "T" + d + ":" + e;
-                                }
-dateTimeBodyB               =  a:dateTimeBodyA ":" b:second "Z"? { return a + ":" + b; }
-dateTimeBodyC               =  a:dateTimeBodyB "." b:nanoSeconds { return a + "." + b; }
-dateTimeBodyD               =  a:dateTimeBodyC "-" b:zeroToTwentyFour ":" c:zeroToSixty {
-                                    return a + "-" + b + ":" + c;
-                                }
-dateTimeBody                =   
-                               dateTimeBodyD
-                             / dateTimeBodyC
-                             / dateTimeBodyB
-                             / dateTimeBodyA
+guid                        =  "guid" SQUOTE guid:(HEXDIG8 "-" HEXDIG4 "-" HEXDIG4 "-" HEXDIG8 HEXDIG4) SQUOTE
+                                 { return { type: "lit_guid",   value: guid } }
 
-dateTimeOffsetBody          =   dateTimeBody "Z" / // TODO: is the Z optional?
-                                dateTimeBody sign zeroToThirteen ":00" /
-                                dateTimeBody sign zeroToThirteen /
-                                dateTimeBody sign zeroToTwelve ":" zeroToSixty /
-                                dateTimeBody sign zeroToTwelve
-
-guid                        =   "guid" SQUOTE HEXDIG8 "-" HEXDIG4 "-" HEXDIG4 "-" HEXDIG8 HEXDIG4 SQUOTE
-
-
-sbyte                       =   sign? DIGIT DIGIT? DIGIT?
-                                // numbers in the range from -128 to 127
-
-
-string                      =   l:SQUOTE v:validstring  r:SQUOTE { return v; }
+string                      =   SQUOTE v:validstring SQUOTE
+                                 { return { type: "lit_string", value: v } }
 
 
 zeroToTwelve                =   a:"0" b:[1-9] { return a + b;} / a:"1" b:[0-2] { return a + b; }
-
-zeroToThirteen              =   zeroToTwelve / "13" 
-
+zeroToThirteen              =   zeroToTwelve / "13"
 zeroToSixty                 =   "60" / a:[0-5] b:DIGIT { return a + b; }
-
 zeroToThirtyOne             =   "3" a:[0-1] { return "3" + a; } / a:[0-2] b:DIGIT { return a + b; }
-
 zeroToTwentyFour            =   "2" a:[0-4] { return "2" + a; } / a:[0-1] b:DIGIT { return a + b; }
-
 year                        =  a:DIGIT b:DIGIT c:DIGIT d:DIGIT { return a + b + c + d; }
-
 month                       =   zeroToTwelve
-
 day                         =   zeroToThirtyOne
-
 hour                        =   zeroToTwentyFour
-
 minute                      =   zeroToSixty
-
 second                      =   zeroToSixty
-
 nanoSeconds                 =  INT
-
+dateTimeBodyA               =  a:year "-" b:month "-" c:day "T" d:hour ":" e:minute "Z"?
+                                 { return a + '-' + b + '-' + c + "T" + d + ":" + e; }
+dateTimeBodyB               =  a:dateTimeBodyA ":" b:second "Z"? { return a + ":" + b; }
+dateTimeBodyC               =  a:dateTimeBodyB "." b:nanoSeconds { return a + "." + b; }
+dateTimeBodyD               =  a:dateTimeBodyC "-" b:zeroToTwentyFour ":" c:zeroToSixty
+                                 {  return a + "-" + b + ":" + c;  }
+dateTimeBody                =  dateTimeBodyD
+                             / dateTimeBodyC
+                             / dateTimeBodyB
+                             / dateTimeBodyA
+dateTimeOffsetBody          =  dateTimeBody "Z" / // TODO: is the Z optional?
+                               dateTimeBody sign zeroToThirteen ":00" /
+                               dateTimeBody sign zeroToThirteen /
+                               dateTimeBody sign zeroToTwelve ":" zeroToSixty /
+                               dateTimeBody sign zeroToTwelve
 sign                        =   "+" / "-"
-
 nan                         =   "NaN"
-
 negativeInfinity            =   "-INF"
-
 positiveInfinity            =   "INF"
-
 nanInfinity                 =   nan / negativeInfinity / positiveInfinity
-
-
-numericLiteral
-  = number:decimalLiteral { return parseFloat(flatten(number)); }
-
 decimalLiteral
   = parts:(decimalIntegerLiteral "." decimalDigits? exponentPart?)
   / parts:(decimalDigits exponentPart?)
   / parts:(decimalIntegerLiteral list:exponentPart?)
-
 decimalIntegerLiteral
   = "0"
   / parts:(nonZeroDigit decimalDigits?)
-
-
 decimalDigits
   = [0-9]+
-
 nonZeroDigit
   = [1-9]
-
 exponentPart
   = exponentIndicator signedInteger
-
 exponentIndicator
   = [eE]
-
 signedInteger
   = [-+]? decimalDigits
 
@@ -280,31 +248,34 @@ filter                      =   "$filter=" list:filterExpr {
 
 filterExpr = baseExpr
 
-baseExpr = WSP* p1:n0Expr x:(andOrP2)*  {
+baseExpr = WSP* p1:n0Expr x:(andOrExpr)*  {
    if (x.length > 0) {
-      return { p1: p1, aop: x[0].aop, p2: x[0].p2 };
+      return { type: x[0].type, op: x[0].op, p1: p1, p2: x[0].p2 };
    } else {
       return p1;
    }
 }
-andOrP2 =   WSP+ aop:andOrOp         WSP+ p2:baseExpr { return { aop:aop, p2: p2 }}
 
-n0Expr   = WSP* p1:n1Expr x:(binP2)* {
+
+n0Expr   = WSP* p1:n1Expr x:(boolExpr/mathExpr)* {
    if (x.length > 0) {
-      return { p1: p1, bop: x[0].bop, p2: x[0].p2 };
-   } else {
-      return p1;
-   }
+         return { type: x[0].type, op: x[0].op, p1: p1, p2: x[0].p2 };
+      } else {
+         return p1;
+      }
 }
-binP2   =   WSP+ bop:(boolOp/mathOp) WSP+ p2:n0Expr   { return { bop:bop, p2: p2 }}
+
+andOrExpr  =   WSP+ op:andOrOp  WSP+ p2:baseExpr { return { type: "op_andOr", op:op, p2: p2 }}
+boolExpr   =   WSP+ op:boolOp   WSP+ p2:n0Expr   { return { type: "op_bool",  op:op, p2: p2 }}
+mathExpr   =   WSP+ op:mathOp   WSP+ p2:n0Expr   { return { type: "op_math",  op:op, p2: p2 }}
 
 n1Expr   =  unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
 
-memberExpr  =  member:identifierPath           { return { member:  member  } }
-parenExpr   = "("  expr:baseExpr  ")" { return { expr:    expr    } }
+memberExpr  =  member:identifierPath           { return { type: "member", value:  member  } }
+parenExpr   = "("  expr:baseExpr  ")"          { return  expr   }
 
 unaryExprOp =  "not " / "-"
-unaryExpr   = op:unaryExprOp expr:baseExpr     { return { unaryOp: op, expr: expr } }
+unaryExpr   = op:unaryExprOp expr:baseExpr     { return { type: "unaryOp", op: op, value: expr } }
 
 boolOp = "eq" / "ne" / "lt" / "le" / "gt" / "ge"
 mathOp = "add" / "sub" / "mul" / "div" / "mod"
