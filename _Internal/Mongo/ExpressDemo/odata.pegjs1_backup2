@@ -10,6 +10,15 @@
        return { fn: name, args: args };
     }
 
+    flatten = function(list) {
+        if (list.join) {
+           var f = list.map(function(l) { return flatten(l); }  );
+           return f.join('');
+        } else {
+           return list;
+        }
+    }
+
  }
 
 start                       = query
@@ -42,7 +51,7 @@ SQUOTE                      =   "%x27" / "'"
 literal                     =   null /
                                 binary / 
                                 boolean /
-                                NumericLiteral /
+                                numericLiteral /
                                 dateTime /
                                 dateTimeOffset /
                                 guid /
@@ -99,7 +108,6 @@ sbyte                       =   sign? DIGIT DIGIT? DIGIT?
 string                      =   l:SQUOTE v:validstring  r:SQUOTE { return v; }
 
 
-
 zeroToTwelve                =   a:"0" b:[1-9] { return a + b;} / a:"1" b:[0-2] { return a + b; }
 
 zeroToThirteen              =   zeroToTwelve / "13" 
@@ -134,63 +142,34 @@ positiveInfinity            =   "INF"
 
 nanInfinity                 =   nan / negativeInfinity / positiveInfinity
 
-decimal                     =
-                               sign:sign digit:DIGIT+ "." decimal:DIGIT+ ("M"/"m")? { return parseInt(digit + '.' + decimal) * (sign === '-' ? -1 : 1); }
-                             / sign:sign digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
 
-double                      =   (
-                                    sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
-                                    sign DIGIT* "." DIGIT+ /
-                                    sign DIGIT+
-                                ) ("D" / "d") /
-                                nanInfinity ( "D" / "d" )?
+numericLiteral
+  = number:decimalLiteral { return parseFloat(flatten(number)); }
+
+decimalLiteral
+  = parts:(decimalIntegerLiteral "." decimalDigits? exponentPart?)
+  / parts:(decimalDigits exponentPart?)
+  / parts:(decimalIntegerLiteral list:exponentPart?)
+
+decimalIntegerLiteral
+  = "0"
+  / parts:(nonZeroDigit decimalDigits?)
 
 
+decimalDigits
+  = [0-9]+
 
-int32                       =   sign:sign? digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
-                                // numbers in the range from -2147483648 to 2147483647
-
-int64                       =   sign? DIGIT+ ( "L" / "l" )?
-                                // numbers in the range from -9223372036854775808 to 9223372036854775807
-
-sbyte                       =   sign? DIGIT DIGIT? DIGIT?
-                                // numbers in the range from -128 to 127
-
-single                      =   (
-                                    sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
-                                    sign DIGIT* "." DIGIT+ /
-                                    sign DIGIT+
-                                ) ("F" / "f") /
-                                nanInfinity ( "F" / "f" )?
-
-NumericLiteral
-  = number:DecimalLiteral { return {number: number }; }
-
-DecimalLiteral
-  = parts:(DecimalIntegerLiteral "." DecimalDigits? ExponentPart?)
-  / parts:("." DecimalDigits ExponentPart?)
-  / parts:(DecimalIntegerLiteral ExponentPart?)
-
-DecimalIntegerLiteral
-  = "0" / NonZeroDigit DecimalDigits?
-
-DecimalDigits
-  = DecimalDigit+
-
-DecimalDigit
-  = [0-9]
-
-NonZeroDigit
+nonZeroDigit
   = [1-9]
 
-ExponentPart
-  = ExponentIndicator SignedInteger
+exponentPart
+  = exponentIndicator signedInteger
 
-ExponentIndicator
+exponentIndicator
   = [eE]
 
-SignedInteger
-  = [-+]? DecimalDigits
+signedInteger
+  = [-+]? decimalDigits
 
 // end: OData literals
 
@@ -303,16 +282,24 @@ filter                      =   "$filter=" list:filterExpr {
 filterExpr = baseExpr
 
 
-baseExpr = WSP* p1:n0Expr p2:(binaryExpr2/binaryExpr1)* WSP* {
-   if (p2.length > 0) {
-       return { p1: p1, binaryOp: p2[0].binaryOp, p2: p2[0].p2 } ;
+baseExpr = WSP* p1:n0Expr x:(andOrP2)*  {
+   if (x.length > 0) {
+      return { p1: p1, aop: x[0].aop, p2: x[0].p2 };
    } else {
-       return  p1;
+      return p1;
    }
 }
+n0Expr   = WSP* p1:n1Expr x:(binP2)* {
+   if (x.length > 0) {
+      return { p1: p1, aop: x[0].bop, p2: x[0].p2 };
+   } else {
+      return p1;
+   }
+}
+n1Expr   =  unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
 
-
-n0Expr = unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
+andOrP2 =   WSP+ aop:andOrOp         WSP+ p2:baseExpr { return { aop:aop, p2: p2 }}
+binP2   =   WSP+ bop:(boolOp/mathOp) WSP+ p2:n0Expr   { return { bop:bop, p2: p2 }}
 
 memberExpr  =  member:identifierPath          { return { member:  member  } }
 parenExpr   = "("  expr:baseExpr  ")" { return { expr:    expr    } }
@@ -320,10 +307,14 @@ parenExpr   = "("  expr:baseExpr  ")" { return { expr:    expr    } }
 unaryExprOp =  "not " / "-"
 unaryExpr   = op:unaryExprOp expr:baseExpr            { return { unaryOp: op, expr: expr } }
 
-binaryExpr1 = WSP+ op:binaryExprOp1 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
-binaryExpr2 = WSP+ op:binaryExprOp2 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
-binaryExprOp1 = "eq" / "ne" / "lt" / "le" / "gt" / "ge" / "add" / "sub" / "mul" / "div" / "mod"
-binaryExprOp2 =  "and" / "or"
+xboolExpr   = WSP+ op:(boolOp) WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
+xmathExpr   = WSP+ op:(mathOp) WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
+xandOrExpr  = WSP+ op:(andOrOp) WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
+
+
+boolOp = "eq" / "ne" / "lt" / "le" / "gt" / "ge"
+mathOp = "add" / "sub" / "mul" / "div" / "mod"
+andOrOp =  "and" / "or"
 
 // subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
 

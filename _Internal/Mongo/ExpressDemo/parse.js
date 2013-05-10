@@ -25,13 +25,17 @@ t0 = tryParse("$filter=Qty eq 6443");
 
 t0 = tryParse("$filter=Name/foo eq 'John'");
 
-t0 = tryParse("$filter=(Name eq 'John') and LastName lt 'Doe'");
+t0 = tryParse("$filter=Name eq 'John' and LastName lt 'Doe'");
 
 t0 = tryParse("$filter=(DoubleValue mod 2) eq 10");
 
 t0 = tryParse("$filter=substringof('text', StringValue) eq true");
 
 t0 = tryParse("$filter=not length(StringValue) eq 1");
+
+t0 = tryParse("$filter=toupper(StringValue) ne 'text'")    ;
+
+t0 = tryParse("$filter=(StringValue ne 'text') or IntValue gt 2");
 
 function tryParse(s) {
     try {

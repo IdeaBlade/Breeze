@@ -278,31 +278,37 @@ filter                      =   "$filter=" list:filterExpr {
                             /   "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
 
-
 filterExpr = baseExpr
 
-
-baseExpr = WSP* p1:n0Expr p2:(binaryExpr2/binaryExpr1)* WSP* {
-   if (p2.length > 0) {
-       return { p1: p1, binaryOp: p2[0].binaryOp, p2: p2[0].p2 } ;
+baseExpr = WSP* p1:n0Expr x:(andOrP2)*  {
+   if (x.length > 0) {
+      return { p1: p1, aop: x[0].aop, p2: x[0].p2 };
    } else {
-       return  p1;
+      return p1;
    }
 }
+andOrP2 =   WSP+ aop:andOrOp         WSP+ p2:baseExpr { return { aop:aop, p2: p2 }}
 
+n0Expr   = WSP* p1:n1Expr x:(binP2)* {
+   if (x.length > 0) {
+      return { p1: p1, bop: x[0].bop, p2: x[0].p2 };
+   } else {
+      return p1;
+   }
+}
+binP2   =   WSP+ bop:(boolOp/mathOp) WSP+ p2:n0Expr   { return { bop:bop, p2: p2 }}
 
-n0Expr = unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
+n1Expr   =  unaryExpr / methodCallExpr / literal / memberExpr / parenExpr
 
-memberExpr  =  member:identifierPath          { return { member:  member  } }
+memberExpr  =  member:identifierPath           { return { member:  member  } }
 parenExpr   = "("  expr:baseExpr  ")" { return { expr:    expr    } }
 
 unaryExprOp =  "not " / "-"
-unaryExpr   = op:unaryExprOp expr:baseExpr            { return { unaryOp: op, expr: expr } }
+unaryExpr   = op:unaryExprOp expr:baseExpr     { return { unaryOp: op, expr: expr } }
 
-binaryExpr1 = WSP+ op:binaryExprOp1 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
-binaryExpr2 = WSP+ op:binaryExprOp2 WSP+ p2:baseExpr { return { binaryOp: op,  p2: p2 }}
-binaryExprOp1 = "eq" / "ne" / "lt" / "le" / "gt" / "ge" / "add" / "sub" / "mul" / "div" / "mod"
-binaryExprOp2 =  "and" / "or"
+boolOp = "eq" / "ne" / "lt" / "le" / "gt" / "ge"
+mathOp = "add" / "sub" / "mul" / "div" / "mod"
+andOrOp =  "and" / "or"
 
 // subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
 
