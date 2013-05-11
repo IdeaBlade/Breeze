@@ -67,9 +67,10 @@
     });
     
     test("raw query string", function () {
+        
         var em = newEm();
         stop();
-        em.executeQuery("CustomersAndOrders?&$top=3").then(function (data) {
+        em.executeQuery("Customers?&$top=3").then(function (data) {
             var custs = data.results;
             ok(custs.length === 3, "should be 3 custs");
             var isOk = custs.every(function (c) {

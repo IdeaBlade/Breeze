@@ -23,8 +23,40 @@ breezeTestFns = (function (breeze) {
     var DataType = breeze.DataType;
     
     var testFns = {};
-    testFns.message = "";
+    
     testFns.TEST_RECOMPOSITION = true;
+    configQunit();
+
+    function configQunit() {
+        QUnit.config.autostart = false;
+
+        // global timeout of 20 secs
+        // No test should take that long but first time db build can.
+        QUnit.config.testTimeout = 20000;
+
+        QUnit.config.urlConfig.push({
+            id: "canStart",
+            label: "Start the tests",
+            tooltip: "Allows a user to set options before tests start."
+        });
+
+        QUnit.config.urlConfig.push({
+            id: "next",
+            label: "Next tracking lib.",
+            tooltip: "Next tracking lib."
+        });
+
+        QUnit.config.urlConfig.push({
+            id: "sequential",
+            label: "Start Sequential",
+            tooltip: "Loads the modules one at a time, so that the Rerun link works."
+        });
+
+    }
+    
+    function updateTitle() {
+        testFns.title = "dataService: " + (testFns.dataService || "--NONE SPECIFIED --") + ", modelLibrary: " + testFns.modelLibrary;
+    }
     
     testFns.setDataService = function (value) {
 
@@ -60,24 +92,19 @@ breezeTestFns = (function (breeze) {
             }
             // test recomposition
             testFns.defaultServiceName = "breeze/NorthwindIBModel";
-            testFns.message += "dataService: webApi, ";
+            
         } else {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData").name;
             testFns.defaultServiceName = "http://localhost:9009/ODataService.svc";
-            testFns.message += "dataService: odataApi, ";
         }
-
+        updateTitle();
     };
 
     testFns.configure = function () {
-        var modelLibrary, oldNext;
-        if (window.localStorage) {
-            modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
-            oldNext = !!window.localStorage.getItem("qunit.next");
-        } else {
-            modelLibrary = ko;
-            oldNext = false;
-        }
+        
+        var modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
+        var oldNext = !!window.localStorage.getItem("qunit.next");
+        
         var curNext = !!QUnit.urlParams.next;
         
         if (curNext) {
@@ -99,8 +126,8 @@ breezeTestFns = (function (breeze) {
         
         window.localStorage.setItem("modelLibrary", modelLibrary);
         core.config.initializeAdapterInstance("modelLibrary", modelLibrary, true);
-        testFns.message += "modelLibrary: " + modelLibrary + ",  ";
         testFns.modelLibrary = core.config.getAdapterInstance("modelLibrary").name;
+        updateTitle();
     };
 
     testFns.setup = function (config) {
@@ -516,7 +543,6 @@ breezeTestFns = (function (breeze) {
 
 
     testFns.breeze = breeze;
-    testFns.setDataService(BREEZE_DataService);
     testFns.configure();
 
     return testFns;

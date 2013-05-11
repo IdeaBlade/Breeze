@@ -40,6 +40,10 @@
     });
 
     test("external customer metadata", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
         var em = newAltEm();
         stop();
         em.fetchMetadata().then(function (rawMetadata) {

@@ -25,44 +25,11 @@
     <script type="text/javascript" src="Scripts/ThirdParty/backbone.js"></script>
     <script type="text/javascript" src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
  
-    <!-- Initialize QUnit  --> 
-    <script>
-        QUnit.config.autostart = false;
-
-        // global timeout of 20 secs
-        // No test should take that long but first time db build can.
-        QUnit.config.testTimeout = 20000;
-
-        QUnit.config.urlConfig.push({
-            id: "canStart",
-            label: "Start the tests",
-            tooltip: "Allows a user to set options before tests start."
-        });
-
-        QUnit.config.urlConfig.push({
-            id: "next",
-            label: "Next tracking lib.",
-            tooltip: "Next tracking lib."
-        });
-
-        QUnit.config.urlConfig.push({
-            id: "sequential",
-            label: "Start Sequential",
-            tooltip: "Loads the modules one at a time, so that the Rerun link works."
-        });
-
-    </script>
-    
-    <!-- Initialize Test vars  --> 
-    <script>
-        BREEZE_DataService = "WebApi";
-    </script>
-
     <!-- Test helper scripts  --> 
     <!-- These two must come first -->    
     <script src="/Scripts/IBlade/breeze.debug.js"></script>
     <script src="/Scripts/Tests/testFns.js"></script>  
-       
+     
     <script src="/Scripts/Tests/attachTests.js"></script> 
     <script src="/Scripts/Tests/classRewriteTests.js"></script> 
     <script src="/Scripts/Tests/complexTypeTests.js"></script> 
@@ -79,7 +46,6 @@
     <script src="/Scripts/Tests/queryDatatypeTests.js"></script> 
     <script src="/Scripts/Tests/queryLocalTests.js"></script> 
     <script src="/Scripts/Tests/queryNamedTests.js"></script> 
-    
     <script src="/Scripts/Tests/queryNonEFTests.js"></script> 
     <script src="/Scripts/Tests/queryRawOdataTests.js"></script> 
     <script src="/Scripts/Tests/querySelectTests.js"></script> 
@@ -89,17 +55,19 @@
       
     <!-- Tests are loaded; let's go! -->
     <script>
-        //Tests loaded, run tests    
-        // document.getElementById("title").appendChild(document.createElement('pre')).innerHTML = breezeTestFns.message;
-        document.getElementById("title").innerHTML += " -> " + breezeTestFns.message;
+        
+        // -- Initialize Test vars  
+        breezeTestFns.setDataService("WebApi");
+    
+        document.getElementById("title").innerHTML += " -> " + breezeTestFns.title;
+        
         if (!QUnit.urlParams.sequential) {
             if (QUnit.urlParams.canStart) {
-                QUnit.start(); //Tests loaded, run tests
+                QUnit.start(); // run tests
             }
         } else {
+            // Steve: once i removed "require" dependency I didn't know how to update this.
             
         }
-       
-
     </script>
 </html>

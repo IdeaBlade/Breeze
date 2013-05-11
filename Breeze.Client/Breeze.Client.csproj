@@ -196,7 +196,6 @@
     <Content Include="Scripts\Tests\paramTests.js" />
     <Content Include="Scripts\Tests\queryTests.js" />
     <Content Include="Scripts\Tests\saveTests.js" />
-    <Content Include="Scripts\Tests\testRunner.js" />
     <Content Include="Scripts\Tests\validateEntityTests.js" />
     <Content Include="Scripts\Tests\validateTests.js" />
     <Content Include="Scripts\ThirdParty\jquery-1.6.2-vsdoc.js" />
@@ -238,7 +237,6 @@
     <None Include="Scripts\IBlade\node_modules\uglify-js\README.md" />
     <None Include="Scripts\IBlade\yuidoc.json" />
     <None Include="Scripts\IBlade\_build.ps1" />
-    <Content Include="Scripts\Tests\Index.html" />
     <None Include="Scripts\ThirdParty\datajs-1.1.0.min.js.map">
       <DependentUpon>datajs-1.1.0.js</DependentUpon>
     </None>

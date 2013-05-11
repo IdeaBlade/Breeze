@@ -34,6 +34,7 @@ namespace Breeze_OData {
       config.SetEntitySetAccessRule("Suppliers", EntitySetRights.All);
       config.SetEntitySetAccessRule("Users", EntitySetRights.All);
       config.SetEntitySetAccessRule("TimeLimits", EntitySetRights.All);
+      config.SetEntitySetAccessRule("InternationalOrders", EntitySetRights.All);
       try {
         config.SetEntitySetAccessRule("Comments", EntitySetRights.All);
       } catch (Exception e) {
