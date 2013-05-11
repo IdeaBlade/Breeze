@@ -8,11 +8,11 @@
  {
     fn = function(name, args) {
         if (args.length === 1) {
-            return { type: "fn_1", name: name, p0: args[0] };
+            return { type: "fn_1", name: name, p1: args[0] };
         } else if (args.length === 2) {
-            return { type: "fn_2", name: name, p0: args[0], p1: args[1] };
+            return { type: "fn_2", name: name, p1: args[0], p2: args[1] };
         } else if (args.length === 3) {
-            return { type: "fn_3", name: name, p0: args[0], p1: args[1], p2: args[2] };
+            return { type: "fn_3", name: name, p1: args[0], p2: args[1], p3: args[2] };
         }
     }
 
@@ -25,25 +25,71 @@
         }
     }
 
+    parseFloat2 = function(x) {
+        return parseFloat(flatten(x));
+
+    }
  }
 
 start                       = query
 
-
-
-/*
- * Basic cons.
- */
-
 WSP                         =  ' '  //Whitespace
 DIGIT                       = [0-9]
 INT                         = a:DIGIT+ { return a.join(''); }
-HEXDIG                      =   [0-9a-fA-F]
+hexdigit                      =   [0-9a-fA-F]
 //peg does not support repetition (ie: [a]{4})
-HEXDIG2                     =   HEXDIG HEXDIG
-HEXDIG4                     =   HEXDIG2 HEXDIG2
-HEXDIG8                     =   HEXDIG4 HEXDIG8
-SQUOTE                      =   "%x27" / "'"
+hexdigit2                     =   hexdigit hexdigit
+hexdigit4                     =   hexdigit2 hexdigit2
+hexdigit8                     =   hexdigit4 hexdigit8
+squote                      =   "%x27" / "'"
+
+// this is needed to handle '' inside of a quoted string i.e. 'asdf''adfadf'
+enclosedString              = v:(unescChar / [^'])* { return v.join(""); }
+unescChar                  = "''" { return "'" };
+
+number "number"
+  = parts:(int frac exp) _ { return parseFloat2(parts); }
+  / parts:(int frac) _     { return parseFloat2(parts); }
+  / parts:(int exp) _      { return parseFloat2(parts); }
+  / parts:(int) _          { return parseFloat2(parts); }
+
+int
+  = digit19 digits
+  / digit
+  / "-" digit19 digits
+  / "-" digit
+
+frac
+  = "." digits
+
+exp
+  = e digits
+
+digits
+  = digit+
+
+e
+  = [eE] [+-]?
+
+digit
+  = [0-9]
+
+digit19
+  = [1-9]
+
+hexDigit
+  = [0-9a-fA-F]
+
+/* ===== Whitespace ===== */
+
+_ "whitespace"
+  = whitespace*
+
+// Whitespace is undefined in the original JSON grammar, so I assume a simple
+// conventional definition consistent with ECMA-262, 5th ed.
+whitespace
+  = [ \t\n\r]
+
 
 // end: Basic cons
 
@@ -59,36 +105,34 @@ literal                     =   null /
                                 dateTime /
                                 dateTimeOffset /
                                 guid /
-                                string
+                                stringLiteral
 
 null                        =   "null" ( "'" identifier "'" )?
                                   { return { type: "lit_null" } }
                                 // The optional qualifiedTypeName is used to specify what type this null value should be considered. 
                                 // Knowing the type is useful for function overload resolution purposes. 
 
-binary                      =   binary:(( "%d88" / "binary" ) SQUOTE HEXDIG HEXDIG SQUOTE)
+binary                      =   binary:(( "%d88" / "binary" ) squote hexdigit hexdigit squote)
                                   { return { type: "lit_binary", value: binary } }
                                 // note: "X" is case sensitive "binary" is not hence using the character code.
 
-boolean                     =   "true"  { return { type: "lit_bool", value: true  } } /
-                                "false" { return { type: "lit_bool", value: false } }
+boolean                     =   "true"  { return { type: "lit_boolean", value: true  } } /
+                                "false" { return { type: "lit_boolean", value: false } }
 
-dateTime                    =  "datetime" SQUOTE a:dateTimeBody SQUOTE
+dateTime                    =  "datetime" squote a:dateTimeBody squote
                                  { return { type: "lit_dateTime", value: new Date(a) } }
 
-dateTimeOffset              =  "datetimeoffset" SQUOTE a:dateTimeOffsetBody SQUOTE
+dateTimeOffset              =  "datetimeoffset" squote a:dateTimeOffsetBody squote
                                  { return { type: "lit_dateTimeOffset", value: new Date(a) } }
 
-numericLiteral              =  number:decimalLiteral
-                                 { return { type: "lit_number", value: parseFloat(flatten(number)) } }
+numericLiteral              =  number:number
+                                 { return { type: "lit_number", value: number } }
 
-guid                        =  "guid" SQUOTE guid:(HEXDIG8 "-" HEXDIG4 "-" HEXDIG4 "-" HEXDIG8 HEXDIG4) SQUOTE
+guid                        =  "guid" squote guid:(hexdigit8 "-" hexdigit4 "-" hexdigit4 "-" hexdigit8 hexdigit4) squote
                                  { return { type: "lit_guid",   value: guid } }
 
-string                      =   SQUOTE v:validstring SQUOTE
+stringLiteral                =   squote v:enclosedString squote
                                  { return { type: "lit_string", value: v } }
-
-
 zeroToTwelve                =   a:"0" b:[1-9] { return a + b;} / a:"1" b:[0-2] { return a + b; }
 zeroToThirteen              =   zeroToTwelve / "13"
 zeroToSixty                 =   "60" / a:[0-5] b:DIGIT { return a + b; }
@@ -121,23 +165,6 @@ nan                         =   "NaN"
 negativeInfinity            =   "-INF"
 positiveInfinity            =   "INF"
 nanInfinity                 =   nan / negativeInfinity / positiveInfinity
-decimalLiteral
-  = parts:(decimalIntegerLiteral "." decimalDigits? exponentPart?)
-  / parts:(decimalDigits exponentPart?)
-  / parts:(decimalIntegerLiteral list:exponentPart?)
-decimalIntegerLiteral
-  = "0"
-  / parts:(nonZeroDigit decimalDigits?)
-decimalDigits
-  = [0-9]+
-nonZeroDigit
-  = [1-9]
-exponentPart
-  = exponentIndicator signedInteger
-exponentIndicator
-  = [eE]
-signedInteger
-  = [-+]? decimalDigits
 
 // end: OData literals
 
@@ -146,10 +173,11 @@ signedInteger
  */
 
 unreserved                  = a:[a-zA-Z0-9-_]+ { return a.join(''); }
-validstring                 = a:[^']* { return a.join(''); }
+
+
+
 identifierPart              = a:[a-zA-Z] b:unreserved { return a + b; }
-identifier                  = 
-                                a:identifierPart list:("." i:identifier {return i;})? {
+identifier                  = a:identifierPart list:("." i:identifier {return i;})? {
                                     if (list === "") list = [];
                                     if (require('util').isArray(list[0])) {
                                         list = list[0];
@@ -225,8 +253,7 @@ identifierPathParts         =   "/" i:identifierPart list:identifierPathParts? {
                                     return list;
                                 }
 identifierPath              =   a:identifier b:identifierPathParts? { return a + b; }
-selectList                  =   
-                                i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," WSP? l:selectList {return l;})? {
+selectList                  =   i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," WSP? l:selectList {return l;})? {
                                     if (list === "") list = [];
                                     if (require('util').isArray(list[0])) {
                                         list = list[0];
@@ -236,13 +263,7 @@ selectList                  =
                                 }
 
 //filter
-
-
-filter                      =   "$filter=" list:filterExpr { 
-                                    return { 
-                                        "$filter": list
-                                    }; 
-                                }
+filter                      =   "$filter=" list:filterExpr { return { "$filter": list  }; }
                             /   "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
 
@@ -359,8 +380,7 @@ expList                     = e:exp "&" el:expList { return [e].concat(el); } /
                               e:exp { return [e]; }
                               
 
-exp                         =
-                                expand / 
+exp                         =   expand /
                                 filter /
                                 orderby /
                                 skip /

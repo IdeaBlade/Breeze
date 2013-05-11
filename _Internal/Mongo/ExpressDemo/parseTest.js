@@ -16,13 +16,13 @@ var parser;
 try {
     parser = PEG.buildParser(pegdef);
 } catch (e) {
-    throw e
+    console.log(e.message);
+    throw e;
 }
 
 t0 = tryParse("$filter='xxx'");
 
 t0 = tryParse("$filter=Name/foo")
-
 
 parseAndCompare("$filter","$filter=Name eq 'John'",
     { type: "op_bool", op: "eq",
@@ -77,7 +77,69 @@ parseAndCompare("$filter","$filter=substringof('text', StringValue) ne true",
 
 t0 = tryParse("$filter=toupper(StringValue) ne 'text'")    ;
 
-t0 = tryParse("$filter=(StringValue ne 'text') or IntValue gt 2");
+parseAndCompare("$filter","$filter=(StringValue ne 'text') or IntValue gt 2",
+    { type: "op_andOr", op: "or",
+        p1: { type: "op_bool", op: "ne",
+            p1: { type: "member", value: "StringValue"},
+            p2: { type: "lit_string", value: "text"}
+        } ,
+        p2: { type: "op_bool", op: "gt",
+            p1: { type: "member", value: "IntValue"},
+            p2: { type: "lit_number", value: 2}
+        }
+    } );
+
+parseAndCompare("$filter", "$filter=(startswith(tolower(StringValue),'foo') eq true and endswith(tolower(StringValue),'1') eq false)",
+    { type: "op_andOr", op: "and",
+        p1: { type: "op_bool", op: "eq",
+            p1: { type: "fn_2", name: "startswith",
+                p1: { type: "fn_1", name: "tolower",
+                    p1: { type: "member", value: "StringValue"}
+                },
+                p2: { type: "lit_string", value: "foo"}
+            },
+            p2: { type: "lit_boolean", value: true}
+        },
+        p2: { type: "op_bool", op: "eq",
+            p1: { type: "fn_2", name: "endswith" ,
+                p1: { type: "fn_1", name: "tolower",
+                    p1: { type: "member", value: "StringValue"}
+                },
+                p2: { type: "lit_string", value: "1"}
+            },
+            p2: { type: "lit_boolean", value: false}
+        }
+    }   );
+
+parseAndCompare("$filter","$filter=DateValue eq datetime'2012-05-06T16:11:00Z'",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "DateValue"},
+        p2: { type: "lit_dateTime", value: new Date('2012-05-06T16:11:00Z') }
+    });
+
+
+parseAndCompare("$filter", "$filter=StringValue eq '''single quotes'' within the text'",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "StringValue" },
+        p2: { type: "lit_string", value: "'single quotes' within the text"}
+    });
+
+
+function parseAndCompare(nodeName, expr, expectedResult) {
+    var r = tryParse(expr);
+    if (r == null) return;
+    if (nodeName) r = r[nodeName];
+    compare(expr, r, expectedResult);
+}
+
+function tryParse(s) {
+    try {
+        return parser.parse(s);
+    } catch (e)  {
+        console.log("error parsing: " + s + "   error -> " + e.message)
+        return null;
+    }
+}
 
 function compare(title, o1, o2) {
     try {
@@ -122,17 +184,3 @@ function compareCore(o1, o2, prevKey) {
 
 }
 
-function parseAndCompare(nodeName, expr, expectedResult) {
-    var r = tryParse(expr);
-    if (nodeName) r = r[nodeName];
-    compare(expr, r, expectedResult);
-}
-
-function tryParse(s) {
-    try {
-        return parser.parse(s);
-    } catch (e)  {
-        console.log("error parsing: " + e.message)
-        throw e
-    }
-}
