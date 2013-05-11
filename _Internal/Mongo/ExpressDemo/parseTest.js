@@ -1,25 +1,29 @@
 var PEG = require("pegjs");
 var fs = require("fs");
+var parser
+var shouldGenerateParser = false;
 
-console.log("reading file...");
+if (shouldGenerateParser) {
+    console.log("reading file...");
+    var filename = "odataParser.peg";
+    if (!fs.existsSync(filename)) {
+        throw new Error("Unable to locate file: " + filename);
+    }
+    var pegdef = fs.readFileSync(filename, 'utf8');
 
-var filename = "odata.peg";
-if (!fs.existsSync(filename)) {
-    throw new Error("Unable to locate file: " + filename);
+    console.log("reading file completed");
+
+    var t0;
+    var parser;
+    try {
+        parser = PEG.buildParser(pegdef);
+    } catch (e) {
+        console.log(e.message);
+        throw e;
+    }
+} else {
+    parser = require("./odataParser")
 }
-var pegdef = fs.readFileSync(filename, 'utf8');
-
-console.log("reading file completed");
-
-var t0;
-var parser;
-try {
-    parser = PEG.buildParser(pegdef);
-} catch (e) {
-    console.log(e.message);
-    throw e;
-}
-
 t0 = tryParse("$filter='xxx'");
 
 t0 = tryParse("$filter=Name/foo")
@@ -133,6 +137,17 @@ parseAndCompare("$filter", "$filter=StringValue eq '''single quotes'' within the
         p2: { type: "lit_string", value: "'single quotes' within the text"}
     });
 
+parseAndCompare("$filter","$filter=StringValue eq 'Group1 and Group2'",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "StringValue"},
+        p2: { type: "lit_string", value: "Group1 and Group2" }
+    } );
+
+parseAndCompare("$filter","$filter=StringValue ne 'Group1 not Group2'",
+    { type: "op_bool", op: "ne",
+        p1: { type: "member", value: "StringValue"},
+        p2: { type: "lit_string", value: "Group1 not Group2" }
+    } );
 
 function parseAndCompare(nodeName, expr, expectedResult) {
     var r = tryParse(expr);
