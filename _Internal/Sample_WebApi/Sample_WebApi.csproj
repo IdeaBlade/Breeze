@@ -147,7 +147,6 @@
     <Compile Include="Controllers\NHConfig.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NonEFModelController.cs" />
     <Compile Include="Controllers\NorthwindIBModelController.cs" />
     <Compile Include="Global.asax.cs">
@@ -158,10 +157,6 @@
   <ItemGroup>
     <Content Include="..\..\Breeze.Client\Scripts\breeze.debug.js">
       <Link>Scripts\IBlade\breeze.debug.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\testFns.js">
-      <Link>Scripts\IBlade\testFns.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\attachTests.js">
@@ -244,8 +239,8 @@
       <Link>Scripts\Tests\saveTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\testRunner.js">
-      <Link>Scripts\Tests\testRunner.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\testFns.js">
+      <Link>Scripts\Tests\testFns.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\validateEntityTests.js">
@@ -346,7 +341,7 @@
     <Content Include="Content\themes\base\jquery.ui.theme.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="breezeBasic.html" />
+    <Content Include="Index.html" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -376,14 +371,9 @@
     <Content Include="Images\orderedList9.png" />
     <Content Include="Images\twitter.png" />
     <Content Include="Images\windowsLive.png" />
-    <Content Include="Views\Web.config" />
-    <Content Include="Views\Home\Index.cshtml" />
     <None Include="App_Data\metadataTest.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="Views\Shared\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="packages.config">
       <SubType>Designer</SubType>

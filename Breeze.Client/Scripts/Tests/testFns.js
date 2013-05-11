@@ -11,7 +11,7 @@
 // define(["breeze.min"], function(breeze) {
 
 // Uncomment this to run against a version of base and all plugins
-define(["breeze.debug"], function (breeze) {
+breezeTestFns = (function (breeze) {
 
     "use strict";
 
@@ -70,9 +70,14 @@ define(["breeze.debug"], function (breeze) {
     };
 
     testFns.configure = function () {
-        var modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
-
-        var oldNext = !!window.localStorage.getItem("qunit.next");
+        var modelLibrary, oldNext;
+        if (window.localStorage) {
+            modelLibrary = window.localStorage.getItem("modelLibrary") || "ko";
+            oldNext = !!window.localStorage.getItem("qunit.next");
+        } else {
+            modelLibrary = ko;
+            oldNext = false;
+        }
         var curNext = !!QUnit.urlParams.next;
         
         if (curNext) {
@@ -515,5 +520,5 @@ define(["breeze.debug"], function (breeze) {
     testFns.configure();
 
     return testFns;
-});
+})(breeze);
 

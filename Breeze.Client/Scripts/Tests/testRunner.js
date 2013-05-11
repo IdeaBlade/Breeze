@@ -21,33 +21,32 @@ QUnit.config.urlConfig.push({
 });
 
 var modules = [
-      "attachTests",
-      "classRewriteTests",
-      "complexTypeTests",
-      "entityManagerTests",
-      "entityTests",
-      "inheritBillingTests",
-      "inheritProduceTests",
-      "koSpecificTests",
-      "metadataTests",
-      "miscTests",
-      "paramTests",
-      "queryTests",
-      "queryCtorTests",
-      "queryDatatypeTests",
-      "queryLocalTests",
-      "queryNamedTests",
-      "queryNonEFTests",
-      "queryRawOdataTests",
-      "querySelectTests",
-      "saveTests",
-      "validateTests",
-      "validateEntityTests"
+    "attachTests",
+    "classRewriteTests",
+    "complexTypeTests",
+    "entityManagerTests",
+    "entityTests",
+    "inheritBillingTests",
+    "inheritProduceTests",
+    "koSpecificTests",
+    "metadataTests",
+    "miscTests",
+    "paramTests",
+    "queryTests",
+    "queryCtorTests",
+    "queryDatatypeTests",
+    "queryLocalTests",
+    "queryNamedTests",
+    "queryNonEFTests",
+    "queryRawOdataTests",
+    "querySelectTests",
+    "saveTests",
+    "validateTests",
+    "validateEntityTests"
+];
 
-
-]
-
-require.config({ baseUrl: "Scripts/Tests" });
+// require.config({ baseUrl: "Scripts/Tests" });
+require.config({ baseUrl: "../" });
 
 if (!QUnit.urlParams.sequential) {
     require(modules, function (testFns) {

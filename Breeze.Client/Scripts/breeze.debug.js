@@ -3539,9 +3539,6 @@ var EntityKey = (function () {
             this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
        
-        //if (entityType.isAbstract) {
-        //    throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
-        //}
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }

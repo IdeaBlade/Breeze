@@ -1,6 +1,4 @@
-require.config({ baseUrl: "Scripts/IBlade" });
-
-define(["testFns"], function (testFns) {
+(function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
     var EntityAspect = breeze.EntityAspect;
@@ -202,6 +200,5 @@ define(["testFns"], function (testFns) {
 
     });
 
-    return testFns;
 
-});
+})(breezeTestFns);
