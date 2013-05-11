@@ -1,7 +1,7 @@
 var PEG = require("pegjs");
 var fs = require("fs");
 var parser
-var shouldGenerateParser = false;
+var shouldGenerateParser = true;
 
 if (shouldGenerateParser) {
     console.log("reading file...");
