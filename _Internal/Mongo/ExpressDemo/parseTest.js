@@ -73,9 +73,18 @@ parseAndCompare("$filter","$filter=substringof('text', StringValue) ne true",
         p2: { type: "lit_boolean", value: true }
     });
 
- tryParse("$filter=not length(StringValue) eq 1");
+ t0=tryParse("$filter=not length(StringValue) eq 1");
 
-t0 = tryParse("$filter=toupper(StringValue) ne 'text'")    ;
+t0 = tryParse("$filter=toupper(StringValue) ne 'text'");
+
+parseAndCompare("$filter","$filter=DoubleValue div 2 eq 3",
+    { type: "op_bool", op: "eq",
+        p1: { type: "op_math", op: "div" ,
+            p1: { type: "member", value: "DoubleValue"},
+            p2: { type: "lit_number", value: 2 }
+        },
+        p2: { type: "lit_number", value: 3 }
+    });
 
 parseAndCompare("$filter","$filter=(StringValue ne 'text') or IntValue gt 2",
     { type: "op_andOr", op: "or",
