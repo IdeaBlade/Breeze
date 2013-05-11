@@ -29,7 +29,12 @@
     <!-- These two must come first -->    
     <script src="/Scripts/IBlade/breeze.debug.js"></script>
     <script src="/Scripts/Tests/testFns.js"></script>  
-     
+    
+    <script>
+        // -- Initialize Test vars  
+        breezeTestFns.setDataService("WebApi");
+    </script>
+
     <script src="/Scripts/Tests/attachTests.js"></script> 
     <script src="/Scripts/Tests/classRewriteTests.js"></script> 
     <script src="/Scripts/Tests/complexTypeTests.js"></script> 
@@ -55,9 +60,6 @@
       
     <!-- Tests are loaded; let's go! -->
     <script>
-        
-        // -- Initialize Test vars  
-        breezeTestFns.setDataService("WebApi");
     
         document.getElementById("title").innerHTML += " -> " + breezeTestFns.title;
         
