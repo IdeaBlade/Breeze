@@ -3,7 +3,7 @@ var fs = require("fs");
 
 console.log("reading file...");
 
-var filename = "odata.pegjs1";
+var filename = "odata.peg";
 if (!fs.existsSync(filename)) {
     throw new Error("Unable to locate file: " + filename);
 }
