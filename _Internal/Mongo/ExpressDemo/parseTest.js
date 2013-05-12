@@ -102,6 +102,20 @@ parseAndCompare("$filter","$filter=(StringValue ne 'text') or IntValue gt 2",
         }
     } );
 
+parseAndCompare("$filter","$filter=(not StringValue ne 'text') or IntValue gt 2",
+    { type: "op_andOr", op: "or",
+        p1: { type: "op_unary", op: "not ",
+            p1: { type: "op_bool", op: "ne",
+                p1: { type: "member", value: "StringValue"},
+                p2: { type: "lit_string", value: "text"}
+            }
+        },
+        p2: { type: "op_bool", op: "gt",
+            p1: { type: "member", value: "IntValue"},
+            p2: { type: "lit_number", value: 2}
+        }
+    } );
+
 parseAndCompare("$filter", "$filter=(startswith(tolower(StringValue),'foo') eq true and endswith(tolower(StringValue),'1') eq false)",
     { type: "op_andOr", op: "and",
         p1: { type: "op_bool", op: "eq",

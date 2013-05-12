@@ -243,16 +243,13 @@ filter                      =  "$filter=" list:filterExpr { return { "$filter": 
                             /  "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
 
-filterExpr = baseExpr
-
-baseExpr = wsp* p1:n0Expr x:(andOrExpr)*  {
+filterExpr = wsp* p1:n0Expr x:(andOrExpr)*  {
    if (x.length > 0) {
       return { type: x[0].type, op: x[0].op, p1: p1, p2: x[0].p2 };
    } else {
       return p1;
    }
 }
-
 
 n0Expr   = wsp* p1:n1Expr x:(boolExpr)* {
    if (x.length > 0) {
@@ -270,17 +267,17 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
       }
 }
 
-andOrExpr  =   wsp+ op:andOrOp  wsp+ p2:baseExpr { return { type: "op_andOr", op:op, p2: p2 }}
+andOrExpr  =   wsp+ op:andOrOp  wsp+ p2:filterExpr { return { type: "op_andOr", op:op, p2: p2 }}
 boolExpr   =   wsp+ op:boolOp   wsp+ p2:n0Expr   { return { type: "op_bool",  op:op, p2: p2 }}
 mathExpr   =   wsp+ op:mathOp   wsp+ p2:n1Expr   { return { type: "op_math",  op:op, p2: p2 }}
 
 n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
 
 memberExpr  =  member:identifierPath           { return { type: "member", value:  member  } }
-parenExpr   = "("  expr:baseExpr  ")"          { return  expr   }
+parenExpr   = "("  expr:filterExpr  ")"          { return  expr   }
 
 unaryExprOp =  "not " / "-"
-unaryExpr   = op:unaryExprOp expr:baseExpr     { return { type: "unaryOp", op: op, value: expr } }
+unaryExpr   = op:unaryExprOp expr:filterExpr     { return { type: "op_unary", op: op, p1: expr } }
 
 /* OData Precedence - only partially enforced here so far
       "-" , "not", cast
@@ -299,7 +296,7 @@ andOrOp =  "and" / "or"
 // subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
 
 lambdaVariable = identifier + ":"
-lambdaExpr     = lambdaVariable  baseExpr
+lambdaExpr     = lambdaVariable  filterExpr
 
 
 methodCallExpr          =   anyMethodCallExpr
@@ -357,9 +354,9 @@ isOf1MethodCallExpr       = n:"isof"        a:args1   { return fn(n, a); }
 isOf2MethodCallExpr       = n:"isof"        a:args2   { return fn(n, a); }
 
 larg  = "(" p1:lambdaExpr ")"                               { return [ p1 ]; }
-args1 = "(" p1:baseExpr ")"                                 { return [ p1 ]; }
-args2 = "(" p1:baseExpr "," p2:baseExpr ")"                 { return [ p1, p2 ]; }
-args3 = "(" p1:baseExpr "," p2:baseExpr "," p3:baseExpr ")" { return [ p1, p2, p3 ]; }
+args1 = "(" p1:filterExpr ")"                                 { return [ p1 ]; }
+args2 = "(" p1:filterExpr "," p2:filterExpr ")"                 { return [ p1, p2 ]; }
+args3 = "(" p1:filterExpr "," p2:filterExpr "," p3:filterExpr ")" { return [ p1, p2, p3 ]; }
 
 
 unsupported                 =   "$" er:.* { return { error: "unsupported method: " + er }; }

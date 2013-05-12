@@ -96,7 +96,7 @@ module.exports = (function(){
         "identifierPath": parse_identifierPath,
         "selectList": parse_selectList,
         "filter": parse_filter,
-        "baseExpr": parse_baseExpr,
+        "filterExpr": parse_filterExpr,
         "n0Expr": parse_n0Expr,
         "n1Expr": parse_n1Expr,
         "andOrExpr": parse_andOrExpr,
@@ -280,7 +280,7 @@ module.exports = (function(){
         pos0 = pos;
         result0 = parse_hexdigit4();
         if (result0 !== null) {
-          result1 = parse_hexdigit8();
+          result1 = parse_hexdigit4();
           if (result1 !== null) {
             result0 = [result0, result1];
           } else {
@@ -2425,7 +2425,7 @@ module.exports = (function(){
                                             }
                                             list.unshift(i);
                                             return list;
-                                        })(pos0, result0[0], result0[1]);
+                                       })(pos0, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -2721,8 +2721,8 @@ module.exports = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, list) { 
-                                            return { "$orderby": list }; })(pos0, result0[1]);
+          result0 = (function(offset, list) {
+                                           return { "$orderby": list }; })(pos0, result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -2841,7 +2841,7 @@ module.exports = (function(){
                                             var result = {};
                                             result[id] = ord[1] || 'asc';
                                             return result;
-                                        })(pos2, result0[0], result0[1]);
+                                       })(pos2, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos2;
@@ -2903,7 +2903,7 @@ module.exports = (function(){
                                             }
                                             list.unshift(i);
                                             return list;
-                                        })(pos0, result0[0], result0[1]);
+                                       })(pos0, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -3041,7 +3041,7 @@ module.exports = (function(){
                                             }
                                             list.unshift("/" + i);
                                             return list;
-                                        })(pos0, result0[1], result0[2]);
+                                       })(pos0, result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -3181,7 +3181,7 @@ module.exports = (function(){
                                             }
                                             list.unshift(i);
                                             return list;
-                                        })(pos0, result0[0], result0[1]);
+                                       })(pos0, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -3205,7 +3205,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             result0 = [result0, result1];
           } else {
@@ -3277,7 +3277,7 @@ module.exports = (function(){
         return result0;
       }
       
-      function parse_baseExpr() {
+      function parse_filterExpr() {
         var result0, result1, result2, result3;
         var pos0, pos1;
         
@@ -3457,7 +3457,7 @@ module.exports = (function(){
               result2 = null;
             }
             if (result2 !== null) {
-              result3 = parse_baseExpr();
+              result3 = parse_filterExpr();
               if (result3 !== null) {
                 result0 = [result0, result1, result2, result3];
               } else {
@@ -3651,7 +3651,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 41) {
               result2 = ")";
@@ -3719,7 +3719,7 @@ module.exports = (function(){
         pos1 = pos;
         result0 = parse_unaryExprOp();
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             result0 = [result0, result1];
           } else {
@@ -3731,7 +3731,7 @@ module.exports = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, op, expr) { return { type: "unaryOp", op: op, value: expr } })(pos0, result0[0], result0[1]);
+          result0 = (function(offset, op, expr) { return { type: "op_unary", op: op, p1: expr } })(pos0, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -3939,7 +3939,7 @@ module.exports = (function(){
         pos0 = pos;
         result0 = parse_lambdaVariable();
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             result0 = [result0, result1];
           } else {
@@ -4998,7 +4998,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 41) {
               result2 = ")";
@@ -5048,7 +5048,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 44) {
               result2 = ",";
@@ -5060,7 +5060,7 @@ module.exports = (function(){
               }
             }
             if (result2 !== null) {
-              result3 = parse_baseExpr();
+              result3 = parse_filterExpr();
               if (result3 !== null) {
                 if (input.charCodeAt(pos) === 41) {
                   result4 = ")";
@@ -5118,7 +5118,7 @@ module.exports = (function(){
           }
         }
         if (result0 !== null) {
-          result1 = parse_baseExpr();
+          result1 = parse_filterExpr();
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 44) {
               result2 = ",";
@@ -5130,7 +5130,7 @@ module.exports = (function(){
               }
             }
             if (result2 !== null) {
-              result3 = parse_baseExpr();
+              result3 = parse_filterExpr();
               if (result3 !== null) {
                 if (input.charCodeAt(pos) === 44) {
                   result4 = ",";
@@ -5142,7 +5142,7 @@ module.exports = (function(){
                   }
                 }
                 if (result4 !== null) {
-                  result5 = parse_baseExpr();
+                  result5 = parse_filterExpr();
                   if (result5 !== null) {
                     if (input.charCodeAt(pos) === 41) {
                       result6 = ")";

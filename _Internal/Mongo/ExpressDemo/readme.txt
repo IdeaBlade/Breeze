@@ -22,4 +22,8 @@ To run server
        run startdb.bat
     run server.js
     from browser, hit:
-       http://localhost:3000/breeze/Products
+       http://localhost:3000/breeze/Products/?$filter=ReorderLevel gt 25
+
+
+TODO:
+    more precedence work - esp: not
