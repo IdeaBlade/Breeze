@@ -58,10 +58,13 @@ function makeUnaryFilter(op, p1) {
     var q1 = parseNode(p1);
 
     if (op === "not ") {
-        // this is incorrect because of the way mongo defines not
-        // return { "$not": q1 }
-        // So this get's very ugly esp with and / or
-        // instead use
+        // because of the #@$#1 way mongo defines $not - i.e. can't apply it at the top level of an expr
+        // and / or code gets ugly.
+        // rules are:
+        // not { a: 1}             -> { a: { $ne: 1 }}
+        // not { a: { $gt: 1 }}    -> { a: { $not: { $gt: 1}}}
+        // not { a: 1, b: 2 }      -> { $or: { a: { $ne: 1 }, b: { $ne 2 }}}
+        // not { $or { a:1, b: 2 } -> { a: { $ne: 1 }, b: { $ne 2 }  // THIS ONE NOT YET COMPLETE
         var results = [];
         for (var k in q1) {
             if (k === "$or") {
