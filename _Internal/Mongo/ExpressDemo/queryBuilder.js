@@ -21,12 +21,20 @@ exports.toMongoQuery= function(urlQuery) {
     }
     section = urlQuery.$select;
     if (section) {
-        var selectTree = odataParser.parse(section, "selectExpr");
-        pieces.select = toSelectExpr(selectTree);
+        var selectItems = odataParser.parse(section, "selectExpr");
+        pieces.select = toSelectExpr(selectItems);
     }
 
     return pieces;
 
+}
+
+function toSelectExpr(selectItems) {
+    var result = {};
+    selectItems.forEach(function(s) {
+        result[s] = 1;
+    }) ;
+    return result;
 }
 
 function toQueryExpr(node) {
