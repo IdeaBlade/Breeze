@@ -9,15 +9,27 @@ var boolOpMap = {
 }
 
 exports.toMongoQuery= function(urlQuery) {
+    var section;
+    section = urlQuery.$filter;
+    var pieces = {
+        query: {}
+    };
 
-    var filter = urlQuery.$filter;
-    if (!filter) return null;
-    var parsedFilter = odataParser.parse(filter, "filterExpr");
-    var q = parseNode(parsedFilter);
-    return q;
+    if (section) {
+        var filterTree = odataParser.parse(section, "filterExpr");
+        pieces.query = toQueryExpr(filterTree);
+    }
+    section = urlQuery.$select;
+    if (section) {
+        var selectTree = odataParser.parse(section, "selectExpr");
+        pieces.select = toSelectExpr(selectTree);
+    }
+
+    return pieces;
+
 }
 
-function parseNode(node) {
+function toQueryExpr(node) {
     if (node.type === "op_bool") {
         return makeBoolFilter(node.op, node.p1, node.p2);
     } else if (node.type === "op_andOr") {
