@@ -25,6 +25,15 @@
         }
     }
 
+    flatten2 = function(list, i) {
+        if (list === "") list = [];
+        if (require('util').isArray(list[0])) {
+            list = list[0];
+        }
+        list.unshift(i);
+        return list;
+    }
+
     parseFloat2 = function(x) {
         return parseFloat(flatten(x));
 
@@ -173,17 +182,10 @@ top                         =  "$top=" a:int { return { '$top': ~~a }; }
                             /  "$top=" .* { return {"error": 'invalid $top parameter'}; }
 
 // $expand
-expand                      =  "$expand=" list:expandList { return { "$expand": list }; }
+expand                      =  "$expand=" expr:expandExpr { return { "$expand": expr }; }
                             /  "$expand=" .* { return {"error": 'invalid $expand parameter'}; }
 
-expandList                  =  i:identifierPath list:("," wsp? l:expandList {return l;})? {
-                                    if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
-                                        list = list[0];
-                                    }
-                                    list.unshift(i);
-                                    return list;
-                               }
+expandExpr                  =  i:identifierPath list:("," wsp? l:expandExpr {return l;})? { return flatten2(list, i) }
 
 //$skip
 skip                        =  "$skip=" a:int {return {'$skip': ~~a }; }
@@ -197,28 +199,23 @@ inlinecount                 =  "$inlinecount=" unreserved*
                             /  "$inlinecount=" .* { return {"error": 'invalid $inlinecount parameter'}; }
 
 // $orderby
-orderby                     =  "$orderby=" list:orderbyList {
-                                   return { "$orderby": list }; }
+orderby                     =  "$orderby=" expr:orderbyExpr { return { "$orderby": expr }; }
                             /  "$orderby=" .* { return {"error": 'invalid $orderby parameter'}; }
 
-orderbyList                 =  i:(id:identifier ord:(wsp ("asc"/"desc"))? {
+orderbyExpr                 =  i:(id:identifier ord:(wsp ("asc"/"desc"))? {
                                     var result = {};
                                     result[id] = ord[1] || 'asc';
                                     return result;
                                })
-                               list:("," wsp? l:orderbyList{return l;})? {
-
-                                    if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
-                                        list = list[0];
-                                    }
-                                    list.unshift(i);
-                                    return list;
-                               }
+                               list:("," wsp? l:orderbyExpr{return l;})? { return flatten2(list, i) }
 
 //$select
-select                      =  "$select=" list:selectList { return { "$select":list }; }
+select                      =  "$select=" expr:selectExpr { return { "$select": expr }; }
                             /  "$select=" .* { return {"error": 'invalid $select parameter'}; }
+
+selectExpr                  =  i:(a:identifierPath b:".*"? {return a + b;}/"*")
+                               list:("," wsp? l:selectExpr {return l;})? { return flatten2(list, i) }
+
 
 identifierPathParts         =  "/" i:identifierPart list:identifierPathParts? {
                                     if (list === "") list = [];
@@ -227,19 +224,13 @@ identifierPathParts         =  "/" i:identifierPart list:identifierPathParts? {
                                     }
                                     list.unshift("/" + i);
                                     return list;
-                               }
+                                }
+
 identifierPath              =  a:identifier b:identifierPathParts? { return a + b; }
-selectList                  =  i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," wsp? l:selectList {return l;})? {
-                                    if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
-                                        list = list[0];
-                                    }
-                                    list.unshift(i);
-                                    return list;
-                               }
+
 
 //filter
-filter                      =  "$filter=" list:filterExpr { return { "$filter": list  }; }
+filter                      =  "$filter=" expr:filterExpr { return { "$filter": expr  }; }
                             /  "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
 
@@ -267,11 +258,11 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
       }
 }
 
+n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
+
 andOrExpr  =   wsp+ op:andOrOp  wsp+ p2:filterExpr { return { type: "op_andOr", op:op, p2: p2 }}
 boolExpr   =   wsp+ op:boolOp   wsp+ p2:n0Expr   { return { type: "op_bool",  op:op, p2: p2 }}
 mathExpr   =   wsp+ op:mathOp   wsp+ p2:n1Expr   { return { type: "op_math",  op:op, p2: p2 }}
-
-n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
 
 memberExpr  =  member:identifierPath           { return { type: "member", value:  member  } }
 parenExpr   = "("  expr:filterExpr  ")"          { return  expr   }
