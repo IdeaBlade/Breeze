@@ -1,6 +1,4 @@
-require.config({ baseUrl: "Scripts/IBlade" });
-
-define(["testFns"], function (testFns) {
+(function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
     
@@ -177,6 +175,4 @@ define(["testFns"], function (testFns) {
     }
 
 
-    return testFns;
-
-});
+})(breezeTestFns);

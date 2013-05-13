@@ -1,14 +1,4 @@
-/// <reference path="datajs/datajs-1.1.0.js" />
-/// <reference path="q/q.js"/>
-/// <reference path="OQuery/oQuery.mod.js"/>
-/// <reference path="iblade/core.js" />
-/// <reference path="iblade/entitymetadata.js"/>
-/// <reference path="iblade/entitymanager.js"/>
-/// <reference path="iblade/entity.js"/>
-// above stuff for resharper - but doesn't work
-
-require.config({ baseUrl: "Scripts/IBlade" });
-define(["testFns"], function (testFns) {
+(function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
     
@@ -50,6 +40,10 @@ define(["testFns"], function (testFns) {
     });
 
     test("external customer metadata", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
         var em = newAltEm();
         stop();
         em.fetchMetadata().then(function (rawMetadata) {
@@ -170,5 +164,4 @@ define(["testFns"], function (testFns) {
         return result;
     }
 
-    return testFns;
-});
+})(breezeTestFns);

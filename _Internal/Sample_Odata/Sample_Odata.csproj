@@ -111,10 +111,6 @@
       <Link>Scripts\IBlade\breeze.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\IBlade\testFns.js">
-      <Link>Scripts\IBlade\testFns.js</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\attachTests.js">
       <Link>Scripts\Tests\attachTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -183,8 +179,8 @@
       <Link>Scripts\Tests\saveTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\Breeze.Client\Scripts\Tests\testRunner.js">
-      <Link>Scripts\Tests\testRunner.js</Link>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\testFns.js">
+      <Link>Scripts\Tests\testFns.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\validateEntityTests.js">
@@ -267,9 +263,11 @@
       <Link>Scripts\ThirdParty\underscore.min.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Default.aspx" />
+    <None Include="Default.aspx.old" />
     <Content Include="Global.asax" />
+    <Content Include="Default.aspx" />
     <Content Include="ODataService.svc" />
+    <Content Include="Scripts\Tests\qunitConfig.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

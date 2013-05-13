@@ -2,10 +2,12 @@ var express = require('express');
 var app = express();
 var routes = require('./routes');
 
+
 app.use(logErrors);
 app.use(clientErrorHandler);
 app.use(errorHandler);
 
+app.get('/breeze/Products', routes.getProducts);
 app.get('/breeze/:slug', routes.get);
 
 app.listen(3000);

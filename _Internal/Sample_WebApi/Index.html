@@ -18,13 +18,12 @@
     </body>
     
     <!-- load 3rd party libs -->
-    <script src="Scripts/ThirdParty/qunit-1.11.0.js"></script> 
-    <script src="Scripts/ThirdParty/q.min.js"></script>
-    <script src="Scripts/ThirdParty/knockout-2.1.0.debug.js"></script>
-    <script src="Scripts/ThirdParty/underscore.js"></script>
-    <script src="Scripts/ThirdParty/backbone.js"></script>
-    <script src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
-    <script src="Scripts/ThirdParty/datajs-1.1.0.js"></script>
+    <script type="text/javascript" src="Scripts/ThirdParty/qunit-1.11.0.js"></script> 
+    <script type="text/javascript" src="Scripts/ThirdParty/q.min.js"></script>
+    <script type="text/javascript" src="Scripts/ThirdParty/knockout-2.1.0.debug.js"></script>
+    <script type="text/javascript" src="Scripts/ThirdParty/underscore.js"></script>
+    <script type="text/javascript" src="Scripts/ThirdParty/backbone.js"></script>
+    <script type="text/javascript" src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
  
     <!-- Test helper scripts  --> 
     <!-- These two must come first -->    
@@ -33,9 +32,9 @@
     
     <script>
         // -- Initialize Test vars  
-        breezeTestFns.setDataService("OData");
+        breezeTestFns.setDataService("WebApi");
     </script>
-       
+
     <script src="/Scripts/Tests/attachTests.js"></script> 
     <script src="/Scripts/Tests/classRewriteTests.js"></script> 
     <script src="/Scripts/Tests/complexTypeTests.js"></script> 
@@ -61,27 +60,16 @@
       
     <!-- Tests are loaded; let's go! -->
     <script>
-
+    
         document.getElementById("title").innerHTML += " -> " + breezeTestFns.title;
         
         if (!QUnit.urlParams.sequential) {
             if (QUnit.urlParams.canStart) {
-                QUnit.start(); //Tests loaded, run tests
+                QUnit.start(); // run tests
             }
         } else {
-            // Steve. - I wasn't sure how to put this back once I removed "require" dependency.
-            //function loadNext() {
-            //    var module = modules.shift();
-            //    if (module) {
-            //        require.config({ baseUrl: "Scripts/Tests" });
-            //        require([module], loadNext);
-            //    } else {
-            //        QUnit.start();
-            //    }
-            //}
-            //loadNext();
+            // Steve: once i removed "require" dependency I didn't know how to update this.
+            
         }
-       
-
     </script>
 </html>

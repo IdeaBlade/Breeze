@@ -1,6 +1,4 @@
-require.config({ baseUrl: "Scripts/IBlade" });
-
-define(["testFns"], function (testFns) {
+(function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
     var Event = core.Event;
@@ -45,7 +43,11 @@ define(["testFns"], function (testFns) {
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("select - anon with dateTimes", function () {
+    test("select - anon with jra & dateTimes", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not written for OData (uses WebApi-jsonResultsAdapter)");
+            return;
+        };
         var em = newEm();
         var jra = new breeze.JsonResultsAdapter({
             name: "foo",
@@ -222,8 +224,4 @@ define(["testFns"], function (testFns) {
         }).fin(start);
     });
 
-
-    return testFns;
-
-});
-
+})(breezeTestFns);
