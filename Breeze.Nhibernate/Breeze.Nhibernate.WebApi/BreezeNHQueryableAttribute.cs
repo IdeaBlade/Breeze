@@ -118,7 +118,7 @@ namespace Breeze.Nhibernate.WebApi
         }
 
         /// <summary>
-        /// Configure the JsonFormatter to limit the object serialization of the response.
+        /// Close the session, and configure the JsonFormatter to limit the object serialization of the response.
         /// </summary>
         /// <param name="request"></param>
         private void ConfigureFormatter(HttpRequestMessage request)
