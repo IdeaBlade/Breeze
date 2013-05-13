@@ -1,8 +1,9 @@
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
-  <class name="Supplier" table="`Supplier`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+  <class name="Supplier" table="`Supplier`" schema="`dbo`" dynamic-update="true">
     <id name="SupplierID" column="`SupplierID`" type="int" unsaved-value="0">
       <generator class="native" />
     </id>
+    <version name="RowVersion" type="int" />
     <property name="CompanyName" type="string" length="40" not-null="true" />
     <property name="ContactName" type="string" length="30" />
     <property name="ContactTitle" type="string" length="30" />
@@ -16,7 +17,6 @@
     <property name="Phone" type="string" length="24" />
     <property name="Fax" type="string" length="24" />
     <property name="HomePage" type="string" length="1073741823" />
-    <property name="RowVersion" type="int" not-null="true" />
     <!--Foreign key to Product (Product)-->
     <set name="Products" table="`Product`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`SupplierID`" foreign-key="FK_Product_Supplier" />

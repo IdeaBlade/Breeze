@@ -609,7 +609,9 @@
         }).fail(function(e) {
             var msg = e.message;
             if (msg.indexOf("Store update, insert") >= 0) {
-                ok(true, "got expected exception" + msg);
+                ok(true, "got expected (EF) exception " + msg);
+            } else if (msg.indexOf("Row was updated or deleted by another transaction") >= 0) {
+                ok(true, "got expected (Hibernate) exception " + msg);
             } else {
                 ok(false, msg);
             }

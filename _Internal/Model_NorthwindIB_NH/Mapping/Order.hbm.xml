@@ -1,8 +1,9 @@
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
-  <class name="Order" table="`Order`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+  <class name="Order" table="`Order`" schema="`dbo`" dynamic-update="true">
     <id name="OrderID" column="`OrderID`" type="int" unsaved-value="0">
       <generator class="native" />
     </id>
+    <version name="RowVersion" type="int" />
     <many-to-one name="Customer" column="`CustomerID`" class="Customer" />
     <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
     <property name="CustomerID" type="System.Guid" insert="false" update="false" />
@@ -17,7 +18,6 @@
     <property name="ShipRegion" type="string" length="15" />
     <property name="ShipPostalCode" type="string" length="10" />
     <property name="ShipCountry" type="string" length="15" />
-    <property name="RowVersion" type="int" not-null="true" />
     <!--Foreign key to InternationalOrder (InternationalOrder)-->
     <one-to-one name="InternationalOrder" foreign-key="none" class="InternationalOrder" />
     <!--Foreign key to OrderDetail (OrderDetail)-->
