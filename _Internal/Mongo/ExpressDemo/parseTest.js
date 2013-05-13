@@ -24,6 +24,14 @@ if (shouldGenerateParser) {
 } else {
     parser = require("./odataParser")
 }
+
+parseAndCompare("$select", "$select=LastName", ["LastName"]);
+
+parseAndCompare("$select", "$select= LastName ,FirstName, Name/Foo , Name/Foo/Bar",
+   ["LastName", "FirstName", "Name/Foo", "Name/Foo/Bar"]);
+
+// Filter expressions
+
 t0 = tryParse("$filter='xxx'");
 
 t0 = tryParse("$filter=Name/foo")

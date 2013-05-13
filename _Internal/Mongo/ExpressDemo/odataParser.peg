@@ -16,6 +16,17 @@
         }
     }
 
+     buildString = function(s1, slist, delim) {
+        if (Array.isArray(s1)) {
+           s1 = s1[0];
+        }
+        if (slist && slist.length > 0) {
+            return s1 + delim + slist.join(delim);
+        } else {
+            return s1;
+        }
+    }
+
     flatten = function(list) {
         if (list.join) {
            var f = list.map(function(l) { return flatten(l); }  );
@@ -25,18 +36,18 @@
         }
     }
 
-    flatten2 = function(list, i) {
+    flatten2 = function(item, list) {
         if (list === "") list = [];
-        if (require('util').isArray(list[0])) {
+        if (Array.isArray(list[0])) {
             list = list[0];
         }
-        list.unshift(i);
+        list.unshift(item);
         return list;
     }
 
+
     parseFloat2 = function(x) {
         return parseFloat(flatten(x));
-
     }
  }
 
@@ -126,15 +137,7 @@ nanInfinity                 =  nan / negativeInfinity / positiveInfinity
 unreserved                  =  a:[a-zA-Z0-9-_]+ { return a.join(''); }
 
 identifierPart              =  a:[a-zA-Z] b:unreserved { return a + b; }
-identifier                  =  a:identifierPart list:("." i:identifier {return i;})? {
-                                    if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
-                                        list = list[0];
-                                    }
-                                    list.unshift(a);
-                                    return list.join('.');
-                                }
-
+identifier                  =  a:identifierPart list:("." i:identifier {return i;})? { return flatten2(a, list) }
 
 literal                     =  null /
                                binary /
@@ -185,7 +188,7 @@ top                         =  "$top=" a:int { return { '$top': ~~a }; }
 expand                      =  "$expand=" expr:expandExpr { return { "$expand": expr }; }
                             /  "$expand=" .* { return {"error": 'invalid $expand parameter'}; }
 
-expandExpr                  =  i:identifierPath list:("," wsp? l:expandExpr {return l;})? { return flatten2(list, i) }
+expandExpr                  =  i:identifierPath list:("," wsp? l:expandExpr {return l;})? { return flatten2(i, list) }
 
 //$skip
 skip                        =  "$skip=" a:int {return {'$skip': ~~a }; }
@@ -207,26 +210,17 @@ orderbyExpr                 =  i:(id:identifier ord:(wsp ("asc"/"desc"))? {
                                     result[id] = ord[1] || 'asc';
                                     return result;
                                })
-                               list:("," wsp? l:orderbyExpr{return l;})? { return flatten2(list, i) }
+                               list:("," wsp? l:orderbyExpr{return l;})? { return flatten2(i, list) }
 
 //$select
 select                      =  "$select=" expr:selectExpr { return { "$select": expr }; }
                             /  "$select=" .* { return {"error": 'invalid $select parameter'}; }
 
-selectExpr                  =  i:(a:identifierPath b:".*"? {return a + b;}/"*")
-                               list:("," wsp? l:selectExpr {return l;})? { return flatten2(list, i) }
 
+// returns an array of paths
+selectExpr                  =  wsp* a:identifierPath list:( wsp* "," wsp* ip:identifierPath {return ip})* { return flatten2(a, list) }
 
-identifierPathParts         =  "/" i:identifierPart list:identifierPathParts? {
-                                    if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
-                                        list = list[0];
-                                    }
-                                    list.unshift("/" + i);
-                                    return list;
-                                }
-
-identifierPath              =  a:identifier b:identifierPathParts? { return a + b; }
+identifierPath              =  a:identifier list:("/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
 
 
 //filter
