@@ -23,7 +23,7 @@ To run server
     run server.js
     from browser, hit:
        http://localhost:3000/breeze/Products/?$filter=ReorderLevel gt 25
-
+       http://localhost:3000/breeze/Products/?$filter=ReorderLevel%20gt%2025&$select=ProductName
 
 TODO:
     more precedence work - esp: not
