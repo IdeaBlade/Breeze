@@ -247,7 +247,7 @@ namespace Breeze.Nhibernate.WebApi
                 else
                 {
                     // data property
-                    var col = propColumns.Count() == 1 ? propColumns[colIndex] as Column : null;
+                    var col = propColumns[colIndex] as Column;
                     var dmap = MakeDataProperty(propName, propType.Name, propNull[i], col, false, false);
                     dataList.Add(dmap);
                     colIndex++;
@@ -275,15 +275,10 @@ namespace Breeze.Nhibernate.WebApi
             dmap.Add("dataType", typeName);
             dmap.Add("isNullable", isNullable);
 
-            if (col != null && col.IsLengthDefined())
-            {
-                dmap.Add("maxLength", col.Length);
-            }
             if (col != null && col.DefaultValue != null)
             {
                 dmap.Add("defaultValue", col.DefaultValue);
             }
-
             if (isKey)
             {
                 dmap.Add("isPartOfKey", true);
@@ -292,8 +287,39 @@ namespace Breeze.Nhibernate.WebApi
             {
                 dmap.Add("concurrencyMode", "Fixed");
             }
+
+            var validators = new List<Dictionary<string, string>>();
+
+            if (!isNullable)
+            {
+                validators.Add(new Dictionary<string, string>() {
+                    {"name", "required" },
+                });
+            }
+            if (col != null && col.IsLengthDefined())
+            {
+                dmap.Add("maxLength", col.Length);
+
+                validators.Add(new Dictionary<string, string>() {
+                    {"maxLength", col.Length.ToString() },
+                    {"name", "maxLength" }
+                });
+            }
+
+            string validationType;
+            if (ValidationTypeMap.TryGetValue(typeName, out validationType))
+            {
+                validators.Add(new Dictionary<string, string>() {
+                    {"name", validationType },
+                });
+            }
+
+            if (validators.Any())
+                dmap.Add("validators", validators);
+
             return dmap;
         }
+
 
         /// <summary>
         /// Make association property metadata for the entity.
@@ -416,5 +442,24 @@ namespace Breeze.Nhibernate.WebApi
         const string ONE2ONE = "_1to1";
         const string ASSN = "AN_";
 
+        // Map of data type to Breeze validation type
+        static Dictionary<string, string> ValidationTypeMap = new Dictionary<string, string>() {
+                    {"Boolean", "bool" },
+                    {"Byte", "byte" },
+                    {"DateTime", "date" },
+                    {"DateTimeOffset", "date" },
+                    {"Decimal", "number" },
+                    {"Guid", "guid" },
+                    {"Int16", "int16" },
+                    {"Int32", "int32" },
+                    {"Int64", "integer" },
+                    {"Single", "number" },
+                    {"Time", "duration" },
+                    {"TimeAsTimeSpan", "duration" }
+                };
+        
+
     }
+
+
 }
