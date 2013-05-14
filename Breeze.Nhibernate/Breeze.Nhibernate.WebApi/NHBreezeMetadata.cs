@@ -137,78 +137,58 @@ namespace Breeze.Nhibernate.WebApi
                 }
             }
 
+            // maps column names to their related data properties.  Used in MakeAssociationProperty to convert FK column names to entity property names.
+            var relatedDataPropertyMap = new Dictionary<string, string>();
+
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
             var propNull = meta.PropertyNullability;
             for (int i = 0; i < propNames.Length; i++)
             {
                 var propType = propTypes[i];
-                var propName = propNames[i];
-                var pclassProperty = pClass.GetProperty(propName);
-                var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
+                if (!propType.IsAssociationType)    // skip association types until below
+                {
+                    var propName = propNames[i];
+                    var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
+                    if (propType.IsComponentType)
+                    {
+                        // complex type
+                        var compType = (ComponentType)propType;
+                        var complexTypeName = AddComponent(compType, propColumns);
+                        var compMap = new Dictionary<string, object>();
+                        compMap.Add("nameOnServer", propName);
+                        compMap.Add("complexTypeName", complexTypeName);
+                        compMap.Add("isNullable", propNull[i]);
+                        dataList.Add(compMap);
+                    }
+                    else
+                    {
+                        // data property
+                        var col = propColumns.Count() == 1 ? propColumns[0] as Column : null;
+                        var isKey = meta.HasNaturalIdentifier && meta.NaturalIdentifierProperties.Contains(i);
+                        var isVersion = meta.IsVersioned && i == meta.VersionProperty;
+
+                        var dmap = MakeDataProperty(propName, propType.Name, propNull[i], col, isKey, isVersion);
+                        dataList.Add(dmap);
+
+                        var columnNameString = string.Join(",", propColumns.Select(c => c.Text));
+                        relatedDataPropertyMap.Add(columnNameString, propName);
+                    }
+                    // TODO add validators to the property.  
+                }
+            }
+
+            // We do the association properties after the data properties, so we can do the foreign key lookups
+            for (int i = 0; i < propNames.Length; i++)
+            {
+                var propType = propTypes[i];
                 if (propType.IsAssociationType)
                 {
                     // navigation property
-                    var atype = (IAssociationType)propType;
-                    var nmap = new Dictionary<string, object>();
-                    navList.Add(nmap);
-                    nmap.Add("nameOnServer", propName);
-
-                    var entityType = GetEntityType(propType.ReturnedClass, propType.IsCollectionType);
-                    nmap.Add("entityTypeName", entityType.Name + ":#" + entityType.Namespace);
-                    nmap.Add("isScalar", !propType.IsCollectionType);
-
-                    // the associationName must be the same at both ends of the association.
-                    nmap.Add("associationName", GetAssociationName(pClass.MappedClass.Name, entityType.Name, (atype is OneToOneType)));
-
-                    // The foreign key columns usually applies for many-to-one and one-to-one associations
-                    if (!propType.IsCollectionType)
-                    {
-                        var relKey = meta.EntityName + '.' + propName;
-                        IList<string> fks = null;
-
-                        if (propColumns.Any()) // foreign key columns are defined
-                        {
-                            fks = propColumns.Select(c => c.Text).ToList();
-                        }
-                        else // foreign key is same as primary key of related entity
-                        {
-                            var relatedPersistentClass = _configuration.GetClassMapping(entityType);
-                            var key = relatedPersistentClass.Key as SimpleValue;
-                            if (key != null)
-                            {
-                                fks = key.ColumnIterator.Select(c => c.Text).ToList();
-                            }
-                        }
-                        if (fks != null)
-                        {
-                            nmap.Add("foreignKeyNamesOnServer", fks);
-                            _fkMap.Add(relKey, fks[0]);
-                        }
-                    }
+                    var propName = propNames[i];
+                    var assProp = MakeAssociationProperty((IAssociationType)propType, propName, pClass, relatedDataPropertyMap);
+                    navList.Add(assProp);
                 }
-                else if (propType.IsComponentType)
-                {
-                    // complex type
-                    var compType = (ComponentType)propType;
-                    var complexTypeName = AddComponent(compType, propColumns);
-                    var compMap = new Dictionary<string, object>();
-                    compMap.Add("nameOnServer", propName);
-                    compMap.Add("complexTypeName", complexTypeName);
-                    compMap.Add("isNullable", propNull[i]);
-                    dataList.Add(compMap);
-                }
-                else
-                {
-                    // data property
-                    var col = propColumns.Count() == 1 ? propColumns[0] as Column : null;
-                    var isKey = meta.HasNaturalIdentifier && meta.NaturalIdentifierProperties.Contains(i);
-                    var isVersion = meta.IsVersioned && i == meta.VersionProperty;
-
-                    var dmap = MakeDataProperty(propName, propType.Name, propNull[i], col, isKey, isVersion);
-                    dataList.Add(dmap);
-                }
-                // TODO add validators to the property.  
             }
         }
 
@@ -252,7 +232,7 @@ namespace Breeze.Nhibernate.WebApi
                 var propName = propNames[i];
                 if (propType.IsComponentType)
                 {
-                    // complex type
+                    // nested complex type
                     var compType2 = (ComponentType)propType;
                     var span = compType2.GetColumnSpan((IMapping) _sessionFactory);
                     var subColumns = propColumns.Skip(colIndex).Take(span).ToList();
@@ -313,6 +293,66 @@ namespace Breeze.Nhibernate.WebApi
                 dmap.Add("concurrencyMode", "Fixed");
             }
             return dmap;
+        }
+
+        /// <summary>
+        /// Make association property metadata for the entity.
+        /// Also populates the _fkMap which is used for related-entity fixup in NHContext.FixupRelationships
+        /// </summary>
+        /// <param name="propType"></param>
+        /// <param name="propName"></param>
+        /// <param name="pClass"></param>
+        /// <param name="relatedDataPropertyMap"></param>
+        /// <returns></returns>
+        private Dictionary<string, object> MakeAssociationProperty(IAssociationType propType, string propName, PersistentClass pClass, Dictionary<string, string> relatedDataPropertyMap)
+        {
+            var nmap = new Dictionary<string, object>();
+            nmap.Add("nameOnServer", propName);
+
+            var entityType = GetEntityType(propType.ReturnedClass, propType.IsCollectionType);
+            nmap.Add("entityTypeName", entityType.Name + ":#" + entityType.Namespace);
+            nmap.Add("isScalar", !propType.IsCollectionType);
+
+            // the associationName must be the same at both ends of the association.
+            nmap.Add("associationName", GetAssociationName(pClass.MappedClass.Name, entityType.Name, (propType is OneToOneType)));
+
+            // The foreign key columns usually applies for many-to-one and one-to-one associations
+            if (!propType.IsCollectionType)
+            {
+                IList<string> fks = null;
+
+                var propColumns = pClass.GetProperty(propName).ColumnIterator;
+                if (propColumns.Any()) // foreign key columns are defined
+                {
+                    fks = propColumns.Select(c => c.Text).ToList();
+                }
+                else // foreign key is same as primary key of related entity
+                {
+                    var relatedPersistentClass = _configuration.GetClassMapping(entityType);
+                    var key = relatedPersistentClass.Key as SimpleValue;
+                    if (key != null)
+                    {
+                        fks = key.ColumnIterator.Select(c => c.Text).ToList();
+                    }
+                }
+                if (fks != null)
+                {
+                    var entityRelationship = pClass.EntityName + '.' + propName;
+                    var columnNameString = string.Join(",", fks);
+                    string relatedDataProperty;
+                    if (relatedDataPropertyMap.TryGetValue(columnNameString, out relatedDataProperty))
+                    {
+                        nmap.Add("foreignKeyNamesOnServer", new string[] { relatedDataProperty });
+                        _fkMap.Add(entityRelationship, relatedDataProperty);
+                    }
+                    else
+                    {
+                        nmap.Add("foreignKeyNamesOnServer", fks);
+                        _fkMap.Add(entityRelationship, fks[0]);
+                    }
+                }
+            }
+            return nmap;
         }
 
         /// <summary>
