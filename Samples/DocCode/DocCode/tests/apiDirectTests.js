@@ -18,12 +18,12 @@
     *********************************************************/
 
     test("purge the Todos Db", 1, function () {
-
+        stop(); // going async
         testFns.todosPurge()
             .then(function (msg) {
                 ok(0 < msg.indexOf("purge"), msg);
             })
-            .fail(testFns.handleFail);
+            .fail(testFns.handleFail).fin(start);
     });
     
    
@@ -34,11 +34,12 @@
 
     test("reset the Todos Db", 1, function () {
 
+        stop();
         testFns.todosReset()
             .then(function (msg) {
                 ok(0 < msg.indexOf("reset"), msg);
             })
-            .fail(testFns.handleFail);
+            .fail(testFns.handleFail).fin(start);
     });
 
 })(docCode.testFns);

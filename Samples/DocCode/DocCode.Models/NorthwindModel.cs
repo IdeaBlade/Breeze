@@ -99,6 +99,13 @@ namespace Northwind.Models
     
     [Required, MaxLength(30)]
     public string FirstName {get; set;}
+
+    // Unmapped, server-side calculated property
+    // FullName is "Last, First" (compared to usual client-side version, "First Last")
+    [NotMapped]
+    public string FullName { 
+        get { return LastName + (String.IsNullOrWhiteSpace(FirstName)? "" : (", " + FirstName)); } 
+    }
     
     [MaxLength(30)]
     public string Title {get; set;}

@@ -28,21 +28,10 @@ function getCollection(res, collectionName, query) {
             res.send(400, "Unable to locate: " + collectionName);
             return;
         }
-        var src;
-        if (query.select) {
-            src = collection.find(query.query, query.select);
-        } else {
-            src = collection.find(query.query);
-        }
-        if (query.sort) {
-            src = src.sort(query.sort);
-        }
-        if (query.limit) {
-            src = src.limit(query.limit);
-        }
-        if (query.skip) {
-            src = src.skip(query.skip);
-        }
+
+
+        var src = collection.find(query.query, query.select, query.options);
+
 
         src.toArray(function (err, items) {
             res.setHeader("Content-Type:", "application/json");
