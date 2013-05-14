@@ -264,6 +264,8 @@ namespace Breeze.Nhibernate.WebApi
         /// <returns></returns>
         private Dictionary<string, object> MakeDataProperty(string propName, string typeName, bool isNullable, Column col, bool isKey, bool isVersion)
         {
+            if (typeName == "Byte[]") typeName = "Binary";  // breeze expects Binary
+
             var dmap = new Dictionary<string, object>();
             dmap.Add("nameOnServer", propName);
             dmap.Add("dataType", typeName);

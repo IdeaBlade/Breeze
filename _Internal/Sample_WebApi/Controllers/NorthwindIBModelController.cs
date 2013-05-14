@@ -49,51 +49,7 @@ namespace Sample_WebApi.Controllers {
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
-  public class NorthwindContextProvider : NHContext {
-      public NorthwindContextProvider() : base(NHConfig.OpenSession(), NHConfig.Configuration) { }
-      public NorthwindContextProvider Context {
-          get { return this; }
-      }
-      public NhQueryableInclude<Category> Categories {
-          get { return GetQuery<Category>(); }
-      }
-      public NhQueryableInclude<Comment> Comments {
-          get { return GetQuery<Comment>(); }
-      }
-      public NhQueryableInclude<Customer> Customers {
-          get { return GetQuery<Customer>(); }
-      }
-      public NhQueryableInclude<Employee> Employees {
-          get { return GetQuery<Employee>(); }
-      }
-      public NhQueryableInclude<Order> Orders {
-          get { return GetQuery<Order>(); }
-      }
-      public NhQueryableInclude<OrderDetail> OrderDetails {
-          get { return GetQuery<OrderDetail>(); }
-      }
-      public NhQueryableInclude<Product> Products {
-          get { return GetQuery<Product>(); }
-      }
-      public NhQueryableInclude<Region> Regions {
-          get { return GetQuery<Region>(); }
-      }
-      public NhQueryableInclude<Role> Roles {
-          get { return GetQuery<Role>(); }
-      }
-      public NhQueryableInclude<Supplier> Suppliers {
-          get { return GetQuery<Supplier>(); }
-      }
-      public NhQueryableInclude<Territory> Territories {
-          get { return GetQuery<Territory>(); }
-      }
-      public NhQueryableInclude<TimeLimit> TimeLimits {
-          get { return GetQuery<TimeLimit>(); }
-      }
-      public NhQueryableInclude<User> Users {
-          get { return GetQuery<User>(); }
-      }
-        
+  public class NorthwindContextProvider : NorthwindContext {
     
 
 #endif
@@ -339,6 +295,15 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public IQueryable<TimeLimit> TimeLimits() {
       return ContextProvider.Context.TimeLimits;
+    }
+
+
+    [HttpGet]
+    public Object Lookups()
+    {
+        var regions = ContextProvider.Regions.ToList();
+        var roles = ContextProvider.Roles.ToList();
+        return new { regions, roles };
     }
 
     //[HttpGet]

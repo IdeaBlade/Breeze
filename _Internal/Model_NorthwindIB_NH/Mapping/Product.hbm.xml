@@ -1,8 +1,9 @@
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
-  <class name="Product" table="`Product`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+  <class name="Product" table="`Product`" schema="`dbo`" dynamic-update="true">
     <id name="ProductID" column="`ProductID`" type="int" unsaved-value="0">
       <generator class="native" />
     </id>
+    <version name="RowVersion" type="int" />
     <property name="ProductName" type="string" length="40" not-null="true" />
     <many-to-one name="Supplier" column="`SupplierID`" class="Supplier" />
     <many-to-one name="Category" column="`CategoryID`" class="Category" />
@@ -15,7 +16,6 @@
     <property name="ReorderLevel" type="short" />
     <property name="Discontinued" type="bool" not-null="true" />
     <property name="DiscontinuedDate" type="DateTime" />
-    <property name="RowVersion" type="int" not-null="true" />
     <!--Foreign key to OrderDetail (OrderDetail)
     <set name="OrderDetailCollection" table="`OrderDetail`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`ProductID`" foreign-key="FK_OrderDetail_Product" />
