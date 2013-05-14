@@ -334,6 +334,56 @@
                     "'Description' should be '{0}' after {1} succeeded and re-query".format(description, operation));
         }
     });
+
+    /*********************************************************
+    * unmapped property can be set by server class calculated property
+    *********************************************************/
+    test("unmapped property can be set by a calculated property of the server class", 4, function () {
+
+        var store1 = cloneModuleMetadataStore();
+
+        var store2 = cloneModuleMetadataStore();
+        var employeeCtor = function () {
+            //'Fullname' is a server-side calculated property of the Employee class
+            // This unmapped property will be empty for new entities
+            // but will be set for existing entities during query materialization
+            this.FullName = ""; 
+        };
+        store2.registerEntityTypeCtor("Employee", employeeCtor);
+
+
+        var em1 = newEm(store1); // no unmapped properties registered
+        var prop = em1.metadataStore.getEntityType('Employee').getProperty('FullName');
+        ok(!prop,
+            "'FullName' should NOT be a registered property of 'em1'.");
+
+        var em2 = newEm(store2);
+        prop = em2.metadataStore.getEntityType('Employee').getProperty('FullName');
+        ok(prop && prop.isUnmapped,
+            "'FullName' should be an unmapped property in 'em2'");
+        
+        var query = EntityQuery.from('Employees');
+        var p1 = em1.executeQuery(query).then(success1);
+        var p2 = em2.executeQuery(query).then(success2);
+
+        stop(); // going async
+
+        Q.all([p1, p2]).fail(handleFail).fin(start);
+        
+        function success1(data) {
+            var first = data.results[0];
+            var fullProperty = first.FullName;
+            ok(!fullProperty, "an Employee queried with 'em1' should NOT have a 'FullName' property, let alone a value for it");
+        }
+        
+        function success2(data) {
+            var first = data.results[0];
+            var full = first.FullName();
+            ok(full, "an Employee queried with 'em2' should have a calculated FullName ('Last, First'); it is '{0}'"
+                .format(full));
+        }
+
+    });
     /*********************************************************
     * add instance function via constructor
     *********************************************************/
