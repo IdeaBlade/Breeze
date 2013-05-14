@@ -12,7 +12,9 @@ exports.toMongoQuery= function(urlQuery) {
     var section;
     section = urlQuery.$filter;
     var pieces = {
-        query: {}
+        query: {},
+        select: {},
+        options: {}
     };
 
     if (section) {
@@ -25,8 +27,35 @@ exports.toMongoQuery= function(urlQuery) {
         pieces.select = toSelectExpr(selectItems);
     }
 
+    section = urlQuery.$orderby;
+    if (section) {
+        var orderbyItems = odataParser.parse(section, "orderbyExpr");
+        sortClause = toOrderbyExpr(orderbyItems);
+        extend(pieces.options, sortClause)
+    }
+
+
+    section = urlQuery.$top;
+    if (section) {
+        extend(pieces.options, { limit: parseInt(section, 10)});
+    }
+
+    section = urlQuery.$skip;
+    if (section) {
+        extend(pieces.options, { skip: parseInt(section, 10)});
+    }
+
     return pieces;
 
+}
+
+function toOrderbyExpr(orderbyItems) {
+    // "sort": [['field1','asc'], ['field2','desc']]
+
+    var sortItems = orderbyItems.map(function(s) {
+        return [s.path,  s.isAsc ? "asc" : "desc"];
+    }) ;
+    return { sort: sortItems };
 }
 
 function toSelectExpr(selectItems) {

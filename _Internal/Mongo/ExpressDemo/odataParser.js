@@ -91,6 +91,7 @@ module.exports = (function(){
         "inlinecount": parse_inlinecount,
         "orderby": parse_orderby,
         "orderbyExpr": parse_orderbyExpr,
+        "orderbyPath": parse_orderbyPath,
         "select": parse_select,
         "selectExpr": parse_selectExpr,
         "identifierPath": parse_identifierPath,
@@ -2767,17 +2768,169 @@ module.exports = (function(){
       }
       
       function parse_orderbyExpr() {
-        var result0, result1, result2, result3;
-        var pos0, pos1, pos2, pos3, pos4;
+        var result0, result1, result2, result3, result4, result5, result6;
+        var pos0, pos1, pos2, pos3;
         
         pos0 = pos;
         pos1 = pos;
-        pos2 = pos;
-        pos3 = pos;
-        result0 = parse_identifier();
-        if (result0 !== null) {
-          pos4 = pos;
+        result0 = [];
+        result1 = parse_wsp();
+        while (result1 !== null) {
+          result0.push(result1);
           result1 = parse_wsp();
+        }
+        if (result0 !== null) {
+          result1 = parse_orderbyPath();
+          if (result1 !== null) {
+            result2 = [];
+            pos2 = pos;
+            pos3 = pos;
+            result3 = [];
+            result4 = parse_wsp();
+            while (result4 !== null) {
+              result3.push(result4);
+              result4 = parse_wsp();
+            }
+            if (result3 !== null) {
+              if (input.charCodeAt(pos) === 44) {
+                result4 = ",";
+                pos++;
+              } else {
+                result4 = null;
+                if (reportFailures === 0) {
+                  matchFailed("\",\"");
+                }
+              }
+              if (result4 !== null) {
+                result5 = [];
+                result6 = parse_wsp();
+                while (result6 !== null) {
+                  result5.push(result6);
+                  result6 = parse_wsp();
+                }
+                if (result5 !== null) {
+                  result6 = parse_orderbyPath();
+                  if (result6 !== null) {
+                    result3 = [result3, result4, result5, result6];
+                  } else {
+                    result3 = null;
+                    pos = pos3;
+                  }
+                } else {
+                  result3 = null;
+                  pos = pos3;
+                }
+              } else {
+                result3 = null;
+                pos = pos3;
+              }
+            } else {
+              result3 = null;
+              pos = pos3;
+            }
+            if (result3 !== null) {
+              result3 = (function(offset, op) {return op})(pos2, result3[3]);
+            }
+            if (result3 === null) {
+              pos = pos2;
+            }
+            while (result3 !== null) {
+              result2.push(result3);
+              pos2 = pos;
+              pos3 = pos;
+              result3 = [];
+              result4 = parse_wsp();
+              while (result4 !== null) {
+                result3.push(result4);
+                result4 = parse_wsp();
+              }
+              if (result3 !== null) {
+                if (input.charCodeAt(pos) === 44) {
+                  result4 = ",";
+                  pos++;
+                } else {
+                  result4 = null;
+                  if (reportFailures === 0) {
+                    matchFailed("\",\"");
+                  }
+                }
+                if (result4 !== null) {
+                  result5 = [];
+                  result6 = parse_wsp();
+                  while (result6 !== null) {
+                    result5.push(result6);
+                    result6 = parse_wsp();
+                  }
+                  if (result5 !== null) {
+                    result6 = parse_orderbyPath();
+                    if (result6 !== null) {
+                      result3 = [result3, result4, result5, result6];
+                    } else {
+                      result3 = null;
+                      pos = pos3;
+                    }
+                  } else {
+                    result3 = null;
+                    pos = pos3;
+                  }
+                } else {
+                  result3 = null;
+                  pos = pos3;
+                }
+              } else {
+                result3 = null;
+                pos = pos3;
+              }
+              if (result3 !== null) {
+                result3 = (function(offset, op) {return op})(pos2, result3[3]);
+              }
+              if (result3 === null) {
+                pos = pos2;
+              }
+            }
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, a, list) { return flatten2(a, list) })(pos0, result0[1], result0[2]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_orderbyPath() {
+        var result0, result1, result2;
+        var pos0, pos1, pos2, pos3;
+        
+        pos0 = pos;
+        pos1 = pos;
+        result0 = parse_identifierPath();
+        if (result0 !== null) {
+          pos2 = pos;
+          pos3 = pos;
+          result2 = parse_wsp();
+          if (result2 !== null) {
+            result1 = [];
+            while (result2 !== null) {
+              result1.push(result2);
+              result2 = parse_wsp();
+            }
+          } else {
+            result1 = null;
+          }
           if (result1 !== null) {
             if (input.substr(pos, 3) === "asc") {
               result2 = "asc";
@@ -2803,58 +2956,6 @@ module.exports = (function(){
               result1 = [result1, result2];
             } else {
               result1 = null;
-              pos = pos4;
-            }
-          } else {
-            result1 = null;
-            pos = pos4;
-          }
-          result1 = result1 !== null ? result1 : "";
-          if (result1 !== null) {
-            result0 = [result0, result1];
-          } else {
-            result0 = null;
-            pos = pos3;
-          }
-        } else {
-          result0 = null;
-          pos = pos3;
-        }
-        if (result0 !== null) {
-          result0 = (function(offset, id, ord) {
-                                            var result = {};
-                                            result[id] = ord[1] || 'asc';
-                                            return result;
-                                       })(pos2, result0[0], result0[1]);
-        }
-        if (result0 === null) {
-          pos = pos2;
-        }
-        if (result0 !== null) {
-          pos2 = pos;
-          pos3 = pos;
-          if (input.charCodeAt(pos) === 44) {
-            result1 = ",";
-            pos++;
-          } else {
-            result1 = null;
-            if (reportFailures === 0) {
-              matchFailed("\",\"");
-            }
-          }
-          if (result1 !== null) {
-            result2 = parse_wsp();
-            result2 = result2 !== null ? result2 : "";
-            if (result2 !== null) {
-              result3 = parse_orderbyExpr();
-              if (result3 !== null) {
-                result1 = [result1, result2, result3];
-              } else {
-                result1 = null;
-                pos = pos3;
-              }
-            } else {
-              result1 = null;
               pos = pos3;
             }
           } else {
@@ -2862,7 +2963,7 @@ module.exports = (function(){
             pos = pos3;
           }
           if (result1 !== null) {
-            result1 = (function(offset, l) {return l;})(pos2, result1[2]);
+            result1 = (function(offset, o) { return o})(pos2, result1[1]);
           }
           if (result1 === null) {
             pos = pos2;
@@ -2879,7 +2980,7 @@ module.exports = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, i, list) { return flatten2(i, list) })(pos0, result0[0], result0[1]);
+          result0 = (function(offset, a, ord) { return { path: a, isAsc: ord == "" || ord=="asc" }})(pos0, result0[0], result0[1]);
         }
         if (result0 === null) {
           pos = pos0;
