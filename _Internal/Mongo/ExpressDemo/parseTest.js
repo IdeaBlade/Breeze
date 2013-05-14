@@ -25,6 +25,27 @@ if (shouldGenerateParser) {
     parser = require("./odataParser")
 }
 
+// OrderBy expressions
+var x;
+parseAndCompare("$orderby","$orderby=LastName",
+    [ { path: "LastName", isAsc: true} ]
+);
+
+parseAndCompare("$orderby","$orderby=LastName, FirstName desc",
+    [   { path: "LastName", isAsc: true},
+        { path: "FirstName", isAsc: false}
+    ]
+);
+
+parseAndCompare("$orderby", "$orderby= LastName asc, FirstName ,  Name/Foo    desc",
+    [   { path: "LastName", isAsc: true},
+        { path: "FirstName", isAsc: true},
+        { path: "Name/Foo", isAsc: false}
+    ]
+);
+
+
+// Select expressions
 parseAndCompare("$select", "$select=LastName", ["LastName"]);
 
 parseAndCompare("$select", "$select= LastName ,FirstName, Name/Foo , Name/Foo/Bar",
@@ -32,9 +53,9 @@ parseAndCompare("$select", "$select= LastName ,FirstName, Name/Foo , Name/Foo/Ba
 
 // Filter expressions
 
-t0 = tryParse("$filter='xxx'");
+x = tryParse("$filter='xxx'");
 
-t0 = tryParse("$filter=Name/foo")
+x = tryParse("$filter=Name/foo")
 
 parseAndCompare("$filter","$filter=Name eq 'John'",
     { type: "op_bool", op: "eq",
@@ -85,9 +106,9 @@ parseAndCompare("$filter","$filter=substringof('text', StringValue) ne true",
         p2: { type: "lit_boolean", value: true }
     });
 
- t0=tryParse("$filter=not length(StringValue) eq 1");
+x =tryParse("$filter=not length(StringValue) eq 1");
 
-t0 = tryParse("$filter=toupper(StringValue) ne 'text'");
+x = tryParse("$filter=toupper(StringValue) ne 'text'");
 
 parseAndCompare("$filter","$filter=DoubleValue div 2 eq 3",
     { type: "op_bool", op: "eq",

@@ -205,12 +205,21 @@ inlinecount                 =  "$inlinecount=" unreserved*
 orderby                     =  "$orderby=" expr:orderbyExpr { return { "$orderby": expr }; }
                             /  "$orderby=" .* { return {"error": 'invalid $orderby parameter'}; }
 
+
+orderbyExpr                 =  wsp* a:orderbyPath list:( wsp* "," wsp* op:orderbyPath {return op})* { return flatten2(a, list) }
+
+
+orderbyPath              =  a:identifierPath ord:(wsp+ o:("asc"/"desc") { return o})? { return { path: a, isAsc: ord == "" || ord=="asc" }}
+
+
+/*
 orderbyExpr                 =  i:(id:identifier ord:(wsp ("asc"/"desc"))? {
                                     var result = {};
                                     result[id] = ord[1] || 'asc';
                                     return result;
                                })
                                list:("," wsp? l:orderbyExpr{return l;})? { return flatten2(i, list) }
+*/
 
 //$select
 select                      =  "$select=" expr:selectExpr { return { "$select": expr }; }
