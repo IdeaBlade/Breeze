@@ -54,9 +54,7 @@ namespace Breeze.Nhibernate.WebApi
 
         protected override string BuildJsonMetadata()
         {
-            var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
-            var meta = builder.BuildMetadata();
-
+            var meta = GetMetadata();
             var serializerSettings = new JsonSerializerSettings()
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -68,11 +66,22 @@ namespace Breeze.Nhibernate.WebApi
             return json;
         }
 
+        protected IDictionary<string, object> GetMetadata()
+        {
+            if (_metadata == null)
+            {
+                var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
+                _metadata = builder.BuildMetadata();
+            }
+            return _metadata;
+        }
+
         #endregion
         #region Save Changes
 
         private Dictionary<EntityInfo, KeyMapping> EntityKeyMapping = new Dictionary<EntityInfo, KeyMapping>();
         private Dictionary<EntityInfo, ICollection<ValidationResult>> ValidationResults = new Dictionary<EntityInfo, ICollection<ValidationResult>>();
+        private IDictionary<string, object> _metadata;
 
         /// <summary>
         /// Persist the changes to the entities in the saveMap.
@@ -159,7 +168,62 @@ namespace Breeze.Nhibernate.WebApi
                     ProcessEntity(entityInfo, classMeta);
                 }
             }
+
+            // Get the map of foreign key relationships
+            var fkMap = (IDictionary<string, string>) GetMetadata()[NHBreezeMetadata.FK_MAP];
+
+            foreach (var kvp in saveMap)
+            {
+                var entityType = kvp.Key;
+                var classMeta = session.SessionFactory.GetClassMetadata(entityType);
+
+                foreach (var entityInfo in kvp.Value)
+                {
+                    FixupRelationships(entityInfo.Entity, classMeta, fkMap);
+                }
+            }
         }
+
+        /// <summary>
+        /// Connect the related entities based on the foreign key values.
+        /// Note that this may cause related entities to be loaded from the DB if they are not already in the session.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="meta"></param>
+        /// <param name="fkMap"></param>
+        private void FixupRelationships(object entity, IClassMetadata meta, IDictionary<string, string> fkMap)
+        {
+            var propNames = meta.PropertyNames;
+            var propTypes = meta.PropertyTypes;
+
+            for (int i = 0; i < propNames.Length; i++)
+            {
+                var propType = propTypes[i];
+                if (propType.IsAssociationType && propType.IsEntityType)
+                {
+                    var propName = propNames[i];
+
+                    var relKey = meta.EntityName + '.' + propName;
+                    var foreignKeyName = fkMap[relKey];
+
+                    object id;
+                    if (foreignKeyName == meta.IdentifierPropertyName)
+                        id = meta.GetIdentifier(entity, EntityMode.Poco);
+                    else
+                        id = meta.GetPropertyValue(entity, foreignKeyName, EntityMode.Poco);
+
+                    if (id != null)
+                    {
+                        var entityName = propType.Name;
+                        object relatedEntity = session.Get(entityName, id);
+                        if (relatedEntity != null)
+                            meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
+                    }
+                }
+            }
+
+        }
+
 
         /// <summary>
         /// Add, update, or delete the entity according to its EntityState.

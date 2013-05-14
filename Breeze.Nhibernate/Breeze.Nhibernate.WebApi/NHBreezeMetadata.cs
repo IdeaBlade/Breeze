@@ -24,6 +24,9 @@ namespace Breeze.Nhibernate.WebApi
         private List<Dictionary<string, object>> _typeList;
         private Dictionary<string, object> _resourceMap;
         private HashSet<string> _typeNames;
+        private Dictionary<string, string> _fkMap;
+
+        public static readonly string FK_MAP = "fkMap";
 
         public NHBreezeMetadata(ISessionFactory sessionFactory, Configuration configuration)
         {
@@ -59,10 +62,12 @@ namespace Breeze.Nhibernate.WebApi
             _typeList = new List<Dictionary<string, object>>();
             _typeNames = new HashSet<string>();
             _resourceMap = new Dictionary<string, object>();
+            _fkMap = new Dictionary<string, string>();
             _map.Add("metadataVersion", "1.0.4");
             _map.Add("localQueryComparisonOptions", "caseInsensitiveSQL");
             _map.Add("structuralTypes", _typeList);
             _map.Add("resourceEntityTypeMap",_resourceMap);
+            _map.Add(FK_MAP, _fkMap);
         }
 
         /// <summary>
@@ -139,6 +144,7 @@ namespace Breeze.Nhibernate.WebApi
             {
                 var propType = propTypes[i];
                 var propName = propNames[i];
+                var pclassProperty = pClass.GetProperty(propName);
                 var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
                 if (propType.IsAssociationType)
                 {
@@ -155,12 +161,30 @@ namespace Breeze.Nhibernate.WebApi
                     // the associationName must be the same at both ends of the association.
                     nmap.Add("associationName", GetAssociationName(pClass.MappedClass.Name, entityType.Name, (atype is OneToOneType)));
 
-                    // The foreign key columns usually applies for many-to-one associations
-                    IList<string> fks = null;
-                    if (propColumns.Any())
+                    // The foreign key columns usually applies for many-to-one and one-to-one associations
+                    if (!propType.IsCollectionType)
                     {
-                        fks = propColumns.Select(c => c.Text).ToList();
-                        nmap.Add("foreignKeyNamesOnServer", fks);
+                        var relKey = meta.EntityName + '.' + propName;
+                        IList<string> fks = null;
+
+                        if (propColumns.Any()) // foreign key columns are defined
+                        {
+                            fks = propColumns.Select(c => c.Text).ToList();
+                        }
+                        else // foreign key is same as primary key of related entity
+                        {
+                            var relatedPersistentClass = _configuration.GetClassMapping(entityType);
+                            var key = relatedPersistentClass.Key as SimpleValue;
+                            if (key != null)
+                            {
+                                fks = key.ColumnIterator.Select(c => c.Text).ToList();
+                            }
+                        }
+                        if (fks != null)
+                        {
+                            nmap.Add("foreignKeyNamesOnServer", fks);
+                            _fkMap.Add(relKey, fks[0]);
+                        }
                     }
                 }
                 else if (propType.IsComponentType)
