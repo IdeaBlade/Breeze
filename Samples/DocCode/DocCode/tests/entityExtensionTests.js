@@ -335,6 +335,37 @@
         }
     });
     /*********************************************************
+    * unmapped property can be set by server class calculated property
+    *********************************************************/
+    test("unmapped property can be set by a calculated property of the server class", 2, function () {
+
+        var store = cloneModuleMetadataStore();
+
+        var employeeCtor = function () {
+            //'Fullname' is a server-side calculated property of the Employee class
+            // This unmapped property will be empty for new entities
+            // but will be set for existing entities during query materialization
+            this.FullName = ""; 
+        };
+        store.registerEntityTypeCtor("Employee", employeeCtor);
+        var fullProp = store.getEntityType('Employee').getProperty('FullName');
+        ok(fullProp && fullProp.isUnmapped,
+            "'FullName' should be an unmapped property after registration");
+
+        var em = newEm(store);
+        var query = EntityQuery.from('Employees').using(em);
+
+        stop(); // going async
+        query.execute().then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var first = data.results[0];
+            var full = first.FullName();
+            ok(full, "queried 'Employee' should have a fullname ('Last, First'); it is "+full);
+        }
+
+    });
+    /*********************************************************
     * add instance function via constructor
     *********************************************************/
     test("add instance function via constructor", 3, function () {
