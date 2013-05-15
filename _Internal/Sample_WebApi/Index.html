@@ -63,13 +63,8 @@
     
         document.getElementById("title").innerHTML += " -> " + breezeTestFns.title;
         
-        if (!QUnit.urlParams.sequential) {
-            if (QUnit.urlParams.canStart) {
-                QUnit.start(); // run tests
-            }
-        } else {
-            // Steve: once i removed "require" dependency I didn't know how to update this.
-            
+        if (QUnit.urlParams.canStart) {
+            QUnit.start(); // run tests
         }
     </script>
 </html>
