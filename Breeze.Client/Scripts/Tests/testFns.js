@@ -212,11 +212,8 @@ breezeTestFns = (function (breeze) {
         if (error.handled === true) return;
         
         if (error instanceof (Error)) {
-            if (error.message) {
-                ok(false, error.message);
-            } else {
-                ok(false, "Failed: " + error.toString());
-            }
+            var msg = (error.message || "") + (error.responseText && " responseText: " + error.responseText);
+            ok(false, "Failed: " + msg);
         } else {
             ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);
         }
