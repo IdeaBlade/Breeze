@@ -14,12 +14,6 @@ namespace Breeze.Nhibernate.WebApi
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var proxy = value as INHibernateProxy;
-            if (proxy != null)
-            {
-                value = proxy.HibernateLazyInitializer.GetImplementation();
-            }
-
             if (NHibernateUtil.IsInitialized(value))
             {
                 serializer.Serialize(writer, value);
@@ -37,8 +31,7 @@ namespace Breeze.Nhibernate.WebApi
 
         public override bool CanConvert(Type objectType)
         {
-            bool b = typeof(INHibernateProxy).IsAssignableFrom(objectType);
-            return b;
+            return typeof(INHibernateProxy).IsAssignableFrom(objectType);
         }
     }
 }
