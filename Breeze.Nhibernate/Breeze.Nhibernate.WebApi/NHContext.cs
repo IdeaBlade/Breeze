@@ -157,6 +157,11 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="saveMap"></param>
         private void ProcessSaves(Dictionary<Type, List<EntityInfo>> saveMap)
         {
+            // Get the map of foreign key relationships
+            var fkMap = (IDictionary<string, string>)GetMetadata()[NHBreezeMetadata.FK_MAP];
+
+            FixupRelationships(saveMap, fkMap, false);
+
             foreach (var kvp in saveMap)
             {
                 var entityType = kvp.Key;
@@ -169,9 +174,18 @@ namespace Breeze.Nhibernate.WebApi
                 }
             }
 
-            // Get the map of foreign key relationships
-            var fkMap = (IDictionary<string, string>) GetMetadata()[NHBreezeMetadata.FK_MAP];
+            FixupRelationships(saveMap, fkMap, true);
 
+        }
+
+        /// <summary>
+        /// Connect the related entities in the saveMap to other entities.
+        /// </summary>
+        /// <param name="fkMap"></param>
+        /// <param name="saveMap"></param>
+        /// <param name="canUseSession">Whether we can load the related entity via the Session</param>
+        private void FixupRelationships(Dictionary<Type, List<EntityInfo>> saveMap, IDictionary<string, string> fkMap, bool canUseSession)
+        {
             foreach (var kvp in saveMap)
             {
                 var entityType = kvp.Key;
@@ -179,7 +193,7 @@ namespace Breeze.Nhibernate.WebApi
 
                 foreach (var entityInfo in kvp.Value)
                 {
-                    FixupRelationships(entityInfo.Entity, classMeta, fkMap);
+                    FixupRelationships(entityInfo.Entity, classMeta, saveMap, fkMap, canUseSession);
                 }
             }
         }
@@ -191,7 +205,10 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="entity"></param>
         /// <param name="meta"></param>
         /// <param name="fkMap"></param>
-        private void FixupRelationships(object entity, IClassMetadata meta, IDictionary<string, string> fkMap)
+        /// <param name="saveMap"></param>
+        /// <param name="canUseSession">Whether we can load the related entity via the Session</param>
+        private void FixupRelationships(object entity, IClassMetadata meta,Dictionary<Type, List<EntityInfo>> saveMap, 
+            IDictionary<string, string> fkMap, bool canUseSession)
         {
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
@@ -202,6 +219,9 @@ namespace Breeze.Nhibernate.WebApi
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
                     var propName = propNames[i];
+
+                    object relatedEntity = meta.GetPropertyValue(entity, propName, EntityMode.Poco);
+                    if (relatedEntity != null) continue;
 
                     var relKey = meta.EntityName + '.' + propName;
                     var foreignKeyName = fkMap[relKey];
@@ -214,14 +234,43 @@ namespace Breeze.Nhibernate.WebApi
 
                     if (id != null)
                     {
-                        var entityName = propType.Name;
-                        object relatedEntity = session.Get(entityName, id);
+                        relatedEntity = FindEntity(propType.ReturnedClass, id, saveMap);
+
+                        if (relatedEntity == null && canUseSession)
+                        {
+                            var relatedEntityName = propType.Name;
+                            relatedEntity = session.Load(relatedEntityName, id);
+                        }
+
                         if (relatedEntity != null)
                             meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
                     }
                 }
             }
 
+        }
+
+        /// <summary>
+        /// Find the matching entity in the saveMap.  This is for relationship fixup.
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <param name="entityId"></param>
+        /// <param name="saveMap"></param>
+        /// <returns>The entity, or null if not found</returns>
+        private object FindEntity(Type entityType, object entityId, Dictionary<Type, List<EntityInfo>> saveMap)
+        {
+            List<EntityInfo> entityInfoList;
+            if (saveMap.TryGetValue(entityType, out entityInfoList))
+            {
+                var meta = session.SessionFactory.GetClassMetadata(entityType);
+                foreach (var entityInfo in entityInfoList)
+                {
+                    var entity = entityInfo.Entity;
+                    var id = meta.GetIdentifier(entity, EntityMode.Poco);
+                    if (entityId.Equals(id)) return entity;
+                }
+            }
+            return null;
         }
 
 
