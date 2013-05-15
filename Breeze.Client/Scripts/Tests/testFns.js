@@ -141,6 +141,9 @@ breezeTestFns = (function (breeze) {
                 testFns.metadataStore = null;
             }
         }
+
+        if (config.noMetadata) return;
+
         if (!testFns.metadataStore) {
             testFns.metadataStore = testFns.newMs();
         }

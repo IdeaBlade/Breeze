@@ -32,7 +32,7 @@
 
     module("metadata", {
         setup: function () {
-            testFns.setup();
+            testFns.setup({ noMetadata: true }); //We don't need to set up metadata for these tests, because they do it themselves.
         },
         teardown: function () {
 
@@ -103,7 +103,7 @@
                 var keys = custType.keyProperties;
                 ok(keys.length > 0);
                 var prop = custType.getProperty("CustomerID");
-                ok(prop, "fails if server meta specifies camelCase");
+                ok(prop, "fails if default naming convention is camelCase and metadata provides nameOnServer");
                 ok(prop.isDataProperty);
                 var navProp = custType.navigationProperties[0];
                 ok(navProp.isNavigationProperty);
