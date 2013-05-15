@@ -35,21 +35,15 @@ breezeTestFns = (function (breeze) {
         QUnit.config.testTimeout = 20000;
 
         QUnit.config.urlConfig.push({
-            id: "canStart",
-            label: "Start the tests",
-            tooltip: "Allows a user to set options before tests start."
-        });
-
-        QUnit.config.urlConfig.push({
             id: "next",
             label: "Next tracking lib.",
             tooltip: "Next tracking lib."
         });
 
         QUnit.config.urlConfig.push({
-            id: "sequential",
-            label: "Start Sequential",
-            tooltip: "Loads the modules one at a time, so that the Rerun link works."
+            id: "canStart",
+            label: "Start the tests",
+            tooltip: "Allows a user to set options before tests start."
         });
 
     }
@@ -147,6 +141,9 @@ breezeTestFns = (function (breeze) {
                 testFns.metadataStore = null;
             }
         }
+
+        if (config.noMetadata) return;
+
         if (!testFns.metadataStore) {
             testFns.metadataStore = testFns.newMs();
         }
