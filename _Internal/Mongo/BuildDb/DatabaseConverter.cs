@@ -1,18 +1,10 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
+using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-
-using MongoDB.Bson;
-using MongoDB.Driver;
-
-using MongoDB.Driver.Builders;
-using MongoDB.Driver.GridFS;
-using MongoDB.Driver.Linq;
-
-using System.Reflection;
 using System.Xml;
 
 namespace BuildDb {
@@ -20,10 +12,11 @@ namespace BuildDb {
   public class TableItem {
     public TableItem(String tableName, String collName = "") {
       TableName = tableName;
-      CollName = (collName == "") ? TableName + "s" : collName;
+      ColumnName = (collName == "") ? TableName + "s" : collName;
     }
     public String TableName;
-    public String CollName;
+    public String ColumnName;
+    public String KeyColumnName;
   }
 
   public class DatabaseConverter {
@@ -45,25 +38,25 @@ namespace BuildDb {
 
     public void ConvertTables(IEnumerable<TableItem> tableItems) {
 
-      MongoCollection<BsonDocument> coll = MongoDb.GetCollection<BsonDocument>("test");
+      var coll = MongoDb.GetCollection<BsonDocument>("test");
 
       int i = 0;
       foreach (var tableItem in tableItems) {
         var tableName = tableItem.TableName;
-        var collName = tableItem.CollName;
+        var collName = tableItem.ColumnName;
 
-        using (SqlConnection conn = new SqlConnection(SqlConnectionString)) {
+        using (var conn = new SqlConnection(SqlConnectionString)) {
           string query = "select * from [" + tableName + "]";
-          using (SqlCommand cmd = new SqlCommand(query, conn)) {
-            /// Delete the MongoDb Collection first to proceed with data insertion
+          using (var cmd = new SqlCommand(query, conn)) {
+            // Delete the MongoDb Collection first to proceed with data insertion
 
-            if (MongoDb.CollectionExists(tableItem.CollName)) {
-              MongoCollection<BsonDocument> collection = MongoDb.GetCollection<BsonDocument>(collName);
+            if (MongoDb.CollectionExists(tableItem.ColumnName)) {
+              var collection = MongoDb.GetCollection<BsonDocument>(collName);
               collection.Drop();
             }
             conn.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-            List<BsonDocument> bsonlist = new List<BsonDocument>(1000);
+            var reader = cmd.ExecuteReader();
+            var bsonlist = new List<BsonDocument>(1000);
             while (reader.Read()) {
               if (i == 1000) {
                 using (MongoSvr.RequestStart(MongoDb)) {
@@ -75,7 +68,7 @@ namespace BuildDb {
                 i = 0;
               }
               ++i;
-              BsonDocument bson = new BsonDocument();
+              var bson = new BsonDocument();
               for (int j = 0; j < reader.FieldCount; j++) {
                 if (reader[j].GetType() == typeof (String)) {
                   bson.Add(new BsonElement(reader.GetName(j), reader[j].ToString()));

@@ -63,7 +63,7 @@ function toOrderbyExpr(orderbyItems) {
 function toSelectExpr(selectItems) {
     var result = {};
     selectItems.forEach(function(s) {
-        var sPath = s.path.replace("/",".");
+        var sPath = s.replace("/",".");
         result[sPath] = 1;
     }) ;
     return result;

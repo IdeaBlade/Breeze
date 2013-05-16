@@ -54,9 +54,16 @@ parseAndCompare("$filter","LastName eq FirstName",
 );
 
 parseAndCompare("$filter", "startswith(StringValue,'foo') eq true",
-    { xStringValue: /^foo/ }
+    { StringValue: /^foo/ }
 );
 
+parseAndCompare("$filter", "not startswith(StringValue,'foo') eq true",
+    { StringValue: { $not: /^foo/ }}
+);
+
+parseAndCompare("$filter", "startswith(StringValue,'foo') eq false",
+    { StringValue: { $not: /^foo/ }}
+);
 /*
 parseAndCompare("$filter","$filter=(DoubleValue mod 2) eq 10",
     { type: "op_bool", op: "eq",
