@@ -3,10 +3,10 @@
     <id name="Id" type="long" unsaved-value="0">
       <generator class="native" />
     </id>
+    <version name="Ts" column="`Ts`" type="BinaryBlob" generated="always"/>
     <property name="Name" type="string" length="50" not-null="true" />
     <property name="Description" type="string" length="2000" />
     <property name="RoleType" type="RoleType" />
-    <property name="Ts" column="`Ts`" type="System.Byte[]" />
     <!--Foreign key to UserRole (UserRole)-->
     <set name="UserRoles" table="`UserRole`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`RoleId`" foreign-key="FK_UserRole_Role" />

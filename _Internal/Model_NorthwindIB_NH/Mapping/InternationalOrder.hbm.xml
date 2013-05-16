@@ -6,7 +6,7 @@
       </generator>
     </id>
     <version name="RowVersion" type="int" />
-    <one-to-one name="Order" constrained="true"/>
+    <one-to-one name="Order" class="Order" foreign-key="none" constrained="true"/>
     <property name="CustomsDescription" type="string" length="100" not-null="true" />
     <property name="ExciseTax" type="decimal" not-null="true" />
   </class>

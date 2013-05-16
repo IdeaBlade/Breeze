@@ -3,7 +3,7 @@
     <id name="Id" type="long" unsaved-value="0">
       <generator class="native" />
     </id>
-    <version name="RowVersion" type="timestamp" />
+    <property name="RowVersion" type="decimal" not-null="true" />
     <property name="UserName" type="string" length="100" not-null="true" />
     <property name="UserPassword" type="string" length="200" />
     <property name="FirstName" type="string" length="100" not-null="true" />

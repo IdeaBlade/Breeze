@@ -16,6 +16,12 @@ namespace Breeze.Nhibernate.WebApi
         {
             if (NHibernateUtil.IsInitialized(value))
             {
+                var proxy = value as INHibernateProxy;
+                if (proxy != null)
+                {
+                    value = proxy.HibernateLazyInitializer.GetImplementation();
+                }
+
                 serializer.Serialize(writer, value);
             }
             else

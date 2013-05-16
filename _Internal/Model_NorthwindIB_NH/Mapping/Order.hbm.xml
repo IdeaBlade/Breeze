@@ -19,7 +19,7 @@
     <property name="ShipPostalCode" type="string" length="10" />
     <property name="ShipCountry" type="string" length="15" />
     <!--Foreign key to InternationalOrder (InternationalOrder)-->
-    <one-to-one name="InternationalOrder" foreign-key="none" class="InternationalOrder" />
+    <many-to-one name="InternationalOrder" column="`OrderID`" class="InternationalOrder" />
     <!--Foreign key to OrderDetail (OrderDetail)-->
     <set name="OrderDetails" table="`OrderDetail`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`OrderID`" foreign-key="FK_OrderDetail_Order" />
