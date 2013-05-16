@@ -301,8 +301,8 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public Object Lookups()
     {
-        var regions = ContextProvider.Regions.ToList();
-        var roles = ContextProvider.Roles.ToList();
+        var regions = ContextProvider.Context.Regions.ToList();
+        var roles = ContextProvider.Context.Roles.ToList();
         return new { regions, roles };
     }
 

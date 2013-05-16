@@ -1,52 +1,27 @@
-var PEG = require("pegjs");
-var fs = require("fs");
-var parser
-var shouldGenerateParser = true;
-
-if (shouldGenerateParser) {
-    console.log("reading file...");
-    var filename = "odataParser.peg";
-    if (!fs.existsSync(filename)) {
-        throw new Error("Unable to locate file: " + filename);
-    }
-    var pegdef = fs.readFileSync(filename, 'utf8');
-
-    console.log("reading file completed");
-
-    var t0;
-    var parser;
-    try {
-        parser = PEG.buildParser(pegdef);
-    } catch (e) {
-        console.log(e.message);
-        throw e;
-    }
-} else {
-    parser = require("./odataParser")
-}
+var queryBuilder = require("./queryBuilder");
 
 var x;
 
+console.log("starting queryBuilderTests");
 // OrderBy expressions
 
-parseAndCompare("$orderby","$orderby=LastName",
-    [ { path: "LastName", isAsc: true} ]
+parseAndCompare("$orderby","LastName",
+    { "sort": [["LastName", "asc"]] }
 );
 
-parseAndCompare("$orderby","$orderby=LastName, FirstName desc",
-    [   { path: "LastName", isAsc: true},
-        { path: "FirstName", isAsc: false}
-    ]
+parseAndCompare("$orderby","LastName, FirstName desc",
+    { sort: [["LastName", "asc"], ["FirstName", "desc"]] }
 );
 
-parseAndCompare("$orderby", "$orderby= LastName asc, FirstName ,  Name/Foo    desc",
-    [   { path: "LastName", isAsc: true},
-        { path: "FirstName", isAsc: true},
-        { path: "Name/Foo", isAsc: false}
-    ]
+parseAndCompare("$orderby", "LastName asc, FirstName ,  Name/Foo    desc",
+    { sort: [
+        ["LastName", "asc"],
+        ["FirstName", "asc"],
+        ["Name.Foo", "desc"]
+    ]}
 );
 
-
+/*
 // Select expressions
 parseAndCompare("$select", "$select=LastName", ["LastName"]);
 
@@ -55,41 +30,34 @@ parseAndCompare("$select", "$select= LastName ,FirstName, Name/Foo , Name/Foo/Ba
 
 // Filter expressions
 
-x = tryParse("$filter='xxx'");
+*/
 
-x = tryParse("$filter=Name/foo")
-
-parseAndCompare("$filter","$filter=Name eq 'John'",
-    { type: "op_bool", op: "eq",
-        p1: { type: "member", value: "Name" },
-        p2: { type: "lit_string", value: "John"}
-    });
+parseAndCompare("$filter","Name eq 'John'",
+    { Name: "John" }
+);
 
 
-parseAndCompare("$filter","$filter=Qty eq 6443",
-    { type: "op_bool", op: "eq",
-        p1: { type: "member", value: "Qty"},
-        p2: { type: "lit_number", value: 6443}
-    });
+parseAndCompare("$filter","Qty eq 6443",
+    { Qty: 6443 }
+);
 
-parseAndCompare("$filter","$filter=Name/foo eq 'John'",
-    { type: "op_bool", op: "eq",
-        p1: { type: "member", value: "Name/foo" },
-        p2: { type: "lit_string", value: "John"}
-    });
+parseAndCompare("$filter","Name/foo eq 'John'",
+    { "Name.foo": 'John' }
+);
 
-parseAndCompare("$filter","$filter=Name eq 'John' and LastName lt 'Doe'",
-    { type: "op_andOr", op: "and",
-        p1: { type: "op_bool", op: "eq",
-            p1: { type: "member", value: "Name"},
-            p2: { type: "lit_string", value: "John" }
-        },
-        p2: { type: "op_bool", op: "lt",
-            p1: { type: "member", value: "LastName"},
-            p2: { type: "lit_string", value: "Doe"}
-        }
-    } );
+parseAndCompare("$filter","Name eq 'John' and LastName lt 'Doe'",
+    { Name: "John", LastName: { $lt: "Doe" }}
+);
 
+parseAndCompare("$filter","LastName eq FirstName",
+    { $where: "function() { return this.LastName === this.FirstName}" }
+);
+
+parseAndCompare("$filter", "startswith(StringValue,'foo') eq true",
+    { xStringValue: /^foo/ }
+);
+
+/*
 parseAndCompare("$filter","$filter=(DoubleValue mod 2) eq 10",
     { type: "op_bool", op: "eq",
         p1: { type: "op_math", op: "mod",
@@ -98,6 +66,7 @@ parseAndCompare("$filter","$filter=(DoubleValue mod 2) eq 10",
         },
         p2: { type: "lit_number", value: 10 }
     } );
+
 
 parseAndCompare("$filter","$filter=substringof('text', StringValue) ne true",
     { type: "op_bool", op: "ne",
@@ -194,21 +163,24 @@ parseAndCompare("$filter","$filter=StringValue ne 'Group1 not Group2'",
         p2: { type: "lit_string", value: "Group1 not Group2" }
     } );
 
+*/
+
 function parseAndCompare(nodeName, expr, expectedResult) {
-    var r = tryParse(expr);
-    if (r == null) return;
-    if (nodeName) r = r[nodeName];
-    compare(expr, r, expectedResult);
+    var urlQuery = {};
+    urlQuery[nodeName] = expr;
+    var r = queryBuilder.toMongoQuery(urlQuery);
+    var res;
+    if (nodeName==="$orderby") {
+        res = r.options;
+    } else if (nodeName === "$filter") {
+        res = r.query;
+    }
+    if (res == null) {
+        throw new Error("Unable to recognize: " + nodeName);
+    }
+    compare(expr, res, expectedResult);
 }
 
-function tryParse(s) {
-    try {
-        return parser.parse(s);
-    } catch (e)  {
-        console.log("error parsing: " + s + "   error -> " + e.message)
-        return null;
-    }
-}
 
 function compare(title, o1, o2) {
     try {
@@ -216,30 +188,37 @@ function compare(title, o1, o2) {
         console.log("Ok: "  + title);
     } catch (e) {
         console.log("Err: " + title + " --error:" + e.message);
+        console.log("Actual:   " + JSON.stringify(o1));
+        console.log("Expected: " + JSON.stringify(o2));
         return true;
     }
 }
 
 function compareCore(o1, o2, prevKey) {
     try {
-        prevKey = prevKey || "";
-        var t = typeof(o1);
         var ok = false;
-        if (o1 == null || t === "string" || t === "number" || t==="boolean") {
-            ok = o1 === o2;
-        } else if ( o1 instanceof Date ) {
-            ok =  o1.getTime() === o2.getTime()
+        if (o1 === undefined || o2 === undefined) {
+            ok = o1 === undefined && o2 === undefined;
         } else {
-            for (var k in o1) {
-                var v1 = o1[k];
-                var v2 = o2[k];
-                var r = undefined;
-                var key = prevKey + ":" + k;
-                compareCore(v1, v2, key);
+            prevKey = prevKey || "";
+            var t = typeof(o1);
+            if (o1 == null || t === "string" || t === "number" || t==="boolean") {
+                ok = o1 === o2;
+            } else if ( o1 instanceof Date ) {
+                ok =  o1.getTime() === o2.getTime()
+            } else {
+                for (var k in o1) {
+                    var v1 = o1[k];
+                    var v2 = o2[k];
+                    var r = undefined;
+                    var key = prevKey + ":" + k;
+                    compareCore(v1, v2, key);
 
+                }
+                ok = true;
             }
-            ok = true;
         }
+
         if (!ok) {
             throw new Error("error comparing key: " + prevKey);
         }
