@@ -1,4 +1,5 @@
 var mongodb = require('mongodb');
+var fs = require('fs');
 var queryBuilder = require("./queryBuilder");
 
 var host = 'localhost';
@@ -9,6 +10,15 @@ var db = new mongodb.Db(dbName, dbServer, {auto_reconnect: true, safe:true});
 db.open(function () {
 
 });
+
+exports.getMetadata = function(req, res) {
+    var filename = "metadata.json";
+    if (!fs.existsSync(filename)) {
+        throw new Error("Unable to locate file: " + filename);
+    }
+    var metadata = fs.readFileSync(filename, 'utf8');
+    res.sendfile(filename);
+}
 
 exports.get = function (req, res) {
     // res.setHeader('Content-Length', body.length);

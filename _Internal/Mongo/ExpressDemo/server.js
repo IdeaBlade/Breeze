@@ -1,14 +1,27 @@
 var express = require('express');
 var app = express();
 var routes = require('./routes');
+var fs = require("fs");
 
 
 app.use(logErrors);
 app.use(clientErrorHandler);
 app.use(errorHandler);
 
-app.get('/breeze/Products', routes.getProducts);
-app.get('/breeze/:slug', routes.get);
+var testCaseDir = "c:/GitHub/Breeze/Breeze.Client/"
+
+
+app.get('/', function(req,res) {
+    res.sendfile(testCaseDir + 'index.html');
+});
+app.get('/breeze/NorthwindIBModel/Metadata', routes.getMetadata);
+app.get('/breeze/NorthwindIBModel/Products', routes.getProducts);
+
+app.get('/breeze/NorthwindIBModel/:slug', routes.get);
+// alt other files
+app.get(/^(.+)$/, function(req, res) {
+    res.sendfile(testCaseDir + req.params[0]);
+});
 
 app.listen(3000);
 console.log('Listening on port 3000');
