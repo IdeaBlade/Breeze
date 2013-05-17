@@ -5,7 +5,7 @@
     </id>
     <many-to-one name="User" column="`UserId`" class="User" />
     <many-to-one name="Role" column="`RoleId`" class="Role" />
-    <property name="UserId" type="int" not-null="true" insert="false" update="false" />
-    <property name="RoleId" type="int" not-null="true" insert="false" update="false" />
+    <property name="UserId" type="long" not-null="true" insert="false" update="false" />
+    <property name="RoleId" type="long" not-null="true" insert="false" update="false" />
   </class>
 </hibernate-mapping>

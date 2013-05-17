@@ -7,8 +7,8 @@
     <property name="ProductName" type="string" length="40" not-null="true" />
     <many-to-one name="Supplier" column="`SupplierID`" class="Supplier" />
     <many-to-one name="Category" column="`CategoryID`" class="Category" />
-    <property name="SupplierID" type="int" />
-    <property name="CategoryID" type="int" />
+    <property name="SupplierID" type="int" insert="false" update="false" />
+    <property name="CategoryID" type="int" insert="false" update="false" />
     <property name="QuantityPerUnit" type="string" length="20" />
     <property name="UnitPrice" type="decimal" />
     <property name="UnitsInStock" type="short" />
