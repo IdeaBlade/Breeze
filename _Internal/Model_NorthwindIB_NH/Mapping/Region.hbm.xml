@@ -1,7 +1,12 @@
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
   <class name="Region" table="`Region`" schema="`dbo`" dynamic-update="true">
     <id name="RegionID" column="`RegionID`" type="int" unsaved-value="0">
-      <generator class="native" />
+      <generator class="hilo">
+        <param name="table">NextId</param>
+        <param name="column">NextId</param>
+        <param name="max_lo">100</param>
+        <param name="where">Name = 'GLOBAL'</param>
+      </generator>
     </id>
     <version name="RowVersion" type="int" />
     <property name="RegionDescription" type="string" length="50" not-null="true" />
