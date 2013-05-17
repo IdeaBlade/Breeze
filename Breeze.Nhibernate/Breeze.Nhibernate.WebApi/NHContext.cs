@@ -5,6 +5,7 @@ using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Linq;
 using NHibernate.Metadata;
+using NHibernate.Type;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -103,19 +104,20 @@ namespace Breeze.Nhibernate.WebApi
                         throw new ValidationException(msg);
                     }
 
-                    tx.Commit();
                     session.Flush();
+                    tx.Commit();
+                    RefreshFromSession(saveMap);
                 }
                 catch (PropertyValueException pve)
                 {
                     // NHibernate can throw this
-                    tx.Rollback();
+                    if (tx.IsActive) tx.Rollback();
                     var msg = string.Format("'{0}' validation error: property={1}, message={2}", pve.EntityName, pve.PropertyName, pve.Message);
                     throw new ValidationException(msg);
                 }
                 catch (Exception)
                 {
-                    tx.Rollback();
+                    if (tx.IsActive) tx.Rollback();
                     throw;
                 }
                 finally
@@ -160,6 +162,7 @@ namespace Breeze.Nhibernate.WebApi
             // Get the map of foreign key relationships
             var fkMap = (IDictionary<string, string>)GetMetadata()[NHBreezeMetadata.FK_MAP];
 
+            // Relate entities in the saveMap to each other
             FixupRelationships(saveMap, fkMap, false);
 
             foreach (var kvp in saveMap)
@@ -174,6 +177,7 @@ namespace Breeze.Nhibernate.WebApi
                 }
             }
 
+            // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
             FixupRelationships(saveMap, fkMap, true);
 
         }
@@ -181,8 +185,8 @@ namespace Breeze.Nhibernate.WebApi
         /// <summary>
         /// Connect the related entities in the saveMap to other entities.
         /// </summary>
-        /// <param name="fkMap"></param>
-        /// <param name="saveMap"></param>
+        /// <param name="saveMap">Map of entity types -> entity instances to save</param>
+        /// <param name="fkMap">Map of relationship name -> foreign key name</param>
         /// <param name="canUseSession">Whether we can load the related entity via the Session</param>
         private void FixupRelationships(Dictionary<Type, List<EntityInfo>> saveMap, IDictionary<string, string> fkMap, bool canUseSession)
         {
@@ -193,7 +197,7 @@ namespace Breeze.Nhibernate.WebApi
 
                 foreach (var entityInfo in kvp.Value)
                 {
-                    FixupRelationships(entityInfo.Entity, classMeta, saveMap, fkMap, canUseSession);
+                    FixupRelationships(entityInfo, classMeta, saveMap, fkMap, canUseSession);
                 }
             }
         }
@@ -202,14 +206,15 @@ namespace Breeze.Nhibernate.WebApi
         /// Connect the related entities based on the foreign key values.
         /// Note that this may cause related entities to be loaded from the DB if they are not already in the session.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="meta"></param>
-        /// <param name="fkMap"></param>
-        /// <param name="saveMap"></param>
+        /// <param name="entityInfo">Entity that will be saved</param>
+        /// <param name="meta">Metadata about the entity type</param>
+        /// <param name="saveMap">Map of entity types -> entity instances to save</param>
+        /// <param name="fkMap">Map of relationship name -> foreign key name</param>
         /// <param name="canUseSession">Whether we can load the related entity via the Session</param>
-        private void FixupRelationships(object entity, IClassMetadata meta,Dictionary<Type, List<EntityInfo>> saveMap, 
+        private void FixupRelationships(EntityInfo entityInfo, IClassMetadata meta, Dictionary<Type, List<EntityInfo>> saveMap, 
             IDictionary<string, string> fkMap, bool canUseSession)
         {
+            var entity = entityInfo.Entity;
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
 
@@ -221,20 +226,16 @@ namespace Breeze.Nhibernate.WebApi
                     var propName = propNames[i];
 
                     object relatedEntity = meta.GetPropertyValue(entity, propName, EntityMode.Poco);
-                    if (relatedEntity != null) continue;
+                    if (relatedEntity != null) continue;    // entities are already connected
 
                     var relKey = meta.EntityName + '.' + propName;
                     var foreignKeyName = fkMap[relKey];
 
-                    object id;
-                    if (foreignKeyName == meta.IdentifierPropertyName)
-                        id = meta.GetIdentifier(entity, EntityMode.Poco);
-                    else
-                        id = meta.GetPropertyValue(entity, foreignKeyName, EntityMode.Poco);
+                    object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName, canUseSession);
 
                     if (id != null)
                     {
-                        relatedEntity = FindEntity(propType.ReturnedClass, id, saveMap);
+                        relatedEntity = FindInSaveMap(propType.ReturnedClass, id, saveMap);
 
                         if (relatedEntity == null && canUseSession)
                         {
@@ -247,8 +248,45 @@ namespace Breeze.Nhibernate.WebApi
                     }
                 }
             }
-
         }
+
+        /// <summary>
+        /// Get the value of the foreign key property.  This comes from the entity, but if that value is
+        /// null, we may try to get it from the originalValuesMap.
+        /// </summary>
+        /// <param name="entityInfo"></param>
+        /// <param name="meta"></param>
+        /// <param name="foreignKeyName"></param>
+        /// <param name="currentValuesOnly">if false, and the entity is deleted, try to get the value from the originalValuesMap 
+        /// if we were unable to get it from the entity.</param>
+        /// <returns></returns>
+        private object GetForeignKeyValue(EntityInfo entityInfo, IClassMetadata meta, string foreignKeyName, bool currentValuesOnly)
+        {
+            var entity = entityInfo.Entity;
+            object id = null;
+            if (foreignKeyName == meta.IdentifierPropertyName)
+                id = meta.GetIdentifier(entity, EntityMode.Poco);
+            else if (meta.PropertyNames.Contains(foreignKeyName))
+                id = meta.GetPropertyValue(entity, foreignKeyName, EntityMode.Poco);
+            else if (meta.IdentifierType.IsComponentType)
+            {
+                // compound key
+                var compType = meta.IdentifierType as EmbeddedComponentType;
+                var index = Array.IndexOf<string>(compType.PropertyNames, foreignKeyName);
+                if (index >= 0)
+                {
+                    var idComp = meta.GetIdentifier(entity, EntityMode.Poco);
+                    id = compType.GetPropertyValue(idComp, index, EntityMode.Poco);
+                }
+            }
+
+            if (id == null && !currentValuesOnly && entityInfo.EntityState == EntityState.Deleted)
+            {
+                entityInfo.OriginalValuesMap.TryGetValue(foreignKeyName, out id);
+            }
+            return id;
+        }
+
 
         /// <summary>
         /// Find the matching entity in the saveMap.  This is for relationship fixup.
@@ -257,8 +295,9 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="entityId"></param>
         /// <param name="saveMap"></param>
         /// <returns>The entity, or null if not found</returns>
-        private object FindEntity(Type entityType, object entityId, Dictionary<Type, List<EntityInfo>> saveMap)
+        private object FindInSaveMap(Type entityType, object entityId, Dictionary<Type, List<EntityInfo>> saveMap)
         {
+            var entityIdString = entityId.ToString();
             List<EntityInfo> entityInfoList;
             if (saveMap.TryGetValue(entityType, out entityInfoList))
             {
@@ -267,7 +306,7 @@ namespace Breeze.Nhibernate.WebApi
                 {
                     var entity = entityInfo.Entity;
                     var id = meta.GetIdentifier(entity, EntityMode.Poco);
-                    if (entityId.Equals(id)) return entity;
+                    if (id != null && entityIdString.Equals(id.ToString())) return entity;
                 }
             }
             return null;
@@ -283,7 +322,7 @@ namespace Breeze.Nhibernate.WebApi
             var entity = entityInfo.Entity;
             var state = entityInfo.EntityState;
 
-            // Perform validation on the entity, based on DataAnnotations
+            // Perform validation on the entity, based on DataAnnotations.  TODO move this to a pluggable interceptor
             var validationResults = new List<ValidationResult>();
             if (!Validator.TryValidateObject(entity, new ValidationContext(entity), validationResults, true))
             {
@@ -396,6 +435,29 @@ namespace Breeze.Nhibernate.WebApi
             }
             return list;
         }
+
+        /// <summary>
+        /// Refresh the entities from the database.  This picks up changes due to triggers, etc.
+        /// </summary>
+        /// TODO make this faster
+        /// TODO make this optional
+        /// <param name="saveMap"></param>
+        private void RefreshFromSession(Dictionary<Type, List<EntityInfo>> saveMap)
+        {
+            using (var tx = session.BeginTransaction())
+            {
+                foreach (var kvp in saveMap)
+                {
+                    foreach (var entityInfo in kvp.Value)
+                    {
+                        if (entityInfo.EntityState != EntityState.Deleted)
+                            session.Refresh(entityInfo.Entity);
+                    }
+                }
+                tx.Commit();
+            }
+        }
+
 
         #endregion
     }
