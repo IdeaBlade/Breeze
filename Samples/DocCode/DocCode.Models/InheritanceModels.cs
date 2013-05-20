@@ -10,7 +10,30 @@ using Newtonsoft.Json;
 
 namespace Inheritance.Models
 {
-    #region interfaces
+
+    #region Vehicles - super simple TPH
+
+    public abstract class Vehicle
+    {
+        public int Id { get; set; }
+        [Required]
+        public string Name { get; set; }
+        public int Speed { get; set; }
+    }
+
+    public class Bus : Vehicle
+    {
+        public int Capacity { get; set; }
+    }
+
+    public class Car : Vehicle
+    {
+        public string Color { get; set; }
+    }
+
+    #endregion
+
+    #region BillingDetail interfaces
 
     public interface IBillingDetail
     {
@@ -141,6 +164,7 @@ namespace Inheritance.Models
         public string Name { get; set; }
         public ICollection<BillingDetailTPH> BillingDetails { get; set; }
     }
+
     #endregion
 
     #region TPT

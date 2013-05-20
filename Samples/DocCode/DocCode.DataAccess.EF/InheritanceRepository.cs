@@ -30,6 +30,23 @@ namespace DocCode.DataAccess
             get { return Context.AccountTypes; }
         }
 
+        #region Vehicles - a simple TPH model
+
+        public IQueryable<Vehicle> Vehicles
+        {
+            get { return Context.Vehicles; }
+        }
+        public IQueryable<Bus> Buses
+        {
+            get { return Context.Vehicles.OfType<Bus>(); }
+        }
+        public IQueryable<Car> Cars
+        {
+            get { return Context.Vehicles.OfType<Car>(); }
+        }
+
+        #endregion
+
         #region TPH
 
         public IQueryable<BillingDetailTPH> BillingDetailTPHs

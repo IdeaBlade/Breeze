@@ -31,9 +31,73 @@
     /************************** QUERIES *************************/
 
     module("inheritanceTests - queries", moduleOptions);
+    /*********************************************************
+    * can query the simple Vehicles model
+    *********************************************************/
+
+    asyncTest("can query all Buses (concrete)", 1, function () {
+        var em = newEm();
+        var resourceName = 'Buses';
+        return EntityQuery.from(resourceName)
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 1, "should fetch {0} from '{1}'.".format(len, resourceName));
+        }
+    });
+    
+    asyncTest("can query all Cars (concrete)", 2, function () {
+        var em = newEm();
+        var resourceName = 'Cars';
+        return EntityQuery.from(resourceName).orderBy('Speed')
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 2, "should fetch {0} from '{1}': {2}."
+                    .format(len, resourceName,
+                        data.results.map(function (v) { return v.Name(); }).join(", "))
+            );
+
+            // confirm that the ascending Speed 'orderBy' worked as well
+            assertSortedByAscendingSpeed(resourceName, data.results);
+        }
+    });
+
+    function assertSortedByAscendingSpeed(resourceName, results) {
+        var isOrdered = true, testSpeed = 0;
+        for (var i = 0, len = results.length; i < len; i++) {
+            var speed = results[i].Speed();
+            if (testSpeed <= speed) {
+                testSpeed = speed;
+            } else {
+                isOrdered = false; break;
+            }
+        };
+        ok(isOrdered, resourceName + " results should be in ascending 'Speed' order.");
+    }
+    
+    asyncTest("can query all Vehicles (abstract)", 2, function () {
+        var em = newEm();
+        var resourceName = 'Vehicles';
+        return EntityQuery.from(resourceName).orderBy('Speed')
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 3, "should fetch {0} from '{1}': {2}."
+                    .format(len, resourceName,
+                        data.results.map(function (v) { return v.Name(); }).join(", "))
+            );
+            
+            // confirm that the ascending Speed 'orderBy' worked as well
+            assertSortedByAscendingSpeed(resourceName, data.results);
+        }
+    });
 
     /*********************************************************
-    * can query all from each inherited type
+    * can query all from each BillingType inherited type
     *********************************************************/
     asyncTest("can query all BankAccounts", 6, function () {
         var promises = inheritanceTypes.map(function (t) {
@@ -70,17 +134,20 @@
             .using(em).execute().then(querySuccess);
 
         function querySuccess(data) {
-            var len = data.results.length;
+            var results = data.results, len = results.length;
             equal(len, expectedCount,
                 "should fetch {0} from '{1}'.".format(len, resourceName));
-            
-            // confirm that the 'orderBy' worked as well
+          
+            // confirm that the ascending Owner 'orderBy' worked as well
             var isOrdered = true, testOwner = "";
-            data.results.reduce(function (_, entity) {              
-                var owner = entity.Owner().toLowerCase();
-                isOrdered &= testOwner <= owner;
-                testOwner = owner;
-            });
+            for (var i = 0; i < len; i++) {
+                var owner = results[i].Owner().toLowerCase();
+                if (testOwner <= owner) {
+                    testOwner = owner;
+                } else {
+                    isOrdered = false; break;
+                }
+            };
             ok(isOrdered, resourceName+" results should be in ascending 'Owner' order.");
         }
     }

@@ -54,6 +54,10 @@ namespace Inheritance.Models
                         .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
         }
 
+        // Vehicle model - super simple TPH
+        public DbSet<Vehicle> Vehicles { get; set; }
+
+        // BillingDetail models
         public DbSet<AccountType> AccountTypes { get; set; }
 
         public DbSet<BillingDetailTPH> BillingDetailTPHs { get; set; }
@@ -67,6 +71,7 @@ namespace Inheritance.Models
         public DbSet<DepositTPH> DepositTPHs { get; set; }
         public DbSet<DepositTPT> DepositTPTs { get; set; }
         public DbSet<DepositTPC> DepositTPCs { get; set; }
+
     }
 }
 

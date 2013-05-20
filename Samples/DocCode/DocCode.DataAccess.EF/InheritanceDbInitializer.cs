@@ -47,6 +47,12 @@ namespace Inheritance.Models
 
         public static void ResetDatabase(InheritanceContext context)
         {
+            // Vehicle TPH super simple model
+            context.Vehicles.Add(new Car { Name="Audi RS5", Color = "Red", Speed = 175 });
+            context.Vehicles.Add(new Bus { Name="Greyhound", Capacity = 35, Speed = 70 });
+            context.Vehicles.Add(new Car { Name="Model T", Color = "Black", Speed = 35 });
+
+            // BillingDetail models
             IBillingDetail[] billingDetails;
 
             billingDetails = MakeData<BillingDetailTPH, BankAccountTPH, CreditCardTPH>("TPH");
@@ -77,7 +83,7 @@ namespace Inheritance.Models
                     context.BillingDetailTPCs.Add(_);
                     AddDeposits(_, context.DepositTPCs);
                 });
-
+            
             context.SaveChanges(); // Save all inserts
         }
 
@@ -237,6 +243,9 @@ namespace Inheritance.Models
 
         public static void PurgeDatabase(InheritanceContext context)
         {
+            var vehicles = context.Vehicles;
+            foreach (var v in vehicles) { vehicles.Remove(v); }
+
             var depositsTPH = context.DepositTPHs;
             foreach (var deposit in depositsTPH)
             {
@@ -268,6 +277,7 @@ namespace Inheritance.Models
             {
                 billingDetailsTPC.Remove(billingDetail);
             }
+
             context.SaveChanges();
         }
     }

@@ -34,6 +34,28 @@ namespace DocCode.Controllers
             return _repository.AccountTypes;
         }
 
+        #region Vehicles - a simple TPH model
+
+        // ~/breeze/inheritance/Vehicles
+        [HttpGet]
+        public IQueryable<Vehicle> Vehicles()
+        {
+            return _repository.Vehicles;
+        }
+        // ~/breeze/inheritance/Vehicles
+        [HttpGet]
+        public IQueryable<Car> Cars()
+        {
+            return _repository.Cars;
+        }
+        // ~/breeze/inheritance/Vehicles
+        [HttpGet]
+        public IQueryable<Bus> Buses()
+        {
+            return _repository.Buses;
+        }
+        #endregion
+
         #region TPH
 
         // ~/breeze/inheritance/billingDetailTPHs
