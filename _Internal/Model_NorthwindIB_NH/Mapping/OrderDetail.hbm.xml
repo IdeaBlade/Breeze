@@ -2,12 +2,12 @@
   <class name="OrderDetail" table="`OrderDetail`" schema="`dbo`" dynamic-update="true">
     <!--TODO- composite keys are a BAD IDEA-->
     <composite-id>
-      <key-property column="`OrderID`" name="OrderID" />
-      <key-property column="`ProductID`" name="ProductID" />
+      <key-many-to-one column="`OrderID`" name="Order" class="Order" />
+      <key-many-to-one column="`ProductID`" name="Product" class="Product" />
     </composite-id>
     <version name="RowVersion" type="int" />
-    <many-to-one name="Order" column="`OrderID`" class="Order" />
-    <many-to-one name="Product" column="`ProductID`" class="Product" />
+    <property name="OrderID" type="int" not-null="true" insert="false" update="false" />
+    <property name="ProductID" type="int" not-null="true" insert="false" update="false" />
     <property name="UnitPrice" type="decimal" not-null="true" />
     <property name="Quantity" type="short" not-null="true" />
     <property name="Discount" type="float" not-null="true" />
