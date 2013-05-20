@@ -9,6 +9,7 @@ using NHibernate.Type;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Breeze.Nhibernate.WebApi
 {
@@ -119,26 +120,11 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="navList">will be populated with the navigation properties of the entity</param>
         void AddClassProperties(IClassMetadata meta, PersistentClass pClass, List<Dictionary<string, object>> dataList, List<Dictionary<string, object>> navList)
         {
-            // Hibernate identifiers are excluded from the list of data properties, so we have to add them separately
-            if (meta.HasIdentifierProperty)
-            {
-                var dmap = MakeDataProperty(meta.IdentifierPropertyName, meta.IdentifierType.Name, false, null, true, false);
-                dataList.Add(dmap);
-            }
-            else if (meta.IdentifierType != null && meta.IdentifierType.IsComponentType)
-            {
-                // composite key is a ComponentType
-                var compType = (ComponentType) meta.IdentifierType;
-                var compNames = compType.PropertyNames;
-                for (int i = 0; i < compNames.Length; i++)
-                {
-                    var dmap = MakeDataProperty(compNames[i], compType.Subtypes[i].Name, compType.PropertyNullability[i], null, true, false);
-                    dataList.Add(dmap);
-                }
-            }
-
             // maps column names to their related data properties.  Used in MakeAssociationProperty to convert FK column names to entity property names.
-            var relatedDataPropertyMap = new Dictionary<string, string>();
+            var relatedDataPropertyMap = new Dictionary<string, Dictionary<string, object>>();
+
+            var persister = meta as AbstractEntityPersister;
+            var type = meta.GetMappedClass(EntityMode.Poco);
 
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
@@ -146,7 +132,7 @@ namespace Breeze.Nhibernate.WebApi
             for (int i = 0; i < propNames.Length; i++)
             {
                 var propType = propTypes[i];
-                if (!propType.IsAssociationType)    // skip association types until below
+                if (!propType.IsAssociationType)    // skip association types until we handle all the data types, so the relatedDataPropertyMap will be populated.
                 {
                     var propName = propNames[i];
                     var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
@@ -171,22 +157,61 @@ namespace Breeze.Nhibernate.WebApi
                         var dmap = MakeDataProperty(propName, propType.Name, propNull[i], col, isKey, isVersion);
                         dataList.Add(dmap);
 
-                        var columnNameString = string.Join(",", propColumns.Select(c => c.Text));
-                        relatedDataPropertyMap.Add(columnNameString, propName);
+                        var columnNameString = GetPropertyColumnNames(persister, propName); 
+                        relatedDataPropertyMap.Add(columnNameString, dmap);
                     }
-                    // TODO add validators to the property.  
+                }
+            }
+
+
+            // Hibernate identifiers are excluded from the list of data properties, so we have to add them separately
+            if (meta.HasIdentifierProperty)
+            {
+                var dmap = MakeDataProperty(meta.IdentifierPropertyName, meta.IdentifierType.Name, false, null, true, false);
+                dataList.Insert(0, dmap);
+
+                var columnNameString = GetPropertyColumnNames(persister, meta.IdentifierPropertyName);
+                relatedDataPropertyMap.Add(columnNameString, dmap);
+            }
+            else if (meta.IdentifierType != null && meta.IdentifierType.IsComponentType)
+            {
+                // composite key is a ComponentType
+                var compType = (ComponentType)meta.IdentifierType;
+                var compNames = compType.PropertyNames;
+                for (int i = 0; i < compNames.Length; i++)
+                {
+                    var propType = compType.Subtypes[i];
+                    if (!propType.IsAssociationType)
+                    {
+                        var dmap = MakeDataProperty(compNames[i], propType.Name, compType.PropertyNullability[i], null, true, false);
+                        dataList.Insert(0, dmap);
+                    }
+                    else
+                    {
+                        var manyToOne = propType as ManyToOneType;
+                        //var joinable = manyToOne.GetAssociatedJoinable(this._sessionFactory);
+                        var propColumnNames = GetPropertyColumnNames(persister, compNames[i]);
+
+                        var assProp = MakeAssociationProperty(type, (IAssociationType)propType, compNames[i], propColumnNames, pClass, relatedDataPropertyMap, true);
+                        navList.Add(assProp);
+                    }
                 }
             }
 
             // We do the association properties after the data properties, so we can do the foreign key lookups
             for (int i = 0; i < propNames.Length; i++)
             {
+                //var propColumnNames = persister.GetPropertyColumnNames(i);
                 var propType = propTypes[i];
                 if (propType.IsAssociationType)
                 {
                     // navigation property
                     var propName = propNames[i];
-                    var assProp = MakeAssociationProperty((IAssociationType)propType, propName, pClass, relatedDataPropertyMap);
+                    //if (propColumnNames.Length == 0)
+                    //    propColumnNames = persister.KeyColumnNames;
+
+                    var propColumnNames = GetPropertyColumnNames(persister, propName);
+                    var assProp = MakeAssociationProperty(type, (IAssociationType)propType, propName, propColumnNames, pClass, relatedDataPropertyMap, false);
                     navList.Add(assProp);
                 }
             }
@@ -331,55 +356,79 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="pClass"></param>
         /// <param name="relatedDataPropertyMap"></param>
         /// <returns></returns>
-        private Dictionary<string, object> MakeAssociationProperty(IAssociationType propType, string propName, PersistentClass pClass, Dictionary<string, string> relatedDataPropertyMap)
+        private Dictionary<string, object> MakeAssociationProperty(Type containingType, IAssociationType propType, string propName, string columnNames, PersistentClass pClass, Dictionary<string, Dictionary<string, object>> relatedDataPropertyMap, bool isKey)
         {
             var nmap = new Dictionary<string, object>();
             nmap.Add("nameOnServer", propName);
 
-            var entityType = GetEntityType(propType.ReturnedClass, propType.IsCollectionType);
-            nmap.Add("entityTypeName", entityType.Name + ":#" + entityType.Namespace);
+            var relatedEntityType = GetEntityType(propType.ReturnedClass, propType.IsCollectionType);
+            nmap.Add("entityTypeName", relatedEntityType.Name + ":#" + relatedEntityType.Namespace);
             nmap.Add("isScalar", !propType.IsCollectionType);
 
             // the associationName must be the same at both ends of the association.
-            nmap.Add("associationName", GetAssociationName(pClass.MappedClass.Name, entityType.Name, (propType is OneToOneType)));
+            nmap.Add("associationName", GetAssociationName(containingType.Name, relatedEntityType.Name, (propType is OneToOneType)));
 
             // The foreign key columns usually applies for many-to-one and one-to-one associations
             if (!propType.IsCollectionType)
             {
-                IList<string> fks = null;
-
-                var propColumns = pClass.GetProperty(propName).ColumnIterator;
-                if (propColumns.Any()) // foreign key columns are defined
+                var entityRelationship = pClass.EntityName + '.' + propName;
+                Dictionary<string, object> relatedDataProperty;
+                if (relatedDataPropertyMap.TryGetValue(columnNames, out relatedDataProperty))
                 {
-                    fks = propColumns.Select(c => c.Text).ToList();
-                }
-                else // foreign key is same as primary key of related entity
-                {
-                    var relatedPersistentClass = _configuration.GetClassMapping(entityType);
-                    var key = relatedPersistentClass.Key as SimpleValue;
-                    if (key != null)
+                    var fkName = (string) relatedDataProperty["nameOnServer"];
+                    nmap.Add("foreignKeyNamesOnServer", new string[] { fkName });
+                    _fkMap.Add(entityRelationship, fkName);
+                    if (isKey)
                     {
-                        fks = key.ColumnIterator.Select(c => c.Text).ToList();
+                        if (!relatedDataProperty.ContainsKey("isPartOfKey"))
+                        {
+                            relatedDataProperty.Add("isPartOfKey", true);
+                        }
                     }
                 }
-                if (fks != null)
+                else
                 {
-                    var entityRelationship = pClass.EntityName + '.' + propName;
-                    var columnNameString = string.Join(",", fks);
-                    string relatedDataProperty;
-                    if (relatedDataPropertyMap.TryGetValue(columnNameString, out relatedDataProperty))
-                    {
-                        nmap.Add("foreignKeyNamesOnServer", new string[] { relatedDataProperty });
-                        _fkMap.Add(entityRelationship, relatedDataProperty);
-                    }
-                    else
-                    {
-                        nmap.Add("foreignKeyNamesOnServer", fks);
-                        _fkMap.Add(entityRelationship, fks[0]);
-                    }
+                    nmap.Add("foreignKeyNamesOnServer", columnNames);
+                    nmap.Add("ERROR", "Could not find matching fk for property " + entityRelationship);
+                    _fkMap.Add(entityRelationship, columnNames);
+                    throw new ArgumentException("Could not find matching fk for property " + entityRelationship);
                 }
             }
             return nmap;
+        }
+
+        /// <summary>
+        /// Get the column names for a given property as a comma-delimited string of unbracketed names.
+        /// </summary>
+        /// <param name="persister"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        string GetPropertyColumnNames(AbstractEntityPersister persister, string propertyName)
+        {
+            var propColumnNames = persister.GetPropertyColumnNames(propertyName);
+            if (propColumnNames.Length == 0)
+            {
+                // this happens when the property is part of the key
+                propColumnNames = persister.KeyColumnNames;
+            }
+            var sb = new StringBuilder();
+            foreach (var s in propColumnNames)
+            {
+                if (sb.Length > 0) sb.Append(',');
+                sb.Append(UnBracket(s));
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Get the column name without square brackets around it.  E.g. "[OrderID]" -> "OrderID" 
+        /// Because sometimes Hibernate gives us brackets, and sometimes it doesn't.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        string UnBracket(string name)
+        {
+            return (name[0] == '[') ? name.Substring(1, name.Length - 2) : name;
         }
 
         /// <summary>
