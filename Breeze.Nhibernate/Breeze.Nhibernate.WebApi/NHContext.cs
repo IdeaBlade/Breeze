@@ -106,6 +106,7 @@ namespace Breeze.Nhibernate.WebApi
 
                     session.Flush();
                     tx.Commit();
+                    RemoveRelationships(saveMap);
                     RefreshFromSession(saveMap);
                 }
                 catch (PropertyValueException pve)
@@ -214,7 +215,6 @@ namespace Breeze.Nhibernate.WebApi
         private void FixupRelationships(EntityInfo entityInfo, IClassMetadata meta, Dictionary<Type, List<EntityInfo>> saveMap, 
             IDictionary<string, string> fkMap, bool canUseSession)
         {
-            var entity = entityInfo.Entity;
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
 
@@ -224,30 +224,45 @@ namespace Breeze.Nhibernate.WebApi
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
                     var propName = propNames[i];
-
-                    object relatedEntity = meta.GetPropertyValue(entity, propName, EntityMode.Poco);
-                    if (relatedEntity != null) continue;    // entities are already connected
-
-                    var relKey = meta.EntityName + '.' + propName;
-                    var foreignKeyName = fkMap[relKey];
-
-                    object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName, canUseSession);
-
-                    if (id != null)
-                    {
-                        relatedEntity = FindInSaveMap(propType.ReturnedClass, id, saveMap);
-
-                        if (relatedEntity == null && canUseSession)
-                        {
-                            var relatedEntityName = propType.Name;
-                            relatedEntity = session.Load(relatedEntityName, id);
-                        }
-
-                        if (relatedEntity != null)
-                            meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
-                    }
+                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta, saveMap, fkMap, canUseSession);
                 }
             }
+            if (meta.HasIdentifierProperty)
+            {
+                var propType = meta.IdentifierType;
+                if (propType.IsAssociationType && propType.IsEntityType)
+                {
+                    FixupRelationship(meta.IdentifierPropertyName, meta.IdentifierType, entityInfo, meta, saveMap, fkMap, canUseSession);
+                }
+            }
+        }
+
+        private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta, Dictionary<Type, List<EntityInfo>> saveMap, 
+            IDictionary<string, string> fkMap, bool canUseSession)
+        {
+            var entity = entityInfo.Entity;
+            object relatedEntity = meta.GetPropertyValue(entity, propName, EntityMode.Poco);
+            if (relatedEntity != null) return;    // entities are already connected
+
+            var relKey = meta.EntityName + '.' + propName;
+            var foreignKeyName = fkMap[relKey];
+
+            object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName, canUseSession);
+
+            if (id != null)
+            {
+                relatedEntity = FindInSaveMap(propType.ReturnedClass, id, saveMap);
+
+                if (relatedEntity == null && canUseSession)
+                {
+                    var relatedEntityName = propType.Name;
+                    relatedEntity = session.Load(relatedEntityName, id);
+                }
+
+                if (relatedEntity != null)
+                    meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
+            }
+
         }
 
         /// <summary>
@@ -434,6 +449,47 @@ namespace Breeze.Nhibernate.WebApi
                 }
             }
             return list;
+        }
+
+
+        /// <summary>
+        /// Remove the navigations between entities in the saveMap.  This flattens the JSON
+        /// result so Breeze can handle it.
+        /// </summary>
+        /// <param name="saveMap">Map of entity types -> entity instances to save</param>
+        private void RemoveRelationships(Dictionary<Type, List<EntityInfo>> saveMap)
+        {
+            foreach (var kvp in saveMap)
+            {
+                var entityType = kvp.Key;
+                var classMeta = session.SessionFactory.GetClassMetadata(entityType);
+
+                foreach (var entityInfo in kvp.Value)
+                {
+                    RemoveRelationships(entityInfo, classMeta);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set the navigation properties to null on the given entity.
+        /// </summary>
+        /// <param name="entityInfo"></param>
+        /// <param name="meta"></param>
+        private void RemoveRelationships(EntityInfo entityInfo, IClassMetadata meta)
+        {
+            var entity = entityInfo.Entity;
+            var propNames = meta.PropertyNames;
+            var propTypes = meta.PropertyTypes;
+
+            for (int i = 0; i < propNames.Length; i++)
+            {
+                var propType = propTypes[i];
+                if (propType.IsAssociationType && propType.IsEntityType)
+                {
+                    meta.SetPropertyValue(entity, propNames[i], null, EntityMode.Poco);
+                }
+            }
         }
 
         /// <summary>
