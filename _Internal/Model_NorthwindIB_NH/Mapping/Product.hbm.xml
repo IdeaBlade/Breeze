@@ -3,7 +3,7 @@
     <id name="ProductID" column="`ProductID`" type="int" unsaved-value="0">
       <generator class="native" />
     </id>
-    <version name="RowVersion" type="int" />
+    <property name="RowVersion" type="int" /><!-- Not marked as version property, for breeze test -->
     <property name="ProductName" type="string" length="40" not-null="true" />
     <many-to-one name="Supplier" column="`SupplierID`" class="Supplier" />
     <many-to-one name="Category" column="`CategoryID`" class="Category" />
