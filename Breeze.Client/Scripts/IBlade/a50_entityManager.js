@@ -1520,8 +1520,7 @@ var EntityManager = (function () {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
                     dataProperties.forEach(function (dp, ix) {
-                        var val = parseValueForDp(rawEntity[ix], dp);
-                        targetEntity.setProperty(dp.name, val);
+                        setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
                     });
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
@@ -1539,8 +1538,7 @@ var EntityManager = (function () {
             } else {
                 targetEntity = entityType._createEntityCore();
                 dataProperties.forEach(function (dp, ix) {
-                    var val = parseValueForDp(rawEntity[ix], dp);
-                    targetEntity.setProperty(dp.name, val);
+                    setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
                 });
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
@@ -1946,7 +1944,7 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            updatePropertyFromRawEntity(dp, targetEntity, rawEntity);
+            updatePropertyFromRawSource(targetEntity, dp, rawEntity);
         });
 
         entityType.navigationProperties.forEach(function (np) {
@@ -1958,51 +1956,53 @@ var EntityManager = (function () {
         });
     }
 
-    // target and source may not be entities; they can also be complexTypes.
-    function updatePropertyFromRawEntity(dp, target, rawSource) {
-        var val = getPropertyFromRawEntity(rawSource, dp);
-        setPropertyWithRawValue(dp, target, val)
-    }
-
-    function setPropertyWithRawValue(dp, target, rawVal) {
-        if (rawVal === undefined) return;
-        if (dp.isComplexProperty) {
-            oldVal = target.getProperty(dp.name);
-            if (dp.isScalar) {
-                dp.dataType.dataProperties.forEach(function (cdp) {
-                    // recursive call
-                    updatePropertyFromRawEntity(cdp, oldVal, rawVal);
-                });
-            } else {
-                // clear the old array and push new complex objects into it.
-                oldVal.length = 0;
-                rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        // recursive call
-                        updatePropertyFromRawEntity(cdp, newCo, rawCo);
-                    });
-                    oldVal.push(newCo);
-                });
-            }
-        } else {
-            target.setProperty(dp.name, rawVal);
-        }
-    }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType) {
         var keyValues = entityType.keyProperties.map(function (p) {
-            return getPropertyFromRawEntity(rawEntity, p);
+            return parseRawValue(p, getPropertyFromRawEntity(rawEntity, p));
         });
         return new EntityKey(entityType, keyValues);
     }
 
     function getPropertyFromRawEntity(rawEntity, dp) {
-        var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
-        return parseValueForDp(rawEntity[propName], dp);
+        return rawEntity[ dp.nameOnServer || dp.isUnmapped && dp.name];
     }
-    
-    function parseValueForDp(val, dp) {
+
+    // target and source will be either entities or complex types
+    function updatePropertyFromRawSource(target, dp, rawSource) {
+        var rawVal = getPropertyFromRawEntity(rawSource, dp);
+        setPropertyWithRawValue(target, dp, rawVal)
+    }
+   
+    function setPropertyWithRawValue(target, dp, rawVal) {
+        if (rawVal === undefined) return;
+        var val = parseRawValue(dp, rawVal);
+        
+        if (dp.isComplexProperty) {
+            oldVal = target.getProperty(dp.name);
+            if (dp.isScalar) {
+                dp.dataType.dataProperties.forEach(function (cdp) {
+                    // recursive call
+                    updatePropertyFromRawSource(oldVal, cdp, val);
+                });
+            } else {
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                val.forEach(function (rawCo) {
+                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    dp.dataType.dataProperties.forEach(function (cdp) {
+                        // recursive call
+                        updatePropertyFromRawSource(newCo, cdp, rawCo);
+                    });
+                    oldVal.push(newCo);
+                });
+            }
+        } else {
+            target.setProperty(dp.name, val);
+        }
+    }
+
+    function parseRawValue(dp, val) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
         // in a jsonResultsAdapter ( an unusual use case).
         if (val === undefined) return undefined;
