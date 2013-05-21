@@ -206,15 +206,15 @@
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        var orderId = o1.getProperty("orderID");
+        var orderId = o1.getProperty(testFns.orderKeyName);
         ok(orderId == 0);
 
         em.addEntity(o1);
-        orderId = o1.getProperty("orderID");
+        orderId = o1.getProperty(testFns.orderKeyName);
         ok(orderId == -1);
         stop();
         em.saveChanges().then(function (saveResult) {
-            orderId = o1.getProperty("orderID");
+            orderId = o1.getProperty(testFns.orderKeyName);
             ok(orderId !== -1);
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
@@ -228,18 +228,18 @@
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        o1.setProperty("orderID", 42); // waste of time to set id; it will be replaced.
-        var orderId = o1.getProperty("orderID");
+        o1.setProperty(testFns.orderKeyName, 42); // waste of time to set id; it will be replaced.
+        var orderId = o1.getProperty(testFns.orderKeyName);
         ok(orderId == 42);
         //ok(o1.OrderID() !== 42,
         //    "o1's original key, 42, should have been replaced w/ new temp key.");
 
         em.addEntity(o1);
-        orderId = o1.getProperty("orderID");
+        orderId = o1.getProperty(testFns.orderKeyName);
         ok(orderId == 42);
         stop();
         em.saveChanges().then(function(saveResult) {
-            orderId = o1.getProperty("orderID");
+            orderId = o1.getProperty(testFns.orderKeyName);
             ok(orderId !== 42);
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
@@ -261,11 +261,12 @@
     });
     
     test("import results notification", function () {
+
         var em = newEm();
         var em2 = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .expand("orders")
             .using(em);
         stop();
@@ -611,7 +612,7 @@
 
            var cust1 = customerType.createEntity();
            var cust1Id = core.getUuid();
-           cust1.setProperty("customerID", cust1Id);
+           cust1.setProperty(testFns.customerKeyName, cust1Id);
            cust1.setProperty("companyName","Foo");
            em1.attachEntity(cust1);
 
@@ -620,7 +621,7 @@
            // As if em2 queried for same customer
            var em2 = newEm();
            var cust1b = customerType.createEntity();
-           cust1b.setProperty("customerID", cust1Id);
+           cust1b.setProperty(testFns.customerKeyName, cust1Id);
            cust1b.setProperty("companyName","Foo");
            em2.attachEntity(cust1b);
 

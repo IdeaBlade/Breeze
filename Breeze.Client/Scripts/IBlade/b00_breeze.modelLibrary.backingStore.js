@@ -110,7 +110,12 @@
 
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    var co = prop.dataType._createInstanceCore(entity, prop.name);
+                    // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                    if (prop.isScalar) {
+                        var co = prop.dataType._createInstanceCore(entity, prop.name);
+                    } else {
+                        var co = breeze.makeComplexArray([], entity, prop);
+                    }
                     bs[propName] = co;
                 } else if (val === undefined) {
                     bs[propName] = prop.defaultValue;

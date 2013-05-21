@@ -1958,18 +1958,35 @@ var EntityManager = (function () {
         });
     }
 
-    // target and source may not be entities that can also be complexTypes.
+    // target and source may not be entities; they can also be complexTypes.
     function updatePropertyFromRawEntity(dp, target, rawSource) {
         var val = getPropertyFromRawEntity(rawSource, dp);
-        if (val === undefined) return;
+        setPropertyWithRawValue(dp, target, val)
+    }
+
+    function setPropertyWithRawValue(dp, target, rawVal) {
+        if (rawVal === undefined) return;
         if (dp.isComplexProperty) {
-            var coVal = target.getProperty(dp.name);
-            dp.dataType.dataProperties.forEach(function (cdp) {
-                // recursive call
-                updatePropertyFromRawEntity(cdp, coVal, val);
-            });
+            oldVal = target.getProperty(dp.name);
+            if (dp.isScalar) {
+                dp.dataType.dataProperties.forEach(function (cdp) {
+                    // recursive call
+                    updatePropertyFromRawEntity(cdp, oldVal, rawVal);
+                });
+            } else {
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                rawVal.forEach(function (rawCo) {
+                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    dp.dataType.dataProperties.forEach(function (cdp) {
+                        // recursive call
+                        updatePropertyFromRawEntity(cdp, newCo, rawCo);
+                    });
+                    oldVal.push(newCo);
+                });
+            }
         } else {
-            target.setProperty(dp.name, val);
+            target.setProperty(dp.name, rawVal);
         }
     }
 
@@ -2173,7 +2190,12 @@ var EntityManager = (function () {
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped && isOData) return;
             if (dp.isComplexProperty) {
-                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
+                if (dp.isScalar) {
+                    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
+                } else {
+                    complexObjs = structObj.getProperty(dp.name);
+                    rawObject[dp.nameOnServer] = complexObjs.map(function(co) { return unwrapInstance(co, isOData) });
+                }
             } else {
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, isOData);

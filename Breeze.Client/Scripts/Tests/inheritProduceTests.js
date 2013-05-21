@@ -34,14 +34,14 @@
         
         var rdAppleId = "D35E9669-2BAE-4D69-A27A-252B31800B74";
         var et = em.metadataStore.getEntityType("ItemOfProduce");
-
-        try {
-            var ek = new EntityKey(et, rdAppleId);
-            ok(false, "shouldn't get here");
-        } catch (e) {
-            ok(e.message.indexOf("EntityKey") >= 0, "message should mention EntityKey");
-        }
         
+        var ek = new EntityKey(et, rdAppleId);
+        stop();
+        em.fetchEntityByKey(ek).then(function(data) {
+            item = data.entity;
+            ok(item, "item should have been found");
+        
+        }).fail(testFns.handleFail).fin(start);
 
     });
     
@@ -104,7 +104,9 @@
     
     test("query Fruits w/client ofType", function () {
         var em = newEmX();
-
+        ok(false, "Expected failure - OfType operator not yet supported - will be added later");
+        return;
+        
         var q = EntityQuery.from("ItemsOfProduce")
             .where(null, FilterQueryOp.IsTypeOf, "Fruit")
             .using(em);
