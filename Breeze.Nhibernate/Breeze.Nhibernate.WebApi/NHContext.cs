@@ -218,32 +218,87 @@ namespace Breeze.Nhibernate.WebApi
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
 
-            for (int i = 0; i < propNames.Length; i++)
-            {
-                var propType = propTypes[i];
-                if (propType.IsAssociationType && propType.IsEntityType)
-                {
-                    var propName = propNames[i];
-                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta, saveMap, fkMap, canUseSession);
-                }
-            }
-            if (meta.HasIdentifierProperty)
+            if (meta.IdentifierType != null)
             {
                 var propType = meta.IdentifierType;
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
                     FixupRelationship(meta.IdentifierPropertyName, meta.IdentifierType, entityInfo, meta, saveMap, fkMap, canUseSession);
                 }
+                else if (propType.IsComponentType)
+                {
+                    FixupComponentRelationships(meta.IdentifierPropertyName, (ComponentType)propType, entityInfo, meta, saveMap, fkMap, canUseSession);
+                }
             }
+
+            for (int i = 0; i < propNames.Length; i++)
+            {
+                var propType = propTypes[i];
+                if (propType.IsAssociationType && propType.IsEntityType)
+                {
+                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta, saveMap, fkMap, canUseSession);
+                }
+                else if (propType.IsComponentType)
+                {
+                    FixupComponentRelationships(propNames[i], (ComponentType)propType, entityInfo, meta, saveMap, fkMap, canUseSession);
+                }
+            }
+        }
+
+        private void FixupComponentRelationships(string propName, ComponentType compType, EntityInfo entityInfo, IClassMetadata meta, Dictionary<Type, List<EntityInfo>> saveMap,
+            IDictionary<string, string> fkMap, bool canUseSession)
+        {
+            var compPropNames = compType.PropertyNames;
+            var compPropTypes = compType.Subtypes;
+            object component = null;
+            object[] compValues = null;
+            for (int j = 0; j < compPropNames.Length; j++)
+            {
+                var compPropType = compPropTypes[j];
+                if (compPropType.IsAssociationType && compPropType.IsEntityType)
+                {
+                    if (compValues == null)
+                    {
+                        // get the value of the component's subproperties
+                        component = GetPropertyValue(meta, entityInfo.Entity, propName);
+                        compValues = compType.GetPropertyValues(component, EntityMode.Poco);
+                    }
+                    if (compValues[j] == null)
+                    {
+                        // the related entity is null
+                        var relatedEntity = GetRelatedEntity(compPropNames[j], compPropType, meta, entityInfo, saveMap, fkMap, canUseSession);
+                        if (relatedEntity != null)
+                        {
+                            compValues[j] = relatedEntity;
+                        }
+                    }
+                }
+            }
+            if (compValues != null)
+            {
+                compType.SetPropertyValues(component, compValues, EntityMode.Poco);
+            }
+
         }
 
         private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta, Dictionary<Type, List<EntityInfo>> saveMap, 
             IDictionary<string, string> fkMap, bool canUseSession)
         {
             var entity = entityInfo.Entity;
-            object relatedEntity = meta.GetPropertyValue(entity, propName, EntityMode.Poco);
+            object relatedEntity = GetPropertyValue(meta, entity, propName);
             if (relatedEntity != null) return;    // entities are already connected
 
+            relatedEntity = GetRelatedEntity(propName, propType, meta, entityInfo, saveMap, fkMap, canUseSession);
+
+            if (relatedEntity != null)
+                meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
+
+        }
+
+        private object GetRelatedEntity(string propName, IType propType, IClassMetadata meta, EntityInfo entityInfo, Dictionary<Type, List<EntityInfo>> saveMap,
+            IDictionary<string, string> fkMap, bool canUseSession)
+        {
+            object relatedEntity = null;
             var relKey = meta.EntityName + '.' + propName;
             var foreignKeyName = fkMap[relKey];
 
@@ -258,11 +313,8 @@ namespace Breeze.Nhibernate.WebApi
                     var relatedEntityName = propType.Name;
                     relatedEntity = session.Load(relatedEntityName, id);
                 }
-
-                if (relatedEntity != null)
-                    meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
             }
-
+            return relatedEntity;
         }
 
         /// <summary>
@@ -286,7 +338,7 @@ namespace Breeze.Nhibernate.WebApi
             else if (meta.IdentifierType.IsComponentType)
             {
                 // compound key
-                var compType = meta.IdentifierType as EmbeddedComponentType;
+                var compType = meta.IdentifierType as ComponentType;
                 var index = Array.IndexOf<string>(compType.PropertyNames, foreignKeyName);
                 if (index >= 0)
                 {
@@ -301,6 +353,21 @@ namespace Breeze.Nhibernate.WebApi
             }
             return id;
         }
+
+        /// <summary>
+        /// Return the property value for the given entity.
+        /// </summary>
+        /// <param name="meta"></param>
+        /// <param name="entity"></param>
+        /// <param name="propName">If null, the identifier property will be returned.</param>
+        /// <returns></returns>
+        private object GetPropertyValue(IClassMetadata meta, object entity, string propName)
+        {
+            if (propName == null || propName == meta.IdentifierPropertyName)
+                return meta.GetIdentifier(entity, EntityMode.Poco);
+            else
+                return meta.GetPropertyValue(entity, propName, EntityMode.Poco);
+       }
 
 
         /// <summary>
