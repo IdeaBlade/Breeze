@@ -89,8 +89,8 @@
     
     test("dateTimeOffset & dateTime2 w/save", function () {
         var em = newEm();
-        var query = new EntityQuery("TimeLimits").take(10);
-        var tlimitType = em.metadataStore.getEntityType("TimeLimit");
+        var query = new EntityQuery("UnusualDates").take(10);
+        var tlimitType = em.metadataStore.getEntityType("UnusualDate");
         var dt1 = new Date(2001, 1, 1, 1, 1, 1);
         var dt2 = new Date(2002, 2, 2, 2, 2, 2);
         var tlimit = tlimitType.createEntity();
@@ -119,7 +119,7 @@
         var em = newEm();
         var dt1 = new Date(1950, 1, 1, 1, 1, 1);
         var p1 = Predicate.create("creationDate", ">", dt1).or("modificationDate", ">", dt1);
-        var query = EntityQuery.from("TimeLimits").where(p1);
+        var query = EntityQuery.from("UnusualDates").where(p1);
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;
@@ -131,8 +131,8 @@
     test("export/import dateTimeOffset with nulls", function () {
         var em = newEm();
         
-        var p1 = Predicate.create("modificationDate", "==", null);
-        var query = EntityQuery.from("TimeLimits").where(p1).take(2);
+        var p1 = Predicate.create("modificationDate2", "==", null);
+        var query = EntityQuery.from("UnusualDates").where(p1).take(2);
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;
@@ -140,9 +140,9 @@
             var exportedEntities = em.exportEntities();
             var em2 = newEm();
             em2.importEntities(exportedEntities);
-            var tls = em2.getEntities("TimeLimit");
+            var tls = em2.getEntities("UnusualDate");
             var isOk = tls.every(function (tl) {
-                var modDt = tl.getProperty("modificationDate");
+                var modDt = tl.getProperty("modificationDate2");
                 return modDt == null;
             });
             ok(isOk, "import of exported null dateTimeOffsets should succeed");

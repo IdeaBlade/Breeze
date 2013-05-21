@@ -12,13 +12,10 @@ namespace Models.NorthwindIB.EDMX_2012
     using System;
     using System.Collections.Generic;
     
-    public partial class TimeLimit
+    public partial class Geospatial
     {
         public int Id { get; set; }
-        public System.TimeSpan MaxTime { get; set; }
-        public Nullable<System.TimeSpan> MinTime { get; set; }
-        public Nullable<int> TimeGroupId { get; set; }
-    
-        public virtual TimeGroup TimeGroup { get; set; }
+        public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
+        public System.Data.Spatial.DbGeography Geography1 { get; set; }
     }
 }

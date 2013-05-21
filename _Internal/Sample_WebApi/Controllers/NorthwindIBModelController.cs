@@ -316,6 +316,16 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.Comments;
     }
 
+    [HttpGet]
+    public IQueryable<UnusualDate> UnusualDates() {
+      return ContextProvider.Context.UnusualDates;
+    }
+
+    [HttpGet]
+    public IQueryable<Geospatial> Geospatials() {
+      return ContextProvider.Context.Geospatials;
+    }
+
     #endregion
 
     #region named queries

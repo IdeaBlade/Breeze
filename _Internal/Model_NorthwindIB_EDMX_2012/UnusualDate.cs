@@ -12,13 +12,12 @@ namespace Models.NorthwindIB.EDMX_2012
     using System;
     using System.Collections.Generic;
     
-    public partial class TimeLimit
+    public partial class UnusualDate
     {
         public int Id { get; set; }
-        public System.TimeSpan MaxTime { get; set; }
-        public Nullable<System.TimeSpan> MinTime { get; set; }
-        public Nullable<int> TimeGroupId { get; set; }
-    
-        public virtual TimeGroup TimeGroup { get; set; }
+        public System.DateTimeOffset CreationDate { get; set; }
+        public System.DateTime ModificationDate { get; set; }
+        public Nullable<System.DateTimeOffset> CreationDate2 { get; set; }
+        public Nullable<System.DateTime> ModificationDate2 { get; set; }
     }
 }

@@ -63,7 +63,7 @@
             }
         });
         var query = new EntityQuery()
-            .from("TimeLimits")
+            .from("UnusualDates")
             .where("creationDate", "!=", null)
             .select("creationDate, modificationDate")
             .take(3)
