@@ -181,21 +181,25 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
         } else if (property.isComplexProperty) {
-            if (!newValue) {
-                throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+            if (property.isScalar) {
+                if (!newValue) {
+                    throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+                }
+                // To get here it must be a ComplexProperty  
+                // 'dataType' will be a complexType
+                if (!oldValue) {
+                    var ctor = dataType.getCtor();
+                    oldValue = new ctor();
+                    rawAccessorFn(oldValue);
+                }
+                dataType.dataProperties.forEach(function (dp) {
+                    var pn = dp.name;
+                    var nv = newValue.getProperty(pn);
+                    oldValue.setProperty(pn, nv);
+                });
+            } else {
+                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
             }
-            // To get here it must be a ComplexProperty  
-            // 'dataType' will be a complexType
-            if (!oldValue) {
-                var ctor = dataType.getCtor();
-                oldValue = new ctor();
-                rawAccessorFn(oldValue);
-            }
-            dataType.dataProperties.forEach(function(dp) {
-                var pn = dp.name;
-                var nv = newValue.getProperty(pn);
-                oldValue.setProperty(pn, nv);
-            });
         } else {
             // To get here it must be a (nonComplex) DataProperty  
             if (property.isPartOfKey && entityManager && !entityManager.isLoading) {

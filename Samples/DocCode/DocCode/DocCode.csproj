@@ -160,6 +160,7 @@
     <Compile Include="App_Start\WriteMetadataScriptFiles.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\FoosController.cs" />
+    <Compile Include="Controllers\FoosMetadataController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />

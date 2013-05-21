@@ -42,8 +42,12 @@
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
-        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Unchanged);
-        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Unchanged);
+        var cfg = {};
+        cfg[testFns.orderKeyName] = 1;
+        var parentOrder = em.createEntity("Order", cfg, breeze.EntityState.Unchanged);
+        cfg = {};
+        cfg[testFns.productKeyName] = 1;
+        var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Unchanged);
         
         // Can't initialize with related entity. Feature request to make this possible         
         newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
@@ -57,8 +61,12 @@
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
-        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Detached);
-        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Detached);
+        var cfg = {};
+        cfg[testFns.orderKeyName] = 1;
+        var parentOrder = em.createEntity("Order", cfg, breeze.EntityState.Detached);
+        cfg = {};
+        cfg[testFns.productKeyName] = 1;
+        var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Detached);
 
         // Can't initialize with related entity. Feature request to make this possible         
         newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
@@ -97,7 +105,9 @@
 
         var m1 = em.createEmptyCopy();
         var customerType = m1.metadataStore.getEntityType("Customer");
-        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var cfg = {};
+        cfg[testFns.customerKeyName] = breeze.core.getUuid();
+        var customer = m1.createEntity("Customer", cfg);
         var exported = m1.exportEntities([customer]);
         var m2 = em.createEmptyCopy();
 
@@ -116,7 +126,9 @@
 
         var m1 = em.createEmptyCopy();
         var customerType = m1.metadataStore.getEntityType("Customer");
-        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var cfg = {};
+        cfg[testFns.customerKeyName] = breeze.core.getUuid();
+        var customer = m1.createEntity("Customer", cfg);
         var exported = m1.exportEntities([customer]);
         var m2 = em.createEmptyCopy();
 
@@ -263,6 +275,9 @@
     });
     
     test("datatype coercion - integer", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail is not an entity");
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -281,6 +296,9 @@
     });
     
     test("datatype coercion - decimal", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail is not an entity");
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -301,6 +319,10 @@
     });
     
     test("datatype coercion - float", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail issues");
+            return true;
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -372,19 +394,21 @@
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity({
+        var cfg = {
             firstName: "John",
-            lastName: "Smith",
-            employeeID: 42
-        });
+            lastName: "Smith"
+        }
+        cfg[testFns.employeeKeyName] = 42;
+        var employee = empType.createEntity(  cfg);
         ok(employee.getProperty("firstName") === "John", "first name should be 'John'");
-        ok(employee.getProperty("employeeID") === 42, "employeeID should be 42");
+        ok(employee.getProperty(testFns.employeeKeyName) === 42, "employeeID should be 42");
         try {
-            var badEmp = empType.createEntity({
+            cfg = {
                 firstxame: "John",
-                lastName: "Smith",
-                employeeID: 42,
-            });
+                lastName: "Smith"
+            }
+            cfg[testFns.employeeKeyName] = 42;
+            var badEmp = empType.createEntity(  cfg);
             ok(false, "shouldn't get here");
         } catch(e) {
             ok(e.message.indexOf("firstxame") !== -1, "error should mention 'firstxame'");
@@ -397,7 +421,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
-        employee.setProperty("employeeID", 42);
+        employee.setProperty(testFns.employeeKeyName, 42);
         em.attachEntity(employee); // simulate existing employee
 
         employee.entityAspect.setDeleted();
@@ -417,7 +441,7 @@
 
         var orderType = em.metadataStore.getEntityType("Order");
         var order = orderType.createEntity();
-        order.setProperty("orderID", 1);
+        order.setProperty(testFns.orderKeyName, 1);
         em.attachEntity(order);
         var es;
         var count = 0;
@@ -441,6 +465,10 @@
     });
     
     test("rejectChanges of a child entity restores it to its parent", 8, function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
         var em = newEm();
 
         var orderType = em.metadataStore.getEntityType("Order");
@@ -571,7 +599,10 @@
 
 
     test("entityType.getProperty nested", function() {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
         var odType = testFns.metadataStore.getEntityType("OrderDetail");
         var orderType = testFns.metadataStore.getEntityType("Order");
         
@@ -652,6 +683,11 @@
     });
 
     test("propertyChanged", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         ok(orderType);
@@ -695,12 +731,12 @@
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
         });
-        order.setProperty("employeeID", 1);
-        ok(lastProperty === "employeeID");
+        order.setProperty(testFns.orderKeyName, 1);
+        ok(lastProperty === testFns.orderKeyName);
         ok(lastNewValue === 1);
         order.entityAspect.propertyChanged.unsubscribe(key);
         order.setProperty("employeeID", 999);
-        ok(lastProperty === "employeeID");
+        ok(lastProperty === testFns.orderKeyName);
         ok(lastNewValue === 1);
     });
 
@@ -709,7 +745,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty("employeeID", 1);
+        emp.setProperty(testFns.employeeKeyName, 1);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -731,7 +767,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty("employeeID", 1);
+        emp.setProperty(testFns.employeeKeyName, 1);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -748,6 +784,11 @@
     });
 
     test("delete entity - check children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
         var details = order.getProperty("orderDetails");
@@ -767,6 +808,11 @@
     });
 
     test("delete entity - check parent", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
         var details = order.getProperty("orderDetails");

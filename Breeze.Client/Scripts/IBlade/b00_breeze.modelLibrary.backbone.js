@@ -144,7 +144,12 @@
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
             if (dp.isComplexProperty) {
-                var co = dp.dataType._createInstanceCore(entity, dp.name);
+                // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                if (dp.isScalar) {
+                    var co = dp.dataType._createInstanceCore(entity, dp.name);
+                } else {
+                    var co = breeze.makeComplexArray([], entity, dp);
+                }
                 bbSet.call(entity, dp.name, co);
             } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {

@@ -92,7 +92,22 @@ breezeTestFns = (function (breeze) {
             testFns.defaultServiceName = "http://localhost:9009/ODataService.svc";
         }
         updateTitle();
+        setKeyNames();
     };
+
+    function setKeyNames() {
+        if (testFns.DEBUG_MONGO) {
+            testFns.orderKeyName = "_id";
+            testFns.customerKeyName = "_id";
+            testFns.employeeKeyName = "_id";
+            testFns.productKeyName = "_id";
+        }   else {
+            testFns.orderKeyName = "orderID";
+            testFns.customerKeyName = "customerID";
+            testFns.employeeKeyName = "employeeID";
+            testFns.productKeyName = "productID"
+        }
+    }
 
     testFns.configure = function () {
         

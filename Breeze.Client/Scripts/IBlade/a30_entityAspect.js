@@ -239,8 +239,12 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            rejectChangesCore(nextTarget);
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                rejectChangesCore(next);
+            } else {
+                next.forEach(function (t) { rejectChangesCore(t); });
+            }
         });
     }
 
@@ -263,9 +267,13 @@ var EntityAspect = function() {
         var aspect = target.entityAspect || target.complexAspect;
         aspect.originalValues = {};
         var stype = target.entityType || target.complexType;
-        stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            clearOriginalValues(nextTarget);
+        stype.complexProperties.forEach(function (cp) {
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                clearOriginalValues(next);
+            } else {
+                next.forEach(function (t) { clearOriginalValues(t); });
+            }
         });
     }
 
@@ -376,7 +384,11 @@ var EntityAspect = function() {
                 ok = entityAspect._validateProperty(value, context) && ok;
             }
             if (p.isComplexProperty) {
-                ok = validateTarget(value) && ok;
+                if (p.isScalar) {
+                    ok = validateTarget(value) && ok;
+                } else {
+                    // TODO: do we want to iterate over all of the complexObject in this property?
+                }
             }
         });
             
