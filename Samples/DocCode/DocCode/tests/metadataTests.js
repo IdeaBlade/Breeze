@@ -204,16 +204,17 @@
             shortName: 'UserPartial',
             namespace: namespace
         });
-        var id = new breeze.DataProperty({
+        var DP = breeze.DataProperty;
+        var id = new DP({
             nameOnServer: 'Id',
             dataType: breeze.DataType.Int32,
             isPartOfKey: true,
         });
         type.addProperty(id);
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'FirstName' }));
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'LastName' }));
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'Email' }));
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'RoleNames' }));
+        type.addProperty(new DP({ nameOnServer: 'FirstName' }));
+        type.addProperty(new DP({ nameOnServer: 'LastName' }));
+        type.addProperty(new DP({ nameOnServer: 'Email' }));
+        type.addProperty(new DP({ nameOnServer: 'RoleNames' }));
 
         metadataStore.addEntityType(type);
         return type;
@@ -255,24 +256,25 @@
             shortName: 'EmployeePartial',
             namespace: empType.namespace
         });
-        var idProperty = new breeze.DataProperty({
+        var DP = breeze.DataProperty;
+        var idProperty = new DP({
             nameOnServer: 'EmployeeID',
             dataType: breeze.DataType.Int32,
             isPartOfKey: true,
         });
         type.addProperty(idProperty);
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'FirstName' }));
-        type.addProperty(new breeze.DataProperty({ nameOnServer: 'LastName' }));
+        type.addProperty(new DP({ nameOnServer: 'FirstName' }));
+        type.addProperty(new DP({ nameOnServer: 'LastName' }));
 
         // Get the navigation property from Employee to Orders
         var assoc = empType.getNavigationProperty('Orders');
         
         type.addProperty(new breeze.NavigationProperty({
-            nameOnServer: 'Orders',
-            isScalar: false, // it's a collection
-            entityTypeName: assoc.entityType.name,
-            foreignKeyNames: assoc.inverse.foreignKeyNames,
-            associationName: assoc.associationName
+              nameOnServer: 'Orders'
+            , isScalar: false  // it's a collection
+            , entityTypeName: assoc.entityType.name
+            , foreignKeyNames: assoc.inverse.foreignKeyNames
+            , associationName: assoc.associationName
         }));
         
         metadataStore.addEntityType(type);
