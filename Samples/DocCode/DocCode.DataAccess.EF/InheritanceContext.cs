@@ -72,6 +72,9 @@ namespace Inheritance.Models
         public DbSet<DepositTPT> DepositTPTs { get; set; }
         public DbSet<DepositTPC> DepositTPCs { get; set; }
 
+        // Self-referencing hierarchy
+        public DbSet<AClass> Projects { get; set; }
+        public DbSet<BClass> OtherProjects { get; set; }
     }
 }
 
