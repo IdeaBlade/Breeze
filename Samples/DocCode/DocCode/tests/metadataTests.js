@@ -161,9 +161,8 @@
     * Can add type to metadataStore
     *********************************************************/
     test("can add 'UserPartial' type to metadataStore", 5, function () {
-
-        var em = newNorthwindEm();
-        var metastore = em.metadataStore;
+        var metastore = cloneModuleMetadataStore();
+        var em = newNorthwindEm(metastore);
 
         defineUserPartialType(metastore);
 
@@ -199,11 +198,11 @@
 
     });
     
-    /** test helpers **/
-    function defineUserPartialType(store) {
+    function defineUserPartialType(metadataStore) {
+        var namespace = metadataStore.getEntityType('User').namespace;
         var type = new breeze.EntityType({
             shortName: 'UserPartial',
-            namespace: 'Northwind.Models'
+            namespace: namespace
         });
         var id = new breeze.DataProperty({
             nameOnServer: 'Id',
@@ -215,9 +214,69 @@
         type.addProperty(new breeze.DataProperty({ nameOnServer: 'LastName' }));
         type.addProperty(new breeze.DataProperty({ nameOnServer: 'Email' }));
         type.addProperty(new breeze.DataProperty({ nameOnServer: 'RoleNames' }));
-        // How do I add a property for UserRoles?
-        // How do I add a property for RoleNames?
-        store.addEntityType(type);
+
+        metadataStore.addEntityType(type);
+        return type;
+    }
+    /*********************************************************
+    * Can project into a client-defined, made-up type 
+    *********************************************************/
+    test("can project into the 'EmployeePartial' client-defined, made-up type", 4, function () {
+        var store = cloneModuleMetadataStore();
+        var employeePartialType = defineEmployeePartialType(store);
+        var em = newNorthwindEm(store);
+
+        var query = breeze.EntityQuery.from('Employees')
+            .where('EmployeeID', 'eq', 1)
+            .select('EmployeeID, FirstName, LastName, Orders')
+            .toType('EmployeePartial')
+            .using(em);
+        
+        stop(); // going async
+        query.execute().then(success).fail(handleFail).fin(start);
+        
+        function success(data) {
+            var emp = data.results[0];
+            ok(emp, "should get a projected 'Employee'");
+            ok(emp.entityAspect, "should project it into an entity");
+            equal(emp.entityType, employeePartialType,
+            "the projected type should be " + employeePartialType.name);
+            var orderCount = emp.Orders().length;
+            ok(orderCount,
+               "the projected 'Employee' should have 'Orders', got " + orderCount);
+        }
+
+    });
+    
+    function defineEmployeePartialType(metadataStore) {
+        var empType = metadataStore.getEntityType('Employee');
+
+        var type = new breeze.EntityType({
+            shortName: 'EmployeePartial',
+            namespace: empType.namespace
+        });
+        var idProperty = new breeze.DataProperty({
+            nameOnServer: 'EmployeeID',
+            dataType: breeze.DataType.Int32,
+            isPartOfKey: true,
+        });
+        type.addProperty(idProperty);
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'FirstName' }));
+        type.addProperty(new breeze.DataProperty({ nameOnServer: 'LastName' }));
+
+        // Get the navigation property from Employee to Orders
+        var assoc = empType.getNavigationProperty('Orders');
+        
+        type.addProperty(new breeze.NavigationProperty({
+            nameOnServer: 'Orders',
+            isScalar: false, // it's a collection
+            entityTypeName: assoc.entityType.name,
+            foreignKeyNames: assoc.inverse.foreignKeyNames,
+            associationName: assoc.associationName
+        }));
+        
+        metadataStore.addEntityType(type);
+        return type;
     }
 
     /*** NamingConvention Tests ***/
