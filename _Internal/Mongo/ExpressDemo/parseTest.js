@@ -59,9 +59,23 @@ x = tryParse("$filter='xxx'");
 
 x = tryParse("$filter=Name/foo")
 
+parseAndCompare("$filter", "$filter=_id eq guid'785efa04-cbf2-4dd7-a7de-083ee17b6ad2'",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "_id" },
+        p2: { type: "lit_guid", value: "785efa04-cbf2-4dd7-a7de-083ee17b6ad2"}
+    });
+
+
 parseAndCompare("$filter","$filter=Name eq 'John'",
     { type: "op_bool", op: "eq",
         p1: { type: "member", value: "Name" },
+        p2: { type: "lit_string", value: "John"}
+    });
+
+
+parseAndCompare("$filter","$filter=_name eq 'John'",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "_name" },
         p2: { type: "lit_string", value: "John"}
     });
 

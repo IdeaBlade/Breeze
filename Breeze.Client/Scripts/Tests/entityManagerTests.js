@@ -51,6 +51,10 @@
     });
     
     test("export/import deleted", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - save not yet supported");
+            return;
+        }
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
@@ -203,6 +207,10 @@
     });
     
     test("store-gen keys are always set by key generator on add to manager if they have default values", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - save not yet supported");
+            return;
+        }
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
@@ -225,6 +233,10 @@
     });
 
     test("store-gen keys are not re-set by key generator upon add to manager", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - save not yet supported");
+            return;
+        }
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
@@ -261,7 +273,10 @@
     });
     
     test("import results notification", function () {
-
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand");
+            return;
+        }
         var em = newEm();
         var em2 = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';

@@ -31,40 +31,12 @@
         // ID of the Northwind "Nancy Davolio" employee
         nancyID: 1,
         // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rössle Sauerkraut*/ },
+        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rï¿½ssle Sauerkraut*/ },
         // ID of Chai product
         chaiProductID: 1
     };
 
-    test("can save a Northwind Order & InternationalOrder", 2, function () {
-        // Create and initialize entity to save
-        var em = newEm();
 
-        var order = em.createEntity('Order', {
-            customerID: wellKnownData.alfredsID,
-            employeeID: wellKnownData.nancyID,
-            shipName: "Test " + new Date().toISOString()
-        });
-
-        var internationalOrder = em.createEntity('InternationalOrder', {
-            // I thought Jay fixed this?
-            order: order, // sets OrderID and pulls it into the order's manager
-            // orderID: order.getProperty("orderID"),
-            customsDescription: "rare, exotic birds"
-        });
-        stop();
-        em.saveChanges().then(function(data) {
-
-            var orderId = order.getProperty("orderID");
-            var internationalOrderID = internationalOrder.getProperty("orderID");
-
-            equal(internationalOrderID, orderId,
-                "the new internationalOrder should have the same OrderID as its new parent Order, " + orderId);
-            ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
-        
-        }).fail(testFns.handleFail).fin(start);
-
-    });
     
     test("raw query string", function () {
         
@@ -81,6 +53,10 @@
     });
 
     test("query with take, orderby and expand", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
         var em = newEm();
         var q1 = EntityQuery.from("Products")
             .expand("category")
@@ -101,7 +77,11 @@
     });
 
     test("query with take, skip, orderby and expand", function () {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var q1 = EntityQuery.from("Products")
             .expand("category")
@@ -137,9 +117,7 @@
             ok(data.results.length === 0);
             var r = em.executeQueryLocally(q);
             ok(r.length === 0);
-        }).fail(function (e) {
-            ok(false, e.message);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
             
     });
 
@@ -160,6 +138,11 @@
     });
 
     test("nested expand", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("OrderDetails").take(5).expand("order.customer");
@@ -365,6 +348,11 @@
     });
     
     test("size test property change", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("Customers").take(5).expand("orders");
@@ -419,6 +407,11 @@
     });
     
     test("detached unresolved children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var realEm = newEm();
         var metadataStore = realEm.metadataStore; 
         var orderType = metadataStore.getEntityType("Order"); 
@@ -452,6 +445,11 @@
     });
 
     test("query with two nested expands", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery.from("OrderDetails")
             .where("orderID", "==", 11069)
@@ -754,15 +752,15 @@
         stop();
         var r;
         EntityQuery.from("Products").take(5).using(em).execute().then(function(data) {
-            var id = data.results[0].getProperty("productID").toString();
+            var id = data.results[0].getProperty(testFns.productKeyName).toString();
 
             var query = new breeze.EntityQuery()
-                .from("Products").where('productID', '==', id).take(5);
+                .from("Products").where(testFns.productKeyName, '==', id).take(5);
             query.using(em).execute().then(function(data2) {
                 r = data2.results;
                 ok(r.length == 1);
                 query = new breeze.EntityQuery()
-                    .from("Products").where('productID', '!=', id);
+                    .from("Products").where(testFns.productKeyName, '!=', id);
                 return query.using(em).execute();
             }).then(function(data3) {
                 r = data3.results;
@@ -823,7 +821,7 @@
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .using(em);
         stop();
         var arrayChangedCount = 0;
@@ -849,10 +847,15 @@
     });
     
     test("query results notification suppressed", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .using(em);
         stop();
         var arrayChangedCount = 0;
@@ -895,7 +898,7 @@
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .using(em);
         stop();
         var arrayChangedCount = 0;
@@ -924,7 +927,7 @@
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .using(em);
         stop();
         query.execute().then(function(data) {
@@ -935,11 +938,16 @@
     });
 
     test("duplicates after relation query", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         em.queryOptions = em.queryOptions.using(MergeStrategy.OverwriteChanges);
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID);
+            .where(testFns.customerKeyName, "==", alfredsID);
             // bug goes away if you add this.
             // .expand("orders");
         var customer;
@@ -1099,7 +1107,7 @@
         customer.setProperty("companyName","[don't know name yet]");
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         em.attachEntity(customer);
-        customer.setProperty("customerID", alfredsID); 
+        customer.setProperty(testFns.customerKeyName, alfredsID);
         var ek = customer.entityAspect.getKey();
         var sameCustomer = em.findEntityByKey(ek);
         ok(customer === sameCustomer, "customer should == sameCustomer");
@@ -1109,14 +1117,14 @@
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
-        var query = EntityQuery.from("Customers").where("customerID", "==", alfredsID);
+        var query = EntityQuery.from("Customers").where(testFns.customerKeyName, "==", alfredsID);
         stop();
         query.using(em).execute().then(function(data) {        
             ok(data.results.length === 1,"should have fetched 1 record");
             var customer = custType.createEntity();        
             em.attachEntity(customer);
             try {
-                customer.setProperty("customerID", alfredsID); 
+                customer.setProperty(testFns.customerKeyName, alfredsID);
                 ok(false, "should not get here");
             } catch(e) {
                 ok(e.message.indexOf("key") > 0);
@@ -1137,7 +1145,7 @@
         em.attachEntity(customer);
 
         // TEST FAILS  (2 IN CACHE W/ SAME ID) ... CHANGING THE ID AFTER ATTACH
-        customer.setProperty("customerID", alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
+        customer.setProperty(testFns.customerKeyName, alfredsID); // 785efa04-cbf2-4dd7-a7de-083ee17b6ad2
         var ek = customer.entityAspect.getKey();
         var sameCustomer = em.getEntityByKey(ek);
         customer.entityAspect.setUnchanged();
@@ -1166,7 +1174,7 @@
                     var c1 = inCache[0], c2 = inCache[1];
                     ok(false,
                         "Two custs in cache with same ID, ({0})-{1} and ({2})-{3}".format(// format is my extension to String
-                            c1.getProperty("customerID"), c1.getProperty("companyName"), c2.getProperty("customerID"), c2.getProperty("companyName")));
+                            c1.getProperty(testFns.customerKeyName), c1.getProperty("companyName"), c2.getProperty(testFns.customerKeyName), c2.getProperty("companyName")));
                 }
 
                 // This test should succeed; it fails because of above bug!!!
@@ -1348,6 +1356,11 @@
     });
 
     test("unidirectional navigation load", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - OrderDetails is not queryable");
+            return;
+        }
+
         var em = newEm();
         var count = 5;
         var query = EntityQuery.from("OrderDetails").take(count);
@@ -1370,6 +1383,10 @@
     });
     
     test("unidirectional navigation query", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - OrderDetails is not queryable");
+            return;
+        }
         var em = newEm();
         
         var query = EntityQuery.from("OrderDetails")
@@ -1395,6 +1412,10 @@
     });
     
     test("unidirectional navigation bad query", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
         var em = newEm();
 
         var query = EntityQuery.from("Products")
@@ -1434,6 +1455,10 @@
     });
 
     test("where nested property", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1483,6 +1508,10 @@
     });
 
     test("expand", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1509,6 +1538,11 @@
     });
 
     test("expand multiple", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
+
         var em = newEm();
 
         var query = new EntityQuery("Orders");
@@ -1540,6 +1574,11 @@
     });
     
     test("expand nested", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
+
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1581,6 +1620,10 @@
     });
 
     test("orderBy nested", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1603,6 +1646,11 @@
     });
 
     test("orderBy two part nested", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
+
         var em = newEm();
 
         var query = new EntityQuery()
@@ -1720,6 +1768,11 @@
     });
     
     test("query expr - navigation then length", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand is not yet supported");
+            return;
+        }
+
         var em = newEm();
 
         var query = new EntityQuery()

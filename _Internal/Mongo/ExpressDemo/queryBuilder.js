@@ -1,4 +1,5 @@
 var odataParser = require("./odataParser");
+var uuidHelpers = require("./uuidHelpers");
 
 var boolOpMap = {
     eq: { jsOp: "==="},
@@ -90,8 +91,11 @@ function makeBoolFilter(op, p1, p2) {
         // handles nested paths. '/' -> "."
         var p1Value = p1.value.replace("/",".");
         if (startsWith(p2.type, "lit_")) {
-
-            var p2Value = p2.value;
+            if (p2.type === "lit_guid") {
+                var p2Value = uuidHelpers.CSUUID(p2.value);
+            } else {
+                var p2Value = p2.value;
+            }
             if (op === "eq") {
                 q[p1Value] = p2Value;
                 return q;

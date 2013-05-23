@@ -4401,7 +4401,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
         } else {
             // To get here it must be a (nonComplex) DataProperty  
-            if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
+            if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
                 var values = keyProps.map(function(p) {
                     if (p == property) {
@@ -4449,7 +4449,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
             }
 
-            if (property.isPartOfKey) {
+            if (property.isPartOfKey && (!this.complexAspect)) {
                 // propogate pk change to all related entities;
                 if (oldValue && !entityAspect.entityState.isDetached()) {
                     entityAspect.primaryKeyWasChanged = true;
@@ -5257,7 +5257,6 @@ var MetadataStore = (function () {
         } 
 
         if (structuralType.baseEntityType) {
-            
             structuralType.baseEntityType.subtypes.push(structuralType);
         }
     };
@@ -6958,6 +6957,8 @@ var ComplexType = (function () {
         this.validators = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = [];
+        this.navigationProperties = []; // not yet supported 
+        this.keyProperties = []; // may be used later to enforce uniqueness on arrays of complextypes.
 
         addProperties(this, config.dataProperties, DataProperty);
     };
