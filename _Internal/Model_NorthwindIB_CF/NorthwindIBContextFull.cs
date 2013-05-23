@@ -91,6 +91,8 @@ namespace Models.NorthwindIB.CF {
 
     public DbSet<TimeLimit> TimeLimits { get; set; }
 
+    public DbSet<TimeGroup> TimeGroups { get; set; }
+
     public DbSet<Comment> Comments { get; set; }
 
     public DbSet<Geospatial> Geospatials { get; set; }
@@ -1566,6 +1568,7 @@ namespace Foo {
   [Table("TimeLimit", Schema = "dbo")]
   public partial class TimeLimit {
 
+    #region Data Properties
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -1579,9 +1582,50 @@ namespace Foo {
     [DataMember]
     [Column("MinTime")]
     public Nullable<System.TimeSpan> MinTime { get; set; }
+
+    [DataMember]
+    // [ForeignKey("TimeGroup")]
+    [Column("TimeGroupId")]
+    public System.Nullable<int> TimeGroupId { get; set; }
+    #endregion Data Properties
+
+    #region Navigation Properties
+    /// <summary>Gets or sets the TimeGroup. </summary>
+    [DataMember]
+    [ForeignKey("TimeGroupId")]
+    [InverseProperty("TimeLimits")]
+    public TimeGroup TimeGroup { get; set; }
+    #endregion Navigation Properties
   }
 
   #endregion TimeLimit
+
+  #region TimeGroup class
+
+  [DataContract(IsReference = true)]
+  [Table("TimeGroup", Schema = "dbo")]
+  public partial class TimeGroup {
+
+    #region Data Properties
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("Id")]
+    public int Id { get; set; }
+
+    [DataMember]
+    [Column("Comment")]
+    public string Comment { get; set; }
+    #endregion Data Properties
+
+    #region Navigation Properties
+    [DataMember]
+    [InverseProperty("TimeGroup")]
+    public ICollection<TimeLimit> TimeLimits { get; set; }
+    #endregion Navigation Properties
+  }
+
+  #endregion TimeGroup
 
   #region Comment class
 
@@ -1594,7 +1638,7 @@ namespace Foo {
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    [Column("CreatedOn", Order=1)]
+    [Column("CreatedOn", Order = 1)]
     public System.DateTime CreatedOn { get; set; }
 
     [Key]
