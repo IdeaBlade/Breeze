@@ -2,11 +2,12 @@ var mongodb = require('mongodb');
 var fs = require('fs');
 var queryBuilder = require("./queryBuilder");
 
+
 var host = 'localhost';
 var port = 27017;
 var dbName = 'NorthwindIB';
-var dbServer = new mongodb.Server(host, port);
-var db = new mongodb.Db(dbName, dbServer, {auto_reconnect: true, safe:true});
+var dbServer = new mongodb.Server(host, port, { auto_reconnect: true});
+var db = new mongodb.Db(dbName, dbServer, { strict:true, w: 1});
 db.open(function () {
 
 });
@@ -33,7 +34,7 @@ exports.getProducts = function(req, res) {
 }
 
 function getCollection(res, collectionName, query) {
-    db.collection(collectionName, function (err, collection) {
+    db.collection(collectionName, {strict: true} , function (err, collection) {
         if (err) {
             res.send(400, "Unable to locate: " + collectionName);
             return;

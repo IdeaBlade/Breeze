@@ -739,7 +739,7 @@
                "isScalar":true,
                "associationName":"FK_InternationalOrder_Order",
                "foreignKeyNames":[
-                  "orderID"
+                  "_id"
                ]
             }
          ]
@@ -966,7 +966,7 @@
                "isScalar":true,
                "associationName":"FK_InternationalOrder_Order",
                "foreignKeyNames":[
-                  "orderID"
+                  "_id"
                ]
             }
 
@@ -975,7 +975,7 @@
       {
          "shortName":"OrderDetail",
          "namespace":"Models.NorthwindIB.Mongo",
-         "isCompleType": true,
+         "isComplexType": true,
          "dataProperties":[
             {
                 "name":"productID",

@@ -103,7 +103,7 @@ var x = {
                     "type": "string",
                     "default": ""
                 },
-                "isCompleType": {
+                "isComplexType": {
                     "description": "This must be 'true'.  This field is what distinguishes an entityType from a complexType. ",
                     "type": "boolean"
                 },

@@ -136,7 +136,7 @@ nanInfinity                 =  nan / negativeInfinity / positiveInfinity
 
 unreserved                  =  a:[a-zA-Z0-9-_]+ { return a.join(''); }
 
-identifierPart              =  a:[a-zA-Z] b:unreserved { return a + b; }
+identifierPart              =  a:[a-zA-Z_] b:unreserved { return a + b; }
 identifier                  =  a:identifierPart list:("." i:identifier {return i;})? { return flatten2(a, list) }
 
 literal                     =  null /
@@ -169,8 +169,12 @@ dateTimeOffset              =  "datetimeoffset" squote a:dateTimeOffsetBody squo
 numericLiteral              =  number:number
                                  { return { type: "lit_number", value: number } }
 
-guid                        =  "guid" squote guid:(hexdigit8 "-" hexdigit4 "-" hexdigit4 "-" hexdigit8 hexdigit4) squote
+guid                        =  "guid" squote guid:([^'])+ squote
                                  { return { type: "lit_guid",   value: guid } }
+
+/* guid                        =  "guid" squote guid:(hexdigit8 "-" hexdigit4 "-" hexdigit4 "-" hexdigit8 hexdigit4) squote
+                                 { return { type: "lit_guid",   value: guid } }
+*/
 
 stringLiteral               =  squote v:enclosedString squote
                                  { return { type: "lit_string", value: v } }

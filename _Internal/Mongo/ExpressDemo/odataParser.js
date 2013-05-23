@@ -1620,13 +1620,13 @@ module.exports = (function(){
         
         pos0 = pos;
         pos1 = pos;
-        if (/^[a-zA-Z]/.test(input.charAt(pos))) {
+        if (/^[a-zA-Z_]/.test(input.charAt(pos))) {
           result0 = input.charAt(pos);
           pos++;
         } else {
           result0 = null;
           if (reportFailures === 0) {
-            matchFailed("[a-zA-Z]");
+            matchFailed("[a-zA-Z_]");
           }
         }
         if (result0 !== null) {
@@ -2025,8 +2025,8 @@ module.exports = (function(){
       }
       
       function parse_guid() {
-        var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9;
-        var pos0, pos1, pos2;
+        var result0, result1, result2, result3;
+        var pos0, pos1;
         
         pos0 = pos;
         pos1 = pos;
@@ -2042,79 +2042,31 @@ module.exports = (function(){
         if (result0 !== null) {
           result1 = parse_squote();
           if (result1 !== null) {
-            pos2 = pos;
-            result2 = parse_hexdigit8();
-            if (result2 !== null) {
-              if (input.charCodeAt(pos) === 45) {
-                result3 = "-";
-                pos++;
-              } else {
-                result3 = null;
-                if (reportFailures === 0) {
-                  matchFailed("\"-\"");
-                }
+            if (/^[^']/.test(input.charAt(pos))) {
+              result3 = input.charAt(pos);
+              pos++;
+            } else {
+              result3 = null;
+              if (reportFailures === 0) {
+                matchFailed("[^']");
               }
-              if (result3 !== null) {
-                result4 = parse_hexdigit4();
-                if (result4 !== null) {
-                  if (input.charCodeAt(pos) === 45) {
-                    result5 = "-";
-                    pos++;
-                  } else {
-                    result5 = null;
-                    if (reportFailures === 0) {
-                      matchFailed("\"-\"");
-                    }
-                  }
-                  if (result5 !== null) {
-                    result6 = parse_hexdigit4();
-                    if (result6 !== null) {
-                      if (input.charCodeAt(pos) === 45) {
-                        result7 = "-";
-                        pos++;
-                      } else {
-                        result7 = null;
-                        if (reportFailures === 0) {
-                          matchFailed("\"-\"");
-                        }
-                      }
-                      if (result7 !== null) {
-                        result8 = parse_hexdigit8();
-                        if (result8 !== null) {
-                          result9 = parse_hexdigit4();
-                          if (result9 !== null) {
-                            result2 = [result2, result3, result4, result5, result6, result7, result8, result9];
-                          } else {
-                            result2 = null;
-                            pos = pos2;
-                          }
-                        } else {
-                          result2 = null;
-                          pos = pos2;
-                        }
-                      } else {
-                        result2 = null;
-                        pos = pos2;
-                      }
-                    } else {
-                      result2 = null;
-                      pos = pos2;
-                    }
-                  } else {
-                    result2 = null;
-                    pos = pos2;
-                  }
+            }
+            if (result3 !== null) {
+              result2 = [];
+              while (result3 !== null) {
+                result2.push(result3);
+                if (/^[^']/.test(input.charAt(pos))) {
+                  result3 = input.charAt(pos);
+                  pos++;
                 } else {
-                  result2 = null;
-                  pos = pos2;
+                  result3 = null;
+                  if (reportFailures === 0) {
+                    matchFailed("[^']");
+                  }
                 }
-              } else {
-                result2 = null;
-                pos = pos2;
               }
             } else {
               result2 = null;
-              pos = pos2;
             }
             if (result2 !== null) {
               result3 = parse_squote();

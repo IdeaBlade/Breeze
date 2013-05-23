@@ -12,7 +12,7 @@ var testCaseDir = "c:/GitHub/Breeze/Breeze.Client/"
 
 
 app.get('/', function(req,res) {
-    res.sendfile(testCaseDir + 'index.html');
+    res.sendfile(testCaseDir + 'mongo_index.html');
 });
 app.get('/breeze/NorthwindIBModel/Metadata', routes.getMetadata);
 app.get('/breeze/NorthwindIBModel/Products', routes.getProducts);
