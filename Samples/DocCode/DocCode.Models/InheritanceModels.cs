@@ -262,7 +262,7 @@ namespace Inheritance.Models
         }
         [Key]
         public int Id { get; set; }
-        public Nullable<int> ParentId { get; set; }
+        public int? ParentId { get; set; }
         public string Name { get; set; }
 
         // [InverseProperty("Parent")]
