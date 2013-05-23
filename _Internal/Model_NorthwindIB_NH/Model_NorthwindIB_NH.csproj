@@ -45,6 +45,7 @@
     <Compile Include="Entities\Customer.cs" />
     <Compile Include="Entities\Employee.cs" />
     <Compile Include="Entities\EmployeeTerritory.cs" />
+    <Compile Include="Entities\Geospatial.cs" />
     <Compile Include="Entities\InternationalOrder.cs" />
     <Compile Include="Entities\Location.cs" />
     <Compile Include="Entities\NextId.cs" />
@@ -59,11 +60,14 @@
     <Compile Include="Entities\Territory.cs" />
     <Compile Include="Entities\TimeGroup.cs" />
     <Compile Include="Entities\TimeLimit.cs" />
+    <Compile Include="Entities\UnusualDate.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Entities\UserRole.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Mapping\Geospatial.hbm.xml" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Mapping\Category.hbm.xml" />
     <EmbeddedResource Include="Mapping\Comment.hbm.xml" />
@@ -86,6 +90,9 @@
     <EmbeddedResource Include="Mapping\TimeLimit.hbm.xml" />
     <EmbeddedResource Include="Mapping\User.hbm.xml" />
     <EmbeddedResource Include="Mapping\UserRole.hbm.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Mapping\UnusualDate.hbm.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,0 +1,9 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Geospatial" table="`Geospatial`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="Geometry1" type="System.Byte[]"/>
+    <property name="Geography1" type="System.Byte[]"/>
+  </class>
+</hibernate-mapping>

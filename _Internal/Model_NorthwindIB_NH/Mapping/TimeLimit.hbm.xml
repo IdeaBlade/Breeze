@@ -5,10 +5,6 @@
     </id>
     <property name="MaxTime" type="TimeAsTimeSpan" not-null="true" />
     <property name="MinTime" type="TimeAsTimeSpan" />
-    <property name="CreationDate" type="System.DateTimeOffset" />
-    <property name="ModificationDate" type="DateTime" />
-    <property name="Geometry1" type="System.Byte[]"/>
-    <property name="Geography1" type="System.Byte[]"/>
     <property name="TimeGroupId" type="int" />
   </class>
 </hibernate-mapping>

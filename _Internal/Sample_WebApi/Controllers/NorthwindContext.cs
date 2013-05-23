@@ -27,6 +27,10 @@ namespace Sample_WebApi.Controllers
         {
             get { return GetQuery<Employee>(); }
         }
+        public NhQueryableInclude<Geospatial> Geospatials
+        {
+            get { return GetQuery<Geospatial>(); }
+        }
         public NhQueryableInclude<Order> Orders
         {
             get { return GetQuery<Order>(); }
@@ -58,6 +62,10 @@ namespace Sample_WebApi.Controllers
         public NhQueryableInclude<TimeLimit> TimeLimits
         {
             get { return GetQuery<TimeLimit>(); }
+        }
+        public NhQueryableInclude<UnusualDate> UnusualDates
+        {
+            get { return GetQuery<UnusualDate>(); }
         }
         public NhQueryableInclude<User> Users
         {
