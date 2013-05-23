@@ -31,6 +31,9 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_User", "User", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.User), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_Order_Customer", "Customer", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.Customer), "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Order), true)]
 [assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_UserRole_Role", "Role", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Role), "UserRole", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.UserRole), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_InternationalOrder_Order", "Order", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(Models.NorthwindIB.EDMX.Order), "InternationalOrder", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.InternationalOrder), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "FK_TimeLimitTimeGroup", "TimeGroup", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(Models.NorthwindIB.EDMX.TimeGroup), "TimeLimit", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.TimeLimit), true)]
+[assembly: EdmRelationshipAttribute("Models.NorthwindIB.EDMX", "EmployeeTerritoryNoPayload", "Employee", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Employee), "Territory", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(Models.NorthwindIB.EDMX.Territory))]
 
 #endregion
 
@@ -305,6 +308,102 @@ namespace Models.NorthwindIB.EDMX
             }
         }
         private ObjectSet<TimeLimit> _TimeLimits;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<Comment> Comments
+        {
+            get
+            {
+                if ((_Comments == null))
+                {
+                    _Comments = base.CreateObjectSet<Comment>("Comments");
+                }
+                return _Comments;
+            }
+        }
+        private ObjectSet<Comment> _Comments;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<UnusualDate> UnusualDates
+        {
+            get
+            {
+                if ((_UnusualDates == null))
+                {
+                    _UnusualDates = base.CreateObjectSet<UnusualDate>("UnusualDates");
+                }
+                return _UnusualDates;
+            }
+        }
+        private ObjectSet<UnusualDate> _UnusualDates;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<InternationalOrder> InternationalOrders
+        {
+            get
+            {
+                if ((_InternationalOrders == null))
+                {
+                    _InternationalOrders = base.CreateObjectSet<InternationalOrder>("InternationalOrders");
+                }
+                return _InternationalOrders;
+            }
+        }
+        private ObjectSet<InternationalOrder> _InternationalOrders;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<NextId> NextIds
+        {
+            get
+            {
+                if ((_NextIds == null))
+                {
+                    _NextIds = base.CreateObjectSet<NextId>("NextIds");
+                }
+                return _NextIds;
+            }
+        }
+        private ObjectSet<NextId> _NextIds;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<PreviousEmployee> PreviousEmployees
+        {
+            get
+            {
+                if ((_PreviousEmployees == null))
+                {
+                    _PreviousEmployees = base.CreateObjectSet<PreviousEmployee>("PreviousEmployees");
+                }
+                return _PreviousEmployees;
+            }
+        }
+        private ObjectSet<PreviousEmployee> _PreviousEmployees;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<TimeGroup> TimeGroups
+        {
+            get
+            {
+                if ((_TimeGroups == null))
+                {
+                    _TimeGroups = base.CreateObjectSet<TimeGroup>("TimeGroups");
+                }
+                return _TimeGroups;
+            }
+        }
+        private ObjectSet<TimeGroup> _TimeGroups;
 
         #endregion
 
@@ -420,6 +519,54 @@ namespace Models.NorthwindIB.EDMX
         public void AddToTimeLimits(TimeLimit timeLimit)
         {
             base.AddObject("TimeLimits", timeLimit);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the Comments EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToComments(Comment comment)
+        {
+            base.AddObject("Comments", comment);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the UnusualDates EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToUnusualDates(UnusualDate unusualDate)
+        {
+            base.AddObject("UnusualDates", unusualDate);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the InternationalOrders EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToInternationalOrders(InternationalOrder internationalOrder)
+        {
+            base.AddObject("InternationalOrders", internationalOrder);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the NextIds EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToNextIds(NextId nextId)
+        {
+            base.AddObject("NextIds", nextId);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the PreviousEmployees EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToPreviousEmployees(PreviousEmployee previousEmployee)
+        {
+            base.AddObject("PreviousEmployees", previousEmployee);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the TimeGroups EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToTimeGroups(TimeGroup timeGroup)
+        {
+            base.AddObject("TimeGroups", timeGroup);
         }
 
         #endregion
@@ -607,6 +754,115 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="Comment")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class Comment : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new Comment object.
+        /// </summary>
+        /// <param name="createdOn">Initial value of the CreatedOn property.</param>
+        /// <param name="seqNum">Initial value of the SeqNum property.</param>
+        public static Comment CreateComment(global::System.DateTime createdOn, global::System.Byte seqNum)
+        {
+            Comment comment = new Comment();
+            comment.CreatedOn = createdOn;
+            comment.SeqNum = seqNum;
+            return comment;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.DateTime CreatedOn
+        {
+            get
+            {
+                return _CreatedOn;
+            }
+            set
+            {
+                if (_CreatedOn != value)
+                {
+                    OnCreatedOnChanging(value);
+                    ReportPropertyChanging("CreatedOn");
+                    _CreatedOn = StructuralObject.SetValidValue(value, "CreatedOn");
+                    ReportPropertyChanged("CreatedOn");
+                    OnCreatedOnChanged();
+                }
+            }
+        }
+        private global::System.DateTime _CreatedOn;
+        partial void OnCreatedOnChanging(global::System.DateTime value);
+        partial void OnCreatedOnChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Comment1
+        {
+            get
+            {
+                return _Comment1;
+            }
+            set
+            {
+                OnComment1Changing(value);
+                ReportPropertyChanging("Comment1");
+                _Comment1 = StructuralObject.SetValidValue(value, true, "Comment1");
+                ReportPropertyChanged("Comment1");
+                OnComment1Changed();
+            }
+        }
+        private global::System.String _Comment1;
+        partial void OnComment1Changing(global::System.String value);
+        partial void OnComment1Changed();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Byte SeqNum
+        {
+            get
+            {
+                return _SeqNum;
+            }
+            set
+            {
+                if (_SeqNum != value)
+                {
+                    OnSeqNumChanging(value);
+                    ReportPropertyChanging("SeqNum");
+                    _SeqNum = StructuralObject.SetValidValue(value, "SeqNum");
+                    ReportPropertyChanged("SeqNum");
+                    OnSeqNumChanged();
+                }
+            }
+        }
+        private global::System.Byte _SeqNum;
+        partial void OnSeqNumChanging(global::System.Byte value);
+        partial void OnSeqNumChanged();
 
         #endregion
 
@@ -1607,6 +1863,28 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "EmployeeTerritoryNoPayload", "Territory")]
+        public EntityCollection<Territory> Territories
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Territory>("Models.NorthwindIB.EDMX.EmployeeTerritoryNoPayload", "Territory");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Territory>("Models.NorthwindIB.EDMX.EmployeeTerritoryNoPayload", "Territory", value);
+                }
+            }
+        }
 
         #endregion
 
@@ -1821,6 +2099,267 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="InternationalOrder")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class InternationalOrder : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new InternationalOrder object.
+        /// </summary>
+        /// <param name="orderID">Initial value of the OrderID property.</param>
+        /// <param name="customsDescription">Initial value of the CustomsDescription property.</param>
+        /// <param name="exciseTax">Initial value of the ExciseTax property.</param>
+        /// <param name="rowVersion">Initial value of the RowVersion property.</param>
+        public static InternationalOrder CreateInternationalOrder(global::System.Int32 orderID, global::System.String customsDescription, global::System.Decimal exciseTax, global::System.Int32 rowVersion)
+        {
+            InternationalOrder internationalOrder = new InternationalOrder();
+            internationalOrder.OrderID = orderID;
+            internationalOrder.CustomsDescription = customsDescription;
+            internationalOrder.ExciseTax = exciseTax;
+            internationalOrder.RowVersion = rowVersion;
+            return internationalOrder;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 OrderID
+        {
+            get
+            {
+                return _OrderID;
+            }
+            set
+            {
+                if (_OrderID != value)
+                {
+                    OnOrderIDChanging(value);
+                    ReportPropertyChanging("OrderID");
+                    _OrderID = StructuralObject.SetValidValue(value, "OrderID");
+                    ReportPropertyChanged("OrderID");
+                    OnOrderIDChanged();
+                }
+            }
+        }
+        private global::System.Int32 _OrderID;
+        partial void OnOrderIDChanging(global::System.Int32 value);
+        partial void OnOrderIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String CustomsDescription
+        {
+            get
+            {
+                return _CustomsDescription;
+            }
+            set
+            {
+                OnCustomsDescriptionChanging(value);
+                ReportPropertyChanging("CustomsDescription");
+                _CustomsDescription = StructuralObject.SetValidValue(value, false, "CustomsDescription");
+                ReportPropertyChanged("CustomsDescription");
+                OnCustomsDescriptionChanged();
+            }
+        }
+        private global::System.String _CustomsDescription;
+        partial void OnCustomsDescriptionChanging(global::System.String value);
+        partial void OnCustomsDescriptionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Decimal ExciseTax
+        {
+            get
+            {
+                return _ExciseTax;
+            }
+            set
+            {
+                OnExciseTaxChanging(value);
+                ReportPropertyChanging("ExciseTax");
+                _ExciseTax = StructuralObject.SetValidValue(value, "ExciseTax");
+                ReportPropertyChanged("ExciseTax");
+                OnExciseTaxChanged();
+            }
+        }
+        private global::System.Decimal _ExciseTax;
+        partial void OnExciseTaxChanging(global::System.Decimal value);
+        partial void OnExciseTaxChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 RowVersion
+        {
+            get
+            {
+                return _RowVersion;
+            }
+            set
+            {
+                OnRowVersionChanging(value);
+                ReportPropertyChanging("RowVersion");
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
+                ReportPropertyChanged("RowVersion");
+                OnRowVersionChanged();
+            }
+        }
+        private global::System.Int32 _RowVersion;
+        partial void OnRowVersionChanging(global::System.Int32 value);
+        partial void OnRowVersionChanged();
+
+        #endregion
+
+        #region Navigation Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_InternationalOrder_Order", "Order")]
+        public Order Order
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "Order").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "Order").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<Order> OrderReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "Order");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Order>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "Order", value);
+                }
+            }
+        }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="NextId")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class NextId : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new NextId object.
+        /// </summary>
+        /// <param name="name">Initial value of the Name property.</param>
+        /// <param name="nextId1">Initial value of the NextId1 property.</param>
+        public static NextId CreateNextId(global::System.String name, global::System.Int64 nextId1)
+        {
+            NextId nextId = new NextId();
+            nextId.Name = name;
+            nextId.NextId1 = nextId1;
+            return nextId;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String Name
+        {
+            get
+            {
+                return _Name;
+            }
+            set
+            {
+                if (_Name != value)
+                {
+                    OnNameChanging(value);
+                    ReportPropertyChanging("Name");
+                    _Name = StructuralObject.SetValidValue(value, false, "Name");
+                    ReportPropertyChanged("Name");
+                    OnNameChanged();
+                }
+            }
+        }
+        private global::System.String _Name;
+        partial void OnNameChanging(global::System.String value);
+        partial void OnNameChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int64 NextId1
+        {
+            get
+            {
+                return _NextId1;
+            }
+            set
+            {
+                if (_NextId1 != value)
+                {
+                    OnNextId1Changing(value);
+                    ReportPropertyChanging("NextId1");
+                    _NextId1 = StructuralObject.SetValidValue(value, "NextId1");
+                    ReportPropertyChanged("NextId1");
+                    OnNextId1Changed();
+                }
+            }
+        }
+        private global::System.Int64 _NextId1;
+        partial void OnNextId1Changing(global::System.Int64 value);
+        partial void OnNextId1Changed();
 
         #endregion
 
@@ -2293,6 +2832,44 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_InternationalOrder_Order", "InternationalOrder")]
+        public InternationalOrder InternationalOrder
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "InternationalOrder").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "InternationalOrder").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<InternationalOrder> InternationalOrderReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InternationalOrder>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "InternationalOrder");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<InternationalOrder>("Models.NorthwindIB.EDMX.FK_InternationalOrder_Order", "InternationalOrder", value);
+                }
+            }
+        }
 
         #endregion
 
@@ -2562,6 +3139,476 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="PreviousEmployee")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class PreviousEmployee : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new PreviousEmployee object.
+        /// </summary>
+        /// <param name="employeeID">Initial value of the EmployeeID property.</param>
+        /// <param name="lastName">Initial value of the LastName property.</param>
+        /// <param name="firstName">Initial value of the FirstName property.</param>
+        /// <param name="rowVersion">Initial value of the RowVersion property.</param>
+        public static PreviousEmployee CreatePreviousEmployee(global::System.Int32 employeeID, global::System.String lastName, global::System.String firstName, global::System.Int32 rowVersion)
+        {
+            PreviousEmployee previousEmployee = new PreviousEmployee();
+            previousEmployee.EmployeeID = employeeID;
+            previousEmployee.LastName = lastName;
+            previousEmployee.FirstName = firstName;
+            previousEmployee.RowVersion = rowVersion;
+            return previousEmployee;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 EmployeeID
+        {
+            get
+            {
+                return _EmployeeID;
+            }
+            set
+            {
+                if (_EmployeeID != value)
+                {
+                    OnEmployeeIDChanging(value);
+                    ReportPropertyChanging("EmployeeID");
+                    _EmployeeID = StructuralObject.SetValidValue(value, "EmployeeID");
+                    ReportPropertyChanged("EmployeeID");
+                    OnEmployeeIDChanged();
+                }
+            }
+        }
+        private global::System.Int32 _EmployeeID;
+        partial void OnEmployeeIDChanging(global::System.Int32 value);
+        partial void OnEmployeeIDChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String LastName
+        {
+            get
+            {
+                return _LastName;
+            }
+            set
+            {
+                OnLastNameChanging(value);
+                ReportPropertyChanging("LastName");
+                _LastName = StructuralObject.SetValidValue(value, false, "LastName");
+                ReportPropertyChanged("LastName");
+                OnLastNameChanged();
+            }
+        }
+        private global::System.String _LastName;
+        partial void OnLastNameChanging(global::System.String value);
+        partial void OnLastNameChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String FirstName
+        {
+            get
+            {
+                return _FirstName;
+            }
+            set
+            {
+                OnFirstNameChanging(value);
+                ReportPropertyChanging("FirstName");
+                _FirstName = StructuralObject.SetValidValue(value, false, "FirstName");
+                ReportPropertyChanged("FirstName");
+                OnFirstNameChanged();
+            }
+        }
+        private global::System.String _FirstName;
+        partial void OnFirstNameChanging(global::System.String value);
+        partial void OnFirstNameChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Title
+        {
+            get
+            {
+                return _Title;
+            }
+            set
+            {
+                OnTitleChanging(value);
+                ReportPropertyChanging("Title");
+                _Title = StructuralObject.SetValidValue(value, true, "Title");
+                ReportPropertyChanged("Title");
+                OnTitleChanged();
+            }
+        }
+        private global::System.String _Title;
+        partial void OnTitleChanging(global::System.String value);
+        partial void OnTitleChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String TitleOfCourtesy
+        {
+            get
+            {
+                return _TitleOfCourtesy;
+            }
+            set
+            {
+                OnTitleOfCourtesyChanging(value);
+                ReportPropertyChanging("TitleOfCourtesy");
+                _TitleOfCourtesy = StructuralObject.SetValidValue(value, true, "TitleOfCourtesy");
+                ReportPropertyChanged("TitleOfCourtesy");
+                OnTitleOfCourtesyChanged();
+            }
+        }
+        private global::System.String _TitleOfCourtesy;
+        partial void OnTitleOfCourtesyChanging(global::System.String value);
+        partial void OnTitleOfCourtesyChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.DateTime> BirthDate
+        {
+            get
+            {
+                return _BirthDate;
+            }
+            set
+            {
+                OnBirthDateChanging(value);
+                ReportPropertyChanging("BirthDate");
+                _BirthDate = StructuralObject.SetValidValue(value, "BirthDate");
+                ReportPropertyChanged("BirthDate");
+                OnBirthDateChanged();
+            }
+        }
+        private Nullable<global::System.DateTime> _BirthDate;
+        partial void OnBirthDateChanging(Nullable<global::System.DateTime> value);
+        partial void OnBirthDateChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.DateTime> HireDate
+        {
+            get
+            {
+                return _HireDate;
+            }
+            set
+            {
+                OnHireDateChanging(value);
+                ReportPropertyChanging("HireDate");
+                _HireDate = StructuralObject.SetValidValue(value, "HireDate");
+                ReportPropertyChanged("HireDate");
+                OnHireDateChanged();
+            }
+        }
+        private Nullable<global::System.DateTime> _HireDate;
+        partial void OnHireDateChanging(Nullable<global::System.DateTime> value);
+        partial void OnHireDateChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Address
+        {
+            get
+            {
+                return _Address;
+            }
+            set
+            {
+                OnAddressChanging(value);
+                ReportPropertyChanging("Address");
+                _Address = StructuralObject.SetValidValue(value, true, "Address");
+                ReportPropertyChanged("Address");
+                OnAddressChanged();
+            }
+        }
+        private global::System.String _Address;
+        partial void OnAddressChanging(global::System.String value);
+        partial void OnAddressChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String City
+        {
+            get
+            {
+                return _City;
+            }
+            set
+            {
+                OnCityChanging(value);
+                ReportPropertyChanging("City");
+                _City = StructuralObject.SetValidValue(value, true, "City");
+                ReportPropertyChanged("City");
+                OnCityChanged();
+            }
+        }
+        private global::System.String _City;
+        partial void OnCityChanging(global::System.String value);
+        partial void OnCityChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Region
+        {
+            get
+            {
+                return _Region;
+            }
+            set
+            {
+                OnRegionChanging(value);
+                ReportPropertyChanging("Region");
+                _Region = StructuralObject.SetValidValue(value, true, "Region");
+                ReportPropertyChanged("Region");
+                OnRegionChanged();
+            }
+        }
+        private global::System.String _Region;
+        partial void OnRegionChanging(global::System.String value);
+        partial void OnRegionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String PostalCode
+        {
+            get
+            {
+                return _PostalCode;
+            }
+            set
+            {
+                OnPostalCodeChanging(value);
+                ReportPropertyChanging("PostalCode");
+                _PostalCode = StructuralObject.SetValidValue(value, true, "PostalCode");
+                ReportPropertyChanged("PostalCode");
+                OnPostalCodeChanged();
+            }
+        }
+        private global::System.String _PostalCode;
+        partial void OnPostalCodeChanging(global::System.String value);
+        partial void OnPostalCodeChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Country
+        {
+            get
+            {
+                return _Country;
+            }
+            set
+            {
+                OnCountryChanging(value);
+                ReportPropertyChanging("Country");
+                _Country = StructuralObject.SetValidValue(value, true, "Country");
+                ReportPropertyChanged("Country");
+                OnCountryChanged();
+            }
+        }
+        private global::System.String _Country;
+        partial void OnCountryChanging(global::System.String value);
+        partial void OnCountryChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String HomePhone
+        {
+            get
+            {
+                return _HomePhone;
+            }
+            set
+            {
+                OnHomePhoneChanging(value);
+                ReportPropertyChanging("HomePhone");
+                _HomePhone = StructuralObject.SetValidValue(value, true, "HomePhone");
+                ReportPropertyChanged("HomePhone");
+                OnHomePhoneChanged();
+            }
+        }
+        private global::System.String _HomePhone;
+        partial void OnHomePhoneChanging(global::System.String value);
+        partial void OnHomePhoneChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Extension
+        {
+            get
+            {
+                return _Extension;
+            }
+            set
+            {
+                OnExtensionChanging(value);
+                ReportPropertyChanging("Extension");
+                _Extension = StructuralObject.SetValidValue(value, true, "Extension");
+                ReportPropertyChanged("Extension");
+                OnExtensionChanged();
+            }
+        }
+        private global::System.String _Extension;
+        partial void OnExtensionChanging(global::System.String value);
+        partial void OnExtensionChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.Byte[] Photo
+        {
+            get
+            {
+                return StructuralObject.GetValidValue(_Photo);
+            }
+            set
+            {
+                OnPhotoChanging(value);
+                ReportPropertyChanging("Photo");
+                _Photo = StructuralObject.SetValidValue(value, true, "Photo");
+                ReportPropertyChanged("Photo");
+                OnPhotoChanged();
+            }
+        }
+        private global::System.Byte[] _Photo;
+        partial void OnPhotoChanging(global::System.Byte[] value);
+        partial void OnPhotoChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Notes
+        {
+            get
+            {
+                return _Notes;
+            }
+            set
+            {
+                OnNotesChanging(value);
+                ReportPropertyChanging("Notes");
+                _Notes = StructuralObject.SetValidValue(value, true, "Notes");
+                ReportPropertyChanged("Notes");
+                OnNotesChanged();
+            }
+        }
+        private global::System.String _Notes;
+        partial void OnNotesChanging(global::System.String value);
+        partial void OnNotesChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String PhotoPath
+        {
+            get
+            {
+                return _PhotoPath;
+            }
+            set
+            {
+                OnPhotoPathChanging(value);
+                ReportPropertyChanging("PhotoPath");
+                _PhotoPath = StructuralObject.SetValidValue(value, true, "PhotoPath");
+                ReportPropertyChanged("PhotoPath");
+                OnPhotoPathChanged();
+            }
+        }
+        private global::System.String _PhotoPath;
+        partial void OnPhotoPathChanging(global::System.String value);
+        partial void OnPhotoPathChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 RowVersion
+        {
+            get
+            {
+                return _RowVersion;
+            }
+            set
+            {
+                OnRowVersionChanging(value);
+                ReportPropertyChanging("RowVersion");
+                _RowVersion = StructuralObject.SetValidValue(value, "RowVersion");
+                ReportPropertyChanged("RowVersion");
+                OnRowVersionChanged();
+            }
+        }
+        private global::System.Int32 _RowVersion;
+        partial void OnRowVersionChanging(global::System.Int32 value);
+        partial void OnRowVersionChanged();
 
         #endregion
 
@@ -3771,6 +4818,134 @@ namespace Models.NorthwindIB.EDMX
                 }
             }
         }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "EmployeeTerritoryNoPayload", "Employee")]
+        public EntityCollection<Employee> Employees
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<Employee>("Models.NorthwindIB.EDMX.EmployeeTerritoryNoPayload", "Employee");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<Employee>("Models.NorthwindIB.EDMX.EmployeeTerritoryNoPayload", "Employee", value);
+                }
+            }
+        }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="TimeGroup")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class TimeGroup : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new TimeGroup object.
+        /// </summary>
+        /// <param name="id">Initial value of the Id property.</param>
+        public static TimeGroup CreateTimeGroup(global::System.Int32 id)
+        {
+            TimeGroup timeGroup = new TimeGroup();
+            timeGroup.Id = id;
+            return timeGroup;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 Id
+        {
+            get
+            {
+                return _Id;
+            }
+            set
+            {
+                if (_Id != value)
+                {
+                    OnIdChanging(value);
+                    ReportPropertyChanging("Id");
+                    _Id = StructuralObject.SetValidValue(value, "Id");
+                    ReportPropertyChanged("Id");
+                    OnIdChanged();
+                }
+            }
+        }
+        private global::System.Int32 _Id;
+        partial void OnIdChanging(global::System.Int32 value);
+        partial void OnIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public global::System.String Comment
+        {
+            get
+            {
+                return _Comment;
+            }
+            set
+            {
+                OnCommentChanging(value);
+                ReportPropertyChanging("Comment");
+                _Comment = StructuralObject.SetValidValue(value, true, "Comment");
+                ReportPropertyChanged("Comment");
+                OnCommentChanged();
+            }
+        }
+        private global::System.String _Comment;
+        partial void OnCommentChanging(global::System.String value);
+        partial void OnCommentChanged();
+
+        #endregion
+
+        #region Navigation Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_TimeLimitTimeGroup", "TimeLimit")]
+        public EntityCollection<TimeLimit> TimeLimits
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<TimeLimit>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeLimit");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<TimeLimit>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeLimit", value);
+                }
+            }
+        }
 
         #endregion
 
@@ -3883,7 +5058,133 @@ namespace Models.NorthwindIB.EDMX
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
         [DataMemberAttribute()]
-        public Nullable<global::System.DateTimeOffset> CreationDate
+        public Nullable<global::System.Int32> TimeGroupId
+        {
+            get
+            {
+                return _TimeGroupId;
+            }
+            set
+            {
+                OnTimeGroupIdChanging(value);
+                ReportPropertyChanging("TimeGroupId");
+                _TimeGroupId = StructuralObject.SetValidValue(value, "TimeGroupId");
+                ReportPropertyChanged("TimeGroupId");
+                OnTimeGroupIdChanged();
+            }
+        }
+        private Nullable<global::System.Int32> _TimeGroupId;
+        partial void OnTimeGroupIdChanging(Nullable<global::System.Int32> value);
+        partial void OnTimeGroupIdChanged();
+
+        #endregion
+
+        #region Navigation Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("Models.NorthwindIB.EDMX", "FK_TimeLimitTimeGroup", "TimeGroup")]
+        public TimeGroup TimeGroup
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TimeGroup>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeGroup").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TimeGroup>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeGroup").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<TimeGroup> TimeGroupReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TimeGroup>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeGroup");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<TimeGroup>("Models.NorthwindIB.EDMX.FK_TimeLimitTimeGroup", "TimeGroup", value);
+                }
+            }
+        }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="Models.NorthwindIB.EDMX", Name="UnusualDate")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class UnusualDate : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new UnusualDate object.
+        /// </summary>
+        /// <param name="id">Initial value of the Id property.</param>
+        /// <param name="creationDate">Initial value of the CreationDate property.</param>
+        /// <param name="modificationDate">Initial value of the ModificationDate property.</param>
+        public static UnusualDate CreateUnusualDate(global::System.Int32 id, global::System.DateTimeOffset creationDate, global::System.DateTime modificationDate)
+        {
+            UnusualDate unusualDate = new UnusualDate();
+            unusualDate.Id = id;
+            unusualDate.CreationDate = creationDate;
+            unusualDate.ModificationDate = modificationDate;
+            return unusualDate;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 Id
+        {
+            get
+            {
+                return _Id;
+            }
+            set
+            {
+                if (_Id != value)
+                {
+                    OnIdChanging(value);
+                    ReportPropertyChanging("Id");
+                    _Id = StructuralObject.SetValidValue(value, "Id");
+                    ReportPropertyChanged("Id");
+                    OnIdChanged();
+                }
+            }
+        }
+        private global::System.Int32 _Id;
+        partial void OnIdChanging(global::System.Int32 value);
+        partial void OnIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.DateTimeOffset CreationDate
         {
             get
             {
@@ -3898,16 +5199,16 @@ namespace Models.NorthwindIB.EDMX
                 OnCreationDateChanged();
             }
         }
-        private Nullable<global::System.DateTimeOffset> _CreationDate;
-        partial void OnCreationDateChanging(Nullable<global::System.DateTimeOffset> value);
+        private global::System.DateTimeOffset _CreationDate;
+        partial void OnCreationDateChanging(global::System.DateTimeOffset value);
         partial void OnCreationDateChanged();
     
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
-        public Nullable<global::System.DateTime> ModificationDate
+        public global::System.DateTime ModificationDate
         {
             get
             {
@@ -3922,9 +5223,57 @@ namespace Models.NorthwindIB.EDMX
                 OnModificationDateChanged();
             }
         }
-        private Nullable<global::System.DateTime> _ModificationDate;
-        partial void OnModificationDateChanging(Nullable<global::System.DateTime> value);
+        private global::System.DateTime _ModificationDate;
+        partial void OnModificationDateChanging(global::System.DateTime value);
         partial void OnModificationDateChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.DateTimeOffset> CreationDate2
+        {
+            get
+            {
+                return _CreationDate2;
+            }
+            set
+            {
+                OnCreationDate2Changing(value);
+                ReportPropertyChanging("CreationDate2");
+                _CreationDate2 = StructuralObject.SetValidValue(value, "CreationDate2");
+                ReportPropertyChanged("CreationDate2");
+                OnCreationDate2Changed();
+            }
+        }
+        private Nullable<global::System.DateTimeOffset> _CreationDate2;
+        partial void OnCreationDate2Changing(Nullable<global::System.DateTimeOffset> value);
+        partial void OnCreationDate2Changed();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=true)]
+        [DataMemberAttribute()]
+        public Nullable<global::System.DateTime> ModificationDate2
+        {
+            get
+            {
+                return _ModificationDate2;
+            }
+            set
+            {
+                OnModificationDate2Changing(value);
+                ReportPropertyChanging("ModificationDate2");
+                _ModificationDate2 = StructuralObject.SetValidValue(value, "ModificationDate2");
+                ReportPropertyChanged("ModificationDate2");
+                OnModificationDate2Changed();
+            }
+        }
+        private Nullable<global::System.DateTime> _ModificationDate2;
+        partial void OnModificationDate2Changing(Nullable<global::System.DateTime> value);
+        partial void OnModificationDate2Changed();
 
         #endregion
 

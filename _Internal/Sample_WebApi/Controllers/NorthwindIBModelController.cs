@@ -297,7 +297,6 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 
-
     [HttpGet]
     public Object Lookups()
     {
@@ -306,10 +305,10 @@ namespace Sample_WebApi.Controllers {
         return new { regions, roles };
     }
 
-    //[HttpGet]
-    //public IQueryable<TimeGroup> TimeGroups() {
-    //  return ContextProvider.Context.TimeGroups;
-    //}
+    [HttpGet]
+    public IQueryable<TimeGroup> TimeGroups() {
+      return ContextProvider.Context.TimeGroups;
+    }
 
     [HttpGet]
     public IQueryable<Comment> Comments() {
@@ -321,10 +320,12 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.UnusualDates;
     }
 
+#if ! DATABASEFIRST_OLD
     [HttpGet]
     public IQueryable<Geospatial> Geospatials() {
       return ContextProvider.Context.Geospatials;
     }
+#endif
 
     #endregion
 
