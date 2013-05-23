@@ -265,7 +265,11 @@ namespace Inheritance.Models
         public Nullable<int> ParentId { get; set; }
         public string Name { get; set; }
 
+        // [InverseProperty("Parent")]
         public virtual ICollection<HClass> Children { get; set; }
+          
+        
+        // [InverseProperty("Children")]
         public virtual HClass Parent { get; set; }
     }
     public class AClass : HClass

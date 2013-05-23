@@ -6847,8 +6847,10 @@ var EntityType = (function () {
         if (!entityType) return false;
         np.entityType = entityType;
         var invNps = entityType.navigationProperties.filter(function (altNp) {
+            //return altNp.associationName === np.associationName
+            //    && altNp !== np;
             return altNp.associationName === np.associationName
-                && altNp !== np;
+                && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
         np.inverse = (invNps.length > 0) ? invNps[0] : null;
         return true;
