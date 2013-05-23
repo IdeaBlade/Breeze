@@ -142,6 +142,16 @@ namespace DocCode.Controllers
         }
         #endregion
 
+        #region Self referencing hierarchy
+
+        [HttpGet]
+        public System.Collections.Generic.ICollection<AClass> Projects()
+        {
+            return _repository.Projects();
+        }
+
+        #endregion
+        
         #region Purge/Reset
 
         // ~/breeze/inheritance//purge

@@ -639,7 +639,7 @@
         }).then(function(x) {
             ok(true, "expected both to succeed");
         }).fail(function(e) {
-            ok(false, "both saves should have been ok but: " + msg);
+            ok(false, "both saves should have been ok but: " + e.message);
         }).fin(start);
             
     });
@@ -870,7 +870,7 @@
             ok(cust.entityAspect.entityState.isDeleted(), "should be marked as deleted");
             return em2.saveChanges();
         }).then(function (sr) {
-            ok(!em2.hasChanges());
+            ok(!em2.hasChanges(), "em should have no changes");
             ok(sr.entities.length === 3, "should be 3 entities saved");
             sr.entities.forEach(function(e) {
                 ok(e.entityAspect.entityState.isDetached(), "entity should be marked as detached");
@@ -946,7 +946,8 @@
             ok(false, "should not get here, save should have failed");
         }).fail(function(error) {
             ok(em.hasChanges());
-            ok(error.detail.ExceptionType.toLowerCase().indexOf("concurrency") >= 0, "wrong error message: " + error.detail.ExceptionType);
+            var exceptionType = error.detail.ExceptionType.toLowerCase();
+            ok((exceptionType.indexOf("concurrency") >= 0 || exceptionType.indexOf("staleobjectstate") >= 0), "wrong error message: " + error.detail.ExceptionType);
         }).fin(start);
     });
     
@@ -972,7 +973,7 @@
             ok(false, "shouldn't get here");
         }).fail(function(error) {
             ok(em2.hasChanges());
-            ok(error.message.toLowerCase().indexOf("primary key constraint") >= 0, "wrong error message");
+            ok(error.message.toLowerCase().indexOf("primary key constraint") >= 0, "wrong error message: " + error.message);
         }).fin(start);
     });
 

@@ -253,4 +253,29 @@ namespace Inheritance.Models
     }
     #endregion
 
+    #region Self-referencing hierarchy
+    public abstract class HClass
+    {
+        protected HClass()
+        {
+            Children = new List<HClass>();
+        }
+        [Key]
+        public int Id { get; set; }
+        public Nullable<int> ParentId { get; set; }
+        public string Name { get; set; }
+
+        public virtual ICollection<HClass> Children { get; set; }
+        public virtual HClass Parent { get; set; }
+    }
+    public class AClass : HClass
+    {
+        public string Observation { get; set; }
+    }
+
+    public class BClass : HClass
+    {
+        public int Number { get; set; }
+    }
+#endregion
 }

@@ -676,6 +676,22 @@
                     .format(type, account.Id(), len));
         }
     }
+
+    /*********************************************************
+     * can retrieve entities in self-referencing hierarchy
+     *********************************************************/
+    asyncTest("can retrieve entities in self-referencing hierarchy (concrete)", 1, function () {
+        var em = newEm();
+        var resourceName = 'Projects';
+        return EntityQuery.from(resourceName)
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 2, "should fetch {0} from '{1}'.".format(len, resourceName));
+        }
+    });
+
     /************************** SAVES *************************/
 
     // reset inheritance db after each save module test because we're messing it up
