@@ -132,6 +132,8 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
@@ -318,7 +320,6 @@ var MetadataStore = (function () {
         } 
 
         if (structuralType.baseEntityType) {
-            
             structuralType.baseEntityType.subtypes.push(structuralType);
         }
     };
@@ -1909,8 +1910,12 @@ var EntityType = (function () {
         if (!entityType) return false;
         np.entityType = entityType;
         var invNps = entityType.navigationProperties.filter(function (altNp) {
+            &#x2F;&#x2F; Can&#x27;t do this because of possibility of comparing a base class np with a subclass altNp.
+            &#x2F;&#x2F;return altNp.associationName === np.associationName
+            &#x2F;&#x2F;    &amp;&amp; altNp !== np;
+            &#x2F;&#x2F; So use this instead.
             return altNp.associationName === np.associationName
-                &amp;&amp; altNp !== np;
+                &amp;&amp; (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
         np.inverse = (invNps.length &gt; 0) ? invNps[0] : null;
         return true;
@@ -2019,6 +2024,8 @@ var ComplexType = (function () {
         this.validators = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = [];
+        this.navigationProperties = []; &#x2F;&#x2F; not yet supported 
+        this.keyProperties = []; &#x2F;&#x2F; may be used later to enforce uniqueness on arrays of complextypes.
 
         addProperties(this, config.dataProperties, DataProperty);
     };
@@ -2226,6 +2233,7 @@ var DataProperty = (function () {
             .whereParam(&quot;validators&quot;).isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam(&quot;enumType&quot;).isOptional()
             .whereParam(&quot;rawTypeName&quot;).isOptional() &#x2F;&#x2F; occurs with undefined datatypes
+            .whereParam(&quot;isScalar&quot;).isOptional() &#x2F;&#x2F; only occurs with complex datatypes
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -2262,6 +2270,10 @@ var DataProperty = (function () {
                     }
                 }
             }
+        }
+
+        if (this.isComplexProperty) {
+            this.isScalar = this.isScalar == null || this.isScalar === true;
         }
     };
     var proto = ctor.prototype;
@@ -2401,7 +2413,8 @@ var DataProperty = (function () {
             maxLength: null,
             validators: null,
             enumType: null,
-            rawTypeName: null
+            rawTypeName: null,
+            isScalar: null
         });
         
         

@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.3",
+        version: "1.3.4",
         metadataVersion: "1.0.4"
     };
 
@@ -6847,8 +6847,10 @@ var EntityType = (function () {
         if (!entityType) return false;
         np.entityType = entityType;
         var invNps = entityType.navigationProperties.filter(function (altNp) {
+            // Can't do this because of possibility of comparing a base class np with a subclass altNp.
             //return altNp.associationName === np.associationName
             //    && altNp !== np;
+            // So use this instead.
             return altNp.associationName === np.associationName
                 && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });

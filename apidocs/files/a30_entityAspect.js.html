@@ -132,6 +132,8 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
@@ -424,8 +426,12 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            rejectChangesCore(nextTarget);
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                rejectChangesCore(next);
+            } else {
+                next.forEach(function (t) { rejectChangesCore(t); });
+            }
         });
     }
 
@@ -448,9 +454,13 @@ var EntityAspect = function() {
         var aspect = target.entityAspect || target.complexAspect;
         aspect.originalValues = {};
         var stype = target.entityType || target.complexType;
-        stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            clearOriginalValues(nextTarget);
+        stype.complexProperties.forEach(function (cp) {
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                clearOriginalValues(next);
+            } else {
+                next.forEach(function (t) { clearOriginalValues(t); });
+            }
         });
     }
 
@@ -561,7 +571,11 @@ var EntityAspect = function() {
                 ok = entityAspect._validateProperty(value, context) &amp;&amp; ok;
             }
             if (p.isComplexProperty) {
-                ok = validateTarget(value) &amp;&amp; ok;
+                if (p.isScalar) {
+                    ok = validateTarget(value) &amp;&amp; ok;
+                } else {
+                    &#x2F;&#x2F; TODO: do we want to iterate over all of the complexObject in this property?
+                }
             }
         });
             

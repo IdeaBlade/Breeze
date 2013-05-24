@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.3",
+        version: "1.3.4",
         metadataVersion: "1.0.4"
     };
 
@@ -2587,6 +2587,171 @@ breeze.ValidationOptions = ValidationOptions;
 
 
 
+
+breeze.makeComplexArray = function() {
+    var complexArrayMixin = {};
+
+    /**
+    Complex arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
+    complexTypes associated with a data property on a single entity. i.e. customer.orders or order.orderDetails.
+    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class ↈ_complexArray_
+    **/
+
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
+    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+    collections are collected into a single notification event for each relation array.
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        orders.arrayChanged.subscribe(
+            function (arrayChangedArgs) {
+                var addedEntities = arrayChangedArgs.added;
+                var removedEntities = arrayChanged.removed;
+            });
+    @event arrayChanged 
+    @param added {Array of Entity} An array of all of the entities added to this collection.
+    @param removed {Array of Entity} An array of all of the removed from this collection.
+    @readOnly
+    **/
+
+    complexArrayMixin.push = function() {
+        if (this._inProgress) {
+            return -1;
+        }
+
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+
+    complexArrayMixin.unshift = function () {
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+
+        var result = Array.prototype.unshift.apply(this, goodAdds);
+        processAdds(this, __arraySlice(goodAdds));
+        return result;
+    };
+
+    complexArrayMixin.pop = function () {
+        var result = Array.prototype.pop.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    complexArrayMixin.shift = function () {
+        var result = Array.prototype.shift.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    complexArrayMixin.splice = function () {
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+
+        var result = Array.prototype.splice.apply(this, newArgs);
+        processRemoves(this, result);
+
+        if (goodAdds.length) {
+            processAdds(this, goodAdds);
+        }
+        return result;
+    };
+
+  
+    complexArrayMixin._getEventParent = function () {
+        return this.parentEntity.entityAspect;
+    };
+
+    complexArrayMixin._getPendingPubs = function () {
+        var em = this.parentEntity.entityAspect.entityManager;
+        return em && em._pendingPubs;
+    };
+
+    function getGoodAdds(complexArray, adds) {
+        var goodAdds = checkForDups(complexArray, adds);
+        if (!goodAdds.length) {
+            return goodAdds;
+        }
+     
+        return goodAdds;
+    }
+
+    function checkForDups(complexArray, adds) {
+        // don't allow dups in this array.
+        return adds;
+        
+    }
+
+    function processAdds(complexArray, adds) {
+        // this is referencing the name of the method on the complexArray not the name of the event
+        publish(complexArray, "arrayChanged", { complexArray: complexArray, added: adds });
+
+    }
+
+    function processRemoves(complexArray, removes) {
+        // this is referencing the name of the method on the relationArray not the name of the event
+        publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
+    }
+
+
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function() {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (key !== "complexArray" && target.hasOwnProperty(key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
+    }
+
+ 
+
+    function makeComplexArray(arr, parentEntity, complexProperty) {
+        arr.parentEntity = parentEntity;
+        arr.complexProperty = complexProperty;
+        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
+        // array of pushes currently in process on this relation array - used to prevent recursion.
+        arr._addsInProcess = [];
+        return __extend(arr, complexArrayMixin);
+    }
+
+    return makeComplexArray;
+}();
 /**
 @module breeze   
 **/
@@ -2964,8 +3129,12 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            rejectChangesCore(nextTarget);
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                rejectChangesCore(next);
+            } else {
+                next.forEach(function (t) { rejectChangesCore(t); });
+            }
         });
     }
 
@@ -2988,9 +3157,13 @@ var EntityAspect = function() {
         var aspect = target.entityAspect || target.complexAspect;
         aspect.originalValues = {};
         var stype = target.entityType || target.complexType;
-        stype.complexProperties.forEach(function(cp) {
-            var nextTarget = target.getProperty(cp.name);
-            clearOriginalValues(nextTarget);
+        stype.complexProperties.forEach(function (cp) {
+            var next = target.getProperty(cp.name);
+            if (cp.isScalar) {
+                clearOriginalValues(next);
+            } else {
+                next.forEach(function (t) { clearOriginalValues(t); });
+            }
         });
     }
 
@@ -3101,7 +3274,11 @@ var EntityAspect = function() {
                 ok = entityAspect._validateProperty(value, context) && ok;
             }
             if (p.isComplexProperty) {
-                ok = validateTarget(value) && ok;
+                if (p.isScalar) {
+                    ok = validateTarget(value) && ok;
+                } else {
+                    // TODO: do we want to iterate over all of the complexObject in this property?
+                }
             }
         });
             
@@ -3534,9 +3711,11 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
-        if (entityType.isAbstract) {
-            throw new Error("Breeze is unable to create an EntityKey for an abstract EntityType: " + entityType.name);
+        var subtypes = entityType.getSelfAndSubtypes();
+        if (subtypes.length > 1) {
+            this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
+       
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
@@ -3548,9 +3727,12 @@ var EntityKey = (function () {
                 keyValues[i] = keyValues[i] && keyValues[i].toLowerCase();
             }
         });
+        
         this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
+        this._keyInGroup = createKeyString(keyValues);        
+
     };
+    
     ctor._$typeName = "EntityKey";
     var proto = ctor.prototype;
     
@@ -4198,24 +4380,28 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
         } else if (property.isComplexProperty) {
-            if (!newValue) {
-                throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+            if (property.isScalar) {
+                if (!newValue) {
+                    throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+                }
+                // To get here it must be a ComplexProperty  
+                // 'dataType' will be a complexType
+                if (!oldValue) {
+                    var ctor = dataType.getCtor();
+                    oldValue = new ctor();
+                    rawAccessorFn(oldValue);
+                }
+                dataType.dataProperties.forEach(function (dp) {
+                    var pn = dp.name;
+                    var nv = newValue.getProperty(pn);
+                    oldValue.setProperty(pn, nv);
+                });
+            } else {
+                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
             }
-            // To get here it must be a ComplexProperty  
-            // 'dataType' will be a complexType
-            if (!oldValue) {
-                var ctor = dataType.getCtor();
-                oldValue = new ctor();
-                rawAccessorFn(oldValue);
-            }
-            dataType.dataProperties.forEach(function(dp) {
-                var pn = dp.name;
-                var nv = newValue.getProperty(pn);
-                oldValue.setProperty(pn, nv);
-            });
         } else {
             // To get here it must be a (nonComplex) DataProperty  
-            if (property.isPartOfKey && entityManager && !entityManager.isLoading) {
+            if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
                 var values = keyProps.map(function(p) {
                     if (p == property) {
@@ -4263,7 +4449,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
             }
 
-            if (property.isPartOfKey) {
+            if (property.isPartOfKey && (!this.complexAspect)) {
                 // propogate pk change to all related entities;
                 if (oldValue && !entityAspect.entityState.isDetached()) {
                     entityAspect.primaryKeyWasChanged = true;
@@ -5071,7 +5257,6 @@ var MetadataStore = (function () {
         } 
 
         if (structuralType.baseEntityType) {
-            
             structuralType.baseEntityType.subtypes.push(structuralType);
         }
     };
@@ -6662,8 +6847,12 @@ var EntityType = (function () {
         if (!entityType) return false;
         np.entityType = entityType;
         var invNps = entityType.navigationProperties.filter(function (altNp) {
+            // Can't do this because of possibility of comparing a base class np with a subclass altNp.
+            //return altNp.associationName === np.associationName
+            //    && altNp !== np;
+            // So use this instead.
             return altNp.associationName === np.associationName
-                && altNp !== np;
+                && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
         np.inverse = (invNps.length > 0) ? invNps[0] : null;
         return true;
@@ -6772,6 +6961,8 @@ var ComplexType = (function () {
         this.validators = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = [];
+        this.navigationProperties = []; // not yet supported 
+        this.keyProperties = []; // may be used later to enforce uniqueness on arrays of complextypes.
 
         addProperties(this, config.dataProperties, DataProperty);
     };
@@ -6979,6 +7170,7 @@ var DataProperty = (function () {
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam("enumType").isOptional()
             .whereParam("rawTypeName").isOptional() // occurs with undefined datatypes
+            .whereParam("isScalar").isOptional() // only occurs with complex datatypes
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -7015,6 +7207,10 @@ var DataProperty = (function () {
                     }
                 }
             }
+        }
+
+        if (this.isComplexProperty) {
+            this.isScalar = this.isScalar == null || this.isScalar === true;
         }
     };
     var proto = ctor.prototype;
@@ -7154,7 +7350,8 @@ var DataProperty = (function () {
             maxLength: null,
             validators: null,
             enumType: null,
-            rawTypeName: null
+            rawTypeName: null,
+            isScalar: null
         });
         
         
@@ -11319,15 +11516,22 @@ var EntityManager = (function () {
     **/
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
-
-        var group = this._findEntityGroup(entityKey.entityType);
-        if (!group) {
-            return null;
+        var group;
+        var subtypes = entityKey._subTypes;
+        if (subtypes) {
+            for (var i = 0, j = subtypes.length; i < j; i++) {
+                group = this._findEntityGroup(subtypes[i]);
+                // group version of findEntityByKey doesn't care about entityType
+                var ek = group && group.findEntityByKey(entityKey);
+                if (ek) return ek;
+            }
+        } else {
+            group = this._findEntityGroup(entityKey.entityType);
+            return group && group.findEntityByKey(entityKey);
         }
-        return group.findEntityByKey(entityKey);
     };
     
-    
+
         
     /**
     Attempts to fetch an entity from the server by its key with
@@ -11877,8 +12081,7 @@ var EntityManager = (function () {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
                     dataProperties.forEach(function (dp, ix) {
-                        var val = parseValueForDp(rawEntity[ix], dp);
-                        targetEntity.setProperty(dp.name, val);
+                        setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
                     });
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
@@ -11896,8 +12099,7 @@ var EntityManager = (function () {
             } else {
                 targetEntity = entityType._createEntityCore();
                 dataProperties.forEach(function (dp, ix) {
-                    var val = parseValueForDp(rawEntity[ix], dp);
-                    targetEntity.setProperty(dp.name, val);
+                    setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
                 });
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
@@ -12303,7 +12505,7 @@ var EntityManager = (function () {
         var entityType = targetEntity.entityType;
             
         entityType.dataProperties.forEach(function (dp) {
-            updatePropertyFromRawEntity(dp, targetEntity, rawEntity);
+            updatePropertyFromRawSource(targetEntity, dp, rawEntity);
         });
 
         entityType.navigationProperties.forEach(function (np) {
@@ -12315,34 +12517,53 @@ var EntityManager = (function () {
         });
     }
 
-    // target and source may not be entities that can also be complexTypes.
-    function updatePropertyFromRawEntity(dp, target, rawSource) {
-        var val = getPropertyFromRawEntity(rawSource, dp);
-        if (val === undefined) return;
-        if (dp.isComplexProperty) {
-            var coVal = target.getProperty(dp.name);
-            dp.dataType.dataProperties.forEach(function (cdp) {
-                // recursive call
-                updatePropertyFromRawEntity(cdp, coVal, val);
-            });
-        } else {
-            target.setProperty(dp.name, val);
-        }
-    }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType) {
         var keyValues = entityType.keyProperties.map(function (p) {
-            return getPropertyFromRawEntity(rawEntity, p);
+            return parseRawValue(p, getPropertyFromRawEntity(rawEntity, p));
         });
         return new EntityKey(entityType, keyValues);
     }
 
     function getPropertyFromRawEntity(rawEntity, dp) {
-        var propName = dp.nameOnServer || dp.isUnmapped && dp.name;
-        return parseValueForDp(rawEntity[propName], dp);
+        return rawEntity[ dp.nameOnServer || dp.isUnmapped && dp.name];
     }
-    
-    function parseValueForDp(val, dp) {
+
+    // target and source will be either entities or complex types
+    function updatePropertyFromRawSource(target, dp, rawSource) {
+        var rawVal = getPropertyFromRawEntity(rawSource, dp);
+        setPropertyWithRawValue(target, dp, rawVal)
+    }
+   
+    function setPropertyWithRawValue(target, dp, rawVal) {
+        if (rawVal === undefined) return;
+        var val = parseRawValue(dp, rawVal);
+        
+        if (dp.isComplexProperty) {
+            oldVal = target.getProperty(dp.name);
+            if (dp.isScalar) {
+                dp.dataType.dataProperties.forEach(function (cdp) {
+                    // recursive call
+                    updatePropertyFromRawSource(oldVal, cdp, val);
+                });
+            } else {
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                val.forEach(function (rawCo) {
+                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    dp.dataType.dataProperties.forEach(function (cdp) {
+                        // recursive call
+                        updatePropertyFromRawSource(newCo, cdp, rawCo);
+                    });
+                    oldVal.push(newCo);
+                });
+            }
+        } else {
+            target.setProperty(dp.name, val);
+        }
+    }
+
+    function parseRawValue(dp, val) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
         // in a jsonResultsAdapter ( an unusual use case).
         if (val === undefined) return undefined;
@@ -12530,7 +12751,12 @@ var EntityManager = (function () {
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped && isOData) return;
             if (dp.isComplexProperty) {
-                rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
+                if (dp.isScalar) {
+                    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
+                } else {
+                    complexObjs = structObj.getProperty(dp.name);
+                    rawObject[dp.nameOnServer] = complexObjs.map(function(co) { return unwrapInstance(co, isOData) });
+                }
             } else {
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, isOData);
@@ -13319,10 +13545,11 @@ breeze.SaveOptions= SaveOptions;
     function createError(XHR) {
         var err = new Error();
         err.XHR = XHR;
-        err.message = XHR.statusText;
+        
         err.responseText = XHR.responseText;
         err.status = XHR.status;
         err.statusText = XHR.statusText;
+        err.message = XHR.statusText;
         if (err.responseText) {
             try {
                 var responseObj = JSON.parse(XHR.responseText);
@@ -13330,7 +13557,7 @@ breeze.SaveOptions= SaveOptions;
                 var source = responseObj.InnerException || responseObj;
                 err.message = source.ExceptionMessage || source.Message || XHR.responseText;
             } catch (e) {
-
+                err.message = err.message + ": " + err.responseText;
             }
         }
         return err;
@@ -13485,7 +13712,12 @@ breeze.SaveOptions= SaveOptions;
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
             if (dp.isComplexProperty) {
-                var co = dp.dataType._createInstanceCore(entity, dp.name);
+                // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                if (dp.isScalar) {
+                    var co = dp.dataType._createInstanceCore(entity, dp.name);
+                } else {
+                    var co = breeze.makeComplexArray([], entity, dp);
+                }
                 bbSet.call(entity, dp.name, co);
             } else if (dp.name in attributes) {
                 if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
@@ -13648,7 +13880,12 @@ breeze.SaveOptions= SaveOptions;
 
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    var co = prop.dataType._createInstanceCore(entity, prop.name);
+                    // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                    if (prop.isScalar) {
+                        var co = prop.dataType._createInstanceCore(entity, prop.name);
+                    } else {
+                        var co = breeze.makeComplexArray([], entity, prop);
+                    }
                     bs[propName] = co;
                 } else if (val === undefined) {
                     bs[propName] = prop.defaultValue;
@@ -13844,7 +14081,12 @@ breeze.SaveOptions= SaveOptions;
                 // if not
                 if (prop.isDataProperty) {
                     if (prop.isComplexProperty) {
-                        val = prop.dataType._createInstanceCore(entity, prop.name);
+                        // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                        if (prop.isScalar) {
+                            val = prop.dataType._createInstanceCore(entity, prop.name);
+                        } else {
+                            val = breeze.makeComplexArray([], entity, prop);
+                        }
                     } else if (val === undefined) {
                         val = prop.defaultValue;
                     }

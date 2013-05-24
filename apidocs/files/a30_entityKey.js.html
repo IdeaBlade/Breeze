@@ -132,6 +132,8 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
@@ -220,9 +222,11 @@ var EntityKey = (function () {
     var ctor = function (entityType, keyValues) {
         
         assertParam(entityType, &quot;entityType&quot;).isInstanceOf(EntityType).check();
-        if (entityType.isAbstract) {
-            throw new Error(&quot;Breeze is unable to create an EntityKey for an abstract EntityType: &quot; + entityType.name);
+        var subtypes = entityType.getSelfAndSubtypes();
+        if (subtypes.length &gt; 1) {
+            this._subtypes = subtypes.filter(function (st) { return st.isAbstract === false; });
         }
+       
         if (!Array.isArray(keyValues)) {
             keyValues = __arraySlice(arguments, 1);
         }
@@ -234,9 +238,12 @@ var EntityKey = (function () {
                 keyValues[i] = keyValues[i] &amp;&amp; keyValues[i].toLowerCase();
             }
         });
+        
         this.values = keyValues;
-        this._keyInGroup = createKeyString(keyValues);
+        this._keyInGroup = createKeyString(keyValues);        
+
     };
+    
     ctor._$typeName = &quot;EntityKey&quot;;
     var proto = ctor.prototype;
     
