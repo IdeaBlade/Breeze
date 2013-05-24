@@ -140,6 +140,7 @@
     <Content Include="Scripts\knockout-2.2.0.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
+    <Content Include="Scripts\require.debug.js" />
     <Content Include="Scripts\require.js" />
     <Content Include="Scripts\text.js" />
     <Content Include="Scripts\toastr.js" />
