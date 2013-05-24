@@ -52,6 +52,8 @@ namespace Inheritance.Models
             modelBuilder.Entity<AccountType>()
                         .Property(p => p.Id)
                         .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+
+            modelBuilder.Entity<ProjectBase>().ToTable("Projects");
         }
 
         // Vehicle model - super simple TPH
@@ -72,9 +74,10 @@ namespace Inheritance.Models
         public DbSet<DepositTPT> DepositTPTs { get; set; }
         public DbSet<DepositTPC> DepositTPCs { get; set; }
 
-        // Self-referencing hierarchy
-        public DbSet<AClass> Projects { get; set; }
-        public DbSet<BClass> OtherProjects { get; set; }
+        // Self-referencing base class derived types
+        // There are NO table data for these types. Data are faked. See repository
+        public DbSet<SoftProject> SoftProjects { get; set; }
+        public DbSet<HardProject> HardProjects { get; set; }
     }
 }
 
