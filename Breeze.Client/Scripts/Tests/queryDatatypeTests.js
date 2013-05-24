@@ -33,6 +33,18 @@
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
+    test("Query Involving Multiple Entities on Server", function () {
+        var em = newEm();
+        var q = EntityQuery.from("QueryInvolvingMultipleEntities");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(function (error) {
+            ok(false, error.message);
+        }).fin(start);
+    });
+
     test("byte w/save", function () {
         var em = newEm();
         var dt = new Date();

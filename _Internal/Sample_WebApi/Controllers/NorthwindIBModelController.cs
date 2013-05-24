@@ -190,6 +190,24 @@ namespace Sample_WebApi.Controllers {
     #region standard queries
 
     [HttpGet]
+    public List<Employee> QueryInvolvingMultipleEntities() {
+      //the query executes using pure EF 
+      var dc0 = new NorthwindIBContext_EDMX_2012();
+      var query0 = (from t1 in dc0.Employees
+                    where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
+                    select t1);
+      var result0 = query0.ToList();
+
+      //the same query fails if using EFContextProvider
+      var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
+      var query = (from t1 in dc.Context.Employees
+                   where (from t2 in dc.Context.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
+                   select t1);
+      var result = query.ToList();
+      return result;
+    }
+
+    [HttpGet]
     // [BreezeQueryable]
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
