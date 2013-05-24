@@ -253,31 +253,32 @@ namespace Inheritance.Models
     }
     #endregion
 
-    #region Self-referencing hierarchy
-    public abstract class HClass
+    #region Projects - self referencing base class
+    public abstract class ProjectBase
     {
-        protected HClass()
+        protected ProjectBase()
         {
-            Children = new List<HClass>();
+            Children = new List<ProjectBase>();
         }
-        [Key]
+        // [Key] is essential! 
+        // else mapping error: "Two rows with different primary keys are mapped to the same entity."
+        [Key] 
         public int Id { get; set; }
-        public Nullable<int> ParentId { get; set; }
+        public int? ParentId { get; set; }
         public string Name { get; set; }
 
         // [InverseProperty("Parent")]
-        public virtual ICollection<HClass> Children { get; set; }
-          
-        
+        public virtual ICollection<ProjectBase> Children { get; set; }
+                 
         // [InverseProperty("Children")]
-        public virtual HClass Parent { get; set; }
+        public virtual ProjectBase Parent { get; set; }
     }
-    public class AClass : HClass
+    public class SoftProject : ProjectBase
     {
         public string Observation { get; set; }
     }
 
-    public class BClass : HClass
+    public class HardProject : ProjectBase
     {
         public int Number { get; set; }
     }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Breeze.WebApi;
 using Inheritance.Models;
 using Newtonsoft.Json.Linq;
@@ -111,35 +112,50 @@ namespace DocCode.DataAccess
         }
         #endregion
 
-        #region Self-referencing hierarchy
-        public System.Collections.Generic.ICollection<AClass> Projects()
+        #region Projects - self referencing base class
+
+        public IEnumerable<ProjectBase> Projects
         {
-            // Faking query result
-            System.Collections.Generic.ICollection<AClass> projects =
-                new System.Collections.Generic.List<AClass>();
+            get { return getProjects(); }
+        }
+        public IEnumerable<SoftProject> SoftProjects
+        {
+            get { return getProjects().OfType<SoftProject>(); }
+        }
+        public IEnumerable<HardProject> HardProjects
+        {
+            get { return getProjects().OfType<HardProject>(); }
+        } 
 
-            var pro1 = new AClass(); 
-            var pro2 = new AClass(); 
-            var pro3 = new AClass(); 
-            var pro4 = new AClass();
+        // Faking data
+        private static IEnumerable<ProjectBase> getProjects()
+        {
+            if (_projects != null) return _projects;
 
-            pro1.Id = 1; pro1.Name = "Project 1"; pro1.Observation = "Main";
-            pro2.Id = 2; pro2.Name = "Project 2"; pro2.Observation = "Main";
+            _projects = new List<ProjectBase>();
 
-            pro3.Id = 3; pro3.Name = "Sub Project 3"; 
-                pro3.ParentId = 1; pro3.Parent = pro1;
+            // Hard Projects
+            var pro1 = new SoftProject { Id = 1, Name = "Soft Project 1", Observation = "Main" };
+            var pro2 = new SoftProject { Id = 2, Name = "Soft Project 2", Observation = "Secondary" };
 
-            pro4.Id = 4; pro4.Name = "Sub Project 4";
-                pro4.ParentId = 1; pro4.Parent = pro1;
+            // both children of proj1
+            var pro3 = new SoftProject { Id = 3, Name = "Soft Project 3", ParentId = 1, Parent = pro1 };
+            var pro4 = new SoftProject { Id = 4, Name = "Soft Project 4", ParentId = 1, Parent = pro1 };
 
             pro1.Children.Add(pro3);
             pro1.Children.Add(pro4);
 
-            projects.Add(pro1);
-            projects.Add(pro2);
+            _projects.Add(pro1);
+            _projects.Add(pro2);
 
-            return projects;
+            // Hard Projects
+            var pro5 = new HardProject { Id = 2, Name = "Hard Project 5", Number = 42 };
+
+            _projects.Add(pro5);
+
+            return _projects;           
         }
+        private static ICollection<ProjectBase> _projects;
         #endregion
 
         #region Purge/Reset
