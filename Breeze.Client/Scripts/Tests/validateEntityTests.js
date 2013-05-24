@@ -24,6 +24,22 @@
 
         }
     });
+
+    test("customize validation display name", function () {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var dp = custType.getProperty("companyName");
+        dp.displayName = "xxx Company name xxx";
+        var cust1 = custType.createEntity();
+        em.attachEntity(cust1);
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        cust1.setProperty("companyName", s);
+        errors = cust1.entityAspect.getValidationErrors();
+        ok(errors[0].errorMessage.indexOf("xxx Company name xxx") != -1, "should have a custom error message");
+
+    });
+
     
     test("Remove a rule", 2, function () {
 
