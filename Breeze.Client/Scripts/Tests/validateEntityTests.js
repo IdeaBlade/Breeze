@@ -106,7 +106,7 @@
 
         employee.setProperty("birthDate","today"); // 2. Nice try! Wrong data type
 
-        employee.setProperty("employeeID", null); // 3. Id is the pk; automatically required
+        employee.setProperty(testFns.employeeKeyName, null); // 3. Id is the pk; automatically required
 
         employee.setProperty("lastName",          // 4. adds "too long", 5. removes "required", 
             "IamTheGreatestAndDontYouForgetIt");

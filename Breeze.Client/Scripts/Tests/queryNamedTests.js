@@ -324,7 +324,7 @@
 
         var sc = new testFns.StopCount(2);
 
-        em.executeQuery(query, function (data) {
+        em.executeQuery(query).then(function (data) {
 
             ok(data.results.length === 1, "query should only return a single cust");
             var cust = data.results[0];
@@ -336,23 +336,21 @@
             var ordersQuery = EntityQuery.fromEntities(orders);
             var em2 = newEm();
 
-            em2.executeQuery(custQuery, function (data2) {
+            var p1 = em2.executeQuery(custQuery).then(function (data2) {
                 ok(data2.results.length === 1, "a single customer should have been fetched");
                 var cust2 = data2.results[0];
                 var cust2Key = cust2.entityAspect.getKey();
                 ok(custKey.equals(cust2Key), "customer keys do not match");
-                em2.clear();
-                sc.start();
-            }).fail(sc.handleFail);
+            });
 
-            em2.executeQuery(ordersQuery, function (data3) {
+            var p2 = em2.executeQuery(ordersQuery).then(function (data3) {
                 var orders3 = data3.results;
                 ok(orders3.length === orders.length, "orders query results are the wrong length");
                 var order3Keys = orders3.map(function (o) { return o.entityAspect.getKey(); });
                 ok(core.arrayEquals(orderKeys, order3Keys, EntityKey.equals), "orders query do not return the correct entities");
-                sc.start();
-            }).fail(sc.handleFail);
-        });
+            })
+            return Q.all(p1, p2);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("server side include, followed by local query", function () {

@@ -401,7 +401,7 @@
         var em = newEm();
         var supplierType = em.metadataStore.getEntityType("Supplier");
         var supplier1 = supplierType.createEntity();
-        em.attachEntity(supplier1);
+        em.addEntity(supplier1);
         var lastNotification;
         var notificationCount = 0;
         supplier1.entityAspect.validationErrorsChanged.subscribe(function (args) {
@@ -420,7 +420,7 @@
         location.setProperty("city", s);
         ok(lastNotification.added, "last notification should have been 'added'");
         ok(lastNotification.added[0].propertyName === "location.city", "should have added 'location.city");
-        ok(notificationCount === 2, "should have been 1 notification");
+        ok(notificationCount === 2, "should have been 2 notifications");
         var errs = supplier1.entityAspect.getValidationErrors();
         ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
 
@@ -437,7 +437,7 @@
         var em = newEm();
         var supplierType = em.metadataStore.getEntityType("Supplier");
         var supplier1 = supplierType.createEntity();
-        em.attachEntity(supplier1);
+        em.addEntity(supplier1);
         var errs;
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;

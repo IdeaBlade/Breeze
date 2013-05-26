@@ -1887,7 +1887,8 @@
     test("by EntityQuery.fromEntityNavigation - (-> 1) ", function() {
         var em = newEm();
 
-        var query = EntityQuery.from("Orders").take(1);
+        var query = EntityQuery.from("Orders")
+            .where("customerID","!=", null).take(1);
 
         stop();
         em.executeQuery(query).then(function(data) {
@@ -1926,7 +1927,8 @@
 
     test("by entityAspect.loadNavigationProperty - (-> 1) ", function () {
         var em = newEm();
-        var query = EntityQuery.from("Orders").take(1);
+        var query = EntityQuery.from("Orders")
+            .where("customerID", "!=", null).take(1);
         em.tag = "xxxx";
         stop();
         var order;
