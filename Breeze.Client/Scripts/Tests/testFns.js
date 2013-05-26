@@ -243,7 +243,7 @@ breezeTestFns = (function (breeze) {
         if (error.handled === true) return;
         
         if (error instanceof (Error)) {
-            var msg = (error.message || "") + (error.responseText && " responseText: " + error.responseText);
+            var msg = (error.message || "") + ((error.responseText && " responseText: " + error.responseText) || "");
             ok(false, "Failed: " + msg);
         } else {
             ok(false, "error is not an error object; error.status: " + error.status + "  error.message: " + error.message + "-" + error.responseText);

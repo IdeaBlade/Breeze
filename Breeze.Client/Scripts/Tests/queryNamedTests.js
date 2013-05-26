@@ -322,7 +322,7 @@
             .where("companyName", FilterQueryOp.StartsWith, "C")
             .take(1);
 
-        var sc = new testFns.StopCount(2);
+        stop();
 
         em.executeQuery(query).then(function (data) {
 
@@ -343,13 +343,13 @@
                 ok(custKey.equals(cust2Key), "customer keys do not match");
             });
 
-            var p2 = em2.executeQuery(ordersQuery).then(function (data3) {
+            var p2 = em2.executeQuery(ordersQuery).then(function(data3) {
                 var orders3 = data3.results;
                 ok(orders3.length === orders.length, "orders query results are the wrong length");
-                var order3Keys = orders3.map(function (o) { return o.entityAspect.getKey(); });
+                var order3Keys = orders3.map(function(o) { return o.entityAspect.getKey(); });
                 ok(core.arrayEquals(orderKeys, order3Keys, EntityKey.equals), "orders query do not return the correct entities");
-            })
-            return Q.all(p1, p2);
+            });
+            return Q.all([p1, p2]);
         }).fail(testFns.handleFail).fin(start);
     });
 
