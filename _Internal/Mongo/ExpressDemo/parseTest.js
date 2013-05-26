@@ -59,12 +59,34 @@ x = tryParse("$filter='xxx'");
 
 x = tryParse("$filter=Name/foo")
 
+//parseAndCompare("$filter", "$filter=DateValue eq datetime'2012-05-06T16:11:00Z'",
+parseAndCompare("$filter", "$filter=OrderDate gt datetime'1998-04-01T07:00:00.000Z'",
+    { type: "op_bool", op: "gt",
+        p1: { type: "member", value: "OrderDate" },
+        p2: { type: "lit_datetime", value: new Date("1998-04-01T07:00:00.000Z") }
+    });
+
 parseAndCompare("$filter", "$filter=_id eq guid'785efa04-cbf2-4dd7-a7de-083ee17b6ad2'",
     { type: "op_bool", op: "eq",
         p1: { type: "member", value: "_id" },
         p2: { type: "lit_guid", value: "785efa04-cbf2-4dd7-a7de-083ee17b6ad2"}
     });
 
+
+parseAndCompare("$filter", "$filter=startswith(toupper(substring(CompanyName,1,2)),'OM') eq true",
+    { type: "op_bool", op: "eq",
+        p1: { type: "fn_2", name: "startswith",
+            p1: { type: "fn_1", name: "toupper",
+                p1: { type: "fn_3", name: "substring",
+                    p1: { type: "member", value: "CompanyName" },
+                    p2: { type: "lit_number", value: 1},
+                    p3: { type: "lit_number", value: 2}
+                }
+            },
+            p2: { type: "lit_string", value: "OM"}
+        },
+        p2: { type: "lit_boolean", value: true }
+    });
 
 parseAndCompare("$filter","$filter=Name eq 'John'",
     { type: "op_bool", op: "eq",
@@ -81,6 +103,12 @@ parseAndCompare("$filter","$filter=_name eq 'John'",
 
 
 parseAndCompare("$filter","$filter=Qty eq 6443",
+    { type: "op_bool", op: "eq",
+        p1: { type: "member", value: "Qty"},
+        p2: { type: "lit_number", value: 6443}
+    });
+
+parseAndCompare("$filter","$filter=Qty eq 6443m",
     { type: "op_bool", op: "eq",
         p1: { type: "member", value: "Qty"},
         p2: { type: "lit_number", value: 6443}
@@ -186,7 +214,7 @@ parseAndCompare("$filter", "$filter=(startswith(tolower(StringValue),'foo') eq t
 parseAndCompare("$filter","$filter=DateValue eq datetime'2012-05-06T16:11:00Z'",
     { type: "op_bool", op: "eq",
         p1: { type: "member", value: "DateValue"},
-        p2: { type: "lit_dateTime", value: new Date('2012-05-06T16:11:00Z') }
+        p2: { type: "lit_datetime", value: new Date('2012-05-06T16:11:00Z') }
     });
 
 
@@ -230,7 +258,9 @@ function compare(title, o1, o2) {
         console.log("Ok: "  + title);
     } catch (e) {
         console.log("Err: " + title + " --error:" + e.message);
-        return true;
+        console.log(JSON.stringify(o1));
+        console.log(JSON.stringify(o2));
+
     }
 }
 

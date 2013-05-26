@@ -16,7 +16,8 @@
     var MergeStrategy = breeze.MergeStrategy;
 
     var newEm = testFns.newEm;
-    
+    var wellKnownData = testFns.wellKnownData;
+
     module("query", {
         setup: function () {
             testFns.setup();
@@ -25,22 +26,25 @@
         }
     });
 
-    var wellKnownData = {
-        // ID of the Northwind "Alfreds Futterkiste" customer
-        alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-        // ID of the Northwind "Nancy Davolio" employee
-        nancyID: 1,
-        // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ },
-        // ID of Chai product
-        chaiProductID: 1
-    };
-
-
+    test("getAlfred", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Customers").where("companyName", "startsWith", "Alfreds");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var alfred = data.results[0];
+            var alfredsID = alfred.getProperty(testFns.customerKeyName);
+            ok(alfredsID === wellKnownData.alfredsID);
+        }).fail(testFns.handleFail).fin(start);
+    })
     
     test("raw query string", function () {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - needs a toType for MONGO");
+            return;
+        }
+
         var em = newEm();
+        var q = ""
         stop();
         em.executeQuery("Customers?&$top=3").then(function (data) {
             var custs = data.results;
@@ -163,6 +167,11 @@
             return;
         }
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped tests - Mongo with jsonResultsAdapter");
+            return;
+        }
+
         var em = newEm();
         var jsonResultsAdapter = new breeze.JsonResultsAdapter({
             name: "eventAdapter",
@@ -198,6 +207,11 @@
     test("query using dataService with jsonResultsAdapter", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
+            return;
+        }
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped tests - Mongo with jsonResultsAdapter");
             return;
         }
 
@@ -239,6 +253,11 @@
     test("query using em with dataService with jsonResultsAdapter", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - OData with jsonResultsAdapter");
+            return;
+        }
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped tests - Mongo with jsonResultsAdapter");
             return;
         }
 
@@ -553,6 +572,11 @@
     });
     
     test("query with inlineCount 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - nested navigation thru joins not yet supported");
+            return;
+        }
+
         var em = newEm();
         var q = EntityQuery.from("Orders")
             .where("customer.companyName", "startsWith", "C")
@@ -568,7 +592,7 @@
 
     test("fetchEntityByKey", function() {
         var em = newEm();
-        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var alfredsID = wellKnownData.alfredsID;
         stop();
         var alfred;
         em.fetchEntityByKey("Customer", alfredsID).then(function(data) {
@@ -591,7 +615,7 @@
     
     test("fetchEntityByKey - deleted", function () {
         var em = newEm();
-        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var alfredsID = wellKnownData.alfredsID;
         stop();
         var alfred;
         em.fetchEntityByKey("Customer", alfredsID).then(function (data) {
@@ -622,7 +646,7 @@
     
     test("fetchEntityByKey - cache first not found", function () {
         var em = newEm();
-        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var alfredsID = wellKnownData.alfredsID;
         stop();
         var alfred;
         em.fetchEntityByKey("Customer", alfredsID, true).then(function (data) {
@@ -774,49 +798,6 @@
     });
     
 
-    test("scalar server query ", function () {
-        if (testFns.DEBUG_ODATA) {
-            ok(true, "Named queries not supported by OData");
-            return;
-        }
-        var em = newEm();
-
-        var query = EntityQuery.from("CustomerWithScalarResult")
-            .using(em);
-        stop();
-
-        query.execute().then(function (data) {
-            ok(data.results.length === 1, "should be 1 result");
-        }).fail(testFns.handleFail).fin(start);
-    });
-    
-    //test("scalar server query 2 ", function () {
-    //    var em = newEm();
-
-    //    var query = EntityQuery.from("CustomerWithScalarResult")
-    //        .using(em)
-    //        .take(5);
-    //    stop();
-
-    //    query.execute().then(function (data) {
-    //        ok(data.results.length === 1, "should be 1 result");
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
-    test("http 404 error thrown on server ", function () {
-        var em = newEm();
-
-        var query = EntityQuery.from("CustomersWithHttpError")
-            .using(em);
-        stop();
-
-        query.execute().then(function (data) {
-            ok(false, "should not get here");
-        }).fail(function (e) {
-            ok(e.status === 404, "status should be 404");
-        }).fail(testFns.handleFail).fin(start);
-    });
-    
     test("query results notification", function () {
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
@@ -834,7 +815,9 @@
                 arrayChangedCount++;
                 adds = args.added;
             });
-            return query.expand("orders").execute();
+            // return query.expand("orders").execute();
+            // same as above but doesn't need expand
+            return customer.entityAspect.loadNavigationProperty("orders");
         }).then(function (data2) {
             ok(arrayChangedCount === 1, "should only see a single arrayChanged event fired");
             ok(adds && adds.length > 0, "should have been multiple entities shown as added");
@@ -1193,7 +1176,7 @@
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
-            .where("regionID", "==", 3);
+            .where("regionDescription", "==", "Northern");
             
 
         stop();
@@ -1207,8 +1190,7 @@
             ok(!em.hasChanges(), "should not have any changes");
             ok(em.getChanges().length === 0, "getChanges should return 0 results");
             ok(data2.results.length > 0, "This may be a test bug - need a region with territories");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     
@@ -1456,7 +1438,7 @@
 
     test("where nested property", function () {
         if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - expand is not yet supported");
+            ok(true, "NA for Mongo - Product.category.categoryName is not a nested property in mongo");
             return;
         }
         var em = newEm();
@@ -1480,6 +1462,10 @@
     });
 
     test("where nested property 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - Order.customer.region is not a nested property in mongo");
+            return;
+        }
         var em = newEm();
 
          var query = new EntityQuery()
@@ -1718,7 +1704,7 @@
             .where("toLower(companyName)", "startsWith", "c");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
@@ -1737,15 +1723,14 @@
             .where("toUpper(substring(companyName, 1, 2))", "startsWith", "OM");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
                 var val= cust.getProperty("companyName").substr(1,2).toUpperCase();
                 return val === "OM";
             }), "every cust should have 'OM' as the 2nd and 3rd letters");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("query expr - length", function() {
@@ -1756,15 +1741,14 @@
             .where("length(companyName)", ">", 20);
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             var custs = data.results;
             ok(custs.length > 0);
             ok(custs.every(function(cust) {
                 var val = cust.getProperty("companyName");
                 return val.length > 20;
             }), "every cust have a name longer than 20 chars");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("query expr - navigation then length", function() {
@@ -1781,7 +1765,7 @@
             .expand("customer");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             var orders = data.results;
             ok(orders.length > 0);
             ok(orders.every(function(order) {
@@ -1789,8 +1773,7 @@
                 var val = cust.getProperty("companyName");
                 return val.length > 30;
             }), "every order must have a cust with a name longer than 30 chars");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("bad query expr -  bad property name", function() {
@@ -1801,15 +1784,13 @@
             .where("length(customer.fooName)", ">", 30);
         // var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             ok(false, "should not get here");
-            start();
-        }, function (error) {
+        }).fail(function(error) {
             ok(error instanceof Error);
             ok(error.message.indexOf("fooName") > 0, "bad message");
             error.handled = true;
-            start();
-        }).fail(testFns.handleFail);
+        }).fin(start);
     });
     
   
@@ -1836,13 +1817,13 @@
             .where("badCompanyName", "startsWith", "C");
         // var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             ok(false, "shouldn't get here");
-        }, function(error) {
+        }).fail(function(error) {
             ok(error instanceof Error);
             ok(error.message.indexOf("badCompanyName") > 0, "bad message");
             error.handled = true;
-        }).fail(testFns.handleFail).fin(start);
+        }).fin(start);
 
     });
 
@@ -1855,29 +1836,27 @@
             .orderBy("badCompanyName");
         // var queryUrl = query._toUri(em.metadataStore);
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             ok(false, "shouldn't get here");
-        }, function(error) {
+        }).fail(function(error) {
             ok(error instanceof Error);
             ok(error.message.indexOf("badCompanyName") > 0, "bad message");
             error.handled = true;          
-        }).fail(testFns.handleFail).fin(start);
+        }).fin(start);
 
     });
 
     test("by EntityQuery.fromEntityKey ", function () {
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
-        var entityKey = new EntityKey(empType, 1);
+        var entityKey = new EntityKey(empType, wellKnownData.nancyID);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
-        em.executeQuery(query, function (data) {
+        em.executeQuery(query).then(function (data) {
             var emp = data.results[0];
-            ok(emp.getProperty("employeeID") === 1);
-            start();
-            return;
-        }).fail(testFns.handleFail);
+            ok(emp.getProperty(testFns.employeeKeyName) === wellKnownData.nancyID);
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
@@ -1885,23 +1864,23 @@
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
         var orderType = em.metadataStore.getEntityType("Order");
-        var entityKey = new EntityKey(empType, 1);
+        var entityKey = new EntityKey(empType, wellKnownData.nancyID);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
-        em.executeQuery(query, function (data) {
-            var emp = data.results[0];
-            ok(emp.getProperty("employeeID") === 1);
+        var emp;
+        em.executeQuery(query).then(function (data) {
+            emp = data.results[0];
+            ok(emp.getProperty(testFns.employeeKeyName) === wellKnownData.nancyID);
             var np = emp.entityType.getProperty("orders");
             var q2 = EntityQuery.fromEntityNavigation(emp, np);
-            em.executeQuery(q2, function (data2) {
-                ok(data2.results.length > 0, "no data returned");
-                ok(data2.results.every(function (r) { return r.entityType === orderType; }));
-                var orders = emp.getProperty("orders");
-                ok(orders.length === data2.results.length, "local array does not match queried results");
-                start();
-            }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length > 0, "no data returned");
+            ok(data2.results.every(function (r) { return r.entityType === orderType; }));
+            var orders = emp.getProperty("orders");
+            ok(orders.length === data2.results.length, "local array does not match queried results");
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
@@ -1911,38 +1890,37 @@
         var query = EntityQuery.from("Orders").take(1);
 
         stop();
-        em.executeQuery(query, function(data) {
+        em.executeQuery(query).then(function(data) {
             var order = data.results[0];
             ok(order.entityType.shortName === "Order");
             var np = order.entityType.getProperty("employee");
             ok(np, "can't find nav prop 'Employee'");
             var q2 = EntityQuery.fromEntityNavigation(order, np);
-            em.executeQuery(q2, function(data2) {
-                ok(data2.results.length === 1, "wrong amount of data returned");
-                ok(data2.results[0].entityType.shortName === "Employee");
-                start();
-            }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+            return em.executeQuery(q2);
+        }).then(function(data2) {
+            ok(data2.results.length === 1, "wrong amount of data returned");
+            ok(data2.results[0].entityType.shortName === "Employee");
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
     test("by entityAspect.loadNavigationProperty - (-> n) ", function () {
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
-        var entityKey = new EntityKey(empType, 1);
+        var entityKey = new EntityKey(empType, wellKnownData.nancyID);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
-        em.executeQuery(query, function (data) {
-            var emp = data.results[0];
-            emp.entityAspect.loadNavigationProperty("orders", function (data2) {
-                ok(data2.results.length > 0, "no data returned");
-                ok(data2.results.every(function (r) { return r.entityType.shortName = "Order"; }));
-                var orders = emp.getProperty("orders");
-                ok(orders.length === data2.results.length, "local array does not match queried results");
-                start();
-            }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+        var emp;
+        em.executeQuery(query).then(function (data) {
+            emp = data.results[0];
+            return emp.entityAspect.loadNavigationProperty("orders");
+        }).then(function (data2) {
+            ok(data2.results.length > 0, "no data returned");
+            ok(data2.results.every(function (r) { return r.entityType.shortName = "Order"; }));
+            var orders = emp.getProperty("orders");
+            ok(orders.length === data2.results.length, "local array does not match queried results");
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
@@ -1966,8 +1944,7 @@
             var orders = sameEmp.getProperty("orders");
             var ix = orders.indexOf(order);
             ok(ix >= 0, "can't find order in reverse lookup");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
 
     });
 
@@ -1975,21 +1952,21 @@
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
         var orderType = em.metadataStore.getEntityType("Order");
-        var entityKey = new EntityKey(empType, 1);
+        var entityKey = new EntityKey(empType, wellKnownData.nancyID);
         var query = EntityQuery.fromEntityKey(entityKey);
 
         stop();
-        em.executeQuery(query, function (data) {
-            var emp = data.results[0];
-            var orders = emp.getProperty("orders");
+        var orders, emp;
+        em.executeQuery(query).then(function (data) {
+            emp = data.results[0];
+            orders = emp.getProperty("orders");
             ok(orders.length === 0, "orders length should start at 0");
-            orders.load(function (data2) {
+            return orders.load();
+        }).then(function (data2) {
                 ok(data2.results.length > 0, "no data returned");
                 ok(data2.results.every(function (r) { return r.entityType === orderType; }));
                 ok(orders.length === data2.results.length, "local array does not match queried results");
-                start();
-            }).fail(testFns.handleFail);
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
 
     });
 

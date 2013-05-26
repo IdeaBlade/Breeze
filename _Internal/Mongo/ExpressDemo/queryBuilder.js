@@ -1,13 +1,16 @@
 var odataParser = require("./odataParser");
-var uuidHelpers = require("./uuidHelpers");
+// var uuidHelpers = require("./uuidHelpers");
+var mongodb = require('mongodb');
+var ObjectId = require('mongodb').ObjectID;
+
 
 var boolOpMap = {
     eq: { jsOp: "==="},
-    gt: { mondoOp: "$gt",  jsOp: ">" },
-    ge: { mondoOp: "$gte", jsOp: ">=" },
-    lt: { mondoOp: "$lt",  jsOp: "<" },
-    le: { mondoOp: "$lte", jsOp: "<=" },
-    ne: { mondoOp: "$ne",  jsOp: "!=" }
+    gt: { mongoOp: "$gt",  jsOp: ">" },
+    ge: { mongoOp: "$gte", jsOp: ">=" },
+    lt: { mongoOp: "$lt",  jsOp: "<" },
+    le: { mongoOp: "$lte", jsOp: "<=" },
+    ne: { mongoOp: "$ne",  jsOp: "!=" }
 }
 
 exports.toMongoQuery= function(urlQuery) {
@@ -46,6 +49,9 @@ exports.toMongoQuery= function(urlQuery) {
     if (section) {
         extend(pieces.options, { skip: parseInt(section, 10)});
     }
+
+    section = urlQuery.$inlinecount;
+    pieces.inlineCount = !!(section && section !== "none");
 
     return pieces;
 
@@ -90,17 +96,19 @@ function makeBoolFilter(op, p1, p2) {
     if (p1.type === "member") {
         // handles nested paths. '/' -> "."
         var p1Value = p1.value.replace("/",".");
+
+        var p2Value;
         if (startsWith(p2.type, "lit_")) {
-            if (p2.type === "lit_guid") {
-                var p2Value = uuidHelpers.CSUUID(p2.value);
+            if (p2.type === "lit_string") {
+                p2Value = parseLitString(p2.value);
             } else {
-                var p2Value = p2.value;
+                p2Value = p2.value;
             }
             if (op === "eq") {
                 q[p1Value] = p2Value;
                 return q;
             } else {
-                var mop = boolOpMap[op].mondoOp;
+                var mop = boolOpMap[op].mongoOp;
                 var crit = {};
                 crit[mop] = p2Value;
                 q[p1Value] = crit;
@@ -123,19 +131,7 @@ function makeBoolFilter(op, p1, p2) {
     throw new Error("Not yet implemented: Boolean operation: " + op + " p1: " + stringify(p1) + " p2: " + stringify(p2));
 }
 
-function stringify(node) {
-    return JSON.stringify(node);
-    /* var nt = node.type;
-    var result = nt + " { ";
-    if (startsWith(node.type, "lit")) {
-        result += "value: " + node.value.toString();
-    } elseif (startsWith(nt, "fn") {
-        result += "name: " + node.name;
-    } elseif (startsWith(nt, "op_"))
-        result += "node"
-    result += "}";
-    */
-}
+
 
 function makeUnaryFilter(op, p1) {
 
@@ -177,21 +173,32 @@ function applyNot(q1) {
 }
 
 function makeFn2Filter(fnName, p1, p2) {
+    var q = {};
     if (p1.type === "member") {
         // TODO: need to handle nested paths. '/' -> "."
         var key = p1.value;
         if (startsWith(p2.type, "lit_")) {
-            result = {};
             if (fnName === "startswith") {
-                result[key] =  new RegExp("^" +p2.value ) ;
-                return result;
+                q[key] =  new RegExp("^" +p2.value, 'i' ) ;
             }   else if (fnName === "endswith") {
-                result[key] =  new RegExp( p2.value + "$");
-                return result;
+                q[key] =  new RegExp( p2.value + "$", 'i');
             }
+        } else if (p2.type === "member") {
+            if (fnName === "startswith") {
+                q["$where"] =  "function() { return (new RegExp('^' + this." + p2.value + ",'i')).test(this." +  p1.value + "); }";
+            }   else if (fnName === "endswith") {
+                q["$where"] =  "function() { return (new RegExp(this." + p2.value + " + '$','i')).test(this." +  p1.value + "); }";
+            }
+        }
+    } else if (fnName === "substringof") {
+        if (p1.type === "lit_string" && p2.type === "member") {
+            q[p2.value] = new RegExp(p1.value, "i");
         }
     }
 
+    if (!isEmpty(q)) {
+        return q;
+    }
     throw new Error("Not yet implemented: Function: " + fnName + " p1: " + stringify(p1) + " p2: " + stringify(p2));
 }
 
@@ -214,6 +221,34 @@ function startsWith(str, prefix) {
     // returns false for empty strings too
     if ((!str) || !prefix) return false;
     return str.indexOf(prefix, 0) === 0;
+}
+
+function parseLitString(s) {
+    if (/^[0-9a-fA-F]{24}$/.test(s)) {
+        return new ObjectId(s);
+    } else {
+        return s;
+    }
+}
+
+function stringify(node) {
+    return JSON.stringify(node);
+}
+
+function isEmpty(obj) {
+
+    // null and undefined are empty
+    if (obj == null) return true;
+    // Assume if it has a length property with a non-zero value
+    // that that property is correct.
+    if (obj.length && obj.length > 0)    return false;
+    if (obj.length === 0)  return true;
+
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key))    return false;
+    }
+
+    return true;
 }
 
 function extend(target, source) {

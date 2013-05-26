@@ -15,6 +15,7 @@
 
 
     var newEm = testFns.newEm;
+    
 
     module("validate entity", {
         setup: function () {
@@ -27,6 +28,8 @@
 
     test("customize validation display name", function () {
         var em = newEm();
+        var newMs = MetadataStore.importMetadata(em.metadataStore.exportMetadata());
+        em = newEm(newMs);
         var custType = em.metadataStore.getEntityType("Customer");
         var dp = custType.getProperty("companyName");
         dp.displayName = "xxx Company name xxx";

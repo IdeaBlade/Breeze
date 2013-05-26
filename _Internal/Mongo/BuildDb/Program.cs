@@ -54,7 +54,8 @@ namespace BuildDb {
       dc.ClearOldPk("UserRoles", "Id");
 
       
-      dc.MakeChildDoc("Orders", "OrderID", "OrderDetails", "OrderID", "OrderDetails");
+      dc.MakeChildDocs("Orders", "OrderID", "OrderDetails", "OrderID", "OrderDetails");
+      dc.MakeChildDoc("Suppliers", "Location", new string[] {"Address", "City", "Country", "PostalCode", "Region"});
     }
 
 

@@ -2,7 +2,6 @@ var mongodb = require('mongodb');
 var fs = require('fs');
 var queryBuilder = require("./queryBuilder");
 
-
 var host = 'localhost';
 var port = 27017;
 var dbName = 'NorthwindIB';
@@ -39,15 +38,22 @@ function getCollection(res, collectionName, query) {
             res.send(400, "Unable to locate: " + collectionName);
             return;
         }
-
-
-        var src = collection.find(query.query, query.select, query.options);
-
-
-        src.toArray(function (err, items) {
-            res.setHeader("Content-Type:", "application/json");
-            res.send(items);
-        });
+        var src;
+        res.setHeader("Content-Type:", "application/json");
+        if (query.inlineCount) {
+            collection.count(query.query, function(err, count) {
+                src = collection.find(query.query, query.select, query.options);
+                src.toArray(function (err, items) {
+                    var results =  { Results: items || [], InlineCount: count };
+                    res.send(results);
+                });
+            });
+        } else {
+            src = collection.find(query.query, query.select, query.options);
+            src.toArray(function (err, items) {
+                res.send(items || []);
+            });
+        }
     });
 
 }

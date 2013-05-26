@@ -30,7 +30,9 @@ namespace BuildDb {
       var safemode = SafeMode.True;
       MongoSvr = MongoServer.Create(mongoConnectionString);
       MongoDb = MongoSvr.GetDatabase(mongoDbName);
-
+      
+      // MongoDB.Driver.MongoDefaults.GuidRepresentation = GuidRepresentation.Standard;
+      MongoDB.Driver.MongoDefaults.GuidRepresentation = GuidRepresentation.CSharpLegacy;
     }
 
     public String SqlConnectionString { get; set; }
@@ -79,7 +81,7 @@ namespace BuildDb {
                 var aType = reader[j].GetType();
                 var propName = reader.GetName(j);
                 if (aType == typeof (String)) {
-                  bson.Add(new BsonElement(propName, reader[j].ToString()));
+                  bson.Add(new BsonElement(propName, reader[j].ToString().Trim()));
                 } else if (aType == typeof (Int32)) {
                   bson.Add(new BsonElement(propName, BsonValue.Create(reader.GetInt32(j))));
                 } else if (aType == typeof (Int16)) {
@@ -99,7 +101,9 @@ namespace BuildDb {
                   var val = reader.GetDateTimeOffset(j).DateTime;
                   bson.Add(new BsonElement(propName, BsonValue.Create(val)));
                 } else if (aType == typeof (Guid)) {
-                  bson.Add(new BsonElement(propName, BsonValue.Create(reader.GetGuid(j))));
+                  var guid = reader.GetGuid(j);
+                  bson.Add(new BsonElement(propName, guid.ToString()));
+                  // bson.Add(new BsonElement(propName, BsonValue.Create(reader.GetGuid(j))));
                 } else if (aType == typeof (Boolean)) {
                   bson.Add(new BsonElement(propName, BsonValue.Create(reader.GetBoolean(j))));
                 } else if (aType == typeof (DBNull)) {
@@ -170,7 +174,7 @@ namespace BuildDb {
       var r = docs.Update(null, update, UpdateFlags.Multi);
     }
 
-    public void MakeChildDoc(String parentCollectionName, String parentPkName, String childCollectionName,
+    public void MakeChildDocs(String parentCollectionName, String parentPkName, String childCollectionName,
                              String childFkName, String parentPropName) {
       var parents = MongoDb.GetCollection(parentCollectionName);
       var children = MongoDb.GetCollection(childCollectionName);
@@ -184,12 +188,32 @@ namespace BuildDb {
           cd.Remove(childFkName);
         });
         var childArray = new BsonArray(childDocs);
-        var parentQuery = Query.EQ("_id", parent["_id"]);
+        var parentQuery = Query.EQ(parentPkName, key);
         var parentUpdate = Update.Set(parentPropName, childArray);
         var r = parents.Update(parentQuery, parentUpdate);
         
       }
       ClearOldPk(parentCollectionName, parentPkName);
+    }
+
+    public void MakeChildDoc(String parentCollectionName, String parentChildDocName, String[] propertyNames) {
+      var parents = MongoDb.GetCollection(parentCollectionName);
+
+      foreach (var parent in parents.Find(null)) {
+        var key = parent["_id"];
+        var subDoc = new BsonDocument();
+        var parentUpdate = Update.Set(parentChildDocName, subDoc);
+        foreach (var pn in propertyNames) {
+          BsonElement ele;
+          if (parent.TryGetElement(pn, out ele)) {
+            subDoc.Add(pn, ele.Value);
+            parentUpdate.Unset(pn);
+          }
+
+        }
+        var parentQuery = Query.EQ("_id", key);
+        var r = parents.Update(parentQuery, parentUpdate);
+      }
     }
   }
 }

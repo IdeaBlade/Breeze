@@ -20,6 +20,13 @@
 
     var newEm = testFns.newEm;
     var newEmX = testFns.newEmX;
+
+    if (testFns.DEBUG_MONGO) {
+        test("Skipping inherit produce tests - DB not yet avail", function () {
+            ok(true, "Skipped tests - Mongo");
+        });
+        return;
+    };
     
     module("inheritProduce", {
         setup: function () {
@@ -28,6 +35,8 @@
         teardown: function () {
         }
     });
+
+
 
     test("EntityKey for ItemsOfProduce", function() {
         var em = newEmX();

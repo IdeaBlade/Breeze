@@ -1,6 +1,6 @@
 {
    "metadataVersion":"1.0.4",
-   "namingConvention":"camelCase2",
+   "namingConvention":"camelCase",
    "localQueryComparisonOptions":"caseInsensitiveSQL",
    "dataServices":[
       {
@@ -1279,7 +1279,7 @@
          "defaultResourceName":"Products",
          "dataProperties":[
             {
-                "name":"productID",
+                "name":"_id",
                 "dataType":"Int32",
                 "isNullable":false,
                 "defaultValue":0,

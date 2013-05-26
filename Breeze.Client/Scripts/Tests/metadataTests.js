@@ -44,6 +44,12 @@
             ok(true, "Skipped tests - not applicable to OData");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped tests - not applicable to Mongo yet");
+            return;
+        };
+
         var em = newAltEm();
         stop();
         em.fetchMetadata().then(function (rawMetadata) {
@@ -58,8 +64,7 @@
         stop();
         store.fetchMetadata(testFns.serviceName).then(function() {
             ok(!store.isEmpty());
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("getEntityType informative error message1", function () {
@@ -102,7 +107,7 @@
                 ok(props.length > 0);
                 var keys = custType.keyProperties;
                 ok(keys.length > 0);
-                var prop = custType.getProperty("CustomerID");
+                var prop = custType.getProperty(testFns.customerKeyName);
                 ok(prop, "fails if default naming convention is camelCase and metadata provides nameOnServer");
                 ok(prop.isDataProperty);
                 var navProp = custType.navigationProperties[0];

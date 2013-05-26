@@ -161,6 +161,11 @@
     });
 
     test("unidirectional attach - n->1", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - OrderDetail");
+            return;
+        }
+
         var em = newEm();
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var orderDetail = orderDetailType.createEntity();
@@ -220,13 +225,13 @@
         var productType = em.metadataStore.getEntityType("Product");
         var product = productType.createEntity();
         em.attachEntity(product);
-        var origProductId = product.getProperty("productID");
+        var origProductId = product.getProperty(testFns.productKeyName);
         var entityKey = new EntityKey(productType, [origProductId]);
         var sameProduct = em.findEntityByKey(entityKey);
         var sameProduct2 = em.getEntityByKey("Product", origProductId);
         ok(product === sameProduct);
         ok(product === sameProduct2);
-        product.setProperty("productID", 7);
+        product.setProperty(testFns.productKeyName, 7);
         sameProduct = em.getEntityByKey(entityKey);
         ok(sameProduct === null);
         entityKey = new EntityKey(productType, [7]);

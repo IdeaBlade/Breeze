@@ -10,8 +10,10 @@
     var EntityQuery = breeze.EntityQuery;
     var EntityKey = breeze.EntityKey;
     var DataType = breeze.DataType;
+
     var newEm = testFns.newEm;
     var newMs = testFns.newMs;
+    var wellKnownData = testFns.wellKnownData;
     
     module("entity", {
         setup: function () {
@@ -48,16 +50,21 @@
         cfg = {};
         cfg[testFns.productKeyName] = 1;
         var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Unchanged);
-        
-        // Can't initialize with related entity. Feature request to make this possible         
-        newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
-        
-        ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
-        ok(parentOrder.entityAspect.entityState.isUnchanged(), "parentOrder should be 'added'");
-        ok(parentProduct.entityAspect.entityState.isUnchanged(), "parentProduct should be 'added'");
+
+        if (!testFns.DEBUG_MONGO) {
+            // Can't initialize with related entity. Feature request to make this possible
+            newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
+            ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+        }
+        ok(parentOrder.entityAspect.entityState.isUnchanged(), "parentOrder should be 'unchanged'");
+        ok(parentProduct.entityAspect.entityState.isUnchanged(), "parentProduct should be 'unchanged'");
     });
 
     test("create and init relations 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok("n/a for MONGO - OrderDetail is not an entityType");
+            return;
+        }
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
@@ -68,10 +75,12 @@
         cfg[testFns.productKeyName] = 1;
         var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Detached);
 
-        // Can't initialize with related entity. Feature request to make this possible         
+
+        // Can't initialize with related entity. Feature request to make this possible
         newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
 
         ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+
         ok(parentOrder.entityAspect.entityState.isAdded(), "parentOrder should be 'added'");
         ok(parentProduct.entityAspect.entityState.isAdded(), "parentProduct should be 'added'");
     });
@@ -277,6 +286,7 @@
     test("datatype coercion - integer", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for Mongo - OrderDetail is not an entity");
+            return;
         }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
@@ -298,6 +308,7 @@
     test("datatype coercion - decimal", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for Mongo - OrderDetail is not an entity");
+            return;
         }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
@@ -357,7 +368,7 @@
         ok(core.isDate(modDate), "modDate is not a date");
         em.addEntity(user);
         // need to do this after the addEntity call
-        var id = user.getProperty("id");
+        var id = user.getProperty(testFns.userKeyName);
         var exported = em.exportEntities();
         var em2 = newEm();
         em2.importEntities(exported);
@@ -464,7 +475,7 @@
 
     });
     
-    test("rejectChanges of a child entity restores it to its parent", 8, function () {
+    test("rejectChanges of a child entity restores it to its parent", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for MONGO - OrderDetail issues");
             return true;
@@ -745,7 +756,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty(testFns.employeeKeyName, 1);
+        emp.setProperty(testFns.employeeKeyName, wellKnownData.nancyID);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -758,8 +769,7 @@
         em.executeQuery(q, function(data) {
             ok(changes.length === 1, "query merges should only fire a single property change");
             ok(changes[0].propertyName === null, "propertyName should be null on a query merge");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("propertyChanged suppressed on query", function () {
@@ -767,7 +777,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty(testFns.employeeKeyName, 1);
+        emp.setProperty(testFns.employeeKeyName, wellKnownData.nancyID);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -779,8 +789,7 @@
         stop();
         em.executeQuery(q, function (data) {
             ok(changes.length === 0, "query merges should not fire");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete entity - check children", function () {
@@ -834,6 +843,11 @@
     });
 
     test("detach entity - check children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
         var details = order.getProperty("orderDetails");
@@ -853,7 +867,12 @@
     });
 
    test("hasChanges", function() {
-        var em = newEm();
+       if (testFns.DEBUG_MONGO) {
+           ok(true, "NA for MONGO - OrderDetail issues");
+           return true;
+       }
+
+       var em = newEm();
         
         var orderType = em.metadataStore.getEntityType("Order");
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
@@ -896,6 +915,11 @@
     });
     
     test("rejectChanges", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");

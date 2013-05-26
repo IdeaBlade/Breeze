@@ -92,21 +92,37 @@ breezeTestFns = (function (breeze) {
             testFns.defaultServiceName = "http://localhost:9009/ODataService.svc";
         }
         updateTitle();
-        setKeyNames();
+        setWellKnownData();
     };
 
-    function setKeyNames() {
+    function setWellKnownData() {
+        testFns.wellKnownData = {
+            // ID of the Northwind "Alfreds Futterkiste" customer
+            alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
+            // ID of the Northwind "Nancy Davolio" employee
+            nancyID: 1,
+            // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
+            alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ },
+            // ID of Chai product
+            chaiProductID: 1
+        };
+
         if (testFns.DEBUG_MONGO) {
+            testFns.wellKnownData.nancyID = 1001;
             testFns.orderKeyName = "_id";
             testFns.customerKeyName = "_id";
             testFns.employeeKeyName = "_id";
             testFns.productKeyName = "_id";
+            testFns.userKeyName = "_id";
         }   else {
+
             testFns.orderKeyName = "orderID";
             testFns.customerKeyName = "customerID";
             testFns.employeeKeyName = "employeeID";
             testFns.productKeyName = "productID"
+            testFns.userKeyName = "id";
         }
+
     }
 
     testFns.configure = function () {
