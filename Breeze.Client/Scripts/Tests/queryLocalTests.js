@@ -27,16 +27,16 @@
     test("query property inference error", function () {
         var em = newEm();
         var q1 = EntityQuery.from("Orders")
-            .where("orderID", "==", "20140000");
+            .where(testFns.orderKeyName, "==", "20140000");
         var r1 = em.executeQueryLocally(q1);
         ok(r1.length == 0);
 
-        var p1 = new Predicate("orderID", "==", "2140000");
+        var p1 = new Predicate(testFns.orderKeyName, "==", "2140000");
         var q2 = EntityQuery.from("Orders").where(p1);
         var r2 = em.executeQueryLocally(q2);
         ok(r2.length == 0);
 
-        var p2 = new Predicate("employeeID", "ne", "orderID");
+        var p2 = new Predicate("employeeID", "ne", testFns.orderKeyName);
         var q3 = EntityQuery.from("Orders").where(p1.and(p2));
         var r3 = em.executeQueryLocally(q3);
         ok(r3.length == 0);
@@ -185,6 +185,10 @@
     });
     
     test("local query with complex select", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - involves expand");
+            return;
+        }
         var em = newEm();
 
         var query = EntityQuery
@@ -235,14 +239,14 @@
         var em = newEm();
         stop();
         EntityQuery.from("Products").take(5).using(em).execute().then(function (data) {
-            var id = data.results[0].getProperty("productID").toString();
+            var id = data.results[0].getProperty(testFns.productKeyName).toString();
             var query = new breeze.EntityQuery()
-                .from("Products").where('productID', '==', id);
+                .from("Products").where(testFns.productKeyName, '==', id);
             var r = em.executeQueryLocally(query);
             
             ok(r.length == 1);
             query = new breeze.EntityQuery()
-                .from("Products").where('productID', '!=', id);
+                .from("Products").where(testFns.productKeyName, '!=', id);
             r = em.executeQueryLocally(query);
             ok(r.length == 4);
         }).fail(testFns.handleFail).fin(start);

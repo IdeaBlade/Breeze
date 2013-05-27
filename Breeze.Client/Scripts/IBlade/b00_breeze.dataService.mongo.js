@@ -10,20 +10,20 @@
         factory(breeze);
     }    
 }(function(breeze) {
-    
+       
     var core = breeze.core;
 
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
     var AbstractDataServiceAdapter = breeze.AbstractDataServiceAdapter;
-    
+
     var ajaxImpl;
-    
+
     var ctor = function () {
-        this.name = "webApi";
+        this.name = "mongo";
     };
     ctor.prototype = new AbstractDataServiceAdapter();
-
+    
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         var em = saveContext.entityManager;
         var metadataStore = em.metadataStore;
@@ -67,26 +67,12 @@
     }
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
-        
-        name: "webApi_default",
-        
-        visitNode: function (node, mappingContext, nodeContext) {
-            if (node == null) return {};
-            var entityTypeName = MetadataStore.normalizeTypeName(node.$type);
-            var entityType = entityTypeName && mappingContext.entityManager.metadataStore._getEntityType(entityTypeName, true);
-            var propertyName = nodeContext.propertyName;
-            var ignore = propertyName && propertyName.substr(0, 1) === "$";
+        name: "mongo",
 
-            return {
-                entityType: entityType,
-                nodeId: node.$id,
-                nodeRefId: node.$ref,
-                ignore: ignore
-            };
-        },
-        
-    });
-    
+        visitNode: function (node, mappingContext, nodeContext) {
+            return {};
+        }
+    });    
     
     breeze.config.registerAdapter("dataService", ctor);
 

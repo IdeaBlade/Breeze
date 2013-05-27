@@ -57,6 +57,7 @@ breezeTestFns = (function (breeze) {
         value = value.toLowerCase();
         testFns.DEBUG_WEBAPI = value === "webapi";
         testFns.DEBUG_ODATA = value === "odata";
+        testFns.DEBUG_MONGO = value === "mongo";
         
         if (testFns.DEBUG_WEBAPI) {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "webApi").name;
@@ -87,9 +88,12 @@ breezeTestFns = (function (breeze) {
             // test recomposition
             testFns.defaultServiceName = "breeze/NorthwindIBModel";
             
-        } else {
+        } else if (testFns.DEBUG_ODATA) {
             testFns.dataService = core.config.initializeAdapterInstance("dataService", "OData").name;
             testFns.defaultServiceName = "http://localhost:9009/ODataService.svc";
+        } else if (testFns.DEBUG_MONGO) {
+            testFns.dataService = core.config.initializeAdapterInstance("dataService", "mongo").name;
+            testFns.defaultServiceName = "breeze/NorthwindIBModel";
         }
         updateTitle();
         setWellKnownData();

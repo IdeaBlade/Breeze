@@ -892,7 +892,9 @@ var EntityManager = (function () {
                 refMap: {},
                 deferredFns: []
             };
-                
+
+            // TODO: we can optimize this and not perform the merge if 
+            // the save operation did not actually return the entity - i.e. OData and Mongo updates.
             var savedEntities = saveResult.entities.map(function (rawEntity) {
                 return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
             });

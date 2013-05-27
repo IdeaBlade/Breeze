@@ -1,6 +1,7 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
 var queryBuilder = require("./queryBuilder");
+var saveBuilder = require("./saveBuilder");
 
 var host = 'localhost';
 var port = 27017;
@@ -18,6 +19,10 @@ exports.getMetadata = function(req, res) {
     }
     var metadata = fs.readFileSync(filename, 'utf8');
     res.sendfile(filename);
+}
+
+exports.saveChanges = function(req, res) {
+    saveBuilder.saveChanges(db, req, res);
 }
 
 exports.get = function (req, res) {

@@ -4,9 +4,11 @@ var routes = require('./routes');
 var fs = require("fs");
 
 
+app.use(express.bodyParser());
 app.use(logErrors);
 app.use(clientErrorHandler);
 app.use(errorHandler);
+
 
 var testCaseDir = "c:/GitHub/Breeze/Breeze.Client/"
 
@@ -16,6 +18,7 @@ app.get('/', function(req,res) {
 });
 app.get('/breeze/NorthwindIBModel/Metadata', routes.getMetadata);
 app.get('/breeze/NorthwindIBModel/Products', routes.getProducts);
+app.post('/breeze/NorthwindIBModel/SaveChanges', routes.saveChanges)
 
 app.get('/breeze/NorthwindIBModel/:slug', routes.get);
 // alt other files
