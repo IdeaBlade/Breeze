@@ -44,6 +44,10 @@
 
 
     test("can save a Northwind Order & InternationalOrder", 2, function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - primary keys cannot be shared between collections");
+            return;
+        }
         // Create and initialize entity to save
         var em = newEm();
 
@@ -76,6 +80,11 @@
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server interception or alt resources");
             return;
         };
 
@@ -126,6 +135,10 @@
 
 
     test("save computed update", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support computed properties");
+            return;
+        };
         var em = newEm();
         var q = EntityQuery.from("Employees").take(3);
         stop();
@@ -147,6 +160,10 @@
     });
     
     test("save computed update - mod computed", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support computed properties");
+            return;
+        };
         var em = newEm();
         var q = EntityQuery.from("Employees").take(3);
         stop();
@@ -169,6 +186,10 @@
     });
     
     test("save computed insert" , function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support computed properties");
+            return;
+        };
         var em = newEm();
         var emp = em.createEntity("Employee");
         emp.setProperty("firstName", "Test fn");
@@ -241,6 +262,11 @@
             return;
         };
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
+            return;
+        };
+
         var em = newEm();
 
         var user = em.createEntity("Region");
@@ -261,6 +287,11 @@
     test("save data with alt resource and server update", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        }
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
             return;
         };
 
@@ -295,6 +326,11 @@
             return;
         };
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
+            return;
+        };
+
         var em = newEm();
 
         var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
@@ -321,6 +357,11 @@
     test("save data with server update - original values fixup", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
             return;
         };
 
@@ -353,6 +394,11 @@
             return;
         };
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
+            return;
+        };
+
         var em = newEm();
         var zzz = createParentAndChildren(em);
         var cust1 = zzz.cust1;
@@ -367,6 +413,11 @@
     test("save with server side entity level validation error", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - OData does not YET support server interception");
             return;
         };
 

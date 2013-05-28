@@ -12784,11 +12784,17 @@ var EntityManager = (function () {
             }
         });
         stype.complexProperties.forEach(function (cp) {
-            // TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapOriginalValues(item, metadataStore, isOData);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -12809,9 +12815,16 @@ var EntityManager = (function () {
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapChangedValues(item, metadataStore);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -13322,10 +13335,14 @@ breeze.AbstractDataServiceAdapter = (function () {
         });
         var entities = data.insertedEntities;
         var em = saveContext.entityManager;
-        var updatedEntities = data.updatedKeys.map(function (uid) {
-            return em.getEntityByKey(uid.entityTypeName, uid.key);
+        var updatedEntities = data.updatedKeys.map(function (uKey) {
+            return em.getEntityByKey(uKey.entityTypeName, uKey.key);
         });
         Array.prototype.push.apply(entities, updatedEntities);
+        var deletedEntities = data.deletedKeys.map(function (dKey) {
+            return em.getEntityByKey(dKey.entityTypeName, dKey.key);
+        });
+        Array.prototype.push.apply(entities, deletedEntities);
         return { entities: entities, keyMappings: keyMappings, XHR: data.XHR };
     }
     

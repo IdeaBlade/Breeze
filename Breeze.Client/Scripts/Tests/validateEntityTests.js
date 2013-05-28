@@ -15,6 +15,7 @@
 
 
     var newEm = testFns.newEm;
+    var wellKnownData = testFns.wellKnownData;
     
 
     module("validate entity", {
@@ -88,6 +89,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
+        employee.setProperty(testFns.employeeKeyName, wellKnownData.dummyEmployeeID);
         employee.setProperty("firstName", "John");
         employee.setProperty("lastName", "Doe");
 
@@ -375,7 +377,7 @@
 
         freightProperty.validators.push(numericRangeValidatorFactory({ min: 100, max: 500 }));
         var order1 = orderType.createEntity();
-
+        order1.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
         em.attachEntity(order1);
         var valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure
@@ -404,7 +406,7 @@
         var em2 = EntityManager.importEntities(serializedEm);
         var orderType2 = em2.metadataStore.getEntityType("Order");
         var order1 = orderType2.createEntity();
-
+        order1.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
         em2.attachEntity(order1);
         var valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure

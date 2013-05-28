@@ -21,6 +21,7 @@ var SaveHandler = function(db, entities, saveOptions, metadata, saveCompletedCal
     this.saveCompletedCallback = saveCompletedCallback;
     this.insertedEntities = [];
     this.updatedKeys = [];
+    this.deletedKeys = [];
     this.keyMappings = [];
     this._save();
 }
@@ -37,6 +38,7 @@ SaveHandler.prototype._save = function(saveCompletedCallback) {
 SaveHandler.prototype._saveToCollection = function(resourceName, entities) {
     var insertDocs = [];
     var updateDocs = [];
+    var deleteDocs = [];
     var that = this;
     entities.forEach(function(e) {
         var entityAspect = e.entityAspect;
@@ -61,9 +63,13 @@ SaveHandler.prototype._saveToCollection = function(resourceName, entities) {
             });
             var updateDoc = { criteria: criteria, setOps: { $set: setMap }, entityKey: { entityTypeName: entityAspect.entityTypeName, key: e._id } };
             updateDocs.push(updateDoc);
+        } else if (entityState = "Deleted") {
+            var criteria = { "_id": e._id };
+            var deleteDoc = { criteria: criteria,  entityKey: { entityTypeName: entityAspect.entityTypeName, key: e._id } };
+            deleteDocs.push(deleteDoc);
         }
     });
-    this.saveCountPending += insertDocs.length + updateDocs.length;
+    this.saveCountPending += insertDocs.length + updateDocs.length + deleteDocs.length;
 
     this.db.collection(resourceName, {strict: true} , function (err, collection) {
         insertDocs.forEach(function (iDoc) {
@@ -74,6 +80,11 @@ SaveHandler.prototype._saveToCollection = function(resourceName, entities) {
         updateDocs.forEach(function (uDoc) {
             collection.update( uDoc.criteria, uDoc.setOps, function(err, object) {
                 that._handleUpdate(uDoc, err, object);
+            })
+        });
+        deleteDocs.forEach(function (dDoc) {
+            collection.remove( dDoc.criteria, true, function(err, object) {
+                that._handleDelete(dDoc, err, object);
             })
         });
     });
@@ -109,6 +120,12 @@ SaveHandler.prototype._handleUpdate = function (updateDoc, err, object) {
     this._checkIfCompleted();
 }
 
+SaveHandler.prototype._handleDelete = function (deleteDoc, err, object) {
+    if (this._checkIfError(err)) return;
+    this.deletedKeys.push( deleteDoc.entityKey );
+    this._checkIfCompleted();
+}
+
 SaveHandler.prototype._checkIfError = function(err) {
     if (err) {
         this.saveCompletedCallback(err);
@@ -119,7 +136,12 @@ SaveHandler.prototype._checkIfError = function(err) {
 SaveHandler.prototype._checkIfCompleted = function() {
     this.saveCountPending -= 1;
     if (this.saveCountPending <= 0 && this.allCallsCompleted) {
-        this.saveCompletedCallback( { insertedEntities: this.insertedEntities, updatedKeys: this.updatedKeys, keyMappings: this.keyMappings });
+        this.saveCompletedCallback( {
+            insertedEntities: this.insertedEntities,
+            updatedKeys: this.updatedKeys,
+            deletedKeys: this.deletedKeys,
+            keyMappings: this.keyMappings
+        });
     }
 }
 

@@ -23,22 +23,21 @@ exports.toMongoQuery= function(urlQuery) {
     };
 
     if (section) {
-        var filterTree = odataParser.parse(section, "filterExpr");
+        var filterTree = parse(section, "filterExpr");
         pieces.query = toQueryExpr(filterTree);
     }
     section = urlQuery.$select;
     if (section) {
-        var selectItems = odataParser.parse(section, "selectExpr");
+        var selectItems = parse(section, "selectExpr");
         pieces.select = toSelectExpr(selectItems);
     }
 
     section = urlQuery.$orderby;
     if (section) {
-        var orderbyItems = odataParser.parse(section, "orderbyExpr");
+        var orderbyItems = parse(section, "orderbyExpr");
         sortClause = toOrderbyExpr(orderbyItems);
         extend(pieces.options, sortClause)
     }
-
 
     section = urlQuery.$top;
     if (section) {
@@ -55,6 +54,17 @@ exports.toMongoQuery= function(urlQuery) {
 
     return pieces;
 
+}
+
+function parse(text, sectionName) {
+    try {
+        return odataParser.parse(text, sectionName);
+    } catch(e) {
+        var err = new Error("Unable to parse " + sectionName + ": " + text);
+        err.statusCode = 400;
+        err.innerError = e;
+        throw err;
+    }
 }
 
 function toOrderbyExpr(orderbyItems) {

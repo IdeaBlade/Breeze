@@ -409,16 +409,22 @@
             firstName: "John",
             lastName: "Smith"
         }
-        cfg[testFns.employeeKeyName] = 42;
+        var testVal;
+        if (testFns.DEBUG_MONGO) {
+            testVal = "FakeKey-42";
+        } else {
+            testVal = 42;
+        }
+        cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
         var employee = empType.createEntity(  cfg);
         ok(employee.getProperty("firstName") === "John", "first name should be 'John'");
-        ok(employee.getProperty(testFns.employeeKeyName) === 42, "employeeID should be 42");
+        ok(employee.getProperty(testFns.employeeKeyName) === wellKnownData.dummyEmployeeID, "employeeID should be " + wellKnownData.dummyEmployeeID);
         try {
             cfg = {
                 firstxame: "John",
                 lastName: "Smith"
             }
-            cfg[testFns.employeeKeyName] = 42;
+            cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
             var badEmp = empType.createEntity(  cfg);
             ok(false, "shouldn't get here");
         } catch(e) {
@@ -742,13 +748,13 @@
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
         });
-        order.setProperty(testFns.orderKeyName, 1);
+        order.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
         ok(lastProperty === testFns.orderKeyName);
-        ok(lastNewValue === 1);
+        ok(lastNewValue === wellKnownData.dummyOrderID);
         order.entityAspect.propertyChanged.unsubscribe(key);
-        order.setProperty("employeeID", 999);
+        order.setProperty("employeeID", wellKnownData.dummyEmployeeID);
         ok(lastProperty === testFns.orderKeyName);
-        ok(lastNewValue === 1);
+        ok(lastNewValue === wellKnownData.dummyOrderID);
     });
 
     test("propertyChanged on query", function () {

@@ -100,33 +100,35 @@ breezeTestFns = (function (breeze) {
     };
 
     function setWellKnownData() {
-        testFns.wellKnownData = {
-            // ID of the Northwind "Alfreds Futterkiste" customer
-            alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-            // ID of the Northwind "Nancy Davolio" employee
-            nancyID: 1,
-            // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-            alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ },
-            // ID of Chai product
-            chaiProductID: 1
-        };
-
+        var wellKnownData;
         if (testFns.DEBUG_MONGO) {
-            testFns.wellKnownData.nancyID = 1001;
+            wellKnownData = {
+                nancyID: "51a4f0df17115709f4eacd6b",
+                chaiProductID: 10001,
+                dummyOrderID: "D_999",
+                dummyEmployeeID: "D_9999"
+            }
             testFns.orderKeyName = "_id";
             testFns.customerKeyName = "_id";
             testFns.employeeKeyName = "_id";
             testFns.productKeyName = "_id";
             testFns.userKeyName = "_id";
         }   else {
-
+            wellKnownData = {
+                nancyID: 1,
+                dummyOrderID: 999,
+                dummyEmployeeID: 9999,
+                chaiProductID: 1,
+                alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ }
+            }
             testFns.orderKeyName = "orderID";
             testFns.customerKeyName = "customerID";
             testFns.employeeKeyName = "employeeID";
             testFns.productKeyName = "productID"
             testFns.userKeyName = "id";
         }
-
+        wellKnownData.alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        testFns.wellKnownData = wellKnownData;
     }
 
     testFns.configure = function () {

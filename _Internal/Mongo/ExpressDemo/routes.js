@@ -40,7 +40,7 @@ exports.getProducts = function(req, res) {
 function getCollection(res, collectionName, query) {
     db.collection(collectionName, {strict: true} , function (err, collection) {
         if (err) {
-            res.send(400, "Unable to locate: " + collectionName);
+            res.send(404, "Unable to locate: " + collectionName);
             return;
         }
         var src;

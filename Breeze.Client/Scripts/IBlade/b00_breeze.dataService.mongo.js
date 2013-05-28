@@ -74,10 +74,14 @@
         });
         var entities = data.insertedEntities;
         var em = saveContext.entityManager;
-        var updatedEntities = data.updatedKeys.map(function (uid) {
-            return em.getEntityByKey(uid.entityTypeName, uid.key);
+        var updatedEntities = data.updatedKeys.map(function (uKey) {
+            return em.getEntityByKey(uKey.entityTypeName, uKey.key);
         });
         Array.prototype.push.apply(entities, updatedEntities);
+        var deletedEntities = data.deletedKeys.map(function (dKey) {
+            return em.getEntityByKey(dKey.entityTypeName, dKey.key);
+        });
+        Array.prototype.push.apply(entities, deletedEntities);
         return { entities: entities, keyMappings: keyMappings, XHR: data.XHR };
     }
     
