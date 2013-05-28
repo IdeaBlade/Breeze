@@ -103,7 +103,7 @@ var KeyGenerator = (function () {
         }
 
         if (dataType === DataType.String) {
-            return this.stringPrefix + getNextNumber(that).toString();
+            return that.stringPrefix + getNextNumber(that).toString();
         }
 
         if (dataType === DataType.Guid) {
