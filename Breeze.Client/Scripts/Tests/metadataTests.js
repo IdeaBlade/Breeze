@@ -107,14 +107,14 @@
                 ok(props.length > 0);
                 var keys = custType.keyProperties;
                 ok(keys.length > 0);
-                var prop = custType.getProperty(testFns.customerKeyName);
+                var prop = custType.getProperty("CompanyName");
                 ok(prop, "fails if default naming convention is camelCase and metadata provides nameOnServer");
                 ok(prop.isDataProperty);
                 var navProp = custType.navigationProperties[0];
                 ok(navProp.isNavigationProperty);
                 var notProp = custType.getProperty("foo");
                 ok(!notProp);
-                equal(prop.name, keys[0].name);
+                
                 
             } catch(e) {
                 ok(false, "shouldn't fail except if using server side json metadata file.");
