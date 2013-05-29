@@ -59,6 +59,10 @@ namespace Sample_WebApi.Controllers
         {
             get { return GetQuery<Territory>(); }
         }
+        public NhQueryableInclude<TimeGroup> TimeGroups
+        {
+            get { return GetQuery<TimeGroup>(); }
+        }
         public NhQueryableInclude<TimeLimit> TimeLimits
         {
             get { return GetQuery<TimeLimit>(); }
