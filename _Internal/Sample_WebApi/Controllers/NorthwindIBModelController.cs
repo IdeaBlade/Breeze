@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
-//#define NHIBERNATE
+//#define DATABASEFIRST_NEW
+#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -84,14 +84,6 @@ namespace Sample_WebApi.Controllers {
       ContextProvider = new NorthwindContextProvider();
     }
 
-#if NHIBERNATE
-    protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
-    {
-        base.Initialize(controllerContext);
-        // BreezeNHQueryableAttribute needs the session
-        BreezeNHQueryableAttribute.SetSession(Request, ContextProvider.Session);
-    }
-#endif
     //[HttpGet]
     //public String Metadata() {
     //  var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
@@ -191,6 +183,10 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public List<Employee> QueryInvolvingMultipleEntities() {
+#if NHIBERNATE
+        // need to figure out what to do here
+        return new List<Employee>();
+#else
       //the query executes using pure EF 
       var dc0 = new NorthwindIBContext_EDMX_2012();
       var query0 = (from t1 in dc0.Employees
@@ -205,6 +201,7 @@ namespace Sample_WebApi.Controllers {
                    select t1);
       var result = query.ToList();
       return result;
+#endif
     }
 
     [HttpGet]

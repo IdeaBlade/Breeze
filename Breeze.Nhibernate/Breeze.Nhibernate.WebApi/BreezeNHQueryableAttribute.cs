@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Net.Http;
 using System.Web.Http.OData.Query;
 
@@ -21,7 +22,7 @@ namespace Breeze.Nhibernate.WebApi
     {
         // Used for storing the ExpandTypeMap and Session in the Request
         protected static readonly string EXPAND_MAP_KEY = "BreezeNHQueryableAttribute_ExpandMap";
-        protected static readonly string NH_SESSION_KEY = "BreezeNHQueryableAttribute_NHSession";
+        //protected static readonly string NH_SESSION_KEY = "BreezeNHQueryableAttribute_NHSession";
 
         /// <summary>
         /// Sets HandleNullPropagation = false on the base class.  Otherwise it's true for non-EF, and that
@@ -30,18 +31,6 @@ namespace Breeze.Nhibernate.WebApi
         public BreezeNHQueryableAttribute() : base()
         {
             base.HandleNullPropagation = HandleNullPropagationOption.False;
-        }
-
-        /// <summary>
-        /// Store the session in the request properties for use by the OnActionExecuted method
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="session"></param>
-        public static void SetSession(HttpRequestMessage request, object session)
-        {
-            if (!(session is ISession))
-                throw new ArgumentException("Argument must be NHibernate.ISession", "session");
-            request.Properties.Add(NH_SESSION_KEY, session);
         }
 
         /// <summary>
@@ -57,6 +46,7 @@ namespace Breeze.Nhibernate.WebApi
 
             if (responseObject is IQueryable)
             {
+                var session = GetSession((IQueryable)responseObject);
                 var nhQueryable = responseObject as IQueryableInclude;
                 if (nhQueryable != null)
                 {
@@ -110,20 +100,24 @@ namespace Breeze.Nhibernate.WebApi
                     var oc = new ObjectContent(result.GetType(), result, formatter);
                     actionExecutedContext.Response.Content = oc;
                 }
+
+                ConfigureFormatter(actionExecutedContext.Request, session);
             }
-
-            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
-            ConfigureFormatter(actionExecutedContext.Request);
-
+            else
+            {
+                // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+                // We have to rely on the controller to close the session in this case.
+                ConfigureFormatter(actionExecutedContext.Request, null);
+            }
         }
 
         /// <summary>
         /// Close the session, and configure the JsonFormatter to limit the object serialization of the response.
         /// </summary>
         /// <param name="request"></param>
-        private void ConfigureFormatter(HttpRequestMessage request)
+        /// <param name="session"></param>
+        private void ConfigureFormatter(HttpRequestMessage request, ISession session)
         {
-            var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
             if (session != null)
             {
                 if (session.IsOpen) session.Close();
@@ -155,10 +149,14 @@ namespace Breeze.Nhibernate.WebApi
             {
                 settings.ContractResolver = new IncludingContractResolver(expandMap.map);
             }
-            else
+            settings.Error = delegate(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
             {
-                settings.ContractResolver = new IncludingContractResolver();
-            }
+                // When the NHibernate session is closed, NH proxies throw LazyInitializationException when
+                // the serializer tries to access them.  We want to ignore those exceptions.
+                var error = args.ErrorContext.Error;
+                if (error is LazyInitializationException || error is ObjectDisposedException)
+                    args.ErrorContext.Handled = true;
+            };
 
             settings.Converters.Add(new NHibernateProxyJsonConverter());
         }
@@ -197,7 +195,7 @@ namespace Breeze.Nhibernate.WebApi
             var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
             if (expandMap == null) expandMap = new ExpandTypeMap();
 
-            var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
+            var session = GetSession(queryable);
             queryable = ApplyExpansions(queryable, expandsQueryString, expandMap, session.SessionFactory);
 
             if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
@@ -219,8 +217,8 @@ namespace Breeze.Nhibernate.WebApi
             var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
             if (expandMap == null) expandMap = new ExpandTypeMap();
 
-            var session = GetRequestProperty(request, NH_SESSION_KEY) as ISession;
             if (queryable == null) throw new Exception("Query cannot be null");
+            var session = GetSession(queryable);
 
             var fetcher = new NHEagerFetch(session.SessionFactory);
             queryable = fetcher.ApplyExpansions(queryable, expands.ToArray(), expandMap);
@@ -245,12 +243,8 @@ namespace Breeze.Nhibernate.WebApi
                 return queryable;
             }
 
-            string[] expandPaths = expandsQueryString.Split(',').Select(s => s.Trim()).ToArray();
-            if (!expandPaths.Any()) throw new Exception("Expansion Paths cannot be null");
-            if (queryable == null) throw new Exception("Query cannot be null");
-
             var fetcher = new NHEagerFetch(sessionFactory);
-            return fetcher.ApplyExpansions(queryable, expandPaths, expandMap);
+            return fetcher.ApplyExpansions(queryable, expandsQueryString, expandMap);
 
         }
 
@@ -262,6 +256,23 @@ namespace Breeze.Nhibernate.WebApi
             object stored;
             request.Properties.TryGetValue(key, out stored);
             return stored;
+        }
+
+
+        /// <summary>
+        /// Get the ISession from the IQueryable.
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <returns>the session if queryable.Provider is NHibernate.Linq.DefaultQueryProvider, else null</returns>
+        private ISession GetSession(IQueryable queryable)
+        {
+            var provider = queryable.Provider as DefaultQueryProvider;
+            if (provider == null) return null;
+
+            var propertyInfo = typeof(DefaultQueryProvider).GetProperty("Session", BindingFlags.NonPublic | BindingFlags.Instance);
+            var result = propertyInfo.GetValue(provider);
+            var session = result as ISession;
+            return session;
         }
 
 
