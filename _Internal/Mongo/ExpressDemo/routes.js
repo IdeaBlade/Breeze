@@ -12,20 +12,20 @@ db.open(function () {
 
 });
 
-exports.getMetadata = function(req, res) {
+exports.getMetadata = function(req, res, next) {
     var filename = "metadata.json";
     if (!fs.existsSync(filename)) {
-        throw new Error("Unable to locate file: " + filename);
+        next(new Error("Unable to locate file: " + filename));
     }
     var metadata = fs.readFileSync(filename, 'utf8');
     res.sendfile(filename);
 }
 
-exports.saveChanges = function(req, res) {
-    saveBuilder.saveChanges(db, req, res);
+exports.saveChanges = function(req, res, next) {
+    saveBuilder.saveChanges(db, req, res, next);
 }
 
-exports.get = function (req, res) {
+exports.get = function (req, res, next) {
     // res.setHeader('Content-Length', body.length);
     var collectionName = req.params.slug;
     var query = queryBuilder.toMongoQuery(req.query);

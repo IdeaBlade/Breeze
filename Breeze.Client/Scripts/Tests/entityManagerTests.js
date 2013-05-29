@@ -214,20 +214,23 @@
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        var orderId = o1.getProperty(testFns.orderKeyName);
-        ok(orderId == 0);
+        var tempOrderId = o1.getProperty(testFns.orderKeyName);
+        ok(tempOrderId == 0, "should be 0");
 
         em.addEntity(o1);
-        orderId = o1.getProperty(testFns.orderKeyName);
-        ok(orderId == -1);
+        tempOrderId = o1.getProperty(testFns.orderKeyName);
+        ok(tempOrderId !== 0, "should not be 0");
+        var isTempKey = em.keyGenerator.isTempKey(o1.entityAspect.getKey())
+        ok(isTempKey, "should be a tempKey");
+        
         stop();
         em.saveChanges().then(function (saveResult) {
             orderId = o1.getProperty(testFns.orderKeyName);
-            ok(orderId !== -1);
+            ok(orderId !== tempOrderId);
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.tempValue === -1);
+            ok(mapping.tempValue === tempOrderId);
             ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });

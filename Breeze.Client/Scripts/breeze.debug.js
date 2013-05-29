@@ -4782,6 +4782,30 @@ var DataType = function () {
         // default
     };
 
+    var constants = {
+        stringPrefix: "K_",
+        nextNumber: -1,
+        nextNumberIncrement: -1
+    }
+
+    var getNextString = function () {
+        return constants.stringPrefix + getNextNumber().toString();
+    };
+
+    var getNextNumber = function () {
+        var result = constants.nextNumber;
+        constants.nextNumber += constants.nextNumberIncrement;
+        return result;
+    };
+
+    var getNextGuid = function () {
+        return __getUuid();
+    };
+
+    var getNextDateTime = function () {
+        return new Date();
+    };
+
     var coerceToString = function (source, sourceTypeName) {
         return (source == null) ? source : source.toString();
     };
@@ -4919,25 +4943,45 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, fmtOData: fmtString });
+    DataType.String = DataType.addSymbol({
+        defaultValue: "",
+        parse: coerceToString,
+        fmtOData: fmtString,
+        getNext: getNextString
+    });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
+    DataType.Int64 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true, quoteJsonOData: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int32 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int16 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Byte {DataType}
     @final
@@ -4949,32 +4993,57 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("m"), quoteJsonOData: true });
+    DataType.Decimal = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("m"),
+        getNext: getNextNumber
+    });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("d") });
+    DataType.Double = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("d"),
+        getNext: getNextNumber
+    });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("f") });
+    DataType.Single = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("f"),
+        getNext: getNextNumber
+    });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
+    DataType.DateTime = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTime,
+        getNext: getNextDateTime
+    });
     
     /**
     @property DateTimeOffset {DataType}
     @final
     @static
     **/
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
+    DataType.DateTimeOffset = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTimeOffset,
+        getNext: getNextDateTime
+    });
     /**
     @property Time {DataType}
     @final
@@ -4992,7 +5061,11 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", fmtOData: fmtGuid });
+    DataType.Guid = DataType.addSymbol({
+        defaultValue: "00000000-0000-0000-0000-000000000000",
+        fmtOData: fmtGuid,
+        getNext: getNextGuid
+    });
   
     /**
     @property Binary {DataType}
@@ -5075,6 +5148,8 @@ var DataType = function () {
     // -----------------------------------------------------------------
 
     DataType.parseDateFromServer = DataType.parseDateAsUTC;
+
+    DataType.constants = constants;
 
     DataType.getSymbols().forEach(function (sym) {
         sym.validatorCtor = getValidatorCtor(sym);
@@ -7676,10 +7751,6 @@ var KeyGenerator = (function () {
         // propEntry = { entityType, propertyName, keyMap }
         // keyMap has key of the actual value ( as a string) and a value of null or the real id.
         this._tempIdMap = {};
-
-        this.nextNumber = -1;
-        this.nextNumberIncrement = -1;
-        this.stringPrefix = "K_";
     };
     var proto = ctor.prototype;
 
@@ -7708,15 +7779,30 @@ var KeyGenerator = (function () {
     @method generateTempKeyValue
     @param entityType {EntityType}
     */
-    proto.generateTempKeyValue = function (entityType) {
+    proto.generateTempKeyValue = function (entityType, valueIfAvail) {
         var keyProps = entityType.keyProperties;
         if (keyProps.length > 1) {
             throw new Error("Ids can not be autogenerated for entities with multipart keys");
         }
         var keyProp = keyProps[0];
-        var nextId = getNextId(this, keyProp.dataType);
         var propEntry = getPropEntry(this, keyProp, true);
-        propEntry.keyMap[nextId.toString()] = null;
+        var nextId;
+        if (valueIfAvail != null) {
+            if (!propEntry.keyMap[valueIfAvail.toString()]) {
+                nextId = valueIfAvail;
+            }
+        }
+
+        if (nextId === undefined) {
+            var dataType = keyProp.dataType;
+            if (dataType.getNext) {
+                nextId = dataType.getNext(this);
+            } else {
+                throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
+            }
+        }
+        
+        propEntry.keyMap[nextId.toString()] = true;
         return nextId;
     };
 
@@ -7732,6 +7818,7 @@ var KeyGenerator = (function () {
         }
         return results;
     };
+
 
 
     // proto methods below are not part of the KeyGenerator interface.
@@ -7761,31 +7848,9 @@ var KeyGenerator = (function () {
         return propEntry;
     }
 
-    function getNextId(that, dataType) {
-        if (dataType.isNumeric) {
-            return getNextNumber(that);
-        }
+    
 
-        if (dataType === DataType.String) {
-            return that.stringPrefix + getNextNumber(that).toString();
-        }
-
-        if (dataType === DataType.Guid) {
-            return __getUuid();
-        }
-
-        if (dataType.isDate) {
-            return Date.now();
-        }
-
-        throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
-    }
-
-    function getNextNumber(that) {
-        var result = that.nextNumber;
-        that.nextNumber += that.nextNumberIncrement;
-        return result;
-    }
+    
 
     __config.registerType(ctor, "KeyGenerator");
 
@@ -10929,7 +10994,8 @@ var EntityManager = (function () {
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
+            // try to use oldKey if not already used in this keyGenerator.
+            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
         });
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
@@ -11454,8 +11520,8 @@ var EntityManager = (function () {
                 deferredFns: []
             };
 
-            // TODO: we can optimize this and not perform the merge if 
-            // the save operation did not actually return the entity - i.e. OData and Mongo updates.
+            // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+            // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
             var savedEntities = saveResult.entities.map(function (rawEntity) {
                 return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
             });
@@ -13280,9 +13346,23 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     var ajaxImpl;
 
+    function fmtOData(val) {
+        return val == null ? null : "'" + val + "'" ; 
+    } 
+
+    function getNextObjectId() {
+        return new ObjectId().toString();
+    }
+
     var ctor = function () {
         this.name = "mongo";
+        breeze.DataType.MongoObjectId = breeze.DataType.addSymbol({
+            defaultValue: "",
+            fmtOData: fmtOData,
+            getNext: getNextObjectId
+        });
     };
+
     ctor.prototype = new AbstractDataServiceAdapter();
     
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
@@ -13296,11 +13376,22 @@ breeze.AbstractDataServiceAdapter = (function () {
             var entityTypeName = e.entityType.name;
             var etInfo = metadata[entityTypeName];
             if (!etInfo) {
-                dataProps = {};
-                var dataProperties = e.entityType.dataProperties.map(function(dp) {
-                     return { name: dp.nameOnServer, dataType: dp.dataType.name };
+                etInfo = {};
+                var entityType = e.entityType;
+                etInfo.dataProperties = entityType.dataProperties.map(function(dp) {
+                    var p = { name: dp.nameOnServer, dataType: dp.dataType.name };
+                    if (dp.relatedNavigationProperty != null) {
+                        p.isFk = true;
+                    }
+                    return p;
                 });
-                metadata[entityTypeName] = { dataProperties: dataProperties };
+                if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
+                    etInfo.autoGeneratedKey = {
+                        propertyName: entityType.keyProperties[0].nameOnServer,
+                        autoGeneratedKeyType: entityType.autoGeneratedKeyType.name
+                    };
+                }
+                metadata[entityTypeName] = etInfo;
             }
             var originalValuesOnServer = helper.unwrapOriginalValues(e, metadataStore);
             var rawAspect = {
@@ -13308,15 +13399,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 defaultResourceName: e.entityType.defaultResourceName,
                 entityState: e.entityAspect.entityState.name,
                 originalValuesMap: originalValuesOnServer
-                
-            };
-
-            if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                rawAspect.autoGeneratedKey = {
-                    propertyName: e.entityType.keyProperties[0].nameOnServer,
-                    autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
-                };
-            }
+            };           
                 
             rawEntity.entityAspect = rawAspect;
             return rawEntity;
@@ -13330,29 +13413,123 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         
-        var keyMappings = data.keyMappings.map(function (km) {
-            return { entityTypeName: km.entityTypeName, tempValue: km.tempValue, realValue: km.realValue };
-        });
-        var entities = data.insertedEntities;
         var em = saveContext.entityManager;
-        var updatedEntities = data.updatedKeys.map(function (uKey) {
-            return em.getEntityByKey(uKey.entityTypeName, uKey.key);
+        var keys = data.insertedKeys.concat(data.updatedKeys, data.deletedKeys);
+        var entities = keys.map(function (key) {
+            return em.getEntityByKey(key.entityTypeName, key._id);
         });
-        Array.prototype.push.apply(entities, updatedEntities);
-        var deletedEntities = data.deletedKeys.map(function (dKey) {
-            return em.getEntityByKey(dKey.entityTypeName, dKey.key);
-        });
-        Array.prototype.push.apply(entities, deletedEntities);
-        return { entities: entities, keyMappings: keyMappings, XHR: data.XHR };
+        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
     }
-    
+
+
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "mongo",
 
         visitNode: function (node, mappingContext, nodeContext) {
-            return {};
+            var result = {};
+            // this will only be set on saveResults and projections.
+            if (node.$type) {
+                result.entityType = mappingContext.entityManager.metadataStore._getEntityType(node.$type, true);
+            }
+            return result;
         }
-    });    
+    });
+
+    /*
+    *
+    * Copyright (c) 2011 Justin Dearing (zippy1981@gmail.com)
+    * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+    * and GPL (http://www.opensource.org/licenses/gpl-license.php) version 2 licenses.
+    * This software is not distributed under version 3 or later of the GPL.
+    *
+    * Version 1.0.0
+    *
+    */
+
+    /**
+     * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
+     * and converts between that format and the standard 24 character representation.
+    */
+    var ObjectId = (function () {
+        var increment = 0;
+        var pid = Math.floor(Math.random() * (32767));
+        var machine = Math.floor(Math.random() * (16777216));
+
+        if (typeof (localStorage) != 'undefined') {
+            var mongoMachineId = parseInt(localStorage['mongoMachineId']);
+            if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
+                machine = Math.floor(localStorage['mongoMachineId']);
+            }
+            // Just always stick the value in.
+            localStorage['mongoMachineId'] = machine;
+            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
+        }
+        else {
+            var cookieList = document.cookie.split('; ');
+            for (var i in cookieList) {
+                var cookie = cookieList[i].split('=');
+                if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
+                    machine = cookie[1];
+                    break;
+                }
+            }
+            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
+
+        }
+
+        return function () {
+            if (!(this instanceof ObjectId)) {
+                return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
+            }
+
+            if (typeof (arguments[0]) == 'object') {
+                this.timestamp = arguments[0].timestamp;
+                this.machine = arguments[0].machine;
+                this.pid = arguments[0].pid;
+                this.increment = arguments[0].increment;
+            }
+            else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
+                this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
+                this.machine = Number('0x' + arguments[0].substr(8, 6)),
+                this.pid = Number('0x' + arguments[0].substr(14, 4)),
+                this.increment = Number('0x' + arguments[0].substr(18, 6))
+            }
+            else if (arguments.length == 4 && arguments[0] != null) {
+                this.timestamp = arguments[0];
+                this.machine = arguments[1];
+                this.pid = arguments[2];
+                this.increment = arguments[3];
+            }
+            else {
+                this.timestamp = Math.floor(new Date().valueOf() / 1000);
+                this.machine = machine;
+                this.pid = pid;
+                if (increment > 0xffffff) {
+                    increment = 0;
+                }
+                this.increment = increment++;
+
+            }
+        };
+    })();
+
+    ObjectId.prototype.getDate = function () {
+        return new Date(this.timestamp * 1000);
+    }
+
+    /**
+    * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
+    */
+    ObjectId.prototype.toString = function () {
+        var timestamp = this.timestamp.toString(16);
+        var machine = this.machine.toString(16);
+        var pid = this.pid.toString(16);
+        var increment = this.increment.toString(16);
+        return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
+               '000000'.substr(0, 6 - machine.length) + machine +
+               '0000'.substr(0, 4 - pid.length) + pid +
+               '000000'.substr(0, 6 - increment.length) + increment;
+    }
     
     breeze.config.registerAdapter("dataService", ctor);
 
