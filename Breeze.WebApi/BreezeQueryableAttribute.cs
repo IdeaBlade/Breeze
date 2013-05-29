@@ -78,87 +78,38 @@ namespace Breeze.WebApi {
     // This method also handles nested orderby statements the the current ASP.NET web api does not yet support.
     public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions) {
       IQueryable result;
-      try {
-        result = base.ApplyQuery(queryable, queryOptions);
-      } catch (Exception) {
-        result = ApplyExtendedOrderBy(queryable, queryOptions);
-        if (result == null) {
-          throw;
-        }
+      var orderBy = queryOptions.RawValues.OrderBy;
+      if (orderBy != null && orderBy.IndexOf('/') >= 0) {
+          result = ApplyExtendedOrderBy(queryable, queryOptions);
       }
+      else {
+          result = base.ApplyQuery(queryable, queryOptions);
+      }
+
+      //try {
+      //  result = base.ApplyQuery(queryable, queryOptions);
+      //} catch (Exception) {
+      //  result = ApplyExtendedOrderBy(queryable, queryOptions);
+      //  if (result == null) {
+      //    throw;
+      //  }
+      //}
       
       return result;
     }
+
 
     private IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
-      // if we see an extended order by we also need to process any skip/take operators as well.
-      var orderByQueryString = queryOptions.RawValues.OrderBy;
-      if (orderByQueryString == null || orderByQueryString.IndexOf("/") == -1) {
-        return null;
+
+      var querySettings = QueryHelper.NewODataQuerySettings(EnableConstantParameterization, EnsureStableOrdering, HandleNullPropagation, PageSize);
+      var result = QueryHelper.ApplyExtendedOrderBy(queryable, queryOptions, querySettings);
+      if (result != null) {
+          var request = queryOptions.Request;
+          request.Properties.Add("breeze_orderBy", true);
       }
-
-      var request = queryOptions.Request;
-      var oldUri = request.RequestUri;
-      var map = oldUri.ParseQueryString();
-      var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k != "$orderby") && (k != "$top") && (k != "$skip") )
-                        .Select(k => k + "=" + map[k])
-                        .ToAggregateString("&");
-
-      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
-
-      var newRequest = new HttpRequestMessage(request.Method, new Uri(newUrl));
-      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
-      var result = base.ApplyQuery(queryable, newQo);
-
-      var elementType = TypeFns.GetElementType(queryable.GetType());
-
-      
-      if (!string.IsNullOrWhiteSpace(orderByQueryString)) {
-        var orderByClauses = orderByQueryString.Split(',').ToList();
-        var isThenBy = false;
-        orderByClauses.ForEach(obc => {
-          var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
-          result = func(result);
-          isThenBy = true;
-        });
-      }
-
-      var skipQueryString = queryOptions.RawValues.Skip;
-      if (!string.IsNullOrWhiteSpace(skipQueryString)) {
-        var count = int.Parse(skipQueryString);
-        var method = TypeFns.GetMethodByExample((IQueryable<String> q) => Queryable.Skip<String>(q, 999), elementType);
-        var func = BuildIQueryableFunc(elementType, method, count);
-        result = func(result);
-      }
-
-      var topQueryString = queryOptions.RawValues.Top;
-      if (!string.IsNullOrWhiteSpace(topQueryString)) {
-        var count = int.Parse(topQueryString);
-        var method = TypeFns.GetMethodByExample((IQueryable<String> q) => Queryable.Take<String>(q, 999), elementType);
-        var func = BuildIQueryableFunc(elementType, method, count);
-        result = func(result);
-      }
-
-      request.Properties.Add("breeze_orderBy", true);
       return result;
     }
 
-    private static Func<IQueryable, IQueryable> BuildIQueryableFunc<TArg>(Type instanceType, MethodInfo method, TArg parameter, Type queryableBaseType = null) {
-      if (queryableBaseType == null) {
-        queryableBaseType = typeof(IQueryable<>);
-      }
-      var paramExpr = Expression.Parameter(typeof(IQueryable));
-      var queryableType = queryableBaseType.MakeGenericType(instanceType);
-      var castParamExpr = Expression.Convert(paramExpr, queryableType);
-
-
-      var callExpr = Expression.Call(method, castParamExpr, Expression.Constant(parameter));
-      var castResultExpr = Expression.Convert(callExpr, typeof(IQueryable));
-      var lambda = Expression.Lambda(castResultExpr, paramExpr);
-      var func = (Func<IQueryable, IQueryable>)lambda.Compile();
-      return func;
-    }
 
     public IQueryable ApplySelectAndExpand(IQueryable queryable, HttpRequestMessage request ) {
       var result = queryable;
