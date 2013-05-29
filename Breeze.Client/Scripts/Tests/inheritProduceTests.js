@@ -36,7 +36,38 @@
         }
     });
 
+    test("Localquery failing on inheritance entities1", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("Fruits");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var fruits = data.results;
 
+            var newQuery = new EntityQuery("Fruits");
+            var fruits2 = manager.executeQueryLocally(newQuery);
+            ok(true);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
+    test("Localquery failing on inheritance entities2", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("Fruits");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var fruits = data.results;
+
+            manager.metadataStore.setEntityTypeForResourceName("Fruits", "Fruit");
+            var newQuery = new EntityQuery("Fruits");
+            var fruits2 = manager.executeQueryLocally(newQuery);
+            ok(true);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
 
     test("EntityKey for ItemsOfProduce", function() {
         var em = newEmX();
