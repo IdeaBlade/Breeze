@@ -1,12 +1,7 @@
 ﻿using Breeze.WebApi;
-using Newtonsoft.Json;
-using NHibernate;
-using NHibernate.Linq;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Net.Http;
 using System.Web.Http.OData.Query;
 
@@ -20,10 +15,6 @@ namespace Breeze.Nhibernate.WebApi
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class BreezeNHQueryableAttribute : BreezeQueryableAttribute
     {
-        // Used for storing the ExpandTypeMap and Session in the Request
-        protected static readonly string EXPAND_MAP_KEY = "BreezeNHQueryableAttribute_ExpandMap";
-        //protected static readonly string NH_SESSION_KEY = "BreezeNHQueryableAttribute_NHSession";
-
         /// <summary>
         /// Sets HandleNullPropagation = false on the base class.  Otherwise it's true for non-EF, and that
         /// complicates the query expressions and breaks NH's query parser.
@@ -31,6 +22,11 @@ namespace Breeze.Nhibernate.WebApi
         public BreezeNHQueryableAttribute() : base()
         {
             base.HandleNullPropagation = HandleNullPropagationOption.False;
+        }
+
+        protected override QueryHelper NewQueryHelper()
+        {
+            return new NHQueryHelper(EnableConstantParameterization, EnsureStableOrdering, HandleNullPropagationOption.False, PageSize);
         }
 
         /// <summary>
@@ -44,20 +40,17 @@ namespace Breeze.Nhibernate.WebApi
             if (actionExecutedContext.Response == null || !actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
+            var queryHelper = GetQueryHelper(actionExecutedContext.Request) as NHQueryHelper;
+            IQueryable queryable = null;
             if (responseObject is IQueryable)
             {
-                var session = GetSession((IQueryable)responseObject);
+                queryable = (IQueryable)responseObject;
                 var nhQueryable = responseObject as IQueryableInclude;
                 if (nhQueryable != null)
                 {
-                    // perform expansion based on the Include() clauses 
-                    var includes = nhQueryable.GetIncludes();
-                    if (includes != null)
-                    {
-                        this.ApplyExpansions(nhQueryable, includes, actionExecutedContext.Request);
-                    }
+                    queryHelper.ApplyExpand(nhQueryable);
                 }
-
+                
                 var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
 
                 if (typeof(IEnumerable).IsAssignableFrom(returnType))
@@ -73,9 +66,7 @@ namespace Breeze.Nhibernate.WebApi
 
                     var list = Enumerable.ToList((dynamic)responseObject);
 
-                    var expandMap = GetRequestProperty(actionExecutedContext.Request, EXPAND_MAP_KEY) as ExpandTypeMap;
-                    // Initialize the NHibernate proxies
-                    NHInitializer.InitializeList(list, expandMap);
+                    queryHelper.InitializeProxies(list);
 
                     if (queryResult != null)
                     {
@@ -101,179 +92,15 @@ namespace Breeze.Nhibernate.WebApi
                     actionExecutedContext.Response.Content = oc;
                 }
 
-                ConfigureFormatter(actionExecutedContext.Request, session);
-            }
-            else
-            {
-                // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
-                // We have to rely on the controller to close the session in this case.
-                ConfigureFormatter(actionExecutedContext.Request, null);
-            }
-        }
-
-        /// <summary>
-        /// Close the session, and configure the JsonFormatter to limit the object serialization of the response.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="session"></param>
-        private void ConfigureFormatter(HttpRequestMessage request, ISession session)
-        {
-            if (session != null)
-            {
-                if (session.IsOpen) session.Close();
-
-                // Limit serialization by catching LazyInitializationExceptions
-                ConfigureFormatterByHandler(request);
-            }
-            else
-            {
-                // Limit serialization by only allowing properties int the map
-                var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
-                ConfigureFormatterByMap(request, expandMap);
-            }
-        }
-
-        /// <summary>
-        /// Configure the JsonFormatter to only serialize the requested properties
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="expandMap">Contains the types and properties to serialize</param>
-        /// <param name="session">Used for getting the class meta data for the contract resolver.</param>
-        private void ConfigureFormatterByMap(HttpRequestMessage request, ExpandTypeMap expandMap)
-        {
-            var jsonFormatter = request.GetConfiguration().Formatters.JsonFormatter;
-            var settings = jsonFormatter.SerializerSettings;
-            settings.Formatting = Formatting.Indented;
-
-            if (expandMap != null)
-            {
-                settings.ContractResolver = new IncludingContractResolver(expandMap.map);
-            }
-            settings.Error = delegate(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
-            {
-                // When the NHibernate session is closed, NH proxies throw LazyInitializationException when
-                // the serializer tries to access them.  We want to ignore those exceptions.
-                var error = args.ErrorContext.Error;
-                if (error is LazyInitializationException || error is ObjectDisposedException)
-                    args.ErrorContext.Handled = true;
-            };
-
-            settings.Converters.Add(new NHibernateProxyJsonConverter());
-        }
-
-        /// <summary>
-        /// Configure the JsonFormatter to only serialize the already-initialized properties
-        /// </summary>
-        /// <param name="request"></param>
-        private void ConfigureFormatterByHandler(HttpRequestMessage request)
-        {
-            var jsonFormatter = request.GetConfiguration().Formatters.JsonFormatter;
-            var settings = jsonFormatter.SerializerSettings;
-            settings.Formatting = Formatting.Indented;
-            settings.Error = delegate(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
-            {
-                // When the NHibernate session is closed, NH proxies throw LazyInitializationException when
-                // the serializer tries to access them.  We want to ignore those exceptions.
-                var error = args.ErrorContext.Error;
-                if (error is LazyInitializationException || error is ObjectDisposedException)
-                    args.ErrorContext.Handled = true;
-            };
-
-            settings.Converters.Add(new NHibernateProxyJsonConverter());
-        }
-
-        /// <summary>
-        /// Overrides the method in BreezeQueryableAttribute to perform the $expands in NHibernate.
-        /// Also populates the ExpandTypeMap that controls lazy initialization and serialization.
-        /// </summary>
-        /// <param name="queryable"></param>
-        /// <param name="expandsQueryString"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public override IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString, HttpRequestMessage request)
-        {
-            var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
-            if (expandMap == null) expandMap = new ExpandTypeMap();
-
-            var session = GetSession(queryable);
-            queryable = ApplyExpansions(queryable, expandsQueryString, expandMap, session.SessionFactory);
-
-            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
-                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
-
-            return queryable;
-        }
-
-        /// <summary>
-        /// Performs expands based on the list of strings.
-        /// Also populates the ExpandTypeMap that controls lazy initialization and serialization.
-        /// </summary>
-        /// <param name="queryable"></param>
-        /// <param name="expands"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        protected IQueryable ApplyExpansions(IQueryable queryable, IList<string> expands, HttpRequestMessage request)
-        {
-            var expandMap = GetRequestProperty(request, EXPAND_MAP_KEY) as ExpandTypeMap;
-            if (expandMap == null) expandMap = new ExpandTypeMap();
-
-            if (queryable == null) throw new Exception("Query cannot be null");
-            var session = GetSession(queryable);
-
-            var fetcher = new NHEagerFetch(session.SessionFactory);
-            queryable = fetcher.ApplyExpansions(queryable, expands.ToArray(), expandMap);
-
-            if (!request.Properties.ContainsKey(EXPAND_MAP_KEY))
-                request.Properties.Add(EXPAND_MAP_KEY, expandMap);
-
-            return queryable;
-        }
-
-        /// <summary>
-        /// Calls NHEagerFetch.ApplyExpansions
-        /// </summary>
-        /// <param name="queryable">The query to expand</param>
-        /// <param name="expandsQueryString">value of the $expand query parameter</param>
-        /// <param name="expandMap">Empty dictionary that will be populated with the names of the expanded properties for each type.</param>
-        /// <returns></returns>
-        protected IQueryable ApplyExpansions(IQueryable queryable, string expandsQueryString, ExpandTypeMap expandMap, ISessionFactory sessionFactory)
-        {
-            if (string.IsNullOrWhiteSpace(expandsQueryString))
-            {
-                return queryable;
             }
 
-            var fetcher = new NHEagerFetch(sessionFactory);
-            return fetcher.ApplyExpansions(queryable, expandsQueryString, expandMap);
-
-        }
-
-        /// <summary>
-        /// Get a property from the request using the given key.
-        /// </summary>
-        private object GetRequestProperty(HttpRequestMessage request, string key)
-        {
-            object stored;
-            request.Properties.TryGetValue(key, out stored);
-            return stored;
+            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+            // We have to rely on the controller to close the session in this case.
+            var jsonFormatter = actionExecutedContext.Request.GetConfiguration().Formatters.JsonFormatter;
+            queryHelper.ConfigureFormatter(jsonFormatter, queryable);
         }
 
 
-        /// <summary>
-        /// Get the ISession from the IQueryable.
-        /// </summary>
-        /// <param name="queryable"></param>
-        /// <returns>the session if queryable.Provider is NHibernate.Linq.DefaultQueryProvider, else null</returns>
-        private ISession GetSession(IQueryable queryable)
-        {
-            var provider = queryable.Provider as DefaultQueryProvider;
-            if (provider == null) return null;
-
-            var propertyInfo = typeof(DefaultQueryProvider).GetProperty("Session", BindingFlags.NonPublic | BindingFlags.Instance);
-            var result = propertyInfo.GetValue(provider);
-            var session = result as ISession;
-            return session;
-        }
 
 
         /* try this later
