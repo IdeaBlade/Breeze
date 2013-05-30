@@ -93,6 +93,11 @@
     
     test("initialization", function () {
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Current impl provides camelCase naming convention on the server");
+            return;
+        }
+
         var store = new MetadataStore({ namingConvention: NamingConvention.none } );
         stop();
         var dataServiceAdapter = core.config.getAdapterInstance("dataService");

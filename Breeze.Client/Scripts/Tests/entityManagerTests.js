@@ -51,10 +51,7 @@
     });
     
     test("export/import deleted", function() {
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - save not yet supported");
-            return;
-        }
+
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
@@ -207,10 +204,7 @@
     });
     
     test("store-gen keys are always set by key generator on add to manager if they have default values", function () {
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - save not yet supported");
-            return;
-        }
+
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
@@ -236,22 +230,20 @@
     });
 
     test("store-gen keys are not re-set by key generator upon add to manager", function() {
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - save not yet supported");
-            return;
-        }
+
+        var dummyOrderID = testFns.wellKnownData.dummyOrderID;
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        o1.setProperty(testFns.orderKeyName, 42); // waste of time to set id; it will be replaced.
+        o1.setProperty(testFns.orderKeyName, dummyOrderID); // waste of time to set id; it will be replaced.
         var orderId = o1.getProperty(testFns.orderKeyName);
-        ok(orderId == 42);
+        ok(orderId === dummyOrderID);
         //ok(o1.OrderID() !== 42,
         //    "o1's original key, 42, should have been replaced w/ new temp key.");
 
         em.addEntity(o1);
         orderId = o1.getProperty(testFns.orderKeyName);
-        ok(orderId == 42);
+        ok(orderId === dummyOrderID);
         stop();
         em.saveChanges().then(function(saveResult) {
             orderId = o1.getProperty(testFns.orderKeyName);
@@ -259,7 +251,7 @@
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.tempValue === 42);
+            ok(mapping.tempValue === dummyOrderID);
             ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });

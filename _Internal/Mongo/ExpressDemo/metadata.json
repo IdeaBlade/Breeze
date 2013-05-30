@@ -1219,7 +1219,7 @@
                ]
             },
             {
-               "name":"isDiscontinued",
+               "name":"discontinued",
                "dataType":"Boolean",
                "isNullable":false,
                "defaultValue":false,
@@ -1805,9 +1805,6 @@
                "validators":[
                   {
                      "name":"required"
-                  },
-                  {
-                     "name":"integer"
                   }
                ]
             },

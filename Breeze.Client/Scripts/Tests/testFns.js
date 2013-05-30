@@ -103,10 +103,10 @@ breezeTestFns = (function (breeze) {
         var wellKnownData;
         if (testFns.DEBUG_MONGO) {
             wellKnownData = {
-                nancyID: "51a4f0df17115709f4eacd6b",
+                // nancyID: "51a6d50e1711572dcc8ce7d1",
                 chaiProductID: 10001,
-                dummyOrderID: "D_999",
-                dummyEmployeeID: "D_9999"
+                dummyOrderID:    "50a6d50e1711572dcc8ce7d1",
+                dummyEmployeeID: "50a6d50e1711572dcc8ce7d2"
             }
             testFns.orderKeyName = "_id";
             testFns.customerKeyName = "_id";
@@ -130,7 +130,20 @@ breezeTestFns = (function (breeze) {
         wellKnownData.alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
 
         testFns.wellKnownData = wellKnownData;
+
+
     }
+
+    function updateWellKnownData() {
+        if (testFns.wellKnownData.nancyID) return;
+        var em = testFns.newEm();
+        stop();
+        breeze.EntityQuery.from("Employees").where("lastName", "startsWith", "Davo")
+            .using(em).execute().then(function(data) {
+                var nancy = data.results[0];
+                testFns.wellKnownData.nancyID = nancy.getProperty(testFns.employeeKeyName);
+            }).fail(testFns.handleFail).fin(start);
+    };
 
     testFns.configure = function () {
         
@@ -185,6 +198,8 @@ breezeTestFns = (function (breeze) {
         if (!testFns.metadataStore) {
             testFns.metadataStore = testFns.newMs();
         }
+
+        updateWellKnownData();
 
         if (!testFns.metadataStore.isEmpty()) {
             if (config.metadataFn) config.metadataFn();

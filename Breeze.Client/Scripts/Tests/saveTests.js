@@ -15,7 +15,8 @@
     var FilterQueryOp = breeze.FilterQueryOp;
 
     var newEm = testFns.newEm;
-    
+
+    var wellKnownData = testFns.wellKnownData;
 
     module("save", {
         setup: function () {
@@ -31,17 +32,14 @@
         teardown: function () { }
     });
 
+    /*
     var wellKnownData = {
-        // ID of the Northwind "Alfreds Futterkiste" customer
         alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-        // ID of the Northwind "Nancy Davolio" employee
         nancyID: 1,
-        // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rssle Sauerkraut*/ },
-        // ID of Chai product
+        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28  },
         chaiProductID: 1
     };
-
+    */
 
     test("can save a Northwind Order & InternationalOrder", function () {
         if (testFns.DEBUG_MONGO) {

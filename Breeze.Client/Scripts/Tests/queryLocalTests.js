@@ -73,6 +73,10 @@
     });
     
     test("timespan", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "PT4H")
@@ -86,6 +90,10 @@
     });
     
     test("compare timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "minTime")
@@ -99,6 +107,10 @@
     });
     
     test("null timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("minTime", "!=", null)

@@ -52,6 +52,8 @@ SaveHandler.prototype._prepareCollection = function(resourceName, entities) {
         var entityTypeName = entityAspect.entityTypeName;
         var entityType = that.metadata[entityTypeName];
         entityType.name = entityTypeName;
+        // TODO: we really only need to coerce every field on an insert
+        // only selected fields are needed for update and delete.
         that._coerceData(e, entityType, resourceName);
         var entityKey = { entityTypeName: entityTypeName, _id: e._id } ;
         if (entityState === "Added") {
@@ -147,16 +149,28 @@ SaveHandler.prototype._coerceData = function(entity, entityType) {
             }
             possibleFixups.push( { _id: entity._id, fkProp: dp.name  });
         }
+
         if (dp.name === "_id") {
             entityType.keyDataType = dt;
         }
+
+        var val = entity[dp.name];
+        if (val == null) {
+            // this allows us to avoid inserting a null.
+            // TODO: think about an option to allow this if someone really wants to.
+            delete entity[dp.name];
+            return;
+        }
+
         if (dt === "MongoObjectId") {
-            var val = entity[dp.name];
             if (val) {
-                entity[dp.name] = ObjectID.createFromHexString(val);
+                try {
+                    entity[dp.name] = ObjectID.createFromHexString(val);
+                } catch (err) {
+                    that.next(new Error("Unable to convert the value: '" + val + "' to a Mongo ObjectID"));
+                }
             }
         } else if (dt === "DateTime" || dt === "DateTimeOffset") {
-            var val = entity[dp.name];
             if (val) {
                 entity[dp.name] = new Date(Date.parse(val));
             }
