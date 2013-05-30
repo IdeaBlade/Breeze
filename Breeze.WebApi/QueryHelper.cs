@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System;
-using System.Collections;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection;
-using System.Web.Http;
-using System.Web.Http.Filters;
 using System.Web.Http.OData.Query;
 
 namespace Breeze.WebApi
@@ -139,6 +133,70 @@ namespace Breeze.WebApi
             var lambda = Expression.Lambda(castResultExpr, paramExpr);
             var func = (Func<IQueryable, IQueryable>)lambda.Compile();
             return func;
+        }
+
+        /// <summary>
+        /// Apply the $select and $expand clauses to the queryable.
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
+        /// <returns></returns>
+        /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
+        public IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map)
+        {
+            var result = queryable;
+            var hasSelectOrExpand = false;
+
+            var selectQueryString = map["$select"];
+            if (!string.IsNullOrWhiteSpace(selectQueryString))
+            {
+                result = ApplySelect(queryable, selectQueryString);
+                hasSelectOrExpand = true;
+            }
+
+            var expandsQueryString = map["$expand"];
+            if (!string.IsNullOrWhiteSpace(expandsQueryString))
+            {
+                if (!string.IsNullOrWhiteSpace(selectQueryString))
+                {
+                    throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
+                }
+                result = ApplyExpand(queryable, expandsQueryString);
+                hasSelectOrExpand = true;
+            }
+
+            return hasSelectOrExpand ? result : null;
+        }
+
+        /// <summary>
+        /// Apply the select clause to the queryable
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="selectQueryString"></param>
+        /// <param name="request">not used, but available to overriding methods</param>
+        /// <returns></returns>
+        public virtual IQueryable ApplySelect(IQueryable queryable, string selectQueryString)
+        {
+            var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
+            var elementType = TypeFns.GetElementType(queryable.GetType());
+            var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
+            return func(queryable);
+        }
+
+        /// <summary>
+        /// Apply to expands clause to the queryable
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="expandsQueryString"></param>
+        /// <param name="request">not used, but available to overriding methods</param>
+        /// <returns></returns>
+        public virtual IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString)
+        {
+            expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand =>
+            {
+                queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
+            });
+            return queryable;
         }
 
     }

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Http;
-using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Filters;
 using System.Web.Http.OData.Query;
@@ -19,6 +16,8 @@ namespace Breeze.WebApi {
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
   public class BreezeQueryableAttribute : QueryableAttribute {
 
+      private static string QUERY_HELPER_KEY = "BreezeQueryableAttribute_QUERY_HELPER_KEY";
+
     public BreezeQueryableAttribute() {
       // because QueryableAttribute does not support Expand and Select
       this.AllowedQueryOptions = AllowedQueryOptions.Supported | AllowedQueryOptions.Expand | AllowedQueryOptions.Select;
@@ -27,7 +26,23 @@ namespace Breeze.WebApi {
     public override void OnActionExecuting(System.Web.Http.Controllers.HttpActionContext actionContext) {
       base.OnActionExecuting(actionContext);
     }
-        /// <summary>
+
+    protected QueryHelper GetQueryHelper(HttpRequestMessage request) {
+        object qh;
+        if (!request.Properties.TryGetValue(QUERY_HELPER_KEY, out qh))
+        {
+            qh = NewQueryHelper();
+            request.Properties.Add(QUERY_HELPER_KEY, qh);
+        }
+        return (QueryHelper)qh;
+    }
+
+    protected virtual QueryHelper NewQueryHelper()
+    {
+        return new QueryHelper(EnableConstantParameterization, EnsureStableOrdering, HandleNullPropagation, PageSize);
+    }
+
+    /// <summary>
     /// Called when the action is executed.
     /// </summary>
     /// <param name="actionExecutedContext">The action executed context.</param>
@@ -45,7 +60,9 @@ namespace Breeze.WebApi {
       }
 
       dynamic rQuery = null;
-      var queryable = ApplySelectAndExpand(responseObject as IQueryable, actionExecutedContext.Request);
+      var request = actionExecutedContext.Request;
+      var queryHelper = GetQueryHelper(request);
+      var queryable = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
       if (queryable != null) {
         // if a select or expand was encountered we need to
         // execute the DbQueries here, so that any exceptions thrown can be properly returned.
@@ -74,99 +91,28 @@ namespace Breeze.WebApi {
       
     }
     
-    // all standard OData web api support is handled here ( except select and expand).
+    // all standard OData web api support is handled here (except select and expand).
     // This method also handles nested orderby statements the the current ASP.NET web api does not yet support.
+    // This method is called by base.OnActionExecuted
     public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions) {
       IQueryable result;
       var orderBy = queryOptions.RawValues.OrderBy;
       if (orderBy != null && orderBy.IndexOf('/') >= 0) {
-          result = ApplyExtendedOrderBy(queryable, queryOptions);
+          var request = queryOptions.Request;
+          var queryHelper = GetQueryHelper(request);
+          result = queryHelper.ApplyExtendedOrderBy(queryable, queryOptions);
+          if (result != null)
+          {
+              request.Properties.Add("breeze_orderBy", true);
+          }
       }
       else {
           result = base.ApplyQuery(queryable, queryOptions);
       }
 
-      //try {
-      //  result = base.ApplyQuery(queryable, queryOptions);
-      //} catch (Exception) {
-      //  result = ApplyExtendedOrderBy(queryable, queryOptions);
-      //  if (result == null) {
-      //    throw;
-      //  }
-      //}
-      
       return result;
     }
 
-
-    private IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
-
-      var querySettings = QueryHelper.NewODataQuerySettings(EnableConstantParameterization, EnsureStableOrdering, HandleNullPropagation, PageSize);
-      var result = QueryHelper.ApplyExtendedOrderBy(queryable, queryOptions, querySettings);
-      if (result != null) {
-          var request = queryOptions.Request;
-          request.Properties.Add("breeze_orderBy", true);
-      }
-      return result;
-    }
-
-
-    public IQueryable ApplySelectAndExpand(IQueryable queryable, HttpRequestMessage request ) {
-      var result = queryable;
-      var hasSelectOrExpand = false;      
-
-      var map = request.RequestUri.ParseQueryString();
-
-      var selectQueryString = map["$select"];
-      if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-          result = ApplySelect(queryable, selectQueryString, request);
-        hasSelectOrExpand = true;
-      }
-
-      var expandsQueryString = map["$expand"];
-      if (!string.IsNullOrWhiteSpace(expandsQueryString)) {
-        if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-          throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
-        }
-        result = ApplyExpand(queryable, expandsQueryString, request);
-        hasSelectOrExpand = true;
-      }
-
-      return hasSelectOrExpand ? result : null;
-      
-    }
-
-    /// <summary>
-    /// Apply the select clause to the queryable
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="selectQueryString"></param>
-    /// <param name="request">not used, but available to overriding methods</param>
-    /// <returns></returns>
-    public virtual IQueryable ApplySelect(IQueryable queryable, string selectQueryString, HttpRequestMessage request)
-    {
-        var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
-        var elementType = TypeFns.GetElementType(queryable.GetType());
-        var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
-        return func(queryable);
-    }
-    
-    /// <summary>
-    /// Apply to expands clause to the queryable
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="expandsQueryString"></param>
-    /// <param name="request">not used, but available to overriding methods</param>
-    /// <returns></returns>
-    public virtual IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString, HttpRequestMessage request)
-    {
-        expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand =>
-        {
-            queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
-        });
-        return queryable;
-    }
-      
 
   }
 
