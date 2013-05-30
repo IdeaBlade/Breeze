@@ -44,7 +44,9 @@
         stop();
         em.executeQuery(q).then(function (data) {
             ok(true);
-        }).fail(testFns.handleFail).fin(start);
+        }).fail(function (error) {
+            ok(error.message.indexOf("No HTTP resource was found") >= 0);
+        }).fin(start);
     });
 
     test("raw query string", function () {
