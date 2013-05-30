@@ -15,21 +15,28 @@ var boolOpMap = {
 
 exports.toMongoQuery= function(urlQuery) {
     var section;
-    section = urlQuery.$filter;
+
     var pieces = {
         query: {},
         select: {},
         options: {}
     };
 
+    section = urlQuery.$filter;
     if (section) {
         var filterTree = parse(section, "filterExpr");
         pieces.query = toQueryExpr(filterTree);
     }
+
     section = urlQuery.$select;
     if (section) {
         var selectItems = parse(section, "selectExpr");
         pieces.select = toSelectExpr(selectItems);
+    }
+
+    section = urlQuery.$expand;
+    if (section) {
+        throw new Error("Breeze's Mongo library does not YET support 'expand'");
     }
 
     section = urlQuery.$orderby;

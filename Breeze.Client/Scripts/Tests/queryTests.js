@@ -298,6 +298,10 @@
     });
 
     test("size test", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - uses expand");
+            return;
+        }
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("Customers").take(5).expand("orders");
@@ -336,6 +340,11 @@
     });
     
     test("sizeof config", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - uses expand");
+            return;
+        }
+
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("Customers").take(5).expand("orders");
@@ -691,11 +700,8 @@
             var r = data.results;
             ok(r.length === 20);
             ok(!em.hasChanges());
-        }).fail(queryFailed).fin(start);
+        }).fail(testFns.handleFail).fin(start);
 
-        function queryFailed(error) {
-            ok(false, "query failed with error message = " + error.message);
-        }
     });
 
     test("hasChanges after query 2", function () {
@@ -725,6 +731,11 @@
     });
     
     test("hasChanges after query 3", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery.from("Customers").take(20);
         stop();
@@ -1887,8 +1898,8 @@
     test("by EntityQuery.fromEntityNavigation - (-> 1) ", function() {
         var em = newEm();
 
-        var query = EntityQuery.from("Orders")
-            .where("customerID","!=", null).take(1);
+        var pred = Predicate.create("customerID", "!=", null).and("employeeID", "!=", null);
+        var query = EntityQuery.from("Orders").where(pred).take(1);
 
         stop();
         em.executeQuery(query).then(function(data) {
@@ -1927,8 +1938,9 @@
 
     test("by entityAspect.loadNavigationProperty - (-> 1) ", function () {
         var em = newEm();
-        var query = EntityQuery.from("Orders")
-            .where("customerID", "!=", null).take(1);
+
+        var pred = Predicate.create("customerID", "!=", null).and("employeeID", "!=", null);
+        var query = EntityQuery.from("Orders").where(pred).take(1);
         em.tag = "xxxx";
         stop();
         var order;

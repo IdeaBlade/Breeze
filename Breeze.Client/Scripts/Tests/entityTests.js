@@ -166,26 +166,27 @@
     });
     
     test("set foreign key property to null", function () {
-        var productQuery = new EntityQuery("Products").take(1)
-            .expand("supplier");
+        var productQuery = new EntityQuery("Products").take(1);
+
 
         stop();
         var em = newEm();
-        em.executeQuery(productQuery)
-            .then(assertProductSetSupplierIDToNull)
-            .fail(testFns.handleFail)
-            .fin(start);
+        em.executeQuery(productQuery).then(function(data) {
+            return data.results[0].entityAspect.loadNavigationProperty("supplier");
+        }).then(assertProductSetSupplierIDToNull)
+          .fail(testFns.handleFail)
+          .fin(start);
     });
 
     function assertProductSetSupplierIDToNull(data) {
         var products = data.results;
         var firstProduct = products[0];
 
-        ok(firstProduct.getProperty("supplierID"), "SupplierID should not be null" );
+        ok(firstProduct.getProperty(testFns.supplierKeyName), "SupplierID should not be null" );
 
-        firstProduct.setProperty("supplierID", null);
+        firstProduct.setProperty(testFns.supplierKeyName, null);
 
-        ok(firstProduct.getProperty("supplierID") == null, "is SupplierID null?");
+        ok(firstProduct.getProperty(testFns.supplierKeyName) == null, "is SupplierID null?");
     }
 
     test("null foriegn key", function() {

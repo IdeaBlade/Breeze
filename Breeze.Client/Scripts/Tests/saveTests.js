@@ -574,6 +574,10 @@
     });
 
     test("save custom data annotation validation", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
         // This test will fail currently with the DATABASEFIRST_OLD define. 
         // This is because ObjectContext.SaveChanges() does not automatically validate 
         // entities. It must be done manually.
@@ -1195,6 +1199,11 @@
     });
 
     test("cleanup  test data", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var p = breeze.Predicate.create("companyName", FilterQueryOp.StartsWith, "Test")
             .or("companyName", FilterQueryOp.StartsWith, "foo");

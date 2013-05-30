@@ -26,9 +26,16 @@
 
     if (testFns.DEBUG_ODATA) {
         test("Skipping named query tests - not available for thru Odata", function () {
-            ok(true, "Skipped tests - named queries not available in OData");
+            ok(true);
         });
-        return testFns;
+        return;
+    }
+
+    if (testFns.DEBUG_MONGO) {
+        test("Not yet available for Mongo", function () {
+            ok(true);
+        });
+        return;
     }
 
     test("scalar server query ", function () {

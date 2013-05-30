@@ -113,6 +113,7 @@ breezeTestFns = (function (breeze) {
             testFns.employeeKeyName = "_id";
             testFns.productKeyName = "_id";
             testFns.userKeyName = "_id";
+            testFns.supplierKeyName ="_id";
         }   else {
             wellKnownData = {
                 nancyID: 1,
@@ -124,7 +125,8 @@ breezeTestFns = (function (breeze) {
             testFns.orderKeyName = "orderID";
             testFns.customerKeyName = "customerID";
             testFns.employeeKeyName = "employeeID";
-            testFns.productKeyName = "productID"
+            testFns.productKeyName = "productID"  ;
+            testFns.supplierKeyName = "supplierID" ;
             testFns.userKeyName = "id";
         }
         wellKnownData.alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';

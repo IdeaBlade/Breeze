@@ -13426,6 +13426,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         name: "mongo",
 
         visitNode: function (node, mappingContext, nodeContext) {
+            if (node == null) return {};
             var result = {};
             // this will only be set on saveResults and projections.
             if (node.$type) {

@@ -381,7 +381,7 @@
             var saved = sr.entities;
             ok(saved.length === 1, "should have saved one record");
             var q2 = EntityQuery.from("Suppliers")
-                .where("location.city", "==", "anyWhere")
+                .where("location.city", "==", "anywhere")
                 .where("companyName", "==", companyName);
             var em2 = newEm();
             return em2.executeQuery(q2);
