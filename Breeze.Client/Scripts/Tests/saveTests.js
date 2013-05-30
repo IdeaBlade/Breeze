@@ -41,6 +41,20 @@
     };
     */
 
+    test("save data with with additional entity added on server", function () {
+        var em = newEm();
+        
+        var supplier = em.createEntity("Supplier", { companyName: "CompName" });
+        var entitiesToSave = new Array(supplier);
+        var saveOptions = new SaveOptions({ tag: "addProdOnServer" });
+        stop();
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            var addedProducts = em.getEntities(["Product"], EntityState.Added);
+
+            ok(addedProducts.length === 0, "There should be no Added Products");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("can save a Northwind Order & InternationalOrder", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for Mongo - primary keys cannot be shared between collections");
