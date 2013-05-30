@@ -709,6 +709,8 @@
                 ok(true, "got expected (EF) exception " + msg);
             } else if (msg.indexOf("Row was updated or deleted by another transaction") >= 0) {
                 ok(true, "got expected (Hibernate) exception " + msg);
+            } else if (msg.indexOf("concurrency check") >= 0) {
+                ok(true, "got expected (Mongo) exception " + msg);
             } else {
                 ok(false, msg);
             }

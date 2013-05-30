@@ -82,19 +82,38 @@ SaveHandler.prototype._prepareCollection = function(resourceName, entities) {
                 keyMapping = { entityTypeName: entityKey.entityTypeName, tempValue: entityKey._id, realValue: e._id };
                 that.keyMappings.push(keyMapping);
             }
-            var insertDoc = { entity: e, entityKey: entityKey };
+            var insertDoc = {
+                entity: e,
+                entityKey: entityKey
+            };
             insertDocs.push(insertDoc);
         } else if (entityState === "Modified") {
             var criteria = { "_id": e._id };
+            if (entityType.concurrencyProp) {
+                // Note that the Breeze client will insure that the current value has been updated.
+                // so no need to do that here
+                var propName = entityType.concurrencyProp.name;
+                criteria[propName] = entityAspect.originalValuesMap[propName];
+            }
             setMap = {};
             Object.keys(entityAspect.originalValuesMap).forEach(function(k) {
                 setMap[k] = e[k];
             });
-            var updateDoc = { criteria: criteria, setOps: { $set: setMap }, entityKey: entityKey };
+            var updateDoc = {
+                criteria: criteria,
+                setOps: { $set: setMap },
+                entityKey: entityKey,
+                hasConcurrencyCheck: !!entityType.concurrencyProp
+            };
             updateDocs.push(updateDoc);
         } else if (entityState = "Deleted") {
             var criteria = { "_id": e._id };
-            var deleteDoc = { criteria: criteria,  entityKey: entityKey };
+            // we don't bother with concurrency check on deletes
+            // TODO: we may want to add a 'switch' for this later.
+            var deleteDoc = {
+                criteria: criteria,
+                entityKey: entityKey
+            };
             deleteDocs.push(deleteDoc);
         }
     });
@@ -106,6 +125,9 @@ SaveHandler.prototype._prepareCollection = function(resourceName, entities) {
     };
 
 }
+
+
+
 
 SaveHandler.prototype._saveCollection=function(pc) {
     this.saveCountPending += pc.inserts.length + pc.updates.length + pc.deletes.length;
@@ -153,6 +175,9 @@ SaveHandler.prototype._coerceData = function(entity, entityType) {
         if (dp.name === "_id") {
             entityType.keyDataType = dt;
         }
+        if (dp.isConcurrencyProp) {
+            entityType.concurrencyProp = dp;
+        }
 
         var val = entity[dp.name];
         if (val == null) {
@@ -190,7 +215,10 @@ SaveHandler.prototype._handleInsert = function(insertDoc, err, insertedObjects) 
 SaveHandler.prototype._handleUpdate = function (updateDoc, err, wasUpdated) {
     if (this._checkIfError(err)) return;
     if (!wasUpdated) {
-        this.next(new Error("Not updated: " + formatEntityKey(updateDoc.entityKey)));
+        var msg = updateDoc.hasConcurrencyCheck
+            ? ". This may be because of the concurrency check performed during the save."
+            : ".";
+        this.next(new Error("Not updated: " + formatEntityKey(updateDoc.entityKey) + msg));
     }
     this.updatedKeys.push( updateDoc.entityKey );
     this._checkIfCompleted();
