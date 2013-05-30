@@ -1,6 +1,7 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
 var queryBuilder = require("./queryBuilder");
+var queryExecutor = require("./queryExecutor");
 var saveBuilder = require("./saveBuilder");
 
 var host = 'localhost';
@@ -22,44 +23,31 @@ exports.getMetadata = function(req, res, next) {
 }
 
 exports.saveChanges = function(req, res, next) {
-    saveBuilder.saveChanges(db, req, res, next);
+    saveBuilder.saveChanges(db, req, processResults(res, next));
 }
 
 exports.get = function (req, res, next) {
-    // res.setHeader('Content-Length', body.length);
     var collectionName = req.params.slug;
     var query = queryBuilder.toMongoQuery(req.query);
-    getCollection(res, collectionName, query);
+    queryExecutor.executeQuery(db, collectionName, query, processResults(res, next))
 };
 
-exports.getProducts = function(req, res) {
+exports.getProducts = function(req, res, next) {
     var query = queryBuilder.toMongoQuery(req.query);
-    getCollection(res, "Products", query);
+    // add addit own filters here
+    queryExecutor.executeQuery(db, "Products", query, processResults(res, next));
 }
 
-function getCollection(res, collectionName, query) {
-    db.collection(collectionName, {strict: true} , function (err, collection) {
+function processResults(res, next) {
+
+    return function(err, results) {
         if (err) {
-            res.send(404, "Unable to locate: " + collectionName);
-            return;
-        }
-        var src;
-        res.setHeader("Content-Type:", "application/json");
-        if (query.inlineCount) {
-            collection.count(query.query, function(err, count) {
-                src = collection.find(query.query, query.select, query.options);
-                src.toArray(function (err, items) {
-                    var results =  { Results: items || [], InlineCount: count };
-                    res.send(results);
-                });
-            });
+            next(err);
         } else {
-            src = collection.find(query.query, query.select, query.options);
-            src.toArray(function (err, items) {
-                res.send(items || []);
-            });
+            res.setHeader("Content-Type:", "application/json");
+            res.send(results);
         }
-    });
-
+    }
 }
+
 

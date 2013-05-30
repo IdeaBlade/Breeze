@@ -3,6 +3,7 @@ var odataParser = require("./odataParser");
 var mongodb = require('mongodb');
 var ObjectId = require('mongodb').ObjectID;
 
+exports.toMongoQuery = toMongoQuery;
 
 var boolOpMap = {
     eq: { jsOp: "==="},
@@ -13,7 +14,7 @@ var boolOpMap = {
     ne: { mongoOp: "$ne",  jsOp: "!=" }
 }
 
-exports.toMongoQuery= function(urlQuery) {
+function toMongoQuery(urlQuery) {
     var section;
 
     var pieces = {
