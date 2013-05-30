@@ -5113,7 +5113,9 @@ var DataType = function () {
         switch (typeof val) {
             case "string":
                 if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
+                // the >3 below is a hack to insure that if we are inferring datatypes that 
+                // very short strings that are valid but unlikely ISO encoded Time's are treated as strings instead.
+                else if (__isDuration(val) && val.length > 3) return DataType.Time;
                 return DataType.String;
             case "boolean":
                 return DataType.Boolean;
@@ -9193,7 +9195,7 @@ var FnNode = (function() {
     };
     var proto = ctor.prototype;
 
-    ctor.create = function (source, entityType) {
+    ctor.create = function (source, entityType, operator) {
         if (typeof source !== 'string') {
             return null;
         }
@@ -9208,6 +9210,9 @@ var FnNode = (function() {
             source = source.replace(token, repl);
         }
         var node = new FnNode(source, tokens, entityType);
+        if (!node.dataType && operator && operator.isStringFn) {
+            node.dataType = DataType.String;
+        }
         // isValidated may be undefined
         return node.isValidated === false ? null : node;
     };
@@ -9348,19 +9353,19 @@ var FilterQueryOp = (function () {
     @final
     @static
     **/
-    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true });
+    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true, isStringFn: true });
     /**
     @property StartsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true });
+    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true, isStringFn: true });
     /**
     @property EndsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true });
+    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
 
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
@@ -9686,7 +9691,7 @@ var SimplePredicate = (function () {
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+            this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");

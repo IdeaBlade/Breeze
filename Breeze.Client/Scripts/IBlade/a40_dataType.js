@@ -356,7 +356,9 @@ var DataType = function () {
         switch (typeof val) {
             case "string":
                 if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
+                // the >3 below is a hack to insure that if we are inferring datatypes that 
+                // very short strings that are valid but unlikely ISO encoded Time's are treated as strings instead.
+                else if (__isDuration(val) && val.length > 3) return DataType.Time;
                 return DataType.String;
             case "boolean":
                 return DataType.Boolean;

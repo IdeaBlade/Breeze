@@ -1,7 +1,8 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
-var queryBuilder = require("./queryBuilder");
-var queryExecutor = require("./queryExecutor");
+var breezeMongo = require("./breezeMongo");
+var MongoQuery = breezeMongo.MongoQuery;
+
 var saveBuilder = require("./saveBuilder");
 
 var host = 'localhost';
@@ -28,14 +29,14 @@ exports.saveChanges = function(req, res, next) {
 
 exports.get = function (req, res, next) {
     var collectionName = req.params.slug;
-    var query = queryBuilder.toMongoQuery(req.query);
-    queryExecutor.executeQuery(db, collectionName, query, processResults(res, next))
+    var query = new MongoQuery(db, collectionName, req.query);
+    query.execute(processResults(res, next));
 };
 
 exports.getProducts = function(req, res, next) {
-    var query = queryBuilder.toMongoQuery(req.query);
+    var query = new MongoQuery(db, "Products", req.query);
     // add addit own filters here
-    queryExecutor.executeQuery(db, "Products", query, processResults(res, next));
+    query.execute(processResults(res, next));
 }
 
 function processResults(res, next) {
