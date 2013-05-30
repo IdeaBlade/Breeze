@@ -26,7 +26,7 @@
         }
     });
 
-    test("getAlfred", function() {
+    test("getAlfred", function () {
         var em = newEm();
         var q = EntityQuery.from("Customers").where("companyName", "startsWith", "Alfreds");
         stop();
@@ -35,8 +35,18 @@
             var alfredsID = alfred.getProperty(testFns.customerKeyName);
             ok(alfredsID === wellKnownData.alfredsID);
         }).fail(testFns.handleFail).fin(start);
-    })
+    });
     
+    test("query URL malformed with bad resource name combined with 'startsWith P'", function () {
+        var em = newEm();
+        // we intentionally mispelled the resource name to cause the query to fail
+        var q = EntityQuery.from("Customer").where("companyName", "startsWith", "P");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("raw query string", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - needs a toType for MONGO");
