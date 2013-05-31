@@ -9102,25 +9102,13 @@ var EntityQuery = (function () {
             return buildKeyPredicate(entityKey);
         } else {
             var inverseNp = navigationProperty.inverse;
-            if (inverseNp) {
-                var foreignKeyNames = inverseNp.foreignKeyNames;
-                if (foreignKeyNames.length === 0) return null;
-                var keyValues = entity.entityAspect.getKey().values;
-                var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
-                    return Predicate.create(fkName, FilterQueryOp.Equals, kv);
-                });
-                var pred = Predicate.and(predParts);
-                return pred;
-            } else {
-                var foreignKeyNames = navigationProperty.altForeignKeyNames;
-                if (foreignKeyNames.length === 0) return null;
-                var keyValues = entity.entityAspect.getKey().values;
-                var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
-                    return Predicate.create(fkName, FilterQueryOp.Equals, kv);
-                });
-                var pred = Predicate.and(predParts);
-                return pred;
-            }
+            var foreignKeyNames = inverseNp ? inverseNp.foreignKeyNames : navigationProperty.altForeignKeyNames;
+            if (foreignKeyNames.length === 0) return null;
+            var keyValues = entity.entityAspect.getKey().values;
+            var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
+                return Predicate.create(fkName, FilterQueryOp.Equals, kv);
+            });
+            return Predicate.and(predParts);
         }
     }
 
