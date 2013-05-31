@@ -144,6 +144,16 @@ function __resolveProperties(sources, propertyNames) {
 
 // array functions
 
+function __toArray(item) {
+    if (!item) {
+        return [];
+    } else if (Array.isArray(item)) {
+        return item;
+    } else {
+        return [item];
+    }
+}
+
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {

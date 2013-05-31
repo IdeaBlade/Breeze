@@ -334,8 +334,8 @@ breezeTestFns = (function (breeze) {
     };
 
     function compare(a, b, propertyName, dataType, isDescending, isCaseSensitive) {
-        var value1 = a.getProperty(propertyName);
-        var value2 = b.getProperty(propertyName);
+        var value1 = a && a.getProperty(propertyName);
+        var value2 = b && b.getProperty(propertyName);
         value1 = value1 === undefined ? null : value1;
         value2 = value2 === undefined ? null : value2;
         if (dataType === DataType.String) {

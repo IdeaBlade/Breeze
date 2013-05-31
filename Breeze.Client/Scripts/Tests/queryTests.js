@@ -1622,9 +1622,8 @@
             ok(custs.length === 5, "should have 5 customers");
             ok(orderDetails.length > 5, "should have > 5 orderDetails");
             ok(products.length > 5, "should have > 5 products");
-        }).fail(function(e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
+            
             
     });
 
@@ -1650,8 +1649,7 @@
             });
 
             testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("orderBy two part nested", function () {
@@ -1677,8 +1675,7 @@
             });
 
             testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("skiptake", function () {
@@ -1687,36 +1684,33 @@
         var query = new EntityQuery()
             .from("Products")
             .orderBy("productName");
-        var sc = new testFns.StopCount(3);
+        stop();
         var skipTakeCount = 5;
-        em.executeQuery(query, function (data) {
+        em.executeQuery(query).then(function (data) {
             var products = data.results;
 
             var newq1 = query.skip(skipTakeCount);
             var newq1Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq1, function (data1) {
+            var p1 = em.executeQuery(newq1).then(function (data1) {
                 var custs1 = data1.results;
                 equal(custs1.length, products.length - skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
+            });
 
             var newq2 = query.take(skipTakeCount);
             var newq2Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq2, function (data2) {
+            var p2 = em.executeQuery(newq2).then(function (data2) {
                 var custs2 = data2.results;
                 equal(custs2.length, skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
+            });
 
             var newq3 = query.skip(skipTakeCount).take(skipTakeCount);
             var newq3Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq3, function (data3) {
+            var p3 = em.executeQuery(newq3).then(function (data3) {
                 var custs3 = data3.results;
                 equal(custs3.length, skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
-
-        }).fail(testFns.handleFail);
+            })
+            return Q.all([p1, p2, p3]);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("query expr - toLower", function() {

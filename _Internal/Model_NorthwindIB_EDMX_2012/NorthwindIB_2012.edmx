@@ -853,7 +853,6 @@
           <Property Name="RegionID" Type="Int32" Nullable="false" />
           <Property Name="RowVersion" Type="Int32" Nullable="false" />
           <NavigationProperty Name="EmployeeTerritories" Relationship="NorthwindIBModel.FK_EmployeeTerritory_Territory" FromRole="Territory" ToRole="EmployeeTerritory" />
-          <NavigationProperty Name="Region" Relationship="NorthwindIBModel.FK_Territory_Region" FromRole="Territory" ToRole="Region" />
           <NavigationProperty Name="Employees" Relationship="NorthwindIBModel.EmployeeTerritoryNoPayload" FromRole="Territory" ToRole="Employee" />
         </EntityType>
         <EntityType Name="User">
