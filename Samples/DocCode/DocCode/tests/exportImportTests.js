@@ -219,7 +219,7 @@
     /*********************************************************
     * temporary keys can change after importing
     *********************************************************/
-    test("temporary keys can change after importing", 2, function () {
+    test("temporary keys will try to stay the same after importing", 2, function () {
         var em1 = newEm();
         
         // new Employee gets the first temporary id in the new 'em1' manager
@@ -242,9 +242,9 @@
         equal(newEmployee1a.FirstName(), newEmployee1b.FirstName(),
             "newEmployee1a's name should match newEmployee1b's name.");
 
-        notEqual(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
-             "newEmployee1a's ID should not equal newEmployee1b's ID because " +
-             "the imported new entity gets a new temp key");
+        equal(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
+             "newEmployee1a's should equal newEmployee1b's ID because " +
+             "the imported new entity gets its 'old' new temp key");
     });
 
     /*********************************************************
