@@ -118,7 +118,8 @@
     });
 
     function extractDescr(product) {
-        return product.getProperty("category").getProperty("categoryName") + ":" + product.getProperty("productName");
+        var cat =  product.getProperty("category");
+        return cat && cat.getProperty("categoryName") + ":" + product.getProperty("productName");
     }
 
     test("query with quotes", function () {

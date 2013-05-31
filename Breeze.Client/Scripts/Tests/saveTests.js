@@ -1162,13 +1162,13 @@
             ok(data.entities.length === 6);
             ok(!region1.entityAspect.getKey().equals(k1));
             var terrs1x = region1.getProperty("territories");
-            ok(terrs1x === terrs1);
-            ok(terrs1x.length == 2);
+            ok(terrs1x === terrs1,"territories should be the same");
+            ok(terrs1x.length == 2, "terrs1 - length should be 2");
             ok(!region2.entityAspect.getKey().equals(k2));
             var terrs2x = region2.getProperty("territories");
-            ok(terrs2x === terrs2);
-            ok(terrs2x.length == 2);
-            ok(terrs2x[0].getProperty("region") === region2);
+            ok(terrs2x === terrs2, "territories should be the same");
+            ok(terrs2x.length == 2, "terrs2 - length should be 2");
+            ok(terrs2x[0].getProperty("regionID") === region2.getProperty(testFns.regionKeyName), "regionId should have been updated");
         }).fail(testFns.handleFail).fin(start);
     });
 
