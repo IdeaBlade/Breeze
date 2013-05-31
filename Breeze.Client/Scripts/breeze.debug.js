@@ -4346,16 +4346,18 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
-                        if (property.isScalar) {
-                            if (inverseProp.relatedDataProperties && !inverseProp.relatedDataProperties[0].isPartOfKey) {
-                                // don't update the key if updating a 1-1 inverse relation
-                                // TODO: rethink this later as we see more 1-1 relations 
-                                // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
-                                newValue.setProperty(inverseProp.name, this);
-                            }
-                        } else {
-                            newValue.setProperty(inverseProp.name, this);
-                        }
+                        //// old code 
+                        //if (property.isScalar) {
+                        //    if (inverseProp.relatedDataProperties && !inverseProp.relatedDataProperties[0].isPartOfKey) {
+                        //        // don't update the key if updating a 1-1 inverse relation
+                        //        // TODO: rethink this later as we see more 1-1 relations 
+                        //        // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
+                        //        newValue.setProperty(inverseProp.name, this);
+                        //    }
+                        //} else {
+                        //    newValue.setProperty(inverseProp.name, this);
+                        //}
+                        newValue.setProperty(inverseProp.name, this);
                     } else {
                         // navigation property change - undo old relation
                         if (oldValue) {
