@@ -1165,6 +1165,7 @@ core.Enum = Enum;
 var Event = (function() {
   
     var __eventNameMap = {};
+    var __nextUnsubKey = 1;
 
     /**
     Class to support basic event publication and subscription semantics.
@@ -1191,7 +1192,6 @@ var Event = (function() {
         // register the name
         __eventNameMap[name] = true;
         this.publisher = publisher;
-        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
             this._defaultErrorCallback = defaultErrorCallback;
         }
@@ -1304,9 +1304,9 @@ var Event = (function() {
             this._subscribers = [];
         }
 
-        var unsubKey = this._nextUnsubKey;
+        var unsubKey = __nextUnsubKey;
         this._subscribers.push({ unsubKey: unsubKey, callback: callback });
-        ++this._nextUnsubKey;
+        ++__nextUnsubKey;
         return unsubKey;
     };
 
@@ -11394,6 +11394,7 @@ var EntityManager = (function () {
         @param callback.data {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
+        @param callback.data.entityManager {EntityManager} The EntityManager.
         @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -11404,6 +11405,7 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
+        @param [errorCallback.error.entityManager] The query that caused the error.
         @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
             
 
@@ -11411,6 +11413,7 @@ var EntityManager = (function () {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
+        promiseData.entityManager {EntityManager} The EntityManager.
         promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -12525,6 +12528,7 @@ var EntityManager = (function () {
             }).fail(function (e) {
                 if (e) {
                     e.query = query;
+                    e.entityManager = em;
                 }
                 return Q.reject(e);
             });

@@ -5,6 +5,7 @@
 var Event = (function() {
   
     var __eventNameMap = {};
+    var __nextUnsubKey = 1;
 
     /**
     Class to support basic event publication and subscription semantics.
@@ -31,7 +32,6 @@ var Event = (function() {
         // register the name
         __eventNameMap[name] = true;
         this.publisher = publisher;
-        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
             this._defaultErrorCallback = defaultErrorCallback;
         }
@@ -144,9 +144,9 @@ var Event = (function() {
             this._subscribers = [];
         }
 
-        var unsubKey = this._nextUnsubKey;
+        var unsubKey = __nextUnsubKey;
         this._subscribers.push({ unsubKey: unsubKey, callback: callback });
-        ++this._nextUnsubKey;
+        ++__nextUnsubKey;
         return unsubKey;
     };
 
