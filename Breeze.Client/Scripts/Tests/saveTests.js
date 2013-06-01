@@ -32,15 +32,6 @@
         teardown: function () { }
     });
 
-    /*
-    var wellKnownData = {
-        alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-        nancyID: 1,
-        alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28  },
-        chaiProductID: 1
-    };
-    */
-
     test("save data with with additional entity added on server", function () {
         var em = newEm();
         
@@ -1132,7 +1123,7 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("insert with relationships with generated key", function () {
+    test("insert uni (1-n) relationships with generated key", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server side key generator (except identity)");
             return;
@@ -1143,18 +1134,62 @@
         var region1 = createRegion(em, "1");
         var k1 = region1.entityAspect.getKey();
         var terrs1 = region1.getProperty("territories");
-        var terr1a = createTerritory(em, "1a");
-        var terr1b = createTerritory(em, "1b");
+        var terr1a = createTerritory(em, "test 1a");
+        var terr1b = createTerritory(em, "test 1b");
         terrs1.push(terr1a);
         terrs1.push(terr1b);
 
         var region2 = createRegion(em, "2");
         var k2 = region2.entityAspect.getKey();
         var terrs2 = region2.getProperty("territories");
-        var terr2a = createTerritory(em, "1a");
-        var terr2b = createTerritory(em, "1b");
+        var terr2a = createTerritory(em, "test 2a");
+        var terr2b = createTerritory(em, "test 2b");
         terrs2.push(terr2a);
         terrs2.push(terr2b);
+
+        stop();
+        em.saveChanges().then(function (data) {
+            ok(!em.hasChanges());
+            ok(data.entities.length === 6);
+            ok(!region1.entityAspect.getKey().equals(k1));
+            var terrs1x = region1.getProperty("territories");
+            ok(terrs1x === terrs1, "territories should be the same");
+            ok(terrs1x.length == 2, "terrs1 - length should be 2");
+            ok(!region2.entityAspect.getKey().equals(k2));
+            var terrs2x = region2.getProperty("territories");
+            ok(terrs2x === terrs2, "territories should be the same");
+            ok(terrs2x.length == 2, "terrs2 - length should be 2");
+            ok(terrs2x[0].getProperty("regionID") === region2.getProperty(testFns.regionKeyName), "regionId should have been updated");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
+    test("insert uni (1-n) relationships with generated key - v2", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server side key generator (except identity)");
+            return;
+        };
+
+        var em = newEm();
+
+        var region1 = createRegion(em, "1");
+        var k1 = region1.entityAspect.getKey();
+        var terrs1 = region1.getProperty("territories");
+        var terr1a = createTerritory(em, "test 1a");
+        var terr1b = createTerritory(em, "test 1b");
+        terr1a.setProperty("regionID", region1.getProperty(testFns.regionKeyName));
+        terr1b.setProperty("regionID", region1.getProperty(testFns.regionKeyName));
+
+        var region2 = createRegion(em, "2");
+        var k2 = region2.entityAspect.getKey();
+        var terrs2 = region2.getProperty("territories");
+        var terr2a = createTerritory(em, "test 2a");
+        var terr2b = createTerritory(em, "test 2b");
+        terr2a.setProperty("regionID", region2.getProperty(testFns.regionKeyName));
+        terr2b.setProperty("regionID", region2.getProperty(testFns.regionKeyName));
+
+        ok(region1.getProperty("territories").length === 2, "should have two terrs");
+        ok(region2.getProperty("territories").length === 2, "should have two terrs");
 
         stop();
         em.saveChanges().then(function (data) {

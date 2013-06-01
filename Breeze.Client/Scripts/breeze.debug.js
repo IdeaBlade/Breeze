@@ -4127,7 +4127,7 @@ breeze.makeRelationArray = function() {
         } else {
             // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
             // in this case we compare fks.
-            var fkPropNames = navProp.altForeignKeyNames;
+            var fkPropNames = navProp.invForeignKeyNames;
             var keyProps = parentEntity.entityType.keyProperties;
             var goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
@@ -4164,7 +4164,7 @@ breeze.makeRelationArray = function() {
                     // This occurs with a unidirectional 1-n navigation - in this case
                     // we need to update the fks instead of the navProp
                     var pks = parentEntity.entityType.keyProperties;
-                    np.altForeignKeyNames.forEach(function (fk, i) {
+                    np.invForeignKeyNames.forEach(function (fk, i) {
                         childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
                     });
                 }
@@ -5831,7 +5831,6 @@ var MetadataStore = (function () {
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
-
         }
 
         // sype may or may not have been added to the metadataStore at this point.
@@ -6134,7 +6133,7 @@ var CsdlMetadataParser = (function () {
         var propRefs;
         if (csdlProperty.fromRole === principal.role) {
             propRefs = __toArray(principal.propertyRef);
-            cfg.altForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
+            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
         } else {
             propRefs = __toArray(dependent.propertyRef);
             // will be used later by np._update
@@ -6839,7 +6838,7 @@ var EntityType = (function () {
                    
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, "foreignKeyNames");
-            updateClientServerNames(nc, property, "altForeignKeyNames");
+            updateClientServerNames(nc, property, "invForeignKeyNames");
             // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
             resolveFks(property);
             // these two will get set later via _updateNps
@@ -6973,7 +6972,7 @@ var EntityType = (function () {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (!entityType) return false;
         np.entityType = entityType;
-        var invNps = entityType.navigationProperties.filter(function (altNp) {
+        var invNp = __arrayFirst(entityType.navigationProperties, function( altNp) {
             // Can't do this because of possibility of comparing a base class np with a subclass altNp.
             //return altNp.associationName === np.associationName
             //    && altNp !== np;
@@ -6981,7 +6980,10 @@ var EntityType = (function () {
             return altNp.associationName === np.associationName
                 && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
-        np.inverse = (invNps.length > 0) ? invNps[0] : null;
+        np.inverse = invNp;
+        if (!invNp) {
+            // TODO: unidirectional 1-n relationship
+        }
         return true;
     }
    
@@ -7003,6 +7005,29 @@ var EntityType = (function () {
     };
 
     // returns null if can't yet finish
+    function getFkProps(np) {
+        var fkNames = np.foreignKeyNames;
+        if (fkNames.length == 0) {
+            np.foreignKeyProperties = [];
+            return np.foreignKeyProperties;
+        }
+
+        var ok = true;
+        var parentEntityType = np.parentType;
+        var fkProps = fkNames.map(function (fkName) {
+            var fkProp = parentEntityType.getDataProperty(fkName);
+            ok = ok && !!fkProp;
+            return fkProp;
+        });
+
+        if (ok) {
+            np.foreignKeyProperties = fkProps;
+            return fkProps;
+        } else {
+            return null;
+        }
+    }
+    /*
     function getFkProps(np) {
         var fkNames = np.foreignKeyNames;
         var isNameOnServer = fkNames.length == 0;
@@ -7031,7 +7056,8 @@ var EntityType = (function () {
             return null;
         }
     }
-        
+    */
+
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
@@ -7554,8 +7580,8 @@ var NavigationProperty = (function () {
             .whereParam("associationName").isString().isOptional()
             .whereParam("foreignKeyNames").isArray().isString().isOptional().withDefault([])
             .whereParam("foreignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
-            .whereParam("altForeignKeyNames").isArray().isString().isOptional().withDefault([])
-            .whereParam("altForeignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
+            .whereParam("invForeignKeyNames").isArray().isString().isOptional().withDefault([])
+            .whereParam("invForeignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
@@ -7668,7 +7694,7 @@ var NavigationProperty = (function () {
             associationName: null,
             validators: null,
             foreignKeyNames: null,
-            altForeignKeyNames: null
+            invForeignKeyNames: null
         });
     };
 
@@ -9132,7 +9158,7 @@ var EntityQuery = (function () {
             return buildKeyPredicate(entityKey);
         } else {
             var inverseNp = navigationProperty.inverse;
-            var foreignKeyNames = inverseNp ? inverseNp.foreignKeyNames : navigationProperty.altForeignKeyNames;
+            var foreignKeyNames = inverseNp ? inverseNp.foreignKeyNames : navigationProperty.invForeignKeyNames;
             if (foreignKeyNames.length === 0) return null;
             var keyValues = entity.entityAspect.getKey().values;
             var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {

@@ -1196,7 +1196,7 @@
     
 
    
-    test("query region and territories", function () {
+    test("query uni (1-n) region and territories", function () {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
@@ -1217,7 +1217,6 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    
 
     test("starts with op", function () {
         var em = newEm();

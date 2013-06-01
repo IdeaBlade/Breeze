@@ -146,7 +146,7 @@ breeze.makeRelationArray = function() {
         } else {
             // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
             // in this case we compare fks.
-            var fkPropNames = navProp.altForeignKeyNames;
+            var fkPropNames = navProp.invForeignKeyNames;
             var keyProps = parentEntity.entityType.keyProperties;
             var goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
@@ -183,7 +183,7 @@ breeze.makeRelationArray = function() {
                     // This occurs with a unidirectional 1-n navigation - in this case
                     // we need to update the fks instead of the navProp
                     var pks = parentEntity.entityType.keyProperties;
-                    np.altForeignKeyNames.forEach(function (fk, i) {
+                    np.invForeignKeyNames.forEach(function (fk, i) {
                         childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
                     });
                 }
