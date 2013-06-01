@@ -4535,41 +4535,25 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 
             if (property.isPartOfKey && (!this.complexAspect)) {
                 // propogate pk change to all related entities;
-                if (oldValue && !entityAspect.entityState.isDetached()) {
-                    entityAspect.primaryKeyWasChanged = true;
-                        
-                }
+
+                //if (oldValue && !entityAspect.entityState.isDetached()) {
+                //    entityAspect.primaryKeyWasChanged = true;
+                //}
                 var propertyIx = this.entityType.keyProperties.indexOf(property);
                 this.entityType.navigationProperties.forEach(function(np) {
                     var inverseNp = np.inverse;
-                    if (inverseNp) {
-                        var fkNames = inverseNp.foreignKeyNames;
-                        if (fkNames.length === 0) return;
-                        var npValue = that.getProperty(np.name);
-                        var fkName = fkNames[propertyIx];
-                        if (np.isScalar) {
-                            if (!npValue) return;
-                            npValue.setProperty(fkName, newValue);
-
-                        } else {
-                            npValue.forEach(function (iv) {
-                                iv.setProperty(fkName, newValue);
-                            });
-                        }
-                    } else {
-                        var fkNames = np.invForeignKeyNames;
-                        if (fkNames.length == 0) return;
-                        var npValue = that.getProperty(np.name);
+                    var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
+                    
+                    if (fkNames.length === 0) return;
+                    var npValue = that.getProperty(np.name);
+                    var fkName = fkNames[propertyIx];
+                    if (np.isScalar) {
                         if (!npValue) return;
-                        var fkName = fkNames[propertyIx];
-                        if (np.isScalar) {
-                            npValue.setProperty(fkName, newValue);
-                        } else {
-                            npValue.forEach(function (iv) {
-                                iv.setProperty(fkName, newValue);
-                            });
-                        }
-
+                        npValue.setProperty(fkName, newValue);
+                    } else {
+                        npValue.forEach(function (iv) {
+                            iv.setProperty(fkName, newValue);
+                        });
                     }
                 });
                 // insure that cached key is updated.
