@@ -42,6 +42,17 @@ breeze.makeRelationArray = function() {
         return result;
     };
 
+    relationArrayMixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    }
+
 
     relationArrayMixin.unshift = function() {
         var goodAdds = getGoodAdds(this, __arraySlice(arguments));

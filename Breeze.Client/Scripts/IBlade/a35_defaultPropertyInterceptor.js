@@ -180,7 +180,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         }
                     });
                 }
-            }
+            } 
 
         } else if (property.isComplexProperty) {
             if (property.isScalar) {
@@ -221,6 +221,57 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 var eg = entityManager._findEntityGroup(this.entityType);
                 eg._replaceKey(oldKey, newKey);
             }
+
+            // update corresponding nav property if attached.
+            if (property.relatedNavigationProperty && entityManager) {
+                var relatedNavProp = property.relatedNavigationProperty;
+                if (newValue != null) {
+                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+
+                    if (relatedEntity) {
+                        this.setProperty(relatedNavProp.name, relatedEntity);
+                    } else {
+                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                    }
+                } else {
+                    this.setProperty(relatedNavProp.name, null);
+                }
+            } else if (property.invEntityType && entityManager && !entityManager._inKeyFixup) {
+                var invEntityType = property.invEntityType;
+                // unidirectional 1->n 
+                var invNavProp = __arrayFirst(invEntityType.navigationProperties, function (np) {
+                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
+                });
+                if (oldValue != null && !invNavProp.isScalar) {
+                    // remove 'this' from old related nav prop
+                    var key = new EntityKey(invEntityType, [oldValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+                    if (relatedEntity) {
+                        var relatedArray = relatedEntity.getProperty(invNavProp.name);
+                        // arr.splice(arr.indexOf(value_to_remove), 1);
+                        relatedArray.splice(relatedArray.indexOf(this), 1);
+                    }
+                }
+                if (newValue != null) {
+                    var key = new EntityKey(invEntityType, [newValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+
+                    if (relatedEntity) {
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, this);
+                        } else {
+                            // bypass dup checking with _push
+                            relatedEntity.getProperty(invNavProp.name).push(this);
+                        }
+                    } else {
+                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                        entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
+                    }
+                }
+            }
+
             rawAccessorFn(newValue);
                 // NOTE: next few lines are the same as above but not refactored for perf reasons.
             if (entityManager && !entityManager.isLoading) {
@@ -234,45 +285,43 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
             }
                 
-            // update corresponding nav property if attached.
-            if (property.relatedNavigationProperty && entityManager) {
-                var relatedNavProp = property.relatedNavigationProperty;
-                if (newValue) {
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
-
-                    if (relatedEntity) {
-                        this.setProperty(relatedNavProp.name, relatedEntity);
-                    } else {
-                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
-                    }
-                } else {
-                    this.setProperty(relatedNavProp.name, null);
-                }
-            }
-
             if (property.isPartOfKey && (!this.complexAspect)) {
                 // propogate pk change to all related entities;
                 if (oldValue && !entityAspect.entityState.isDetached()) {
                     entityAspect.primaryKeyWasChanged = true;
                         
                 }
+                var propertyIx = this.entityType.keyProperties.indexOf(property);
                 this.entityType.navigationProperties.forEach(function(np) {
                     var inverseNp = np.inverse;
-                    if (!inverseNp) return;
-                    if (inverseNp.foreignKeyNames.length === 0) return;
-                    var npValue = that.getProperty(np.name);
-                    var propertyIx = that.entityType.keyProperties.indexOf(property);
-                    var fkName = inverseNp.foreignKeyNames[propertyIx];
-                    if (np.isScalar) {
-                        if (!npValue) return;
-                        npValue.setProperty(fkName, newValue);
+                    if (inverseNp) {
+                        var fkNames = inverseNp.foreignKeyNames;
+                        if (fkNames.length === 0) return;
+                        var npValue = that.getProperty(np.name);
+                        var fkName = fkNames[propertyIx];
+                        if (np.isScalar) {
+                            if (!npValue) return;
+                            npValue.setProperty(fkName, newValue);
 
+                        } else {
+                            npValue.forEach(function (iv) {
+                                iv.setProperty(fkName, newValue);
+                            });
+                        }
                     } else {
-                        npValue.forEach(function(iv) {
-                            iv.setProperty(fkName, newValue);
-                        });
+                        var fkNames = np.invForeignKeyNames;
+                        if (fkNames.length == 0) return;
+                        var npValue = that.getProperty(np.name);
+                        if (!npValue) return;
+                        var fkName = fkNames[propertyIx];
+                        if (np.isScalar) {
+                            npValue.setProperty(fkName, newValue);
+                        } else {
+                            npValue.forEach(function (iv) {
+                                iv.setProperty(fkName, newValue);
+                            });
+                        }
+
                     }
                 });
                 // insure that cached key is updated.

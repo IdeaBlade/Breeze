@@ -1147,6 +1147,9 @@
         terrs2.push(terr2a);
         terrs2.push(terr2b);
 
+        ok(region1.getProperty("territories").length === 2, "should have two terrs");
+        ok(region2.getProperty("territories").length === 2, "should have two terrs");
+
         stop();
         em.saveChanges().then(function (data) {
             ok(!em.hasChanges());

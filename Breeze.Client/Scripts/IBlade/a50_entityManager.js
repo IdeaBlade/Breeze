@@ -884,7 +884,7 @@ var EntityManager = (function () {
         return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
-                
+            
             var mappingContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
@@ -1607,10 +1607,12 @@ var EntityManager = (function () {
     }
 
     function fixupKeys(em, keyMappings) {
+        em._inKeyFixup = true;
         keyMappings.forEach(function (km) {
             var group = em._entityGroupMap[km.entityTypeName];
             group._fixupKey(km.tempValue, km.realValue);
         });
+        em._inKeyFixup = false;
     }
 
     function getEntityGroups(em, entityTypes) {

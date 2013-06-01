@@ -1741,7 +1741,11 @@ var EntityType = (function () {
         });
         np.inverse = invNp;
         if (!invNp) {
-            // TODO: unidirectional 1-n relationship
+            // unidirectional 1-n relationship
+            np.invForeignKeyNames.forEach(function (invFkName) {
+                var fkProp = entityType.getDataProperty(invFkName);
+                fkProp.invEntityType = np.parentType;
+            });
         }
         return true;
     }
