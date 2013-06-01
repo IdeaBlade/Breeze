@@ -872,12 +872,15 @@ var CsdlMetadataParser = (function () {
         var fkNamesOnServer = [];
         var constraint = association.referentialConstraint;
         if (!constraint) {
-            if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
-                // many to many relation
-                return; // ignore for now.
-            } else {
-                throw new Error("Foreign Key Associations must be turned on for this model");
-            }
+            // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
+            return;
+            // Think about adding this back later.
+            //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
+            //    // many to many relation
+            //    ???
+            //} else {
+            //    throw new Error("Foreign Key Associations must be turned on for this model");
+            //}
         }
         
         var cfg = {

@@ -4357,17 +4357,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
-                        //// old code 
-                        //if (property.isScalar) {
-                        //    if (inverseProp.relatedDataProperties && !inverseProp.relatedDataProperties[0].isPartOfKey) {
-                        //        // don't update the key if updating a 1-1 inverse relation
-                        //        // TODO: rethink this later as we see more 1-1 relations 
-                        //        // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
-                        //        newValue.setProperty(inverseProp.name, this);
-                        //    }
-                        //} else {
-                        //    newValue.setProperty(inverseProp.name, this);
-                        //}
                         newValue.setProperty(inverseProp.name, this);
                     } else {
                         // navigation property change - undo old relation
@@ -4470,6 +4459,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 eg._replaceKey(oldKey, newKey);
             }
 
+            // process related updates ( the inverse relationship) first so that collection dups check works properly.
+            // update inverse relationship
+
             // update corresponding nav property if attached.
             if (property.relatedNavigationProperty && entityManager) {
                 var relatedNavProp = property.relatedNavigationProperty;
@@ -4510,7 +4502,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         if (invNavProp.isScalar) {
                             relatedEntity.setProperty(invNavProp.name, this);
                         } else {
-                            // bypass dup checking with _push
                             relatedEntity.getProperty(invNavProp.name).push(this);
                         }
                     } else {
@@ -6157,12 +6148,15 @@ var CsdlMetadataParser = (function () {
         var fkNamesOnServer = [];
         var constraint = association.referentialConstraint;
         if (!constraint) {
-            if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
-                // many to many relation
-                return; // ignore for now.
-            } else {
-                throw new Error("Foreign Key Associations must be turned on for this model");
-            }
+            // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
+            return;
+            // Think about adding this back later.
+            //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
+            //    // many to many relation
+            //    ???
+            //} else {
+            //    throw new Error("Foreign Key Associations must be turned on for this model");
+            //}
         }
         
         var cfg = {
