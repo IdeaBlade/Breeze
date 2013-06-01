@@ -743,7 +743,9 @@ var EntityQuery = (function () {
 
         if (!entityType) {
             if (throwErrorIfNotFound) {
-                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+                throw new Error(__formatString("Cannot find an entityType for resourceName: '%1'. "
+                    + " Consider adding an 'EntityQuery.toType' call to your query or "
+                    +   "calling the MetadataStore.setEntityTypeForResourceName method to register an entityType for this resourceName.", resourceName));
             } else {
                 return null;
             }

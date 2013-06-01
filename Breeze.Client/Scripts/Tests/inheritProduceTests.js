@@ -44,7 +44,10 @@
         manager.executeQuery(query).then(function (data) {
             var fruits = data.results;
 
-            var newQuery = new EntityQuery("Fruits");
+            // toType is needed because the "Fruits" resource does not map to any entityTypes. 
+            var newQuery = new EntityQuery("Fruits").toType("Fruit");
+            // uncomment next line to see detailed error message explaining the issue.
+            // var newQuery = new EntityQuery("Fruits");
             var fruits2 = manager.executeQueryLocally(newQuery);
             ok(true);
         }).fail(function (e) {

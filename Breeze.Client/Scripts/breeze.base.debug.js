@@ -22,7 +22,7 @@
 })(function () {  
     var breeze = {
         version: "1.3.4",
-        metadataVersion: "1.0.4"
+        metadataVersion: "1.0.5"
     };
 
     // legacy properties - will not be supported after 6/1/2013
@@ -8954,7 +8954,9 @@ var EntityQuery = (function () {
 
         if (!entityType) {
             if (throwErrorIfNotFound) {
-                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+                throw new Error(__formatString("Cannot find an entityType for resourceName: '%1'. "
+                    + " Consider adding an 'EntityQuery.toType' call to your query or "
+                    +   "calling the MetadataStore.setEntityTypeForResourceName method to register an entityType for this resourceName.", resourceName));
             } else {
                 return null;
             }
@@ -10626,6 +10628,7 @@ var EntityGroup = (function () {
         ix = this._indexMap[keyInGroup];
         if (ix >= 0) {
             if (this._entities[ix] === entity) {
+                aspect.entityState = entityState;
                 return entity;
             }
             throw new Error("This key is already attached: " + aspect.getKey());
