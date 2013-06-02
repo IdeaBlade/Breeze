@@ -137,7 +137,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     //      and
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
                     // orderDetail.order <-xxx newOrder
-                    //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     var invForeignKeyNames = property.invForeignKeyNames;
                     var pkValues = this.entityAspect.getKey().values;
                     invForeignKeyNames.forEach(function(fkName, i) {
@@ -175,8 +175,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     //    ==> internationalOrder.order = null
                     //        and
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
-                    // orderDetail.order <- newOrder
-                    //   //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    // orderDetail.order <-xxx newOrder
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     var invForeignKeyNames = property.invForeignKeyNames;
                     invForeignKeyNames.forEach(function(fkName, i) {
                         var fkProp = newValue.entityType.getProperty(fkName);
@@ -293,6 +293,14 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
                 // internationalOrder.orderId <- newOrderId
                 //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+                //                and
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- null
+                //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- null
+                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
                 var invEntityType = property.invEntityType;
                 // unidirectional 1->n 
@@ -300,16 +308,21 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
                 });
 
-                if (oldValue != null && !invNavProp.isScalar) {
-                    // remove 'this' from old related nav prop
+                if (oldValue != null) {
                     var key = new EntityKey(invEntityType, [oldValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
-                        var relatedArray = relatedEntity.getProperty(invNavProp.name);
-                        // arr.splice(arr.indexOf(value_to_remove), 1);
-                        relatedArray.splice(relatedArray.indexOf(this), 1);
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, null);
+                        } else {
+                            // remove 'this' from old related nav prop
+                            var relatedArray = relatedEntity.getProperty(invNavProp.name);
+                            // arr.splice(arr.indexOf(value_to_remove), 1);
+                            relatedArray.splice(relatedArray.indexOf(this), 1);
+                        }
                     }
                 }
+
                 if (newValue != null) {
                     var key = new EntityKey(invEntityType, [newValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
@@ -325,6 +338,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
                     }
                 }
+
             }
 
             rawAccessorFn(newValue);
