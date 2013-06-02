@@ -78,10 +78,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
             var inverseProp = property.inverse;
-            var oldSiblings;
-
+            
+            // manage attachment -
             if (newValue != null) {
-                // manage attachment -
                 if (entityManager) {
                     if (newValue.entityAspect.entityState.isDetached()) {
                         if (!entityManager.isLoading) {
@@ -100,37 +99,45 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         }
                     }
                 }
-                    
-                // process related updates ( the inverse relationship) first so that collection dups check works properly.
-                // update inverse relationship
-                if (inverseProp) {
-                    if (inverseProp.isScalar) {
-                        // Example: bidirectional navProperty: 1->1: order -> internationalOrder
-                        // order.internationalOrder <- internationalOrder
-                        //    ==> (oldInternationOrder.order = null)
-                        //    ==> internationalOrder.order = order;
-                        if (oldValue != null) {
-                            // TODO: null -> NullEntity later
-                            oldValue.setProperty(inverseProp.name, null);
-                        }
+            }
+
+            // process related updates ( the inverse relationship) first so that collection dups check works properly.
+            // update inverse relationship
+            if (inverseProp) {
+                ///
+                if (inverseProp.isScalar) {
+                    // Example: bidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.internationalOrder <- internationalOrder || null
+                    //    ==> (oldInternationOrder.order = null)
+                    //    ==> internationalOrder.order = order
+                    if (oldValue != null) {
+                        // TODO: null -> NullEntity later
+                        oldValue.setProperty(inverseProp.name, null);
+                    }
+                    if (newValue != null) {
                         newValue.setProperty(inverseProp.name, this);
-                    } else {
-                        // Example: bidirectional navProperty: 1->n: order -> orderDetails
-                        // orderDetail.order <- newOrder
-                        //    ==> (oldOrder).orderDetails.remove(orderDetail)
-                        //    ==> order.orderDetails.push(newOrder)
-                        if (oldValue) {
-                            oldSiblings = oldValue.getProperty(inverseProp.name);
-                            var ix = oldSiblings.indexOf(this);
-                            if (ix !== -1) {
-                                oldSiblings.splice(ix, 1);
-                            }
+                    }
+                } else {
+                    // Example: bidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <- newOrder || null
+                    //    ==> (oldOrder).orderDetails.remove(orderDetail)
+                    //    ==> order.orderDetails.push(newOrder)
+                    if (oldValue != null) {
+                        var oldSiblings = oldValue.getProperty(inverseProp.name);
+                        var ix = oldSiblings.indexOf(this);
+                        if (ix !== -1) {
+                            oldSiblings.splice(ix, 1);
                         }
+                    }
+                    if (newValue != null) {
                         var siblings = newValue.getProperty(inverseProp.name);
                         // recursion check if already in the collection is performed by the relationArray
                         siblings.push(this);
                     }
-                } else if  (property.invForeignKeyNames && entityManager && !entityManager._inKeyFixup) {
+                }
+            } else if (property.invForeignKeyNames && entityManager && !entityManager._inKeyFixup) {
+                var invForeignKeyNames = property.invForeignKeyNames;
+                if (newValue != null) {
                     // Example: unidirectional navProperty: 1->1: order -> internationalOrder
                     // order.InternationalOrder <- internationalOrder
                     //    ==> internationalOrder.orderId = orderId
@@ -138,56 +145,30 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
                     // orderDetail.order <-xxx newOrder
                     //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
-                    var invForeignKeyNames = property.invForeignKeyNames;
                     var pkValues = this.entityAspect.getKey().values;
-                    invForeignKeyNames.forEach(function(fkName, i) {
+                    invForeignKeyNames.forEach(function (fkName, i) {
                         newValue.setProperty(fkName, pkValues[i]);
                     });
-
-
-                }
-            } else {
-                    // To get here - we have a nav property and the newValue is either null or undefined;
-                if (inverseProp) {
-                    if (inverseProp.isScalar) {
-                        // Example: bidirectional navProperty: 1->1: order -> internationalOrder
-                        // order.internationalOrder <- null
-                        //    ==> internationalOrder.order = null
-                        if (oldValue) {
-                            // TODO: null -> NullEntity later
-                            oldValue.setProperty(inverseProp.name, null);
-                        }
-                    } else {
-                        // Example: bidirectional navProperty: 1->n: order -> orderDetails
-                        // orderDetail.order <- null;
-                        //    ==> order.orderDetails.remove(orderDetail)
-                        if (oldValue) {
-                            oldSiblings = oldValue.getProperty(inverseProp.name);
-                            var ix = oldSiblings.indexOf(this);
-                            if (ix !== -1) {
-                                oldSiblings.splice(ix, 1);
-                            }
-                        }
-                    }
                 } else {
                     // Example: unidirectional navProperty: 1->1: order -> internationalOrder
                     // order.internationalOrder <- null
-                    //    ==> internationalOrder.order = null
+                    //    ==> (old internationalOrder).orderId = null
                     //        and
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
                     // orderDetail.order <-xxx newOrder
                     //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
-                    var invForeignKeyNames = property.invForeignKeyNames;
-                    invForeignKeyNames.forEach(function(fkName, i) {
-                        var fkProp = newValue.entityType.getProperty(fkName);
-                        if (!fkProp.isPartOfKey) {
-                            // don't update with null if fk is part of the key
-                            newValue.setProperty(fkName, null);
-                        }
-                    });
+                    if (oldValue != null) {
+                        invForeignKeyNames.forEach(function (fkName, i) {
+                            var fkProp = oldValue.entityType.getProperty(fkName);
+                            if (!fkProp.isPartOfKey) {
+                                // don't update with null if fk is part of the key
+                                oldValue.setProperty(fkName, null);
+                            }
+                        });
+                    }
                 }
             }
-             
+
             rawAccessorFn(newValue);
 
             if (entityManager && !entityManager.isLoading) {
