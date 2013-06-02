@@ -119,12 +119,12 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             var relatedNavProp = property.relatedNavigationProperty;
             if (relatedNavProp && entityManager) {
                 // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
-                // orderDetail.orderId <- newOrderId
+                // orderDetail.orderId <- newOrderId || null
                 //    ==> orderDetail.order = lookupOrder(newOrderId)
                 //    ==> (see set navProp above)
                 //       and
                 // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
-                // internationalOrder.orderId <- newOrderId
+                // internationalOrder.orderId <- newOrderId || null
                 //    ==> internationalOrder.order = lookupOrder(newOrderId)
                 //    ==> (see set navProp above)
                 
@@ -158,8 +158,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // internationalOrder.orderId <- null
                 //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
-
-                // unidirectional 1->n 
                 var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
@@ -196,6 +194,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
             rawAccessorFn(newValue);
+
             // NOTE: next few lines are the same as above but not refactored for perf reasons.
             if (entityManager && !entityManager.isLoading) {
                 if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
@@ -204,7 +203,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (entityManager.validationOptions.validateOnPropertyChange) {
                     entityAspect._validateProperty(newValue,
                         { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-
                 }
             }
 
@@ -243,19 +241,20 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             
             // manage attachment -
             if (newValue != null) {
+                var newAspect = newValue.entityAspect;
                 if (entityManager) {
-                    if (newValue.entityAspect.entityState.isDetached()) {
+                    if (newAspect.entityState.isDetached()) {
                         if (!entityManager.isLoading) {
                             entityManager.attachEntity(newValue, EntityState.Added);
                         }
                     } else {
-                        if (newValue.entityAspect.entityManager !== entityManager) {
+                        if (newAspect.entityManager !== entityManager) {
                             throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
                         }
                     }
                 } else {
-                    if (newValue.entityAspect && newValue.entityAspect.entityManager) {
-                        entityManager = newValue.entityAspect.entityManager;
+                    if (newAspect && newAspect.entityManager) {
+                        entityManager = newAspect.entityManager;
                         if (!entityManager.isLoading) {
                             entityManager.attachEntity(entityAspect.entity, EntityState.Added);
                         }
