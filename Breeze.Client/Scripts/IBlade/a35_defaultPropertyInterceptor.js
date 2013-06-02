@@ -71,8 +71,170 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
         }
 
-        // set the value
-        if (property.isNavigationProperty) {
+        if (property.isComplexProperty) {
+            if (property.isScalar) {
+                if (!newValue) {
+                    throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
+                }
+                // To get here it must be a ComplexProperty  
+                // 'dataType' will be a complexType
+                if (!oldValue) {
+                    var ctor = dataType.getCtor();
+                    oldValue = new ctor();
+                    rawAccessorFn(oldValue);
+                }
+                dataType.dataProperties.forEach(function (dp) {
+                    var pn = dp.name;
+                    var nv = newValue.getProperty(pn);
+                    oldValue.setProperty(pn, nv);
+                });
+            } else {
+                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
+            }
+
+        } else if (property.isDataProperty) {
+            
+            // if we are changing the key update our internal entityGroup indexes.
+            if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
+                var keyProps = this.entityType.keyProperties;
+                var values = keyProps.map(function (p) {
+                    if (p == property) {
+                        return newValue;
+                    } else {
+                        return this.getProperty(p.name);
+                    }
+                }, this);
+                var newKey = new EntityKey(this.entityType, values);
+                if (entityManager.findEntityByKey(newKey)) {
+                    throw new Error("An entity with this key is already in the cache: " + newKey.toString());
+                }
+                var oldKey = this.entityAspect.getKey();
+                var eg = entityManager._findEntityGroup(this.entityType);
+                eg._replaceKey(oldKey, newKey);
+            }
+
+            // process related updates ( the inverse relationship) first so that collection dups check works properly.
+            // update inverse relationship
+
+            var relatedNavProp = property.relatedNavigationProperty;
+            if (relatedNavProp && entityManager) {
+                // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
+                // orderDetail.orderId <- newOrderId
+                //    ==> orderDetail.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
+                //       and
+                // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId
+                //    ==> internationalOrder.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
+                
+                if (newValue != null) {
+                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+
+                    if (relatedEntity) {
+                        this.setProperty(relatedNavProp.name, relatedEntity);
+                    } else {
+                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
+                    }
+                } else {
+                    this.setProperty(relatedNavProp.name, null);
+                }
+            } else if (property.inverseNavigationProperty && entityManager && !entityManager._inKeyFixup) {
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- newRegionId
+                //    ==> lookupRegion(newRegionId).territories.push(territory)
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId
+                //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+                //                and
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- null
+                //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- null
+                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
+
+
+                // unidirectional 1->n 
+                var invNavProp = property.inverseNavigationProperty;
+
+                if (oldValue != null) {
+                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+                    if (relatedEntity) {
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, null);
+                        } else {
+                            // remove 'this' from old related nav prop
+                            var relatedArray = relatedEntity.getProperty(invNavProp.name);
+                            // arr.splice(arr.indexOf(value_to_remove), 1);
+                            relatedArray.splice(relatedArray.indexOf(this), 1);
+                        }
+                    }
+                }
+
+                if (newValue != null) {
+                    var key = new EntityKey(invNavProp.parentType, [newValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+
+                    if (relatedEntity) {
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, this);
+                        } else {
+                            relatedEntity.getProperty(invNavProp.name).push(this);
+                        }
+                    } else {
+                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                        entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
+                    }
+                }
+
+            }
+
+            rawAccessorFn(newValue);
+            // NOTE: next few lines are the same as above but not refactored for perf reasons.
+            if (entityManager && !entityManager.isLoading) {
+                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                    entityAspect.setModified();
+                }
+                if (entityManager.validationOptions.validateOnPropertyChange) {
+                    entityAspect._validateProperty(newValue,
+                        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+
+                }
+            }
+
+            if (property.isPartOfKey && (!this.complexAspect)) {
+                // propogate pk change to all related entities;
+
+                var propertyIx = this.entityType.keyProperties.indexOf(property);
+                this.entityType.navigationProperties.forEach(function (np) {
+                    var inverseNp = np.inverse;
+                    var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
+
+                    if (fkNames.length === 0) return;
+                    var npValue = that.getProperty(np.name);
+                    var fkName = fkNames[propertyIx];
+                    if (np.isScalar) {
+                        if (!npValue) return;
+                        npValue.setProperty(fkName, newValue);
+                    } else {
+                        npValue.forEach(function (iv) {
+                            iv.setProperty(fkName, newValue);
+                        });
+                    }
+                });
+                // insure that cached key is updated.
+                entityAspect.getKey(true);
+            }
+
+        } else {   
+            // property is a NavigationProperty
+
             if (!property.isScalar) {
                 throw new Error("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
             }
@@ -180,6 +342,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
                 }
             }
+
             // update fk data property - this can only occur if this navProperty has
             // a corresponding fk on this entity.
             if (property.relatedDataProperties) {
@@ -196,169 +359,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
             } 
 
-        } else if (property.isComplexProperty) {
-            if (property.isScalar) {
-                if (!newValue) {
-                    throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
-                }
-                // To get here it must be a ComplexProperty  
-                // 'dataType' will be a complexType
-                if (!oldValue) {
-                    var ctor = dataType.getCtor();
-                    oldValue = new ctor();
-                    rawAccessorFn(oldValue);
-                }
-                dataType.dataProperties.forEach(function (dp) {
-                    var pn = dp.name;
-                    var nv = newValue.getProperty(pn);
-                    oldValue.setProperty(pn, nv);
-                });
-            } else {
-                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
-            }
-        } else {
-            // To get here it must be a (nonComplex) DataProperty
-
-            // if we are changing the key update our internal entityGroup indexes.
-            if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
-                var keyProps = this.entityType.keyProperties;
-                var values = keyProps.map(function(p) {
-                    if (p == property) {
-                        return newValue;
-                    } else {
-                        return this.getProperty(p.name);
-                    }
-                }, this);
-                var newKey = new EntityKey(this.entityType, values);
-                if (entityManager.findEntityByKey(newKey)) {
-                    throw new Error("An entity with this key is already in the cache: " + newKey.toString());
-                }
-                var oldKey = this.entityAspect.getKey();
-                var eg = entityManager._findEntityGroup(this.entityType);
-                eg._replaceKey(oldKey, newKey);
-            }
-
-            // process related updates ( the inverse relationship) first so that collection dups check works properly.
-            // update inverse relationship
-
-            if (property.relatedNavigationProperty && entityManager) {
-                // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
-                // orderDetail.orderId <- newOrderId
-                //    ==> orderDetail.order = lookupOrder(newOrderId)
-                //    ==> (see set navProp above)
-                //       and
-                // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
-                // internationalOrder.orderId <- newOrderId
-                //    ==> internationalOrder.order = lookupOrder(newOrderId)
-                //    ==> (see set navProp above)
-
-                var relatedNavProp = property.relatedNavigationProperty;
-                if (newValue != null) {
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
-
-                    if (relatedEntity) {
-                        this.setProperty(relatedNavProp.name, relatedEntity);
-                    } else {
-                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-                        entityManager._unattachedChildrenMap.addChild(key, relatedNavProp, this);
-                    }
-                } else {
-                    this.setProperty(relatedNavProp.name, null);
-                }
-            } else if (property.inverseNavigationProperty && entityManager && !entityManager._inKeyFixup) {
-                // Example: unidirectional fkDataProperty: 1->n: region -> territories
-                // territory.regionId <- newRegionId
-                //    ==> lookupRegion(newRegionId).territories.push(territory)
-                //                and
-                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
-                // internationalOrder.orderId <- newOrderId
-                //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
-                //                and
-                // Example: unidirectional fkDataProperty: 1->n: region -> territories
-                // territory.regionId <- null
-                //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
-                //                and
-                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
-                // internationalOrder.orderId <- null
-                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
-
-                
-                // unidirectional 1->n 
-                var invNavProp = property.inverseNavigationProperty;
-
-                if (oldValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
-                    if (relatedEntity) {
-                        if (invNavProp.isScalar) {
-                            relatedEntity.setProperty(invNavProp.name, null);
-                        } else {
-                            // remove 'this' from old related nav prop
-                            var relatedArray = relatedEntity.getProperty(invNavProp.name);
-                            // arr.splice(arr.indexOf(value_to_remove), 1);
-                            relatedArray.splice(relatedArray.indexOf(this), 1);
-                        }
-                    }
-                }
-
-                if (newValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
-
-                    if (relatedEntity) {
-                        if (invNavProp.isScalar) {
-                            relatedEntity.setProperty(invNavProp.name, this);
-                        } else {
-                            relatedEntity.getProperty(invNavProp.name).push(this);
-                        }
-                    } else {
-                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-                        entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
-                    }
-                }
-
-            }
-
-            rawAccessorFn(newValue);
-                // NOTE: next few lines are the same as above but not refactored for perf reasons.
-            if (entityManager && !entityManager.isLoading) {
-                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
-                    entityAspect.setModified();
-                }
-                if (entityManager.validationOptions.validateOnPropertyChange) {
-                    entityAspect._validateProperty(newValue,
-                        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-
-                }
-            }
-                
-            if (property.isPartOfKey && (!this.complexAspect)) {
-                // propogate pk change to all related entities;
-
-                //if (oldValue && !entityAspect.entityState.isDetached()) {
-                //    entityAspect.primaryKeyWasChanged = true;
-                //}
-                var propertyIx = this.entityType.keyProperties.indexOf(property);
-                this.entityType.navigationProperties.forEach(function(np) {
-                    var inverseNp = np.inverse;
-                    var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
-                    
-                    if (fkNames.length === 0) return;
-                    var npValue = that.getProperty(np.name);
-                    var fkName = fkNames[propertyIx];
-                    if (np.isScalar) {
-                        if (!npValue) return;
-                        npValue.setProperty(fkName, newValue);
-                    } else {
-                        npValue.forEach(function (iv) {
-                            iv.setProperty(fkName, newValue);
-                        });
-                    }
-                });
-                // insure that cached key is updated.
-                entityAspect.getKey(true);
-            }
         }
             
         var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
