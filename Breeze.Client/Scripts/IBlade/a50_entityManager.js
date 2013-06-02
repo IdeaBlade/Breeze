@@ -1303,15 +1303,22 @@ var EntityManager = (function () {
             var tuples = unattachedMap.getTuples(entityKey);
             if (tuples) {
                 tuples.forEach(function (tpl) {
-                    var childToParentNp = tpl.navigationProperty;
-                    var parentToChildNp = childToParentNp.inverse;
 
                     var unattachedChildren = tpl.children.filter(function (e) {
                         return e.entityAspect.entityState !== EntityState.Detached;
                     });
 
-                    if (parentToChildNp) {
+                    var childToParentNp, parentToChildNp;
+
+                    // np is usually childToParentNp 
+                    // except with unidirectional 1-n where it is parentToChildNp;
+                    var np = tpl.navigationProperty;
+
+                    if (np.inverse) {
                         // bidirectional
+                        var childToParentNp = np;
+                        var parentToChildNp = np.inverse;
+
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
                             entity.setProperty(parentToChildNp.name, onlyChild);
@@ -1324,10 +1331,29 @@ var EntityManager = (function () {
                             });
                         }
                     } else {
-                        // unidirectional nav child -> parent only i.e. OrderDetail -> Product
-                        unattachedChildren.forEach(function (child) {
-                            child.setProperty(childToParentNp.name, entity);
-                        });
+                        // unidirectional
+                        if (np.parentType === entity.entityType) {
+
+                            parentToChildNp = np;
+                            if (parentToChildNp.isScalar) {
+                                // 1 -> 1 eg parent: Order child: InternationalOrder
+                                entity.setProperty(parentToChildNp.name, unattachedChildren[0]);
+                            } else {
+                                // 1 -> n  eg: parent: Region child: Terr
+                                var currentChildren = entity.getProperty(parentToChildNp.name);
+                                unattachedChildren.forEach(function (child) {
+                                    // we know if can't already be there.
+                                    currentChildren._push(child);
+                                });
+                            }
+                        } else {
+                            // n -> 1  eg: parent: child: OrderDetail parent: Product
+                            childToParentNp = np;
+
+                            unattachedChildren.forEach(function (child) {
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
                     }
                     unattachedMap.removeChildren(entityKey, childToParentNp);
                 });

@@ -4367,12 +4367,12 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             var relatedNavProp = property.relatedNavigationProperty;
             if (relatedNavProp && entityManager) {
                 // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
-                // orderDetail.orderId <- newOrderId
+                // orderDetail.orderId <- newOrderId || null
                 //    ==> orderDetail.order = lookupOrder(newOrderId)
                 //    ==> (see set navProp above)
                 //       and
                 // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
-                // internationalOrder.orderId <- newOrderId
+                // internationalOrder.orderId <- newOrderId || null
                 //    ==> internationalOrder.order = lookupOrder(newOrderId)
                 //    ==> (see set navProp above)
                 
@@ -4406,8 +4406,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // internationalOrder.orderId <- null
                 //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
-
-                // unidirectional 1->n 
                 var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
@@ -4444,6 +4442,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
             rawAccessorFn(newValue);
+
             // NOTE: next few lines are the same as above but not refactored for perf reasons.
             if (entityManager && !entityManager.isLoading) {
                 if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
@@ -4452,7 +4451,6 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (entityManager.validationOptions.validateOnPropertyChange) {
                     entityAspect._validateProperty(newValue,
                         { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-
                 }
             }
 
@@ -4491,19 +4489,20 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             
             // manage attachment -
             if (newValue != null) {
+                var newAspect = newValue.entityAspect;
                 if (entityManager) {
-                    if (newValue.entityAspect.entityState.isDetached()) {
+                    if (newAspect.entityState.isDetached()) {
                         if (!entityManager.isLoading) {
                             entityManager.attachEntity(newValue, EntityState.Added);
                         }
                     } else {
-                        if (newValue.entityAspect.entityManager !== entityManager) {
+                        if (newAspect.entityManager !== entityManager) {
                             throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
                         }
                     }
                 } else {
-                    if (newValue.entityAspect && newValue.entityAspect.entityManager) {
-                        entityManager = newValue.entityAspect.entityManager;
+                    if (newAspect && newAspect.entityManager) {
+                        entityManager = newAspect.entityManager;
                         if (!entityManager.isLoading) {
                             entityManager.attachEntity(entityAspect.entity, EntityState.Added);
                         }
@@ -12075,15 +12074,22 @@ var EntityManager = (function () {
             var tuples = unattachedMap.getTuples(entityKey);
             if (tuples) {
                 tuples.forEach(function (tpl) {
-                    var childToParentNp = tpl.navigationProperty;
-                    var parentToChildNp = childToParentNp.inverse;
 
                     var unattachedChildren = tpl.children.filter(function (e) {
                         return e.entityAspect.entityState !== EntityState.Detached;
                     });
 
-                    if (parentToChildNp) {
+                    var childToParentNp, parentToChildNp;
+
+                    // np is usually childToParentNp 
+                    // except with unidirectional 1-n where it is parentToChildNp;
+                    var np = tpl.navigationProperty;
+
+                    if (np.inverse) {
                         // bidirectional
+                        var childToParentNp = np;
+                        var parentToChildNp = np.inverse;
+
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
                             entity.setProperty(parentToChildNp.name, onlyChild);
@@ -12096,10 +12102,29 @@ var EntityManager = (function () {
                             });
                         }
                     } else {
-                        // unidirectional nav child -> parent only i.e. OrderDetail -> Product
-                        unattachedChildren.forEach(function (child) {
-                            child.setProperty(childToParentNp.name, entity);
-                        });
+                        // unidirectional
+                        if (np.parentType === entity.entityType) {
+
+                            parentToChildNp = np;
+                            if (parentToChildNp.isScalar) {
+                                // 1 -> 1 eg parent: Order child: InternationalOrder
+                                entity.setProperty(parentToChildNp.name, unattachedChildren[0]);
+                            } else {
+                                // 1 -> n  eg: parent: Region child: Terr
+                                var currentChildren = entity.getProperty(parentToChildNp.name);
+                                unattachedChildren.forEach(function (child) {
+                                    // we know if can't already be there.
+                                    currentChildren._push(child);
+                                });
+                            }
+                        } else {
+                            // n -> 1  eg: parent: child: OrderDetail parent: Product
+                            childToParentNp = np;
+
+                            unattachedChildren.forEach(function (child) {
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
                     }
                     unattachedMap.removeChildren(entityKey, childToParentNp);
                 });

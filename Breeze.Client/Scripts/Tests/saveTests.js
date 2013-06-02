@@ -1197,6 +1197,7 @@
         };
 
         var em = newEm();
+        var em2 = newEm();
 
         var region1 = createRegion(em, "1");
         var k1 = region1.entityAspect.getKey();
@@ -1217,19 +1218,90 @@
         ok(region1.getProperty("territories").length === 2, "should have two terrs");
         ok(region2.getProperty("territories").length === 2, "should have two terrs");
 
+        var terrs1x, terrs2x, region1ID, region1y, terrs1y;
+        
         stop();
         em.saveChanges().then(function (data) {
             ok(!em.hasChanges());
             ok(data.entities.length === 6);
             ok(!region1.entityAspect.getKey().equals(k1));
-            var terrs1x = region1.getProperty("territories");
+            terrs1x = region1.getProperty("territories");
             ok(terrs1x === terrs1,"territories should be the same");
             ok(terrs1x.length == 2, "terrs1 - length should be 2");
             ok(!region2.entityAspect.getKey().equals(k2));
-            var terrs2x = region2.getProperty("territories");
+            terrs2x = region2.getProperty("territories");
             ok(terrs2x === terrs2, "territories should be the same");
             ok(terrs2x.length == 2, "terrs2 - length should be 2");
             ok(terrs2x[0].getProperty("regionID") === region2.getProperty(testFns.regionKeyName), "regionId should have been updated");
+            // now move them all onto region1;
+            terrs2x.slice(0).forEach(function (t) {
+                terrs1x.push(t);
+            });
+            ok(terrs1x.length == 4, "terrs1x should now be length 4");
+            ok(terrs2x.length == 0, "terrs2x should now be length 0");
+            return em.saveChanges();
+        }).then(function (sr2) {
+            ok(sr2.entities.length == 2, "should have saved 2 recs");
+            ok(terrs1x.length == 4, "terrs1x should now be length 4");
+            ok(terrs2x.length == 0, "terrs2x should now be length 0");
+            return EntityQuery.fromEntities(region1).expand("territories").using(em).execute();
+        }).then(function (data3) {
+            ok(data3.results.length === 1, "should be 1 region");
+            ok(region1 === data3.results[0], "should be same region");
+            ok(terrs1x.length === 4, "terrs1x should be of length 4");
+            return EntityQuery.fromEntities(region1).expand("territories").using(em2).execute();
+        }).then(function(data4) {
+            ok(data4.results.length === 1, "should be 1 region");
+            terrs1y = data4.results[0].getProperty("territories");
+            ok(terrs1y.length === 4, "should still be 4 recs");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("insert uni (1-n) relationships with unattached children - v3", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server side key generator (except identity)");
+            return;
+        };
+
+        var em = newEm();
+        var em2 = newEm();
+
+        var region1 = createRegion(em, "1");
+        var k1 = region1.entityAspect.getKey();
+        var terrs1 = region1.getProperty("territories");
+        var terr1a = createTerritory(em, "test 1a");
+        var terr1b = createTerritory(em, "test 1b");
+        terr1a.setProperty("regionID", region1.getProperty(testFns.regionKeyName));
+        terr1b.setProperty("regionID", region1.getProperty(testFns.regionKeyName));
+
+        var region2 = createRegion(em, "2");
+        var k2 = region2.entityAspect.getKey();
+        var terrs2 = region2.getProperty("territories");
+        var terr2a = createTerritory(em, "test 2a");
+        var terr2b = createTerritory(em, "test 2b");
+        terr2a.setProperty("regionID", region2.getProperty(testFns.regionKeyName));
+        terr2b.setProperty("regionID", region2.getProperty(testFns.regionKeyName));
+
+        ok(region1.getProperty("territories").length === 2, "should have two terrs");
+        ok(region2.getProperty("territories").length === 2, "should have two terrs");
+        var terrs1x, terrs2x, region1ID, region1y, terrs1y;
+        
+        
+        stop();
+        em.saveChanges().then(function (data) {
+            ok(!em.hasChanges());
+            ok(data.entities.length === 6);
+            ok(!region1.entityAspect.getKey().equals(k1));
+            var territories = em.getEntities("Territory");
+            return EntityQuery.fromEntities(territories).using(em2).execute();
+        }).then(function(data2) {
+            ok(data2.results.length === 4, "should be 4 recs");
+            return EntityQuery.fromEntities(region1).using(em2).execute();
+        }).then(function (data3) {
+            ok(data3.results.length === 1, "should be 1 rec");
+            var region1a = data3.results[0];
+            var terrs1a = region1a.getProperty("territories");
+            ok(terrs1a.length == 2, "should be 2 terrs in region1");
         }).fail(testFns.handleFail).fin(start);
     });
 
