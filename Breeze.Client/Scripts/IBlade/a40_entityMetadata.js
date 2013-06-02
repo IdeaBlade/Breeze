@@ -112,7 +112,7 @@ var MetadataStore = (function () {
 
         
         structuralType.getProperties().forEach(function (property) {
-            structuralType._updateProperty(property);
+            structuralType._updateNames(property);
             if (!property.isUnmapped) {
                 structuralType._mappedPropertiesCount++;
             }
@@ -1104,7 +1104,7 @@ var EntityType = (function () {
         this.navigationProperties = [];
         this.complexProperties = [];
         this.keyProperties = [];
-        // this.foreignKeyProperties = [];
+        this.foreignKeyProperties = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = []; // will be updated later.
         this.validators = [];
@@ -1594,7 +1594,7 @@ var EntityType = (function () {
         return serverPropPath;
     };
 
-    proto._updateProperty = function (property) {
+    proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
         updateClientServerNames(nc, property, "name")
                    
@@ -1602,9 +1602,12 @@ var EntityType = (function () {
             updateClientServerNames(nc, property, "foreignKeyNames");
             updateClientServerNames(nc, property, "invForeignKeyNames");
             
-            // these two will get set later via _updateNps
+            // these will get set later via _updateNps
             // this.inverse
             // this.entityType
+            // this.relatedDataProperties 
+            //    dataProperty.relatedNavigationProperty
+            //    dataProperty.invEntityType
         }
     };
 
@@ -1726,6 +1729,7 @@ var EntityType = (function () {
         (incompleteMap[this.name] || []).forEach(function (np) {
             resolveNp(np, metadataStore);
         });
+
         delete incompleteMap[this.name];
     }
 
@@ -1747,6 +1751,7 @@ var EntityType = (function () {
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
                 fkProp.invEntityType = np.parentType;
+                entityType.foreignKeyProperties.push(fkProp);
             });
         }
         resolveRelated(np);
@@ -1763,10 +1768,10 @@ var EntityType = (function () {
         var fkProps = fkNames.map(function (fkName) {
             return parentEntityType.getDataProperty(fkName);
         });
+        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
             dp.relatedNavigationProperty = np;
-            // np.parentType.foreignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -1967,7 +1972,7 @@ var ComplexType = (function () {
     proto.getProperty = EntityType.prototype.getProperty;
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
     proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateProperty = EntityType.prototype._updateProperty;
+    proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
