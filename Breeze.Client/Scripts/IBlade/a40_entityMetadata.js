@@ -1601,8 +1601,7 @@ var EntityType = (function () {
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, "foreignKeyNames");
             updateClientServerNames(nc, property, "invForeignKeyNames");
-            // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-            resolveFks(property);
+            
             // these two will get set later via _updateNps
             // this.inverse
             // this.entityType
@@ -1750,11 +1749,13 @@ var EntityType = (function () {
                 fkProp.invEntityType = np.parentType;
             });
         }
+        resolveRelated(np);
         return true;
     }
-   
-    function resolveFks(np) {
-        
+
+    // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+    function resolveRelated(np) {
+
         var fkNames = np.foreignKeyNames;
         if (fkNames.length === 0) return;
 
@@ -1774,7 +1775,7 @@ var EntityType = (function () {
         });
     };
 
-
+   
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
