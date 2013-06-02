@@ -4385,7 +4385,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     //      and
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
                     // orderDetail.order <-xxx newOrder
-                    //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     var invForeignKeyNames = property.invForeignKeyNames;
                     var pkValues = this.entityAspect.getKey().values;
                     invForeignKeyNames.forEach(function(fkName, i) {
@@ -4423,8 +4423,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     //    ==> internationalOrder.order = null
                     //        and
                     // Example: unidirectional navProperty: 1->n: order -> orderDetails
-                    // orderDetail.order <- newOrder
-                    //   //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    // orderDetail.order <-xxx newOrder
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     var invForeignKeyNames = property.invForeignKeyNames;
                     invForeignKeyNames.forEach(function(fkName, i) {
                         var fkProp = newValue.entityType.getProperty(fkName);
@@ -4541,6 +4541,14 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
                 // internationalOrder.orderId <- newOrderId
                 //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+                //                and
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- null
+                //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- null
+                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
                 var invEntityType = property.invEntityType;
                 // unidirectional 1->n 
@@ -4548,16 +4556,21 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
                 });
 
-                if (oldValue != null && !invNavProp.isScalar) {
-                    // remove 'this' from old related nav prop
+                if (oldValue != null) {
                     var key = new EntityKey(invEntityType, [oldValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
-                        var relatedArray = relatedEntity.getProperty(invNavProp.name);
-                        // arr.splice(arr.indexOf(value_to_remove), 1);
-                        relatedArray.splice(relatedArray.indexOf(this), 1);
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, null);
+                        } else {
+                            // remove 'this' from old related nav prop
+                            var relatedArray = relatedEntity.getProperty(invNavProp.name);
+                            // arr.splice(arr.indexOf(value_to_remove), 1);
+                            relatedArray.splice(relatedArray.indexOf(this), 1);
+                        }
                     }
                 }
+
                 if (newValue != null) {
                     var key = new EntityKey(invEntityType, [newValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
@@ -4573,6 +4586,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
                     }
                 }
+
             }
 
             rawAccessorFn(newValue);
@@ -5452,7 +5466,7 @@ var MetadataStore = (function () {
 
         
         structuralType.getProperties().forEach(function (property) {
-            structuralType._updateProperty(property);
+            structuralType._updateNames(property);
             if (!property.isUnmapped) {
                 structuralType._mappedPropertiesCount++;
             }
@@ -6934,18 +6948,20 @@ var EntityType = (function () {
         return serverPropPath;
     };
 
-    proto._updateProperty = function (property) {
+    proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
         updateClientServerNames(nc, property, "name")
                    
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, "foreignKeyNames");
             updateClientServerNames(nc, property, "invForeignKeyNames");
-            // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-            resolveFks(property);
-            // these two will get set later via _updateNps
+            
+            // these will get set later via _updateNps
             // this.inverse
             // this.entityType
+            // this.relatedDataProperties 
+            //    dataProperty.relatedNavigationProperty
+            //    dataProperty.invEntityType
         }
     };
 
@@ -7067,6 +7083,7 @@ var EntityType = (function () {
         (incompleteMap[this.name] || []).forEach(function (np) {
             resolveNp(np, metadataStore);
         });
+
         delete incompleteMap[this.name];
     }
 
@@ -7088,20 +7105,28 @@ var EntityType = (function () {
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
                 fkProp.invEntityType = np.parentType;
+                
+                entityType.foreignKeyProperties.push(fkProp);
             });
         }
+        resolveRelated(np);
         return true;
     }
-   
-    function resolveFks(np) {
-        if (np.foreignKeyProperties) return;
-        var fkProps = getFkProps(np);
-        // returns null if can't yet finish
-        if (!fkProps) return;
+
+    // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+    function resolveRelated(np) {
+
+        var fkNames = np.foreignKeyNames;
+        if (fkNames.length === 0) return;
+
+        var parentEntityType = np.parentType;
+        var fkProps = fkNames.map(function (fkName) {
+            return parentEntityType.getDataProperty(fkName);
+        });
+        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
             dp.relatedNavigationProperty = np;
-            np.parentType.foreignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -7110,60 +7135,7 @@ var EntityType = (function () {
         });
     };
 
-    // returns null if can't yet finish
-    function getFkProps(np) {
-        var fkNames = np.foreignKeyNames;
-        if (fkNames.length == 0) {
-            np.foreignKeyProperties = [];
-            return np.foreignKeyProperties;
-        }
-
-        var ok = true;
-        var parentEntityType = np.parentType;
-        var fkProps = fkNames.map(function (fkName) {
-            var fkProp = parentEntityType.getDataProperty(fkName);
-            ok = ok && !!fkProp;
-            return fkProp;
-        });
-
-        if (ok) {
-            np.foreignKeyProperties = fkProps;
-            return fkProps;
-        } else {
-            return null;
-        }
-    }
-    /*
-    function getFkProps(np) {
-        var fkNames = np.foreignKeyNames;
-        var isNameOnServer = fkNames.length == 0;
-        if (isNameOnServer) {
-            fkNames = np.foreignKeyNamesOnServer;
-            if (fkNames.length == 0) {
-                np.foreignKeyProperties = [];
-                return np.foreignKeyProperties;
-            }
-        }
-        var ok = true;
-        var parentEntityType = np.parentType;
-        var fkProps = fkNames.map(function (fkName) {
-            var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
-            ok = ok && !!fkProp;
-            return fkProp;
-        });
-
-        if (ok) {
-            if (isNameOnServer) {
-                np.foreignKeyNames = fkProps.map(__pluck("name"));
-            }
-            np.foreignKeyProperties = fkProps;
-            return fkProps;
-        } else {
-            return null;
-        }
-    }
-    */
-
+   
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
@@ -7355,7 +7327,7 @@ var ComplexType = (function () {
     proto.getProperty = EntityType.prototype.getProperty;
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
     proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateProperty = EntityType.prototype._updateProperty;
+    proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
@@ -7628,6 +7600,17 @@ var DataProperty = (function () {
         }
 
         return new DataProperty(json);
+    };
+
+    proto._getNavProp = function (fkProp) {
+        var np = this.relatedNavigationProperty;
+        if (np) return np;
+
+        var that = this;
+        var invNp = __arrayFirst(this.invEntityType.navigationProperties, function (np) {
+            return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(that.name) >= 0;
+        });
+        return invNp;
     };
 
     return ctor;
@@ -12161,6 +12144,7 @@ var EntityManager = (function () {
 
                 // first determine if np contains a parent or child
                 // having a parentKey means that this is a child
+                // if a parent then no need for more work because children will attach to it.
                 var parentKey = entityAspect.getParentKey(np);
                 if (parentKey) {
                     // check for empty keys - meaning that parent id's are not yet set.
@@ -12175,6 +12159,30 @@ var EntityManager = (function () {
                         unattachedMap.addChild(parentKey, np, entity);
                     }
                 } 
+            });
+
+            // handle unidirectional 1-x where we set x.fk
+            entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
+                if (!fkProp.invEntityType) return;
+                // unidirectional fk props only
+                var fkValue = entity.getProperty(fkProp.name);
+                var parentKey = new EntityKey(fkProp.invEntityType, [fkValue]);
+                var parent = em.findEntityByKey(parentKey);
+                var invNp = fkProp._getNavProp();
+                if (parent) {
+                    if (invNp.isScalar) {
+                        parent.setProperty(invNp.name, entity);
+                    } else {
+                        if (em.isLoading) {
+                            parent.getProperty(invNp.name)._push(entity);
+                        } else {
+                            parent.getProperty(invNp.name).push(entity);
+                        }
+                    }
+                } else {
+                    // else add parent to unresolvedParentMap;
+                    unattachedMap.addChild(parentKey, invNp, entity);
+                }
             });
         });
     };

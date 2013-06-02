@@ -1751,6 +1751,7 @@ var EntityType = (function () {
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
                 fkProp.invEntityType = np.parentType;
+                
                 entityType.foreignKeyProperties.push(fkProp);
             });
         }
@@ -2245,6 +2246,17 @@ var DataProperty = (function () {
         }
 
         return new DataProperty(json);
+    };
+
+    proto._getNavProp = function (fkProp) {
+        var np = this.relatedNavigationProperty;
+        if (np) return np;
+
+        var that = this;
+        var invNp = __arrayFirst(this.invEntityType.navigationProperties, function (np) {
+            return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(that.name) >= 0;
+        });
+        return invNp;
     };
 
     return ctor;
