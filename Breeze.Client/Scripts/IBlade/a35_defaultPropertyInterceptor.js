@@ -79,7 +79,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 
             var inverseProp = property.inverse;
             var oldSiblings;
-            if (newValue) {
+
+            if (newValue != null) {
+                // manage attachment -
                 if (entityManager) {
                     if (newValue.entityAspect.entityState.isDetached()) {
                         if (!entityManager.isLoading) {
@@ -101,17 +103,22 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     
                 // process related updates ( the inverse relationship) first so that collection dups check works properly.
                 // update inverse relationship
-
                 if (inverseProp) {
                     if (inverseProp.isScalar) {
-                        // navigation property change - undo old relation
-                        if (oldValue) {
+                        // Example: bidirectional navProperty: 1->1: order -> internationalOrder
+                        // order.internationalOrder <- internationalOrder
+                        //    ==> (oldInternationOrder.order = null)
+                        //    ==> internationalOrder.order = order;
+                        if (oldValue != null) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
                         newValue.setProperty(inverseProp.name, this);
                     } else {
-                        // navigation property change - undo old relation
+                        // Example: bidirectional navProperty: 1->n: order -> orderDetails
+                        // orderDetail.order <- newOrder
+                        //    ==> (oldOrder).orderDetails.remove(orderDetail)
+                        //    ==> order.orderDetails.push(newOrder)
                         if (oldValue) {
                             oldSiblings = oldValue.getProperty(inverseProp.name);
                             var ix = oldSiblings.indexOf(this);
@@ -123,18 +130,37 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         // recursion check if already in the collection is performed by the relationArray
                         siblings.push(this);
                     }
+                } else if  (property.invForeignKeyNames && entityManager && !entityManager._inKeyFixup) {
+                    // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.InternationalOrder <- internationalOrder
+                    //    ==> internationalOrder.orderId = orderId
+                    //      and
+                    // Example: unidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <-xxx newOrder
+                    //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    var invForeignKeyNames = property.invForeignKeyNames;
+                    var pkValues = this.entityAspect.getKey().values;
+                    invForeignKeyNames.forEach(function(fkName, i) {
+                        newValue.setProperty(fkName, pkValues[i]);
+                    });
+
+
                 }
             } else {
-                    // To get here - the newValue is either null or undefined;
-                    if (inverseProp) {
+                    // To get here - we have a nav property and the newValue is either null or undefined;
+                if (inverseProp) {
                     if (inverseProp.isScalar) {
-                        // navigation property change - undo old relation
+                        // Example: bidirectional navProperty: 1->1: order -> internationalOrder
+                        // order.internationalOrder <- null
+                        //    ==> internationalOrder.order = null
                         if (oldValue) {
                             // TODO: null -> NullEntity later
                             oldValue.setProperty(inverseProp.name, null);
                         }
                     } else {
-                        // navigation property change - undo old relation
+                        // Example: bidirectional navProperty: 1->n: order -> orderDetails
+                        // orderDetail.order <- null;
+                        //    ==> order.orderDetails.remove(orderDetail)
                         if (oldValue) {
                             oldSiblings = oldValue.getProperty(inverseProp.name);
                             var ix = oldSiblings.indexOf(this);
@@ -143,10 +169,27 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                             }
                         }
                     }
+                } else {
+                    // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.internationalOrder <- null
+                    //    ==> internationalOrder.order = null
+                    //        and
+                    // Example: unidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <- newOrder
+                    //   //    ==> CAN'T HAPPEN because we orderDetail will not have an order prop
+                    var invForeignKeyNames = property.invForeignKeyNames;
+                    invForeignKeyNames.forEach(function(fkName, i) {
+                        var fkProp = newValue.entityType.getProperty(fkName);
+                        if (!fkProp.isPartOfKey) {
+                            // don't update with null if fk is part of the key
+                            newValue.setProperty(fkName, null);
+                        }
+                    });
                 }
             }
              
             rawAccessorFn(newValue);
+
             if (entityManager && !entityManager.isLoading) {
                 if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
                     entityAspect.setModified();
@@ -156,7 +199,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
                 }
             }
-            // update fk data property
+            // update fk data property - this can only occur if this navProperty has
+            // a corresponding fk on this entity.
             if (property.relatedDataProperties) {
                 if (!entityAspect.entityState.isDeleted()) {
                     var inverseKeyProps = property.entityType.keyProperties;
@@ -192,7 +236,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
             }
         } else {
-            // To get here it must be a (nonComplex) DataProperty  
+            // To get here it must be a (nonComplex) DataProperty
+
+            // if we are changing the key update our internal entityGroup indexes.
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
                 var values = keyProps.map(function(p) {
@@ -214,8 +260,17 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             // process related updates ( the inverse relationship) first so that collection dups check works properly.
             // update inverse relationship
 
-            // update corresponding nav property if attached.
             if (property.relatedNavigationProperty && entityManager) {
+                // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
+                // orderDetail.orderId <- newOrderId
+                //    ==> orderDetail.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
+                //       and
+                // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId
+                //    ==> internationalOrder.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
+
                 var relatedNavProp = property.relatedNavigationProperty;
                 if (newValue != null) {
                     var key = new EntityKey(relatedNavProp.entityType, [newValue]);
@@ -231,11 +286,20 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     this.setProperty(relatedNavProp.name, null);
                 }
             } else if (property.invEntityType && entityManager && !entityManager._inKeyFixup) {
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- newRegionId
+                //    ==> lookupRegion(newRegionId).territories.push(territory)
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId
+                //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+
                 var invEntityType = property.invEntityType;
                 // unidirectional 1->n 
                 var invNavProp = __arrayFirst(invEntityType.navigationProperties, function (np) {
                     return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
                 });
+
                 if (oldValue != null && !invNavProp.isScalar) {
                     // remove 'this' from old related nav prop
                     var key = new EntityKey(invEntityType, [oldValue]);

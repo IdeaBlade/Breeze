@@ -1151,18 +1151,41 @@
         ok(region2.getProperty("territories").length === 2, "should have two terrs");
 
         stop();
+        var terrs1x, terrs2x, region1ID, region1y, terrs1y;
+        var em2 = newEm();
         em.saveChanges().then(function (data) {
             ok(!em.hasChanges());
+            region1ID = region1.getProperty("regionID");
             ok(data.entities.length === 6);
             ok(!region1.entityAspect.getKey().equals(k1));
-            var terrs1x = region1.getProperty("territories");
+            terrs1x = region1.getProperty("territories");
             ok(terrs1x === terrs1, "territories should be the same");
             ok(terrs1x.length == 2, "terrs1 - length should be 2");
             ok(!region2.entityAspect.getKey().equals(k2));
-            var terrs2x = region2.getProperty("territories");
+            terrs2x = region2.getProperty("territories");
             ok(terrs2x === terrs2, "territories should be the same");
             ok(terrs2x.length == 2, "terrs2 - length should be 2");
             ok(terrs2x[0].getProperty("regionID") === region2.getProperty(testFns.regionKeyName), "regionId should have been updated");
+            // now move them all onto region1;
+            terrs2x.slice(0).forEach(function (t) {
+                t.setProperty("regionID", region1.getProperty(testFns.regionKeyName));
+            });
+            ok(terrs1x.length == 4, "terrs1x should now be length 4");
+            ok(terrs2x.length == 0, "terrs2x should now be length 0");
+            return em.saveChanges();
+        }).then(function(sr2) {
+            ok(sr2.entities.length == 2, "should have saved 2 recs");
+            ok(terrs1x.length == 4, "terrs1x should now be length 4");
+            ok(terrs2x.length == 0, "terrs2x should now be length 0");
+            return EntityQuery.fromEntities(region1).using(em2).execute();
+        }).then(function (data3) {
+            region1y = data3.results[0];
+            terrs1y = region1y.getProperty("territories");
+            return terrs1y.load();
+        }).then(function(data4) {
+            ok(data4.results.length === 4, "should be 4 terrs");
+            ok(terrs1y.length === 4, "terrs1y should be of length 4");
+
         }).fail(testFns.handleFail).fin(start);
     });
 
