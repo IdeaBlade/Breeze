@@ -1607,7 +1607,7 @@ var EntityType = (function () {
             // this.entityType
             // this.relatedDataProperties 
             //    dataProperty.relatedNavigationProperty
-            //    dataProperty.invEntityType
+            //    dataProperty.inverseNavigationProperty
         }
     };
 
@@ -1750,11 +1750,14 @@ var EntityType = (function () {
             // unidirectional 1-n relationship
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
-                fkProp.invEntityType = np.parentType;
-                
+                var invEntityType = np.parentType;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
+                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
+                });
                 entityType.foreignKeyProperties.push(fkProp);
             });
         }
+        
         resolveRelated(np);
         return true;
     }
@@ -2248,17 +2251,7 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
-    proto._getNavProp = function (fkProp) {
-        var np = this.relatedNavigationProperty;
-        if (np) return np;
-
-        var that = this;
-        var invNp = __arrayFirst(this.invEntityType.navigationProperties, function (np) {
-            return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(that.name) >= 0;
-        });
-        return invNp;
-    };
-
+    
     return ctor;
 })();
   

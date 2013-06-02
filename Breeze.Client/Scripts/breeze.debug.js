@@ -4533,7 +4533,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     this.setProperty(relatedNavProp.name, null);
                 }
-            } else if (property.invEntityType && entityManager && !entityManager._inKeyFixup) {
+            } else if (property.inverseNavigationProperty && entityManager && !entityManager._inKeyFixup) {
                 // Example: unidirectional fkDataProperty: 1->n: region -> territories
                 // territory.regionId <- newRegionId
                 //    ==> lookupRegion(newRegionId).territories.push(territory)
@@ -4550,14 +4550,12 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // internationalOrder.orderId <- null
                 //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
-                var invEntityType = property.invEntityType;
+                
                 // unidirectional 1->n 
-                var invNavProp = __arrayFirst(invEntityType.navigationProperties, function (np) {
-                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
-                });
+                var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
-                    var key = new EntityKey(invEntityType, [oldValue]);
+                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {
@@ -4572,7 +4570,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
 
                 if (newValue != null) {
-                    var key = new EntityKey(invEntityType, [newValue]);
+                    var key = new EntityKey(invNavProp.parentType, [newValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
@@ -6961,7 +6959,7 @@ var EntityType = (function () {
             // this.entityType
             // this.relatedDataProperties 
             //    dataProperty.relatedNavigationProperty
-            //    dataProperty.invEntityType
+            //    dataProperty.inverseNavigationProperty
         }
     };
 
@@ -7104,11 +7102,14 @@ var EntityType = (function () {
             // unidirectional 1-n relationship
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
-                fkProp.invEntityType = np.parentType;
-                
+                var invEntityType = np.parentType;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
+                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
+                });
                 entityType.foreignKeyProperties.push(fkProp);
             });
         }
+        
         resolveRelated(np);
         return true;
     }
@@ -7602,17 +7603,7 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
-    proto._getNavProp = function (fkProp) {
-        var np = this.relatedNavigationProperty;
-        if (np) return np;
-
-        var that = this;
-        var invNp = __arrayFirst(this.invEntityType.navigationProperties, function (np) {
-            return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(that.name) >= 0;
-        });
-        return invNp;
-    };
-
+    
     return ctor;
 })();
   
@@ -12163,12 +12154,13 @@ var EntityManager = (function () {
 
             // handle unidirectional 1-x where we set x.fk
             entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
-                if (!fkProp.invEntityType) return;
+                var invNp = fkProp.inverseNavigationProperty;
+                if (!invNp) return;
                 // unidirectional fk props only
                 var fkValue = entity.getProperty(fkProp.name);
-                var parentKey = new EntityKey(fkProp.invEntityType, [fkValue]);
+                var parentKey = new EntityKey(invNp.parentType, [fkValue]);
                 var parent = em.findEntityByKey(parentKey);
-                var invNp = fkProp._getNavProp();
+                
                 if (parent) {
                     if (invNp.isScalar) {
                         parent.setProperty(invNp.name, entity);

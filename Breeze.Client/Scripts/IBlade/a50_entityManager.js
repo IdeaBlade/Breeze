@@ -1363,12 +1363,13 @@ var EntityManager = (function () {
 
             // handle unidirectional 1-x where we set x.fk
             entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
-                if (!fkProp.invEntityType) return;
+                var invNp = fkProp.inverseNavigationProperty;
+                if (!invNp) return;
                 // unidirectional fk props only
                 var fkValue = entity.getProperty(fkProp.name);
-                var parentKey = new EntityKey(fkProp.invEntityType, [fkValue]);
+                var parentKey = new EntityKey(invNp.parentType, [fkValue]);
                 var parent = em.findEntityByKey(parentKey);
-                var invNp = fkProp._getNavProp();
+                
                 if (parent) {
                     if (invNp.isScalar) {
                         parent.setProperty(invNp.name, entity);

@@ -285,7 +285,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     this.setProperty(relatedNavProp.name, null);
                 }
-            } else if (property.invEntityType && entityManager && !entityManager._inKeyFixup) {
+            } else if (property.inverseNavigationProperty && entityManager && !entityManager._inKeyFixup) {
                 // Example: unidirectional fkDataProperty: 1->n: region -> territories
                 // territory.regionId <- newRegionId
                 //    ==> lookupRegion(newRegionId).territories.push(territory)
@@ -302,14 +302,12 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // internationalOrder.orderId <- null
                 //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
 
-                var invEntityType = property.invEntityType;
+                
                 // unidirectional 1->n 
-                var invNavProp = __arrayFirst(invEntityType.navigationProperties, function (np) {
-                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(property.name) >= 0;
-                });
+                var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
-                    var key = new EntityKey(invEntityType, [oldValue]);
+                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {
@@ -324,7 +322,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
 
                 if (newValue != null) {
-                    var key = new EntityKey(invEntityType, [newValue]);
+                    var key = new EntityKey(invNavProp.parentType, [newValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
