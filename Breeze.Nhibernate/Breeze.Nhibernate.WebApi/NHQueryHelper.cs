@@ -4,21 +4,55 @@ using NHibernate;
 using NHibernate.Linq;
 using System;
 using System.Collections;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http.OData.Query;
+using System.Net.Http;
 
 namespace Breeze.Nhibernate.WebApi
 {
     public class NHQueryHelper : QueryHelper
     {
         protected ExpandTypeMap expandMap = new ExpandTypeMap();
+        protected ISession session;
 
         public NHQueryHelper(bool enableConstantParameterization, bool ensureStableOrdering, HandleNullPropagationOption handleNullPropagation, int pageSize)
             : base(enableConstantParameterization, ensureStableOrdering, handleNullPropagation, pageSize)
         {
         }
+
+        public override IQueryable BeforeApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
+        {
+            GetSession(queryable);
+            var nhQueryable = queryable as IQueryableInclude;
+            if (nhQueryable != null)
+            {
+                queryable = ApplyExpand(nhQueryable);
+            }
+            return queryable;
+        }
+
+        /// <summary>
+        /// Apply the $select and $expand clauses to the queryable.
+        /// Overrides the base class method to handle the includes of an IQueryableInclude
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
+        /// <returns></returns>
+        /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
+        //public override IEnumerable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map)
+        //{
+        //    var result = base.ApplySelectAndExpand(queryable, map);
+        //    if (result == null)
+        //    {
+        //        // query was not executed by base, so we need to do it here
+        //        result = Enumerable.ToList((dynamic)queryable);
+        //    }
+        //    InitializeProxies(result);
+        //    return result;
+        //}
 
         /// <summary>
         /// Performs expands based on the list of strings in queryable.GetIncludes().
@@ -59,15 +93,17 @@ namespace Breeze.Nhibernate.WebApi
         /// </summary>
         /// <param name="queryable"></param>
         /// <returns>the session if queryable.Provider is NHibernate.Linq.DefaultQueryProvider, else null</returns>
-        public static ISession GetSession(IQueryable queryable)
+        public ISession GetSession(IQueryable queryable)
         {
+            if (session != null) return session;
             if (queryable == null) return null;
             var provider = queryable.Provider as DefaultQueryProvider;
             if (provider == null) return null;
 
             var propertyInfo = typeof(DefaultQueryProvider).GetProperty("Session", BindingFlags.NonPublic | BindingFlags.Instance);
             var result = propertyInfo.GetValue(provider);
-            var session = result as ISession;
+            var isession = result as ISession;
+            if (isession != null) this.session = isession;
             return session;
         }
 
@@ -75,9 +111,10 @@ namespace Breeze.Nhibernate.WebApi
         /// Perform the lazy loading allowed in the expandMap.
         /// </summary>
         /// <param name="list"></param>
-        public void InitializeProxies(IEnumerable list)
+        public override IEnumerable PostExecuteQuery(IEnumerable list)
         {
             NHInitializer.InitializeList(list, expandMap);
+            return list;
         }
 
         /// <summary>
@@ -122,6 +159,12 @@ namespace Breeze.Nhibernate.WebApi
             settings.Converters.Add(new NHibernateProxyJsonConverter());
         }
 
-
+        //public override void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object responseObject, object queryResult)
+        //{
+        //    var numer = responseObject as IEnumerable;
+        //    if (numer != null)
+        //        InitializeProxies(numer);
+        //    base.WrapResult(request, response, responseObject, queryResult);
+        //}
     }
 }

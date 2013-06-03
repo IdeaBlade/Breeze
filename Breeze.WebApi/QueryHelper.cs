@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
@@ -58,9 +59,14 @@ namespace Breeze.WebApi
             return newQo;
         }
 
+        public virtual IQueryable BeforeApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
+        {
+            return queryable;
+        }
+
         public IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
         {
-            return queryOptions.ApplyTo(queryable, querySettings);
+            return queryOptions.ApplyTo(queryable, this.querySettings);
         }
 
         public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings)
@@ -70,7 +76,7 @@ namespace Breeze.WebApi
 
         public IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions)
         {
-            return ApplyExtendedOrderBy(queryable, queryOptions, querySettings);
+            return ApplyExtendedOrderBy(queryable, queryOptions, this.querySettings);
         }
 
         public static IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings)
@@ -142,7 +148,7 @@ namespace Breeze.WebApi
         /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
         /// <returns></returns>
         /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
-        public IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map)
+        public virtual IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map)
         {
             var result = queryable;
             var hasSelectOrExpand = false;
@@ -157,7 +163,7 @@ namespace Breeze.WebApi
             var expandsQueryString = map["$expand"];
             if (!string.IsNullOrWhiteSpace(expandsQueryString))
             {
-                if (!string.IsNullOrWhiteSpace(selectQueryString))
+                if (hasSelectOrExpand)
                 {
                     throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
                 }
@@ -165,7 +171,18 @@ namespace Breeze.WebApi
                 hasSelectOrExpand = true;
             }
 
-            return hasSelectOrExpand ? result : null;
+            return result;
+            //IEnumerable rQuery = null;
+            //if (hasSelectOrExpand)
+            //{
+            //    // if a select or expand was encountered we need to
+            //    // execute the DbQueries here, so that any exceptions thrown can be properly returned.
+            //    // if we wait to have the query executed within the serializer, some exceptions will not
+            //    // serialize properly.
+            //    rQuery = Enumerable.ToList((dynamic)result);
+            //}
+
+            //return rQuery;
         }
 
         /// <summary>
@@ -197,6 +214,52 @@ namespace Breeze.WebApi
                 queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
             });
             return queryable;
+        }
+
+        public virtual IEnumerable PostExecuteQuery(IEnumerable queryResult)
+        {
+            return queryResult;
+        }
+
+        /// <summary>
+        /// Replaces the response.Content with the query results, wrapped in a QueryResult object if necessary.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
+        /// <param name="responseObject"></param>
+        /// <param name="queryable"></param>
+        public virtual void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object responseObject, object queryResult)
+        {
+            Object tmp;
+            request.Properties.TryGetValue("MS_InlineCount", out tmp);
+            var inlineCount = (Int64?)tmp;
+
+            // if a select or expand was encountered we need to
+            // execute the DbQueries here, so that any exceptions thrown can be properly returned.
+            // if we wait to have the query executed within the serializer, some exceptions will not
+            // serialize properly.
+            if (queryResult != responseObject)
+            {
+            }
+            queryResult = Enumerable.ToList((dynamic)queryResult);
+            queryResult = PostExecuteQuery((IEnumerable)queryResult);
+
+            if (queryResult != null || inlineCount.HasValue)
+            {
+                if (queryResult == null)
+                {
+                    queryResult = responseObject;
+                }
+                if (inlineCount.HasValue)
+                {
+                    queryResult = new QueryResult() { Results = queryResult, InlineCount = inlineCount };
+                }
+
+                var formatter = ((dynamic)response.Content).Formatter;
+                var oc = new ObjectContent(queryResult.GetType(), queryResult, formatter);
+                response.Content = oc;
+            }
+
         }
 
     }

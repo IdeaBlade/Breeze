@@ -35,22 +35,49 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="actionExecutedContext"></param>
         public override void OnActionExecuted(System.Web.Http.Filters.HttpActionExecutedContext actionExecutedContext)
         {
+            var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
+
+            bool executed = false;
+            if (typeof(IQueryable).IsAssignableFrom(returnType))
+            {
+                base.OnActionExecuted(actionExecutedContext);
+                executed = true;
+            }
+
+            var request = actionExecutedContext.Request;
+            var response = actionExecutedContext.Response;
+            if (response == null) return;
+            object responseObject;
+            if (response == null || !response.TryGetContentValue(out responseObject))
+                return;
+
+            var queryHelper = GetQueryHelper(request) as NHQueryHelper;
+            if (!executed && responseObject is IQueryable)
+            {
+                var list = Enumerable.ToList((dynamic)responseObject);
+                queryHelper.WrapResult(request, response, responseObject, list);
+            }
+
+            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+            // We have to rely on the controller to close the session in this case.
+            var jsonFormatter = actionExecutedContext.Request.GetConfiguration().Formatters.JsonFormatter;
+            queryHelper.ConfigureFormatter(jsonFormatter, responseObject as IQueryable);
+            /*
             if (actionExecutedContext.Response == null) return; 
             object responseObject;
             if (actionExecutedContext.Response == null || !actionExecutedContext.Response.TryGetContentValue(out responseObject))
                 return;
 
-            var queryHelper = GetQueryHelper(actionExecutedContext.Request) as NHQueryHelper;
+            var request = actionExecutedContext.Request;
+            var queryHelper = GetQueryHelper(request) as NHQueryHelper;
             IQueryable queryable = null;
             if (responseObject is IQueryable)
             {
                 queryable = (IQueryable)responseObject;
-                var nhQueryable = responseObject as IQueryableInclude;
-                if (nhQueryable != null)
-                {
-                    queryHelper.ApplyExpand(nhQueryable);
-                }
-                
+                var queryResult = queryHelper.ApplySelectAndExpand(queryable, request.RequestUri.ParseQueryString());
+
+                queryHelper.WrapResult(actionExecutedContext.Request, actionExecutedContext.Response, responseObject, queryResult);
+
                 var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
 
                 if (typeof(IEnumerable).IsAssignableFrom(returnType))
@@ -93,11 +120,7 @@ namespace Breeze.Nhibernate.WebApi
                 }
 
             }
-
-            // Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
-            // We have to rely on the controller to close the session in this case.
-            var jsonFormatter = actionExecutedContext.Request.GetConfiguration().Formatters.JsonFormatter;
-            queryHelper.ConfigureFormatter(jsonFormatter, queryable);
+            */
         }
 
 
