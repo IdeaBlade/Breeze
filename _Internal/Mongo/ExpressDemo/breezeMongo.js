@@ -3,6 +3,7 @@ var odataParser = require("./odataParser");
 var mongodb = require('mongodb');
 var ObjectId = require('mongodb').ObjectID;
 
+exports.MongoQuery = MongoQuery;
 
 var boolOpMap = {
     eq: { jsOp: "==="},
@@ -13,48 +14,95 @@ var boolOpMap = {
     ne: { mongoOp: "$ne",  jsOp: "!=" }
 }
 
-exports.toMongoQuery= function(urlQuery) {
-    var section;
-    section = urlQuery.$filter;
-    var pieces = {
-        query: {},
-        select: {},
-        options: {}
-    };
+function MongoQuery(db, collectionName, urlQuery) {
+    this.db = db;
+    this.collectionName = collectionName;
+    this.query = {};
+    this.select= {};
+    this.options= {};
+    this._parseUrl(urlQuery);
+}
 
+MongoQuery.prototype._parseUrl = function(urlQuery) {
+    var section;
+
+    section = urlQuery.$filter;
     if (section) {
-        var filterTree = odataParser.parse(section, "filterExpr");
-        pieces.query = toQueryExpr(filterTree);
+        var filterTree = parse(section, "filterExpr");
+        this.query = toQueryExpr(filterTree);
     }
+
     section = urlQuery.$select;
     if (section) {
-        var selectItems = odataParser.parse(section, "selectExpr");
-        pieces.select = toSelectExpr(selectItems);
+        var selectItems = parse(section, "selectExpr");
+        this.select = toSelectExpr(selectItems);
+    }
+
+    section = urlQuery.$expand;
+    if (section) {
+        throw new Error("Breeze's Mongo library does not YET support 'expand'");
     }
 
     section = urlQuery.$orderby;
     if (section) {
-        var orderbyItems = odataParser.parse(section, "orderbyExpr");
+        var orderbyItems = parse(section, "orderbyExpr");
         sortClause = toOrderbyExpr(orderbyItems);
-        extend(pieces.options, sortClause)
+        extend(this.options, sortClause)
     }
-
 
     section = urlQuery.$top;
     if (section) {
-        extend(pieces.options, { limit: parseInt(section, 10)});
+        extend(this.options, { limit: parseInt(section, 10)});
     }
 
     section = urlQuery.$skip;
     if (section) {
-        extend(pieces.options, { skip: parseInt(section, 10)});
+        extend(this.options, { skip: parseInt(section, 10)});
     }
 
     section = urlQuery.$inlinecount;
-    pieces.inlineCount = !!(section && section !== "none");
+    this.inlineCount = !!(section && section !== "none");
 
-    return pieces;
+}
 
+MongoQuery.prototype.execute = function(fn) {
+    var that = this;
+    this.db.collection(this.collectionName, {strict: true} , function (err, collection) {
+        if (err) {
+            err = { status: 404, message: "Unable to locate: " + that.collectionName, error: err };
+            fn(err, null);
+            return;
+        }
+        var src;
+
+        if (that.inlineCount) {
+            collection.count(that.query, function(err, count) {
+                src = collection.find(that.query, that.select, that.options);
+                src.toArray(function (err, items) {
+                    var results =  { Results: items || [], InlineCount: count };
+                    fn(null, results);
+                });
+            });
+        } else {
+            src = collection.find(that.query, that.select, that.options);
+            src.toArray(function (err, results) {
+                fn(null, results || []);
+            });
+        }
+    });
+
+}  ;
+
+
+function parse(text, sectionName) {
+    try {
+        return odataParser.parse(text, sectionName);
+    } catch(e) {
+        var err = new Error("Unable to parse " + sectionName + ": " + text);
+        err.statusCode = 400;
+        err.innerError = e;
+        throw err;
+    }
 }
 
 function toOrderbyExpr(orderbyItems) {
@@ -130,8 +178,6 @@ function makeBoolFilter(op, p1, p2) {
     }
     throw new Error("Not yet implemented: Boolean operation: " + op + " p1: " + stringify(p1) + " p2: " + stringify(p2));
 }
-
-
 
 function makeUnaryFilter(op, p1) {
 

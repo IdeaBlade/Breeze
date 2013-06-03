@@ -17,10 +17,10 @@ namespace BuildDb {
       var tableItems = new List<TableItem>();
       // keep guid ids
       tableItems.Add(new TableItem("Customer", null, "CustomerID"));
-      tableItems.Add(new TableItem("Order", null, "OrderID", 100000));
-      tableItems.Add(new TableItem("Employee", null, "EmployeeID", 1000));
+      tableItems.Add(new TableItem("Order" ));
+      tableItems.Add(new TableItem("Employee"));
       tableItems.Add(new TableItem("OrderDetail"));
-      tableItems.Add(new TableItem("Product", null, "ProductID", 20000));
+      tableItems.Add(new TableItem("Product", null, "ProductID", 10000));
       tableItems.Add(new TableItem("Region"));
       tableItems.Add(new TableItem("Supplier"));
       tableItems.Add(new TableItem("Category", "Categories"));

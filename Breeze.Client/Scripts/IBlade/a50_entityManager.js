@@ -368,7 +368,8 @@ var EntityManager = (function () {
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
+            // try to use oldKey if not already used in this keyGenerator.
+            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
         });
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
@@ -643,6 +644,7 @@ var EntityManager = (function () {
         @param callback.data {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
+        @param callback.data.entityManager {EntityManager} The EntityManager.
         @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -653,6 +655,7 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
+        @param [errorCallback.error.entityManager] The query that caused the error.
         @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
             
 
@@ -660,6 +663,7 @@ var EntityManager = (function () {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
+        promiseData.entityManager {EntityManager} The EntityManager.
         promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -883,7 +887,7 @@ var EntityManager = (function () {
         return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
-                
+            
             var mappingContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
@@ -893,8 +897,8 @@ var EntityManager = (function () {
                 deferredFns: []
             };
 
-            // TODO: we can optimize this and not perform the merge if 
-            // the save operation did not actually return the entity - i.e. OData and Mongo updates.
+            // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+            // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
             var savedEntities = saveResult.entities.map(function (rawEntity) {
                 return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
             });
@@ -1299,15 +1303,22 @@ var EntityManager = (function () {
             var tuples = unattachedMap.getTuples(entityKey);
             if (tuples) {
                 tuples.forEach(function (tpl) {
-                    var childToParentNp = tpl.navigationProperty;
-                    var parentToChildNp = childToParentNp.inverse;
 
                     var unattachedChildren = tpl.children.filter(function (e) {
                         return e.entityAspect.entityState !== EntityState.Detached;
                     });
 
-                    if (parentToChildNp) {
+                    var childToParentNp, parentToChildNp;
+
+                    // np is usually childToParentNp 
+                    // except with unidirectional 1-n where it is parentToChildNp;
+                    var np = tpl.navigationProperty;
+
+                    if (np.inverse) {
                         // bidirectional
+                        var childToParentNp = np;
+                        var parentToChildNp = np.inverse;
+
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
                             entity.setProperty(parentToChildNp.name, onlyChild);
@@ -1320,10 +1331,29 @@ var EntityManager = (function () {
                             });
                         }
                     } else {
-                        // unidirectional nav child -> parent only i.e. OrderDetail -> Product
-                        unattachedChildren.forEach(function (child) {
-                            child.setProperty(childToParentNp.name, entity);
-                        });
+                        // unidirectional
+                        if (np.parentType === entity.entityType) {
+
+                            parentToChildNp = np;
+                            if (parentToChildNp.isScalar) {
+                                // 1 -> 1 eg parent: Order child: InternationalOrder
+                                entity.setProperty(parentToChildNp.name, unattachedChildren[0]);
+                            } else {
+                                // 1 -> n  eg: parent: Region child: Terr
+                                var currentChildren = entity.getProperty(parentToChildNp.name);
+                                unattachedChildren.forEach(function (child) {
+                                    // we know if can't already be there.
+                                    currentChildren._push(child);
+                                });
+                            }
+                        } else {
+                            // n -> 1  eg: parent: child: OrderDetail parent: Product
+                            childToParentNp = np;
+
+                            unattachedChildren.forEach(function (child) {
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
                     }
                     unattachedMap.removeChildren(entityKey, childToParentNp);
                 });
@@ -1340,6 +1370,7 @@ var EntityManager = (function () {
 
                 // first determine if np contains a parent or child
                 // having a parentKey means that this is a child
+                // if a parent then no need for more work because children will attach to it.
                 var parentKey = entityAspect.getParentKey(np);
                 if (parentKey) {
                     // check for empty keys - meaning that parent id's are not yet set.
@@ -1354,6 +1385,31 @@ var EntityManager = (function () {
                         unattachedMap.addChild(parentKey, np, entity);
                     }
                 } 
+            });
+
+            // handle unidirectional 1-x where we set x.fk
+            entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
+                var invNp = fkProp.inverseNavigationProperty;
+                if (!invNp) return;
+                // unidirectional fk props only
+                var fkValue = entity.getProperty(fkProp.name);
+                var parentKey = new EntityKey(invNp.parentType, [fkValue]);
+                var parent = em.findEntityByKey(parentKey);
+                
+                if (parent) {
+                    if (invNp.isScalar) {
+                        parent.setProperty(invNp.name, entity);
+                    } else {
+                        if (em.isLoading) {
+                            parent.getProperty(invNp.name)._push(entity);
+                        } else {
+                            parent.getProperty(invNp.name).push(entity);
+                        }
+                    }
+                } else {
+                    // else add parent to unresolvedParentMap;
+                    unattachedMap.addChild(parentKey, invNp, entity);
+                }
             });
         });
     };
@@ -1606,10 +1662,12 @@ var EntityManager = (function () {
     }
 
     function fixupKeys(em, keyMappings) {
+        em._inKeyFixup = true;
         keyMappings.forEach(function (km) {
             var group = em._entityGroupMap[km.entityTypeName];
             group._fixupKey(km.tempValue, km.realValue);
         });
+        em._inKeyFixup = false;
     }
 
     function getEntityGroups(em, entityTypes) {
@@ -1772,6 +1830,7 @@ var EntityManager = (function () {
             }).fail(function (e) {
                 if (e) {
                     e.query = query;
+                    e.entityManager = em;
                 }
                 return Q.reject(e);
             });
@@ -2223,11 +2282,17 @@ var EntityManager = (function () {
             }
         });
         stype.complexProperties.forEach(function (cp) {
-            // TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapOriginalValues(item, metadataStore, isOData);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -2248,9 +2313,16 @@ var EntityManager = (function () {
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapChangedValues(item, metadataStore);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;

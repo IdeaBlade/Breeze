@@ -73,6 +73,10 @@
     });
     
     test("timespan", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "PT4H")
@@ -86,6 +90,10 @@
     });
     
     test("compare timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "minTime")
@@ -99,6 +107,10 @@
     });
     
     test("null timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("minTime", "!=", null)
@@ -295,6 +307,10 @@
     });
     
     test("case sensitivity - order by", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not support case insensitive sorting");
+            return;
+        }
         var em = newEm();
         var query = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "F")
@@ -311,24 +327,9 @@
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("case sensitivity - order by", function () {
-        var em = newEm();
-        var query = EntityQuery.from("Customers")
-            .where("companyName", "startsWith", "F")
-            .orderBy("companyName");
-        stop();
-        em.executeQuery(query).then(function (data) {
-            var r = data.results;
-            var comps1 = r.map(function (e) { return e.getProperty("companyName"); });
-            ok(r.length > 0, "should have returned some entities");
-            var r2 = em.executeQueryLocally(query);
-            var comps2 = r2.map(function (e) { return e.getProperty("companyName") });
-            ok(r.length === r2.length, "should have returned some entities");
-            ok(core.arrayEquals(r, r2), "arrays should be equal");
-        }).fail(testFns.handleFail).fin(start);
-    });
-    
+
     test("case sensitivity - order by 2", function () {
+
         var em = newEm();
         var baseQuery = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "F");
@@ -439,6 +440,10 @@
 
         
     test("case sensitivity - string padding", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement ANSI SQL string padding rules");
+            return;
+        }
         var em = newEm();
         var origCompName = "Simons bistro";
         var q1 = EntityQuery.from("Customers")
@@ -472,6 +477,11 @@
     });
     
     test("case sensitivity - string padding 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement ANSI SQL string padding rules");
+            return;
+        }
+
         var em = newEm();
         var origCompName = "Simons bistro";
         var q = EntityQuery.from("Customers")
@@ -489,6 +499,11 @@
 
       
     test("executeQueryLocally for related entities after query", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement navigation thru related entities except if part of the doc");
+            return;
+        }
+
         var em = newEm();
         var query = breeze.EntityQuery.from("Orders").take(10);
         var r;

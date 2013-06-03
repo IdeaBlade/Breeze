@@ -55,8 +55,16 @@ namespace Sample_WebApi.Controllers {
 #endif
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
-      // prohibit any additions of entities of type 'Region'
+      if ((string)SaveOptions.Tag == "addProdOnServer") {
+        Supplier supplier = entityInfo.Entity as Supplier;
+        Product product = new Product() {
+          ProductName = "Product added on server"
+        };
+        supplier.Products.Add(product);
+        return true;
+      }
 
+      // prohibit any additions of entities of type 'Region'
       if (entityInfo.Entity.GetType() == typeof(Region) && entityInfo.EntityState == EntityState.Added) {
         var region = entityInfo.Entity as Region;
         if (region.RegionDescription.ToLowerInvariant().StartsWith("error")) return false;
@@ -65,6 +73,38 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+      if ((string)SaveOptions.Tag == "increaseProductPrice") {
+        Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
+        foreach (var type in saveMap.Keys) {
+          if (type == typeof(Category)) {
+            foreach (var entityInfo in saveMap[type]) {
+              if (entityInfo.EntityState == EntityState.Modified) {
+                Category category = (entityInfo.Entity as Category);
+                var products = this.Context.Set<Product>().Where(p => p.CategoryID == category.CategoryID);
+                foreach (var product in products) {
+                  if (!saveMapAdditions.ContainsKey(typeof(Product)))
+                    saveMapAdditions[typeof(Product)] = new List<EntityInfo>();
+
+                  var ei = this.CreateEntityInfo(product, EntityState.Modified);
+                  ei.ForceUpdate = true;
+                  product.UnitPrice += 1;
+                  saveMapAdditions[typeof(Product)].Add(ei);
+                }
+              }
+            }
+          }
+        }
+        foreach (var type in saveMapAdditions.Keys) {
+          if (!saveMap.ContainsKey(type)) {
+            saveMap[type] = new List<EntityInfo>();
+          }
+          foreach (var enInfo in saveMapAdditions[type]) {
+            saveMap[type].Add(enInfo);
+          }
+        }
+        return saveMap;
+      }
+
       return base.BeforeSaveEntities(saveMap);
       // return saveMap;
     }
@@ -95,7 +135,7 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public String Metadata() {
       return ContextProvider.Metadata();
-    } 
+    }
 
     //[HttpGet]
     //public HttpResponseMessage Metadata() {
@@ -106,7 +146,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
-        return ContextProvider.SaveChanges(saveBundle);
+      return ContextProvider.SaveChanges(saveBundle);
     }
 
     [HttpPost]
@@ -118,7 +158,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveWithExit(JObject saveBundle) {
-        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
+      return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
     }
 
     [HttpPost]
@@ -138,9 +178,9 @@ namespace Sample_WebApi.Controllers {
       if (saveMap.TryGetValue(typeof(Order), out entityInfos)) {
         foreach (var entityInfo in entityInfos) {
           CheckFreight(entityInfo);
-        }  
+        }
       }
-      
+
       return saveMap;
     }
 
@@ -196,8 +236,9 @@ namespace Sample_WebApi.Controllers {
 
       //the same query fails if using EFContextProvider
       var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
-      var query = (from t1 in dc.Context.Employees
-                   where (from t2 in dc.Context.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
+      dc0 = dc.Context;
+      var query = (from t1 in dc0.Employees
+                   where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
                    select t1);
       var result = query.ToList();
       return result;
@@ -236,9 +277,9 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public Object CustomerCountsByCountry() {
-      return ContextProvider.Context.Customers.GroupBy(c => c.Country).Select(g => new {g.Key, Count = g.Count()});
+      return ContextProvider.Context.Customers.GroupBy(c => c.Country).Select(g => new { g.Key, Count = g.Count() });
     }
-    
+
 
     [HttpGet]
     public Customer CustomerWithScalarResult() {
@@ -313,11 +354,10 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpGet]
-    public Object Lookups()
-    {
-        var regions = ContextProvider.Context.Regions.ToList();
-        var roles = ContextProvider.Context.Roles.ToList();
-        return new { regions, roles };
+    public Object Lookups() {
+      var regions = ContextProvider.Context.Regions.ToList();
+      var roles = ContextProvider.Context.Roles.ToList();
+      return new { regions, roles };
     }
 
     [HttpGet]
@@ -374,7 +414,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public Object CustomersAndProducts() {
-      var stuff = new {Customers = ContextProvider.Context.Customers.ToList(), Products = ContextProvider.Context.Products.ToList()};
+      var stuff = new { Customers = ContextProvider.Context.Customers.ToList(), Products = ContextProvider.Context.Products.ToList() };
       return stuff;
     }
 
@@ -434,7 +474,7 @@ namespace Sample_WebApi.Controllers {
       }
     }
 
-    #region standard queries
+  #region standard queries
 
     [HttpGet]
     [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
@@ -542,7 +582,7 @@ namespace Sample_WebApi.Controllers {
 #endif
     #endregion
 
-    #region named queries
+  #region named queries
 
     [HttpGet]
     [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
@@ -606,6 +646,6 @@ namespace Sample_WebApi.Controllers {
     #endregion
   }
 
-#endif  
+#endif
 
 }

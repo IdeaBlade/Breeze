@@ -1537,6 +1537,7 @@
                "entityTypeName":"Territory:#Models.NorthwindIB.EDMX_2012",
                "isScalar":false,
                "associationName":"FK_Territory_Region"
+               
             }
          ]
       },

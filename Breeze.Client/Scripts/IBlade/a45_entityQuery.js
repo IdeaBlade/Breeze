@@ -743,7 +743,9 @@ var EntityQuery = (function () {
 
         if (!entityType) {
             if (throwErrorIfNotFound) {
-                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+                throw new Error(__formatString("Cannot find an entityType for resourceName: '%1'. "
+                    + " Consider adding an 'EntityQuery.toType' call to your query or "
+                    +   "calling the MetadataStore.setEntityTypeForResourceName method to register an entityType for this resourceName.", resourceName));
             } else {
                 return null;
             }
@@ -989,15 +991,13 @@ var EntityQuery = (function () {
             return buildKeyPredicate(entityKey);
         } else {
             var inverseNp = navigationProperty.inverse;
-            if (!inverseNp) return null;
-            var foreignKeyNames = inverseNp.foreignKeyNames;
+            var foreignKeyNames = inverseNp ? inverseNp.foreignKeyNames : navigationProperty.invForeignKeyNames;
             if (foreignKeyNames.length === 0) return null;
             var keyValues = entity.entityAspect.getKey().values;
             var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
                 return Predicate.create(fkName, FilterQueryOp.Equals, kv);
             });
-            var pred = Predicate.and(predParts);
-            return pred;
+            return Predicate.and(predParts);
         }
     }
 
@@ -1105,7 +1105,7 @@ var FnNode = (function() {
     };
     var proto = ctor.prototype;
 
-    ctor.create = function (source, entityType) {
+    ctor.create = function (source, entityType, operator) {
         if (typeof source !== 'string') {
             return null;
         }
@@ -1120,6 +1120,9 @@ var FnNode = (function() {
             source = source.replace(token, repl);
         }
         var node = new FnNode(source, tokens, entityType);
+        if (!node.dataType && operator && operator.isStringFn) {
+            node.dataType = DataType.String;
+        }
         // isValidated may be undefined
         return node.isValidated === false ? null : node;
     };
@@ -1260,19 +1263,19 @@ var FilterQueryOp = (function () {
     @final
     @static
     **/
-    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true });
+    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true, isStringFn: true });
     /**
     @property StartsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true });
+    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true, isStringFn: true });
     /**
     @property EndsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true });
+    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
 
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
@@ -1598,7 +1601,7 @@ var SimplePredicate = (function () {
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+            this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");

@@ -1,6 +1,8 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
-var queryBuilder = require("./queryBuilder");
+var breezeMongo = require("./breezeMongo");
+var MongoQuery = breezeMongo.MongoQuery;
+
 var saveBuilder = require("./saveBuilder");
 
 var host = 'localhost';
@@ -12,54 +14,41 @@ db.open(function () {
 
 });
 
-exports.getMetadata = function(req, res) {
+exports.getMetadata = function(req, res, next) {
     var filename = "metadata.json";
     if (!fs.existsSync(filename)) {
-        throw new Error("Unable to locate file: " + filename);
+        next(new Error("Unable to locate file: " + filename));
     }
     var metadata = fs.readFileSync(filename, 'utf8');
     res.sendfile(filename);
 }
 
-exports.saveChanges = function(req, res) {
-    saveBuilder.saveChanges(db, req, res);
+exports.saveChanges = function(req, res, next) {
+    saveBuilder.saveChanges(db, req, processResults(res, next));
 }
 
-exports.get = function (req, res) {
-    // res.setHeader('Content-Length', body.length);
+exports.get = function (req, res, next) {
     var collectionName = req.params.slug;
-    var query = queryBuilder.toMongoQuery(req.query);
-    getCollection(res, collectionName, query);
+    var query = new MongoQuery(db, collectionName, req.query);
+    query.execute(processResults(res, next));
 };
 
-exports.getProducts = function(req, res) {
-    var query = queryBuilder.toMongoQuery(req.query);
-    getCollection(res, "Products", query);
+exports.getProducts = function(req, res, next) {
+    var query = new MongoQuery(db, "Products", req.query);
+    // add addit own filters here
+    query.execute(processResults(res, next));
 }
 
-function getCollection(res, collectionName, query) {
-    db.collection(collectionName, {strict: true} , function (err, collection) {
+function processResults(res, next) {
+
+    return function(err, results) {
         if (err) {
-            res.send(400, "Unable to locate: " + collectionName);
-            return;
-        }
-        var src;
-        res.setHeader("Content-Type:", "application/json");
-        if (query.inlineCount) {
-            collection.count(query.query, function(err, count) {
-                src = collection.find(query.query, query.select, query.options);
-                src.toArray(function (err, items) {
-                    var results =  { Results: items || [], InlineCount: count };
-                    res.send(results);
-                });
-            });
+            next(err);
         } else {
-            src = collection.find(query.query, query.select, query.options);
-            src.toArray(function (err, items) {
-                res.send(items || []);
-            });
+            res.setHeader("Content-Type:", "application/json");
+            res.send(results);
         }
-    });
-
+    }
 }
+
 

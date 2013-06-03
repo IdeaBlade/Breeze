@@ -3,11 +3,12 @@ var app = express();
 var routes = require('./routes');
 var fs = require("fs");
 
-
 app.use(express.bodyParser());
+// app.use(express.methodOverride());
+app.use(app.router);
 app.use(logErrors);
-app.use(clientErrorHandler);
 app.use(errorHandler);
+
 
 
 var testCaseDir = "c:/GitHub/Breeze/Breeze.Client/"
@@ -29,20 +30,17 @@ app.get(/^(.+)$/, function(req, res) {
 app.listen(3000);
 console.log('Listening on port 3000');
 
-function clientErrorHandler(err, req, res, next) {
-    if (req.xhr) {
-        res.send(500, { error: 'Something blew up!' });
+
+function errorHandler(err, req, res, next) {
+    var status = err.statusCode || 500;
+    if (err.message) {
+        res.send(status, err.message);
     } else {
-        next(err);
+        res.send(status, err);
     }
 }
 
 function logErrors(err, req, res, next) {
     console.error(err.stack);
     next(err);
-}
-
-function errorHandler(err, req, res, next) {
-    res.status(500);
-    res.render('error', { error: err });
 }

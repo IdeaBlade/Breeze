@@ -22,7 +22,7 @@
 })(function () {  
     var breeze = {
         version: "1.3.4",
-        metadataVersion: "1.0.4"
+        metadataVersion: "1.0.5"
     };
 
     // legacy properties - will not be supported after 6/1/2013
@@ -178,6 +178,16 @@ function __resolveProperties(sources, propertyNames) {
 
 
 // array functions
+
+function __toArray(item) {
+    if (!item) {
+        return [];
+    } else if (Array.isArray(item)) {
+        return item;
+    } else {
+        return [item];
+    }
+}
 
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i < j; i++) {
@@ -1155,6 +1165,7 @@ core.Enum = Enum;
 var Event = (function() {
   
     var __eventNameMap = {};
+    var __nextUnsubKey = 1;
 
     /**
     Class to support basic event publication and subscription semantics.
@@ -1181,7 +1192,6 @@ var Event = (function() {
         // register the name
         __eventNameMap[name] = true;
         this.publisher = publisher;
-        this._nextUnsubKey = 1;
         if (defaultErrorCallback) {
             this._defaultErrorCallback = defaultErrorCallback;
         }
@@ -1294,9 +1304,9 @@ var Event = (function() {
             this._subscribers = [];
         }
 
-        var unsubKey = this._nextUnsubKey;
+        var unsubKey = __nextUnsubKey;
         this._subscribers.push({ unsubKey: unsubKey, callback: callback });
-        ++this._nextUnsubKey;
+        ++__nextUnsubKey;
         return unsubKey;
     };
 
@@ -4013,6 +4023,17 @@ breeze.makeRelationArray = function() {
         return result;
     };
 
+    relationArrayMixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    }
+
 
     relationArrayMixin.unshift = function() {
         var goodAdds = getGoodAdds(this, __arraySlice(arguments));
@@ -4103,38 +4124,66 @@ breeze.makeRelationArray = function() {
 
     function checkForDups(relationArray, adds) {
         // don't allow dups in this array. - also prevents recursion 
-        var inverseProp = relationArray.navigationProperty.inverse;
+        var parentEntity = relationArray.parentEntity;
+        var navProp = relationArray.navigationProperty;
+        var inverseProp = navProp.inverse;
         if (inverseProp) {
             var goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
                     return false;
                 }
                 var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue !== relationArray.parentEntity;
+                return inverseValue !== parentEntity;
             });
-            return goodAdds;
         } else {
+            // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
+            // in this case we compare fks.
+            var fkPropNames = navProp.invForeignKeyNames;
+            var keyProps = parentEntity.entityType.keyProperties;
+            var goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                    return false;
+                }
+                return fkPropNames.some(function (fk, i) {
+                    var keyProp = keyProps[i].name;
+                    var keyVal = parentEntity.getProperty(keyProp);
+                    var fkVal = a.getProperty(fk);
+                    return keyVal !== fkVal;
+                });
+            });
             // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
             // TODO: This is not complete. We really do need to elim dups.
-            throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
+            // throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
         }
+        return goodAdds;
     }
 
-    function processAdds(relationArray, adds) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            var addsInProcess = relationArray._addsInProcess;
-            var startIx = addsInProcess.length;
-            try {
-                adds.forEach(function(childEntity) {
-                    addsInProcess.push(childEntity);
-                    childEntity.setProperty(inp.name, relationArray.parentEntity);
-                });
-            } finally {
-                addsInProcess.splice(startIx, adds.length);
-            }
-        }
 
+    function processAdds(relationArray, adds) {
+        var parentEntity = relationArray.parentEntity;
+        var np = relationArray.navigationProperty;
+        var invNp = np.inverse;
+        
+        var addsInProcess = relationArray._addsInProcess;
+        var startIx = addsInProcess.length;
+        try {
+            adds.forEach(function(childEntity) {
+                addsInProcess.push(childEntity);
+                if (invNp) {
+                    childEntity.setProperty(invNp.name, parentEntity);
+                } else {
+                    // This occurs with a unidirectional 1-n navigation - in this case
+                    // we need to update the fks instead of the navProp
+                    var pks = parentEntity.entityType.keyProperties;
+                    np.invForeignKeyNames.forEach(function (fk, i) {
+                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
+                    });
+                }
+            });
+        } finally {
+            addsInProcess.splice(startIx, adds.length);
+        }
+        
         // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
 
@@ -4270,116 +4319,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
         }
 
-        // set the value
-        if (property.isNavigationProperty) {
-            if (!property.isScalar) {
-                throw new Error("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
-            }
-
-            var inverseProp = property.inverse;
-            var oldSiblings;
-            if (newValue) {
-                if (entityManager) {
-                    if (newValue.entityAspect.entityState.isDetached()) {
-                        if (!entityManager.isLoading) {
-                            entityManager.attachEntity(newValue, EntityState.Added);
-                        }
-                    } else {
-                        if (newValue.entityAspect.entityManager !== entityManager) {
-                            throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
-                        }
-                    }
-                } else {
-                    if (newValue.entityAspect && newValue.entityAspect.entityManager) {
-                        entityManager = newValue.entityAspect.entityManager;
-                        if (!entityManager.isLoading) {
-                            entityManager.attachEntity(entityAspect.entity, EntityState.Added);
-                        }
-                    }
-                }
-                    
-                // process related updates ( the inverse relationship) first so that collection dups check works properly.
-                // update inverse relationship
-
-                if (inverseProp) {
-                    if (inverseProp.isScalar) {
-                        // navigation property change - undo old relation
-                        if (oldValue) {
-                            // TODO: null -> NullEntity later
-                            oldValue.setProperty(inverseProp.name, null);
-                        }
-                        if (property.isScalar) {
-                            if (inverseProp.relatedDataProperties && !inverseProp.relatedDataProperties[0].isPartOfKey) {
-                                // don't update the key if updating a 1-1 inverse relation
-                                // TODO: rethink this later as we see more 1-1 relations 
-                                // what we really want is to only update the inverseProp if it is dependent but we don't have Prin-Dep relns yet.
-                                newValue.setProperty(inverseProp.name, this);
-                            }
-                        } else {
-                            newValue.setProperty(inverseProp.name, this);
-                        }
-                    } else {
-                        // navigation property change - undo old relation
-                        if (oldValue) {
-                            oldSiblings = oldValue.getProperty(inverseProp.name);
-                            var ix = oldSiblings.indexOf(this);
-                            if (ix !== -1) {
-                                oldSiblings.splice(ix, 1);
-                            }
-                        }
-                        var siblings = newValue.getProperty(inverseProp.name);
-                        // recursion check if already in the collection is performed by the relationArray
-                        siblings.push(this);
-                    }
-                }
-            } else {
-                    // To get here - the newValue is either null or undefined;
-                    if (inverseProp) {
-                    if (inverseProp.isScalar) {
-                        // navigation property change - undo old relation
-                        if (oldValue) {
-                            // TODO: null -> NullEntity later
-                            oldValue.setProperty(inverseProp.name, null);
-                        }
-                    } else {
-                        // navigation property change - undo old relation
-                        if (oldValue) {
-                            oldSiblings = oldValue.getProperty(inverseProp.name);
-                            var ix = oldSiblings.indexOf(this);
-                            if (ix !== -1) {
-                                oldSiblings.splice(ix, 1);
-                            }
-                        }
-                    }
-                }
-            }
-             
-            rawAccessorFn(newValue);
-            if (entityManager && !entityManager.isLoading) {
-                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
-                    entityAspect.setModified();
-                }
-                if (entityManager.validationOptions.validateOnPropertyChange) {
-                    entityAspect._validateProperty(newValue,
-                        { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
-                }
-            }
-            // update fk data property
-            if (property.relatedDataProperties) {
-                if (!entityAspect.entityState.isDeleted()) {
-                    var inverseKeyProps = property.entityType.keyProperties;
-                    inverseKeyProps.forEach(function(keyProp, i ) {
-                        var relatedDataProp = property.relatedDataProperties[i];
-                        // Do not trash related property if it is part of that entity's key
-                        if (newValue || !relatedDataProp.isPartOfKey) {
-                            var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
-                            that.setProperty(relatedDataProp.name, relatedValue);
-                        }
-                    });
-                }
-            }
-
-        } else if (property.isComplexProperty) {
+        if (property.isComplexProperty) {
             if (property.isScalar) {
                 if (!newValue) {
                     throw new Error(__formatString("You cannot set the '%1' property to null because it's datatype is the ComplexType: '%2'", property.name, property.dataType.name));
@@ -4399,11 +4339,13 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             } else {
                 throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
             }
-        } else {
-            // To get here it must be a (nonComplex) DataProperty  
+
+        } else if (property.isDataProperty) {
+            
+            // if we are changing the key update our internal entityGroup indexes.
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
-                var values = keyProps.map(function(p) {
+                var values = keyProps.map(function (p) {
                     if (p == property) {
                         return newValue;
                     } else {
@@ -4418,23 +4360,23 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 var eg = entityManager._findEntityGroup(this.entityType);
                 eg._replaceKey(oldKey, newKey);
             }
-            rawAccessorFn(newValue);
-                // NOTE: next few lines are the same as above but not refactored for perf reasons.
-            if (entityManager && !entityManager.isLoading) {
-                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
-                    entityAspect.setModified();
-                }
-                if (entityManager.validationOptions.validateOnPropertyChange) {
-                    entityAspect._validateProperty(newValue,
-                        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
 
-                }
-            }
+            // process related updates ( the inverse relationship) first so that collection dups check works properly.
+            // update inverse relationship
+
+            var relatedNavProp = property.relatedNavigationProperty;
+            if (relatedNavProp && entityManager) {
+                // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
+                // orderDetail.orderId <- newOrderId || null
+                //    ==> orderDetail.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
+                //       and
+                // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId || null
+                //    ==> internationalOrder.order = lookupOrder(newOrderId)
+                //    ==> (see set navProp above)
                 
-            // update corresponding nav property if attached.
-            if (property.relatedNavigationProperty && entityManager) {
-                var relatedNavProp = property.relatedNavigationProperty;
-                if (newValue) {
+                if (newValue != null) {
                     var key = new EntityKey(relatedNavProp.entityType, [newValue]);
                     var relatedEntity = entityManager.findEntityByKey(key);
 
@@ -4447,27 +4389,87 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 } else {
                     this.setProperty(relatedNavProp.name, null);
                 }
+            } else if (property.inverseNavigationProperty && entityManager && !entityManager._inKeyFixup) {
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- newRegionId
+                //    ==> lookupRegion(newRegionId).territories.push(territory)
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- newOrderId
+                //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+                //                and
+                // Example: unidirectional fkDataProperty: 1->n: region -> territories
+                // territory.regionId <- null
+                //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+                //                and
+                // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+                // internationalOrder.orderId <- null
+                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
+
+                var invNavProp = property.inverseNavigationProperty;
+
+                if (oldValue != null) {
+                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+                    if (relatedEntity) {
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, null);
+                        } else {
+                            // remove 'this' from old related nav prop
+                            var relatedArray = relatedEntity.getProperty(invNavProp.name);
+                            // arr.splice(arr.indexOf(value_to_remove), 1);
+                            relatedArray.splice(relatedArray.indexOf(this), 1);
+                        }
+                    }
+                }
+
+                if (newValue != null) {
+                    var key = new EntityKey(invNavProp.parentType, [newValue]);
+                    var relatedEntity = entityManager.findEntityByKey(key);
+
+                    if (relatedEntity) {
+                        if (invNavProp.isScalar) {
+                            relatedEntity.setProperty(invNavProp.name, this);
+                        } else {
+                            relatedEntity.getProperty(invNavProp.name).push(this);
+                        }
+                    } else {
+                        // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+                        entityManager._unattachedChildrenMap.addChild(key, invNavProp, this);
+                    }
+                }
+
+            }
+
+            rawAccessorFn(newValue);
+
+            // NOTE: next few lines are the same as above but not refactored for perf reasons.
+            if (entityManager && !entityManager.isLoading) {
+                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                    entityAspect.setModified();
+                }
+                if (entityManager.validationOptions.validateOnPropertyChange) {
+                    entityAspect._validateProperty(newValue,
+                        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+                }
             }
 
             if (property.isPartOfKey && (!this.complexAspect)) {
                 // propogate pk change to all related entities;
-                if (oldValue && !entityAspect.entityState.isDetached()) {
-                    entityAspect.primaryKeyWasChanged = true;
-                        
-                }
-                this.entityType.navigationProperties.forEach(function(np) {
+
+                var propertyIx = this.entityType.keyProperties.indexOf(property);
+                this.entityType.navigationProperties.forEach(function (np) {
                     var inverseNp = np.inverse;
-                    if (!inverseNp) return;
-                    if (inverseNp.foreignKeyNames.length === 0) return;
+                    var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
+
+                    if (fkNames.length === 0) return;
                     var npValue = that.getProperty(np.name);
-                    var propertyIx = that.entityType.keyProperties.indexOf(property);
-                    var fkName = inverseNp.foreignKeyNames[propertyIx];
+                    var fkName = fkNames[propertyIx];
                     if (np.isScalar) {
                         if (!npValue) return;
                         npValue.setProperty(fkName, newValue);
-
                     } else {
-                        npValue.forEach(function(iv) {
+                        npValue.forEach(function (iv) {
                             iv.setProperty(fkName, newValue);
                         });
                     }
@@ -4475,6 +4477,135 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // insure that cached key is updated.
                 entityAspect.getKey(true);
             }
+
+        } else {   
+            // property is a NavigationProperty
+
+            if (!property.isScalar) {
+                throw new Error("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
+            }
+
+            var inverseProp = property.inverse;
+            
+            // manage attachment -
+            if (newValue != null) {
+                var newAspect = newValue.entityAspect;
+                if (entityManager) {
+                    if (newAspect.entityState.isDetached()) {
+                        if (!entityManager.isLoading) {
+                            entityManager.attachEntity(newValue, EntityState.Added);
+                        }
+                    } else {
+                        if (newAspect.entityManager !== entityManager) {
+                            throw new Error("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+                        }
+                    }
+                } else {
+                    if (newAspect && newAspect.entityManager) {
+                        entityManager = newAspect.entityManager;
+                        if (!entityManager.isLoading) {
+                            entityManager.attachEntity(entityAspect.entity, EntityState.Added);
+                        }
+                    }
+                }
+            }
+
+            // process related updates ( the inverse relationship) first so that collection dups check works properly.
+            // update inverse relationship
+            if (inverseProp) {
+                ///
+                if (inverseProp.isScalar) {
+                    // Example: bidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.internationalOrder <- internationalOrder || null
+                    //    ==> (oldInternationOrder.order = null)
+                    //    ==> internationalOrder.order = order
+                    if (oldValue != null) {
+                        // TODO: null -> NullEntity later
+                        oldValue.setProperty(inverseProp.name, null);
+                    }
+                    if (newValue != null) {
+                        newValue.setProperty(inverseProp.name, this);
+                    }
+                } else {
+                    // Example: bidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <- newOrder || null
+                    //    ==> (oldOrder).orderDetails.remove(orderDetail)
+                    //    ==> order.orderDetails.push(newOrder)
+                    if (oldValue != null) {
+                        var oldSiblings = oldValue.getProperty(inverseProp.name);
+                        var ix = oldSiblings.indexOf(this);
+                        if (ix !== -1) {
+                            oldSiblings.splice(ix, 1);
+                        }
+                    }
+                    if (newValue != null) {
+                        var siblings = newValue.getProperty(inverseProp.name);
+                        // recursion check if already in the collection is performed by the relationArray
+                        siblings.push(this);
+                    }
+                }
+            } else if (property.invForeignKeyNames && entityManager && !entityManager._inKeyFixup) {
+                var invForeignKeyNames = property.invForeignKeyNames;
+                if (newValue != null) {
+                    // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.InternationalOrder <- internationalOrder
+                    //    ==> internationalOrder.orderId = orderId
+                    //      and
+                    // Example: unidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <-xxx newOrder
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
+                    var pkValues = this.entityAspect.getKey().values;
+                    invForeignKeyNames.forEach(function (fkName, i) {
+                        newValue.setProperty(fkName, pkValues[i]);
+                    });
+                } else {
+                    // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+                    // order.internationalOrder <- null
+                    //    ==> (old internationalOrder).orderId = null
+                    //        and
+                    // Example: unidirectional navProperty: 1->n: order -> orderDetails
+                    // orderDetail.order <-xxx newOrder
+                    //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
+                    if (oldValue != null) {
+                        invForeignKeyNames.forEach(function (fkName, i) {
+                            var fkProp = oldValue.entityType.getProperty(fkName);
+                            if (!fkProp.isPartOfKey) {
+                                // don't update with null if fk is part of the key
+                                oldValue.setProperty(fkName, null);
+                            }
+                        });
+                    }
+                }
+            }
+
+            rawAccessorFn(newValue);
+
+            if (entityManager && !entityManager.isLoading) {
+                if (entityAspect.entityState.isUnchanged() && !property.isUnmapped) {
+                    entityAspect.setModified();
+                }
+                if (entityManager.validationOptions.validateOnPropertyChange) {
+                    entityAspect._validateProperty(newValue,
+                        { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
+                }
+            }
+
+            // update fk data property - this can only occur if this navProperty has
+            // a corresponding fk on this entity.
+            if (property.relatedDataProperties) {
+                if (!entityAspect.entityState.isDeleted()) {
+                    var inverseKeyProps = property.entityType.keyProperties;
+                    inverseKeyProps.forEach(function(keyProp, i ) {
+                        var relatedDataProp = property.relatedDataProperties[i];
+                        // Do not trash related property if it is part of that entity's key
+                        if (newValue || !relatedDataProp.isPartOfKey) {
+                            var relatedValue = newValue ? newValue.getProperty(keyProp.name) : relatedDataProp.defaultValue;
+                            that.setProperty(relatedDataProp.name, relatedValue);
+                        }
+                    });
+                }
+            } 
+
         }
             
         var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
@@ -4782,6 +4913,30 @@ var DataType = function () {
         // default
     };
 
+    var constants = {
+        stringPrefix: "K_",
+        nextNumber: -1,
+        nextNumberIncrement: -1
+    }
+
+    var getNextString = function () {
+        return constants.stringPrefix + getNextNumber().toString();
+    };
+
+    var getNextNumber = function () {
+        var result = constants.nextNumber;
+        constants.nextNumber += constants.nextNumberIncrement;
+        return result;
+    };
+
+    var getNextGuid = function () {
+        return __getUuid();
+    };
+
+    var getNextDateTime = function () {
+        return new Date();
+    };
+
     var coerceToString = function (source, sourceTypeName) {
         return (source == null) ? source : source.toString();
     };
@@ -4919,25 +5074,45 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.String = DataType.addSymbol({ defaultValue: "", parse: coerceToString, fmtOData: fmtString });
+    DataType.String = DataType.addSymbol({
+        defaultValue: "",
+        parse: coerceToString,
+        fmtOData: fmtString,
+        getNext: getNextString
+    });
     /**
     @property Int64 {DataType}
     @final
     @static
     **/
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
+    DataType.Int64 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true, quoteJsonOData: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Int32 {DataType}
     @final
     @static
     **/
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int32 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Int16 {DataType}
     @final
     @static
     **/
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int16 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     /**
     @property Byte {DataType}
     @final
@@ -4949,32 +5124,57 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("m"), quoteJsonOData: true });
+    DataType.Decimal = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("m"),
+        getNext: getNextNumber
+    });
     /**
     @property Double {DataType}
     @final
     @static
     **/
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("d") });
+    DataType.Double = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("d"),
+        getNext: getNextNumber
+    });
     /**
     @property Single {DataType}
     @final
     @static
     **/
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt("f") });
+    DataType.Single = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt("f"),
+        getNext: getNextNumber
+    });
     /**
     @property DateTime {DataType}
     @final
     @static
     **/
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
+    DataType.DateTime = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTime,
+        getNext: getNextDateTime
+    });
     
     /**
     @property DateTimeOffset {DataType}
     @final
     @static
     **/
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
+    DataType.DateTimeOffset = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTimeOffset,
+        getNext: getNextDateTime
+    });
     /**
     @property Time {DataType}
     @final
@@ -4992,7 +5192,11 @@ var DataType = function () {
     @final
     @static
     **/
-    DataType.Guid = DataType.addSymbol({ defaultValue: "00000000-0000-0000-0000-000000000000", fmtOData: fmtGuid });
+    DataType.Guid = DataType.addSymbol({
+        defaultValue: "00000000-0000-0000-0000-000000000000",
+        fmtOData: fmtGuid,
+        getNext: getNextGuid
+    });
   
     /**
     @property Binary {DataType}
@@ -5040,7 +5244,9 @@ var DataType = function () {
         switch (typeof val) {
             case "string":
                 if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
+                // the >3 below is a hack to insure that if we are inferring datatypes that 
+                // very short strings that are valid but unlikely ISO encoded Time's are treated as strings instead.
+                else if (__isDuration(val) && val.length > 3) return DataType.Time;
                 return DataType.String;
             case "boolean":
                 return DataType.Boolean;
@@ -5075,6 +5281,8 @@ var DataType = function () {
     // -----------------------------------------------------------------
 
     DataType.parseDateFromServer = DataType.parseDateAsUTC;
+
+    DataType.constants = constants;
 
     DataType.getSymbols().forEach(function (sym) {
         sym.validatorCtor = getValidatorCtor(sym);
@@ -5236,7 +5444,7 @@ var MetadataStore = (function () {
 
         
         structuralType.getProperties().forEach(function (property) {
-            structuralType._updateProperty(property);
+            structuralType._updateNames(property);
             if (!property.isUnmapped) {
                 structuralType._mappedPropertiesCount++;
             }
@@ -5714,7 +5922,6 @@ var MetadataStore = (function () {
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
-
         }
 
         // sype may or may not have been added to the metadataStore at this point.
@@ -5784,7 +5991,7 @@ var CsdlMetadataParser = (function () {
     function parse(metadataStore, schemas) {
 
         metadataStore._entityTypeResourceMap = {};
-        toArray(schemas).forEach(function (schema) {
+        __toArray(schemas).forEach(function (schema) {
             if (schema.cSpaceOSpaceMapping) {
                 // Web api only - not avail in OData.
                 var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
@@ -5796,8 +6003,8 @@ var CsdlMetadataParser = (function () {
             }
 
             if (schema.entityContainer) {
-                toArray(schema.entityContainer).forEach(function (container) {
-                    toArray(container.entitySet).forEach(function (entitySet) {
+                __toArray(schema.entityContainer).forEach(function (container) {
+                    __toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
                         metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
@@ -5807,12 +6014,12 @@ var CsdlMetadataParser = (function () {
 
             // process complextypes before entity types.
             if (schema.complexType) {
-                toArray(schema.complexType).forEach(function (ct) {
+                __toArray(schema.complexType).forEach(function (ct) {
                     var complexType = parseCsdlComplexType(ct, schema, metadataStore);
                 });
             }
             if (schema.entityType) {
-                toArray(schema.entityType).forEach(function (et) {
+                __toArray(schema.entityType).forEach(function (et) {
                     var entityType = parseCsdlEntityType(et, schema, metadataStore);
 
                 });
@@ -5874,14 +6081,14 @@ var CsdlMetadataParser = (function () {
             });
         }
 
-        var keyNamesOnServer = csdlEntityType.key ? toArray(csdlEntityType.key.propertyRef).map(__pluck("name")) : [];
+        var keyNamesOnServer = csdlEntityType.key ? __toArray(csdlEntityType.key.propertyRef).map(__pluck("name")) : [];
         keyNamesOnServer = baseKeyNamesOnServer.concat(keyNamesOnServer);
 
-        toArray(csdlEntityType.property).forEach(function (prop) {
+        __toArray(csdlEntityType.property).forEach(function (prop) {
             parseCsdlDataProperty(entityType, prop, schema, keyNamesOnServer);
         });
 
-        toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
+        __toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
             parseCsdlNavProperty(entityType, prop, schema);
         });
 
@@ -5907,7 +6114,7 @@ var CsdlMetadataParser = (function () {
             namespace: ns
         });
 
-        toArray(csdlComplexType.property).forEach(function (prop) {
+        __toArray(csdlComplexType.property).forEach(function (prop) {
             parseCsdlDataProperty(complexType, prop, schema);
         });
 
@@ -5995,36 +6202,46 @@ var CsdlMetadataParser = (function () {
         var isScalar = !(toEnd.multiplicity === "*");
         var dataType = parseTypeName(toEnd.type, schema).typeName;
         var fkNamesOnServer = [];
-        if (toEnd && isScalar) {
-            var constraint = association.referentialConstraint;
-            if (constraint) {
-                var principal = constraint.principal;
-                var dependent = constraint.dependent;
-                var propRefs;
-                if (csdlProperty.fromRole === principal.role) {
-                    propRefs = toArray(principal.propertyRef);
-                } else {
-                    propRefs = toArray(dependent.propertyRef);
-                }
-                // will be used later by np._update
-                fkNamesOnServer = propRefs.map(__pluck("name"));
-            }
+        var constraint = association.referentialConstraint;
+        if (!constraint) {
+            // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
+            return;
+            // Think about adding this back later.
+            //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
+            //    // many to many relation
+            //    ???
+            //} else {
+            //    throw new Error("Foreign Key Associations must be turned on for this model");
+            //}
         }
-        var np = new NavigationProperty({
+        
+        var cfg = {
             nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
             associationName: association.name,
-            foreignKeyNamesOnServer: fkNamesOnServer
-        });
-        entityType.addProperty(np);
+        };
 
+        var principal = constraint.principal;
+        var dependent = constraint.dependent;
+        var propRefs;
+        if (csdlProperty.fromRole === principal.role) {
+            propRefs = __toArray(principal.propertyRef);
+            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
+        } else {
+            propRefs = __toArray(dependent.propertyRef);
+            // will be used later by np._update
+            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
+        }
+
+        var np = new NavigationProperty(cfg);
+        entityType.addProperty(np);
         return np;
     }
 
     function isEnumType(csdlProperty, schema) {
         if (!schema.enumType) return false;
-        var enumTypes = toArray(schema.enumType);
+        var enumTypes = __toArray(schema.enumType);
         var typeParts = csdlProperty.type.split(".");
         var baseTypeName = typeParts[typeParts.length - 1];
         return enumTypes.some(function (enumType) {
@@ -6141,15 +6358,7 @@ var CsdlMetadataParser = (function () {
         }
     }
 
-    function toArray(item) {
-        if (!item) {
-            return [];
-        } else if (Array.isArray(item)) {
-            return item;
-        } else {
-            return [item];
-        }
-    }
+    
 
     function getNamespaceFor(shortName, schema) {
         var ns;
@@ -6717,38 +6926,51 @@ var EntityType = (function () {
         return serverPropPath;
     };
 
-    proto._updateProperty = function (property) {
+    proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
-        var serverName = property.nameOnServer;
-        var clientName, testName;
-        if (serverName) {
-            clientName = nc.serverPropertyNameToClient(serverName, property);
-            testName = nc.clientPropertyNameToServer(clientName, property);
-            if (serverName !== testName) {
-                throw new Error("NamingConvention for this server property name does not roundtrip properly:" + serverName + "-->" + testName);
-            }
-            property.name = clientName;
-        } else {
-            if (!property.isUnmapped) {
-                clientName = property.name;
-                serverName = nc.clientPropertyNameToServer(clientName, property);
-                testName = nc.serverPropertyNameToClient(serverName, property);
-                if (clientName !== testName) {
-                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + clientName + "-->" + testName);
-                }
-                property.nameOnServer = serverName;
-            }
-        }
-            
-        
+        updateClientServerNames(nc, property, "name")
+                   
         if (property.isNavigationProperty) {
-            // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-            resolveFks(property);
-            // these two will get set later via _updateNps
+            updateClientServerNames(nc, property, "foreignKeyNames");
+            updateClientServerNames(nc, property, "invForeignKeyNames");
+            
+            // these will get set later via _updateNps
             // this.inverse
             // this.entityType
+            // this.relatedDataProperties 
+            //    dataProperty.relatedNavigationProperty
+            //    dataProperty.inverseNavigationProperty
         }
     };
+
+    function updateClientServerNames(nc, parent, clientPropName) {
+        serverPropName = clientPropName + "OnServer";
+        var clientName = parent[clientPropName];
+        if (clientName && clientName.length) {
+            if (parent.isUnmapped) return;
+            var serverNames = __toArray(clientName).map(function (cName) {
+                var sName = nc.clientPropertyNameToServer(cName, parent);
+                var testName = nc.serverPropertyNameToClient(sName, parent);
+                if (cName !== testName) {
+                    throw new Error("NamingConvention for this client property name does not roundtrip properly:" + cName + "-->" + testName);
+                }
+                return sName;
+            });
+            parent[serverPropName] = Array.isArray(clientName) ? serverNames : serverNames[0];
+        } else {            
+            serverName = parent[serverPropName];
+            if ((!serverName) || serverName.length == 0) return;
+            var clientNames = __toArray(serverName).map(function (sName) {
+                var cName = nc.serverPropertyNameToClient(sName, parent);
+                var testName = nc.clientPropertyNameToServer(cName, parent);
+                if (sName !== testName) {
+                    throw new Error("NamingConvention for this server property name does not roundtrip properly:" + sName + "-->" + testName);
+                }
+                return cName;
+            });
+            parent[clientPropName] = Array.isArray(serverName) ? clientNames : clientNames[0];
+        } 
+    }
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
@@ -6839,6 +7061,7 @@ var EntityType = (function () {
         (incompleteMap[this.name] || []).forEach(function (np) {
             resolveNp(np, metadataStore);
         });
+
         delete incompleteMap[this.name];
     }
 
@@ -6846,7 +7069,7 @@ var EntityType = (function () {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (!entityType) return false;
         np.entityType = entityType;
-        var invNps = entityType.navigationProperties.filter(function (altNp) {
+        var invNp = __arrayFirst(entityType.navigationProperties, function( altNp) {
             // Can't do this because of possibility of comparing a base class np with a subclass altNp.
             //return altNp.associationName === np.associationName
             //    && altNp !== np;
@@ -6854,19 +7077,37 @@ var EntityType = (function () {
             return altNp.associationName === np.associationName
                 && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
-        np.inverse = (invNps.length > 0) ? invNps[0] : null;
+        np.inverse = invNp;
+        if (!invNp) {
+            // unidirectional 1-n relationship
+            np.invForeignKeyNames.forEach(function (invFkName) {
+                var fkProp = entityType.getDataProperty(invFkName);
+                var invEntityType = np.parentType;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
+                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
+                });
+                entityType.foreignKeyProperties.push(fkProp);
+            });
+        }
+        
+        resolveRelated(np);
         return true;
     }
-   
-    function resolveFks(np) {
-        if (np.foreignKeyProperties) return;
-        var fkProps = getFkProps(np);
-        // returns null if can't yet finish
-        if (!fkProps) return;
+
+    // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+    function resolveRelated(np) {
+
+        var fkNames = np.foreignKeyNames;
+        if (fkNames.length === 0) return;
+
+        var parentEntityType = np.parentType;
+        var fkProps = fkNames.map(function (fkName) {
+            return parentEntityType.getDataProperty(fkName);
+        });
+        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
             dp.relatedNavigationProperty = np;
-            np.parentType.foreignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -6875,36 +7116,7 @@ var EntityType = (function () {
         });
     };
 
-    // returns null if can't yet finish
-    function getFkProps(np) {
-        var fkNames = np.foreignKeyNames;
-        var isNameOnServer = fkNames.length == 0;
-        if (isNameOnServer) {
-            fkNames = np.foreignKeyNamesOnServer;
-            if (fkNames.length == 0) {
-                np.foreignKeyProperties = [];
-                return np.foreignKeyProperties;
-            }
-        }
-        var ok = true;
-        var parentEntityType = np.parentType;
-        var fkProps = fkNames.map(function (fkName) {
-            var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
-            ok = ok && !!fkProp;
-            return fkProp;
-        });
-
-        if (ok) {
-            if (isNameOnServer) {
-                np.foreignKeyNames = fkProps.map(__pluck("name"));
-            }
-            np.foreignKeyProperties = fkProps;
-            return fkProps;
-        } else {
-            return null;
-        }
-    }
-        
+   
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
@@ -7096,7 +7308,7 @@ var ComplexType = (function () {
     proto.getProperty = EntityType.prototype.getProperty;
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
     proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateProperty = EntityType.prototype._updateProperty;
+    proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
@@ -7371,6 +7583,7 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
+    
     return ctor;
 })();
   
@@ -7427,6 +7640,8 @@ var NavigationProperty = (function () {
             .whereParam("associationName").isString().isOptional()
             .whereParam("foreignKeyNames").isArray().isString().isOptional().withDefault([])
             .whereParam("foreignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
+            .whereParam("invForeignKeyNames").isArray().isString().isOptional().withDefault([])
+            .whereParam("invForeignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
@@ -7538,7 +7753,8 @@ var NavigationProperty = (function () {
             isScalar: null,
             associationName: null,
             validators: null,
-            foreignKeyNames: null
+            foreignKeyNames: null,
+            invForeignKeyNames: null
         });
     };
 
@@ -7676,10 +7892,6 @@ var KeyGenerator = (function () {
         // propEntry = { entityType, propertyName, keyMap }
         // keyMap has key of the actual value ( as a string) and a value of null or the real id.
         this._tempIdMap = {};
-
-        this.nextNumber = -1;
-        this.nextNumberIncrement = -1;
-        this.stringPrefix = "K_";
     };
     var proto = ctor.prototype;
 
@@ -7708,15 +7920,30 @@ var KeyGenerator = (function () {
     @method generateTempKeyValue
     @param entityType {EntityType}
     */
-    proto.generateTempKeyValue = function (entityType) {
+    proto.generateTempKeyValue = function (entityType, valueIfAvail) {
         var keyProps = entityType.keyProperties;
         if (keyProps.length > 1) {
             throw new Error("Ids can not be autogenerated for entities with multipart keys");
         }
         var keyProp = keyProps[0];
-        var nextId = getNextId(this, keyProp.dataType);
         var propEntry = getPropEntry(this, keyProp, true);
-        propEntry.keyMap[nextId.toString()] = null;
+        var nextId;
+        if (valueIfAvail != null) {
+            if (!propEntry.keyMap[valueIfAvail.toString()]) {
+                nextId = valueIfAvail;
+            }
+        }
+
+        if (nextId === undefined) {
+            var dataType = keyProp.dataType;
+            if (dataType.getNext) {
+                nextId = dataType.getNext(this);
+            } else {
+                throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
+            }
+        }
+        
+        propEntry.keyMap[nextId.toString()] = true;
         return nextId;
     };
 
@@ -7732,6 +7959,7 @@ var KeyGenerator = (function () {
         }
         return results;
     };
+
 
 
     // proto methods below are not part of the KeyGenerator interface.
@@ -7761,31 +7989,9 @@ var KeyGenerator = (function () {
         return propEntry;
     }
 
-    function getNextId(that, dataType) {
-        if (dataType.isNumeric) {
-            return getNextNumber(that);
-        }
+    
 
-        if (dataType === DataType.String) {
-            return this.stringPrefix + getNextNumber(that).toString();
-        }
-
-        if (dataType === DataType.Guid) {
-            return __getUuid();
-        }
-
-        if (dataType.isDate) {
-            return Date.now();
-        }
-
-        throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
-    }
-
-    function getNextNumber(that) {
-        var result = that.nextNumber;
-        that.nextNumber += that.nextNumberIncrement;
-        return result;
-    }
+    
 
     __config.registerType(ctor, "KeyGenerator");
 
@@ -8766,7 +8972,9 @@ var EntityQuery = (function () {
 
         if (!entityType) {
             if (throwErrorIfNotFound) {
-                throw new Error(__formatString("Cannot find an entityType for either entityTypeName: '%1' or resourceName: '%2'", entityTypeName, resourceName));
+                throw new Error(__formatString("Cannot find an entityType for resourceName: '%1'. "
+                    + " Consider adding an 'EntityQuery.toType' call to your query or "
+                    +   "calling the MetadataStore.setEntityTypeForResourceName method to register an entityType for this resourceName.", resourceName));
             } else {
                 return null;
             }
@@ -9012,15 +9220,13 @@ var EntityQuery = (function () {
             return buildKeyPredicate(entityKey);
         } else {
             var inverseNp = navigationProperty.inverse;
-            if (!inverseNp) return null;
-            var foreignKeyNames = inverseNp.foreignKeyNames;
+            var foreignKeyNames = inverseNp ? inverseNp.foreignKeyNames : navigationProperty.invForeignKeyNames;
             if (foreignKeyNames.length === 0) return null;
             var keyValues = entity.entityAspect.getKey().values;
             var predParts = __arrayZip(foreignKeyNames, keyValues, function (fkName, kv) {
                 return Predicate.create(fkName, FilterQueryOp.Equals, kv);
             });
-            var pred = Predicate.and(predParts);
-            return pred;
+            return Predicate.and(predParts);
         }
     }
 
@@ -9128,7 +9334,7 @@ var FnNode = (function() {
     };
     var proto = ctor.prototype;
 
-    ctor.create = function (source, entityType) {
+    ctor.create = function (source, entityType, operator) {
         if (typeof source !== 'string') {
             return null;
         }
@@ -9143,6 +9349,9 @@ var FnNode = (function() {
             source = source.replace(token, repl);
         }
         var node = new FnNode(source, tokens, entityType);
+        if (!node.dataType && operator && operator.isStringFn) {
+            node.dataType = DataType.String;
+        }
         // isValidated may be undefined
         return node.isValidated === false ? null : node;
     };
@@ -9283,19 +9492,19 @@ var FilterQueryOp = (function () {
     @final
     @static
     **/
-    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true });
+    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true, isStringFn: true });
     /**
     @property StartsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true });
+    aEnum.StartsWith = aEnum.addSymbol({ operator: "startswith", isFunction: true, isStringFn: true });
     /**
     @property EndsWith {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true });
+    aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
 
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
@@ -9621,7 +9830,7 @@ var SimplePredicate = (function () {
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode1 = FnNode.create(propertyOrExpr, null);
+            this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
@@ -10437,6 +10646,7 @@ var EntityGroup = (function () {
         ix = this._indexMap[keyInGroup];
         if (ix >= 0) {
             if (this._entities[ix] === entity) {
+                aspect.entityState = entityState;
                 return entity;
             }
             throw new Error("This key is already attached: " + aspect.getKey());
@@ -10929,7 +11139,8 @@ var EntityManager = (function () {
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
+            // try to use oldKey if not already used in this keyGenerator.
+            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
         });
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
@@ -11204,6 +11415,7 @@ var EntityManager = (function () {
         @param callback.data {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
+        @param callback.data.entityManager {EntityManager} The EntityManager.
         @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -11214,6 +11426,7 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
+        @param [errorCallback.error.entityManager] The query that caused the error.
         @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
             
 
@@ -11221,6 +11434,7 @@ var EntityManager = (function () {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
+        promiseData.entityManager {EntityManager} The EntityManager.
         promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -11444,7 +11658,7 @@ var EntityManager = (function () {
         return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
-                
+            
             var mappingContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
@@ -11454,8 +11668,8 @@ var EntityManager = (function () {
                 deferredFns: []
             };
 
-            // TODO: we can optimize this and not perform the merge if 
-            // the save operation did not actually return the entity - i.e. OData and Mongo updates.
+            // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+            // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
             var savedEntities = saveResult.entities.map(function (rawEntity) {
                 return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
             });
@@ -11860,15 +12074,22 @@ var EntityManager = (function () {
             var tuples = unattachedMap.getTuples(entityKey);
             if (tuples) {
                 tuples.forEach(function (tpl) {
-                    var childToParentNp = tpl.navigationProperty;
-                    var parentToChildNp = childToParentNp.inverse;
 
                     var unattachedChildren = tpl.children.filter(function (e) {
                         return e.entityAspect.entityState !== EntityState.Detached;
                     });
 
-                    if (parentToChildNp) {
+                    var childToParentNp, parentToChildNp;
+
+                    // np is usually childToParentNp 
+                    // except with unidirectional 1-n where it is parentToChildNp;
+                    var np = tpl.navigationProperty;
+
+                    if (np.inverse) {
                         // bidirectional
+                        var childToParentNp = np;
+                        var parentToChildNp = np.inverse;
+
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
                             entity.setProperty(parentToChildNp.name, onlyChild);
@@ -11881,10 +12102,29 @@ var EntityManager = (function () {
                             });
                         }
                     } else {
-                        // unidirectional nav child -> parent only i.e. OrderDetail -> Product
-                        unattachedChildren.forEach(function (child) {
-                            child.setProperty(childToParentNp.name, entity);
-                        });
+                        // unidirectional
+                        if (np.parentType === entity.entityType) {
+
+                            parentToChildNp = np;
+                            if (parentToChildNp.isScalar) {
+                                // 1 -> 1 eg parent: Order child: InternationalOrder
+                                entity.setProperty(parentToChildNp.name, unattachedChildren[0]);
+                            } else {
+                                // 1 -> n  eg: parent: Region child: Terr
+                                var currentChildren = entity.getProperty(parentToChildNp.name);
+                                unattachedChildren.forEach(function (child) {
+                                    // we know if can't already be there.
+                                    currentChildren._push(child);
+                                });
+                            }
+                        } else {
+                            // n -> 1  eg: parent: child: OrderDetail parent: Product
+                            childToParentNp = np;
+
+                            unattachedChildren.forEach(function (child) {
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
                     }
                     unattachedMap.removeChildren(entityKey, childToParentNp);
                 });
@@ -11901,6 +12141,7 @@ var EntityManager = (function () {
 
                 // first determine if np contains a parent or child
                 // having a parentKey means that this is a child
+                // if a parent then no need for more work because children will attach to it.
                 var parentKey = entityAspect.getParentKey(np);
                 if (parentKey) {
                     // check for empty keys - meaning that parent id's are not yet set.
@@ -11915,6 +12156,31 @@ var EntityManager = (function () {
                         unattachedMap.addChild(parentKey, np, entity);
                     }
                 } 
+            });
+
+            // handle unidirectional 1-x where we set x.fk
+            entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
+                var invNp = fkProp.inverseNavigationProperty;
+                if (!invNp) return;
+                // unidirectional fk props only
+                var fkValue = entity.getProperty(fkProp.name);
+                var parentKey = new EntityKey(invNp.parentType, [fkValue]);
+                var parent = em.findEntityByKey(parentKey);
+                
+                if (parent) {
+                    if (invNp.isScalar) {
+                        parent.setProperty(invNp.name, entity);
+                    } else {
+                        if (em.isLoading) {
+                            parent.getProperty(invNp.name)._push(entity);
+                        } else {
+                            parent.getProperty(invNp.name).push(entity);
+                        }
+                    }
+                } else {
+                    // else add parent to unresolvedParentMap;
+                    unattachedMap.addChild(parentKey, invNp, entity);
+                }
             });
         });
     };
@@ -12167,10 +12433,12 @@ var EntityManager = (function () {
     }
 
     function fixupKeys(em, keyMappings) {
+        em._inKeyFixup = true;
         keyMappings.forEach(function (km) {
             var group = em._entityGroupMap[km.entityTypeName];
             group._fixupKey(km.tempValue, km.realValue);
         });
+        em._inKeyFixup = false;
     }
 
     function getEntityGroups(em, entityTypes) {
@@ -12333,6 +12601,7 @@ var EntityManager = (function () {
             }).fail(function (e) {
                 if (e) {
                     e.query = query;
+                    e.entityManager = em;
                 }
                 return Q.reject(e);
             });
@@ -12784,11 +13053,17 @@ var EntityManager = (function () {
             }
         });
         stype.complexProperties.forEach(function (cp) {
-            // TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapOriginalValues(item, metadataStore, isOData);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -12809,9 +13084,16 @@ var EntityManager = (function () {
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapChangedValues(item, metadataStore);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -13267,60 +13549,194 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     var ajaxImpl;
 
+    function fmtOData(val) {
+        return val == null ? null : "'" + val + "'" ; 
+    } 
+
+    function getNextObjectId() {
+        return new ObjectId().toString();
+    }
+
     var ctor = function () {
         this.name = "mongo";
+        breeze.DataType.MongoObjectId = breeze.DataType.addSymbol({
+            defaultValue: "",
+            fmtOData: fmtOData,
+            getNext: getNextObjectId
+        });
     };
+
     ctor.prototype = new AbstractDataServiceAdapter();
     
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         var em = saveContext.entityManager;
         var metadataStore = em.metadataStore;
         var helper = em.helper;
-
+        var metadata = {};
+        
         saveBundle.entities = saveBundle.entities.map(function (e) {
             var rawEntity = helper.unwrapInstance(e);
-
-            var autoGeneratedKey = null;
-            if (e.entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                autoGeneratedKey = {
-                    propertyName: e.entityType.keyProperties[0].nameOnServer,
-                    autoGeneratedKeyType: e.entityType.autoGeneratedKeyType.name
-                };
+            var entityTypeName = e.entityType.name;
+            var etInfo = metadata[entityTypeName];
+            if (!etInfo) {
+                etInfo = {};
+                var entityType = e.entityType;
+                etInfo.dataProperties = entityType.dataProperties.map(function(dp) {
+                    var p = { name: dp.nameOnServer, dataType: dp.dataType.name };
+                    if (dp.relatedNavigationProperty != null) {
+                        p.isFk = true;
+                    }
+                    if (dp.concurrencyMode && dp.concurrencyMode === "Fixed") {
+                        p.isConcurrencyProp = true;
+                    }
+                    return p;
+                });
+                if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
+                    etInfo.autoGeneratedKey = {
+                        propertyName: entityType.keyProperties[0].nameOnServer,
+                        autoGeneratedKeyType: entityType.autoGeneratedKeyType.name
+                    };
+                }
+                metadata[entityTypeName] = etInfo;
             }
-
             var originalValuesOnServer = helper.unwrapOriginalValues(e, metadataStore);
-            rawEntity.entityAspect = {
+            var rawAspect = {
                 entityTypeName: e.entityType.name,
                 defaultResourceName: e.entityType.defaultResourceName,
                 entityState: e.entityAspect.entityState.name,
-                originalValuesMap: originalValuesOnServer,
-                autoGeneratedKey: autoGeneratedKey
-            };
+                originalValuesMap: originalValuesOnServer
+            };           
+                
+            rawEntity.entityAspect = rawAspect;
             return rawEntity;
         });
 
+        saveBundle.metadata = metadata;
         saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
 
         return saveBundle;
     }
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
-        // HACK: need to change the 'case' of properties in the saveResult
-        // but KeyMapping properties internally are still ucase. ugh...
-        var keyMappings = data.KeyMappings.map(function (km) {
-            var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
-            return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
+        
+        var em = saveContext.entityManager;
+        var keys = data.insertedKeys.concat(data.updatedKeys, data.deletedKeys);
+        var entities = keys.map(function (key) {
+            return em.getEntityByKey(key.entityTypeName, key._id);
         });
-        return { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
     }
-    
+
+
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         name: "mongo",
 
         visitNode: function (node, mappingContext, nodeContext) {
-            return {};
+            if (node == null) return {};
+            var result = {};
+            // this will only be set on saveResults and projections.
+            if (node.$type) {
+                result.entityType = mappingContext.entityManager.metadataStore._getEntityType(node.$type, true);
+            }
+            return result;
         }
-    });    
+    });
+
+    /*
+    *
+    * Copyright (c) 2011 Justin Dearing (zippy1981@gmail.com)
+    * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+    * and GPL (http://www.opensource.org/licenses/gpl-license.php) version 2 licenses.
+    * This software is not distributed under version 3 or later of the GPL.
+    *
+    * Version 1.0.0
+    *
+    */
+
+    /**
+     * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
+     * and converts between that format and the standard 24 character representation.
+    */
+    var ObjectId = (function () {
+        var increment = 0;
+        var pid = Math.floor(Math.random() * (32767));
+        var machine = Math.floor(Math.random() * (16777216));
+
+        if (typeof (localStorage) != 'undefined') {
+            var mongoMachineId = parseInt(localStorage['mongoMachineId']);
+            if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
+                machine = Math.floor(localStorage['mongoMachineId']);
+            }
+            // Just always stick the value in.
+            localStorage['mongoMachineId'] = machine;
+            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
+        }
+        else {
+            var cookieList = document.cookie.split('; ');
+            for (var i in cookieList) {
+                var cookie = cookieList[i].split('=');
+                if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
+                    machine = cookie[1];
+                    break;
+                }
+            }
+            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
+
+        }
+
+        return function () {
+            if (!(this instanceof ObjectId)) {
+                return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
+            }
+
+            if (typeof (arguments[0]) == 'object') {
+                this.timestamp = arguments[0].timestamp;
+                this.machine = arguments[0].machine;
+                this.pid = arguments[0].pid;
+                this.increment = arguments[0].increment;
+            }
+            else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
+                this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
+                this.machine = Number('0x' + arguments[0].substr(8, 6)),
+                this.pid = Number('0x' + arguments[0].substr(14, 4)),
+                this.increment = Number('0x' + arguments[0].substr(18, 6))
+            }
+            else if (arguments.length == 4 && arguments[0] != null) {
+                this.timestamp = arguments[0];
+                this.machine = arguments[1];
+                this.pid = arguments[2];
+                this.increment = arguments[3];
+            }
+            else {
+                this.timestamp = Math.floor(new Date().valueOf() / 1000);
+                this.machine = machine;
+                this.pid = pid;
+                if (increment > 0xffffff) {
+                    increment = 0;
+                }
+                this.increment = increment++;
+
+            }
+        };
+    })();
+
+    ObjectId.prototype.getDate = function () {
+        return new Date(this.timestamp * 1000);
+    }
+
+    /**
+    * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
+    */
+    ObjectId.prototype.toString = function () {
+        var timestamp = this.timestamp.toString(16);
+        var machine = this.machine.toString(16);
+        var pid = this.pid.toString(16);
+        var increment = this.increment.toString(16);
+        return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
+               '000000'.substr(0, 6 - machine.length) + machine +
+               '0000'.substr(0, 4 - pid.length) + pid +
+               '000000'.substr(0, 6 - increment.length) + increment;
+    }
     
     breeze.config.registerAdapter("dataService", ctor);
 

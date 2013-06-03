@@ -42,6 +42,17 @@ breeze.makeRelationArray = function() {
         return result;
     };
 
+    relationArrayMixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    }
+
 
     relationArrayMixin.unshift = function() {
         var goodAdds = getGoodAdds(this, __arraySlice(arguments));
@@ -132,38 +143,66 @@ breeze.makeRelationArray = function() {
 
     function checkForDups(relationArray, adds) {
         // don't allow dups in this array. - also prevents recursion 
-        var inverseProp = relationArray.navigationProperty.inverse;
+        var parentEntity = relationArray.parentEntity;
+        var navProp = relationArray.navigationProperty;
+        var inverseProp = navProp.inverse;
         if (inverseProp) {
             var goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
                     return false;
                 }
                 var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue !== relationArray.parentEntity;
+                return inverseValue !== parentEntity;
             });
-            return goodAdds;
         } else {
+            // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
+            // in this case we compare fks.
+            var fkPropNames = navProp.invForeignKeyNames;
+            var keyProps = parentEntity.entityType.keyProperties;
+            var goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                    return false;
+                }
+                return fkPropNames.some(function (fk, i) {
+                    var keyProp = keyProps[i].name;
+                    var keyVal = parentEntity.getProperty(keyProp);
+                    var fkVal = a.getProperty(fk);
+                    return keyVal !== fkVal;
+                });
+            });
             // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
             // TODO: This is not complete. We really do need to elim dups.
-            throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
+            // throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
         }
+        return goodAdds;
     }
 
-    function processAdds(relationArray, adds) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            var addsInProcess = relationArray._addsInProcess;
-            var startIx = addsInProcess.length;
-            try {
-                adds.forEach(function(childEntity) {
-                    addsInProcess.push(childEntity);
-                    childEntity.setProperty(inp.name, relationArray.parentEntity);
-                });
-            } finally {
-                addsInProcess.splice(startIx, adds.length);
-            }
-        }
 
+    function processAdds(relationArray, adds) {
+        var parentEntity = relationArray.parentEntity;
+        var np = relationArray.navigationProperty;
+        var invNp = np.inverse;
+        
+        var addsInProcess = relationArray._addsInProcess;
+        var startIx = addsInProcess.length;
+        try {
+            adds.forEach(function(childEntity) {
+                addsInProcess.push(childEntity);
+                if (invNp) {
+                    childEntity.setProperty(invNp.name, parentEntity);
+                } else {
+                    // This occurs with a unidirectional 1-n navigation - in this case
+                    // we need to update the fks instead of the navProp
+                    var pks = parentEntity.entityType.keyProperties;
+                    np.invForeignKeyNames.forEach(function (fk, i) {
+                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
+                    });
+                }
+            });
+        } finally {
+            addsInProcess.splice(startIx, adds.length);
+        }
+        
         // this is referencing the name of the method on the relationArray not the name of the event
         publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
 

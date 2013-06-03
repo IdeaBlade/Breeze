@@ -100,34 +100,54 @@ breezeTestFns = (function (breeze) {
     };
 
     function setWellKnownData() {
-        testFns.wellKnownData = {
-            // ID of the Northwind "Alfreds Futterkiste" customer
-            alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-            // ID of the Northwind "Nancy Davolio" employee
-            nancyID: 1,
-            // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-            alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ },
-            // ID of Chai product
-            chaiProductID: 1
-        };
-
+        var wellKnownData;
         if (testFns.DEBUG_MONGO) {
-            testFns.wellKnownData.nancyID = 1001;
+            wellKnownData = {
+                // nancyID: "51a6d50e1711572dcc8ce7d1",
+                chaiProductID: 10001,
+                dummyOrderID:    "50a6d50e1711572dcc8ce7d1",
+                dummyEmployeeID: "50a6d50e1711572dcc8ce7d2"
+            }
             testFns.orderKeyName = "_id";
             testFns.customerKeyName = "_id";
             testFns.employeeKeyName = "_id";
             testFns.productKeyName = "_id";
             testFns.userKeyName = "_id";
+            testFns.supplierKeyName = "_id";
+            testFns.regionKeyName = "_id";
         }   else {
-
+            wellKnownData = {
+                nancyID: 1,
+                dummyOrderID: 999,
+                dummyEmployeeID: 9999,
+                chaiProductID: 1,
+                alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*R�ssle Sauerkraut*/ }
+            }
             testFns.orderKeyName = "orderID";
             testFns.customerKeyName = "customerID";
             testFns.employeeKeyName = "employeeID";
-            testFns.productKeyName = "productID"
+            testFns.productKeyName = "productID"  ;
+            testFns.supplierKeyName = "supplierID" ;
             testFns.userKeyName = "id";
+            testFns.regionKeyName = "regionID";
         }
+        wellKnownData.alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+
+        testFns.wellKnownData = wellKnownData;
+
 
     }
+
+    function updateWellKnownData() {
+        if (testFns.wellKnownData.nancyID) return;
+        var em = testFns.newEm();
+        stop();
+        breeze.EntityQuery.from("Employees").where("lastName", "startsWith", "Davo")
+            .using(em).execute().then(function(data) {
+                var nancy = data.results[0];
+                testFns.wellKnownData.nancyID = nancy.getProperty(testFns.employeeKeyName);
+            }).fail(testFns.handleFail).fin(start);
+    };
 
     testFns.configure = function () {
         
@@ -182,6 +202,8 @@ breezeTestFns = (function (breeze) {
         if (!testFns.metadataStore) {
             testFns.metadataStore = testFns.newMs();
         }
+
+        updateWellKnownData();
 
         if (!testFns.metadataStore.isEmpty()) {
             if (config.metadataFn) config.metadataFn();
@@ -314,8 +336,8 @@ breezeTestFns = (function (breeze) {
     };
 
     function compare(a, b, propertyName, dataType, isDescending, isCaseSensitive) {
-        var value1 = a.getProperty(propertyName);
-        var value2 = b.getProperty(propertyName);
+        var value1 = a && a.getProperty(propertyName);
+        var value2 = b && b.getProperty(propertyName);
         value1 = value1 === undefined ? null : value1;
         value2 = value2 === undefined ? null : value2;
         if (dataType === DataType.String) {

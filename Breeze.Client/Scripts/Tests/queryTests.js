@@ -26,7 +26,7 @@
         }
     });
 
-    test("getAlfred", function() {
+    test("getAlfred", function () {
         var em = newEm();
         var q = EntityQuery.from("Customers").where("companyName", "startsWith", "Alfreds");
         stop();
@@ -35,8 +35,20 @@
             var alfredsID = alfred.getProperty(testFns.customerKeyName);
             ok(alfredsID === wellKnownData.alfredsID);
         }).fail(testFns.handleFail).fin(start);
-    })
+    });
     
+    test("query URL malformed with bad resource name combined with 'startsWith P'", function () {
+        var em = newEm();
+        // we intentionally mispelled the resource name to cause the query to fail
+        var q = EntityQuery.from("Customer").where("companyName", "startsWith", "P");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(function (error) {
+            ok(error.message.indexOf("No HTTP resource was found") >= 0);
+        }).fin(start);
+    });
+
     test("raw query string", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - needs a toType for MONGO");
@@ -106,7 +118,8 @@
     });
 
     function extractDescr(product) {
-        return product.getProperty("category").getProperty("categoryName") + ":" + product.getProperty("productName");
+        var cat =  product.getProperty("category");
+        return cat && cat.getProperty("categoryName") + ":" + product.getProperty("productName");
     }
 
     test("query with quotes", function () {
@@ -298,6 +311,10 @@
     });
 
     test("size test", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - uses expand");
+            return;
+        }
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("Customers").take(5).expand("orders");
@@ -336,6 +353,11 @@
     });
     
     test("sizeof config", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - uses expand");
+            return;
+        }
+
         var em = newEm();
         var em2 = newEm();
         var query = EntityQuery.from("Customers").take(5).expand("orders");
@@ -691,11 +713,8 @@
             var r = data.results;
             ok(r.length === 20);
             ok(!em.hasChanges());
-        }).fail(queryFailed).fin(start);
+        }).fail(testFns.handleFail).fin(start);
 
-        function queryFailed(error) {
-            ok(false, "query failed with error message = " + error.message);
-        }
     });
 
     test("hasChanges after query 2", function () {
@@ -725,6 +744,11 @@
     });
     
     test("hasChanges after query 3", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery.from("Customers").take(20);
         stop();
@@ -1172,7 +1196,7 @@
     
 
    
-    test("query region and territories", function () {
+    test("query uni (1-n) region and territories", function () {
         var em = newEm();
         var q = new EntityQuery()
             .from("Regions")
@@ -1193,7 +1217,6 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    
 
     test("starts with op", function () {
         var em = newEm();
@@ -1599,9 +1622,8 @@
             ok(custs.length === 5, "should have 5 customers");
             ok(orderDetails.length > 5, "should have > 5 orderDetails");
             ok(products.length > 5, "should have > 5 products");
-        }).fail(function(e) {
-            testFns.handleFail(e);
-        }).fin(start);
+        }).fail(testFns.handleFail).fin(start);
+            
             
     });
 
@@ -1627,8 +1649,7 @@
             });
 
             testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("orderBy two part nested", function () {
@@ -1654,8 +1675,7 @@
             });
 
             testFns.assertIsSorted(cats, "categoryName", breeze.DataType.String, true, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("skiptake", function () {
@@ -1664,36 +1684,33 @@
         var query = new EntityQuery()
             .from("Products")
             .orderBy("productName");
-        var sc = new testFns.StopCount(3);
+        stop();
         var skipTakeCount = 5;
-        em.executeQuery(query, function (data) {
+        em.executeQuery(query).then(function (data) {
             var products = data.results;
 
             var newq1 = query.skip(skipTakeCount);
             var newq1Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq1, function (data1) {
+            var p1 = em.executeQuery(newq1).then(function (data1) {
                 var custs1 = data1.results;
                 equal(custs1.length, products.length - skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
+            });
 
             var newq2 = query.take(skipTakeCount);
             var newq2Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq2, function (data2) {
+            var p2 = em.executeQuery(newq2).then(function (data2) {
                 var custs2 = data2.results;
                 equal(custs2.length, skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
+            });
 
             var newq3 = query.skip(skipTakeCount).take(skipTakeCount);
             var newq3Url = newq1._toUri(em.metadataStore);
-            em.executeQuery(newq3, function (data3) {
+            var p3 = em.executeQuery(newq3).then(function (data3) {
                 var custs3 = data3.results;
                 equal(custs3.length, skipTakeCount);
-                sc.start();
-            }).fail(testFns.handleFail);
-
-        }).fail(testFns.handleFail);
+            })
+            return Q.all([p1, p2, p3]);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("query expr - toLower", function() {
@@ -1887,8 +1904,8 @@
     test("by EntityQuery.fromEntityNavigation - (-> 1) ", function() {
         var em = newEm();
 
-        var query = EntityQuery.from("Orders")
-            .where("customerID","!=", null).take(1);
+        var pred = Predicate.create("customerID", "!=", null).and("employeeID", "!=", null);
+        var query = EntityQuery.from("Orders").where(pred).take(1);
 
         stop();
         em.executeQuery(query).then(function(data) {
@@ -1927,8 +1944,9 @@
 
     test("by entityAspect.loadNavigationProperty - (-> 1) ", function () {
         var em = newEm();
-        var query = EntityQuery.from("Orders")
-            .where("customerID", "!=", null).take(1);
+
+        var pred = Predicate.create("customerID", "!=", null).and("employeeID", "!=", null);
+        var query = EntityQuery.from("Orders").where(pred).take(1);
         em.tag = "xxxx";
         stop();
         var order;
