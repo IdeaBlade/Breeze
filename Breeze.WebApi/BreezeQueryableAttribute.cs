@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http;
@@ -11,15 +12,16 @@ namespace Breeze.WebApi {
   /// Used to parse and interpret OData like semantics on top of WebApi.
   /// </summary>
   /// <remarks>
-  /// Remember to add it to the Filters for your configuration
+  /// Remember to add it to the Filters for your configuration.  Automatically added to each IQueryable method when 
+  /// you put the [BreezeController] attribute on an ApiController class.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
   public class BreezeQueryableAttribute : QueryableAttribute {
 
-      private static string QUERY_HELPER_KEY = "BreezeQueryableAttribute_QUERY_HELPER_KEY";
+    private static string QUERY_HELPER_KEY = "BreezeQueryableAttribute_QUERY_HELPER_KEY";
 
     public BreezeQueryableAttribute() {
-      // because QueryableAttribute does not support Expand and Select
+      // because QueryableAttribute does not support Expand and Select, but Breeze does.
       this.AllowedQueryOptions = AllowedQueryOptions.Supported | AllowedQueryOptions.Expand | AllowedQueryOptions.Select;
     }
 
@@ -27,6 +29,12 @@ namespace Breeze.WebApi {
       base.OnActionExecuting(actionContext);
     }
 
+    /// <summary>
+    /// Get the QueryHelper instance for the current request.  We use a single instance per request because
+    /// QueryHelper is stateful, and may preserve state between the ApplyQuery and OnActionExecuted methods.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     protected QueryHelper GetQueryHelper(HttpRequestMessage request) {
         object qh;
         if (!request.Properties.TryGetValue(QUERY_HELPER_KEY, out qh))
@@ -39,66 +47,86 @@ namespace Breeze.WebApi {
 
     protected virtual QueryHelper NewQueryHelper()
     {
-        return new QueryHelper(EnableConstantParameterization, EnsureStableOrdering, HandleNullPropagation, PageSize);
+        return new QueryHelper(GetODataQuerySettings());
+    }
+
+    public ODataQuerySettings GetODataQuerySettings()
+    {
+        var settings = new ODataQuerySettings()
+        {
+            EnableConstantParameterization = this.EnableConstantParameterization,
+            EnsureStableOrdering = this.EnsureStableOrdering,
+            HandleNullPropagation = this.HandleNullPropagation,
+            PageSize = this.PageSize > 0 ? this.PageSize : (int?) null
+        };
+        return settings;
     }
 
     /// <summary>
-    /// Called when the action is executed.
+    /// Called when the action is executed.  If the return type is IEnumerable or IQueryable, 
+    /// calls OnActionExecuted in the base class, which in turn calls ApplyQuery.
     /// </summary>
     /// <param name="actionExecutedContext">The action executed context.</param>
     public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext) {
 
-      base.OnActionExecuted(actionExecutedContext);
-      
-      if (!actionExecutedContext.Response.IsSuccessStatusCode) {
+      var response = actionExecutedContext.Response;
+      if (response == null || !response.IsSuccessStatusCode) {
         return;
       }
 
       object responseObject;
-      if (!actionExecutedContext.Response.TryGetContentValue(out responseObject)) {
+      if (!response.TryGetContentValue(out responseObject)) {
         return;
       }
 
       var request = actionExecutedContext.Request;
+      var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
       var queryHelper = GetQueryHelper(request);
-      var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
-
-      queryHelper.WrapResult(actionExecutedContext.Request, actionExecutedContext.Response, responseObject, queryResult);
-    }
-
-
-    
-    // all standard OData web api support is handled here (except select and expand).
-    // This method also handles nested orderby statements the the current ASP.NET web api does not yet support.
-    // This method is called by base.OnActionExecuted
-    public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions) {
-      var request = queryOptions.Request;
-      var queryHelper = GetQueryHelper(request);
-      queryHelper.BeforeApplyQuery(queryable, queryOptions);
-
-      IQueryable result;
-      var orderBy = queryOptions.RawValues.OrderBy;
-      if (orderBy != null && orderBy.IndexOf('/') >= 0) {
-          result = queryHelper.ApplyExtendedOrderBy(queryable, queryOptions);
-          if (result != null)
+      if (typeof(IEnumerable).IsAssignableFrom(returnType))
+      {
+          // QueryableAttribute only applies for IQueryable and IEnumerable return types
+          base.OnActionExecuted(actionExecutedContext);
+          if (!response.TryGetContentValue(out responseObject)) {
+              return;
+          }
+          var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
+          queryHelper.WrapResult(request, response, queryResult);
+      }
+      else
+      {
+          // We may still need to execute the query and wrap the results.
+          if (responseObject is IEnumerable)
           {
-              request.Properties.Add("breeze_orderBy", true);
+              queryHelper.WrapResult(request, response, responseObject);
           }
       }
-      else {
-          result = base.ApplyQuery(queryable, queryOptions);
-      }
 
-      return result;
+      var jsonFormatter = actionExecutedContext.Request.GetConfiguration().Formatters.JsonFormatter;
+      queryHelper.ConfigureFormatter(jsonFormatter, responseObject as IQueryable);
+
     }
 
 
+
+    /// <summary>
+    /// All standard OData web api support is handled here (except select and expand).
+    /// This method also handles nested orderby statements the the current ASP.NET web api does not yet support.
+    /// This method is called by base.OnActionExecuted
+    /// </summary>
+    /// <param name="queryable"></param>
+    /// <param name="queryOptions"></param>
+    /// <returns></returns>
+    public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions) {
+
+      var queryHelper = GetQueryHelper(queryOptions.Request);
+
+      queryable = queryHelper.BeforeApplyQuery(queryable, queryOptions);
+      queryable = queryHelper.ApplyQuery(queryable, queryOptions);
+      return queryable;
+    }
+
   }
 
-  public class QueryResult {
-    public dynamic Results { get; set; }
-    public Int64? InlineCount { get; set; }
-  }
 }
 
 

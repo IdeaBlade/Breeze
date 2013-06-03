@@ -4,12 +4,10 @@ using NHibernate;
 using NHibernate.Linq;
 using System;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http.OData.Query;
-using System.Net.Http;
 
 namespace Breeze.Nhibernate.WebApi
 {
@@ -23,9 +21,16 @@ namespace Breeze.Nhibernate.WebApi
         {
         }
 
+        public NHQueryHelper(ODataQuerySettings querySettings) : base(querySettings)
+        {
+        }
+
+        public NHQueryHelper() : base()
+        {
+        }
+
         public override IQueryable BeforeApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
         {
-            GetSession(queryable);
             var nhQueryable = queryable as IQueryableInclude;
             if (nhQueryable != null)
             {
@@ -33,26 +38,6 @@ namespace Breeze.Nhibernate.WebApi
             }
             return queryable;
         }
-
-        /// <summary>
-        /// Apply the $select and $expand clauses to the queryable.
-        /// Overrides the base class method to handle the includes of an IQueryableInclude
-        /// </summary>
-        /// <param name="queryable"></param>
-        /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
-        /// <returns></returns>
-        /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
-        //public override IEnumerable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map)
-        //{
-        //    var result = base.ApplySelectAndExpand(queryable, map);
-        //    if (result == null)
-        //    {
-        //        // query was not executed by base, so we need to do it here
-        //        result = Enumerable.ToList((dynamic)queryable);
-        //    }
-        //    InitializeProxies(result);
-        //    return result;
-        //}
 
         /// <summary>
         /// Performs expands based on the list of strings in queryable.GetIncludes().
@@ -119,10 +104,12 @@ namespace Breeze.Nhibernate.WebApi
 
         /// <summary>
         /// Configure the JsonFormatter to limit the object serialization of the response.
+        /// Even with no IQueryable, we still need to configure the formatter to prevent runaway serialization.
+        /// We have to rely on the controller to close the session in this case.
         /// </summary>
         /// <param name="jsonFormatter"></param>
         /// <param name="queryable">Used to obtain the ISession</param>
-        public void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, IQueryable queryable)
+        public override void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, IQueryable queryable)
         {
             ConfigureFormatter(jsonFormatter, GetSession(queryable));
         }
@@ -131,7 +118,7 @@ namespace Breeze.Nhibernate.WebApi
         /// Configure the JsonFormatter to limit the object serialization of the response.
         /// </summary>
         /// <param name="jsonFormatter">request.GetConfiguration().Formatters.JsonFormatter</param>
-        /// <param name="session">If not null, will be closed by this method.</param>
+        /// <param name="session">If not null, will be closed by this method.  Otherwise, the session must be closed by the Controller.</param>
         private void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, ISession session)
         {
             var settings = jsonFormatter.SerializerSettings;

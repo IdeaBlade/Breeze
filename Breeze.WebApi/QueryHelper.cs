@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http.OData.Query;
 
@@ -25,17 +26,17 @@ namespace Breeze.WebApi
 
         public QueryHelper() : this(true, true, HandleNullPropagationOption.False, null)
         {
-            
         }
 
         public static ODataQuerySettings NewODataQuerySettings(bool enableConstantParameterization, bool ensureStableOrdering, HandleNullPropagationOption handleNullPropagation, int? pageSize)
         {
-            var settings = new ODataQuerySettings();
-            settings.EnableConstantParameterization = enableConstantParameterization;
-            settings.EnsureStableOrdering = ensureStableOrdering;
-            settings.HandleNullPropagation = handleNullPropagation;
-            if (pageSize > 0)
-                settings.PageSize = pageSize;
+            var settings = new ODataQuerySettings()
+            {
+                EnableConstantParameterization = enableConstantParameterization,
+                EnsureStableOrdering = ensureStableOrdering,
+                HandleNullPropagation = handleNullPropagation,
+                PageSize = pageSize > 0 ? pageSize : null
+            };
             return settings;
         }
 
@@ -59,6 +60,12 @@ namespace Breeze.WebApi
             return newQo;
         }
 
+        /// <summary>
+        /// Provide a hook to do any processing before applying the query.  This implementation does nothing.
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="queryOptions"></param>
+        /// <returns></returns>
         public virtual IQueryable BeforeApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
         {
             return queryable;
@@ -66,26 +73,25 @@ namespace Breeze.WebApi
 
         public IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
         {
-            return queryOptions.ApplyTo(queryable, this.querySettings);
+            return QueryHelper.ApplyQuery(queryable, queryOptions, this.querySettings);
         }
 
+        /// <summary>
+        /// Apply the queryOptions to the query.  
+        /// This method handles nested order-by statements the the current ASP.NET web api does not yet support.
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="queryOptions"></param>
+        /// <param name="querySettings"></param>
+        /// <returns></returns>
         public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings)
-        {
-            return queryOptions.ApplyTo(queryable, querySettings);
-        }
-
-        public IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions)
-        {
-            return ApplyExtendedOrderBy(queryable, queryOptions, this.querySettings);
-        }
-
-        public static IQueryable ApplyExtendedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings)
         {
             // if we see an extended order by we also need to process any skip/take operators as well.
             var orderByQueryString = queryOptions.RawValues.OrderBy;
             if (orderByQueryString == null || orderByQueryString.IndexOf('/') < 0)
             {
-                return null;
+                // Just let the default implementation handle it.
+                return queryOptions.ApplyTo(queryable, querySettings);
             }
 
             var newQueryOptions = QueryHelper.RemoveExtendedOps(queryOptions);
@@ -133,7 +139,6 @@ namespace Breeze.WebApi
             var queryableType = queryableBaseType.MakeGenericType(instanceType);
             var castParamExpr = Expression.Convert(paramExpr, queryableType);
 
-
             var callExpr = Expression.Call(method, castParamExpr, Expression.Constant(parameter));
             var castResultExpr = Expression.Convert(callExpr, typeof(IQueryable));
             var lambda = Expression.Lambda(castResultExpr, paramExpr);
@@ -172,17 +177,6 @@ namespace Breeze.WebApi
             }
 
             return result;
-            //IEnumerable rQuery = null;
-            //if (hasSelectOrExpand)
-            //{
-            //    // if a select or expand was encountered we need to
-            //    // execute the DbQueries here, so that any exceptions thrown can be properly returned.
-            //    // if we wait to have the query executed within the serializer, some exceptions will not
-            //    // serialize properly.
-            //    rQuery = Enumerable.ToList((dynamic)result);
-            //}
-
-            //return rQuery;
         }
 
         /// <summary>
@@ -190,7 +184,6 @@ namespace Breeze.WebApi
         /// </summary>
         /// <param name="queryable"></param>
         /// <param name="selectQueryString"></param>
-        /// <param name="request">not used, but available to overriding methods</param>
         /// <returns></returns>
         public virtual IQueryable ApplySelect(IQueryable queryable, string selectQueryString)
         {
@@ -205,7 +198,6 @@ namespace Breeze.WebApi
         /// </summary>
         /// <param name="queryable"></param>
         /// <param name="expandsQueryString"></param>
-        /// <param name="request">not used, but available to overriding methods</param>
         /// <returns></returns>
         public virtual IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString)
         {
@@ -216,6 +208,11 @@ namespace Breeze.WebApi
             return queryable;
         }
 
+        /// <summary>
+        /// Perform any work after the query is executed.  Does nothing in this implementation but is available to derived classes.
+        /// </summary>
+        /// <param name="queryResult"></param>
+        /// <returns></returns>
         public virtual IEnumerable PostExecuteQuery(IEnumerable queryResult)
         {
             return queryResult;
@@ -228,7 +225,7 @@ namespace Breeze.WebApi
         /// <param name="response"></param>
         /// <param name="responseObject"></param>
         /// <param name="queryable"></param>
-        public virtual void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object responseObject, object queryResult)
+        public virtual void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object queryResult)
         {
             Object tmp;
             request.Properties.TryGetValue("MS_InlineCount", out tmp);
@@ -238,18 +235,11 @@ namespace Breeze.WebApi
             // execute the DbQueries here, so that any exceptions thrown can be properly returned.
             // if we wait to have the query executed within the serializer, some exceptions will not
             // serialize properly.
-            if (queryResult != responseObject)
-            {
-            }
             queryResult = Enumerable.ToList((dynamic)queryResult);
             queryResult = PostExecuteQuery((IEnumerable)queryResult);
 
             if (queryResult != null || inlineCount.HasValue)
             {
-                if (queryResult == null)
-                {
-                    queryResult = responseObject;
-                }
                 if (inlineCount.HasValue)
                 {
                     queryResult = new QueryResult() { Results = queryResult, InlineCount = inlineCount };
@@ -259,8 +249,26 @@ namespace Breeze.WebApi
                 var oc = new ObjectContent(queryResult.GetType(), queryResult, formatter);
                 response.Content = oc;
             }
-
         }
 
+        /// <summary>
+        /// Configure the JsonFormatter.  Does nothing in this implementation but is available to derived classes.
+        /// </summary>
+        /// <param name="jsonFormatter"></param>
+        /// <param name="queryable">Used to obtain the ISession</param>
+        public virtual void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, IQueryable queryable)
+        {
+        }
+
+
+    }
+
+    /// <summary>
+    /// Wrapper for results that have an InlineCount, to support paged result sets.
+    /// </summary>
+    public class QueryResult
+    {
+        public dynamic Results { get; set; }
+        public Int64? InlineCount { get; set; }
     }
 }
