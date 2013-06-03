@@ -73,6 +73,38 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+      if ((string)SaveOptions.Tag == "increaseProductPrice") {
+        Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
+        foreach (var type in saveMap.Keys) {
+          if (type == typeof(Category)) {
+            foreach (var entityInfo in saveMap[type]) {
+              if (entityInfo.EntityState == EntityState.Modified) {
+                Category category = (entityInfo.Entity as Category);
+                var products = this.Context.Set<Product>().Where(p => p.CategoryID == category.CategoryID);
+                foreach (var product in products) {
+                  if (!saveMapAdditions.ContainsKey(typeof(Product)))
+                    saveMapAdditions[typeof(Product)] = new List<EntityInfo>();
+
+                  var ei = this.CreateEntityInfo(product, EntityState.Modified);
+                  ei.ForceUpdate = true;
+                  product.UnitPrice += 1;
+                  saveMapAdditions[typeof(Product)].Add(ei);
+                }
+              }
+            }
+          }
+        }
+        foreach (var type in saveMapAdditions.Keys) {
+          if (!saveMap.ContainsKey(type)) {
+            saveMap[type] = new List<EntityInfo>();
+          }
+          foreach (var enInfo in saveMapAdditions[type]) {
+            saveMap[type].Add(enInfo);
+          }
+        }
+        return saveMap;
+      }
+
       return base.BeforeSaveEntities(saveMap);
       // return saveMap;
     }

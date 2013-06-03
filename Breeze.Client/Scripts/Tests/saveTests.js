@@ -32,6 +32,24 @@
         teardown: function () { }
     });
 
+    test("entities modified on server being saved as new entities", function () {
+        var em = newEm();
+
+        var q = EntityQuery.from("Categories");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var category = data.results[0];
+            category.setProperty("categoryName", "test");
+
+            var entitiesToSave = new Array(category);
+            var saveOptions = new SaveOptions({ tag: "increaseProductPrice" });
+            stop();
+            em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+                ok(true);
+            }).fail(testFns.handleFail).fin(start);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("save data with with additional entity added on server", function () {
         var em = newEm();
         
