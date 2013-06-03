@@ -116,6 +116,7 @@
     <Compile Include="NHEagerFetch.cs" />
     <Compile Include="NHInitializer.cs" />
     <Compile Include="NhQueryableInclude.cs" />
+    <Compile Include="NHQueryHelper.cs" />
     <Compile Include="NHRelationshipFixer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

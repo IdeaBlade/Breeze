@@ -115,6 +115,7 @@
     <Compile Include="BreezeJsonFormatterAttribute.cs" />
     <Compile Include="NumericKeyGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryHelper.cs" />
     <Compile Include="TypeFns.cs" />
   </ItemGroup>
   <ItemGroup>
