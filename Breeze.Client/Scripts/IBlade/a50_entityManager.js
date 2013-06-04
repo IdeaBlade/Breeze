@@ -1608,9 +1608,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    dataProps.forEach(function (dp) {
-                        updatePropertyFromRawSource(targetEntity, dp, rawEntity, true );
-                    });
+                    updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -1626,9 +1624,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
-                dataProps.forEach(function (dp) {
-                    updatePropertyFromRawSource(targetEntity, dp, rawEntity, true);
-                });
+                updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
@@ -2035,9 +2031,7 @@ var EntityManager = (function () {
         updateEntityRef(mappingContext, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
             
-        entityType.dataProperties.forEach(function (dp) {
-            updatePropertyFromRawSource(targetEntity, dp, rawEntity, false);
-        });
+        updateTargetFromRaw(targetEntity, rawEntity, entityType.dataProperties, false);
 
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
@@ -2048,30 +2042,32 @@ var EntityManager = (function () {
         });
     }
    
-    // target and source will be either entities or complex types
-    function updatePropertyFromRawSource(target, dp, rawSource, isClient) {
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+    function updateTargetFromRaw(target, raw, dataProps, isClient) {
+        dataProps.forEach(function (dp) {
+            // recursive call
+            updateTargetPropertyFromRaw(target, raw, dp, isClient);
+        });
+    }
 
-        var rawVal = fn(rawSource, dp);
+    // target and source will be either entities or complex types
+    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
+        
+        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
         var val = parseRawValue(dp, rawVal);
         
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
+            var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                dp.dataType.dataProperties.forEach(function (cdp) {
-                    // recursive call
-                    updatePropertyFromRawSource(oldVal, cdp, val, isClient);
-                });
+                updateTargetFromRaw(oldVal, val, cdataProps, isClient)
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 val.forEach(function (rawCo) {
                     var newCo = dp.dataType._createInstanceCore(target, dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        // recursive call
-                        updatePropertyFromRawSource(newCo, cdp, rawCo, isClient);
-                    });
+                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
@@ -2079,6 +2075,8 @@ var EntityManager = (function () {
             target.setProperty(dp.name, val);
         }
     }
+
+    
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
         fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
