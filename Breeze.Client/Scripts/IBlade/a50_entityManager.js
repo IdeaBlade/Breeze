@@ -1518,6 +1518,7 @@ var EntityManager = (function () {
         dps.forEach(function (dp) {
             var dpName = dp.name;
             var value = so.getProperty(dpName);
+            if (value == null && dp.defaultValue == null) return;
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
