@@ -58,6 +58,10 @@ var KeyGenerator = (function () {
             var dataType = keyProp.dataType;
             if (dataType.getNext) {
                 nextId = dataType.getNext(this);
+                // need to watch out for collision with previously imported ids that might also get generated.
+                while (propEntry.keyMap[nextId.toString()] != null) {
+                    nextId = dataType.getNext(this);
+                }
             } else {
                 throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
             }
