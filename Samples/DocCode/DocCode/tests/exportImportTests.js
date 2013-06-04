@@ -41,7 +41,6 @@
         equal(restoreCount, expected.entityCount,
             "should have restored expected number of all entities");
     });
- 
     /*********************************************************
     * can navigate from restored child to its parent
     *********************************************************/
@@ -219,7 +218,7 @@
     /*********************************************************
     * temporary keys can change after importing
     *********************************************************/
-    test("temporary keys will try to stay the same after importing", 2, function () {
+    test("temporary keys can change after importing", 2, function () {
         var em1 = newEm();
         
         // new Employee gets the first temporary id in the new 'em1' manager
@@ -242,11 +241,44 @@
         equal(newEmployee1a.FirstName(), newEmployee1b.FirstName(),
             "newEmployee1a's name should match newEmployee1b's name.");
 
-        equal(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
-             "newEmployee1a's should equal newEmployee1b's ID because " +
-             "the imported new entity gets its 'old' new temp key");
+        var ids = [newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID()];
+        notEqual(ids[0], ids[1],
+            "temporary ids of newEmployee1a ({0}) and newEmployee1b ({1}) should no longer the same".
+            format(ids[0], ids[1]));
+        
+        // They USED to be the same at one time
+        //notEqual(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
+        //     "newEmployee1a's should equal newEmployee1b's ID because " +
+        //     "the imported new entity gets its 'old' new temp key");
     });
+    /*********************************************************
+   * can restore an entity with temporary key over an entity with 
+   * the same temporary key.
+   *********************************************************/
+    test("can restore an entity with temp key over an entity w/ same temp key", 3, function () {
+        var em1 = newEm();
+        var prod1 = em1.createEntity('Product', { ProductName: "First" });
+        ok(true, "The id of the first product is " + prod1.ProductID());
+        var data = em1.exportEntities();
 
+        // You don't need this next block. It is here for thoroughness.
+        // Doesn't matter whether you funnel the export/import through local storage
+        var stashName = "stash_everything";
+        window.localStorage.setItem(stashName, data);
+        data = window.localStorage.getItem(stashName);
+
+        var em2 = newEm();
+        //em2.importEntities(data); //Doesn't matter whether you import before or after
+        em2.createEntity('Product', { ProductName: "Second" });
+        em2.importEntities(data);   //Doesn't matter whether you import before or after
+
+        var prods = em2.getChanges();
+        var ids = prods.map(function (p) { return p.ProductID(); });
+        equal(prods.length, 2, "should have two products with pending changes");
+        notEqual(ids[0], ids[1],
+            "ids of product1 ({0} = '{1}') and product2 ({2} = '{3}') should not collide".
+            format(ids[0], prods[0].ProductName(), ids[1], prods[1].ProductName()));
+    });
     /*********************************************************
     * can safely merge and preserve pending changes
     *********************************************************/
