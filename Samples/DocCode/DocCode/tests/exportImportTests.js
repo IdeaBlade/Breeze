@@ -243,7 +243,7 @@
 
         var ids = [newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID()];
         notEqual(ids[0], ids[1],
-            "temporary ids of newEmployee1a's ({0}) and newEmployee1b's ({1}) are no longer the same".
+            "temporary ids of newEmployee1a ({0}) and newEmployee1b ({1}) should no longer the same".
             format(ids[0], ids[1]));
         
         // They USED to be the same at one time
