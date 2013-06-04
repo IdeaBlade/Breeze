@@ -1,8 +1,8 @@
 ﻿// Only one of the next 4 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-//#define DATABASEFIRST_NEW
-#define NHIBERNATE
+#define DATABASEFIRST_NEW
+//#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
@@ -87,7 +87,8 @@ namespace Sample_WebApi.Controllers {
 
                   var ei = this.CreateEntityInfo(product, EntityState.Modified);
                   ei.ForceUpdate = true;
-                  product.UnitPrice += 1;
+                  var incr = (Convert.ToInt64(product.UnitPrice) % 2) == 0 ? 1 : -1;
+                  product.UnitPrice += incr;
                   saveMapAdditions[typeof(Product)].Add(ei);
                 }
               }

@@ -35,17 +35,18 @@
     test("entities modified on server being saved as new entities", function () {
         var em = newEm();
 
-        var q = EntityQuery.from("Categories");
+        var q = EntityQuery.from("Categories").where("categoryName", "startsWith", "Beverage");
         stop();
         em.executeQuery(q).then(function (data) {
             var category = data.results[0];
-            category.setProperty("categoryName", "test");
+            testFns.morphStringProp(category, "categoryName");
 
             var entitiesToSave = new Array(category);
             var saveOptions = new SaveOptions({ tag: "increaseProductPrice" });
             stop();
             em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
-                ok(true);
+                ok(sr.entities.length === 13, "13 records should have been saved - 1 category + 12 products");
+                // TODO: we should now requery and check that the 12 products actually have increased in price.
             }).fail(testFns.handleFail).fin(start);
         }).fail(testFns.handleFail).fin(start);
     });
