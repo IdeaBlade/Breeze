@@ -41,7 +41,28 @@
         equal(restoreCount, expected.entityCount,
             "should have restored expected number of all entities");
     });
- 
+    /*********************************************************
+   * can restore an entity with temporary key over an entity with 
+   * the same temporary key.
+   *********************************************************/
+    test("can restore an entity with temp key over an entity w/ same temp key", 3, function () {
+        var em1 = newEm();
+        var prod1 = em1.createEntity('Product', { ProductName: "First" });
+        ok(true, "The id of the first product is " + prod1.ProductID());
+        var exportData = em1.exportEntities();
+
+        var em2 = newEm();
+        //em2.importEntities(exportData); //Doesn't matter whether you import before or after
+        em2.createEntity('Product', { ProductName: "Second" });
+        em2.importEntities(exportData);   //Doesn't matter whether you import before or after
+
+        var prods = em2.getChanges();
+        var ids = prods.map(function(p) { return p.ProductID();});
+        equal(prods.length, 2, "should have two products with pending changes");
+        notEqual(ids[0], ids[1],
+            "ids of product1 ({0} = '{1}') and product2 ({2} = '{3}') should not collide".
+            format(ids[0], prods[0].ProductName(), ids[1], prods[1].ProductName()));
+    });
     /*********************************************************
     * can navigate from restored child to its parent
     *********************************************************/
