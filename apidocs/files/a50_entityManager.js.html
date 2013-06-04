@@ -555,7 +555,8 @@ var EntityManager = (function () {
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType);
+            &#x2F;&#x2F; try to use oldKey if not already used in this keyGenerator.
+            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
         });
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
@@ -830,6 +831,7 @@ var EntityManager = (function () {
         @param callback.data {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
+        @param callback.data.entityManager {EntityManager} The EntityManager.
         @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         @param callback.data.inlineCount {Integer} Only available if &#x27;inlineCount(true)&#x27; was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter&#x2F;where predicates
@@ -840,6 +842,7 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
+        @param [errorCallback.error.entityManager] The query that caused the error.
         @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
             
 
@@ -847,6 +850,7 @@ var EntityManager = (function () {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
+        promiseData.entityManager {EntityManager} The EntityManager.
         promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
         promiseData.inlineCount {Integer} Only available if &#x27;inlineCount(true)&#x27; was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter&#x2F;where predicates
@@ -1070,7 +1074,7 @@ var EntityManager = (function () {
         return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
-                
+            
             var mappingContext = {
                 query: null, &#x2F;&#x2F; tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
@@ -1079,7 +1083,9 @@ var EntityManager = (function () {
                 refMap: {},
                 deferredFns: []
             };
-                
+
+            &#x2F;&#x2F; Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+            &#x2F;&#x2F; the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
             var savedEntities = saveResult.entities.map(function (rawEntity) {
                 return visitAndMerge(rawEntity, mappingContext, { nodeType: &quot;root&quot; });
             });
@@ -1484,15 +1490,22 @@ var EntityManager = (function () {
             var tuples = unattachedMap.getTuples(entityKey);
             if (tuples) {
                 tuples.forEach(function (tpl) {
-                    var childToParentNp = tpl.navigationProperty;
-                    var parentToChildNp = childToParentNp.inverse;
 
                     var unattachedChildren = tpl.children.filter(function (e) {
                         return e.entityAspect.entityState !== EntityState.Detached;
                     });
 
-                    if (parentToChildNp) {
+                    var childToParentNp, parentToChildNp;
+
+                    &#x2F;&#x2F; np is usually childToParentNp 
+                    &#x2F;&#x2F; except with unidirectional 1-n where it is parentToChildNp;
+                    var np = tpl.navigationProperty;
+
+                    if (np.inverse) {
                         &#x2F;&#x2F; bidirectional
+                        var childToParentNp = np;
+                        var parentToChildNp = np.inverse;
+
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
                             entity.setProperty(parentToChildNp.name, onlyChild);
@@ -1505,10 +1518,29 @@ var EntityManager = (function () {
                             });
                         }
                     } else {
-                        &#x2F;&#x2F; unidirectional nav child -&gt; parent only i.e. OrderDetail -&gt; Product
-                        unattachedChildren.forEach(function (child) {
-                            child.setProperty(childToParentNp.name, entity);
-                        });
+                        &#x2F;&#x2F; unidirectional
+                        if (np.parentType === entity.entityType) {
+
+                            parentToChildNp = np;
+                            if (parentToChildNp.isScalar) {
+                                &#x2F;&#x2F; 1 -&gt; 1 eg parent: Order child: InternationalOrder
+                                entity.setProperty(parentToChildNp.name, unattachedChildren[0]);
+                            } else {
+                                &#x2F;&#x2F; 1 -&gt; n  eg: parent: Region child: Terr
+                                var currentChildren = entity.getProperty(parentToChildNp.name);
+                                unattachedChildren.forEach(function (child) {
+                                    &#x2F;&#x2F; we know if can&#x27;t already be there.
+                                    currentChildren._push(child);
+                                });
+                            }
+                        } else {
+                            &#x2F;&#x2F; n -&gt; 1  eg: parent: child: OrderDetail parent: Product
+                            childToParentNp = np;
+
+                            unattachedChildren.forEach(function (child) {
+                                child.setProperty(childToParentNp.name, entity);
+                            });
+                        }
                     }
                     unattachedMap.removeChildren(entityKey, childToParentNp);
                 });
@@ -1525,6 +1557,7 @@ var EntityManager = (function () {
 
                 &#x2F;&#x2F; first determine if np contains a parent or child
                 &#x2F;&#x2F; having a parentKey means that this is a child
+                &#x2F;&#x2F; if a parent then no need for more work because children will attach to it.
                 var parentKey = entityAspect.getParentKey(np);
                 if (parentKey) {
                     &#x2F;&#x2F; check for empty keys - meaning that parent id&#x27;s are not yet set.
@@ -1539,6 +1572,31 @@ var EntityManager = (function () {
                         unattachedMap.addChild(parentKey, np, entity);
                     }
                 } 
+            });
+
+            &#x2F;&#x2F; handle unidirectional 1-x where we set x.fk
+            entity.entityType.foreignKeyProperties.forEach(function (fkProp) {
+                var invNp = fkProp.inverseNavigationProperty;
+                if (!invNp) return;
+                &#x2F;&#x2F; unidirectional fk props only
+                var fkValue = entity.getProperty(fkProp.name);
+                var parentKey = new EntityKey(invNp.parentType, [fkValue]);
+                var parent = em.findEntityByKey(parentKey);
+                
+                if (parent) {
+                    if (invNp.isScalar) {
+                        parent.setProperty(invNp.name, entity);
+                    } else {
+                        if (em.isLoading) {
+                            parent.getProperty(invNp.name)._push(entity);
+                        } else {
+                            parent.getProperty(invNp.name).push(entity);
+                        }
+                    }
+                } else {
+                    &#x2F;&#x2F; else add parent to unresolvedParentMap;
+                    unattachedMap.addChild(parentKey, invNp, entity);
+                }
             });
         });
     };
@@ -1627,30 +1685,67 @@ var EntityManager = (function () {
     function exportEntityGroup(entityGroup, tempKeys) {
         var resultGroup = {};
         var entityType = entityGroup.entityType;
-        var dpNames = entityType.dataProperties.map(__pluck(&quot;name&quot;));
-        resultGroup.dataPropertyNames = dpNames;
+        var dps = entityType.dataProperties;
+        
         var rawEntities = [];
-        entityGroup._entities.forEach(function (e) {
-            if (e) {
-                var rawEntity = [];
-                dpNames.forEach(function(dpName) {
-                    rawEntity.push(e.getProperty(dpName));
-                });
-                var aspect = e.entityAspect;
-                var entityState = aspect.entityState;
-                var newAspect = {
-                    tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
-                    entityState: entityState.name
-                };
-                if (entityState.isModified() || entityState.isDeleted()) {
-                    newAspect.originalValuesMap = aspect.originalValues;
-                }
-                rawEntity.push(newAspect);
+        entityGroup._entities.forEach(function (entity) {
+            if (entity) {
+                var rawEntity = structuralObjectToJson(entity, dps, tempKeys);
                 rawEntities.push(rawEntity);
             }
         });
         resultGroup.entities = rawEntities;
         return resultGroup;
+    }
+
+    function structuralObjectToJson(so, dps, tempKeys) {
+        
+        var result = {};
+        
+        dps.forEach(function (dp) {
+            var dpName = dp.name;
+            var value = so.getProperty(dpName);
+            if (value == null &amp;&amp; dp.defaultValue == null) return;
+            if (value &amp;&amp; value.complexType) {
+                var newValue;
+                var coDps = dp.dataType.dataProperties;
+                if (Array.isArray(value)) {
+                    if (value.length == 0) {
+                        result[dpName] = [];
+                    } else {
+                        result[dpName] = value.map(function (v) { return structuralObjectToJson(v, coDps); });
+                    }
+                } else {
+                    result[dpName] = structuralObjectToJson(value, coDps);
+                }
+                
+            } else {
+                result[dpName] = value;
+            }
+        });
+        var aspect, newAspect;
+        if (so.entityAspect) {
+            aspect = so.entityAspect;
+            var entityState = aspect.entityState;
+            newAspect = {
+                tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
+                entityState: entityState.name
+            };
+            if (entityState.isModified() || entityState.isDeleted()) {
+                newAspect.originalValuesMap = aspect.originalValues;
+            }
+            result.entityAspect = newAspect;
+        } else {
+            aspect = so.complexAspect;
+            newAspect = {};
+            if ( aspect.originalValues &amp;&amp; !__isEmpty(aspect.originalValues)) {
+                newAspect.originalValuesMap = aspect.originalValues;
+            }
+            
+            result.complexAspect = newAspect;
+        }
+        
+        return result;
     }
 
     function exportTempKeyInfo(entityAspect, tempKeys) {
@@ -1680,19 +1775,15 @@ var EntityManager = (function () {
         var entityType = entityGroup.entityType;
         var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
         var targetEntity = null;
-        var dpNames = jsonGroup.dataPropertyNames;
-        var dataProperties = dpNames.map(function(dpName) {
-            return entityType.getProperty(dpName);
-        });
-        var keyIxs = entityType.keyProperties.map(function (kp) {
-            return dpNames.indexOf(kp.name);
-        });
-        var lastIx = dpNames.length;
+
+        var dataProps = entityType.dataProperties;
+        var keyProps = entityType.keyProperties;
+        
         var entityChanged = entityGroup.entityManager.entityChanged;
         jsonGroup.entities.forEach(function (rawEntity) {
-            var newAspect = rawEntity[lastIx];
-            var keyValues = keyIxs.map(function (ix) { return rawEntity[ix]; });
-            var entityKey = new EntityKey(entityType, keyValues);
+            var newAspect = rawEntity.entityAspect;
+            
+            var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
             var entityState = EntityState.fromName(newAspect.entityState);
             var newTempKeyValue;
             if (entityState.isAdded()) {
@@ -1706,9 +1797,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    dataProperties.forEach(function (dp, ix) {
-                        setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
-                    });
+                    updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -1724,9 +1813,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
-                dataProperties.forEach(function (dp, ix) {
-                    setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
-                });
+                updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKeyValue !== undefined) {
                     &#x2F;&#x2F; fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
@@ -1791,10 +1878,12 @@ var EntityManager = (function () {
     }
 
     function fixupKeys(em, keyMappings) {
+        em._inKeyFixup = true;
         keyMappings.forEach(function (km) {
             var group = em._entityGroupMap[km.entityTypeName];
             group._fixupKey(km.tempValue, km.realValue);
         });
+        em._inKeyFixup = false;
     }
 
     function getEntityGroups(em, entityTypes) {
@@ -1957,6 +2046,7 @@ var EntityManager = (function () {
             }).fail(function (e) {
                 if (e) {
                     e.query = query;
+                    e.entityManager = em;
                 }
                 return Q.reject(e);
             });
@@ -2043,7 +2133,7 @@ var EntityManager = (function () {
         var isSaving = mappingContext.query == null;
 
             
-        var entityKey = getEntityKeyFromRawEntity(node, entityType);
+        var entityKey = getEntityKeyFromRawEntity(node, entityType, false);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving &amp;&amp; targetEntity.entityAspect.entityState.isDeleted()) {
@@ -2130,9 +2220,7 @@ var EntityManager = (function () {
         updateEntityRef(mappingContext, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
             
-        entityType.dataProperties.forEach(function (dp) {
-            updatePropertyFromRawSource(targetEntity, dp, rawEntity);
-        });
+        updateTargetFromRaw(targetEntity, rawEntity, entityType.dataProperties, false);
 
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
@@ -2142,51 +2230,63 @@ var EntityManager = (function () {
             }
         });
     }
-
-
-    function getEntityKeyFromRawEntity(rawEntity, entityType) {
-        var keyValues = entityType.keyProperties.map(function (p) {
-            return parseRawValue(p, getPropertyFromRawEntity(rawEntity, p));
+   
+    function updateTargetFromRaw(target, raw, dataProps, isClient) {
+        dataProps.forEach(function (dp) {
+            &#x2F;&#x2F; recursive call
+            updateTargetPropertyFromRaw(target, raw, dp, isClient);
         });
-        return new EntityKey(entityType, keyValues);
-    }
-
-    function getPropertyFromRawEntity(rawEntity, dp) {
-        return rawEntity[ dp.nameOnServer || dp.isUnmapped &amp;&amp; dp.name];
+        if (isClient) {
+            &#x2F;&#x2F; entityAspect&#x2F;complexAspect info is only provided for client side sourced (i.e. imported) raw data.
+            var aspectName = target.entityAspect ? &quot;entityAspect&quot; : &quot;complexAspect&quot;;
+            var originalValues = raw[aspectName].originalValuesMap;
+            if (originalValues) {
+                target[aspectName].originalValues = originalValues;
+            }
+        }
     }
 
     &#x2F;&#x2F; target and source will be either entities or complex types
-    function updatePropertyFromRawSource(target, dp, rawSource) {
-        var rawVal = getPropertyFromRawEntity(rawSource, dp);
-        setPropertyWithRawValue(target, dp, rawVal)
-    }
-   
-    function setPropertyWithRawValue(target, dp, rawVal) {
+    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
+        
+        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
         var val = parseRawValue(dp, rawVal);
         
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
+            var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                dp.dataType.dataProperties.forEach(function (cdp) {
-                    &#x2F;&#x2F; recursive call
-                    updatePropertyFromRawSource(oldVal, cdp, val);
-                });
+                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
             } else {
                 &#x2F;&#x2F; clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 val.forEach(function (rawCo) {
                     var newCo = dp.dataType._createInstanceCore(target, dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        &#x2F;&#x2F; recursive call
-                        updatePropertyFromRawSource(newCo, cdp, rawCo);
-                    });
+                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
         } else {
             target.setProperty(dp.name, val);
         }
+    }
+
+    function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
+        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var keyValues = entityType.keyProperties.map(function (dp) {
+            return parseRawValue(dp, fn(rawEntity, dp));
+        });
+        return new EntityKey(entityType, keyValues);
+    }
+
+    function getPropertyFromClientRaw(rawEntity, dp) {
+        return rawEntity[dp.name];
+    }
+
+    function getPropertyFromServerRaw(rawEntity, dp) {
+        return rawEntity[dp.nameOnServer || dp.isUnmapped &amp;&amp; dp.name];
     }
 
     function parseRawValue(dp, val) {
@@ -2408,11 +2508,17 @@ var EntityManager = (function () {
             }
         });
         stype.complexProperties.forEach(function (cp) {
-            &#x2F;&#x2F; TODO: think about whether complexObjects can be unmapped 
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapOriginalValues(item, metadataStore, isOData);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -2433,9 +2539,16 @@ var EntityManager = (function () {
         });
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
-            var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
-            if (!__isEmpty(unwrappedCo)) {
-                result[fn(cp.name, cp)] = unwrappedCo;
+            if (cp.isScalar) {
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                if (!__isEmpty(unwrappedCo)) {
+                    result[fn(cp.name, cp)] = unwrappedCo;
+                }
+            } else {
+                var unwrappedCos = nextTarget.map(function (item) {
+                    return unwrapChangedValues(item, metadataStore);
+                });
+                result[fn(cp.name, cp)] = unwrappedCos;
             }
         });
         return result;
@@ -2510,8 +2623,6 @@ var EntityManager = (function () {
    
 &#x2F;&#x2F; expose
 breeze.EntityManager = EntityManager;
-
-
 
 
     </pre>

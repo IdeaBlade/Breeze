@@ -212,6 +212,30 @@ var DataType = function () {
         &#x2F;&#x2F; default
     };
 
+    var constants = {
+        stringPrefix: &quot;K_&quot;,
+        nextNumber: -1,
+        nextNumberIncrement: -1
+    }
+
+    var getNextString = function () {
+        return constants.stringPrefix + getNextNumber().toString();
+    };
+
+    var getNextNumber = function () {
+        var result = constants.nextNumber;
+        constants.nextNumber += constants.nextNumberIncrement;
+        return result;
+    };
+
+    var getNextGuid = function () {
+        return __getUuid();
+    };
+
+    var getNextDateTime = function () {
+        return new Date();
+    };
+
     var coerceToString = function (source, sourceTypeName) {
         return (source == null) ? source : source.toString();
     };
@@ -349,25 +373,45 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString, fmtOData: fmtString });
+    DataType.String = DataType.addSymbol({
+        defaultValue: &quot;&quot;,
+        parse: coerceToString,
+        fmtOData: fmtString,
+        getNext: getNextString
+    });
     &#x2F;**
     @property Int64 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
+    DataType.Int64 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true, quoteJsonOData: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Int32 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int32 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Int16 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int16 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Byte {DataType}
     @final
@@ -379,32 +423,57 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;m&quot;), quoteJsonOData: true });
+    DataType.Decimal = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;m&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Double {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;d&quot;) });
+    DataType.Double = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;d&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Single {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;f&quot;) });
+    DataType.Single = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;f&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property DateTime {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
+    DataType.DateTime = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTime,
+        getNext: getNextDateTime
+    });
     
     &#x2F;**
     @property DateTimeOffset {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
+    DataType.DateTimeOffset = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTimeOffset,
+        getNext: getNextDateTime
+    });
     &#x2F;**
     @property Time {DataType}
     @final
@@ -422,7 +491,11 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.Guid = DataType.addSymbol({ defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot;, fmtOData: fmtGuid });
+    DataType.Guid = DataType.addSymbol({
+        defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot;,
+        fmtOData: fmtGuid,
+        getNext: getNextGuid
+    });
   
     &#x2F;**
     @property Binary {DataType}
@@ -470,7 +543,9 @@ var DataType = function () {
         switch (typeof val) {
             case &quot;string&quot;:
                 if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
+                &#x2F;&#x2F; the &gt;3 below is a hack to insure that if we are inferring datatypes that 
+                &#x2F;&#x2F; very short strings that are valid but unlikely ISO encoded Time&#x27;s are treated as strings instead.
+                else if (__isDuration(val) &amp;&amp; val.length &gt; 3) return DataType.Time;
                 return DataType.String;
             case &quot;boolean&quot;:
                 return DataType.Boolean;
@@ -505,6 +580,8 @@ var DataType = function () {
     &#x2F;&#x2F; -----------------------------------------------------------------
 
     DataType.parseDateFromServer = DataType.parseDateAsUTC;
+
+    DataType.constants = constants;
 
     DataType.getSymbols().forEach(function (sym) {
         sym.validatorCtor = getValidatorCtor(sym);

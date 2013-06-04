@@ -299,7 +299,7 @@ var MetadataStore = (function () {
 
         
         structuralType.getProperties().forEach(function (property) {
-            structuralType._updateProperty(property);
+            structuralType._updateNames(property);
             if (!property.isUnmapped) {
                 structuralType._mappedPropertiesCount++;
             }
@@ -777,7 +777,6 @@ var MetadataStore = (function () {
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
-
         }
 
         &#x2F;&#x2F; sype may or may not have been added to the metadataStore at this point.
@@ -847,7 +846,7 @@ var CsdlMetadataParser = (function () {
     function parse(metadataStore, schemas) {
 
         metadataStore._entityTypeResourceMap = {};
-        toArray(schemas).forEach(function (schema) {
+        __toArray(schemas).forEach(function (schema) {
             if (schema.cSpaceOSpaceMapping) {
                 &#x2F;&#x2F; Web api only - not avail in OData.
                 var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
@@ -859,8 +858,8 @@ var CsdlMetadataParser = (function () {
             }
 
             if (schema.entityContainer) {
-                toArray(schema.entityContainer).forEach(function (container) {
-                    toArray(container.entitySet).forEach(function (entitySet) {
+                __toArray(schema.entityContainer).forEach(function (container) {
+                    __toArray(container.entitySet).forEach(function (entitySet) {
                         var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
                         metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
                         metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
@@ -870,12 +869,12 @@ var CsdlMetadataParser = (function () {
 
             &#x2F;&#x2F; process complextypes before entity types.
             if (schema.complexType) {
-                toArray(schema.complexType).forEach(function (ct) {
+                __toArray(schema.complexType).forEach(function (ct) {
                     var complexType = parseCsdlComplexType(ct, schema, metadataStore);
                 });
             }
             if (schema.entityType) {
-                toArray(schema.entityType).forEach(function (et) {
+                __toArray(schema.entityType).forEach(function (et) {
                     var entityType = parseCsdlEntityType(et, schema, metadataStore);
 
                 });
@@ -937,14 +936,14 @@ var CsdlMetadataParser = (function () {
             });
         }
 
-        var keyNamesOnServer = csdlEntityType.key ? toArray(csdlEntityType.key.propertyRef).map(__pluck(&quot;name&quot;)) : [];
+        var keyNamesOnServer = csdlEntityType.key ? __toArray(csdlEntityType.key.propertyRef).map(__pluck(&quot;name&quot;)) : [];
         keyNamesOnServer = baseKeyNamesOnServer.concat(keyNamesOnServer);
 
-        toArray(csdlEntityType.property).forEach(function (prop) {
+        __toArray(csdlEntityType.property).forEach(function (prop) {
             parseCsdlDataProperty(entityType, prop, schema, keyNamesOnServer);
         });
 
-        toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
+        __toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
             parseCsdlNavProperty(entityType, prop, schema);
         });
 
@@ -970,7 +969,7 @@ var CsdlMetadataParser = (function () {
             namespace: ns
         });
 
-        toArray(csdlComplexType.property).forEach(function (prop) {
+        __toArray(csdlComplexType.property).forEach(function (prop) {
             parseCsdlDataProperty(complexType, prop, schema);
         });
 
@@ -1058,36 +1057,46 @@ var CsdlMetadataParser = (function () {
         var isScalar = !(toEnd.multiplicity === &quot;*&quot;);
         var dataType = parseTypeName(toEnd.type, schema).typeName;
         var fkNamesOnServer = [];
-        if (toEnd &amp;&amp; isScalar) {
-            var constraint = association.referentialConstraint;
-            if (constraint) {
-                var principal = constraint.principal;
-                var dependent = constraint.dependent;
-                var propRefs;
-                if (csdlProperty.fromRole === principal.role) {
-                    propRefs = toArray(principal.propertyRef);
-                } else {
-                    propRefs = toArray(dependent.propertyRef);
-                }
-                &#x2F;&#x2F; will be used later by np._update
-                fkNamesOnServer = propRefs.map(__pluck(&quot;name&quot;));
-            }
+        var constraint = association.referentialConstraint;
+        if (!constraint) {
+            &#x2F;&#x2F; TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
+            return;
+            &#x2F;&#x2F; Think about adding this back later.
+            &#x2F;&#x2F;if (association.end[0].multiplicity == &quot;*&quot; &amp;&amp; association.end[1].multiplicity == &quot;*&quot;) {
+            &#x2F;&#x2F;    &#x2F;&#x2F; many to many relation
+            &#x2F;&#x2F;    ???
+            &#x2F;&#x2F;} else {
+            &#x2F;&#x2F;    throw new Error(&quot;Foreign Key Associations must be turned on for this model&quot;);
+            &#x2F;&#x2F;}
         }
-        var np = new NavigationProperty({
+        
+        var cfg = {
             nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
             associationName: association.name,
-            foreignKeyNamesOnServer: fkNamesOnServer
-        });
-        entityType.addProperty(np);
+        };
 
+        var principal = constraint.principal;
+        var dependent = constraint.dependent;
+        var propRefs;
+        if (csdlProperty.fromRole === principal.role) {
+            propRefs = __toArray(principal.propertyRef);
+            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck(&quot;name&quot;));
+        } else {
+            propRefs = __toArray(dependent.propertyRef);
+            &#x2F;&#x2F; will be used later by np._update
+            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck(&quot;name&quot;));
+        }
+
+        var np = new NavigationProperty(cfg);
+        entityType.addProperty(np);
         return np;
     }
 
     function isEnumType(csdlProperty, schema) {
         if (!schema.enumType) return false;
-        var enumTypes = toArray(schema.enumType);
+        var enumTypes = __toArray(schema.enumType);
         var typeParts = csdlProperty.type.split(&quot;.&quot;);
         var baseTypeName = typeParts[typeParts.length - 1];
         return enumTypes.some(function (enumType) {
@@ -1204,15 +1213,7 @@ var CsdlMetadataParser = (function () {
         }
     }
 
-    function toArray(item) {
-        if (!item) {
-            return [];
-        } else if (Array.isArray(item)) {
-            return item;
-        } else {
-            return [item];
-        }
-    }
+    
 
     function getNamespaceFor(shortName, schema) {
         var ns;
@@ -1780,38 +1781,51 @@ var EntityType = (function () {
         return serverPropPath;
     };
 
-    proto._updateProperty = function (property) {
+    proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
-        var serverName = property.nameOnServer;
-        var clientName, testName;
-        if (serverName) {
-            clientName = nc.serverPropertyNameToClient(serverName, property);
-            testName = nc.clientPropertyNameToServer(clientName, property);
-            if (serverName !== testName) {
-                throw new Error(&quot;NamingConvention for this server property name does not roundtrip properly:&quot; + serverName + &quot;--&gt;&quot; + testName);
-            }
-            property.name = clientName;
-        } else {
-            if (!property.isUnmapped) {
-                clientName = property.name;
-                serverName = nc.clientPropertyNameToServer(clientName, property);
-                testName = nc.serverPropertyNameToClient(serverName, property);
-                if (clientName !== testName) {
-                    throw new Error(&quot;NamingConvention for this client property name does not roundtrip properly:&quot; + clientName + &quot;--&gt;&quot; + testName);
-                }
-                property.nameOnServer = serverName;
-            }
-        }
-            
-        
+        updateClientServerNames(nc, property, &quot;name&quot;)
+                   
         if (property.isNavigationProperty) {
-            &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
-            resolveFks(property);
-            &#x2F;&#x2F; these two will get set later via _updateNps
+            updateClientServerNames(nc, property, &quot;foreignKeyNames&quot;);
+            updateClientServerNames(nc, property, &quot;invForeignKeyNames&quot;);
+            
+            &#x2F;&#x2F; these will get set later via _updateNps
             &#x2F;&#x2F; this.inverse
             &#x2F;&#x2F; this.entityType
+            &#x2F;&#x2F; this.relatedDataProperties 
+            &#x2F;&#x2F;    dataProperty.relatedNavigationProperty
+            &#x2F;&#x2F;    dataProperty.inverseNavigationProperty
         }
     };
+
+    function updateClientServerNames(nc, parent, clientPropName) {
+        serverPropName = clientPropName + &quot;OnServer&quot;;
+        var clientName = parent[clientPropName];
+        if (clientName &amp;&amp; clientName.length) {
+            if (parent.isUnmapped) return;
+            var serverNames = __toArray(clientName).map(function (cName) {
+                var sName = nc.clientPropertyNameToServer(cName, parent);
+                var testName = nc.serverPropertyNameToClient(sName, parent);
+                if (cName !== testName) {
+                    throw new Error(&quot;NamingConvention for this client property name does not roundtrip properly:&quot; + cName + &quot;--&gt;&quot; + testName);
+                }
+                return sName;
+            });
+            parent[serverPropName] = Array.isArray(clientName) ? serverNames : serverNames[0];
+        } else {            
+            serverName = parent[serverPropName];
+            if ((!serverName) || serverName.length == 0) return;
+            var clientNames = __toArray(serverName).map(function (sName) {
+                var cName = nc.serverPropertyNameToClient(sName, parent);
+                var testName = nc.clientPropertyNameToServer(cName, parent);
+                if (sName !== testName) {
+                    throw new Error(&quot;NamingConvention for this server property name does not roundtrip properly:&quot; + sName + &quot;--&gt;&quot; + testName);
+                }
+                return cName;
+            });
+            parent[clientPropName] = Array.isArray(serverName) ? clientNames : clientNames[0];
+        } 
+    }
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
@@ -1902,6 +1916,7 @@ var EntityType = (function () {
         (incompleteMap[this.name] || []).forEach(function (np) {
             resolveNp(np, metadataStore);
         });
+
         delete incompleteMap[this.name];
     }
 
@@ -1909,7 +1924,7 @@ var EntityType = (function () {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
         if (!entityType) return false;
         np.entityType = entityType;
-        var invNps = entityType.navigationProperties.filter(function (altNp) {
+        var invNp = __arrayFirst(entityType.navigationProperties, function( altNp) {
             &#x2F;&#x2F; Can&#x27;t do this because of possibility of comparing a base class np with a subclass altNp.
             &#x2F;&#x2F;return altNp.associationName === np.associationName
             &#x2F;&#x2F;    &amp;&amp; altNp !== np;
@@ -1917,19 +1932,37 @@ var EntityType = (function () {
             return altNp.associationName === np.associationName
                 &amp;&amp; (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
         });
-        np.inverse = (invNps.length &gt; 0) ? invNps[0] : null;
+        np.inverse = invNp;
+        if (!invNp) {
+            &#x2F;&#x2F; unidirectional 1-n relationship
+            np.invForeignKeyNames.forEach(function (invFkName) {
+                var fkProp = entityType.getDataProperty(invFkName);
+                var invEntityType = np.parentType;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
+                    return np.invForeignKeyNames &amp;&amp; np.invForeignKeyNames.indexOf(fkProp.name) &gt;= 0;
+                });
+                entityType.foreignKeyProperties.push(fkProp);
+            });
+        }
+        
+        resolveRelated(np);
         return true;
     }
-   
-    function resolveFks(np) {
-        if (np.foreignKeyProperties) return;
-        var fkProps = getFkProps(np);
-        &#x2F;&#x2F; returns null if can&#x27;t yet finish
-        if (!fkProps) return;
+
+    &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
+    function resolveRelated(np) {
+
+        var fkNames = np.foreignKeyNames;
+        if (fkNames.length === 0) return;
+
+        var parentEntityType = np.parentType;
+        var fkProps = fkNames.map(function (fkName) {
+            return parentEntityType.getDataProperty(fkName);
+        });
+        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
             dp.relatedNavigationProperty = np;
-            np.parentType.foreignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -1938,36 +1971,7 @@ var EntityType = (function () {
         });
     };
 
-    &#x2F;&#x2F; returns null if can&#x27;t yet finish
-    function getFkProps(np) {
-        var fkNames = np.foreignKeyNames;
-        var isNameOnServer = fkNames.length == 0;
-        if (isNameOnServer) {
-            fkNames = np.foreignKeyNamesOnServer;
-            if (fkNames.length == 0) {
-                np.foreignKeyProperties = [];
-                return np.foreignKeyProperties;
-            }
-        }
-        var ok = true;
-        var parentEntityType = np.parentType;
-        var fkProps = fkNames.map(function (fkName) {
-            var fkProp = parentEntityType.getDataProperty(fkName, isNameOnServer);
-            ok = ok &amp;&amp; !!fkProp;
-            return fkProp;
-        });
-
-        if (ok) {
-            if (isNameOnServer) {
-                np.foreignKeyNames = fkProps.map(__pluck(&quot;name&quot;));
-            }
-            np.foreignKeyProperties = fkProps;
-            return fkProps;
-        } else {
-            return null;
-        }
-    }
-        
+   
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
@@ -2159,7 +2163,7 @@ var ComplexType = (function () {
     proto.getProperty = EntityType.prototype.getProperty;
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
     proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateProperty = EntityType.prototype._updateProperty;
+    proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
     &#x2F;&#x2F; note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
@@ -2434,6 +2438,7 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
+    
     return ctor;
 })();
   
@@ -2490,6 +2495,8 @@ var NavigationProperty = (function () {
             .whereParam(&quot;associationName&quot;).isString().isOptional()
             .whereParam(&quot;foreignKeyNames&quot;).isArray().isString().isOptional().withDefault([])
             .whereParam(&quot;foreignKeyNamesOnServer&quot;).isArray().isString().isOptional().withDefault([])
+            .whereParam(&quot;invForeignKeyNames&quot;).isArray().isString().isOptional().withDefault([])
+            .whereParam(&quot;invForeignKeyNamesOnServer&quot;).isArray().isString().isOptional().withDefault([])
             .whereParam(&quot;validators&quot;).isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
@@ -2601,7 +2608,8 @@ var NavigationProperty = (function () {
             isScalar: null,
             associationName: null,
             validators: null,
-            foreignKeyNames: null
+            foreignKeyNames: null,
+            invForeignKeyNames: null
         });
     };
 
@@ -2699,7 +2707,7 @@ function addProperties(entityType, propObj, ctor) {
 
     if (!propObj) return;
     if (Array.isArray(propObj)) {
-        propObj.forEach(entityType.addProperty);
+        propObj.forEach(entityType.addProperty.bind(entityType));
     } else if (typeof (propObj) === &#x27;object&#x27;) {
         for (var key in propObj) {
             if (__hasOwnProperty(propObj, key)) {
