@@ -140,7 +140,7 @@
         ok(ents.length === 1);
         var samePerson = ents[0];
         ok(samePerson.getProperty("id") === 1, "id should be 1");
-        ok(samePerson.entityAspect.getPropertyValue("address.street") === "Sample street", "street names should be the same");
+        ok(samePerson.entityAspect.getPropertyValue("address.street") === "Sample Street", "street names should be the same");
         
     });
 

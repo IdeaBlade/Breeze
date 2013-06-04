@@ -2047,38 +2047,6 @@ var EntityManager = (function () {
             }
         });
     }
-
-
-  
-    //function importPropertyWithRawValue(target, dp, rawVal) {
-    //    if (rawVal === undefined) return;
-    //    var val = parseRawValue(dp, rawVal);
-
-    //    if (dp.isComplexProperty) {
-    //        oldVal = target.getProperty(dp.name);
-    //        if (dp.isScalar) {
-    //            dp.dataType.dataProperties.forEach(function (cdp) {
-    //                 recursive call
-    //                cdp.complexType.dataProperties.forEach(function (dp, ix) {
-    //                    importPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
-    //                });
-    //            });
-    //        } else {
-    //             clear the old array and push new complex objects into it.
-    //            oldVal.length = 0;
-    //            val.forEach(function (rawCo) {
-    //                var newCo = dp.dataType._createInstanceCore(target, dp.name);
-    //                dp.dataType.dataProperties.forEach(function (cdp) {
-    //                     recursive call
-    //                    updatePropertyFromRawSource(newCo, cdp, rawCo);
-    //                });
-    //                oldVal.push(newCo);
-    //            });
-    //        }
-    //    } else {
-    //        target.setProperty(dp.name, val);
-    //    }
-    //}
    
     // target and source will be either entities or complex types
     function updatePropertyFromRawSource(target, dp, rawSource, isClient) {
