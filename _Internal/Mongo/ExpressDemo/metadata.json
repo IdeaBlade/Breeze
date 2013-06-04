@@ -1,5 +1,5 @@
 {
-   "metadataVersion":"1.0.4",
+
    "namingConvention":"camelCase",
    "localQueryComparisonOptions":"caseInsensitiveSQL",
    "dataServices":[

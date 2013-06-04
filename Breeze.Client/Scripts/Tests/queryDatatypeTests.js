@@ -34,6 +34,10 @@
     //});
 
     test("Query Involving Multiple Entities on Server", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - server side interception methods have not yet been implemented.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("QueryInvolvingMultipleEntities");
 

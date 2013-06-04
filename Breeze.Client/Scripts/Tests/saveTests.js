@@ -33,6 +33,10 @@
     });
 
     test("entities modified on server being saved as new entities", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - server side interceptors have not yet been written.");
+            return;
+        }
         var em = newEm();
 
         var q = EntityQuery.from("Categories").where("categoryName", "startsWith", "Beverage");
@@ -1214,6 +1218,11 @@
             ok(true, "Skipped test - OData does not support server side key generator (except identity)");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - expand is not YET supported.");
+            return;
+        }
 
         var em = newEm();
         var em2 = newEm();
