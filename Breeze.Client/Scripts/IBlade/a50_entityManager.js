@@ -1520,15 +1520,14 @@ var EntityManager = (function () {
             var value = so.getProperty(dpName);
             if (value && value.complexType) {
                 var newValue;
+                var coDps = dp.dataType.dataProperties;
                 if (Array.isArray(value)) {
                     if (value.length == 0) {
                         result[dpName] = [];
                     } else {
-                        var coDps = value[0].complexType.dataProperties;
                         result[dpName] = value.map(function (v) { return structuralObjectToJson(v, coDps); });
                     }
                 } else {
-                    var coDps = value.complexType.dataProperties;
                     result[dpName] = structuralObjectToJson(value, coDps);
                 }
                 
@@ -1550,9 +1549,11 @@ var EntityManager = (function () {
             result.entityAspect = newAspect;
         } else {
             aspect = so.complexAspect;
-            newAspect = {
-                originalValuesMap: aspect.originalValues
+            newAspect = {};
+            if ( aspect.originalValues && !__isEmpty(aspect.originalValues)) {
+                newAspect.originalValuesMap = aspect.originalValues;
             }
+            
             result.complexAspect = newAspect;
         }
         
@@ -2047,6 +2048,14 @@ var EntityManager = (function () {
             // recursive call
             updateTargetPropertyFromRaw(target, raw, dp, isClient);
         });
+        if (isClient) {
+            // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
+            var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
+            var originalValues = raw[aspectName].originalValuesMap;
+            if (originalValues) {
+                target[aspectName].originalValues = originalValues;
+            }
+        }
     }
 
     // target and source will be either entities or complex types
@@ -2061,7 +2070,7 @@ var EntityManager = (function () {
             oldVal = target.getProperty(dp.name);
             var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                updateTargetFromRaw(oldVal, val, cdataProps, isClient)
+                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
@@ -2075,8 +2084,6 @@ var EntityManager = (function () {
             target.setProperty(dp.name, val);
         }
     }
-
-    
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
         fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
@@ -2428,6 +2435,4 @@ var EntityManager = (function () {
    
 // expose
 breeze.EntityManager = EntityManager;
-
-
 
