@@ -80,7 +80,7 @@ namespace Sample_WebApi.Controllers {
             foreach (var entityInfo in saveMap[type]) {
               if (entityInfo.EntityState == EntityState.Modified) {
                 Category category = (entityInfo.Entity as Category);
-                var products = this.Context.Set<Product>().Where(p => p.CategoryID == category.CategoryID);
+                var products = this.Context.Products.Where(p => p.CategoryID == category.CategoryID);
                 foreach (var product in products) {
                   if (!saveMapAdditions.ContainsKey(typeof(Product)))
                     saveMapAdditions[typeof(Product)] = new List<EntityInfo>();
