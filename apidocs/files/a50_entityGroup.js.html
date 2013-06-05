@@ -210,6 +210,7 @@ var EntityGroup = (function () {
         ix = this._indexMap[keyInGroup];
         if (ix &gt;= 0) {
             if (this._entities[ix] === entity) {
+                aspect.entityState = entityState;
                 return entity;
             }
             throw new Error(&quot;This key is already attached: &quot; + aspect.getKey());

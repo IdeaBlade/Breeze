@@ -400,6 +400,8 @@ namespace Breeze.WebApi {
     }
 
     private ObjectStateEntry AddObjectStateEntry( EFEntityInfo entityInfo) {
+      var ose = GetObjectStateEntry(entityInfo.Entity, false);
+      if (ose != null) return ose;
       ObjectContext.AddObject(entityInfo.EntitySetName, entityInfo.Entity);
       // Attach has lots of side effect - add has far fewer.
       return GetObjectStateEntry(entityInfo);
@@ -415,10 +417,12 @@ namespace Breeze.WebApi {
       return GetObjectStateEntry(entityInfo.Entity);
     }
 
-    private ObjectStateEntry GetObjectStateEntry(Object entity) {
+    private ObjectStateEntry GetObjectStateEntry(Object entity, bool errorIfNotFound = true) {
       ObjectStateEntry entry;
       if (!ObjectContext.ObjectStateManager.TryGetObjectStateEntry(entity, out entry)) {
-        throw new Exception("unable to add to context: " + entity);
+        if (errorIfNotFound) {
+          throw new Exception("unable to add to context: " + entity);
+        }
       }
       return entry;
     }

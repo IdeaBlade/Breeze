@@ -45,7 +45,11 @@
         em.executeQuery(q).then(function (data) {
             ok(true);
         }).fail(function (error) {
-            ok(error.message.indexOf("No HTTP resource was found") >= 0);
+            if (testFns.DEBUG_MONGO) {
+                ok(error.message.indexOf("Unable to locate") >= 0, "Bad error message");
+            } else {
+                ok(error.message.indexOf("No HTTP resource was found") >= 0, "Bad error message");
+            }
         }).fin(start);
     });
 

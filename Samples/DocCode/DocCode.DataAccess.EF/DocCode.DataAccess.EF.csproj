@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi, Version=1.2.8.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
+    <Reference Include="Breeze.WebApi">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\Breeze.WebApi.dll</HintPath>
     </Reference>
@@ -79,10 +79,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
-    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" GOTO breezeExists
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" GOTO breezeSourceExists
 echo Source breeze.webapi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\' and was not copied
 GOTO :done
-:breezeExists
+:breezeSourceExists
 echo Copying breeze.webapi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\' to $(ProjectDir)
 COPY "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" "$(ProjectDir)" /Y
  :done

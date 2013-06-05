@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.4",
+        version: "1.3.5",
         metadataVersion: "1.0.5"
     };
 
@@ -7852,7 +7852,7 @@ function addProperties(entityType, propObj, ctor) {
 
     if (!propObj) return;
     if (Array.isArray(propObj)) {
-        propObj.forEach(entityType.addProperty);
+        propObj.forEach(entityType.addProperty.bind(entityType));
     } else if (typeof (propObj) === 'object') {
         for (var key in propObj) {
             if (__hasOwnProperty(propObj, key)) {
@@ -7938,6 +7938,10 @@ var KeyGenerator = (function () {
             var dataType = keyProp.dataType;
             if (dataType.getNext) {
                 nextId = dataType.getNext(this);
+                // need to watch out for collision with previously imported ids that might also get generated.
+                while (propEntry.keyMap[nextId.toString()] != null) {
+                    nextId = dataType.getNext(this);
+                }
             } else {
                 throw new Error("Cannot use a property with a dataType of: " + dataType.toString() + " for id generation");
             }
@@ -12269,30 +12273,67 @@ var EntityManager = (function () {
     function exportEntityGroup(entityGroup, tempKeys) {
         var resultGroup = {};
         var entityType = entityGroup.entityType;
-        var dpNames = entityType.dataProperties.map(__pluck("name"));
-        resultGroup.dataPropertyNames = dpNames;
+        var dps = entityType.dataProperties;
+        
         var rawEntities = [];
-        entityGroup._entities.forEach(function (e) {
-            if (e) {
-                var rawEntity = [];
-                dpNames.forEach(function(dpName) {
-                    rawEntity.push(e.getProperty(dpName));
-                });
-                var aspect = e.entityAspect;
-                var entityState = aspect.entityState;
-                var newAspect = {
-                    tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
-                    entityState: entityState.name
-                };
-                if (entityState.isModified() || entityState.isDeleted()) {
-                    newAspect.originalValuesMap = aspect.originalValues;
-                }
-                rawEntity.push(newAspect);
+        entityGroup._entities.forEach(function (entity) {
+            if (entity) {
+                var rawEntity = structuralObjectToJson(entity, dps, tempKeys);
                 rawEntities.push(rawEntity);
             }
         });
         resultGroup.entities = rawEntities;
         return resultGroup;
+    }
+
+    function structuralObjectToJson(so, dps, tempKeys) {
+        
+        var result = {};
+        
+        dps.forEach(function (dp) {
+            var dpName = dp.name;
+            var value = so.getProperty(dpName);
+            if (value == null && dp.defaultValue == null) return;
+            if (value && value.complexType) {
+                var newValue;
+                var coDps = dp.dataType.dataProperties;
+                if (Array.isArray(value)) {
+                    if (value.length == 0) {
+                        result[dpName] = [];
+                    } else {
+                        result[dpName] = value.map(function (v) { return structuralObjectToJson(v, coDps); });
+                    }
+                } else {
+                    result[dpName] = structuralObjectToJson(value, coDps);
+                }
+                
+            } else {
+                result[dpName] = value;
+            }
+        });
+        var aspect, newAspect;
+        if (so.entityAspect) {
+            aspect = so.entityAspect;
+            var entityState = aspect.entityState;
+            newAspect = {
+                tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
+                entityState: entityState.name
+            };
+            if (entityState.isModified() || entityState.isDeleted()) {
+                newAspect.originalValuesMap = aspect.originalValues;
+            }
+            result.entityAspect = newAspect;
+        } else {
+            aspect = so.complexAspect;
+            newAspect = {};
+            if ( aspect.originalValues && !__isEmpty(aspect.originalValues)) {
+                newAspect.originalValuesMap = aspect.originalValues;
+            }
+            
+            result.complexAspect = newAspect;
+        }
+        
+        return result;
     }
 
     function exportTempKeyInfo(entityAspect, tempKeys) {
@@ -12322,19 +12363,15 @@ var EntityManager = (function () {
         var entityType = entityGroup.entityType;
         var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
         var targetEntity = null;
-        var dpNames = jsonGroup.dataPropertyNames;
-        var dataProperties = dpNames.map(function(dpName) {
-            return entityType.getProperty(dpName);
-        });
-        var keyIxs = entityType.keyProperties.map(function (kp) {
-            return dpNames.indexOf(kp.name);
-        });
-        var lastIx = dpNames.length;
+
+        var dataProps = entityType.dataProperties;
+        var keyProps = entityType.keyProperties;
+        
         var entityChanged = entityGroup.entityManager.entityChanged;
         jsonGroup.entities.forEach(function (rawEntity) {
-            var newAspect = rawEntity[lastIx];
-            var keyValues = keyIxs.map(function (ix) { return rawEntity[ix]; });
-            var entityKey = new EntityKey(entityType, keyValues);
+            var newAspect = rawEntity.entityAspect;
+            
+            var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
             var entityState = EntityState.fromName(newAspect.entityState);
             var newTempKeyValue;
             if (entityState.isAdded()) {
@@ -12348,9 +12385,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    dataProperties.forEach(function (dp, ix) {
-                        setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
-                    });
+                    updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -12366,9 +12401,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
-                dataProperties.forEach(function (dp, ix) {
-                    setPropertyWithRawValue(targetEntity, dp, rawEntity[ix]);
-                });
+                updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKeyValue !== undefined) {
                     // fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
@@ -12688,7 +12721,7 @@ var EntityManager = (function () {
         var isSaving = mappingContext.query == null;
 
             
-        var entityKey = getEntityKeyFromRawEntity(node, entityType);
+        var entityKey = getEntityKeyFromRawEntity(node, entityType, false);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -12775,9 +12808,7 @@ var EntityManager = (function () {
         updateEntityRef(mappingContext, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
             
-        entityType.dataProperties.forEach(function (dp) {
-            updatePropertyFromRawSource(targetEntity, dp, rawEntity);
-        });
+        updateTargetFromRaw(targetEntity, rawEntity, entityType.dataProperties, false);
 
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
@@ -12787,51 +12818,63 @@ var EntityManager = (function () {
             }
         });
     }
-
-
-    function getEntityKeyFromRawEntity(rawEntity, entityType) {
-        var keyValues = entityType.keyProperties.map(function (p) {
-            return parseRawValue(p, getPropertyFromRawEntity(rawEntity, p));
+   
+    function updateTargetFromRaw(target, raw, dataProps, isClient) {
+        dataProps.forEach(function (dp) {
+            // recursive call
+            updateTargetPropertyFromRaw(target, raw, dp, isClient);
         });
-        return new EntityKey(entityType, keyValues);
-    }
-
-    function getPropertyFromRawEntity(rawEntity, dp) {
-        return rawEntity[ dp.nameOnServer || dp.isUnmapped && dp.name];
+        if (isClient) {
+            // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
+            var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
+            var originalValues = raw[aspectName].originalValuesMap;
+            if (originalValues) {
+                target[aspectName].originalValues = originalValues;
+            }
+        }
     }
 
     // target and source will be either entities or complex types
-    function updatePropertyFromRawSource(target, dp, rawSource) {
-        var rawVal = getPropertyFromRawEntity(rawSource, dp);
-        setPropertyWithRawValue(target, dp, rawVal)
-    }
-   
-    function setPropertyWithRawValue(target, dp, rawVal) {
+    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
+        
+        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
         var val = parseRawValue(dp, rawVal);
         
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
+            var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                dp.dataType.dataProperties.forEach(function (cdp) {
-                    // recursive call
-                    updatePropertyFromRawSource(oldVal, cdp, val);
-                });
+                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 val.forEach(function (rawCo) {
                     var newCo = dp.dataType._createInstanceCore(target, dp.name);
-                    dp.dataType.dataProperties.forEach(function (cdp) {
-                        // recursive call
-                        updatePropertyFromRawSource(newCo, cdp, rawCo);
-                    });
+                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
         } else {
             target.setProperty(dp.name, val);
         }
+    }
+
+    function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
+        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var keyValues = entityType.keyProperties.map(function (dp) {
+            return parseRawValue(dp, fn(rawEntity, dp));
+        });
+        return new EntityKey(entityType, keyValues);
+    }
+
+    function getPropertyFromClientRaw(rawEntity, dp) {
+        return rawEntity[dp.name];
+    }
+
+    function getPropertyFromServerRaw(rawEntity, dp) {
+        return rawEntity[dp.nameOnServer || dp.isUnmapped && dp.name];
     }
 
     function parseRawValue(dp, val) {
@@ -13168,8 +13211,6 @@ var EntityManager = (function () {
    
 // expose
 breeze.EntityManager = EntityManager;
-
-
 
 /**
 @module breeze
