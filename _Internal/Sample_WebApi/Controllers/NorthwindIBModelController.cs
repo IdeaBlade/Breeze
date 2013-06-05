@@ -412,12 +412,16 @@ namespace Sample_WebApi.Controllers {
         // Need to handle this specially for NH, to prevent $top being applied to Orders
         var query = ContextProvider.Context.Customers;
         var queryHelper = new NHQueryHelper();
+
+        // apply the $filter, $skip, $top to the query
         var query2 = queryHelper.ApplyQuery(query, options);
 
+        // execute query, then expand the Orders
         var r = query2.Cast<Customer>().ToList();
         NHInitializer.InitializeList(r, "Orders");
-        var stuff = r.AsQueryable().Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
 
+        // after all is loaded, create the projection
+        var stuff = r.AsQueryable().Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
         queryHelper.ConfigureFormatter(Request, query);
 #else
     public IQueryable<Object> CompanyInfoAndOrders() {
