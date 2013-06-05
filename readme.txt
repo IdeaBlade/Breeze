@@ -24,4 +24,4 @@ WebApi/Breeze.webApi.dll for building backend services with an ASP Web API. The 
 Please visit the
 [Breezejs download](http://www.breezejs.com/documentation/download) page for more information about this package.
 
-Copyright 2012 IdeaBlade, Inc.
+Copyright 2013 IdeaBlade, Inc.

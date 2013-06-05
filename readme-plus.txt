@@ -24,4 +24,4 @@ WebApi/Breeze.webApi.dll and WebApi/Irony.dll for building backend services with
 Please visit the
 [Breezejs download](http://www.breezejs.com/documentation/download) page for more information about this package.
 
-Copyright 2012 IdeaBlade, Inc.
+Copyright 2013 IdeaBlade, Inc.
